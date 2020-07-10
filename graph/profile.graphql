@@ -1,0 +1,204 @@
+scalar Date
+scalar Markdown
+scalar Decimal
+
+"""
+PractitionerCadre is a list of health worker cadres.
+"""
+enum PractitionerCadre {
+  DOCTOR
+  CLINICAL_OFFICER
+  NURSE
+}
+
+"""
+FivePointRating is used to implement 
+"""
+enum FivePointRating {
+  POOR
+  UNSATISFACTORY
+  AVERAGE
+  SATISFACTORY
+  EXCELLENT
+}
+
+"""
+Gender is a code system for administrative gender.
+
+See: https://www.hl7.org/fhir/valueset-administrative-gender.html
+"""
+enum Gender {
+  male
+  female
+  other
+  unknown
+}
+
+"""
+PractitionerSpecialties is a list of recognised health worker specialties.
+
+See: https://medicalboard.co.ke/resources_page/gazetted-specialties/
+"""
+enum PractitionerSpecialty {
+  UNSPECIFIED
+  ANAESTHESIA
+  CARDIOTHORACIC_SURGERY
+  CLINICAL_MEDICAL_GENETICS
+  CLINCICAL_PATHOLOGY
+  GENERAL_PATHOLOGY
+  ANATOMIC_PATHOLOGY
+  CLINICAL_ONCOLOGY
+  DERMATOLOGY
+  EAR_NOSE_AND_THROAT
+  EMERGENCY_MEDICINE
+  FAMILY_MEDICINE
+  GENERAL_SURGERY
+  GERIATRICS
+  IMMUNOLOGY
+  INFECTIOUS_DISEASE
+  INTERNAL_MEDICINE
+  MICROBIOLOGY
+  NEUROSURGERY
+  OBSTETRICS_AND_GYNAECOLOGY
+  OCCUPATIONAL_MEDICINE
+  OPTHALMOLOGY
+  ORTHOPAEDIC_SURGERY
+  ONCOLOGY
+  ONCOLOGY_RADIOTHERAPY
+  PAEDIATRICS_AND_CHILD_HEALTH
+  PALLIATIVE_MEDICINE
+  PLASTIC_AND_RECONSTRUCTIVE_SURGERY
+  PSYCHIATRY
+  PUBLIC_HEALTH
+  RADIOLOGY
+  UROLOGY
+}
+
+"""
+PractitionerSignupInput is used to sign up practitioners.
+
+The `uid` is obtained from the logged in user.
+"""
+input PractitionerSignupInput {
+  license: String!
+  cadre: PractitionerCadre!
+  specialty: PractitionerSpecialty!
+}
+
+"""
+Practitioner is used to serialize practitioner details.
+"""
+type Practitioner {
+  profile: UserProfile!
+  license: String!
+  cadre: PractitionerCadre!
+  specialty: PractitionerSpecialty!
+  professionalProfile: Markdown!
+  averageConsultationPrice: Float!
+}
+
+"""
+PractitionerEdge is used to represent practitioners in Relay type lists.
+"""
+type PractitionerEdge {
+  cursor: String
+  node: Practitioner
+}
+
+"""
+PractitionerConnection is used to return lists of practitioners.
+"""
+type PractitionerConnection {
+  edges: [PractitionerEdge]
+  pageInfo: PageInfo!
+}
+
+"""
+Cover is used to serialize and store a user's insurance details.
+"""
+type Cover {
+  payerName: String!
+  payerSladeCode: Int!
+  memberNumber: String!
+  memberName: String!
+}
+
+"""
+UserProfile serializes the profile of the logged in user.
+"""
+type UserProfile {
+  uid: String!
+  isApproved: Boolean!
+  termsAccepted: Boolean!
+  msisdns: [String!]!
+  emails: [String!]!
+  photoBase64: String!
+  photoContentType: ContentType!
+  pushTokens: [String!]!
+  covers: [Cover!]!
+
+  # optional fields
+  dateOfBirth: Date
+  gender: Gender
+  patientID: String
+}
+
+"""
+UserProfileInput is used to create or update a user's profile.
+"""
+input UserProfileInput {
+  photoBase64: String!
+  photoContentType: ContentType!
+  msisdns: [UserProfilePhone!]!
+  emails: [String!]!
+  pushTokens: [String]
+
+  # optional fields
+  dateOfBirth: Date
+  gender: Gender
+}
+
+"""
+UserProfilePhone is used to input a user's phone and the corresponding OTP
+confirmation code.
+"""
+input UserProfilePhone {
+  phone: String!
+  otp: String!
+}
+
+"""
+PostVisitSurveyInput is used to send the results of post-visit surveys to the
+server.
+"""
+input PostVisitSurveyInput {
+  rating: FivePointRating!
+  timestamp: Time!
+  comment: String!
+}
+
+"""
+BiodataInput is used to update a user's bio-data.
+"""
+input BiodataInput {
+  dateOfBirth: Date!
+  gender: Gender!
+}
+
+extend type Query {
+    getPresence: Boolean!
+    userProfile: UserProfile!
+    healthcashBalance: Decimal!
+}
+
+extend type Mutation {
+    setPresence(presence:Boolean!): Boolean!
+    confirmEmail(email: String!): UserProfile!
+    acceptTermsAndConditions(accept: Boolean!): Boolean!
+    updateUserProfile(input: UserProfileInput!): UserProfile!
+    practitionerSignUp(input: PractitionerSignupInput!): Boolean!
+    updateBiodata(input: BiodataInput!): UserProfile!
+    registerPushToken(token: String!): Boolean!
+    completeSignup: Decimal!
+    recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
+}

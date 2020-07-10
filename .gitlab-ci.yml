@@ -1,0 +1,105 @@
+image: eu.gcr.io/savannah-emr/golang-ci-image:0.0.2
+
+stages:
+  - test
+  - deploy
+
+variables:
+  GOOGLE_APPLICATION_CREDENTIALS: $CI_PROJECT_DIR/bewell-app-ci.json
+
+services:
+  - name: docker:dind
+    entrypoint: ["env", "-u", "DOCKER_HOST"]
+    command: ["dockerd-entrypoint.sh"]
+
+lint_and_test:
+  stage: test
+  before_script:
+    - bash decrypt_service_account.sh
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
+  script:
+    - staticcheck ./...
+    - go fmt $(go list ./... | grep -v /vendor/)
+    - go vet $(go list ./... | grep -v /vendor/)
+    - golint -set_exit_status $(go list ./... | grep -v /vendor/)
+    - errcheck $(go list ./... | grep -v /vendor/)
+    - gosec ./...
+    - go-acc -o coverage.txt --ignore generated,cmd ./...
+    - grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*resolver*go" | grep -v "server.go" > coverage.out
+    - go tool cover -html=coverage.out -o coverage.html
+    - gocov convert coverage.out > coverage.json
+    - gocov report coverage.json > coverage_report.txt
+    - tail coverage_report.txt
+  artifacts:
+    untracked: true
+    paths:
+      - $CI_PROJECT_DIR/coverage.txt
+      - $CI_PROJECT_DIR/coverage.json
+      - $CI_PROJECT_DIR/coverage.html
+      - $CI_PROJECT_DIR/coverage_report.txt
+  tags:
+    - healthcloud-multi
+
+deploy_develop_to_staging:
+  before_script:
+    - apk add --update --no-cache curl py-pip
+    - apk add --update make ca-certificates openssl 
+    - update-ca-certificates
+    # Download and install Google Cloud SDK
+    - wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
+    - source  $CI_PROJECT_DIR/gcloud.sh
+    - tar zxvf google-cloud-sdk.tar.gz && ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
+    # Instead of writing our GCP service account private key into a file, supply it as env variable
+    - google-cloud-sdk/bin/gcloud auth activate-service-account --key-file $GCLOUD_STAGING_SERVICE_ACCOUNT
+    - google-cloud-sdk/bin/gcloud config set project bewell-app-testing
+    - docker login -u _json_key --password-stdin https://eu.gcr.io < $GCLOUD_STAGING_SERVICE_ACCOUNT
+    - export CLOUDSDK_CORE_PROJECT=bewell-app-testing
+  image: docker:dind
+  stage: deploy
+  only:
+    - develop
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  resource_group: staging  # control deploy concurrency
+  script:
+    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app-testing/profile:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - google-cloud-sdk/bin/gcloud auth configure-docker
+    - docker -- push eu.gcr.io/bewell-app-testing/profile:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - google-cloud-sdk/bin/gcloud run deploy profile --image eu.gcr.io/bewell-app-testing/profile:$(echo $CI_COMMIT_SHA | cut -c1-8) --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars "GOOGLE_CLOUD_PROJECT=$STAGING_GOOGLE_CLOUD_PROJECT,FIREBASE_WEB_API_KEY=$STAGING_FIREBASE_WEB_API_KEY,MAILGUN_API_KEY=$MAILGUN_API_KEY,MAILGUN_API_BASE_URL=$MAILGUN_API_BASE_URL,MAILGUN_DOMAIN=$MAILGUN_DOMAIN,MAILGUN_FROM=$MAILGUN_FROM,AIT_API_KEY=$PROD_AIT_API_KEY,AIT_USERNAME=$PROD_AIT_USERNAME,AIT_SENDER_ID=$PROD_AIT_SENDER_ID,AIT_ENVIRONMENT=$PROD_AIT_ENVIRONMENT"
+    - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile --quiet
+  tags:
+    - healthcloud-multi
+
+deploy_master_to_prod:
+  before_script:
+    - apk add --update --no-cache curl py-pip
+    - apk add --update make ca-certificates openssl 
+    - update-ca-certificates
+    # Download and install Google Cloud SDK
+    - wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
+    - source  $CI_PROJECT_DIR/gcloud.sh
+    - tar zxvf google-cloud-sdk.tar.gz && ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
+    # Instead of writing our GCP service account private key into a file, supply it as env variable
+    - google-cloud-sdk/bin/gcloud auth activate-service-account --key-file $GCLOUD_PRODUCTION_SERVICE_ACCOUNT
+    - google-cloud-sdk/bin/gcloud config set project bewell-app
+    - docker login -u _json_key --password-stdin https://eu.gcr.io < $GCLOUD_PRODUCTION_SERVICE_ACCOUNT
+    - export CLOUDSDK_CORE_PROJECT=bewell-app
+  image: docker:dind
+  stage: deploy
+  only:
+    - master
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  resource_group: staging  # control deploy concurrency
+  script:
+    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app/profile:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - google-cloud-sdk/bin/gcloud auth configure-docker
+    - docker -- push eu.gcr.io/bewell-app/profile:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - google-cloud-sdk/bin/gcloud run deploy profile --image eu.gcr.io/bewell-app/profile:$(echo $CI_COMMIT_SHA | cut -c1-8) --region europe-west1 --platform managed --allow-unauthenticated  --update-env-vars "GOOGLE_CLOUD_PROJECT=$PROD_GOOGLE_CLOUD_PROJECT,FIREBASE_WEB_API_KEY=$PROD_FIREBASE_WEB_API_KEY,MAILGUN_API_KEY=$MAILGUN_API_KEY,MAILGUN_API_BASE_URL=$MAILGUN_API_BASE_URL,MAILGUN_DOMAIN=$MAILGUN_DOMAIN,MAILGUN_FROM=$MAILGUN_FROM,AIT_API_KEY=$PROD_AIT_API_KEY,AIT_USERNAME=$PROD_AIT_USERNAME,AIT_SENDER_ID=$PROD_AIT_SENDER_ID,AIT_ENVIRONMENT=$PROD_AIT_ENVIRONMENT"
+    - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile --quiet
+  tags:
+    - healthcloud-multi
