@@ -14,7 +14,6 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.0.1
-	gitlab.slade360emr.com/go/accounting v0.0.4
 	gitlab.slade360emr.com/go/authorization v0.0.3
 	gitlab.slade360emr.com/go/base v0.0.13
 	gitlab.slade360emr.com/go/mailgun v0.0.1

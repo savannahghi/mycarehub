@@ -13,9 +13,9 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"gitlab.slade360emr.com/go/accounting/graph"
-	"gitlab.slade360emr.com/go/accounting/graph/generated"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/graph"
+	"gitlab.slade360emr.com/go/profile/graph/generated"
 )
 
 const serverTimeoutSeconds = 120
@@ -26,10 +26,10 @@ var allowedOrigins = []string{
 	"http://localhost:5000",
 	"https://api-gateway-test.healthcloud.co.ke",
 	"https://api-gateway-prod.healthcloud.co.ke",
-	"https://accounting-lermby4k3q-ew.a.run.app",
+	"https://profile-lermby4k3q-ew.a.run.app",
 }
 var allowedHeaders = []string{
-	"accounting", "Accept", "Accept-Charset", "Accept-Language",
+	"Authorization", "Accept", "Accept-Charset", "Accept-Language",
 	"Accept-Encoding", "Origin", "Host", "User-Agent", "Content-Length",
 	"Content-Type",
 }
