@@ -9,12 +9,12 @@ import (
 // Practitioner is used to serialize practitioner profile details.
 // These details are in addition to the user profile that all users get.
 type Practitioner struct {
-	Profile                  UserProfile           `json:"profile" firestore:"profile"`
-	License                  string                `json:"license"`
-	Cadre                    PractitionerCadre     `json:"cadre"`
-	Specialty                PractitionerSpecialty `json:"specialty"`
-	ProfessionalProfile      base.Markdown         `json:"professionalProfile"`
-	AverageConsultationPrice float64               `json:"averageConsultationPrice"`
+	Profile                  UserProfile                `json:"profile" firestore:"profile"`
+	License                  string                     `json:"license"`
+	Cadre                    PractitionerCadre          `json:"cadre"`
+	Specialty                base.PractitionerSpecialty `json:"specialty"`
+	ProfessionalProfile      base.Markdown              `json:"professionalProfile"`
+	AverageConsultationPrice float64                    `json:"averageConsultationPrice"`
 }
 
 // PractitionerConnection is used to return lists of practitioners.
@@ -33,9 +33,9 @@ type PractitionerEdge struct {
 //
 // The `uid` is obtained from the logged in user.
 type PractitionerSignupInput struct {
-	License   string                `json:"license"`
-	Cadre     PractitionerCadre     `json:"cadre"`
-	Specialty PractitionerSpecialty `json:"specialty"`
+	License   string                     `json:"license"`
+	Cadre     PractitionerCadre          `json:"cadre"`
+	Specialty base.PractitionerSpecialty `json:"specialty"`
 }
 
 // Cover is used to save a user's insurance details.

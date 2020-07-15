@@ -128,7 +128,7 @@ func TestService_profileUpdates(t *testing.T) {
 				practitionerSignupInput := PractitionerSignupInput{
 					License:   "fake license",
 					Cadre:     PractitionerCadreDoctor,
-					Specialty: PractitionerSpecialtyAnaesthesia,
+					Specialty: base.PractitionerSpecialtyAnaesthesia,
 				}
 				signedUp, err := s.PractitionerSignUp(
 					tt.args.ctx, practitionerSignupInput)
@@ -541,7 +541,7 @@ func TestService_PractitionerSignUp(t *testing.T) {
 	practitionerSignupInput := PractitionerSignupInput{
 		License:   "fake license",
 		Cadre:     PractitionerCadreDoctor,
-		Specialty: PractitionerSpecialtyAnaesthesia,
+		Specialty: base.PractitionerSpecialtyAnaesthesia,
 	}
 	tests := []struct {
 		name    string

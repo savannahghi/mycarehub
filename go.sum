@@ -404,8 +404,8 @@ gitlab.slade360emr.com/go/base v0.0.10/go.mod h1:6Yas1u8kkO9dhwyY8XoJbp+6bInJ00z
 gitlab.slade360emr.com/go/base v0.0.11/go.mod h1:6Yas1u8kkO9dhwyY8XoJbp+6bInJ00zx+YTgMuQl5NQ=
 gitlab.slade360emr.com/go/base v0.0.13 h1:yn9Q9CX76BIHen4IgSC6K4EtEZ7qc4lgD3eKh2PSAzQ=
 gitlab.slade360emr.com/go/base v0.0.13/go.mod h1:iiF4+VtAQdmy2UQPfIDABQwH+Vp0LePIC9WBKMPQHHQ=
-gitlab.slade360emr.com/go/base v0.0.15 h1:pejXC7JChRr0TnpTHXbo72YEULaNBZ3S7iYBfDiw3qM=
-gitlab.slade360emr.com/go/base v0.0.15/go.mod h1:FUCvEMdF8owK02clzfFVvQeSEX1VaNMvHCs/gbFIN8E=
+gitlab.slade360emr.com/go/base v0.0.16 h1:UDfa5y8MTWkpuMMKLvH1fnWpTDlGj1zSuP651/5Bo7A=
+gitlab.slade360emr.com/go/base v0.0.16/go.mod h1:FUCvEMdF8owK02clzfFVvQeSEX1VaNMvHCs/gbFIN8E=
 gitlab.slade360emr.com/go/chargemaster v0.0.1/go.mod h1:fyC+QV2tquqnmE1/J/twuc43j7G5vxcXf4hH5L2pEeI=
 gitlab.slade360emr.com/go/chargemaster v0.0.2 h1:elVn809a+8icWNNy2LW5z0DcRXHGPW77eUnEsT3gB/M=
 gitlab.slade360emr.com/go/chargemaster v0.0.2/go.mod h1:iFKtDnVriC7/2j98c1zbfykgghn3PvDpJMiuaq24mJY=

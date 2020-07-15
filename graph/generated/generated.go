@@ -576,46 +576,6 @@ enum Gender {
 }
 
 """
-PractitionerSpecialties is a list of recognised health worker specialties.
-
-See: https://medicalboard.co.ke/resources_page/gazetted-specialties/
-"""
-enum PractitionerSpecialty {
-  UNSPECIFIED
-  ANAESTHESIA
-  CARDIOTHORACIC_SURGERY
-  CLINICAL_MEDICAL_GENETICS
-  CLINCICAL_PATHOLOGY
-  GENERAL_PATHOLOGY
-  ANATOMIC_PATHOLOGY
-  CLINICAL_ONCOLOGY
-  DERMATOLOGY
-  EAR_NOSE_AND_THROAT
-  EMERGENCY_MEDICINE
-  FAMILY_MEDICINE
-  GENERAL_SURGERY
-  GERIATRICS
-  IMMUNOLOGY
-  INFECTIOUS_DISEASE
-  INTERNAL_MEDICINE
-  MICROBIOLOGY
-  NEUROSURGERY
-  OBSTETRICS_AND_GYNAECOLOGY
-  OCCUPATIONAL_MEDICINE
-  OPTHALMOLOGY
-  ORTHOPAEDIC_SURGERY
-  ONCOLOGY
-  ONCOLOGY_RADIOTHERAPY
-  PAEDIATRICS_AND_CHILD_HEALTH
-  PALLIATIVE_MEDICINE
-  PLASTIC_AND_RECONSTRUCTIVE_SURGERY
-  PSYCHIATRY
-  PUBLIC_HEALTH
-  RADIOLOGY
-  UROLOGY
-}
-
-"""
 PractitionerSignupInput is used to sign up practitioners.
 
 The ` + "`" + `uid` + "`" + ` is obtained from the logged in user.
@@ -775,6 +735,47 @@ enum ContentType {
 enum Language {
   en
   sw
+}
+
+
+"""
+PractitionerSpecialties is a list of recognised health worker specialties.
+
+See: https://medicalboard.co.ke/resources_page/gazetted-specialties/
+"""
+enum PractitionerSpecialty {
+  UNSPECIFIED
+  ANAESTHESIA
+  CARDIOTHORACIC_SURGERY
+  CLINICAL_MEDICAL_GENETICS
+  CLINCICAL_PATHOLOGY
+  GENERAL_PATHOLOGY
+  ANATOMIC_PATHOLOGY
+  CLINICAL_ONCOLOGY
+  DERMATOLOGY
+  EAR_NOSE_AND_THROAT
+  EMERGENCY_MEDICINE
+  FAMILY_MEDICINE
+  GENERAL_SURGERY
+  GERIATRICS
+  IMMUNOLOGY
+  INFECTIOUS_DISEASE
+  INTERNAL_MEDICINE
+  MICROBIOLOGY
+  NEUROSURGERY
+  OBSTETRICS_AND_GYNAECOLOGY
+  OCCUPATIONAL_MEDICINE
+  OPTHALMOLOGY
+  ORTHOPAEDIC_SURGERY
+  ONCOLOGY
+  ONCOLOGY_RADIOTHERAPY
+  PAEDIATRICS_AND_CHILD_HEALTH
+  PALLIATIVE_MEDICINE
+  PLASTIC_AND_RECONSTRUCTIVE_SURGERY
+  PSYCHIATRY
+  PUBLIC_HEALTH
+  RADIOLOGY
+  UROLOGY
 }
 
 # Relay spec page info
@@ -1780,9 +1781,9 @@ func (ec *executionContext) _Practitioner_specialty(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(profile.PractitionerSpecialty)
+	res := resTmp.(base.PractitionerSpecialty)
 	fc.Result = res
-	return ec.marshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerSpecialty(ctx, field.Selections, res)
+	return ec.marshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPractitionerSpecialty(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Practitioner_professionalProfile(ctx context.Context, field graphql.CollectedField, obj *profile.Practitioner) (ret graphql.Marshaler) {
@@ -3775,7 +3776,7 @@ func (ec *executionContext) unmarshalInputPractitionerSignupInput(ctx context.Co
 			}
 		case "specialty":
 			var err error
-			it.Specialty, err = ec.unmarshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerSpecialty(ctx, v)
+			it.Specialty, err = ec.unmarshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPractitionerSpecialty(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4799,12 +4800,12 @@ func (ec *executionContext) unmarshalNPractitionerSignupInput2gitlabᚗslade360e
 	return ec.unmarshalInputPractitionerSignupInput(ctx, v)
 }
 
-func (ec *executionContext) unmarshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerSpecialty(ctx context.Context, v interface{}) (profile.PractitionerSpecialty, error) {
-	var res profile.PractitionerSpecialty
+func (ec *executionContext) unmarshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPractitionerSpecialty(ctx context.Context, v interface{}) (base.PractitionerSpecialty, error) {
+	var res base.PractitionerSpecialty
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerSpecialty(ctx context.Context, sel ast.SelectionSet, v profile.PractitionerSpecialty) graphql.Marshaler {
+func (ec *executionContext) marshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPractitionerSpecialty(ctx context.Context, sel ast.SelectionSet, v base.PractitionerSpecialty) graphql.Marshaler {
 	return v
 }
 
