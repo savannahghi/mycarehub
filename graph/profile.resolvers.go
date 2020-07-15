@@ -9,7 +9,6 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph/generated"
 	"gitlab.slade360emr.com/go/profile/graph/profile"
-	"gitlab.slade360emr.com/go/uploads/graph/uploads"
 )
 
 func (r *queryResolver) UserProfile(ctx context.Context) (*profile.UserProfile, error) {
@@ -85,12 +84,6 @@ func (r *mutationResolver) ConfirmEmail(ctx context.Context, email string) (*pro
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.ConfirmEmail(ctx, email)
-}
-
-func (r *mutationResolver) Upload(ctx context.Context, input *uploads.UploadInput) (*uploads.Upload, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.uploadService.Upload(ctx, input)
 }
 
 // Mutation returns generated.MutationResolver implementation.

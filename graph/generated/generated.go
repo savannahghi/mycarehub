@@ -18,7 +18,6 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph/profile"
-	"gitlab.slade360emr.com/go/uploads/graph/uploads"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -64,7 +63,6 @@ type ComplexityRoot struct {
 		SetPresence              func(childComplexity int, presence bool) int
 		UpdateBiodata            func(childComplexity int, input profile.BiodataInput) int
 		UpdateUserProfile        func(childComplexity int, input profile.UserProfileInput) int
-		Upload                   func(childComplexity int, input *uploads.UploadInput) int
 	}
 
 	PageInfo struct {
@@ -99,18 +97,6 @@ type ComplexityRoot struct {
 		UserProfile       func(childComplexity int) int
 	}
 
-	Upload struct {
-		Base64data  func(childComplexity int) int
-		ContentType func(childComplexity int) int
-		Creation    func(childComplexity int) int
-		Hash        func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Language    func(childComplexity int) int
-		Size        func(childComplexity int) int
-		Title       func(childComplexity int) int
-		URL         func(childComplexity int) int
-	}
-
 	UserProfile struct {
 		Covers           func(childComplexity int) int
 		DateOfBirth      func(childComplexity int) int
@@ -137,7 +123,6 @@ type MutationResolver interface {
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
 	CompleteSignup(ctx context.Context) (*base.Decimal, error)
 	RecordPostVisitSurvey(ctx context.Context, input profile.PostVisitSurveyInput) (bool, error)
-	Upload(ctx context.Context, input *uploads.UploadInput) (*uploads.Upload, error)
 }
 type QueryResolver interface {
 	GetPresence(ctx context.Context) (bool, error)
@@ -291,18 +276,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUserProfile(childComplexity, args["input"].(profile.UserProfileInput)), true
 
-	case "Mutation.upload":
-		if e.complexity.Mutation.Upload == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_upload_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.Upload(childComplexity, args["input"].(*uploads.UploadInput)), true
-
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -421,69 +394,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.UserProfile(childComplexity), true
-
-	case "Upload.base64data":
-		if e.complexity.Upload.Base64data == nil {
-			break
-		}
-
-		return e.complexity.Upload.Base64data(childComplexity), true
-
-	case "Upload.contentType":
-		if e.complexity.Upload.ContentType == nil {
-			break
-		}
-
-		return e.complexity.Upload.ContentType(childComplexity), true
-
-	case "Upload.creation":
-		if e.complexity.Upload.Creation == nil {
-			break
-		}
-
-		return e.complexity.Upload.Creation(childComplexity), true
-
-	case "Upload.hash":
-		if e.complexity.Upload.Hash == nil {
-			break
-		}
-
-		return e.complexity.Upload.Hash(childComplexity), true
-
-	case "Upload.id":
-		if e.complexity.Upload.ID == nil {
-			break
-		}
-
-		return e.complexity.Upload.ID(childComplexity), true
-
-	case "Upload.language":
-		if e.complexity.Upload.Language == nil {
-			break
-		}
-
-		return e.complexity.Upload.Language(childComplexity), true
-
-	case "Upload.size":
-		if e.complexity.Upload.Size == nil {
-			break
-		}
-
-		return e.complexity.Upload.Size(childComplexity), true
-
-	case "Upload.title":
-		if e.complexity.Upload.Title == nil {
-			break
-		}
-
-		return e.complexity.Upload.Title(childComplexity), true
-
-	case "Upload.url":
-		if e.complexity.Upload.URL == nil {
-			break
-		}
-
-		return e.complexity.Upload.URL(childComplexity), true
 
 	case "UserProfile.covers":
 		if e.complexity.UserProfile.Covers == nil {
@@ -633,11 +543,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	&ast.Source{Name: "profile.graphql", Input: `scalar Date
-scalar Markdown
-scalar Decimal
-
-"""
+	&ast.Source{Name: "profile.graphql", Input: `"""
 PractitionerCadre is a list of health worker cadres.
 """
 enum PractitionerCadre {
@@ -841,6 +747,35 @@ extend type Mutation {
 	&ast.Source{Name: "graph/base.graphql", Input: `scalar Map
 scalar Any
 scalar Time
+scalar Date
+scalar Markdown
+scalar Decimal
+scalar URL
+scalar ResourceList
+scalar Base64Binary
+scalar Canonical
+scalar Code
+scalar DateTime
+scalar Instant
+scalar Integer
+scalar OID
+scalar PositiveInt
+scalar UnsignedInt
+scalar URI
+scalar UUID
+scalar XHTML
+
+# supported content types
+enum ContentType {
+  PNG
+  JPG
+  PDF
+}
+
+enum Language {
+  en
+  sw
+}
 
 # Relay spec page info
 type PageInfo {
@@ -905,45 +840,6 @@ enum Operation {
 # This server attempts to be Relay spec compliant
 interface Node {
   id: ID!
-}
-`, BuiltIn: false},
-	&ast.Source{Name: "uploads.graphql", Input: `# supported content types
-enum ContentType {
-  PNG
-  JPG
-  PDF
-}
-
-enum Language {
-  en
-  sw
-}
-
-# this input is used to CREATE a new upload
-input UploadInput {
-  title: String!
-  contentType: ContentType!
-  language: Language!
-  base64data: String!
-  filename: String!
-}
-
-# this input is used to SERIALIZE back an already created upload
-type Upload {
-  id: ID!
-  url: String!
-  size: Int!
-  hash: String!
-  creation: Time!
-
-  title: String!
-  contentType: String!
-  language: String!
-  base64data: String!
-}
-
-extend type Mutation {
-  upload(input: UploadInput): Upload!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "federation/directives.graphql", Input: `
@@ -1067,20 +963,6 @@ func (ec *executionContext) field_Mutation_updateUserProfile_args(ctx context.Co
 	var arg0 profile.UserProfileInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNUserProfileInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfileInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_upload_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *uploads.UploadInput
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalOUploadInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐUploadInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1635,47 +1517,6 @@ func (ec *executionContext) _Mutation_recordPostVisitSurvey(ctx context.Context,
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_upload(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_upload_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Upload(rctx, args["input"].(*uploads.UploadInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*uploads.Upload)
-	fc.Result = res
-	return ec.marshalNUpload2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐUpload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
@@ -2310,312 +2151,6 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Upload_id(ctx context.Context, field graphql.CollectedField, obj *uploads.Upload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Upload",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Upload_url(ctx context.Context, field graphql.CollectedField, obj *uploads.Upload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Upload",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.URL, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Upload_size(ctx context.Context, field graphql.CollectedField, obj *uploads.Upload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Upload",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Size, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Upload_hash(ctx context.Context, field graphql.CollectedField, obj *uploads.Upload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Upload",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Hash, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Upload_creation(ctx context.Context, field graphql.CollectedField, obj *uploads.Upload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Upload",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Creation, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Upload_title(ctx context.Context, field graphql.CollectedField, obj *uploads.Upload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Upload",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Title, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Upload_contentType(ctx context.Context, field graphql.CollectedField, obj *uploads.Upload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Upload",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ContentType, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Upload_language(ctx context.Context, field graphql.CollectedField, obj *uploads.Upload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Upload",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Language, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Upload_base64data(ctx context.Context, field graphql.CollectedField, obj *uploads.Upload) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Upload",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Base64data, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _UserProfile_uid(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2849,9 +2384,9 @@ func (ec *executionContext) _UserProfile_photoContentType(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(uploads.ContentType)
+	res := resTmp.(base.ContentType)
 	fc.Result = res
-	return ec.marshalNContentType2gitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐContentType(ctx, field.Selections, res)
+	return ec.marshalNContentType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserProfile_pushTokens(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
@@ -4292,48 +3827,6 @@ func (ec *executionContext) unmarshalInputSortParam(ctx context.Context, obj int
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUploadInput(ctx context.Context, obj interface{}) (uploads.UploadInput, error) {
-	var it uploads.UploadInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "title":
-			var err error
-			it.Title, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "contentType":
-			var err error
-			it.ContentType, err = ec.unmarshalNContentType2gitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐContentType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "language":
-			var err error
-			it.Language, err = ec.unmarshalNLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐLanguage(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "base64data":
-			var err error
-			it.Base64data, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "filename":
-			var err error
-			it.Filename, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputUserProfileInput(ctx context.Context, obj interface{}) (profile.UserProfileInput, error) {
 	var it profile.UserProfileInput
 	var asMap = obj.(map[string]interface{})
@@ -4348,7 +3841,7 @@ func (ec *executionContext) unmarshalInputUserProfileInput(ctx context.Context, 
 			}
 		case "photoContentType":
 			var err error
-			it.PhotoContentType, err = ec.unmarshalNContentType2gitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐContentType(ctx, v)
+			it.PhotoContentType, err = ec.unmarshalNContentType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4528,11 +4021,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "recordPostVisitSurvey":
 			out.Values[i] = ec._Mutation_recordPostVisitSurvey(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "upload":
-			out.Values[i] = ec._Mutation_upload(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4751,73 +4239,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var uploadImplementors = []string{"Upload"}
-
-func (ec *executionContext) _Upload(ctx context.Context, sel ast.SelectionSet, obj *uploads.Upload) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, uploadImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Upload")
-		case "id":
-			out.Values[i] = ec._Upload_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "url":
-			out.Values[i] = ec._Upload_url(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "size":
-			out.Values[i] = ec._Upload_size(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "hash":
-			out.Values[i] = ec._Upload_hash(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "creation":
-			out.Values[i] = ec._Upload_creation(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "title":
-			out.Values[i] = ec._Upload_title(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "contentType":
-			out.Values[i] = ec._Upload_contentType(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "language":
-			out.Values[i] = ec._Upload_language(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "base64data":
-			out.Values[i] = ec._Upload_base64data(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5188,12 +4609,12 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNContentType2gitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐContentType(ctx context.Context, v interface{}) (uploads.ContentType, error) {
-	var res uploads.ContentType
+func (ec *executionContext) unmarshalNContentType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx context.Context, v interface{}) (base.ContentType, error) {
+	var res base.ContentType
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNContentType2gitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐContentType(ctx context.Context, sel ast.SelectionSet, v uploads.ContentType) graphql.Marshaler {
+func (ec *executionContext) marshalNContentType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx context.Context, sel ast.SelectionSet, v base.ContentType) graphql.Marshaler {
 	return v
 }
 
@@ -5315,20 +4736,6 @@ func (ec *executionContext) marshalNGender2gitlabᚗslade360emrᚗcomᚋgoᚋbas
 	return v
 }
 
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	return graphql.UnmarshalID(v)
-}
-
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	return graphql.UnmarshalInt(v)
 }
@@ -5341,15 +4748,6 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐLanguage(ctx context.Context, v interface{}) (uploads.Language, error) {
-	var res uploads.Language
-	return res, res.UnmarshalGQL(v)
-}
-
-func (ec *executionContext) marshalNLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐLanguage(ctx context.Context, sel ast.SelectionSet, v uploads.Language) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNMarkdown2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐMarkdown(ctx context.Context, v interface{}) (base.Markdown, error) {
@@ -5474,20 +4872,6 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) marshalNUpload2gitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐUpload(ctx context.Context, sel ast.SelectionSet, v uploads.Upload) graphql.Marshaler {
-	return ec._Upload(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUpload2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐUpload(ctx context.Context, sel ast.SelectionSet, v *uploads.Upload) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Upload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v profile.UserProfile) graphql.Marshaler {
@@ -6038,18 +5422,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return ec.marshalOString2string(ctx, sel, *v)
-}
-
-func (ec *executionContext) unmarshalOUploadInput2gitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐUploadInput(ctx context.Context, v interface{}) (uploads.UploadInput, error) {
-	return ec.unmarshalInputUploadInput(ctx, v)
-}
-
-func (ec *executionContext) unmarshalOUploadInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐUploadInput(ctx context.Context, v interface{}) (*uploads.UploadInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOUploadInput2gitlabᚗslade360emrᚗcomᚋgoᚋuploadsᚋgraphᚋuploadsᚐUploadInput(ctx, v)
-	return &res, err
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

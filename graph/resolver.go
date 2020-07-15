@@ -9,21 +9,18 @@ import (
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph/profile"
-	"gitlab.slade360emr.com/go/uploads/graph/uploads"
 )
 
 // NewResolver sets up a properly initialized resolver
 func NewResolver() *Resolver {
 	return &Resolver{
 		profileService: profile.NewService(),
-		uploadService:  uploads.NewService(),
 	}
 }
 
 // Resolver sets up dependencies needed by the query and mutation resolvers
 type Resolver struct {
 	profileService *profile.Service
-	uploadService  *uploads.Service
 }
 
 // CheckUserTokenInContext ensures that the context has a valid Firebase auth token
@@ -39,9 +36,5 @@ func (r *Resolver) CheckUserTokenInContext(ctx context.Context) *auth.Token {
 func (r *Resolver) CheckDependencies() {
 	if r.profileService == nil {
 		log.Panicf("graph.Resolver: profileService is nil")
-	}
-
-	if r.uploadService == nil {
-		log.Panicf("graph.Resolver: uploadService is nil")
 	}
 }

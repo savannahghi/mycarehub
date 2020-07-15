@@ -62,6 +62,3 @@ models:
   Date:
     model:
       - "gitlab.slade360emr.com/go/base.Date"
-  ContentType:
-    model:
-      - "gitlab.slade360emr.com/go/uploads/graph/uploads.ContentType"

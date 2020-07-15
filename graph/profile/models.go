@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/uploads/graph/uploads"
 )
 
 // Practitioner is used to serialize practitioner profile details.
@@ -49,14 +48,14 @@ type Cover struct {
 
 // UserProfile serializes the profile of the logged in user.
 type UserProfile struct {
-	UID              string              `json:"uid" firestore:"uid"`
-	TermsAccepted    bool                `json:"termsAccepted" firestore:"termsAccepted"`
-	IsApproved       bool                `json:"isApproved" firestore:"isApproved"`
-	Msisdns          []string            `json:"msisdns" firestore:"msisdns"`
-	Emails           []string            `json:"emails" firestore:"emails"`
-	PhotoBase64      string              `json:"photoBase64" firestore:"photoBase64"`
-	PhotoContentType uploads.ContentType `json:"photoContentType" firestore:"photoContentType"`
-	Covers           []Cover             `json:"covers" firestore:"covers"`
+	UID              string           `json:"uid" firestore:"uid"`
+	TermsAccepted    bool             `json:"termsAccepted" firestore:"termsAccepted"`
+	IsApproved       bool             `json:"isApproved" firestore:"isApproved"`
+	Msisdns          []string         `json:"msisdns" firestore:"msisdns"`
+	Emails           []string         `json:"emails" firestore:"emails"`
+	PhotoBase64      string           `json:"photoBase64" firestore:"photoBase64"`
+	PhotoContentType base.ContentType `json:"photoContentType" firestore:"photoContentType"`
+	Covers           []Cover          `json:"covers" firestore:"covers"`
 
 	DateOfBirth *base.Date   `json:"dateOfBirth,omitempty" firestore:"dateOfBirth,omitempty"`
 	Gender      *base.Gender `json:"gender,omitempty" firestore:"gender,omitempty"`
@@ -67,7 +66,7 @@ type UserProfile struct {
 // UserProfileInput is used to create or update a user's profile.
 type UserProfileInput struct {
 	PhotoBase64      string              `json:"photoBase64"`
-	PhotoContentType uploads.ContentType `json:"photoContentType"`
+	PhotoContentType base.ContentType    `json:"photoContentType"`
 	Msisdns          []*UserProfilePhone `json:"msisdns"`
 	Emails           []string            `json:"emails"`
 

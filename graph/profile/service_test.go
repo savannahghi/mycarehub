@@ -18,7 +18,6 @@ import (
 	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/otp/graph/otp"
-	"gitlab.slade360emr.com/go/uploads/graph/uploads"
 )
 
 func TestNewService(t *testing.T) {
@@ -115,7 +114,7 @@ func TestService_profileUpdates(t *testing.T) {
 				// Update the user profile
 				userProfileInput := UserProfileInput{
 					PhotoBase64:      photoBase64,
-					PhotoContentType: uploads.ContentTypeJpg,
+					PhotoContentType: base.ContentTypeJpg,
 					Msisdns: []*UserProfilePhone{
 						{Phone: msisdn, Otp: otp},
 					},

@@ -11,7 +11,6 @@ import (
 	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/vektah/gqlparser/v2/ast"
 	base_generated "gitlab.slade360emr.com/go/base/graph/generated"
-	uploads_generated "gitlab.slade360emr.com/go/uploads/graph/generated"
 )
 
 func generate() error {
@@ -36,31 +35,7 @@ func generate() error {
 
 	sources := []*ast.Source{}
 	sources = append(sources, base_generated.Sources()...)
-	sources = append(sources, uploads_generated.Sources()...)
-
-	baseSeen := false    // "graph/base.graphql" seen
-	uploadsSeen := false // "uploads.graphql" seen
 	for _, src := range sources {
-		// append base.graphql once
-		if src.Name == "graph/base.graphql" {
-			if !baseSeen {
-				cfg.Sources = append(cfg.Sources, src)
-				baseSeen = true
-				fmt.Println("added graph/base.graphql and marked it as seen")
-			}
-			continue
-		}
-
-		// append uploads.graphql once
-		if src.Name == "uploads.graphql" {
-			if !uploadsSeen {
-				cfg.Sources = append(cfg.Sources, src)
-				uploadsSeen = true
-				fmt.Println("added uploads.graphql and marked it as seen")
-			}
-			continue
-		}
-
 		// append all other sources apart from federation directives
 		if src.Name != "federation/directives.graphql" {
 			cfg.Sources = append(cfg.Sources, src)

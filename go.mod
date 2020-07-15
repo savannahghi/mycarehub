@@ -15,10 +15,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.0.1
 	gitlab.slade360emr.com/go/authorization v0.0.3
-	gitlab.slade360emr.com/go/base v0.0.13
+	gitlab.slade360emr.com/go/base v0.0.15
 	gitlab.slade360emr.com/go/mailgun v0.0.1
 	gitlab.slade360emr.com/go/otp v0.0.2
-	gitlab.slade360emr.com/go/uploads v0.0.3
-	golang.org/x/tools v0.0.0-20200713011307-fd294ab11aed // indirect
-	google.golang.org/genproto v0.0.0-20200711021454-869866162049 // indirect
 )

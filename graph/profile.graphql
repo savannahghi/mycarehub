@@ -1,7 +1,3 @@
-scalar Date
-scalar Markdown
-scalar Decimal
-
 """
 PractitionerCadre is a list of health worker cadres.
 """
