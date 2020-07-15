@@ -257,6 +257,8 @@ github.com/kevinburke/rest v0.0.0-20200429221318-0d2892b400f8 h1:KpuDJTaTPQAyWqE
 github.com/kevinburke/rest v0.0.0-20200429221318-0d2892b400f8/go.mod h1:pD+iEcdAGVXld5foVN4e24zb/6fnb60tgZPZ3P/3T/I=
 github.com/kevinburke/twilio-go v0.0.0-20200630070730-ac4e42b98b94 h1:tPJDYIpi61JR+s7/dZBVRd0d4e0L9LuyxjXvvm6L2YM=
 github.com/kevinburke/twilio-go v0.0.0-20200630070730-ac4e42b98b94/go.mod h1:Fm9alkN1/LPVY1eqD/psyMwPWE4VWl4P01/nTYZKzBk=
+github.com/kevinburke/twilio-go v0.0.0-20200713162607-ff84c3703a29 h1:Wa+T+SIfcHXoRhZV6rv/COB5Sr9fKoQdfd/jlMuYIWI=
+github.com/kevinburke/twilio-go v0.0.0-20200713162607-ff84c3703a29/go.mod h1:Fm9alkN1/LPVY1eqD/psyMwPWE4VWl4P01/nTYZKzBk=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.8.2/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
 github.com/klauspost/compress v1.9.0/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
@@ -409,12 +411,18 @@ gitlab.slade360emr.com/go/base v0.0.16/go.mod h1:FUCvEMdF8owK02clzfFVvQeSEX1VaNM
 gitlab.slade360emr.com/go/chargemaster v0.0.1/go.mod h1:fyC+QV2tquqnmE1/J/twuc43j7G5vxcXf4hH5L2pEeI=
 gitlab.slade360emr.com/go/chargemaster v0.0.2 h1:elVn809a+8icWNNy2LW5z0DcRXHGPW77eUnEsT3gB/M=
 gitlab.slade360emr.com/go/chargemaster v0.0.2/go.mod h1:iFKtDnVriC7/2j98c1zbfykgghn3PvDpJMiuaq24mJY=
+gitlab.slade360emr.com/go/fcm v0.0.3/go.mod h1:C2gI7vLwXHpYRf+ShaDj4omrIPfokCuebbZhgBl7fpM=
 gitlab.slade360emr.com/go/mailgun v0.0.1 h1:9d6y18WMuCPR46KrS+h4Ka5h121iXmE5FPZNxrqUdqw=
 gitlab.slade360emr.com/go/mailgun v0.0.1/go.mod h1:5R2Ks7F62fL5UsukfiBorl3grEiswyXYKwtQPnvgqr0=
 gitlab.slade360emr.com/go/otp v0.0.2 h1:ghS+M6ehMMXN7B6ODrLxjDqZLqP2kT77sPCtRbv6OYc=
 gitlab.slade360emr.com/go/otp v0.0.2/go.mod h1:2sghzZFiFr/NE/AH4y+71LiaLbxMW38ZPD7Qz3hzJLk=
+gitlab.slade360emr.com/go/otp v0.0.4 h1:It0zKP0XCkBCkNQWrTdEcOwA9tVgBjLOqtERbWgupTk=
+gitlab.slade360emr.com/go/otp v0.0.4/go.mod h1:SXCVzA8I3tJS1Cs5aJm9EK2cjFsA5GcY+W6aDNIMDsg=
+gitlab.slade360emr.com/go/profile v0.0.3/go.mod h1:1Z4MH8VxVR815CKVkT2n+fq/aDofzAhyTTmQ1arSQIU=
 gitlab.slade360emr.com/go/sms v0.0.1 h1:Au4qqUvucST7xAZxIT1JrWZMlk8Lf0sQW+5GbHLh4NI=
 gitlab.slade360emr.com/go/sms v0.0.1/go.mod h1:czjtrp9dfadMzcyn86koLMN0/l1w+gCb4FHQX4+dLyI=
+gitlab.slade360emr.com/go/sms v0.0.2 h1:sQq5ChIBAwHgL/6LkPyJ/1AU5OzEH0SR6e2pjphvZMk=
+gitlab.slade360emr.com/go/sms v0.0.2/go.mod h1:BDnNYeLL/wst4mqIm0R0NIlQ7ZdLomKJ7s3YdOo47hM=
 gitlab.slade360emr.com/go/twilio v0.0.1 h1:Fv6FtZRCnbYArEwW7bfH9HzUp6juWmyRQGNCZeTo6qw=
 gitlab.slade360emr.com/go/twilio v0.0.1/go.mod h1:UwoljE9jwf/EbnY/he17n9CsK7GfMtG9KcVZWojgYrY=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
