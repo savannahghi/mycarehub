@@ -288,7 +288,6 @@ func (s Service) PractitionerSignUp(
 	if err != nil {
 		return false, err
 	}
-
 	practitioner := Practitioner{
 		Profile:   *profile,
 		License:   input.License,
@@ -300,16 +299,12 @@ func (s Service) PractitionerSignUp(
 	if err != nil {
 		return false, fmt.Errorf("unable to save practitioner info: %w", err)
 	}
-	// retrieve the practitioners email address
-	if len(profile.Emails) == 0 {
-		return false, fmt.Errorf("Practitioner does not have an email address")
-	}
-	practitionerEmail := profile.Emails[0]
 
-	// Send the email
-	err = s.SendPractitionerSignUpEmail(ctx, practitionerEmail)
-	if err != nil {
-		return false, fmt.Errorf("unable to send signup email: %w", err)
+	for _, practitionerEmail := range profile.Emails {
+		err = s.SendPractitionerSignUpEmail(ctx, practitionerEmail)
+		if err != nil {
+			return false, fmt.Errorf("unable to send signup email: %w", err)
+		}
 	}
 
 	if err != nil {

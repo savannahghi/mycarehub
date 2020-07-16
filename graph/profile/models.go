@@ -36,6 +36,7 @@ type PractitionerSignupInput struct {
 	License   string                     `json:"license"`
 	Cadre     PractitionerCadre          `json:"cadre"`
 	Specialty base.PractitionerSpecialty `json:"specialty"`
+	Emails    []*string                  `json:"emails"`
 }
 
 // Cover is used to save a user's insurance details.

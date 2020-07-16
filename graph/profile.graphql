@@ -39,6 +39,7 @@ input PractitionerSignupInput {
   license: String!
   cadre: PractitionerCadre!
   specialty: PractitionerSpecialty!
+  emails: [String] # optional
 }
 
 """
