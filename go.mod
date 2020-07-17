@@ -16,6 +16,6 @@ require (
 	github.com/vektah/gqlparser/v2 v2.0.1
 	gitlab.slade360emr.com/go/authorization v0.0.3
 	gitlab.slade360emr.com/go/base v0.0.16
-	gitlab.slade360emr.com/go/mailgun v0.0.1
+	gitlab.slade360emr.com/go/mailgun v0.0.2
 	gitlab.slade360emr.com/go/otp v0.0.4
 )

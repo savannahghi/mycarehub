@@ -15,7 +15,6 @@ export FIREBASE_WEB_API_KEY="<an API key from the Firebase console for the proje
 
 # Mailgun settings
 export MAILGUN_API_KEY=key="<an API key>"
-export MAILGUN_API_BASE_URL=https://api.eu.mailgun.net/v3/app.healthcloud.co.ke
 export MAILGUN_DOMAIN=app.healthcloud.co.ke
 export MAILGUN_FROM=hello@app.healthcloud.co.ke
 
