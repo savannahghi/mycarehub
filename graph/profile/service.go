@@ -512,16 +512,21 @@ func (s Service) HealthcashBalance(ctx context.Context) (*base.Decimal, error) {
 func (s Service) RecordPostVisitSurvey(ctx context.Context, input PostVisitSurveyInput) (bool, error) {
 	s.checkPreconditions()
 
+	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
+		return false, fmt.Errorf("the likelihood of recommending should be an int between 0 and 10")
+	}
+
 	uid, err := authorization.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return false, err
 	}
 	feedbackCollection := s.firestoreClient.Collection(SurveyCollectionName)
 	feedback := PostVisitSurvey{
-		UID:       uid,
-		Rating:    input.Rating,
-		Timestamp: input.Timestamp,
-		Comment:   input.Comment,
+		LikelyToRecommend: input.LikelyToRecommend,
+		Criticism:         input.Criticism,
+		Suggestions:       input.Suggestions,
+		UID:               uid,
+		Timestamp:         time.Now(),
 	}
 	_, _, err = feedbackCollection.Add(ctx, feedback)
 	if err != nil {

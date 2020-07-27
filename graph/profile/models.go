@@ -102,17 +102,19 @@ type HealthcashTransaction struct {
 // PostVisitSurveyInput is used to send the results of post-visit surveys to the
 // server.
 type PostVisitSurveyInput struct {
-	Rating    FivePointRating `json:"rating" firestore:"rating"`
-	Timestamp time.Time       `json:"timestamp" firestore:"timestamp"`
-	Comment   string          `json:"comment" firestore:"comment"`
+	LikelyToRecommend int    `json:"likelyToRecommend" firestore:"likelyToRecommend"`
+	Criticism         string `json:"criticism" firestore:"criticism"`
+	Suggestions       string `json:"suggestions" firestore:"suggestions"`
 }
 
 // PostVisitSurvey is used to record and retrieve post visit surveys from Firebase
 type PostVisitSurvey struct {
-	UID       string          `json:"uid" firestore:"uid"`
-	Rating    FivePointRating `json:"rating" firestore:"rating"`
-	Timestamp time.Time       `json:"timestamp" firestore:"timestamp"`
-	Comment   string          `json:"comment" firestore:"comment"`
+	LikelyToRecommend int    `json:"likelyToRecommend" firestore:"likelyToRecommend"`
+	Criticism         string `json:"criticism" firestore:"criticism"`
+	Suggestions       string `json:"suggestions" firestore:"suggestions"`
+
+	UID       string    `json:"uid" firestore:"uid"`
+	Timestamp time.Time `json:"timestamp" firestore:"timestamp"`
 }
 
 // Presence is used to record a user's availability for chat/voice/video

@@ -312,9 +312,9 @@ func TestService_RecordPostVisitSurvey(t *testing.T) {
 			args: args{
 				ctx: authenticatedContext,
 				input: PostVisitSurveyInput{
-					Rating:    FivePointRatingExcellent,
-					Timestamp: time.Now(),
-					Comment:   "added in tests",
+					LikelyToRecommend: 0,
+					Criticism:         "piece of crap",
+					Suggestions:       "replace it all",
 				},
 			},
 			want:    true,

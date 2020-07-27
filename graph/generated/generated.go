@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -543,18 +542,12 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	&ast.Source{Name: "profile.graphql", Input: `"""
-PractitionerCadre is a list of health worker cadres.
-"""
-enum PractitionerCadre {
+	&ast.Source{Name: "profile.graphql", Input: `enum PractitionerCadre {
   DOCTOR
   CLINICAL_OFFICER
   NURSE
 }
 
-"""
-FivePointRating is used to implement 
-"""
 enum FivePointRating {
   POOR
   UNSATISFACTORY
@@ -563,11 +556,6 @@ enum FivePointRating {
   EXCELLENT
 }
 
-"""
-Gender is a code system for administrative gender.
-
-See: https://www.hl7.org/fhir/valueset-administrative-gender.html
-"""
 enum Gender {
   male
   female
@@ -575,20 +563,13 @@ enum Gender {
   unknown
 }
 
-"""
-PractitionerSignupInput is used to sign up practitioners.
-
-The ` + "`" + `uid` + "`" + ` is obtained from the logged in user.
-"""
 input PractitionerSignupInput {
   license: String!
   cadre: PractitionerCadre!
   specialty: PractitionerSpecialty!
+  emails: [String] # optional
 }
 
-"""
-Practitioner is used to serialize practitioner details.
-"""
 type Practitioner {
   profile: UserProfile!
   license: String!
@@ -598,25 +579,16 @@ type Practitioner {
   averageConsultationPrice: Float!
 }
 
-"""
-PractitionerEdge is used to represent practitioners in Relay type lists.
-"""
 type PractitionerEdge {
   cursor: String
   node: Practitioner
 }
 
-"""
-PractitionerConnection is used to return lists of practitioners.
-"""
 type PractitionerConnection {
   edges: [PractitionerEdge]
   pageInfo: PageInfo!
 }
 
-"""
-Cover is used to serialize and store a user's insurance details.
-"""
 type Cover {
   payerName: String!
   payerSladeCode: Int!
@@ -624,9 +596,6 @@ type Cover {
   memberName: String!
 }
 
-"""
-UserProfile serializes the profile of the logged in user.
-"""
 type UserProfile {
   uid: String!
   isApproved: Boolean!
@@ -644,9 +613,6 @@ type UserProfile {
   patientID: String
 }
 
-"""
-UserProfileInput is used to create or update a user's profile.
-"""
 input UserProfileInput {
   photoBase64: String!
   photoContentType: ContentType!
@@ -659,28 +625,17 @@ input UserProfileInput {
   gender: Gender
 }
 
-"""
-UserProfilePhone is used to input a user's phone and the corresponding OTP
-confirmation code.
-"""
 input UserProfilePhone {
   phone: String!
   otp: String!
 }
 
-"""
-PostVisitSurveyInput is used to send the results of post-visit surveys to the
-server.
-"""
 input PostVisitSurveyInput {
-  rating: FivePointRating!
-  timestamp: Time!
-  comment: String!
+  likelyToRecommend: Int!
+  criticism: String!
+  suggestions: String!
 }
 
-"""
-BiodataInput is used to update a user's bio-data.
-"""
 input BiodataInput {
   dateOfBirth: Date!
   gender: Gender!
@@ -3732,21 +3687,21 @@ func (ec *executionContext) unmarshalInputPostVisitSurveyInput(ctx context.Conte
 
 	for k, v := range asMap {
 		switch k {
-		case "rating":
+		case "likelyToRecommend":
 			var err error
-			it.Rating, err = ec.unmarshalNFivePointRating2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐFivePointRating(ctx, v)
+			it.LikelyToRecommend, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "timestamp":
+		case "criticism":
 			var err error
-			it.Timestamp, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			it.Criticism, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "comment":
+		case "suggestions":
 			var err error
-			it.Comment, err = ec.unmarshalNString2string(ctx, v)
+			it.Suggestions, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3777,6 +3732,12 @@ func (ec *executionContext) unmarshalInputPractitionerSignupInput(ctx context.Co
 		case "specialty":
 			var err error
 			it.Specialty, err = ec.unmarshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPractitionerSpecialty(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "emails":
+			var err error
+			it.Emails, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4705,15 +4666,6 @@ func (ec *executionContext) marshalNFieldType2gitlabᚗslade360emrᚗcomᚋgoᚋ
 	return v
 }
 
-func (ec *executionContext) unmarshalNFivePointRating2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐFivePointRating(ctx context.Context, v interface{}) (profile.FivePointRating, error) {
-	var res profile.FivePointRating
-	return res, res.UnmarshalGQL(v)
-}
-
-func (ec *executionContext) marshalNFivePointRating2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐFivePointRating(ctx context.Context, sel ast.SelectionSet, v profile.FivePointRating) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
 	return graphql.UnmarshalFloat(v)
 }
@@ -4859,20 +4811,6 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	}
 
 	return ret
-}
-
-func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
-	return graphql.UnmarshalTime(v)
-}
-
-func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
-	res := graphql.MarshalTime(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
 }
 
 func (ec *executionContext) marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v profile.UserProfile) graphql.Marshaler {
