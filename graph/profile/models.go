@@ -116,10 +116,3 @@ type PostVisitSurvey struct {
 	UID       string    `json:"uid" firestore:"uid"`
 	Timestamp time.Time `json:"timestamp" firestore:"timestamp"`
 }
-
-// Presence is used to record a user's availability for chat/voice/video
-type Presence struct {
-	UID      string    `json:"uid" firestore:"uid"`
-	Presence bool      `json:"presence" firestore:"presence"`
-	Updated  time.Time `json:"updated" firestore:"updated"`
-}

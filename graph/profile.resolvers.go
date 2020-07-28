@@ -23,12 +23,6 @@ func (r *queryResolver) HealthcashBalance(ctx context.Context) (*base.Decimal, e
 	return r.profileService.HealthcashBalance(ctx)
 }
 
-func (r *queryResolver) GetPresence(ctx context.Context) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.GetPresence(ctx)
-}
-
 func (r *mutationResolver) AcceptTermsAndConditions(
 	ctx context.Context, accept bool) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
@@ -72,12 +66,6 @@ func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input prof
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.RecordPostVisitSurvey(ctx, input)
-}
-
-func (r *mutationResolver) SetPresence(ctx context.Context, presence bool) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.SetPresence(ctx, presence)
 }
 
 func (r *mutationResolver) ConfirmEmail(ctx context.Context, email string) (*profile.UserProfile, error) {

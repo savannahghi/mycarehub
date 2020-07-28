@@ -23,7 +23,6 @@ import (
 const (
 	UserProfileCollectionName           = "user_profiles"
 	PractitionerCollectionName          = "practitioners"
-	PresenceCollectionName              = "presence"
 	SurveyCollectionName                = "post_visit_survey"
 	HealthcashRootCollectionName        = "healthcash"
 	HealthcashDepositsCollectionName    = "healthcash_deposits"
@@ -533,82 +532,4 @@ func (s Service) RecordPostVisitSurvey(ctx context.Context, input PostVisitSurve
 		return false, fmt.Errorf("unable to save feedback: %w", err)
 	}
 	return true, nil
-}
-
-func (s Service) createNewPresenceRecord(ctx context.Context, uid string) (*Presence, error) {
-	collection := s.firestoreClient.Collection(PresenceCollectionName)
-	p := Presence{
-		UID:      uid,
-		Presence: false, // a sensible default...the user has to mark themselves as available
-		Updated:  time.Now(),
-	}
-	_, err := collection.Doc(uid).Create(ctx, &p)
-	if err != nil {
-		return nil, fmt.Errorf("unable to save new user presence record on firestore: %w", err)
-	}
-	return &p, nil
-}
-
-func (s Service) getLoggedInUserPresence(ctx context.Context) (*Presence, error) {
-	uid, err := authorization.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user's UID: %w", err)
-	}
-	collection := s.firestoreClient.Collection(PresenceCollectionName)
-	presenceDocs, err := collection.Where("uid", "==", uid).Documents(ctx).GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("unable to query the logged in user's presence record: %w", err)
-	}
-	if len(presenceDocs) > 1 {
-		return nil, fmt.Errorf(
-			"system error, too many presence records (%d) for user %s", len(presenceDocs), uid)
-	}
-	if len(presenceDocs) == 0 {
-		p, err := s.createNewPresenceRecord(ctx, uid)
-		if err != nil {
-			return nil, err
-		}
-		return p, nil
-	}
-	var p Presence
-	presenceDoc := presenceDocs[0]
-	err = presenceDoc.DataTo(&p)
-	if err != nil {
-		return nil, fmt.Errorf("can't unmarshal presence doc: %w", err)
-	}
-	return &p, nil
-}
-
-// SetPresence toggles a user's presence on or off
-func (s Service) SetPresence(ctx context.Context, presence bool) (bool, error) {
-	p, err := s.getLoggedInUserPresence(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	updates := []firestore.Update{
-		{
-			Path:  "presence",
-			Value: presence,
-		},
-		{
-			Path:  "updated",
-			Value: time.Now(),
-		},
-	}
-	collection := s.firestoreClient.Collection(PresenceCollectionName)
-	_, err = collection.Doc(p.UID).Update(ctx, updates)
-	if err != nil {
-		return false, fmt.Errorf("can't update presence: %w", err)
-	}
-	return presence, nil
-}
-
-// GetPresence queries a user's current presence
-func (s Service) GetPresence(ctx context.Context) (bool, error) {
-	p, err := s.getLoggedInUserPresence(ctx)
-	if err != nil {
-		return false, err
-	}
-	return p.Presence, nil
 }

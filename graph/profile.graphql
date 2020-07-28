@@ -98,13 +98,11 @@ input BiodataInput {
 }
 
 extend type Query {
-    getPresence: Boolean!
     userProfile: UserProfile!
     healthcashBalance: Decimal!
 }
 
 extend type Mutation {
-    setPresence(presence:Boolean!): Boolean!
     confirmEmail(email: String!): UserProfile!
     acceptTermsAndConditions(accept: Boolean!): Boolean!
     updateUserProfile(input: UserProfileInput!): UserProfile!

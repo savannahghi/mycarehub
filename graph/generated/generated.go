@@ -59,7 +59,6 @@ type ComplexityRoot struct {
 		PractitionerSignUp       func(childComplexity int, input profile.PractitionerSignupInput) int
 		RecordPostVisitSurvey    func(childComplexity int, input profile.PostVisitSurveyInput) int
 		RegisterPushToken        func(childComplexity int, token string) int
-		SetPresence              func(childComplexity int, presence bool) int
 		UpdateBiodata            func(childComplexity int, input profile.BiodataInput) int
 		UpdateUserProfile        func(childComplexity int, input profile.UserProfileInput) int
 	}
@@ -91,7 +90,6 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetPresence       func(childComplexity int) int
 		HealthcashBalance func(childComplexity int) int
 		UserProfile       func(childComplexity int) int
 	}
@@ -113,7 +111,6 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	SetPresence(ctx context.Context, presence bool) (bool, error)
 	ConfirmEmail(ctx context.Context, email string) (*profile.UserProfile, error)
 	AcceptTermsAndConditions(ctx context.Context, accept bool) (bool, error)
 	UpdateUserProfile(ctx context.Context, input profile.UserProfileInput) (*profile.UserProfile, error)
@@ -124,7 +121,6 @@ type MutationResolver interface {
 	RecordPostVisitSurvey(ctx context.Context, input profile.PostVisitSurveyInput) (bool, error)
 }
 type QueryResolver interface {
-	GetPresence(ctx context.Context) (bool, error)
 	UserProfile(ctx context.Context) (*profile.UserProfile, error)
 	HealthcashBalance(ctx context.Context) (*base.Decimal, error)
 }
@@ -238,18 +234,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RegisterPushToken(childComplexity, args["token"].(string)), true
-
-	case "Mutation.setPresence":
-		if e.complexity.Mutation.SetPresence == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_setPresence_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SetPresence(childComplexity, args["presence"].(bool)), true
 
 	case "Mutation.updateBiodata":
 		if e.complexity.Mutation.UpdateBiodata == nil {
@@ -372,13 +356,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PractitionerEdge.Node(childComplexity), true
-
-	case "Query.getPresence":
-		if e.complexity.Query.GetPresence == nil {
-			break
-		}
-
-		return e.complexity.Query.GetPresence(childComplexity), true
 
 	case "Query.healthcashBalance":
 		if e.complexity.Query.HealthcashBalance == nil {
@@ -642,13 +619,11 @@ input BiodataInput {
 }
 
 extend type Query {
-    getPresence: Boolean!
     userProfile: UserProfile!
     healthcashBalance: Decimal!
 }
 
 extend type Mutation {
-    setPresence(presence:Boolean!): Boolean!
     confirmEmail(email: String!): UserProfile!
     acceptTermsAndConditions(accept: Boolean!): Boolean!
     updateUserProfile(input: UserProfileInput!): UserProfile!
@@ -885,20 +860,6 @@ func (ec *executionContext) field_Mutation_registerPushToken_args(ctx context.Co
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_setPresence_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 bool
-	if tmp, ok := rawArgs["presence"]; ok {
-		arg0, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["presence"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_updateBiodata_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1111,47 +1072,6 @@ func (ec *executionContext) _Cover_memberName(ctx context.Context, field graphql
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_setPresence(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_setPresence_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetPresence(rctx, args["presence"].(bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_confirmEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1934,40 +1854,6 @@ func (ec *executionContext) _PractitionerEdge_node(ctx context.Context, field gr
 	res := resTmp.(*profile.Practitioner)
 	fc.Result = res
 	return ec.marshalOPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitioner(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_getPresence(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetPresence(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_userProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3941,11 +3827,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "setPresence":
-			out.Values[i] = ec._Mutation_setPresence(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "confirmEmail":
 			out.Values[i] = ec._Mutation_confirmEmail(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -4155,20 +4036,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "getPresence":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getPresence(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "userProfile":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
