@@ -30,6 +30,7 @@ const (
 	HealthcashWelcomeBonusAmount        = 1000
 	HealthcashCurrency                  = "KES"
 	EmailSignupSubject                  = "Thank you for signing up"
+	EmailWelcomeSubject                 = "Welcome to Slade 360 HealthCloud"
 )
 
 // NewService returns a new authentication service
@@ -55,6 +56,7 @@ func NewService() *Service {
 	return &Service{
 		firestoreClient: firestore,
 		firebaseAuth:    auth,
+		emailService:    mailgun.NewService(),
 	}
 }
 
@@ -63,6 +65,7 @@ func NewService() *Service {
 type Service struct {
 	firestoreClient *firestore.Client
 	firebaseAuth    *auth.Client
+	emailService    *mailgun.Service
 }
 
 func (s Service) checkPreconditions() {
@@ -72,6 +75,10 @@ func (s Service) checkPreconditions() {
 
 	if s.firebaseAuth == nil {
 		log.Panicf("profile service does not have an initialized firebaseAuth")
+	}
+
+	if s.emailService == nil {
+		log.Panicf("profile service does not have an initialized emailService")
 	}
 }
 
@@ -338,25 +345,14 @@ func (s Service) PractitionerSignUp(
 	return true, nil
 }
 
-// generatePractitionerSignupEmailTemplate generates an signup email
-func generatePractitionerSignupEmailTemplate() string {
-	t := template.Must(template.New("signupemail").Parse(practitionerSignupEmail))
-	buf := new(bytes.Buffer)
-	err := t.Execute(buf, "")
-	if err != nil {
-		logger.Errorf("Error while generating template")
-	}
-	return buf.String()
-}
-
 // SendPractitionerSignUpEmail will send a signup email to the practitioner
 func (s Service) SendPractitionerSignUpEmail(ctx context.Context, emailaddress string) error {
 	text := generatePractitionerSignupEmailTemplate()
 	if !govalidator.IsEmail(emailaddress) {
 		return nil
 	}
-	emailService := mailgun.NewService()
-	_, _, err := emailService.SendEmail(EmailSignupSubject, text, emailaddress)
+
+	_, _, err := s.emailService.SendEmail(EmailSignupSubject, text, emailaddress)
 	if err != nil {
 		return nil
 	}
@@ -479,11 +475,34 @@ func (s Service) CompleteSignup(ctx context.Context) (*base.Decimal, error) {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
 	}
 
+	for _, practitionerEmail := range profile.Emails {
+		err = s.SendPractitionerWelcomeEmail(ctx, practitionerEmail)
+		if err != nil {
+			return nil, fmt.Errorf("unable to send welcome email: %w", err)
+		}
+	}
+
 	bal, err := s.HealthcashBalance(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return bal, nil
+}
+
+// SendPractitionerWelcomeEmail will send a welcome email to the practitioner
+func (s Service) SendPractitionerWelcomeEmail(ctx context.Context, emailaddress string) error {
+	s.checkPreconditions()
+
+	text := generatePractitionerWelcomeEmailTemplate()
+	if !govalidator.IsEmail(emailaddress) {
+		return nil
+	}
+	_, _, err := s.emailService.SendEmail(EmailWelcomeSubject, text, emailaddress)
+	if err != nil {
+		return fmt.Errorf("unable to send welcome email: %w", err)
+	}
+
+	return nil
 }
 
 // HealthcashBalance returns the logged in user's HealthCash balance
@@ -560,4 +579,26 @@ func (s Service) RecordPostVisitSurvey(ctx context.Context, input PostVisitSurve
 		return false, fmt.Errorf("unable to save feedback: %w", err)
 	}
 	return true, nil
+}
+
+// generatePractitionerWelcomeEmailTemplate generates a welcome email
+func generatePractitionerWelcomeEmailTemplate() string {
+	t := template.Must(template.New("welcomeEmail").Parse(practitionerWelcomeEmail))
+	buf := new(bytes.Buffer)
+	err := t.Execute(buf, "")
+	if err != nil {
+		logger.Errorf("Error while generating template")
+	}
+	return buf.String()
+}
+
+// generatePractitionerSignupEmailTemplate generates an signup email
+func generatePractitionerSignupEmailTemplate() string {
+	t := template.Must(template.New("signupemail").Parse(practitionerSignupEmail))
+	buf := new(bytes.Buffer)
+	err := t.Execute(buf, "")
+	if err != nil {
+		logger.Errorf("Error while generating template")
+	}
+	return buf.String()
 }

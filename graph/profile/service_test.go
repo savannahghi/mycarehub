@@ -10,8 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"cloud.google.com/go/firestore"
-	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
@@ -414,17 +412,12 @@ func Test_generatePractitionerSignupEmailTemplate(t *testing.T) {
 }
 
 func TestService_SendPractitionerSignUpEmail(t *testing.T) {
-	type fields struct {
-		firestoreClient *firestore.Client
-		firebaseAuth    *auth.Client
-	}
 	type args struct {
 		ctx          context.Context
 		emailaddress string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
@@ -432,17 +425,14 @@ func TestService_SendPractitionerSignUpEmail(t *testing.T) {
 			name: "Good case",
 			args: args{
 				ctx:          context.Background(),
-				emailaddress: "kithinjimkevin@gmail.com",
+				emailaddress: "ngure.nyaga@savannahinformatics.com",
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := Service{
-				firestoreClient: tt.fields.firestoreClient,
-				firebaseAuth:    tt.fields.firebaseAuth,
-			}
+			s := NewService()
 			if err := s.SendPractitionerSignUpEmail(tt.args.ctx, tt.args.emailaddress); (err != nil) != tt.wantErr {
 				t.Errorf("Service.SendPractitionerSignUpEmail() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -534,6 +524,54 @@ func TestService_UserProfile(t *testing.T) {
 					assert.True(t, base.StringSliceContains(profile.Emails, base.TestUserEmail))
 					assert.NotZero(t, profile.UID)
 				}
+			}
+		})
+	}
+}
+
+func Test_generatePractitionerWelcomeEmailTemplate(t *testing.T) {
+	tests := []struct {
+		name string
+		want string
+	}{
+		{
+			name: "Good case",
+			want: practitionerWelcomeEmail,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := generatePractitionerWelcomeEmailTemplate(); got != tt.want {
+				t.Errorf("generatePractitionerWelcomeEmailTemplate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_SendPractitionerWelcomeEmail(t *testing.T) {
+	type args struct {
+		ctx          context.Context
+		emailaddress string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Good case",
+			args: args{
+				ctx:          context.Background(),
+				emailaddress: "ngure.nyaga@savannahinformatics.com",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewService()
+			if err := s.SendPractitionerWelcomeEmail(tt.args.ctx, tt.args.emailaddress); (err != nil) != tt.wantErr {
+				t.Errorf("Service.SendPractitionerWelcomeEmail() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

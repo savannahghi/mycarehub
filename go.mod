@@ -3,14 +3,10 @@ module gitlab.slade360emr.com/go/profile
 go 1.14
 
 require (
-	cloud.google.com/go v0.62.0 // indirect
 	cloud.google.com/go/firestore v1.3.0
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.11.3
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535
-	github.com/aws/aws-sdk-go v1.33.17 // indirect
-	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
-	github.com/getsentry/sentry-go v0.7.0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.4
@@ -21,12 +17,8 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.0.1
 	gitlab.slade360emr.com/go/authorization v0.0.3
-	gitlab.slade360emr.com/go/base v0.0.19
+	gitlab.slade360emr.com/go/base v0.0.20
 	gitlab.slade360emr.com/go/mailgun v0.0.4
 	gitlab.slade360emr.com/go/otp v0.0.4
 	gitlab.slade360emr.com/go/uploads v0.0.4 // indirect
-	golang.org/x/sys v0.0.0-20200802091954-4b90ce9b60b3 // indirect
-	golang.org/x/tools v0.0.0-20200731060945-b5fad4ed8dd6 // indirect
-	google.golang.org/genproto v0.0.0-20200731012542-8145dea6a485 // indirect
-	google.golang.org/grpc v1.31.0 // indirect
 )
