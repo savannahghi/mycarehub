@@ -573,3 +573,49 @@ func TestService_PractitionerSignUp(t *testing.T) {
 		})
 	}
 }
+
+func TestService_UserProfile(t *testing.T) {
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid profile, logged in user",
+			args: args{
+				ctx: base.GetAuthenticatedContext(t),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewService()
+			got, err := s.UserProfile(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.UserProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				assert.NotNil(t, got)
+				if got != nil {
+					updated, err := s.ConfirmEmail(tt.args.ctx, base.TestUserEmail)
+					assert.Nil(t, err)
+					assert.NotNil(t, updated)
+					assert.NotZero(t, updated.Emails)
+					assert.True(t, base.StringSliceContains(updated.Emails, base.TestUserEmail))
+
+					profile, err := s.UserProfile(tt.args.ctx)
+					assert.Nil(t, err)
+					assert.NotNil(t, profile)
+					assert.NotZero(t, profile.Emails)
+					assert.True(t, base.StringSliceContains(profile.Emails, base.TestUserEmail))
+					assert.NotZero(t, profile.UID)
+				}
+			}
+		})
+	}
+}
