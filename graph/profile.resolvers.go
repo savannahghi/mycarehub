@@ -23,6 +23,12 @@ func (r *queryResolver) HealthcashBalance(ctx context.Context) (*base.Decimal, e
 	return r.profileService.HealthcashBalance(ctx)
 }
 
+func (r *queryResolver) GetProfile(ctx context.Context, uid string) (*profile.UserProfile, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.GetProfile(ctx, uid)
+}
+
 func (r *mutationResolver) AcceptTermsAndConditions(
 	ctx context.Context, accept bool) (bool, error) {
 	r.CheckUserTokenInContext(ctx)

@@ -75,14 +75,12 @@ func (s Service) checkPreconditions() {
 	}
 }
 
-// RetrieveUserProfileFirebaseDocSnapshot retrievs a raw Firebase doc snapshot
-// for the logged in user's user profile or creates one if it does not exist
-func (s Service) RetrieveUserProfileFirebaseDocSnapshot(
-	ctx context.Context) (*firestore.DocumentSnapshot, error) {
-	uid, err := authorization.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, err
-	}
+// RetrieveUserProfileFirebaseDocSnapshotByUID retrieves the user profile of a
+// specified user
+func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
+	ctx context.Context,
+	uid string,
+) (*firestore.DocumentSnapshot, error) {
 	collection := s.firestoreClient.Collection(UserProfileCollectionName)
 	query := collection.Where("uid", "==", uid)
 	docs, err := query.Documents(ctx).GetAll()
@@ -113,10 +111,36 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshot(
 	return dsnap, nil
 }
 
+// RetrieveUserProfileFirebaseDocSnapshot retrievs a raw Firebase doc snapshot
+// for the logged in user's user profile or creates one if it does not exist
+func (s Service) RetrieveUserProfileFirebaseDocSnapshot(
+	ctx context.Context) (*firestore.DocumentSnapshot, error) {
+	uid, err := authorization.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return s.RetrieveUserProfileFirebaseDocSnapshotByUID(ctx, uid)
+}
+
 // UserProfile retrieves the profile of the logged in user, if they have one
 func (s Service) UserProfile(ctx context.Context) (*UserProfile, error) {
 	s.checkPreconditions()
 	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userProfile := &UserProfile{}
+	err = dsnap.DataTo(userProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+	return userProfile, nil
+}
+
+// GetProfile returns the profile of the user with the supplied uid
+func (s Service) GetProfile(ctx context.Context, uid string) (*UserProfile, error) {
+	s.checkPreconditions()
+	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshotByUID(ctx, uid)
 	if err != nil {
 		return nil, err
 	}

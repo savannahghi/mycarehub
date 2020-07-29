@@ -106,6 +106,7 @@ input BiodataInput {
 extend type Query {
   userProfile: UserProfile!
   healthcashBalance: Decimal!
+  getProfile(uid: String!): UserProfile!
 }
 
 extend type Mutation {
