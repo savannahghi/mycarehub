@@ -62,6 +62,9 @@ type UserProfile struct {
 	Gender      *base.Gender `json:"gender,omitempty" firestore:"gender,omitempty"`
 	PatientID   *string      `json:"patientID,omitempty" firestore:"patientID"`
 	PushTokens  []string     `json:"pushTokens" firestore:"pushTokens"`
+
+	Name *string `json:"name" firestore:"name"`
+	Bio  *string `json:"bio" firestore:"bio"`
 }
 
 // UserProfileInput is used to create or update a user's profile.
@@ -71,9 +74,12 @@ type UserProfileInput struct {
 	Msisdns          []*UserProfilePhone `json:"msisdns"`
 	Emails           []string            `json:"emails"`
 
-	DateOfBirth *base.Date   `json:"dateOfBirth,omitempty" firestore:"dateOfBirth"`
-	Gender      *base.Gender `json:"gender,omitempty" firestore:"gender"`
-	PushTokens  []*string    `json:"pushTokens" firestore:"pushTokens"`
+	DateOfBirth *base.Date   `json:"dateOfBirth,omitempty"`
+	Gender      *base.Gender `json:"gender,omitempty"`
+	PushTokens  []*string    `json:"pushTokens"`
+
+	Name *string `json:"name"`
+	Bio  *string `json:"bio"`
 }
 
 // UserProfilePhone is used to input a user's phone and the corresponding OTP
@@ -87,6 +93,9 @@ type UserProfilePhone struct {
 type BiodataInput struct {
 	DateOfBirth base.Date   `json:"dateOfBirth"`
 	Gender      base.Gender `json:"gender"`
+
+	Name *string `json:"name"`
+	Bio  *string `json:"bio"`
 }
 
 // HealthcashTransaction is used to record increases in a user's HealthCash.

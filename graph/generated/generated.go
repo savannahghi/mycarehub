@@ -95,12 +95,14 @@ type ComplexityRoot struct {
 	}
 
 	UserProfile struct {
+		Bio              func(childComplexity int) int
 		Covers           func(childComplexity int) int
 		DateOfBirth      func(childComplexity int) int
 		Emails           func(childComplexity int) int
 		Gender           func(childComplexity int) int
 		IsApproved       func(childComplexity int) int
 		Msisdns          func(childComplexity int) int
+		Name             func(childComplexity int) int
 		PatientID        func(childComplexity int) int
 		PhotoBase64      func(childComplexity int) int
 		PhotoContentType func(childComplexity int) int
@@ -371,6 +373,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.UserProfile(childComplexity), true
 
+	case "UserProfile.bio":
+		if e.complexity.UserProfile.Bio == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.Bio(childComplexity), true
+
 	case "UserProfile.covers":
 		if e.complexity.UserProfile.Covers == nil {
 			break
@@ -412,6 +421,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserProfile.Msisdns(childComplexity), true
+
+	case "UserProfile.name":
+		if e.complexity.UserProfile.Name == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.Name(childComplexity), true
 
 	case "UserProfile.patientID":
 		if e.complexity.UserProfile.PatientID == nil {
@@ -588,6 +604,8 @@ type UserProfile {
   dateOfBirth: Date
   gender: Gender
   patientID: String
+  name: String
+  bio: String
 }
 
 input UserProfileInput {
@@ -600,6 +618,8 @@ input UserProfileInput {
   # optional fields
   dateOfBirth: Date
   gender: Gender
+  name: String
+  bio: String
 }
 
 input UserProfilePhone {
@@ -616,22 +636,24 @@ input PostVisitSurveyInput {
 input BiodataInput {
   dateOfBirth: Date!
   gender: Gender!
+  name: String
+  bio: String
 }
 
 extend type Query {
-    userProfile: UserProfile!
-    healthcashBalance: Decimal!
+  userProfile: UserProfile!
+  healthcashBalance: Decimal!
 }
 
 extend type Mutation {
-    confirmEmail(email: String!): UserProfile!
-    acceptTermsAndConditions(accept: Boolean!): Boolean!
-    updateUserProfile(input: UserProfileInput!): UserProfile!
-    practitionerSignUp(input: PractitionerSignupInput!): Boolean!
-    updateBiodata(input: BiodataInput!): UserProfile!
-    registerPushToken(token: String!): Boolean!
-    completeSignup: Decimal!
-    recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
+  confirmEmail(email: String!): UserProfile!
+  acceptTermsAndConditions(accept: Boolean!): Boolean!
+  updateUserProfile(input: UserProfileInput!): UserProfile!
+  practitionerSignUp(input: PractitionerSignupInput!): Boolean!
+  updateBiodata(input: BiodataInput!): UserProfile!
+  registerPushToken(token: String!): Boolean!
+  completeSignup: Decimal!
+  recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/base.graphql", Input: `scalar Map
@@ -2392,6 +2414,68 @@ func (ec *executionContext) _UserProfile_patientID(ctx context.Context, field gr
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserProfile_name(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_bio(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Bio, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3465,6 +3549,18 @@ func (ec *executionContext) unmarshalInputBiodataInput(ctx context.Context, obj 
 			if err != nil {
 				return it, err
 			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bio":
+			var err error
+			it.Bio, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -3720,6 +3816,18 @@ func (ec *executionContext) unmarshalInputUserProfileInput(ctx context.Context, 
 		case "gender":
 			var err error
 			it.Gender, err = ec.unmarshalOGender2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bio":
+			var err error
+			it.Bio, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4141,6 +4249,10 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_gender(ctx, field, obj)
 		case "patientID":
 			out.Values[i] = ec._UserProfile_patientID(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._UserProfile_name(ctx, field, obj)
+		case "bio":
+			out.Values[i] = ec._UserProfile_bio(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

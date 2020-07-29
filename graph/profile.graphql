@@ -67,6 +67,8 @@ type UserProfile {
   dateOfBirth: Date
   gender: Gender
   patientID: String
+  name: String
+  bio: String
 }
 
 input UserProfileInput {
@@ -79,6 +81,8 @@ input UserProfileInput {
   # optional fields
   dateOfBirth: Date
   gender: Gender
+  name: String
+  bio: String
 }
 
 input UserProfilePhone {
@@ -95,20 +99,22 @@ input PostVisitSurveyInput {
 input BiodataInput {
   dateOfBirth: Date!
   gender: Gender!
+  name: String
+  bio: String
 }
 
 extend type Query {
-    userProfile: UserProfile!
-    healthcashBalance: Decimal!
+  userProfile: UserProfile!
+  healthcashBalance: Decimal!
 }
 
 extend type Mutation {
-    confirmEmail(email: String!): UserProfile!
-    acceptTermsAndConditions(accept: Boolean!): Boolean!
-    updateUserProfile(input: UserProfileInput!): UserProfile!
-    practitionerSignUp(input: PractitionerSignupInput!): Boolean!
-    updateBiodata(input: BiodataInput!): UserProfile!
-    registerPushToken(token: String!): Boolean!
-    completeSignup: Decimal!
-    recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
+  confirmEmail(email: String!): UserProfile!
+  acceptTermsAndConditions(accept: Boolean!): Boolean!
+  updateUserProfile(input: UserProfileInput!): UserProfile!
+  practitionerSignUp(input: PractitionerSignupInput!): Boolean!
+  updateBiodata(input: BiodataInput!): UserProfile!
+  registerPushToken(token: String!): Boolean!
+  completeSignup: Decimal!
+  recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
 }

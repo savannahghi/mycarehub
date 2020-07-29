@@ -238,6 +238,8 @@ func (s Service) UpdateUserProfile(
 			}
 		}
 	}
+	userProfile.Name = input.Name
+	userProfile.Bio = input.Bio
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, UserProfileCollectionName, dsnap.Ref.ID, userProfile,
 	)
@@ -357,6 +359,8 @@ func (s Service) UpdateBiodata(
 
 	userProfile.DateOfBirth = &dob
 	userProfile.Gender = &gender
+	userProfile.Name = input.Name
+	userProfile.Bio = input.Bio
 
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, UserProfileCollectionName, dsnap.Ref.ID, userProfile,
