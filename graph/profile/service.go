@@ -86,13 +86,14 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 	uid string,
 ) (*firestore.DocumentSnapshot, error) {
 	collection := s.firestoreClient.Collection(UserProfileCollectionName)
+	// the ordering is necessary in order to provide a stable sort order
 	query := collection.Where("uid", "==", uid)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}
 	if len(docs) > 1 {
-		return nil, fmt.Errorf("system error: there is more than one user profile for this user")
+		log.Printf("user %s has > 1 profile (they have %d)", uid, len(docs))
 	}
 	if len(docs) == 0 {
 		newProfile := &UserProfile{
