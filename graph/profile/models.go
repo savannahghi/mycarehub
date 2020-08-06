@@ -47,6 +47,13 @@ type Cover struct {
 	MemberName     string `json:"memberName,omitempty" firestore:"memberName"`
 }
 
+// TesterWhitelist is used to maintain
+type TesterWhitelist struct {
+	base.Model
+
+	Email string `json:"email" firestore:"email"`
+}
+
 // UserProfile serializes the profile of the logged in user.
 type UserProfile struct {
 	UID              string           `json:"uid" firestore:"uid"`
@@ -63,8 +70,12 @@ type UserProfile struct {
 	PatientID   *string      `json:"patientID,omitempty" firestore:"patientID"`
 	PushTokens  []string     `json:"pushTokens" firestore:"pushTokens"`
 
-	Name *string `json:"name" firestore:"name"`
-	Bio  *string `json:"bio" firestore:"bio"`
+	Name                               *string `json:"name" firestore:"name"`
+	Bio                                *string `json:"bio" firestore:"bio"`
+	PractitionerApproved               *bool   `json:"practitionerApproved" firestore:"practitionerApproved"`
+	PractitionerTermsOfServiceAccepted *bool   `json:"practitionerTermsOfServiceAccepted" firestore:"practitionerTermsOfServiceAccepted"`
+
+	IsTester bool `json:"isTester" firestore:"isTester"`
 }
 
 // UserProfileInput is used to create or update a user's profile.
@@ -78,8 +89,10 @@ type UserProfileInput struct {
 	Gender      *base.Gender `json:"gender,omitempty"`
 	PushTokens  []*string    `json:"pushTokens"`
 
-	Name *string `json:"name"`
-	Bio  *string `json:"bio"`
+	Name                               *string `json:"name"`
+	Bio                                *string `json:"bio"`
+	PractitionerApproved               *bool   `json:"practitionerApproved" firestore:"practitionerApproved"`
+	PractitionerTermsOfServiceAccepted *bool   `json:"practitionerTermsOfServiceAccepted" firestore:"practitionerTermsOfServiceAccepted"`
 }
 
 // UserProfilePhone is used to input a user's phone and the corresponding OTP

@@ -54,11 +54,13 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AcceptTermsAndConditions func(childComplexity int, accept bool) int
+		AddTester                func(childComplexity int, email string) int
 		CompleteSignup           func(childComplexity int) int
 		ConfirmEmail             func(childComplexity int, email string) int
 		PractitionerSignUp       func(childComplexity int, input profile.PractitionerSignupInput) int
 		RecordPostVisitSurvey    func(childComplexity int, input profile.PostVisitSurveyInput) int
 		RegisterPushToken        func(childComplexity int, token string) int
+		RemoveTester             func(childComplexity int, email string) int
 		UpdateBiodata            func(childComplexity int, input profile.BiodataInput) int
 		UpdateUserProfile        func(childComplexity int, input profile.UserProfileInput) int
 	}
@@ -92,24 +94,32 @@ type ComplexityRoot struct {
 	Query struct {
 		GetProfile        func(childComplexity int, uid string) int
 		HealthcashBalance func(childComplexity int) int
+		ListTesters       func(childComplexity int) int
 		UserProfile       func(childComplexity int) int
 	}
 
+	TesterWhitelist struct {
+		Email func(childComplexity int) int
+	}
+
 	UserProfile struct {
-		Bio              func(childComplexity int) int
-		Covers           func(childComplexity int) int
-		DateOfBirth      func(childComplexity int) int
-		Emails           func(childComplexity int) int
-		Gender           func(childComplexity int) int
-		IsApproved       func(childComplexity int) int
-		Msisdns          func(childComplexity int) int
-		Name             func(childComplexity int) int
-		PatientID        func(childComplexity int) int
-		PhotoBase64      func(childComplexity int) int
-		PhotoContentType func(childComplexity int) int
-		PushTokens       func(childComplexity int) int
-		TermsAccepted    func(childComplexity int) int
-		UID              func(childComplexity int) int
+		Bio                                func(childComplexity int) int
+		Covers                             func(childComplexity int) int
+		DateOfBirth                        func(childComplexity int) int
+		Emails                             func(childComplexity int) int
+		Gender                             func(childComplexity int) int
+		IsApproved                         func(childComplexity int) int
+		IsTester                           func(childComplexity int) int
+		Msisdns                            func(childComplexity int) int
+		Name                               func(childComplexity int) int
+		PatientID                          func(childComplexity int) int
+		PhotoBase64                        func(childComplexity int) int
+		PhotoContentType                   func(childComplexity int) int
+		PractitionerApproved               func(childComplexity int) int
+		PractitionerTermsOfServiceAccepted func(childComplexity int) int
+		PushTokens                         func(childComplexity int) int
+		TermsAccepted                      func(childComplexity int) int
+		UID                                func(childComplexity int) int
 	}
 }
 
@@ -122,11 +132,14 @@ type MutationResolver interface {
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
 	CompleteSignup(ctx context.Context) (*base.Decimal, error)
 	RecordPostVisitSurvey(ctx context.Context, input profile.PostVisitSurveyInput) (bool, error)
+	AddTester(ctx context.Context, email string) (bool, error)
+	RemoveTester(ctx context.Context, email string) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*profile.UserProfile, error)
 	HealthcashBalance(ctx context.Context) (*base.Decimal, error)
 	GetProfile(ctx context.Context, uid string) (*profile.UserProfile, error)
+	ListTesters(ctx context.Context) ([]string, error)
 }
 
 type executableSchema struct {
@@ -184,6 +197,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AcceptTermsAndConditions(childComplexity, args["accept"].(bool)), true
 
+	case "Mutation.addTester":
+		if e.complexity.Mutation.AddTester == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addTester_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddTester(childComplexity, args["email"].(string)), true
+
 	case "Mutation.completeSignup":
 		if e.complexity.Mutation.CompleteSignup == nil {
 			break
@@ -238,6 +263,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RegisterPushToken(childComplexity, args["token"].(string)), true
+
+	case "Mutation.removeTester":
+		if e.complexity.Mutation.RemoveTester == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeTester_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveTester(childComplexity, args["email"].(string)), true
 
 	case "Mutation.updateBiodata":
 		if e.complexity.Mutation.UpdateBiodata == nil {
@@ -380,12 +417,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.HealthcashBalance(childComplexity), true
 
+	case "Query.listTesters":
+		if e.complexity.Query.ListTesters == nil {
+			break
+		}
+
+		return e.complexity.Query.ListTesters(childComplexity), true
+
 	case "Query.userProfile":
 		if e.complexity.Query.UserProfile == nil {
 			break
 		}
 
 		return e.complexity.Query.UserProfile(childComplexity), true
+
+	case "TesterWhitelist.email":
+		if e.complexity.TesterWhitelist.Email == nil {
+			break
+		}
+
+		return e.complexity.TesterWhitelist.Email(childComplexity), true
 
 	case "UserProfile.bio":
 		if e.complexity.UserProfile.Bio == nil {
@@ -429,6 +480,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.IsApproved(childComplexity), true
 
+	case "UserProfile.isTester":
+		if e.complexity.UserProfile.IsTester == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.IsTester(childComplexity), true
+
 	case "UserProfile.msisdns":
 		if e.complexity.UserProfile.Msisdns == nil {
 			break
@@ -463,6 +521,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserProfile.PhotoContentType(childComplexity), true
+
+	case "UserProfile.practitionerApproved":
+		if e.complexity.UserProfile.PractitionerApproved == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.PractitionerApproved(childComplexity), true
+
+	case "UserProfile.practitionerTermsOfServiceAccepted":
+		if e.complexity.UserProfile.PractitionerTermsOfServiceAccepted == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.PractitionerTermsOfServiceAccepted(childComplexity), true
 
 	case "UserProfile.pushTokens":
 		if e.complexity.UserProfile.PushTokens == nil {
@@ -613,6 +685,7 @@ type UserProfile {
   photoContentType: ContentType!
   pushTokens: [String!]!
   covers: [Cover!]!
+  isTester: Boolean!
 
   # optional fields
   dateOfBirth: Date
@@ -620,6 +693,8 @@ type UserProfile {
   patientID: String
   name: String
   bio: String
+  practitionerApproved: Boolean
+  practitionerTermsOfServiceAccepted: Boolean
 }
 
 input UserProfileInput {
@@ -634,6 +709,8 @@ input UserProfileInput {
   gender: Gender
   name: String
   bio: String
+  practitionerApproved: Boolean
+  practitionerTermsOfServiceAccepted: Boolean
 }
 
 input UserProfilePhone {
@@ -654,10 +731,15 @@ input BiodataInput {
   bio: String
 }
 
+type TesterWhitelist {
+  email: String!
+}
+
 extend type Query {
   userProfile: UserProfile!
   healthcashBalance: Decimal!
   getProfile(uid: String!): UserProfile!
+  listTesters: [String!]!
 }
 
 extend type Mutation {
@@ -669,6 +751,8 @@ extend type Mutation {
   registerPushToken(token: String!): Boolean!
   completeSignup: Decimal!
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
+  addTester(email: String!): Boolean!
+  removeTester(email: String!): Boolean!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/base.graphql", Input: `scalar Map
@@ -841,6 +925,20 @@ func (ec *executionContext) field_Mutation_acceptTermsAndConditions_args(ctx con
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addTester_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["email"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_confirmEmail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -894,6 +992,20 @@ func (ec *executionContext) field_Mutation_registerPushToken_args(ctx context.Co
 		}
 	}
 	args["token"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeTester_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["email"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg0
 	return args, nil
 }
 
@@ -1430,6 +1542,88 @@ func (ec *executionContext) _Mutation_recordPostVisitSurvey(ctx context.Context,
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().RecordPostVisitSurvey(rctx, args["input"].(profile.PostVisitSurveyInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addTester(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addTester_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddTester(rctx, args["email"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_removeTester(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_removeTester_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemoveTester(rctx, args["email"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2016,6 +2210,40 @@ func (ec *executionContext) _Query_getProfile(ctx context.Context, field graphql
 	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_listTesters(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListTesters(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2083,6 +2311,40 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TesterWhitelist_email(ctx context.Context, field graphql.CollectedField, obj *profile.TesterWhitelist) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TesterWhitelist",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserProfile_uid(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
@@ -2391,6 +2653,40 @@ func (ec *executionContext) _UserProfile_covers(ctx context.Context, field graph
 	return ec.marshalNCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCoverᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserProfile_isTester(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsTester, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserProfile_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2544,6 +2840,68 @@ func (ec *executionContext) _UserProfile_bio(ctx context.Context, field graphql.
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_practitionerApproved(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PractitionerApproved, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_practitionerTermsOfServiceAccepted(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PractitionerTermsOfServiceAccepted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -3901,6 +4259,18 @@ func (ec *executionContext) unmarshalInputUserProfileInput(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
+		case "practitionerApproved":
+			var err error
+			it.PractitionerApproved, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "practitionerTermsOfServiceAccepted":
+			var err error
+			it.PractitionerTermsOfServiceAccepted, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -4042,6 +4412,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "recordPostVisitSurvey":
 			out.Values[i] = ec._Mutation_recordPostVisitSurvey(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addTester":
+			out.Values[i] = ec._Mutation_addTester(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "removeTester":
+			out.Values[i] = ec._Mutation_removeTester(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4256,10 +4636,51 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "listTesters":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listTesters(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var testerWhitelistImplementors = []string{"TesterWhitelist"}
+
+func (ec *executionContext) _TesterWhitelist(ctx context.Context, sel ast.SelectionSet, obj *profile.TesterWhitelist) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, testerWhitelistImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TesterWhitelist")
+		case "email":
+			out.Values[i] = ec._TesterWhitelist_email(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4327,6 +4748,11 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "isTester":
+			out.Values[i] = ec._UserProfile_isTester(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "dateOfBirth":
 			out.Values[i] = ec._UserProfile_dateOfBirth(ctx, field, obj)
 		case "gender":
@@ -4337,6 +4763,10 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_name(ctx, field, obj)
 		case "bio":
 			out.Values[i] = ec._UserProfile_bio(ctx, field, obj)
+		case "practitionerApproved":
+			out.Values[i] = ec._UserProfile_practitionerApproved(ctx, field, obj)
+		case "practitionerTermsOfServiceAccepted":
+			out.Values[i] = ec._UserProfile_practitionerTermsOfServiceAccepted(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

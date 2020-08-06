@@ -2,18 +2,15 @@
 package profile
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log"
-	"text/template"
 	"time"
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"github.com/asaskevich/govalidator"
 	"github.com/shopspring/decimal"
-	logger "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/mailgun"
@@ -141,6 +138,7 @@ func (s Service) UserProfile(ctx context.Context) (*UserProfile, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
+	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 	return userProfile, nil
 }
 
@@ -156,6 +154,7 @@ func (s Service) GetProfile(ctx context.Context, uid string) (*UserProfile, erro
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
+	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 	return userProfile, nil
 }
 
@@ -277,6 +276,7 @@ func (s Service) UpdateUserProfile(
 	if err != nil {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
 	}
+	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 	return userProfile, nil
 }
 
@@ -309,6 +309,7 @@ func (s Service) ConfirmEmail(ctx context.Context, email string) (*UserProfile, 
 	if err != nil {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
 	}
+	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 	return userProfile, nil
 }
 
@@ -388,6 +389,7 @@ func (s Service) UpdateBiodata(
 	if err != nil {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
 	}
+	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 	return userProfile, nil
 }
 
@@ -581,24 +583,76 @@ func (s Service) RecordPostVisitSurvey(ctx context.Context, input PostVisitSurve
 	return true, nil
 }
 
-// generatePractitionerWelcomeEmailTemplate generates a welcome email
-func generatePractitionerWelcomeEmailTemplate() string {
-	t := template.Must(template.New("welcomeEmail").Parse(practitionerWelcomeEmail))
-	buf := new(bytes.Buffer)
-	err := t.Execute(buf, "")
-	if err != nil {
-		logger.Errorf("Error while generating template")
+// AddTester enrolls a user's email into the test group
+func (s Service) AddTester(ctx context.Context, email string) (bool, error) {
+	s.checkPreconditions()
+
+	if !govalidator.IsEmail(email) {
+		return false, fmt.Errorf("%s is not a valid email", email)
 	}
-	return buf.String()
+	emails := []string{email}
+	if isTester(ctx, emails) {
+		return true, nil // add only once
+	}
+	tester := &TesterWhitelist{Email: email}
+	_, _, err := base.CreateNode(ctx, tester)
+	if err != nil {
+		return false, fmt.Errorf("can't save whitelist entry: %s", err)
+	}
+	return true, nil
 }
 
-// generatePractitionerSignupEmailTemplate generates an signup email
-func generatePractitionerSignupEmailTemplate() string {
-	t := template.Must(template.New("signupemail").Parse(practitionerSignupEmail))
-	buf := new(bytes.Buffer)
-	err := t.Execute(buf, "")
+// RemoveTester removes a user's email from the test group
+func (s Service) RemoveTester(ctx context.Context, email string) (bool, error) {
+	s.checkPreconditions()
+
+	tester, err := getTester(ctx, email)
 	if err != nil {
-		logger.Errorf("Error while generating template")
+		return false, fmt.Errorf("can't get tester with email %s: %w", email, err)
 	}
-	return buf.String()
+	if tester == nil {
+		return true, nil // idempotent...you can safely "re-delete"
+	}
+
+	_, err = base.DeleteNode(ctx, tester.ID, &TesterWhitelist{})
+	if err != nil {
+		return false, fmt.Errorf("can't delete tester with email %s: %w", email, err)
+	}
+	return true, nil
 }
+
+// ListTesters returns the emails of new testers
+func (s Service) ListTesters(ctx context.Context) ([]string, error) {
+	s.checkPreconditions()
+
+	testerDocs, _, err := base.QueryNodes(
+		ctx,
+		nil,
+		nil,
+		nil,
+		&TesterWhitelist{},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve testers: %w", err)
+	}
+
+	testers := []*TesterWhitelist{}
+	for _, doc := range testerDocs {
+		tester := &TesterWhitelist{}
+		err := doc.DataTo(tester)
+		if err != nil {
+			return nil, fmt.Errorf("unable to unmarshal tester doc to struct: %w", err)
+		}
+		testers = append(testers, tester)
+	}
+
+	emails := []string{}
+	for _, tester := range testers {
+		emails = append(emails, tester.Email)
+	}
+
+	return emails, nil
+}
+
+// TODO Separate practitioner and consumer profiles - isApproved
+// TODO practitionerTermsOfServiceAccepted

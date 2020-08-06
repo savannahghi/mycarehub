@@ -29,6 +29,12 @@ func (r *queryResolver) GetProfile(ctx context.Context, uid string) (*profile.Us
 	return r.profileService.GetProfile(ctx, uid)
 }
 
+func (r *queryResolver) ListTesters(ctx context.Context) ([]string, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.ListTesters(ctx)
+}
+
 func (r *mutationResolver) AcceptTermsAndConditions(
 	ctx context.Context, accept bool) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
@@ -78,6 +84,18 @@ func (r *mutationResolver) ConfirmEmail(ctx context.Context, email string) (*pro
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.ConfirmEmail(ctx, email)
+}
+
+func (r *mutationResolver) AddTester(ctx context.Context, email string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.AddTester(ctx, email)
+}
+
+func (r *mutationResolver) RemoveTester(ctx context.Context, email string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.RemoveTester(ctx, email)
 }
 
 // Mutation returns generated.MutationResolver implementation.

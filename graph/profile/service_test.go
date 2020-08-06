@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
@@ -573,6 +574,141 @@ func TestService_SendPractitionerWelcomeEmail(t *testing.T) {
 			if err := s.SendPractitionerWelcomeEmail(tt.args.ctx, tt.args.emailaddress); (err != nil) != tt.wantErr {
 				t.Errorf("Service.SendPractitionerWelcomeEmail() error = %v, wantErr %v", err, tt.wantErr)
 			}
+		})
+	}
+}
+
+func TestService_AddTester(t *testing.T) {
+	ctx := context.Background()
+	type args struct {
+		ctx   context.Context
+		email string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid test case",
+			args: args{
+				ctx:   ctx,
+				email: gofakeit.Email(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid email",
+			args: args{
+				ctx:   ctx,
+				email: "this is not an email",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewService()
+			got, err := s.AddTester(tt.args.ctx, tt.args.email)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.AddTester() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.AddTester() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_RemoveTester(t *testing.T) {
+	validTesterEmail := gofakeit.Email()
+	srv := NewService()
+	ctx := context.Background()
+	added, err := srv.AddTester(ctx, validTesterEmail)
+	assert.Nil(t, err)
+	assert.True(t, added)
+
+	type args struct {
+		ctx   context.Context
+		email string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "tester that exists",
+			args: args{
+				ctx:   ctx,
+				email: validTesterEmail,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "tester that does not exist",
+			args: args{
+				ctx:   ctx,
+				email: fmt.Sprintf("%s@healthcloud.co.ke", uuid.New().String()),
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewService()
+			got, err := s.RemoveTester(tt.args.ctx, tt.args.email)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.RemoveTester() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.RemoveTester() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_ListTesters(t *testing.T) {
+	validTesterEmail := gofakeit.Email()
+	srv := NewService()
+	ctx := context.Background()
+	added, err := srv.AddTester(ctx, validTesterEmail)
+	assert.Nil(t, err)
+	assert.True(t, added)
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid case",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewService()
+			got, err := s.ListTesters(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.ListTesters() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			assert.GreaterOrEqual(t, len(got), 1)
 		})
 	}
 }

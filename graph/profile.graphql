@@ -62,6 +62,7 @@ type UserProfile {
   photoContentType: ContentType!
   pushTokens: [String!]!
   covers: [Cover!]!
+  isTester: Boolean!
 
   # optional fields
   dateOfBirth: Date
@@ -69,6 +70,8 @@ type UserProfile {
   patientID: String
   name: String
   bio: String
+  practitionerApproved: Boolean
+  practitionerTermsOfServiceAccepted: Boolean
 }
 
 input UserProfileInput {
@@ -83,6 +86,8 @@ input UserProfileInput {
   gender: Gender
   name: String
   bio: String
+  practitionerApproved: Boolean
+  practitionerTermsOfServiceAccepted: Boolean
 }
 
 input UserProfilePhone {
@@ -103,10 +108,15 @@ input BiodataInput {
   bio: String
 }
 
+type TesterWhitelist {
+  email: String!
+}
+
 extend type Query {
   userProfile: UserProfile!
   healthcashBalance: Decimal!
   getProfile(uid: String!): UserProfile!
+  listTesters: [String!]!
 }
 
 extend type Mutation {
@@ -118,4 +128,6 @@ extend type Mutation {
   registerPushToken(token: String!): Boolean!
   completeSignup: Decimal!
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
+  addTester(email: String!): Boolean!
+  removeTester(email: String!): Boolean!
 }
