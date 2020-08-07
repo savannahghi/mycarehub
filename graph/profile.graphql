@@ -72,6 +72,7 @@ type UserProfile {
   bio: String
   practitionerApproved: Boolean
   practitionerTermsOfServiceAccepted: Boolean
+  canExperiment:Boolean
 }
 
 input UserProfileInput {
@@ -88,6 +89,7 @@ input UserProfileInput {
   bio: String
   practitionerApproved: Boolean
   practitionerTermsOfServiceAccepted: Boolean
+  canExperiment:Boolean
 }
 
 input UserProfilePhone {

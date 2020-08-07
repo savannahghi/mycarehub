@@ -117,7 +117,8 @@ func TestService_profileUpdates(t *testing.T) {
 					Msisdns: []*UserProfilePhone{
 						{Phone: msisdn, Otp: otp},
 					},
-					Emails: email,
+					Emails:        email,
+					CanExperiment: false,
 				}
 				updatedProfile, err := s.UpdateUserProfile(
 					tt.args.ctx, userProfileInput)

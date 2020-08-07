@@ -100,6 +100,7 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 			UID:           uid,
 			IsApproved:    false,
 			TermsAccepted: false,
+			CanExperiment: false,
 		}
 		docID, err := base.SaveDataToFirestore(
 			s.firestoreClient, UserProfileCollectionName, newProfile)
@@ -271,6 +272,7 @@ func (s Service) UpdateUserProfile(
 	}
 	userProfile.Name = input.Name
 	userProfile.Bio = input.Bio
+	userProfile.CanExperiment = input.CanExperiment
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, UserProfileCollectionName, dsnap.Ref.ID, userProfile,
 	)
