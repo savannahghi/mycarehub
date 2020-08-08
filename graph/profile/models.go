@@ -77,6 +77,10 @@ type UserProfile struct {
 
 	IsTester      bool `json:"isTester" firestore:"isTester"`
 	CanExperiment bool `json:"canExperiment" firestore:"canExperiment"`
+
+	// used to determine whether to persist asking the user on the UI
+	AskAgainToSetIsTester      bool `json:"askAgainToSetIsTester" firestore:"askAgainToSetIsTester"`
+	AskAgainToSetCanExperiment bool `json:"askAgainToSetCanExperiment" firestore:"askAgainToSetCanExperiment"`
 }
 
 // UserProfileInput is used to create or update a user's profile.
@@ -95,6 +99,10 @@ type UserProfileInput struct {
 	PractitionerApproved               *bool   `json:"practitionerApproved" firestore:"practitionerApproved"`
 	PractitionerTermsOfServiceAccepted *bool   `json:"practitionerTermsOfServiceAccepted" firestore:"practitionerTermsOfServiceAccepted"`
 	CanExperiment                      bool    `json:"canExperiment" firestore:"canExperiment"`
+
+	// used to determine whether to persist asking the user on the UI
+	AskAgainToSetIsTester      bool `json:"askAgainToSetIsTester" firestore:"askAgainToSetIsTester"`
+	AskAgainToSetCanExperiment bool `json:"askAgainToSetCanExperiment" firestore:"askAgainToSetCanExperiment"`
 }
 
 // UserProfilePhone is used to input a user's phone and the corresponding OTP

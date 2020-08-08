@@ -273,6 +273,8 @@ func (s Service) UpdateUserProfile(
 	userProfile.Name = input.Name
 	userProfile.Bio = input.Bio
 	userProfile.CanExperiment = input.CanExperiment
+	userProfile.AskAgainToSetIsTester = input.AskAgainToSetIsTester
+	userProfile.AskAgainToSetCanExperiment = input.AskAgainToSetCanExperiment
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, UserProfileCollectionName, dsnap.Ref.ID, userProfile,
 	)

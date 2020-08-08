@@ -73,6 +73,8 @@ type UserProfile {
   practitionerApproved: Boolean
   practitionerTermsOfServiceAccepted: Boolean
   canExperiment:Boolean
+  askAgainToSetIsTester:Boolean
+  askAgainToSetCanExperiment:Boolean
 }
 
 input UserProfileInput {
@@ -90,6 +92,8 @@ input UserProfileInput {
   practitionerApproved: Boolean
   practitionerTermsOfServiceAccepted: Boolean
   canExperiment:Boolean
+  askAgainToSetIsTester:Boolean
+  askAgainToSetCanExperiment:Boolean
 }
 
 input UserProfilePhone {

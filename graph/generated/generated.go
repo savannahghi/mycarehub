@@ -103,6 +103,8 @@ type ComplexityRoot struct {
 	}
 
 	UserProfile struct {
+		AskAgainToSetCanExperiment         func(childComplexity int) int
+		AskAgainToSetIsTester              func(childComplexity int) int
 		Bio                                func(childComplexity int) int
 		CanExperiment                      func(childComplexity int) int
 		Covers                             func(childComplexity int) int
@@ -439,6 +441,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TesterWhitelist.Email(childComplexity), true
 
+	case "UserProfile.askAgainToSetCanExperiment":
+		if e.complexity.UserProfile.AskAgainToSetCanExperiment == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.AskAgainToSetCanExperiment(childComplexity), true
+
+	case "UserProfile.askAgainToSetIsTester":
+		if e.complexity.UserProfile.AskAgainToSetIsTester == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.AskAgainToSetIsTester(childComplexity), true
+
 	case "UserProfile.bio":
 		if e.complexity.UserProfile.Bio == nil {
 			break
@@ -704,6 +720,8 @@ type UserProfile {
   practitionerApproved: Boolean
   practitionerTermsOfServiceAccepted: Boolean
   canExperiment:Boolean
+  askAgainToSetIsTester:Boolean
+  askAgainToSetCanExperiment:Boolean
 }
 
 input UserProfileInput {
@@ -721,6 +739,8 @@ input UserProfileInput {
   practitionerApproved: Boolean
   practitionerTermsOfServiceAccepted: Boolean
   canExperiment:Boolean
+  askAgainToSetIsTester:Boolean
+  askAgainToSetCanExperiment:Boolean
 }
 
 input UserProfilePhone {
@@ -2945,6 +2965,68 @@ func (ec *executionContext) _UserProfile_canExperiment(ctx context.Context, fiel
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserProfile_askAgainToSetIsTester(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AskAgainToSetIsTester, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_askAgainToSetCanExperiment(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AskAgainToSetCanExperiment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4318,6 +4400,18 @@ func (ec *executionContext) unmarshalInputUserProfileInput(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
+		case "askAgainToSetIsTester":
+			var err error
+			it.AskAgainToSetIsTester, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "askAgainToSetCanExperiment":
+			var err error
+			it.AskAgainToSetCanExperiment, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -4816,6 +4910,10 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_practitionerTermsOfServiceAccepted(ctx, field, obj)
 		case "canExperiment":
 			out.Values[i] = ec._UserProfile_canExperiment(ctx, field, obj)
+		case "askAgainToSetIsTester":
+			out.Values[i] = ec._UserProfile_askAgainToSetIsTester(ctx, field, obj)
+		case "askAgainToSetCanExperiment":
+			out.Values[i] = ec._UserProfile_askAgainToSetCanExperiment(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
