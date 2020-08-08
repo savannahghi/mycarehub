@@ -104,6 +104,7 @@ type ComplexityRoot struct {
 
 	UserProfile struct {
 		Bio                                func(childComplexity int) int
+		CanExperiment                      func(childComplexity int) int
 		Covers                             func(childComplexity int) int
 		DateOfBirth                        func(childComplexity int) int
 		Emails                             func(childComplexity int) int
@@ -445,6 +446,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.Bio(childComplexity), true
 
+	case "UserProfile.canExperiment":
+		if e.complexity.UserProfile.CanExperiment == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.CanExperiment(childComplexity), true
+
 	case "UserProfile.covers":
 		if e.complexity.UserProfile.Covers == nil {
 			break
@@ -695,6 +703,7 @@ type UserProfile {
   bio: String
   practitionerApproved: Boolean
   practitionerTermsOfServiceAccepted: Boolean
+  canExperiment:Boolean
 }
 
 input UserProfileInput {
@@ -711,6 +720,7 @@ input UserProfileInput {
   bio: String
   practitionerApproved: Boolean
   practitionerTermsOfServiceAccepted: Boolean
+  canExperiment:Boolean
 }
 
 input UserProfilePhone {
@@ -2904,6 +2914,37 @@ func (ec *executionContext) _UserProfile_practitionerTermsOfServiceAccepted(ctx 
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserProfile_canExperiment(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CanExperiment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4271,6 +4312,12 @@ func (ec *executionContext) unmarshalInputUserProfileInput(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
+		case "canExperiment":
+			var err error
+			it.CanExperiment, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -4767,6 +4814,8 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_practitionerApproved(ctx, field, obj)
 		case "practitionerTermsOfServiceAccepted":
 			out.Values[i] = ec._UserProfile_practitionerTermsOfServiceAccepted(ctx, field, obj)
+		case "canExperiment":
+			out.Values[i] = ec._UserProfile_canExperiment(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
