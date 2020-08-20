@@ -22,7 +22,7 @@ lint_and_test:
     - go fmt $(go list ./... | grep -v /vendor/)
     - go vet $(go list ./... | grep -v /vendor/)
     - golint -set_exit_status $(go list ./... | grep -v /vendor/)
-    - errcheck $(go list ./... | grep -v /vendor/)
+    - errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
     - gosec ./...
     - go-acc -o coverage.txt --ignore generated,cmd ./...
     - grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*resolver*go" | grep -v "server.go" > coverage.out
@@ -43,7 +43,7 @@ lint_and_test:
 deploy_develop_to_staging:
   before_script:
     - apk add --update --no-cache curl py-pip
-    - apk add --update make ca-certificates openssl 
+    - apk add --update make ca-certificates openssl
     - update-ca-certificates
     # Download and install Google Cloud SDK
     - wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
@@ -62,20 +62,67 @@ deploy_develop_to_staging:
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
-  resource_group: staging  # control deploy concurrency
+  resource_group: staging # control deploy concurrency
   script:
-    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app-testing/profile:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app-testing/profile-staging:$(echo $CI_COMMIT_SHA | cut -c1-8)
     - google-cloud-sdk/bin/gcloud auth configure-docker
-    - docker -- push eu.gcr.io/bewell-app-testing/profile:$(echo $CI_COMMIT_SHA | cut -c1-8)
-    - google-cloud-sdk/bin/gcloud run deploy profile --image eu.gcr.io/bewell-app-testing/profile:$(echo $CI_COMMIT_SHA | cut -c1-8) --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars "GOOGLE_CLOUD_PROJECT=$STAGING_GOOGLE_CLOUD_PROJECT,FIREBASE_WEB_API_KEY=$STAGING_FIREBASE_WEB_API_KEY,MAILGUN_API_KEY=$STAGING_MAILGUN_API_KEY,MAILGUN_DOMAIN=$STAGING_MAILGUN_DOMAIN,MAILGUN_FROM=$STAGING_MAILGUN_FROM,AIT_API_KEY=$PROD_AIT_API_KEY,AIT_USERNAME=$PROD_AIT_USERNAME,AIT_SENDER_ID=$PROD_AIT_SENDER_ID,AIT_ENVIRONMENT=$PROD_AIT_ENVIRONMENT"
-    - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile --quiet
+    - docker -- push eu.gcr.io/bewell-app-testing/profile-staging:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - |
+      google-cloud-sdk/bin/gcloud run deploy profile-staging --image eu.gcr.io/bewell-app-testing/profile-staging:$(echo $CI_COMMIT_SHA | cut -c1-8) \
+      --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars \
+      "GOOGLE_CLOUD_PROJECT=$STAGING_GOOGLE_CLOUD_PROJECT,FIREBASE_WEB_API_KEY=$STAGING_FIREBASE_WEB_API_KEY,\
+      MAILGUN_API_KEY=$STAGING_MAILGUN_API_KEY,MAILGUN_DOMAIN=$STAGING_MAILGUN_DOMAIN,MAILGUN_FROM=$STAGING_MAILGUN_FROM,\
+      AIT_API_KEY=$PROD_AIT_API_KEY,AIT_USERNAME=$PROD_AIT_USERNAME,AIT_SENDER_ID=$PROD_AIT_SENDER_ID,AIT_ENVIRONMENT=$PROD_AIT_ENVIRONMENT,\
+      ROOT_COLLECTION_SUFFIX=$STAGING_ROOT_COLLECTION_SUFFIX"
+    - |
+    - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile-staging --quiet
+
+  tags:
+    - healthcloud-multi
+
+deploy_develop_to_test:
+  before_script:
+    - apk add --update --no-cache curl py-pip
+    - apk add --update make ca-certificates openssl
+    - update-ca-certificates
+    # Download and install Google Cloud SDK
+    - wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
+    - source  $CI_PROJECT_DIR/gcloud.sh
+    - tar zxvf google-cloud-sdk.tar.gz && ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
+    # Instead of writing our GCP service account private key into a file, supply it as env variable
+    - google-cloud-sdk/bin/gcloud auth activate-service-account --key-file $GCLOUD_PRODUCTION_SERVICE_ACCOUNT
+    - google-cloud-sdk/bin/gcloud config set project bewell-app
+    - docker login -u _json_key --password-stdin https://eu.gcr.io < $GCLOUD_PRODUCTION_SERVICE_ACCOUNT
+    - export CLOUDSDK_CORE_PROJECT=bewell-app
+  image: docker:dind
+  stage: deploy
+  only:
+    - develop
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  resource_group: staging # control deploy concurrency
+  script:
+    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app/profile-testing:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - google-cloud-sdk/bin/gcloud auth configure-docker
+    - docker -- push eu.gcr.io/bewell-app/profile-testing:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - |
+      google-cloud-sdk/bin/gcloud run deploy profile-testing --image eu.gcr.io/bewell-app/profile-testing:$(echo $CI_COMMIT_SHA | cut -c1-8) \
+      --region europe-west1 --platform managed --allow-unauthenticated  --update-env-vars \
+      "GOOGLE_CLOUD_PROJECT=$PROD_GOOGLE_CLOUD_PROJECT,FIREBASE_WEB_API_KEY=$PROD_FIREBASE_WEB_API_KEY,MAILGUN_API_KEY=$PROD_MAILGUN_API_KEY,\
+      MAILGUN_DOMAIN=$PROD_MAILGUN_DOMAIN,MAILGUN_FROM=$PROD_MAILGUN_FROM,AIT_API_KEY=$PROD_AIT_API_KEY,\
+      AIT_USERNAME=$PROD_AIT_USERNAME,AIT_SENDER_ID=$PROD_AIT_SENDER_ID,AIT_ENVIRONMENT=$PROD_AIT_ENVIRONMENT,\
+      ROOT_COLLECTION_SUFFIX=$TESTING_ROOT_COLLECTION_SUFFIX"
+    - |
+    - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile-testing --quiet
   tags:
     - healthcloud-multi
 
 deploy_master_to_prod:
   before_script:
     - apk add --update --no-cache curl py-pip
-    - apk add --update make ca-certificates openssl 
+    - apk add --update make ca-certificates openssl
     - update-ca-certificates
     # Download and install Google Cloud SDK
     - wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
@@ -94,12 +141,19 @@ deploy_master_to_prod:
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
-  resource_group: staging  # control deploy concurrency
+  resource_group: staging # control deploy concurrency
   script:
-    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app/profile:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app/profile-prod:$(echo $CI_COMMIT_SHA | cut -c1-8)
     - google-cloud-sdk/bin/gcloud auth configure-docker
-    - docker -- push eu.gcr.io/bewell-app/profile:$(echo $CI_COMMIT_SHA | cut -c1-8)
-    - google-cloud-sdk/bin/gcloud run deploy profile --image eu.gcr.io/bewell-app/profile:$(echo $CI_COMMIT_SHA | cut -c1-8) --region europe-west1 --platform managed --allow-unauthenticated  --update-env-vars "GOOGLE_CLOUD_PROJECT=$PROD_GOOGLE_CLOUD_PROJECT,FIREBASE_WEB_API_KEY=$PROD_FIREBASE_WEB_API_KEY,MAILGUN_API_KEY=$PROD_MAILGUN_API_KEY,MAILGUN_DOMAIN=$PROD_MAILGUN_DOMAIN,MAILGUN_FROM=$PROD_MAILGUN_FROM,AIT_API_KEY=$PROD_AIT_API_KEY,AIT_USERNAME=$PROD_AIT_USERNAME,AIT_SENDER_ID=$PROD_AIT_SENDER_ID,AIT_ENVIRONMENT=$PROD_AIT_ENVIRONMENT"
-    - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile --quiet
+    - docker -- push eu.gcr.io/bewell-app/profile-prod:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - |
+      google-cloud-sdk/bin/gcloud run deploy profile-prod --image eu.gcr.io/bewell-app/profile-prod:$(echo $CI_COMMIT_SHA | cut -c1-8) \
+      --region europe-west1 --platform managed --allow-unauthenticated  --update-env-vars \
+      "GOOGLE_CLOUD_PROJECT=$PROD_GOOGLE_CLOUD_PROJECT,FIREBASE_WEB_API_KEY=$PROD_FIREBASE_WEB_API_KEY,MAILGUN_API_KEY=$PROD_MAILGUN_API_KEY,\
+      MAILGUN_DOMAIN=$PROD_MAILGUN_DOMAIN,MAILGUN_FROM=$PROD_MAILGUN_FROM,AIT_API_KEY=$PROD_AIT_API_KEY,\
+      AIT_USERNAME=$PROD_AIT_USERNAME,AIT_SENDER_ID=$PROD_AIT_SENDER_ID,AIT_ENVIRONMENT=$PROD_AIT_ENVIRONMENT,\
+      ROOT_COLLECTION_SUFFIX=$PROD_ROOT_COLLECTION_SUFFIX"
+    - |
+    - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile-prod --quiet
   tags:
     - healthcloud-multi

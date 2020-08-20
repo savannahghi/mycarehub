@@ -48,6 +48,10 @@ func main() {
 		base.LogStartupError(ctx, err)
 	}
 
+	// check if the root colletion env variable exists
+	// expects the server to die if this not explictly set
+	base.MustGetEnvVar("ROOT_COLLECTION_SUFFIX")
+
 	// start the server
 	addr := ":" + base.MustGetEnvVar("PORT")
 	h := handlers.CompressHandlerLevel(r, gzip.BestCompression)

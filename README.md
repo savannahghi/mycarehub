@@ -5,7 +5,7 @@
 
 ## Environment variables
 
-For local development, you need to *export* the following env vars:
+For local development, you need to _export_ the following env vars:
 
 ```bash
 # Google Cloud Settings
@@ -30,4 +30,3 @@ export GOPRIVATE="gitlab.slade360emr.com/go/*,gitlab.slade360emr.com/optimalheal
 
 The server deploys to Google Cloud Run. The environment variables defined above
 should also be set on Google Cloud Run.
-

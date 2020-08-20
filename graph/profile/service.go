@@ -79,13 +79,49 @@ func (s Service) checkPreconditions() {
 	}
 }
 
+func (s Service) getUserProfileCollectionName() string {
+	suffixed := base.SuffixCollection(UserProfileCollectionName)
+	return suffixed
+}
+
+func (s Service) getPractitionerCollectionName() string {
+	// add env suffix
+	suffixed := base.SuffixCollection(PractitionerCollectionName)
+	return suffixed
+}
+
+func (s Service) getSurveyCollectionName() string {
+	// add env suffix
+	suffixed := base.SuffixCollection(SurveyCollectionName)
+	return suffixed
+}
+
+func (s Service) getHealthcashRootCollectionName() string {
+	// add env suffix
+	suffixed := base.SuffixCollection(HealthcashRootCollectionName)
+	return suffixed
+}
+
+func (s Service) getHealthcashDepositsCollectionName() string {
+	// add env suffix
+	suffixed := base.SuffixCollection(HealthcashDepositsCollectionName)
+	return suffixed
+}
+
+func (s Service) getHealthcashWithdrawalsCollectionName() string {
+	// add env suffix
+	suffixed := base.SuffixCollection(HealthcashWithdrawalsCollectionName)
+	return suffixed
+}
+
 // RetrieveUserProfileFirebaseDocSnapshotByUID retrieves the user profile of a
 // specified user
 func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 	ctx context.Context,
 	uid string,
 ) (*firestore.DocumentSnapshot, error) {
-	collection := s.firestoreClient.Collection(UserProfileCollectionName)
+
+	collection := s.firestoreClient.Collection(s.getUserProfileCollectionName())
 	// the ordering is necessary in order to provide a stable sort order
 	query := collection.Where("uid", "==", uid)
 	docs, err := query.Documents(ctx).GetAll()
@@ -103,7 +139,7 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 			CanExperiment: false,
 		}
 		docID, err := base.SaveDataToFirestore(
-			s.firestoreClient, UserProfileCollectionName, newProfile)
+			s.firestoreClient, s.getUserProfileCollectionName(), newProfile)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new user profile: %w", err)
 		}
@@ -176,7 +212,7 @@ func (s Service) AcceptTermsAndConditions(
 	}
 	userProfile.TermsAccepted = accept
 	err = base.UpdateRecordOnFirestore(
-		s.firestoreClient, UserProfileCollectionName, dsnap.Ref.ID, userProfile,
+		s.firestoreClient, s.getUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
 	)
 	if err != nil {
 		return false, fmt.Errorf("unable to update user profile: %v", err)
@@ -206,7 +242,7 @@ func (s Service) UpdatePhoneNumber(
 		userProfile.Msisdns = append(userProfile.Msisdns, validatedPhone)
 	}
 	err = base.UpdateRecordOnFirestore(
-		s.firestoreClient, UserProfileCollectionName, dsnap.Ref.ID, userProfile,
+		s.firestoreClient, s.getUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
 	)
 	if err != nil {
 		return false, fmt.Errorf("unable to update user profile: %v", err)
@@ -276,7 +312,7 @@ func (s Service) UpdateUserProfile(
 	userProfile.AskAgainToSetIsTester = input.AskAgainToSetIsTester
 	userProfile.AskAgainToSetCanExperiment = input.AskAgainToSetCanExperiment
 	err = base.UpdateRecordOnFirestore(
-		s.firestoreClient, UserProfileCollectionName, dsnap.Ref.ID, userProfile,
+		s.firestoreClient, s.getUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
@@ -309,7 +345,7 @@ func (s Service) ConfirmEmail(ctx context.Context, email string) (*UserProfile, 
 	userProfile.Emails = verifiedEmails
 
 	err = base.UpdateRecordOnFirestore(
-		s.firestoreClient, UserProfileCollectionName, dsnap.Ref.ID, userProfile,
+		s.firestoreClient, s.getUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
@@ -333,7 +369,7 @@ func (s Service) PractitionerSignUp(
 		Specialty: input.Specialty,
 	}
 	_, err = base.SaveDataToFirestore(
-		s.firestoreClient, PractitionerCollectionName, practitioner)
+		s.firestoreClient, s.getPractitionerCollectionName(), practitioner)
 	if err != nil {
 		return false, fmt.Errorf("unable to save practitioner info: %w", err)
 	}
@@ -389,7 +425,7 @@ func (s Service) UpdateBiodata(
 	userProfile.Bio = input.Bio
 
 	err = base.UpdateRecordOnFirestore(
-		s.firestoreClient, UserProfileCollectionName, dsnap.Ref.ID, userProfile,
+		s.firestoreClient, s.getUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
@@ -415,7 +451,7 @@ func (s Service) RegisterPushToken(ctx context.Context, token string) (bool, err
 		return false, err
 	}
 	err = base.UpdateRecordOnFirestore(
-		s.firestoreClient, UserProfileCollectionName, dsnap.Ref.ID, userProfile,
+		s.firestoreClient, s.getUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
 	)
 	if err != nil {
 		return false, fmt.Errorf("unable to update user profile: %v", err)
@@ -442,10 +478,10 @@ func (s Service) CompleteSignup(ctx context.Context) (*base.Decimal, error) {
 		return nil, err
 	}
 	if currentBalance.Decimal().Equal(decimal.Zero) {
-		rootCollection := s.firestoreClient.Collection(HealthcashRootCollectionName)
+		rootCollection := s.firestoreClient.Collection(s.getHealthcashRootCollectionName())
 		ts := time.Now()
 
-		depositsCollection := rootCollection.Doc(profile.UID).Collection(HealthcashDepositsCollectionName)
+		depositsCollection := rootCollection.Doc(profile.UID).Collection(s.getHealthcashDepositsCollectionName())
 		deposit := HealthcashTransaction{
 			At:       ts,
 			Amount:   HealthcashWelcomeBonusAmount,
@@ -457,7 +493,7 @@ func (s Service) CompleteSignup(ctx context.Context) (*base.Decimal, error) {
 			return nil, fmt.Errorf("unable to save HealthCash deposit opening balance: %w", err)
 		}
 
-		withdrawalsCollection := rootCollection.Doc(profile.UID).Collection(HealthcashWithdrawalsCollectionName)
+		withdrawalsCollection := rootCollection.Doc(profile.UID).Collection(s.getHealthcashWithdrawalsCollectionName())
 		withdrawal := HealthcashTransaction{
 			At:       ts,
 			Amount:   0.0,
@@ -477,7 +513,7 @@ func (s Service) CompleteSignup(ctx context.Context) (*base.Decimal, error) {
 	}
 	profile.IsApproved = true
 	err = base.UpdateRecordOnFirestore(
-		s.firestoreClient, UserProfileCollectionName, dsnap.Ref.ID, profile)
+		s.firestoreClient, s.getUserProfileCollectionName(), dsnap.Ref.ID, profile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
 	}
@@ -519,10 +555,10 @@ func (s Service) HealthcashBalance(ctx context.Context) (*base.Decimal, error) {
 	if err != nil {
 		return nil, err
 	}
-	rootCollection := s.firestoreClient.Collection(HealthcashRootCollectionName)
+	rootCollection := s.firestoreClient.Collection(s.getHealthcashRootCollectionName())
 
 	depositsCollection := rootCollection.Doc(uid).Collection(
-		HealthcashDepositsCollectionName)
+		s.getHealthcashDepositsCollectionName())
 	deposits, err := depositsCollection.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("can't retrieve deposits: %w", err)
@@ -539,7 +575,7 @@ func (s Service) HealthcashBalance(ctx context.Context) (*base.Decimal, error) {
 	}
 
 	withdrawalsCollection := rootCollection.Doc(uid).Collection(
-		HealthcashWithdrawalsCollectionName)
+		s.getHealthcashWithdrawalsCollectionName())
 	withdrawals, err := withdrawalsCollection.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("can't retrieve withdrawals: %w", err)
@@ -573,7 +609,7 @@ func (s Service) RecordPostVisitSurvey(ctx context.Context, input PostVisitSurve
 	if err != nil {
 		return false, err
 	}
-	feedbackCollection := s.firestoreClient.Collection(SurveyCollectionName)
+	feedbackCollection := s.firestoreClient.Collection(s.getSurveyCollectionName())
 	feedback := PostVisitSurvey{
 		LikelyToRecommend: input.LikelyToRecommend,
 		Criticism:         input.Criticism,

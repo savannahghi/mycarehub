@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -18,6 +19,11 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/otp/graph/otp"
 )
+
+func TestMain(m *testing.M) {
+	os.Setenv("ROOT_COLLECTION_SUFFIX", "staging")
+	m.Run()
+}
 
 func TestNewService(t *testing.T) {
 	service := NewService()
