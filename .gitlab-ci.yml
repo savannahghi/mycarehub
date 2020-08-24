@@ -58,8 +58,7 @@ deploy_develop_to_staging:
   stage: deploy
   only:
     - develop
-  variables:
-    DOCKER_HOST: tcp://docker:2375/
+  variables:   
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
   resource_group: staging # control deploy concurrency
@@ -98,8 +97,7 @@ deploy_develop_to_test:
   stage: deploy
   only:
     - develop
-  variables:
-    DOCKER_HOST: tcp://docker:2375/
+  variables:   
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
   resource_group: staging # control deploy concurrency
@@ -137,8 +135,7 @@ deploy_master_to_prod:
   stage: deploy
   only:
     - master
-  variables:
-    DOCKER_HOST: tcp://docker:2375/
+  variables:  
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
   resource_group: staging # control deploy concurrency
