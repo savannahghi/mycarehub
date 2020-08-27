@@ -81,3 +81,14 @@ func generatePractitionerSignupEmailTemplate() string {
 	}
 	return buf.String()
 }
+
+//generatePractitionerRejectionEmailTemplate generates the rejection email
+func generatePractitionerRejectionEmailTemplate() string {
+	t := template.Must(template.New("rejectionEmail").Parse(practitionerSignupRejectionEmail))
+	buf := new(bytes.Buffer)
+	err := t.Execute(buf, "")
+	if err != nil {
+		log.Fatalf("Error while generating practitioner rejection email template: %s", err)
+	}
+	return buf.String()
+}

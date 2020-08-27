@@ -98,6 +98,18 @@ func (r *mutationResolver) RemoveTester(ctx context.Context, email string) (bool
 	return r.profileService.RemoveTester(ctx, email)
 }
 
+func (r *mutationResolver) ApprovePractitionerSignup(ctx context.Context, practitionerID string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.ApprovePractitionerSignup(ctx)
+}
+
+func (r *mutationResolver) RejectPractitionerSignup(ctx context.Context, practitionerID string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.RejectPractitionerSignup(ctx)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

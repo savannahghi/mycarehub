@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"reflect"
 	"testing"
 
@@ -17,11 +16,6 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/otp/graph/otp"
 )
-
-func TestMain(m *testing.M) {
-	os.Setenv("ROOT_COLLECTION_SUFFIX", "staging")
-	m.Run()
-}
 
 func TestNewService(t *testing.T) {
 	service := NewService()
@@ -700,6 +694,127 @@ func TestService_ListTesters(t *testing.T) {
 				return
 			}
 			assert.GreaterOrEqual(t, len(got), 1)
+		})
+	}
+}
+
+func Test_generatePractitionerRejectionEmailTemplate(t *testing.T) {
+	tests := []struct {
+		name string
+		want string
+	}{
+		{
+			name: "Good case",
+			want: practitionerSignupRejectionEmail,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := generatePractitionerRejectionEmailTemplate(); got != tt.want {
+				t.Errorf("generatePractitionerRejectionEmailTemplate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_SendPractitionerRejectionEmail(t *testing.T) {
+	type args struct {
+		ctx          context.Context
+		emailaddress string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Good case",
+			args: args{
+				ctx:          context.Background(),
+				emailaddress: "ngure.nyaga@savannahinformatics.com",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewService()
+			if err := s.SendPractitionerRejectionEmail(tt.args.ctx, tt.args.emailaddress); (err != nil) != tt.wantErr {
+				t.Errorf("Service.SendPractitionerRejectionEmail() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestService_ApprovePractitionerSignup(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		practitionerID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Good case - Approve a profile",
+			args: args{
+				ctx:            base.GetAuthenticatedContext(t),
+				practitionerID: "a7942fb4-61b4-4cf2-ab39-a2904d3090c3",
+			},
+			wantErr: false,
+			want:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewService()
+			got, err := s.ApprovePractitionerSignup(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.ApprovePractitionerSignup() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.ApprovePractitionerSignup() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_RejectPractitionerSignup(t *testing.T) {
+
+	type args struct {
+		ctx            context.Context
+		practitionerID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Good case - Reject a profile",
+			args: args{
+				ctx:            base.GetAuthenticatedContext(t),
+				practitionerID: "a7942fb4-61b4-4cf2-ab39-a2904d3090c3",
+			},
+			wantErr: false,
+			want:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewService()
+			got, err := s.RejectPractitionerSignup(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.RejectPractitionerSignup() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.RejectPractitionerSignup() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

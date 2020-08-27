@@ -136,4 +136,6 @@ extend type Mutation {
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
   addTester(email: String!): Boolean!
   removeTester(email: String!): Boolean!
+  approvePractitionerSignup(practitionerID: String!): Boolean!
+  rejectPractitionerSignup(practitionerID: String!): Boolean!
 }

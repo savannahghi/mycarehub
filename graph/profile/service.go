@@ -28,6 +28,7 @@ const (
 	HealthcashCurrency                  = "KES"
 	EmailSignupSubject                  = "Thank you for signing up"
 	EmailWelcomeSubject                 = "Welcome to Slade 360 HealthCloud"
+	EmailRejectionSubject               = "You Account was not Approved"
 )
 
 // NewService returns a new authentication service
@@ -518,18 +519,60 @@ func (s Service) CompleteSignup(ctx context.Context) (*base.Decimal, error) {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
 	}
 
-	for _, practitionerEmail := range profile.Emails {
-		err = s.SendPractitionerWelcomeEmail(ctx, practitionerEmail)
-		if err != nil {
-			return nil, fmt.Errorf("unable to send welcome email: %w", err)
-		}
-	}
-
 	bal, err := s.HealthcashBalance(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return bal, nil
+}
+
+//ApprovePractitionerSignup is used to approve the practitioner signup
+func (s Service) ApprovePractitionerSignup(ctx context.Context) (bool, error) {
+	s.checkPreconditions()
+
+	profile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, fmt.Errorf("unable to retrieve user profile: %w", err)
+	}
+
+	if profile.IsApproved {
+		return true, nil
+	}
+
+	if !profile.IsApproved {
+		profile.IsApproved = true
+
+		for _, practitionerEmail := range profile.Emails {
+			err = s.SendPractitionerWelcomeEmail(ctx, practitionerEmail)
+			if err != nil {
+				return false, fmt.Errorf("unable to send welcome email: %w", err)
+			}
+		}
+	}
+	return true, nil
+}
+
+//RejectPractitionerSignup is used to reject the practitioner signup
+func (s Service) RejectPractitionerSignup(ctx context.Context) (bool, error) {
+	s.checkPreconditions()
+
+	profile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, fmt.Errorf("unable to retrieve user profile: %w", err)
+	}
+
+	if !profile.IsApproved {
+		return false, nil
+	}
+
+	profile.IsApproved = false
+	for _, practitionerEmail := range profile.Emails {
+		err = s.SendPractitionerRejectionEmail(ctx, practitionerEmail)
+		if err != nil {
+			return false, fmt.Errorf("unable to send rejection email: %w", err)
+		}
+	}
+	return false, nil
 }
 
 // SendPractitionerWelcomeEmail will send a welcome email to the practitioner
@@ -545,6 +588,20 @@ func (s Service) SendPractitionerWelcomeEmail(ctx context.Context, emailaddress 
 		return fmt.Errorf("unable to send welcome email: %w", err)
 	}
 
+	return nil
+}
+
+//SendPractitionerRejectionEmail will send a rejection email to the practitioner
+func (s Service) SendPractitionerRejectionEmail(ctx context.Context, emailaddress string) error {
+	s.checkPreconditions()
+	text := generatePractitionerRejectionEmailTemplate()
+	if !govalidator.IsEmail(emailaddress) {
+		return nil
+	}
+	_, _, err := s.emailService.SendEmail(EmailRejectionSubject, text, emailaddress)
+	if err != nil {
+		return fmt.Errorf("unable to send rejection email: %w", err)
+	}
 	return nil
 }
 
