@@ -1,4 +1,4 @@
-image: eu.gcr.io/savannah-emr/golang-ci-image:0.0.2
+image: eu.gcr.io/savannah-emr/golang-ci-image:0.0.4
 
 stages:
   - test

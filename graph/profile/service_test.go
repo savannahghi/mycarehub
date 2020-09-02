@@ -5,11 +5,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
@@ -32,25 +30,21 @@ func TestNewService(t *testing.T) {
 
 func TestService_profileUpdates(t *testing.T) {
 	ctx := context.Background()
-	fc := &base.FirebaseClient{}
-	firebaseApp, err := fc.InitFirebase()
-	assert.Nil(t, err)
 
-	user, userErr := base.GetOrCreateFirebaseUser(ctx, base.TestUserEmail, fc)
+	user, userErr := base.GetOrCreateFirebaseUser(ctx, base.TestUserEmail)
 	assert.Nil(t, userErr)
 	assert.NotNil(t, user)
 
-	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID, fc)
+	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID)
 	assert.Nil(t, tokenErr)
 	assert.NotNil(t, customToken)
 
-	client := &http.Client{Timeout: time.Second * 10}
-	idTokens, idErr := fc.AuthenticateCustomFirebaseToken(customToken, client)
+	idTokens, idErr := base.AuthenticateCustomFirebaseToken(customToken)
 	assert.Nil(t, idErr)
 	assert.NotNil(t, idTokens)
 
 	bearerToken := idTokens.IDToken
-	authToken, err := base.ValidateBearerToken(ctx, bearerToken, firebaseApp)
+	authToken, err := base.ValidateBearerToken(ctx, bearerToken)
 	assert.Nil(t, err)
 	assert.NotNil(t, authToken)
 
@@ -149,25 +143,21 @@ func TestService_profileUpdates(t *testing.T) {
 
 func TestService_RegisterPushToken(t *testing.T) {
 	ctx := context.Background()
-	fc := &base.FirebaseClient{}
-	firebaseApp, err := fc.InitFirebase()
-	assert.Nil(t, err)
 
-	user, userErr := base.GetOrCreateFirebaseUser(ctx, base.TestUserEmail, fc)
+	user, userErr := base.GetOrCreateFirebaseUser(ctx, base.TestUserEmail)
 	assert.Nil(t, userErr)
 	assert.NotNil(t, user)
 
-	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID, fc)
+	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID)
 	assert.Nil(t, tokenErr)
 	assert.NotNil(t, customToken)
 
-	client := &http.Client{Timeout: time.Second * 10}
-	idTokens, idErr := fc.AuthenticateCustomFirebaseToken(customToken, client)
+	idTokens, idErr := base.AuthenticateCustomFirebaseToken(customToken)
 	assert.Nil(t, idErr)
 	assert.NotNil(t, idTokens)
 
 	bearerToken := idTokens.IDToken
-	authToken, err := base.ValidateBearerToken(ctx, bearerToken, firebaseApp)
+	authToken, err := base.ValidateBearerToken(ctx, bearerToken)
 	assert.Nil(t, err)
 	assert.NotNil(t, authToken)
 
@@ -216,25 +206,21 @@ func TestService_RegisterPushToken(t *testing.T) {
 
 func TestService_CompleteSignup(t *testing.T) {
 	ctx := context.Background()
-	fc := &base.FirebaseClient{}
-	firebaseApp, err := fc.InitFirebase()
-	assert.Nil(t, err)
 
-	user, userErr := base.GetOrCreateFirebaseUser(ctx, base.TestUserEmail, fc)
+	user, userErr := base.GetOrCreateFirebaseUser(ctx, base.TestUserEmail)
 	assert.Nil(t, userErr)
 	assert.NotNil(t, user)
 
-	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID, fc)
+	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID)
 	assert.Nil(t, tokenErr)
 	assert.NotNil(t, customToken)
 
-	client := &http.Client{Timeout: time.Second * 10}
-	idTokens, idErr := fc.AuthenticateCustomFirebaseToken(customToken, client)
+	idTokens, idErr := base.AuthenticateCustomFirebaseToken(customToken)
 	assert.Nil(t, idErr)
 	assert.NotNil(t, idTokens)
 
 	bearerToken := idTokens.IDToken
-	authToken, err := base.ValidateBearerToken(ctx, bearerToken, firebaseApp)
+	authToken, err := base.ValidateBearerToken(ctx, bearerToken)
 	assert.Nil(t, err)
 	assert.NotNil(t, authToken)
 
@@ -281,25 +267,21 @@ func TestService_CompleteSignup(t *testing.T) {
 
 func TestService_RecordPostVisitSurvey(t *testing.T) {
 	ctx := context.Background()
-	fc := &base.FirebaseClient{}
-	firebaseApp, err := fc.InitFirebase()
-	assert.Nil(t, err)
 
-	user, userErr := base.GetOrCreateFirebaseUser(ctx, base.TestUserEmail, fc)
+	user, userErr := base.GetOrCreateFirebaseUser(ctx, base.TestUserEmail)
 	assert.Nil(t, userErr)
 	assert.NotNil(t, user)
 
-	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID, fc)
+	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID)
 	assert.Nil(t, tokenErr)
 	assert.NotNil(t, customToken)
 
-	client := &http.Client{Timeout: time.Second * 10}
-	idTokens, idErr := fc.AuthenticateCustomFirebaseToken(customToken, client)
+	idTokens, idErr := base.AuthenticateCustomFirebaseToken(customToken)
 	assert.Nil(t, idErr)
 	assert.NotNil(t, idTokens)
 
 	bearerToken := idTokens.IDToken
-	authToken, err := base.ValidateBearerToken(ctx, bearerToken, firebaseApp)
+	authToken, err := base.ValidateBearerToken(ctx, bearerToken)
 	assert.Nil(t, err)
 	assert.NotNil(t, authToken)
 
