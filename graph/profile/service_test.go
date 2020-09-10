@@ -135,6 +135,52 @@ func TestService_profileUpdates(t *testing.T) {
 	}
 }
 
+func TestAppleTesterPractitionerSignup(t *testing.T) {
+	ctx := context.Background()
+
+	user, userErr := base.GetOrCreateFirebaseUser(ctx, base.TestUserEmail)
+	assert.Nil(t, userErr)
+	assert.NotNil(t, user)
+
+	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID)
+	assert.Nil(t, tokenErr)
+	assert.NotNil(t, customToken)
+
+	idTokens, idErr := base.AuthenticateCustomFirebaseToken(customToken)
+	assert.Nil(t, idErr)
+	assert.NotNil(t, idTokens)
+
+	bearerToken := idTokens.IDToken
+	authToken, err := base.ValidateBearerToken(ctx, bearerToken)
+	assert.Nil(t, err)
+	assert.NotNil(t, authToken)
+
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	s := NewService()
+
+	practitionerSignupInput := PractitionerSignupInput{
+		License:   appleTesterPractitionerLicense,
+		Cadre:     PractitionerCadreDoctor,
+		Specialty: base.PractitionerSpecialtyAnaesthesia,
+	}
+
+	signedUp, err := s.PractitionerSignUp(
+		authenticatedContext, practitionerSignupInput)
+	assert.Nil(t, err)
+	assert.True(t, signedUp)
+
+	profileSnapshot, err := s.RetrieveUserProfileFirebaseDocSnapshot(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, profileSnapshot)
+
+	userprofile, err := s.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, userprofile)
+	assert.NotEqual(t, true, userprofile.PractitionerApproved)
+
+}
+
 func TestService_RegisterPushToken(t *testing.T) {
 	ctx := context.Background()
 
@@ -219,7 +265,7 @@ func TestService_CompleteSignup(t *testing.T) {
 	assert.NotNil(t, authToken)
 
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
-	expectedBonus := base.Decimal(decimal.NewFromFloat(HealthcashWelcomeBonusAmount))
+	expectedBonus := base.Decimal(decimal.NewFromFloat(healthcashWelcomeBonusAmount))
 
 	type args struct {
 		ctx context.Context
