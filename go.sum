@@ -420,6 +420,8 @@ gitlab.slade360emr.com/go/chargemaster v0.0.2 h1:elVn809a+8icWNNy2LW5z0DcRXHGPW7
 gitlab.slade360emr.com/go/chargemaster v0.0.2/go.mod h1:iFKtDnVriC7/2j98c1zbfykgghn3PvDpJMiuaq24mJY=
 gitlab.slade360emr.com/go/mailgun v0.0.4 h1:+pLDHzLAMlY195qSLBL0F4bGkzXcrxqag7PDSzL0S0A=
 gitlab.slade360emr.com/go/mailgun v0.0.4/go.mod h1:8b/DFpms5ugpWFXDz9S2R2LH2NeM16XKLQ8Y0EVK/gc=
+gitlab.slade360emr.com/go/mailgun v0.0.6 h1:bYkUYR7krRH80//VUT035UyD3mCFaPV1sE55uWtSRzw=
+gitlab.slade360emr.com/go/mailgun v0.0.6/go.mod h1:Igs+JkVWSYrppSu20al3KDOouilLYL/ld+cObDEYRIM=
 gitlab.slade360emr.com/go/otp v0.0.13 h1:cqiNYL4CD5itfXQTPQZFSgkiBXBrZ/rKqPVCcQQoIqw=
 gitlab.slade360emr.com/go/otp v0.0.13/go.mod h1:vYPXmwH8OMPIpCM9+jKyuAc5yyZpfZLSrePHhTG5yi8=
 gitlab.slade360emr.com/go/sms v0.0.5 h1:lE1vu/0o/zBjcTqwtB/ODxQILts1tyoRkNeM9D6Utbg=

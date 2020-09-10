@@ -14,7 +14,7 @@ import (
 	"github.com/shopspring/decimal"
 	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/mailgun"
+	"gitlab.slade360emr.com/go/mailgun/graph/mailgun"
 )
 
 // configuration constants
