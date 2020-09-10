@@ -1,6 +1,6 @@
 package graph
 
-//go:generate go run gitlab.slade360emr.com/go/profile/cmd/generator
+//go:generate go run github.com/99designs/gqlgen
 
 import (
 	"context"

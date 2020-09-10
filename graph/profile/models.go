@@ -83,6 +83,9 @@ type UserProfile struct {
 	AskAgainToSetCanExperiment bool `json:"askAgainToSetCanExperiment" firestore:"askAgainToSetCanExperiment"`
 }
 
+// IsEntity ...
+func (u UserProfile) IsEntity() {}
+
 // UserProfileInput is used to create or update a user's profile.
 type UserProfileInput struct {
 	PhotoBase64      string              `json:"photoBase64"`

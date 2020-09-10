@@ -1,0 +1,54 @@
+type Practitioner {
+  profile: UserProfile!
+  license: String!
+  cadre: PractitionerCadre!
+  specialty: PractitionerSpecialty!
+  professionalProfile: Markdown!
+  averageConsultationPrice: Float!
+}
+
+type PractitionerEdge {
+  cursor: String
+  node: Practitioner
+}
+
+type PractitionerConnection {
+  edges: [PractitionerEdge]
+  pageInfo: PageInfo!
+}
+
+type Cover {
+  payerName: String!
+  payerSladeCode: Int!
+  memberNumber: String!
+  memberName: String!
+}
+
+type UserProfile @key(fields: "uid") {
+  uid: String!
+  isApproved: Boolean!
+  termsAccepted: Boolean!
+  msisdns: [String!]!
+  emails: [String!]!
+  photoBase64: String!
+  photoContentType: ContentType!
+  pushTokens: [String!]!
+  covers: [Cover!]!
+  isTester: Boolean!
+
+  # optional fields
+  dateOfBirth: Date
+  gender: Gender
+  patientID: String
+  name: String
+  bio: String
+  practitionerApproved: Boolean
+  practitionerTermsOfServiceAccepted: Boolean
+  canExperiment: Boolean
+  askAgainToSetIsTester: Boolean
+  askAgainToSetCanExperiment: Boolean
+}
+
+type TesterWhitelist {
+  email: String!
+}

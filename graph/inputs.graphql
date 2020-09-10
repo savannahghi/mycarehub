@@ -1,0 +1,43 @@
+input PractitionerSignupInput {
+  license: String!
+  cadre: PractitionerCadre!
+  specialty: PractitionerSpecialty!
+  emails: [String] # optional
+}
+
+input UserProfileInput {
+  photoBase64: String!
+  photoContentType: ContentType!
+  msisdns: [UserProfilePhone!]!
+  emails: [String!]!
+  pushTokens: [String]
+
+  # optional fields
+  dateOfBirth: Date
+  gender: Gender
+  name: String
+  bio: String
+  practitionerApproved: Boolean
+  practitionerTermsOfServiceAccepted: Boolean
+  canExperiment: Boolean
+  askAgainToSetIsTester: Boolean
+  askAgainToSetCanExperiment: Boolean
+}
+
+input UserProfilePhone {
+  phone: String!
+  otp: String!
+}
+
+input PostVisitSurveyInput {
+  likelyToRecommend: Int!
+  criticism: String!
+  suggestions: String!
+}
+
+input BiodataInput {
+  dateOfBirth: Date!
+  gender: Gender!
+  name: String
+  bio: String
+}

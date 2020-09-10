@@ -1,0 +1,20 @@
+enum PractitionerCadre {
+  DOCTOR
+  CLINICAL_OFFICER
+  NURSE
+}
+
+enum FivePointRating {
+  POOR
+  UNSATISFACTORY
+  AVERAGE
+  SATISFACTORY
+  EXCELLENT
+}
+
+enum Gender {
+  male
+  female
+  other
+  unknown
+}
