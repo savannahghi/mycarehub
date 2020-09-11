@@ -78,7 +78,6 @@ github.com/aws/aws-sdk-go v1.23.20/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpi
 github.com/aws/aws-sdk-go v1.33.2/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU8YkpAk0=
 github.com/aws/aws-sdk-go v1.33.3/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU8YkpAk0=
 github.com/aws/aws-sdk-go v1.33.5/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU8YkpAk0=
-github.com/aws/aws-sdk-go v1.33.7/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU8YkpAk0=
 github.com/aws/aws-sdk-go v1.33.20/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU8YkpAk0=
 github.com/aws/aws-sdk-go v1.34.13 h1:wwNWSUh4FGJxXVOVVNj2lWI8wTe5hK8sGWlK7ziEcgg=
 github.com/aws/aws-sdk-go v1.34.13/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU8YkpAk0=
@@ -410,20 +409,16 @@ gitlab.slade360emr.com/go/authorization v0.0.3/go.mod h1:u8i9U4V+q6kwH0aqmQ28s4W
 gitlab.slade360emr.com/go/base v0.0.10/go.mod h1:6Yas1u8kkO9dhwyY8XoJbp+6bInJ00zx+YTgMuQl5NQ=
 gitlab.slade360emr.com/go/base v0.0.11/go.mod h1:6Yas1u8kkO9dhwyY8XoJbp+6bInJ00zx+YTgMuQl5NQ=
 gitlab.slade360emr.com/go/base v0.0.13/go.mod h1:iiF4+VtAQdmy2UQPfIDABQwH+Vp0LePIC9WBKMPQHHQ=
-gitlab.slade360emr.com/go/base v0.0.16/go.mod h1:FUCvEMdF8owK02clzfFVvQeSEX1VaNMvHCs/gbFIN8E=
 gitlab.slade360emr.com/go/base v0.0.28/go.mod h1:zzftuZcF6pEml/kOzM3ixvqD1h2WxxpvjZynO4ibNDc=
-gitlab.slade360emr.com/go/base v0.0.29/go.mod h1:zzftuZcF6pEml/kOzM3ixvqD1h2WxxpvjZynO4ibNDc=
 gitlab.slade360emr.com/go/base v0.0.32 h1:OAC+wCoXcOgr5XYOUYZWgSpV9GjPBaCwKzfnHKHLZ/o=
 gitlab.slade360emr.com/go/base v0.0.32/go.mod h1:FSZG+DP8U+w5WTmYLE7iEV/eU4QSq0BkskS4Qc8aGz4=
 gitlab.slade360emr.com/go/chargemaster v0.0.1/go.mod h1:fyC+QV2tquqnmE1/J/twuc43j7G5vxcXf4hH5L2pEeI=
 gitlab.slade360emr.com/go/chargemaster v0.0.2 h1:elVn809a+8icWNNy2LW5z0DcRXHGPW77eUnEsT3gB/M=
 gitlab.slade360emr.com/go/chargemaster v0.0.2/go.mod h1:iFKtDnVriC7/2j98c1zbfykgghn3PvDpJMiuaq24mJY=
-gitlab.slade360emr.com/go/mailgun v0.0.4 h1:+pLDHzLAMlY195qSLBL0F4bGkzXcrxqag7PDSzL0S0A=
-gitlab.slade360emr.com/go/mailgun v0.0.4/go.mod h1:8b/DFpms5ugpWFXDz9S2R2LH2NeM16XKLQ8Y0EVK/gc=
 gitlab.slade360emr.com/go/mailgun v0.0.6 h1:bYkUYR7krRH80//VUT035UyD3mCFaPV1sE55uWtSRzw=
 gitlab.slade360emr.com/go/mailgun v0.0.6/go.mod h1:Igs+JkVWSYrppSu20al3KDOouilLYL/ld+cObDEYRIM=
-gitlab.slade360emr.com/go/otp v0.0.13 h1:cqiNYL4CD5itfXQTPQZFSgkiBXBrZ/rKqPVCcQQoIqw=
-gitlab.slade360emr.com/go/otp v0.0.13/go.mod h1:vYPXmwH8OMPIpCM9+jKyuAc5yyZpfZLSrePHhTG5yi8=
+gitlab.slade360emr.com/go/otp v0.0.15 h1:BHnTZcDVra/r9pAoG+nR5Wvzzj8bK7T21l1nL5E3m1E=
+gitlab.slade360emr.com/go/otp v0.0.15/go.mod h1:3gYBokvRFQGvMOaKn58GgpVzQFXsqPdbKFjnMrY4dLE=
 gitlab.slade360emr.com/go/sms v0.0.5 h1:lE1vu/0o/zBjcTqwtB/ODxQILts1tyoRkNeM9D6Utbg=
 gitlab.slade360emr.com/go/sms v0.0.5/go.mod h1:T3KoKhGP+0h8gljJxc9EFaNgQYlIe96JTiI0g3MFDe8=
 gitlab.slade360emr.com/go/twilio v0.0.1 h1:Fv6FtZRCnbYArEwW7bfH9HzUp6juWmyRQGNCZeTo6qw=
@@ -620,8 +615,6 @@ golang.org/x/tools v0.0.0-20200707134715-9e0a013e855f/go.mod h1:njjCfa9FT2d7l9Bc
 golang.org/x/tools v0.0.0-20200708003708-134513de8882/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
 golang.org/x/tools v0.0.0-20200710042808-f1c4188a97a1/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
 golang.org/x/tools v0.0.0-20200713011307-fd294ab11aed/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
-golang.org/x/tools v0.0.0-20200714190737-9048b464a08d/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
-golang.org/x/tools v0.0.0-20200717024301-6ddee64345a6/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
 golang.org/x/tools v0.0.0-20200727233628-55644ead90ce/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
 golang.org/x/tools v0.0.0-20200729194436-6467de6f59a7/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
 golang.org/x/tools v0.0.0-20200804011535-6c149bb5ef0d/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
@@ -697,7 +690,6 @@ google.golang.org/genproto v0.0.0-20200706141556-5779274c8e96/go.mod h1:FWY/as6D
 google.golang.org/genproto v0.0.0-20200707001353-8e8330bf89df/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20200709005830-7a2ca40e9dc3/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20200711021454-869866162049/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
-google.golang.org/genproto v0.0.0-20200715011427-11fb19a81f2c/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20200728010541-3dc8dca74b7b/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20200729003335-053ba62fc06f/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20200804131852-c06518451d9c/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
