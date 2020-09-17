@@ -55,8 +55,9 @@ type ComplexityRoot struct {
 	}
 
 	Entity struct {
-		FindCoverByPayerName func(childComplexity int, payerName string) int
-		FindUserProfileByUID func(childComplexity int, uid string) int
+		FindCoverByPayerName      func(childComplexity int, payerName string) int
+		FindPageInfoByHasNextPage func(childComplexity int, hasNextPage bool) int
+		FindUserProfileByUID      func(childComplexity int, uid string) int
 	}
 
 	Mutation struct {
@@ -75,8 +76,10 @@ type ComplexityRoot struct {
 	}
 
 	PageInfo struct {
+		EndCursor       func(childComplexity int) int
 		HasNextPage     func(childComplexity int) int
 		HasPreviousPage func(childComplexity int) int
+		StartCursor     func(childComplexity int) int
 	}
 
 	Practitioner struct {
@@ -141,6 +144,7 @@ type ComplexityRoot struct {
 
 type EntityResolver interface {
 	FindCoverByPayerName(ctx context.Context, payerName string) (*profile.Cover, error)
+	FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*base.PageInfo, error)
 	FindUserProfileByUID(ctx context.Context, uid string) (*profile.UserProfile, error)
 }
 type MutationResolver interface {
@@ -218,6 +222,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Entity.FindCoverByPayerName(childComplexity, args["payerName"].(string)), true
+
+	case "Entity.findPageInfoByHasNextPage":
+		if e.complexity.Entity.FindPageInfoByHasNextPage == nil {
+			break
+		}
+
+		args, err := ec.field_Entity_findPageInfoByHasNextPage_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Entity.FindPageInfoByHasNextPage(childComplexity, args["hasNextPage"].(bool)), true
 
 	case "Entity.findUserProfileByUID":
 		if e.complexity.Entity.FindUserProfileByUID == nil {
@@ -370,6 +386,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUserProfile(childComplexity, args["input"].(profile.UserProfileInput)), true
 
+	case "PageInfo.endCursor":
+		if e.complexity.PageInfo.EndCursor == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.EndCursor(childComplexity), true
+
 	case "PageInfo.hasNextPage":
 		if e.complexity.PageInfo.HasNextPage == nil {
 			break
@@ -383,6 +406,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PageInfo.HasPreviousPage(childComplexity), true
+
+	case "PageInfo.startCursor":
+		if e.complexity.PageInfo.StartCursor == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.StartCursor(childComplexity), true
 
 	case "Practitioner.averageConsultationPrice":
 		if e.complexity.Practitioner.AverageConsultationPrice == nil {
@@ -818,9 +848,69 @@ enum PractitionerSpecialty {
   UROLOGY
 }
 
-extend type PageInfo {
-  hasNextPage: Boolean! @external
-  hasPreviousPage: Boolean! @external
+# Relay spec page info
+type PageInfo @key(fields: "hasNextPage") @key(fields: "hasPreviousPage") {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input PaginationInput {
+  first: Int
+  last: Int
+  after: String
+  before: String
+}
+
+input FilterInput {
+  search: String
+  filterBy: [FilterParam]
+}
+
+input FilterParam {
+  fieldName: String!
+  fieldType: FieldType!
+  comparisonOperation: Operation!
+  fieldValue: Any!
+}
+
+enum SortOrder {
+  ASC
+  DESC
+}
+
+enum FieldType {
+  BOOLEAN
+  TIMESTAMP
+  NUMBER
+  INTEGER
+  STRING
+}
+
+input SortInput {
+  sortBy: [SortParam]
+}
+
+input SortParam {
+  fieldName: String!
+  sortOrder: SortOrder!
+}
+
+enum Operation {
+  LESS_THAN
+  LESS_THAN_OR_EQUAL_TO
+  EQUAL
+  GREATER_THAN
+  GREATER_THAN_OR_EQUAL_TO
+  IN
+  CONTAINS
+}
+
+# Node is needed by the Relay spec
+# This server attempts to be Relay spec compliant
+interface Node {
+  id: ID!
 }
 `, BuiltIn: false},
 	{Name: "graph/inputs.graphql", Input: `input PractitionerSignupInput {
@@ -959,11 +1049,12 @@ directive @extends on OBJECT
 `, BuiltIn: true},
 	{Name: "federation/entity.graphql", Input: `
 # a union of all types that use the @key directive
-union _Entity = Cover | UserProfile
+union _Entity = Cover | PageInfo | UserProfile
 
 # fake type to build resolver interfaces for users to implement
 type Entity {
 		findCoverByPayerName(payerName: String!,): Cover!
+	findPageInfoByHasNextPage(hasNextPage: Boolean!,): PageInfo!
 	findUserProfileByUID(uid: String!,): UserProfile!
 
 }
@@ -996,6 +1087,21 @@ func (ec *executionContext) field_Entity_findCoverByPayerName_args(ctx context.C
 		}
 	}
 	args["payerName"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Entity_findPageInfoByHasNextPage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 bool
+	if tmp, ok := rawArgs["hasNextPage"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("hasNextPage"))
+		arg0, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["hasNextPage"] = arg0
 	return args, nil
 }
 
@@ -1437,6 +1543,47 @@ func (ec *executionContext) _Entity_findCoverByPayerName(ctx context.Context, fi
 	res := resTmp.(*profile.Cover)
 	fc.Result = res
 	return ec.marshalNCover2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCover(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Entity_findPageInfoByHasNextPage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Entity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Entity_findPageInfoByHasNextPage_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Entity().FindPageInfoByHasNextPage(rctx, args["hasNextPage"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*base.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Entity_findUserProfileByUID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2031,6 +2178,68 @@ func (ec *executionContext) _PageInfo_hasPreviousPage(ctx context.Context, field
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PageInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PageInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Practitioner_profile(ctx context.Context, field graphql.CollectedField, obj *profile.Practitioner) (ret graphql.Marshaler) {
@@ -4465,6 +4674,122 @@ func (ec *executionContext) unmarshalInputBiodataInput(ctx context.Context, obj 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputFilterInput(ctx context.Context, obj interface{}) (base.FilterInput, error) {
+	var it base.FilterInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "search":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("search"))
+			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "filterBy":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("filterBy"))
+			it.FilterBy, err = ec.unmarshalOFilterParam2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFilterParam(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj interface{}) (base.FilterParam, error) {
+	var it base.FilterParam
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "fieldName":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("fieldName"))
+			it.FieldName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fieldType":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("fieldType"))
+			it.FieldType, err = ec.unmarshalNFieldType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFieldType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "comparisonOperation":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("comparisonOperation"))
+			it.ComparisonOperation, err = ec.unmarshalNOperation2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐOperation(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fieldValue":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("fieldValue"))
+			it.FieldValue, err = ec.unmarshalNAny2interface(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, obj interface{}) (base.PaginationInput, error) {
+	var it base.PaginationInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "first":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("first"))
+			it.First, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "last":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("last"))
+			it.Last, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "after":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("after"))
+			it.After, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "before":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("before"))
+			it.Before, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPostVisitSurveyInput(ctx context.Context, obj interface{}) (profile.PostVisitSurveyInput, error) {
 	var it profile.PostVisitSurveyInput
 	var asMap = obj.(map[string]interface{})
@@ -4536,6 +4861,54 @@ func (ec *executionContext) unmarshalInputPractitionerSignupInput(ctx context.Co
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("emails"))
 			it.Emails, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSortInput(ctx context.Context, obj interface{}) (base.SortInput, error) {
+	var it base.SortInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "sortBy":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("sortBy"))
+			it.SortBy, err = ec.unmarshalOSortParam2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortParam(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSortParam(ctx context.Context, obj interface{}) (base.SortParam, error) {
+	var it base.SortParam
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "fieldName":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("fieldName"))
+			it.FieldName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sortOrder":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("sortOrder"))
+			it.SortOrder, err = ec.unmarshalNSortOrder2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4701,6 +5074,15 @@ func (ec *executionContext) unmarshalInputUserProfilePhone(ctx context.Context, 
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj base.Node) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, obj fedruntime.Entity) graphql.Marshaler {
 	switch obj := (obj).(type) {
 	case nil:
@@ -4712,6 +5094,13 @@ func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, 
 			return graphql.Null
 		}
 		return ec._Cover(ctx, sel, obj)
+	case base.PageInfo:
+		return ec._PageInfo(ctx, sel, &obj)
+	case *base.PageInfo:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._PageInfo(ctx, sel, obj)
 	case profile.UserProfile:
 		return ec._UserProfile(ctx, sel, &obj)
 	case *profile.UserProfile:
@@ -4794,6 +5183,20 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 					}
 				}()
 				res = ec._Entity_findCoverByPayerName(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "findPageInfoByHasNextPage":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Entity_findPageInfoByHasNextPage(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -4910,7 +5313,7 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
-var pageInfoImplementors = []string{"PageInfo"}
+var pageInfoImplementors = []string{"PageInfo", "_Entity"}
 
 func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *base.PageInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, pageInfoImplementors)
@@ -4931,6 +5334,10 @@ func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "startCursor":
+			out.Values[i] = ec._PageInfo_startCursor(ctx, field, obj)
+		case "endCursor":
+			out.Values[i] = ec._PageInfo_endCursor(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5551,6 +5958,27 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
+	res, err := graphql.UnmarshalAny(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.SelectionSet, v interface{}) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalAny(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNBiodataInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBiodataInput(ctx context.Context, v interface{}) (profile.BiodataInput, error) {
 	res, err := ec.unmarshalInputBiodataInput(ctx, v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
@@ -5668,6 +6096,16 @@ func (ec *executionContext) marshalNDecimal2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 	return v
 }
 
+func (ec *executionContext) unmarshalNFieldType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFieldType(ctx context.Context, v interface{}) (base.FieldType, error) {
+	var res base.FieldType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFieldType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFieldType(ctx context.Context, sel ast.SelectionSet, v base.FieldType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
 	res, err := graphql.UnmarshalFloat(v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
@@ -5718,6 +6156,20 @@ func (ec *executionContext) marshalNMarkdown2gitlabᚗslade360emrᚗcomᚋgoᚋb
 	return v
 }
 
+func (ec *executionContext) unmarshalNOperation2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐOperation(ctx context.Context, v interface{}) (base.Operation, error) {
+	var res base.Operation
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOperation2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐOperation(ctx context.Context, sel ast.SelectionSet, v base.Operation) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNPageInfo2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v base.PageInfo) graphql.Marshaler {
+	return ec._PageInfo(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *base.PageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -5755,6 +6207,16 @@ func (ec *executionContext) unmarshalNPractitionerSpecialty2gitlabᚗslade360emr
 }
 
 func (ec *executionContext) marshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPractitionerSpecialty(ctx context.Context, sel ast.SelectionSet, v base.PractitionerSpecialty) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNSortOrder2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx context.Context, v interface{}) (base.SortOrder, error) {
+	var res base.SortOrder
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSortOrder2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx context.Context, sel ast.SelectionSet, v base.SortOrder) graphql.Marshaler {
 	return v
 }
 
@@ -6224,6 +6686,38 @@ func (ec *executionContext) marshalODate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋba
 	return v
 }
 
+func (ec *executionContext) unmarshalOFilterParam2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFilterParam(ctx context.Context, v interface{}) ([]*base.FilterParam, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*base.FilterParam, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
+		res[i], err = ec.unmarshalOFilterParam2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFilterParam(ctx, vSlice[i])
+		if err != nil {
+			return nil, graphql.WrapErrorWithInputPath(ctx, err)
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOFilterParam2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFilterParam(ctx context.Context, v interface{}) (*base.FilterParam, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFilterParam(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOGender2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx context.Context, v interface{}) (*base.Gender, error) {
 	if v == nil {
 		return nil, nil
@@ -6238,6 +6732,15 @@ func (ec *executionContext) marshalOGender2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋ
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	return graphql.MarshalInt(v)
 }
 
 func (ec *executionContext) marshalOPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitioner(ctx context.Context, sel ast.SelectionSet, v *profile.Practitioner) graphql.Marshaler {
@@ -6292,6 +6795,38 @@ func (ec *executionContext) marshalOPractitionerEdge2ᚖgitlabᚗslade360emrᚗc
 		return graphql.Null
 	}
 	return ec._PractitionerEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSortParam2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortParam(ctx context.Context, v interface{}) ([]*base.SortParam, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*base.SortParam, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
+		res[i], err = ec.unmarshalOSortParam2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortParam(ctx, vSlice[i])
+		if err != nil {
+			return nil, graphql.WrapErrorWithInputPath(ctx, err)
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOSortParam2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortParam(ctx context.Context, v interface{}) (*base.SortParam, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSortParam(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

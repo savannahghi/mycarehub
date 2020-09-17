@@ -53,6 +53,20 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 
 			list = append(list, entity)
 
+		case "PageInfo":
+			id0, err := ec.unmarshalNBoolean2bool(ctx, rep["hasNextPage"])
+			if err != nil {
+				return nil, errors.New(fmt.Sprintf("Field %s undefined in schema.", "hasNextPage"))
+			}
+
+			entity, err := ec.resolvers.Entity().FindPageInfoByHasNextPage(ctx,
+				id0)
+			if err != nil {
+				return nil, err
+			}
+
+			list = append(list, entity)
+
 		case "UserProfile":
 			id0, err := ec.unmarshalNString2string(ctx, rep["uid"])
 			if err != nil {

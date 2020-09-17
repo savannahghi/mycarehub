@@ -422,6 +422,8 @@ gitlab.slade360emr.com/go/base v0.0.13/go.mod h1:iiF4+VtAQdmy2UQPfIDABQwH+Vp0LeP
 gitlab.slade360emr.com/go/base v0.0.28/go.mod h1:zzftuZcF6pEml/kOzM3ixvqD1h2WxxpvjZynO4ibNDc=
 gitlab.slade360emr.com/go/base v0.0.32 h1:OAC+wCoXcOgr5XYOUYZWgSpV9GjPBaCwKzfnHKHLZ/o=
 gitlab.slade360emr.com/go/base v0.0.32/go.mod h1:FSZG+DP8U+w5WTmYLE7iEV/eU4QSq0BkskS4Qc8aGz4=
+gitlab.slade360emr.com/go/base v0.0.33 h1:F3GzjPKoR+q87nUyBhabn1ni3tdFb13XqOX03n+ED08=
+gitlab.slade360emr.com/go/base v0.0.33/go.mod h1:FSZG+DP8U+w5WTmYLE7iEV/eU4QSq0BkskS4Qc8aGz4=
 gitlab.slade360emr.com/go/chargemaster v0.0.1/go.mod h1:fyC+QV2tquqnmE1/J/twuc43j7G5vxcXf4hH5L2pEeI=
 gitlab.slade360emr.com/go/chargemaster v0.0.2 h1:elVn809a+8icWNNy2LW5z0DcRXHGPW77eUnEsT3gB/M=
 gitlab.slade360emr.com/go/chargemaster v0.0.2/go.mod h1:iFKtDnVriC7/2j98c1zbfykgghn3PvDpJMiuaq24mJY=
