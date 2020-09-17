@@ -1,6 +1,6 @@
 module gitlab.slade360emr.com/go/profile
 
-go 1.14
+go 1.15
 
 require (
 	cloud.google.com/go/firestore v1.3.0
@@ -20,4 +20,5 @@ require (
 	gitlab.slade360emr.com/go/base v0.0.32
 	gitlab.slade360emr.com/go/mailgun v0.0.6
 	gitlab.slade360emr.com/go/otp v0.0.15
+	gitlab.slade360emr.com/go/uploads v0.0.8 // indirect
 )
