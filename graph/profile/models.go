@@ -47,6 +47,9 @@ type Cover struct {
 	MemberName     string `json:"memberName,omitempty" firestore:"memberName"`
 }
 
+// IsEntity ...
+func (c Cover) IsEntity() {}
+
 // TesterWhitelist is used to maintain
 type TesterWhitelist struct {
 	base.Model

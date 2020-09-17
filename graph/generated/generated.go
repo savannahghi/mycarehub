@@ -55,6 +55,7 @@ type ComplexityRoot struct {
 	}
 
 	Entity struct {
+		FindCoverByPayerName func(childComplexity int, payerName string) int
 		FindUserProfileByUID func(childComplexity int, uid string) int
 	}
 
@@ -139,6 +140,7 @@ type ComplexityRoot struct {
 }
 
 type EntityResolver interface {
+	FindCoverByPayerName(ctx context.Context, payerName string) (*profile.Cover, error)
 	FindUserProfileByUID(ctx context.Context, uid string) (*profile.UserProfile, error)
 }
 type MutationResolver interface {
@@ -204,6 +206,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Cover.PayerSladeCode(childComplexity), true
+
+	case "Entity.findCoverByPayerName":
+		if e.complexity.Entity.FindCoverByPayerName == nil {
+			break
+		}
+
+		args, err := ec.field_Entity_findCoverByPayerName_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Entity.FindCoverByPayerName(childComplexity, args["payerName"].(string)), true
 
 	case "Entity.findUserProfileByUID":
 		if e.complexity.Entity.FindUserProfileByUID == nil {
@@ -894,7 +908,10 @@ type PractitionerConnection {
   pageInfo: PageInfo!
 }
 
-type Cover {
+type Cover
+@key(fields: "payerName")
+@key(fields: "payerSladeCode")
+@key(fields: "memberNumber") {
   payerName: String!
   payerSladeCode: Int!
   memberNumber: String!
@@ -942,11 +959,12 @@ directive @extends on OBJECT
 `, BuiltIn: true},
 	{Name: "federation/entity.graphql", Input: `
 # a union of all types that use the @key directive
-union _Entity = UserProfile
+union _Entity = Cover | UserProfile
 
 # fake type to build resolver interfaces for users to implement
 type Entity {
-		findUserProfileByUID(uid: String!,): UserProfile!
+		findCoverByPayerName(payerName: String!,): Cover!
+	findUserProfileByUID(uid: String!,): UserProfile!
 
 }
 
@@ -965,6 +983,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Entity_findCoverByPayerName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["payerName"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("payerName"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["payerName"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Entity_findUserProfileByUID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1363,6 +1396,47 @@ func (ec *executionContext) _Cover_memberName(ctx context.Context, field graphql
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Entity_findCoverByPayerName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Entity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Entity_findCoverByPayerName_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Entity().FindCoverByPayerName(rctx, args["payerName"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.Cover)
+	fc.Result = res
+	return ec.marshalNCover2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCover(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Entity_findUserProfileByUID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4631,6 +4705,13 @@ func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, 
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
+	case profile.Cover:
+		return ec._Cover(ctx, sel, &obj)
+	case *profile.Cover:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Cover(ctx, sel, obj)
 	case profile.UserProfile:
 		return ec._UserProfile(ctx, sel, &obj)
 	case *profile.UserProfile:
@@ -4647,7 +4728,7 @@ func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, 
 
 // region    **************************** object.gotpl ****************************
 
-var coverImplementors = []string{"Cover"}
+var coverImplementors = []string{"Cover", "_Entity"}
 
 func (ec *executionContext) _Cover(ctx context.Context, sel ast.SelectionSet, obj *profile.Cover) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, coverImplementors)
@@ -4704,6 +4785,20 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Entity")
+		case "findCoverByPayerName":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Entity_findCoverByPayerName(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "findUserProfileByUID":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -5525,6 +5620,16 @@ func (ec *executionContext) marshalNCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋp
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNCover2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCover(ctx context.Context, sel ast.SelectionSet, v *profile.Cover) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Cover(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, v interface{}) (base.Date, error) {

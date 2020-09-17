@@ -10,6 +10,11 @@ import (
 	"gitlab.slade360emr.com/go/profile/graph/profile"
 )
 
+func (r *entityResolver) FindCoverByPayerName(ctx context.Context, payerName string) (*profile.Cover, error) {
+	// todo(dexter) implement this
+	return nil, nil
+}
+
 func (r *entityResolver) FindUserProfileByUID(ctx context.Context, uid string) (*profile.UserProfile, error) {
 	return r.profileService.GetProfile(ctx, uid)
 }
