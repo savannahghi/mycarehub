@@ -107,6 +107,18 @@ func (r *queryResolver) ListTesters(ctx context.Context) ([]string, error) {
 	return r.profileService.ListTesters(ctx)
 }
 
+func (r *queryResolver) ListKMPDURegisteredPractitioners(ctx context.Context, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) (*profile.KMPDUPractitionerConnection, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.ListKMPDURegisteredPractitioners(ctx, pagination, filter, sort)
+}
+
+func (r *queryResolver) GetKMPDURegisteredPractitioner(ctx context.Context, regno string) (*profile.KMPDUPractitioner, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.GetRegisteredPractitionerByLicense(ctx, regno)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

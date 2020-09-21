@@ -766,5 +766,54 @@ func (s Service) ListTesters(ctx context.Context) ([]string, error) {
 	return emails, nil
 }
 
+// ListKMPDURegisteredPractitioners lists the practitioners registered with KMPDU
+func (s Service) ListKMPDURegisteredPractitioners(ctx context.Context, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) (*KMPDUPractitionerConnection, error) {
+	s.checkPreconditions()
+
+	registeredPractitioners, pageInfo, err := base.QueryNodes(
+		ctx, pagination, filter, sort, &KMPDUPractitioner{},
+	)
+	if err != nil {
+		return nil, err
+	}
+	edges := []*KMPDUPractitionerEdge{}
+	for _, doc := range registeredPractitioners {
+		practitioner := &KMPDUPractitioner{}
+		err := doc.DataTo(practitioner)
+		if err != nil {
+			return nil, err
+		}
+		practitioner.ID = doc.Ref.ID
+		edges = append(edges, &KMPDUPractitionerEdge{
+			Cursor: &practitioner.ID,
+			Node:   practitioner,
+		})
+	}
+
+	connection := &KMPDUPractitionerConnection{
+		Edges:    edges,
+		PageInfo: pageInfo,
+	}
+	return connection, nil
+}
+
+// GetRegisteredPractitionerByLicense retrieves a single practitioners records
+func (s Service) GetRegisteredPractitionerByLicense(
+	ctx context.Context, license string,
+) (*KMPDUPractitioner, error) {
+	s.checkPreconditions()
+	dsnap, err := s.firestoreClient.Collection("RegisteredPractitioners").Doc(license).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+	practitioner := &KMPDUPractitioner{}
+	err = dsnap.DataTo(practitioner)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read practitioner records: %w", err)
+	}
+
+	return practitioner, nil
+}
+
 // TODO Separate practitioner and consumer profiles - isApproved
 // TODO practitionerTermsOfServiceAccepted

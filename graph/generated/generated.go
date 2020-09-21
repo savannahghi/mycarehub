@@ -60,6 +60,27 @@ type ComplexityRoot struct {
 		FindUserProfileByUID      func(childComplexity int, uid string) int
 	}
 
+	KMPDUPractitioner struct {
+		Active         func(childComplexity int) int
+		Address        func(childComplexity int) int
+		Licensetype    func(childComplexity int) int
+		Name           func(childComplexity int) int
+		Qualifications func(childComplexity int) int
+		Regno          func(childComplexity int) int
+		Speciality     func(childComplexity int) int
+		Subspeciality  func(childComplexity int) int
+	}
+
+	KMPDUPractitionerConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	KMPDUPractitionerEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	Mutation struct {
 		AcceptTermsAndConditions  func(childComplexity int, accept bool) int
 		AddTester                 func(childComplexity int, email string) int
@@ -102,12 +123,14 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetProfile         func(childComplexity int, uid string) int
-		HealthcashBalance  func(childComplexity int) int
-		ListTesters        func(childComplexity int) int
-		UserProfile        func(childComplexity int) int
-		__resolve__service func(childComplexity int) int
-		__resolve_entities func(childComplexity int, representations []map[string]interface{}) int
+		GetKMPDURegisteredPractitioner   func(childComplexity int, regno string) int
+		GetProfile                       func(childComplexity int, uid string) int
+		HealthcashBalance                func(childComplexity int) int
+		ListKMPDURegisteredPractitioners func(childComplexity int, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) int
+		ListTesters                      func(childComplexity int) int
+		UserProfile                      func(childComplexity int) int
+		__resolve__service               func(childComplexity int) int
+		__resolve_entities               func(childComplexity int, representations []map[string]interface{}) int
 	}
 
 	TesterWhitelist struct {
@@ -166,6 +189,8 @@ type QueryResolver interface {
 	HealthcashBalance(ctx context.Context) (*base.Decimal, error)
 	GetProfile(ctx context.Context, uid string) (*profile.UserProfile, error)
 	ListTesters(ctx context.Context) ([]string, error)
+	ListKMPDURegisteredPractitioners(ctx context.Context, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) (*profile.KMPDUPractitionerConnection, error)
+	GetKMPDURegisteredPractitioner(ctx context.Context, regno string) (*profile.KMPDUPractitioner, error)
 }
 
 type executableSchema struct {
@@ -246,6 +271,90 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Entity.FindUserProfileByUID(childComplexity, args["uid"].(string)), true
+
+	case "KMPDUPractitioner.active":
+		if e.complexity.KMPDUPractitioner.Active == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitioner.Active(childComplexity), true
+
+	case "KMPDUPractitioner.address":
+		if e.complexity.KMPDUPractitioner.Address == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitioner.Address(childComplexity), true
+
+	case "KMPDUPractitioner.licensetype":
+		if e.complexity.KMPDUPractitioner.Licensetype == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitioner.Licensetype(childComplexity), true
+
+	case "KMPDUPractitioner.name":
+		if e.complexity.KMPDUPractitioner.Name == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitioner.Name(childComplexity), true
+
+	case "KMPDUPractitioner.qualifications":
+		if e.complexity.KMPDUPractitioner.Qualifications == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitioner.Qualifications(childComplexity), true
+
+	case "KMPDUPractitioner.regno":
+		if e.complexity.KMPDUPractitioner.Regno == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitioner.Regno(childComplexity), true
+
+	case "KMPDUPractitioner.speciality":
+		if e.complexity.KMPDUPractitioner.Speciality == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitioner.Speciality(childComplexity), true
+
+	case "KMPDUPractitioner.subspeciality":
+		if e.complexity.KMPDUPractitioner.Subspeciality == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitioner.Subspeciality(childComplexity), true
+
+	case "KMPDUPractitionerConnection.edges":
+		if e.complexity.KMPDUPractitionerConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitionerConnection.Edges(childComplexity), true
+
+	case "KMPDUPractitionerConnection.pageInfo":
+		if e.complexity.KMPDUPractitionerConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitionerConnection.PageInfo(childComplexity), true
+
+	case "KMPDUPractitionerEdge.cursor":
+		if e.complexity.KMPDUPractitionerEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitionerEdge.Cursor(childComplexity), true
+
+	case "KMPDUPractitionerEdge.node":
+		if e.complexity.KMPDUPractitionerEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.KMPDUPractitionerEdge.Node(childComplexity), true
 
 	case "Mutation.acceptTermsAndConditions":
 		if e.complexity.Mutation.AcceptTermsAndConditions == nil {
@@ -484,6 +593,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PractitionerEdge.Node(childComplexity), true
 
+	case "Query.getKMPDURegisteredPractitioner":
+		if e.complexity.Query.GetKMPDURegisteredPractitioner == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getKMPDURegisteredPractitioner_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetKMPDURegisteredPractitioner(childComplexity, args["regno"].(string)), true
+
 	case "Query.getProfile":
 		if e.complexity.Query.GetProfile == nil {
 			break
@@ -502,6 +623,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.HealthcashBalance(childComplexity), true
+
+	case "Query.listKMPDURegisteredPractitioners":
+		if e.complexity.Query.ListKMPDURegisteredPractitioners == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listKMPDURegisteredPractitioners_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListKMPDURegisteredPractitioners(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].(*base.FilterInput), args["sort"].(*base.SortInput)), true
 
 	case "Query.listTesters":
 		if e.complexity.Query.ListTesters == nil {
@@ -962,6 +1095,12 @@ input BiodataInput {
   healthcashBalance: Decimal!
   getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
+  listKMPDURegisteredPractitioners(
+    pagination: PaginationInput
+    filter: FilterInput
+    sort: SortInput
+  ): KMPDUPractitionerConnection!
+  getKMPDURegisteredPractitioner(regno: String!): KMPDUPractitioner!
 }
 
 extend type Mutation {
@@ -995,6 +1134,27 @@ type PractitionerEdge {
 
 type PractitionerConnection {
   edges: [PractitionerEdge]
+  pageInfo: PageInfo!
+}
+
+type KMPDUPractitioner {
+  name: String!
+  regno: String!
+  address: String!
+  qualifications: String!
+  speciality: String!
+  subspeciality: String!
+  licensetype: String!
+  active: String!
+}
+
+type KMPDUPractitionerEdge {
+  cursor: String
+  node: KMPDUPractitioner
+}
+
+type KMPDUPractitionerConnection {
+  edges: [KMPDUPractitionerEdge]
   pageInfo: PageInfo!
 }
 
@@ -1036,6 +1196,7 @@ type UserProfile @key(fields: "uid") {
 type TesterWhitelist {
   email: String!
 }
+
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
@@ -1315,6 +1476,21 @@ func (ec *executionContext) field_Query__entities_args(ctx context.Context, rawA
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getKMPDURegisteredPractitioner_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["regno"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("regno"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["regno"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1327,6 +1503,39 @@ func (ec *executionContext) field_Query_getProfile_args(ctx context.Context, raw
 		}
 	}
 	args["uid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_listKMPDURegisteredPractitioners_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *base.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 *base.FilterInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("filter"))
+		arg1, err = ec.unmarshalOFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFilterInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 *base.SortInput
+	if tmp, ok := rawArgs["sort"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("sort"))
+		arg2, err = ec.unmarshalOSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sort"] = arg2
 	return args, nil
 }
 
@@ -1625,6 +1834,405 @@ func (ec *executionContext) _Entity_findUserProfileByUID(ctx context.Context, fi
 	res := resTmp.(*profile.UserProfile)
 	fc.Result = res
 	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitioner_name(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitioner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitioner",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitioner_regno(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitioner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitioner",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Regno, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitioner_address(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitioner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitioner",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Address, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitioner_qualifications(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitioner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitioner",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Qualifications, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitioner_speciality(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitioner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitioner",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Speciality, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitioner_subspeciality(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitioner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitioner",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Subspeciality, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitioner_licensetype(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitioner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitioner",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Licensetype, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitioner_active(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitioner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitioner",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitionerConnection_edges(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitionerConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitionerConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*profile.KMPDUPractitionerEdge)
+	fc.Result = res
+	return ec.marshalOKMPDUPractitionerEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitionerEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitionerConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitionerConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitionerConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*base.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitionerEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitionerEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitionerEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KMPDUPractitionerEdge_node(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitionerEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "KMPDUPractitionerEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*profile.KMPDUPractitioner)
+	fc.Result = res
+	return ec.marshalOKMPDUPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitioner(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_confirmEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2714,6 +3322,88 @@ func (ec *executionContext) _Query_listTesters(ctx context.Context, field graphq
 	res := resTmp.([]string)
 	fc.Result = res
 	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_listKMPDURegisteredPractitioners(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_listKMPDURegisteredPractitioners_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListKMPDURegisteredPractitioners(rctx, args["pagination"].(*base.PaginationInput), args["filter"].(*base.FilterInput), args["sort"].(*base.SortInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.KMPDUPractitionerConnection)
+	fc.Result = res
+	return ec.marshalNKMPDUPractitionerConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitionerConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getKMPDURegisteredPractitioner(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getKMPDURegisteredPractitioner_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetKMPDURegisteredPractitioner(rctx, args["regno"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.KMPDUPractitioner)
+	fc.Result = res
+	return ec.marshalNKMPDUPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitioner(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5227,6 +5917,123 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 	return out
 }
 
+var kMPDUPractitionerImplementors = []string{"KMPDUPractitioner"}
+
+func (ec *executionContext) _KMPDUPractitioner(ctx context.Context, sel ast.SelectionSet, obj *profile.KMPDUPractitioner) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, kMPDUPractitionerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("KMPDUPractitioner")
+		case "name":
+			out.Values[i] = ec._KMPDUPractitioner_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "regno":
+			out.Values[i] = ec._KMPDUPractitioner_regno(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "address":
+			out.Values[i] = ec._KMPDUPractitioner_address(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "qualifications":
+			out.Values[i] = ec._KMPDUPractitioner_qualifications(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "speciality":
+			out.Values[i] = ec._KMPDUPractitioner_speciality(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "subspeciality":
+			out.Values[i] = ec._KMPDUPractitioner_subspeciality(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "licensetype":
+			out.Values[i] = ec._KMPDUPractitioner_licensetype(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "active":
+			out.Values[i] = ec._KMPDUPractitioner_active(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var kMPDUPractitionerConnectionImplementors = []string{"KMPDUPractitionerConnection"}
+
+func (ec *executionContext) _KMPDUPractitionerConnection(ctx context.Context, sel ast.SelectionSet, obj *profile.KMPDUPractitionerConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, kMPDUPractitionerConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("KMPDUPractitionerConnection")
+		case "edges":
+			out.Values[i] = ec._KMPDUPractitionerConnection_edges(ctx, field, obj)
+		case "pageInfo":
+			out.Values[i] = ec._KMPDUPractitionerConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var kMPDUPractitionerEdgeImplementors = []string{"KMPDUPractitionerEdge"}
+
+func (ec *executionContext) _KMPDUPractitionerEdge(ctx context.Context, sel ast.SelectionSet, obj *profile.KMPDUPractitionerEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, kMPDUPractitionerEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("KMPDUPractitionerEdge")
+		case "cursor":
+			out.Values[i] = ec._KMPDUPractitionerEdge_cursor(ctx, field, obj)
+		case "node":
+			out.Values[i] = ec._KMPDUPractitionerEdge_node(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -5522,6 +6329,34 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listTesters(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "listKMPDURegisteredPractitioners":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listKMPDURegisteredPractitioners(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getKMPDURegisteredPractitioner":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getKMPDURegisteredPractitioner(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -6146,6 +6981,34 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) marshalNKMPDUPractitioner2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitioner(ctx context.Context, sel ast.SelectionSet, v profile.KMPDUPractitioner) graphql.Marshaler {
+	return ec._KMPDUPractitioner(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNKMPDUPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitioner(ctx context.Context, sel ast.SelectionSet, v *profile.KMPDUPractitioner) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._KMPDUPractitioner(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNKMPDUPractitionerConnection2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitionerConnection(ctx context.Context, sel ast.SelectionSet, v profile.KMPDUPractitionerConnection) graphql.Marshaler {
+	return ec._KMPDUPractitionerConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNKMPDUPractitionerConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitionerConnection(ctx context.Context, sel ast.SelectionSet, v *profile.KMPDUPractitionerConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._KMPDUPractitionerConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNMarkdown2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐMarkdown(ctx context.Context, v interface{}) (base.Markdown, error) {
 	var res base.Markdown
 	err := res.UnmarshalGQL(v)
@@ -6686,6 +7549,14 @@ func (ec *executionContext) marshalODate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋba
 	return v
 }
 
+func (ec *executionContext) unmarshalOFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFilterInput(ctx context.Context, v interface{}) (*base.FilterInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFilterInput(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOFilterParam2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFilterParam(ctx context.Context, v interface{}) ([]*base.FilterParam, error) {
 	if v == nil {
 		return nil, nil
@@ -6743,6 +7614,68 @@ func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.Selecti
 	return graphql.MarshalInt(v)
 }
 
+func (ec *executionContext) marshalOKMPDUPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitioner(ctx context.Context, sel ast.SelectionSet, v *profile.KMPDUPractitioner) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._KMPDUPractitioner(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOKMPDUPractitionerEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitionerEdge(ctx context.Context, sel ast.SelectionSet, v []*profile.KMPDUPractitionerEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOKMPDUPractitionerEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitionerEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOKMPDUPractitionerEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitionerEdge(ctx context.Context, sel ast.SelectionSet, v *profile.KMPDUPractitionerEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._KMPDUPractitionerEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOPaginationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPaginationInput(ctx context.Context, v interface{}) (*base.PaginationInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPaginationInput(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitioner(ctx context.Context, sel ast.SelectionSet, v *profile.Practitioner) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -6795,6 +7728,14 @@ func (ec *executionContext) marshalOPractitionerEdge2ᚖgitlabᚗslade360emrᚗc
 		return graphql.Null
 	}
 	return ec._PractitionerEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortInput(ctx context.Context, v interface{}) (*base.SortInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSortInput(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOSortParam2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortParam(ctx context.Context, v interface{}) ([]*base.SortParam, error) {

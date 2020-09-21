@@ -8,14 +8,43 @@ import (
 	"reflect"
 	"testing"
 
+	"cloud.google.com/go/firestore"
+	"firebase.google.com/go/auth"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/mailgun/graph/mailgun"
 	"gitlab.slade360emr.com/go/otp/graph/otp"
 )
+
+func GetFirestoreClient(t *testing.T) *firestore.Client {
+	fc := &base.FirebaseClient{}
+	firebaseApp, err := fc.InitFirebase()
+	assert.Nil(t, err)
+
+	ctx := base.GetAuthenticatedContext(t)
+	firestoreClient, err := firebaseApp.Firestore(ctx)
+	assert.Nil(t, err)
+	assert.NotNil(t, firestoreClient)
+	return firestoreClient
+}
+
+func GetFirebaseAuthClient(t *testing.T) (*auth.Client, error) {
+	fc := &base.FirebaseClient{}
+	firebaseApp, err := fc.InitFirebase()
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize Firebase app: %w", err)
+	}
+	ctx := base.GetAuthenticatedContext(t)
+	client, err := firebaseApp.Auth(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize Firebase auth client: %w", err)
+	}
+	return client, nil
+}
 
 func TestNewService(t *testing.T) {
 	service := NewService()
@@ -860,6 +889,108 @@ func TestService_RejectPractitionerSignup(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("Service.RejectPractitionerSignup() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_GetRegisteredPractitionerByLicense(t *testing.T) {
+	firestoreClient := GetFirestoreClient(t)
+	emailService := mailgun.NewService()
+	firebaseAuth, _ := GetFirebaseAuthClient(t)
+	type fields struct {
+		firestoreClient *firestore.Client
+		firebaseAuth    *auth.Client
+		emailService    *mailgun.Service
+	}
+	type args struct {
+		ctx     context.Context
+		license string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case - Retrieve a single practitioner records",
+			fields: fields{
+				firestoreClient: firestoreClient,
+				firebaseAuth:    firebaseAuth,
+				emailService:    emailService,
+			},
+			args: args{
+				ctx:     base.GetAuthenticatedContext(t),
+				license: "A8082",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := Service{
+				firestoreClient: tt.fields.firestoreClient,
+				firebaseAuth:    tt.fields.firebaseAuth,
+				emailService:    tt.fields.emailService,
+			}
+			_, err := s.GetRegisteredPractitionerByLicense(tt.args.ctx, tt.args.license)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.GetRegisteredPractitionerByLicense() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestService_ListKMPDURegisteredPractitioners(t *testing.T) {
+	firestoreClient := GetFirestoreClient(t)
+	emailService := mailgun.NewService()
+	firebaseAuth, _ := GetFirebaseAuthClient(t)
+	type fields struct {
+		firestoreClient *firestore.Client
+		firebaseAuth    *auth.Client
+		emailService    *mailgun.Service
+	}
+	type args struct {
+		ctx        context.Context
+		pagination *base.PaginationInput
+		filter     *base.FilterInput
+		sort       *base.SortInput
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case - Retreive all practitioner records",
+			fields: fields{
+				firestoreClient: firestoreClient,
+				firebaseAuth:    firebaseAuth,
+				emailService:    emailService,
+			},
+			args: args{
+				ctx:        base.GetAuthenticatedContext(t),
+				pagination: nil,
+				filter:     nil,
+				sort:       nil,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := Service{
+				firestoreClient: tt.fields.firestoreClient,
+				firebaseAuth:    tt.fields.firebaseAuth,
+				emailService:    tt.fields.emailService,
+			}
+			_, err := s.ListKMPDURegisteredPractitioners(tt.args.ctx, tt.args.pagination, tt.args.filter, tt.args.sort)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.ListKMPDURegisteredPractitioners() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

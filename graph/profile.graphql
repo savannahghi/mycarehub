@@ -3,6 +3,12 @@ extend type Query {
   healthcashBalance: Decimal!
   getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
+  listKMPDURegisteredPractitioners(
+    pagination: PaginationInput
+    filter: FilterInput
+    sort: SortInput
+  ): KMPDUPractitionerConnection!
+  getKMPDURegisteredPractitioner(regno: String!): KMPDUPractitioner!
 }
 
 extend type Mutation {

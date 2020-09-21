@@ -6,6 +6,32 @@ import (
 	"gitlab.slade360emr.com/go/base"
 )
 
+// KMPDUPractitioner is used to serialize a records of a particular practitioner registered with KMPDU
+type KMPDUPractitioner struct {
+	base.Model
+
+	Name           string `json:"name"`
+	Regno          string `json:"regno"`
+	Address        string `json:"address"`
+	Qualifications string `json:"qualifications"`
+	Speciality     string `json:"specialty"`
+	Subspeciality  string `json:"subspeciality"`
+	Licensetype    string `json:"licensetype"`
+	Active         string `json:"active"`
+}
+
+// KMPDUPractitionerConnection is used to return lists of practitioners registered with KMPDU.
+type KMPDUPractitionerConnection struct {
+	Edges    []*KMPDUPractitionerEdge `json:"edges"`
+	PageInfo *base.PageInfo           `json:"pageInfo"`
+}
+
+// KMPDUPractitionerEdge is used to represent practitioners in Relay type lists.
+type KMPDUPractitionerEdge struct {
+	Cursor *string            `json:"cursor"`
+	Node   *KMPDUPractitioner `json:"node"`
+}
+
 // Practitioner is used to serialize practitioner profile details.
 // These details are in addition to the user profile that all users get.
 type Practitioner struct {

@@ -17,6 +17,27 @@ type PractitionerConnection {
   pageInfo: PageInfo!
 }
 
+type KMPDUPractitioner {
+  name: String!
+  regno: String!
+  address: String!
+  qualifications: String!
+  speciality: String!
+  subspeciality: String!
+  licensetype: String!
+  active: String!
+}
+
+type KMPDUPractitionerEdge {
+  cursor: String
+  node: KMPDUPractitioner
+}
+
+type KMPDUPractitionerConnection {
+  edges: [KMPDUPractitionerEdge]
+  pageInfo: PageInfo!
+}
+
 type Cover
 @key(fields: "payerName")
 @key(fields: "payerSladeCode")
@@ -55,3 +76,4 @@ type UserProfile @key(fields: "uid") {
 type TesterWhitelist {
   email: String!
 }
+
