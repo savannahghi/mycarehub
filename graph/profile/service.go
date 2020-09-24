@@ -29,7 +29,7 @@ const (
 	healthcashCurrency                  = "KES"
 	emailSignupSubject                  = "Thank you for signing up"
 	emailWelcomeSubject                 = "Welcome to Slade 360 HealthCloud"
-	emailRejectionSubject               = "You Account was not Approved"
+	emailRejectionSubject               = "Your Account was not Approved"
 	appleTesterPractitionerLicense      = "A1B4C6"
 )
 
