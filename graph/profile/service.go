@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 
 	"time"
 
@@ -31,6 +32,7 @@ const (
 	emailWelcomeSubject                 = "Welcome to Slade 360 HealthCloud"
 	emailRejectionSubject               = "Your Account was not Approved"
 	appleTesterPractitionerLicense      = "A1B4C6"
+	legalAge                            = 18
 )
 
 // NewService returns a new authentication service
@@ -626,6 +628,13 @@ func (s Service) HealthcashBalance(ctx context.Context) (*base.Decimal, error) {
 	if err != nil {
 		return nil, err
 	}
+	underAge, err := s.IsUnderAge(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("can't confirm if the user is underage: %w", err)
+	}
+	if underAge {
+		return nil, nil
+	}
 	rootCollection := s.firestoreClient.Collection(s.GetHealthcashRootCollectionName())
 
 	depositsCollection := rootCollection.Doc(uid).Collection(
@@ -817,3 +826,24 @@ func (s Service) GetRegisteredPractitionerByLicense(
 
 // TODO Separate practitioner and consumer profiles - isApproved
 // TODO practitionerTermsOfServiceAccepted
+
+// IsUnderAge checks if the user in context is an underage or not
+func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
+	userProfile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, fmt.Errorf("can't retrieve user profile when getting the age: %w", err)
+	}
+	dob := userProfile.DateOfBirth
+	if dob == nil {
+		return false, fmt.Errorf("user should have a date of birth")
+	}
+	dateOfBirth := dob.AsTime()
+	today := time.Now()
+	age := math.Floor(today.Sub(dateOfBirth).Hours() / 24 / 365)
+
+	if age >= legalAge {
+		return false, nil
+	}
+
+	return true, nil
+}

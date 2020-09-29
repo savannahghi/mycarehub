@@ -995,3 +995,40 @@ func TestService_ListKMPDURegisteredPractitioners(t *testing.T) {
 		})
 	}
 }
+
+func TestService_IsUnderAge(t *testing.T) {
+	service := NewService()
+	ctx := base.GetAuthenticatedContext(t)
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "good case",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.IsUnderAge(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.IsUnderAge() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.IsUnderAge() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

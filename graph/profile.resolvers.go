@@ -119,6 +119,12 @@ func (r *queryResolver) GetKMPDURegisteredPractitioner(ctx context.Context, regn
 	return r.profileService.GetRegisteredPractitionerByLicense(ctx, regno)
 }
 
+func (r *queryResolver) IsUnderAge(ctx context.Context) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.IsUnderAge(ctx)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

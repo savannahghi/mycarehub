@@ -9,6 +9,7 @@ extend type Query {
     sort: SortInput
   ): KMPDUPractitionerConnection!
   getKMPDURegisteredPractitioner(regno: String!): KMPDUPractitioner!
+  isUnderAge: Boolean!
 }
 
 extend type Mutation {
