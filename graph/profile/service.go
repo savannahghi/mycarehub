@@ -628,12 +628,17 @@ func (s Service) HealthcashBalance(ctx context.Context) (*base.Decimal, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	minorBalance := 0.0
+	minorBalanceDecimal := decimal.NewFromFloat(minorBalance)
+	minorBalanceAPIDecimal := base.Decimal(minorBalanceDecimal)
+
 	underAge, err := s.IsUnderAge(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("can't confirm if the user is underage: %w", err)
 	}
 	if underAge {
-		return nil, nil
+		return &minorBalanceAPIDecimal, nil
 	}
 	rootCollection := s.firestoreClient.Collection(s.GetHealthcashRootCollectionName())
 
