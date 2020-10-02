@@ -322,13 +322,13 @@ func (s Service) UpdateUserProfile(
 	userProfile.CanExperiment = input.CanExperiment
 	userProfile.AskAgainToSetIsTester = input.AskAgainToSetIsTester
 	userProfile.AskAgainToSetCanExperiment = input.AskAgainToSetCanExperiment
+	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
 	}
-	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 	return userProfile, nil
 }
 
@@ -725,6 +725,25 @@ func (s Service) AddTester(ctx context.Context, email string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("can't save whitelist entry: %s", err)
 	}
+
+	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	userProfile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, err
+	}
+	userProfile.IsTester = true
+
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
+	)
+	if err != nil {
+		return false, fmt.Errorf("unable to update user profile: %v", err)
+	}
+
 	return true, nil
 }
 
@@ -744,6 +763,25 @@ func (s Service) RemoveTester(ctx context.Context, email string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("can't delete tester with email %s: %w", email, err)
 	}
+
+	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	userProfile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, err
+	}
+	userProfile.IsTester = false
+
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
+	)
+	if err != nil {
+		return false, fmt.Errorf("unable to update user profile: %v", err)
+	}
+
 	return true, nil
 }
 

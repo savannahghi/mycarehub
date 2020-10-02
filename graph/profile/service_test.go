@@ -639,7 +639,7 @@ func TestService_SendPractitionerWelcomeEmail(t *testing.T) {
 }
 
 func TestService_AddTester(t *testing.T) {
-	ctx := context.Background()
+	ctx := base.GetAuthenticatedContext(t)
 	type args struct {
 		ctx   context.Context
 		email string
@@ -687,7 +687,7 @@ func TestService_AddTester(t *testing.T) {
 func TestService_RemoveTester(t *testing.T) {
 	validTesterEmail := gofakeit.Email()
 	srv := NewService()
-	ctx := context.Background()
+	ctx := base.GetAuthenticatedContext(t)
 	added, err := srv.AddTester(ctx, validTesterEmail)
 	assert.Nil(t, err)
 	assert.True(t, added)
@@ -739,7 +739,7 @@ func TestService_RemoveTester(t *testing.T) {
 func TestService_ListTesters(t *testing.T) {
 	validTesterEmail := gofakeit.Email()
 	srv := NewService()
-	ctx := context.Background()
+	ctx := base.GetAuthenticatedContext(t)
 	added, err := srv.AddTester(ctx, validTesterEmail)
 	assert.Nil(t, err)
 	assert.True(t, added)
