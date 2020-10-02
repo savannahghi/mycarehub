@@ -736,6 +736,8 @@ func (s Service) AddTester(ctx context.Context, email string) (bool, error) {
 		return false, err
 	}
 	userProfile.IsTester = true
+	// reset covers
+	userProfile.Covers = []Cover{}
 
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
@@ -774,6 +776,8 @@ func (s Service) RemoveTester(ctx context.Context, email string) (bool, error) {
 		return false, err
 	}
 	userProfile.IsTester = false
+	// reset covers
+	userProfile.Covers = []Cover{}
 
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
