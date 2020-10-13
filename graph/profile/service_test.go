@@ -12,7 +12,6 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
@@ -76,8 +75,8 @@ func TestService_profileUpdates(t *testing.T) {
 	bs, err := ioutil.ReadFile("testdata/photo.jpg")
 	assert.Nil(t, err)
 	photoBase64 := base64.StdEncoding.EncodeToString(bs)
-	email := []string{"kithinjimkevin@gmail.com"}
-	msisdn := "+254723002959"
+	email := []string{"calvineotieno010@gmail.com"}
+	msisdn := "+254716862585"
 	otpService := otp.NewService()
 	otp, err := otpService.GenerateAndSendOTP(msisdn)
 	assert.Nil(t, err)
@@ -232,7 +231,7 @@ func TestService_RegisterPushToken(t *testing.T) {
 
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	msisdn := "+254723002959"
+	msisdn := "+254716862585"
 	otpService := otp.NewService()
 	otp, err := otpService.GenerateAndSendOTP(msisdn)
 	assert.Nil(t, err)
@@ -294,7 +293,6 @@ func TestService_CompleteSignup(t *testing.T) {
 	assert.NotNil(t, authToken)
 
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
-	expectedBonus := base.Decimal(decimal.NewFromFloat(healthcashWelcomeBonusAmount))
 
 	type args struct {
 		ctx context.Context
@@ -302,7 +300,7 @@ func TestService_CompleteSignup(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Decimal
+		want    bool
 		wantErr bool
 	}{
 		{
@@ -310,7 +308,7 @@ func TestService_CompleteSignup(t *testing.T) {
 			args: args{
 				ctx: authenticatedContext,
 			},
-			want:    &expectedBonus,
+			want:    true,
 			wantErr: false,
 		},
 	}

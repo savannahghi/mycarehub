@@ -12,7 +12,6 @@ import (
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"github.com/asaskevich/govalidator"
-	"github.com/shopspring/decimal"
 	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/mailgun/graph/mailgun"
@@ -26,7 +25,6 @@ const (
 	healthcashRootCollectionName        = "healthcash"
 	healthcashDepositsCollectionName    = "healthcash_deposits"
 	healthcashWithdrawalsCollectionName = "healthcash_withdrawals"
-	healthcashWelcomeBonusAmount        = 1000
 	healthcashCurrency                  = "KES"
 	emailSignupSubject                  = "Thank you for signing up"
 	emailWelcomeSubject                 = "Welcome to Slade 360 HealthCloud"
@@ -476,70 +474,32 @@ func (s Service) RegisterPushToken(ctx context.Context, token string) (bool, err
 	return true, nil
 }
 
-// CompleteSignup allocates the sign-up bonus
-func (s Service) CompleteSignup(ctx context.Context) (*base.Decimal, error) {
+// CompleteSignup completes the sign-up
+func (s Service) CompleteSignup(ctx context.Context) (bool, error) {
 	s.checkPreconditions()
 	profile, err := s.UserProfile(ctx)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	// do not re-process approved profiles
 	if profile.IsApproved {
-		return s.HealthcashBalance(ctx)
-	}
-
-	// do not re-allocate HealthCash balance to those that already have a balance
-	currentBalance, err := s.HealthcashBalance(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if currentBalance.Decimal().Equal(decimal.Zero) {
-		rootCollection := s.firestoreClient.Collection(s.GetHealthcashRootCollectionName())
-		ts := time.Now()
-
-		depositsCollection := rootCollection.Doc(profile.UID).Collection(s.GetHealthcashDepositsCollectionName())
-		deposit := HealthcashTransaction{
-			At:       ts,
-			Amount:   healthcashWelcomeBonusAmount,
-			Reason:   "Welcome bonus",
-			Currency: healthcashCurrency,
-		}
-		_, _, err = depositsCollection.Add(ctx, deposit)
-		if err != nil {
-			return nil, fmt.Errorf("unable to save HealthCash deposit opening balance: %w", err)
-		}
-
-		withdrawalsCollection := rootCollection.Doc(profile.UID).Collection(s.GetHealthcashWithdrawalsCollectionName())
-		withdrawal := HealthcashTransaction{
-			At:       ts,
-			Amount:   0.0,
-			Reason:   "Opening balance",
-			Currency: healthcashCurrency,
-		}
-		_, _, err = withdrawalsCollection.Add(ctx, withdrawal)
-		if err != nil {
-			return nil, fmt.Errorf("unable to save HealthCash withdrawal opening balance: %w", err)
-		}
+		return true, nil
 	}
 
 	// update the profile and mark it as approved
 	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 	profile.IsApproved = true
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, profile)
 	if err != nil {
-		return nil, fmt.Errorf("unable to update user profile: %v", err)
+		return false, fmt.Errorf("unable to update user profile: %v", err)
 	}
 
-	bal, err := s.HealthcashBalance(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return bal, nil
+	return true, nil
 }
 
 //ApprovePractitionerSignup is used to approve the practitioner signup
@@ -619,67 +579,6 @@ func (s Service) SendPractitionerRejectionEmail(ctx context.Context, emailaddres
 		return fmt.Errorf("unable to send rejection email: %w", err)
 	}
 	return nil
-}
-
-// HealthcashBalance returns the logged in user's HealthCash balance
-func (s Service) HealthcashBalance(ctx context.Context) (*base.Decimal, error) {
-	s.checkPreconditions()
-	uid, err := authorization.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	minorBalance := 0.0
-	minorBalanceDecimal := decimal.NewFromFloat(minorBalance)
-	minorBalanceAPIDecimal := base.Decimal(minorBalanceDecimal)
-
-	underAge, err := s.IsUnderAge(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("can't confirm if the user is underage: %w", err)
-	}
-	if underAge {
-		return &minorBalanceAPIDecimal, nil
-	}
-	rootCollection := s.firestoreClient.Collection(s.GetHealthcashRootCollectionName())
-
-	depositsCollection := rootCollection.Doc(uid).Collection(
-		s.GetHealthcashDepositsCollectionName())
-	deposits, err := depositsCollection.Documents(ctx).GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("can't retrieve deposits: %w", err)
-	}
-	depositsTotal := 0.0
-	for _, deposit := range deposits {
-		trans := HealthcashTransaction{}
-		err = deposit.DataTo(&trans)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"%#v is not a valid healthcash transaction: %w", deposit, err)
-		}
-		depositsTotal += trans.Amount
-	}
-
-	withdrawalsCollection := rootCollection.Doc(uid).Collection(
-		s.GetHealthcashWithdrawalsCollectionName())
-	withdrawals, err := withdrawalsCollection.Documents(ctx).GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("can't retrieve withdrawals: %w", err)
-	}
-	withdrawalsTotal := 0.0
-	for _, withdrawal := range withdrawals {
-		trans := HealthcashTransaction{}
-		err = withdrawal.DataTo(&trans)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"%#v is not a valid healthcash transaction: %w", withdrawal, err)
-		}
-		depositsTotal += trans.Amount
-	}
-
-	balance := depositsTotal - withdrawalsTotal
-	balanceDecimal := decimal.NewFromFloat(balance)
-	balanceAPIDecimal := base.Decimal(balanceDecimal)
-	return &balanceAPIDecimal, nil
 }
 
 // RecordPostVisitSurvey records the survey input supplied by the user

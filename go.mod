@@ -20,6 +20,4 @@ require (
 	gitlab.slade360emr.com/go/base v0.0.33
 	gitlab.slade360emr.com/go/mailgun v0.0.8
 	gitlab.slade360emr.com/go/otp v0.0.16
-	gitlab.slade360emr.com/go/uploads v0.0.9 // indirect
-	honnef.co/go/tools v0.0.1-2020.1.5 // indirect
 )

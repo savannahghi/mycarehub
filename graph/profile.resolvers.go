@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 
+	"github.com/shopspring/decimal"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph/generated"
 	"gitlab.slade360emr.com/go/profile/graph/profile"
@@ -47,7 +48,7 @@ func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) 
 	return r.profileService.RegisterPushToken(ctx, token)
 }
 
-func (r *mutationResolver) CompleteSignup(ctx context.Context) (*base.Decimal, error) {
+func (r *mutationResolver) CompleteSignup(ctx context.Context) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.CompleteSignup(ctx)
@@ -89,10 +90,12 @@ func (r *queryResolver) UserProfile(ctx context.Context) (*profile.UserProfile, 
 	return r.profileService.UserProfile(ctx)
 }
 
+// Depreciated. Implementation to be thought through
 func (r *queryResolver) HealthcashBalance(ctx context.Context) (*base.Decimal, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.HealthcashBalance(ctx)
+	expectedBalance := base.Decimal(decimal.NewFromFloat(0))
+	return &expectedBalance, nil
 }
 
 func (r *queryResolver) GetProfile(ctx context.Context, uid string) (*profile.UserProfile, error) {

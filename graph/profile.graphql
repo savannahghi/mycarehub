@@ -19,7 +19,7 @@ extend type Mutation {
   practitionerSignUp(input: PractitionerSignupInput!): Boolean!
   updateBiodata(input: BiodataInput!): UserProfile!
   registerPushToken(token: String!): Boolean!
-  completeSignup: Decimal!
+  completeSignup: Boolean!
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
   addTester(email: String!): Boolean!
   removeTester(email: String!): Boolean!

@@ -178,7 +178,7 @@ type MutationResolver interface {
 	PractitionerSignUp(ctx context.Context, input profile.PractitionerSignupInput) (bool, error)
 	UpdateBiodata(ctx context.Context, input profile.BiodataInput) (*profile.UserProfile, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
-	CompleteSignup(ctx context.Context) (*base.Decimal, error)
+	CompleteSignup(ctx context.Context) (bool, error)
 	RecordPostVisitSurvey(ctx context.Context, input profile.PostVisitSurveyInput) (bool, error)
 	AddTester(ctx context.Context, email string) (bool, error)
 	RemoveTester(ctx context.Context, email string) (bool, error)
@@ -1120,7 +1120,7 @@ extend type Mutation {
   practitionerSignUp(input: PractitionerSignupInput!): Boolean!
   updateBiodata(input: BiodataInput!): UserProfile!
   registerPushToken(token: String!): Boolean!
-  completeSignup: Decimal!
+  completeSignup: Boolean!
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
   addTester(email: String!): Boolean!
   removeTester(email: String!): Boolean!
@@ -2520,9 +2520,9 @@ func (ec *executionContext) _Mutation_completeSignup(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.Decimal)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNDecimal2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDecimal(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_recordPostVisitSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
