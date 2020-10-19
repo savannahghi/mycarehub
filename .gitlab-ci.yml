@@ -63,11 +63,11 @@ deploy_develop_to_staging:
     DOCKER_TLS_CERTDIR: ""
   resource_group: staging # control deploy concurrency
   script:
-    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app-testing/profile-staging:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app-testing/profile-staging:latest
     - google-cloud-sdk/bin/gcloud auth configure-docker
-    - docker -- push eu.gcr.io/bewell-app-testing/profile-staging:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - docker -- push eu.gcr.io/bewell-app-testing/profile-staging:latest
     - |
-      google-cloud-sdk/bin/gcloud run deploy profile-staging --image eu.gcr.io/bewell-app-testing/profile-staging:$(echo $CI_COMMIT_SHA | cut -c1-8) \
+      google-cloud-sdk/bin/gcloud run deploy profile-staging --image eu.gcr.io/bewell-app-testing/profile-staging:latest \
       --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars \
       "GOOGLE_CLOUD_PROJECT=$STAGING_GOOGLE_CLOUD_PROJECT,FIREBASE_WEB_API_KEY=$STAGING_FIREBASE_WEB_API_KEY,\
       TWILIO_REGION=$TWILIO_REGION,TWILIO_VIDEO_API_URL=$TWILIO_VIDEO_API_URL,\
@@ -108,11 +108,11 @@ deploy_develop_to_test:
     DOCKER_TLS_CERTDIR: ""
   resource_group: staging # control deploy concurrency
   script:
-    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app/profile-testing:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app/profile-testing:latest
     - google-cloud-sdk/bin/gcloud auth configure-docker
-    - docker -- push eu.gcr.io/bewell-app/profile-testing:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - docker -- push eu.gcr.io/bewell-app/profile-testing:latest
     - |
-      google-cloud-sdk/bin/gcloud run deploy profile-testing --image eu.gcr.io/bewell-app/profile-testing:$(echo $CI_COMMIT_SHA | cut -c1-8) \
+      google-cloud-sdk/bin/gcloud run deploy profile-testing --image eu.gcr.io/bewell-app/profile-testing:latest \
       --region europe-west1 --platform managed --allow-unauthenticated  --update-env-vars \
       "GOOGLE_CLOUD_PROJECT=$PROD_GOOGLE_CLOUD_PROJECT,FIREBASE_WEB_API_KEY=$PROD_FIREBASE_WEB_API_KEY,\
       TWILIO_REGION=$TWILIO_REGION,TWILIO_VIDEO_API_URL=$TWILIO_VIDEO_API_URL,\
@@ -152,11 +152,11 @@ deploy_master_to_prod:
     DOCKER_TLS_CERTDIR: ""
   resource_group: staging # control deploy concurrency
   script:
-    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app/profile-prod:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - docker build --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN -f $CI_PROJECT_DIR/Dockerfile . -t eu.gcr.io/bewell-app/profile-prod:latest
     - google-cloud-sdk/bin/gcloud auth configure-docker
-    - docker -- push eu.gcr.io/bewell-app/profile-prod:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - docker -- push eu.gcr.io/bewell-app/profile-prod:latest
     - |
-      google-cloud-sdk/bin/gcloud run deploy profile-prod --image eu.gcr.io/bewell-app/profile-prod:$(echo $CI_COMMIT_SHA | cut -c1-8) \
+      google-cloud-sdk/bin/gcloud run deploy profile-prod --image eu.gcr.io/bewell-app/profile-prod:latest \
       --region europe-west1 --platform managed --allow-unauthenticated  --update-env-vars \
       "GOOGLE_CLOUD_PROJECT=$PROD_GOOGLE_CLOUD_PROJECT,FIREBASE_WEB_API_KEY=$PROD_FIREBASE_WEB_API_KEY,
       TWILIO_REGION=$TWILIO_REGION,TWILIO_VIDEO_API_URL=$TWILIO_VIDEO_API_URL,\
