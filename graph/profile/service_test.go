@@ -1030,3 +1030,147 @@ func TestService_IsUnderAge(t *testing.T) {
 		})
 	}
 }
+
+func TestService_RegisterPhoneNumberandPin(t *testing.T) {
+	service := NewService()
+	type args struct {
+		ctx    context.Context
+		msisdn string
+		pin    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy registration of phone number pin user",
+			args: args{
+				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				msisdn: base.TestUserPhoneNumber,
+				pin:    "1234",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad registration of phone number pin user",
+			args: args{
+				ctx:    context.Background(),
+				msisdn: "number not found",
+				pin:    "5678",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.RegisterPhoneNumberandPin(tt.args.ctx, tt.args.msisdn, tt.args.pin)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.RegisterPhoneNumberandPin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.RegisterPhoneNumberandPin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_RetrievePINFirebaseDocSnapshotByMSISDN(t *testing.T) {
+	service := NewService()
+	type args struct {
+		ctx    context.Context
+		msisdn string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy retrive pin using msisdn",
+			args: args{
+				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				msisdn: "+254778990088",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad retrive pin using msisdn",
+			args: args{
+				ctx:    base.GetAuthenticatedContext(t),
+				msisdn: "ain't no such a number",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.RetrievePINFirebaseDocSnapshotByMSISDN(tt.args.ctx, tt.args.msisdn)
+			if err == nil {
+				assert.NotNil(t, got)
+			}
+			if err != nil {
+				assert.Nil(t, got)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.RetrievePINFirebaseDocSnapshotByMSISDN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestService_VerifyMSISDNandPin(t *testing.T) {
+	service := NewService()
+	type args struct {
+		ctx    context.Context
+		msisdn string
+		pin    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				msisdn: "+254778990088",
+				pin:    "1234",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case",
+			args: args{
+				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				msisdn: "not even close to an msisdn",
+				pin:    "not a pin",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.VerifyMSISDNandPin(tt.args.ctx, tt.args.msisdn, tt.args.pin)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.VerifyMSISDNandPin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.VerifyMSISDNandPin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

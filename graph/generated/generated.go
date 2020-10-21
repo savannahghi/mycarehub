@@ -89,6 +89,7 @@ type ComplexityRoot struct {
 		ConfirmEmail              func(childComplexity int, email string) int
 		PractitionerSignUp        func(childComplexity int, input profile.PractitionerSignupInput) int
 		RecordPostVisitSurvey     func(childComplexity int, input profile.PostVisitSurveyInput) int
+		RegisterPhoneNumberandPin func(childComplexity int, msisdn string, pin string) int
 		RegisterPushToken         func(childComplexity int, token string) int
 		RejectPractitionerSignup  func(childComplexity int, practitionerID string) int
 		RemoveTester              func(childComplexity int, email string) int
@@ -130,6 +131,7 @@ type ComplexityRoot struct {
 		ListKMPDURegisteredPractitioners func(childComplexity int, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) int
 		ListTesters                      func(childComplexity int) int
 		UserProfile                      func(childComplexity int) int
+		VerifyMSISDNandPin               func(childComplexity int, msisdn string, pin string) int
 		__resolve__service               func(childComplexity int) int
 		__resolve_entities               func(childComplexity int, representations []map[string]interface{}) int
 	}
@@ -184,6 +186,7 @@ type MutationResolver interface {
 	RemoveTester(ctx context.Context, email string) (bool, error)
 	ApprovePractitionerSignup(ctx context.Context, practitionerID string) (bool, error)
 	RejectPractitionerSignup(ctx context.Context, practitionerID string) (bool, error)
+	RegisterPhoneNumberandPin(ctx context.Context, msisdn string, pin string) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*profile.UserProfile, error)
@@ -193,6 +196,7 @@ type QueryResolver interface {
 	ListKMPDURegisteredPractitioners(ctx context.Context, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) (*profile.KMPDUPractitionerConnection, error)
 	GetKMPDURegisteredPractitioner(ctx context.Context, regno string) (*profile.KMPDUPractitioner, error)
 	IsUnderAge(ctx context.Context) (bool, error)
+	VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error)
 }
 
 type executableSchema struct {
@@ -437,6 +441,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RecordPostVisitSurvey(childComplexity, args["input"].(profile.PostVisitSurveyInput)), true
 
+	case "Mutation.registerPhoneNumberandPIN":
+		if e.complexity.Mutation.RegisterPhoneNumberandPin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_registerPhoneNumberandPIN_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegisterPhoneNumberandPin(childComplexity, args["msisdn"].(string), args["pin"].(string)), true
+
 	case "Mutation.registerPushToken":
 		if e.complexity.Mutation.RegisterPushToken == nil {
 			break
@@ -658,6 +674,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.UserProfile(childComplexity), true
+
+	case "Query.verifyMSISDNandPIN":
+		if e.complexity.Query.VerifyMSISDNandPin == nil {
+			break
+		}
+
+		args, err := ec.field_Query_verifyMSISDNandPIN_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.VerifyMSISDNandPin(childComplexity, args["msisdn"].(string), args["pin"].(string)), true
 
 	case "Query._service":
 		if e.complexity.Query.__resolve__service == nil {
@@ -1111,6 +1139,7 @@ input BiodataInput {
   ): KMPDUPractitionerConnection!
   getKMPDURegisteredPractitioner(regno: String!): KMPDUPractitioner!
   isUnderAge: Boolean!
+  verifyMSISDNandPIN(msisdn: String!, pin: String!): Boolean!
 }
 
 extend type Mutation {
@@ -1126,6 +1155,7 @@ extend type Mutation {
   removeTester(email: String!): Boolean!
   approvePractitionerSignup(practitionerID: String!): Boolean!
   rejectPractitionerSignup(practitionerID: String!): Boolean!
+  registerPhoneNumberandPIN(msisdn: String!, pin: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `type Practitioner {
@@ -1381,6 +1411,30 @@ func (ec *executionContext) field_Mutation_recordPostVisitSurvey_args(ctx contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_registerPhoneNumberandPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["msisdn"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("msisdn"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["msisdn"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["pin"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("pin"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pin"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_registerPushToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1546,6 +1600,30 @@ func (ec *executionContext) field_Query_listKMPDURegisteredPractitioners_args(ct
 		}
 	}
 	args["sort"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_verifyMSISDNandPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["msisdn"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("msisdn"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["msisdn"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["pin"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("pin"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pin"] = arg1
 	return args, nil
 }
 
@@ -2730,6 +2808,47 @@ func (ec *executionContext) _Mutation_rejectPractitionerSignup(ctx context.Conte
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_registerPhoneNumberandPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_registerPhoneNumberandPIN_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RegisterPhoneNumberandPin(rctx, args["msisdn"].(string), args["pin"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3434,6 +3553,47 @@ func (ec *executionContext) _Query_isUnderAge(ctx context.Context, field graphql
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().IsUnderAge(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_verifyMSISDNandPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_verifyMSISDNandPIN_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().VerifyMSISDNandPin(rctx, args["msisdn"].(string), args["pin"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6153,6 +6313,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "registerPhoneNumberandPIN":
+			out.Values[i] = ec._Mutation_registerPhoneNumberandPIN(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6415,6 +6580,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_isUnderAge(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "verifyMSISDNandPIN":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_verifyMSISDNandPIN(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

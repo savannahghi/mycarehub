@@ -84,13 +84,18 @@ func (r *mutationResolver) RejectPractitionerSignup(ctx context.Context, practit
 	return r.profileService.RejectPractitionerSignup(ctx)
 }
 
+func (r *mutationResolver) RegisterPhoneNumberandPin(ctx context.Context, msisdn string, pin string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.RegisterPhoneNumberandPin(ctx, msisdn, pin)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*profile.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.UserProfile(ctx)
 }
 
-// Depreciated. Implementation to be thought through
 func (r *queryResolver) HealthcashBalance(ctx context.Context) (*base.Decimal, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
@@ -126,6 +131,12 @@ func (r *queryResolver) IsUnderAge(ctx context.Context) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.IsUnderAge(ctx)
+}
+
+func (r *queryResolver) VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.VerifyMSISDNandPin(ctx, msisdn, pin)
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -31,6 +31,7 @@ const (
 	emailRejectionSubject               = "Your Account was not Approved"
 	appleTesterPractitionerLicense      = "A1B4C6"
 	legalAge                            = 18
+	PINCollectionName                   = "pins"
 )
 
 // NewService returns a new authentication service
@@ -792,4 +793,88 @@ func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// RegisterPhoneNumberandPin receives phone number and pin from phonenumber sign up
+// and save them to Firestore
+func (s Service) RegisterPhoneNumberandPin(ctx context.Context, msisdn string, pin string) (bool, error) {
+	s.checkPreconditions()
+	phoneNumber, err := base.NormalizeMSISDN(msisdn)
+	if err != nil {
+		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
+	}
+	profile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, fmt.Errorf("unable to get or create a user profile: %v", err)
+	}
+	personalIDNumber := PIN{
+		UID:     profile.UID,
+		MSISDN:  phoneNumber,
+		PIN:     pin,
+		IsValid: true,
+	}
+
+	err = s.SavePINToFirestore(personalIDNumber)
+	if err != nil {
+		return false, fmt.Errorf("unable to save PIN: %v", err)
+	}
+
+	return true, nil
+}
+
+func (s Service) getPINCollectionName() string {
+	suffixed := base.SuffixCollection(PINCollectionName)
+	return suffixed
+}
+
+// SavePINToFirestore persists the supplied OTP
+func (s Service) SavePINToFirestore(personalIDNumber PIN) error {
+	ctx := context.Background()
+	_, _, err := s.firestoreClient.Collection(s.getPINCollectionName()).Add(ctx, personalIDNumber)
+	return err
+}
+
+// VerifyMSISDNandPin verifies a given msisdn and pin match.
+func (s Service) VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error) {
+	s.checkPreconditions()
+	phoneNumber, err := base.NormalizeMSISDN(msisdn)
+	if err != nil {
+		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
+	}
+	dsnap, err := s.RetrievePINFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
+	if err != nil {
+		return false, fmt.Errorf("unable to retrieve pin given the msisdn: %v", err)
+	}
+
+	msisdnPin := &PIN{}
+	err = dsnap.DataTo(msisdnPin)
+	if err != nil {
+		return false, fmt.Errorf("unable to read PIN: %w", err)
+	}
+
+	if msisdnPin.PIN != pin {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// RetrievePINFirebaseDocSnapshotByMSISDN retrieves the user profile of a
+// specified user
+func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
+	ctx context.Context,
+	msisdn string,
+) (*firestore.DocumentSnapshot, error) {
+
+	collection := s.firestoreClient.Collection(s.getPINCollectionName())
+	query := collection.Where("msisdn", "==", msisdn).Where("isValid", "==", true)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) != 1 {
+		return nil, fmt.Errorf("msisdn %s pin is not one (they have %d)", msisdn, len(docs))
+	}
+	dsnap := docs[0]
+	return dsnap, nil
 }

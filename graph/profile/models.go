@@ -180,3 +180,12 @@ type PostVisitSurvey struct {
 	UID       string    `json:"uid" firestore:"uid"`
 	Timestamp time.Time `json:"timestamp" firestore:"timestamp"`
 }
+
+// PIN is used to store a PIN (Personal Identifiation Number) associated
+// to a phone number sign up to Firebase
+type PIN struct {
+	UID     string `json:"uid" firestore:"uid"`
+	MSISDN  string `json:"msisdn,omitempty" firestore:"msisdn"`
+	PIN     string `json:"pin,omitempty" firestore:"pin"`
+	IsValid bool   `json:"isValid,omitempty" firestore:"isValid"`
+}
