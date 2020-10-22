@@ -11,6 +11,8 @@ extend type Query {
   getKMPDURegisteredPractitioner(regno: String!): KMPDUPractitioner!
   isUnderAge: Boolean!
   verifyMSISDNandPIN(msisdn: String!, pin: String!): Boolean!
+  requestPinReset(msisdn: String!): String!
+  checkUserWithMsisdn(msisdn: String!): Boolean!
 }
 
 extend type Mutation {
@@ -26,5 +28,6 @@ extend type Mutation {
   removeTester(email: String!): Boolean!
   approvePractitionerSignup(practitionerID: String!): Boolean!
   rejectPractitionerSignup(practitionerID: String!): Boolean!
-  registerPhoneNumberandPIN(msisdn: String!, pin: String!): Boolean!
+  setUserPin(msisdn: String!, pin: String!): Boolean!
+  updateUserPin(msisdn: String!, pin: String!): Boolean!
 }

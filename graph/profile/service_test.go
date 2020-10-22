@@ -1031,7 +1031,7 @@ func TestService_IsUnderAge(t *testing.T) {
 	}
 }
 
-func TestService_RegisterPhoneNumberandPin(t *testing.T) {
+func TestService_SetUserPin(t *testing.T) {
 	service := NewService()
 	type args struct {
 		ctx    context.Context
@@ -1068,13 +1068,13 @@ func TestService_RegisterPhoneNumberandPin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			got, err := s.RegisterPhoneNumberandPin(tt.args.ctx, tt.args.msisdn, tt.args.pin)
+			got, err := s.SetUserPin(tt.args.ctx, tt.args.msisdn, tt.args.pin)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.RegisterPhoneNumberandPin() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Service.SetUserPin() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("Service.RegisterPhoneNumberandPin() = %v, want %v", got, tt.want)
+				t.Errorf("Service.SetUserPin() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -1170,6 +1170,157 @@ func TestService_VerifyMSISDNandPin(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("Service.VerifyMSISDNandPin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_CheckUserWithMsisdn(t *testing.T) {
+	service := NewService()
+	type args struct {
+		ctx    context.Context
+		msisdn string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				msisdn: "+254778990088",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case",
+			args: args{
+				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				msisdn: "haiexist",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.CheckUserWithMsisdn(tt.args.ctx, tt.args.msisdn)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.CheckUserWithMsisdn() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.CheckUserWithMsisdn() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_RequestPinReset(t *testing.T) {
+	service := NewService()
+	type args struct {
+		ctx    context.Context
+		msisdn string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "request pin reset happy case",
+			args: args{
+				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				msisdn: "+254778990088",
+			},
+			wantErr: false,
+		},
+		{
+			name: "request pin reset sad case",
+			args: args{
+				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				msisdn: "ooliskia wapi",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.RequestPinReset(tt.args.ctx, tt.args.msisdn)
+			if err == nil {
+				assert.NotNil(t, got)
+			}
+			if err != nil {
+				assert.Empty(t, got)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.RequestPinReset() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestService_UpdateUserPin(t *testing.T) {
+	service := NewService()
+	type args struct {
+		ctx    context.Context
+		msisdn string
+		pin    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				msisdn: "+254778990088",
+				pin:    "0987",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy restoration case", // Restores the initial pin to avoid test breakages
+			args: args{
+				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				msisdn: "+254778990088",
+				pin:    "1234",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				msisdn: "not a number",
+				pin:    "not a pin",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.UpdateUserPin(tt.args.ctx, tt.args.msisdn, tt.args.pin)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.UpdateUserPin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.UpdateUserPin() = %v, want %v", got, tt.want)
 			}
 		})
 	}

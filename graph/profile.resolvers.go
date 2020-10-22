@@ -84,10 +84,16 @@ func (r *mutationResolver) RejectPractitionerSignup(ctx context.Context, practit
 	return r.profileService.RejectPractitionerSignup(ctx)
 }
 
-func (r *mutationResolver) RegisterPhoneNumberandPin(ctx context.Context, msisdn string, pin string) (bool, error) {
+func (r *mutationResolver) SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.RegisterPhoneNumberandPin(ctx, msisdn, pin)
+	return r.profileService.SetUserPin(ctx, msisdn, pin)
+}
+
+func (r *mutationResolver) UpdateUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.UpdateUserPin(ctx, msisdn, pin)
 }
 
 func (r *queryResolver) UserProfile(ctx context.Context) (*profile.UserProfile, error) {
@@ -137,6 +143,18 @@ func (r *queryResolver) VerifyMSISDNandPin(ctx context.Context, msisdn string, p
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.VerifyMSISDNandPin(ctx, msisdn, pin)
+}
+
+func (r *queryResolver) RequestPinReset(ctx context.Context, msisdn string) (string, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.RequestPinReset(ctx, msisdn)
+}
+
+func (r *queryResolver) CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.CheckUserWithMsisdn(ctx, msisdn)
 }
 
 // Mutation returns generated.MutationResolver implementation.

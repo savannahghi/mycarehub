@@ -15,6 +15,7 @@ import (
 	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/mailgun/graph/mailgun"
+	"gitlab.slade360emr.com/go/otp/graph/otp"
 )
 
 // configuration constants
@@ -58,6 +59,7 @@ func NewService() *Service {
 		firestoreClient: firestore,
 		firebaseAuth:    auth,
 		emailService:    mailgun.NewService(),
+		otpService:      otp.NewService(),
 	}
 }
 
@@ -67,6 +69,7 @@ type Service struct {
 	firestoreClient *firestore.Client
 	firebaseAuth    *auth.Client
 	emailService    *mailgun.Service
+	otpService      *otp.Service
 }
 
 func (s Service) checkPreconditions() {
@@ -122,6 +125,19 @@ func (s Service) GetHealthcashWithdrawalsCollectionName() string {
 	// add env suffix
 	suffixed := base.SuffixCollection(healthcashWithdrawalsCollectionName)
 	return suffixed
+}
+
+// GetPINCollectionName ..
+func (s Service) GetPINCollectionName() string {
+	suffixed := base.SuffixCollection(PINCollectionName)
+	return suffixed
+}
+
+// SavePINToFirestore persists the supplied OTP
+func (s Service) SavePINToFirestore(personalIDNumber PIN) error {
+	ctx := context.Background()
+	_, _, err := s.firestoreClient.Collection(s.GetPINCollectionName()).Add(ctx, personalIDNumber)
+	return err
 }
 
 // RetrieveUserProfileFirebaseDocSnapshotByUID retrieves the user profile of a
@@ -795,9 +811,9 @@ func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// RegisterPhoneNumberandPin receives phone number and pin from phonenumber sign up
+//SetUserPin receives phone number and pin from phonenumber sign up
 // and save them to Firestore
-func (s Service) RegisterPhoneNumberandPin(ctx context.Context, msisdn string, pin string) (bool, error) {
+func (s Service) SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
 	s.checkPreconditions()
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
@@ -820,18 +836,6 @@ func (s Service) RegisterPhoneNumberandPin(ctx context.Context, msisdn string, p
 	}
 
 	return true, nil
-}
-
-func (s Service) getPINCollectionName() string {
-	suffixed := base.SuffixCollection(PINCollectionName)
-	return suffixed
-}
-
-// SavePINToFirestore persists the supplied OTP
-func (s Service) SavePINToFirestore(personalIDNumber PIN) error {
-	ctx := context.Background()
-	_, _, err := s.firestoreClient.Collection(s.getPINCollectionName()).Add(ctx, personalIDNumber)
-	return err
 }
 
 // VerifyMSISDNandPin verifies a given msisdn and pin match.
@@ -866,7 +870,7 @@ func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
 	msisdn string,
 ) (*firestore.DocumentSnapshot, error) {
 
-	collection := s.firestoreClient.Collection(s.getPINCollectionName())
+	collection := s.firestoreClient.Collection(s.GetPINCollectionName())
 	query := collection.Where("msisdn", "==", msisdn).Where("isValid", "==", true)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
@@ -877,4 +881,71 @@ func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
 	}
 	dsnap := docs[0]
 	return dsnap, nil
+}
+
+// CheckUserWithMsisdn checks if a user msisdn is present in pins firestore collection
+// which essentially means that the number was used during user registration
+func (s Service) CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, error) {
+	s.checkPreconditions()
+	phoneNumber, err := base.NormalizeMSISDN(msisdn)
+	if err != nil {
+		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
+	}
+	_, checkErr := s.RetrievePINFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
+	if checkErr != nil {
+		return false, fmt.Errorf("user does not exist: %v", err)
+	}
+	return true, nil
+}
+
+// RequestPinReset sends an otp to an exisitng user that is used to update their pin
+func (s Service) RequestPinReset(ctx context.Context, msisdn string) (string, error) {
+	s.checkPreconditions()
+	_, err := s.CheckUserWithMsisdn(ctx, msisdn)
+
+	if err != nil {
+		return "", fmt.Errorf("unable to get user profile: %v", err)
+	}
+
+	phoneNumber, err := base.NormalizeMSISDN(msisdn)
+	if err != nil {
+		return "", fmt.Errorf("unable to normalize the msisdn: %v", err)
+	}
+
+	otp, err := s.otpService.GenerateAndSendOTP(phoneNumber)
+	if err != nil {
+		return "", fmt.Errorf("unable to generate and send otp: %v", err)
+	}
+
+	return otp, nil
+}
+
+// UpdateUserPin resets a user's pin
+func (s Service) UpdateUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
+	s.checkPreconditions()
+	phoneNumber, err := base.NormalizeMSISDN(msisdn)
+	if err != nil {
+		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
+	}
+
+	dsnap, err := s.RetrievePINFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
+	if err != nil {
+		return false, err
+	}
+
+	msisdnPin := &PIN{}
+	err = dsnap.DataTo(msisdnPin)
+	if err != nil {
+		return false, fmt.Errorf("unable to read PIN: %w", err)
+	}
+
+	msisdnPin.PIN = pin
+
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetPINCollectionName(), dsnap.Ref.ID, msisdnPin,
+	)
+	if err != nil {
+		return false, fmt.Errorf("unable to update user profile: %v", err)
+	}
+	return true, nil
 }
