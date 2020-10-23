@@ -66,6 +66,7 @@ type UserProfile @key(fields: "uid") {
   patientID: String
   name: String
   bio: String
+  language: Language
   practitionerApproved: Boolean
   practitionerTermsOfServiceAccepted: Boolean
   canExperiment: Boolean

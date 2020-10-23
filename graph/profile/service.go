@@ -949,3 +949,33 @@ func (s Service) UpdateUserPin(ctx context.Context, msisdn string, pin string) (
 	}
 	return true, nil
 }
+
+// SetLanguagePreference sets the language a user prefers for using/interacting in be.well
+func (s Service) SetLanguagePreference(ctx context.Context, language base.Language) (bool, error) {
+	s.checkPreconditions()
+
+	validLanguage := language.IsValid()
+	if !validLanguage {
+		return false, fmt.Errorf("%v is not an allowed language choice", language.String())
+	}
+
+	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	userProfile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	userProfile.Language = language.String()
+
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
+	)
+	if err != nil {
+		return false, fmt.Errorf("unable to update user profile: %v", err)
+	}
+	return true, nil
+}

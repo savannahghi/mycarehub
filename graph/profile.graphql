@@ -30,4 +30,5 @@ extend type Mutation {
   rejectPractitionerSignup(practitionerID: String!): Boolean!
   setUserPin(msisdn: String!, pin: String!): Boolean!
   updateUserPin(msisdn: String!, pin: String!): Boolean!
+  setLanguagePreference(language:Language!):Boolean!
 }

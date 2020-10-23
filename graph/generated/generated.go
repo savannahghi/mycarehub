@@ -92,6 +92,7 @@ type ComplexityRoot struct {
 		RegisterPushToken         func(childComplexity int, token string) int
 		RejectPractitionerSignup  func(childComplexity int, practitionerID string) int
 		RemoveTester              func(childComplexity int, email string) int
+		SetLanguagePreference     func(childComplexity int, language base.Language) int
 		SetUserPin                func(childComplexity int, msisdn string, pin string) int
 		UpdateBiodata             func(childComplexity int, input profile.BiodataInput) int
 		UpdateUserPin             func(childComplexity int, msisdn string, pin string) int
@@ -154,6 +155,7 @@ type ComplexityRoot struct {
 		Gender                             func(childComplexity int) int
 		IsApproved                         func(childComplexity int) int
 		IsTester                           func(childComplexity int) int
+		Language                           func(childComplexity int) int
 		Msisdns                            func(childComplexity int) int
 		Name                               func(childComplexity int) int
 		PatientID                          func(childComplexity int) int
@@ -191,6 +193,7 @@ type MutationResolver interface {
 	RejectPractitionerSignup(ctx context.Context, practitionerID string) (bool, error)
 	SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
 	UpdateUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
+	SetLanguagePreference(ctx context.Context, language base.Language) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*profile.UserProfile, error)
@@ -482,6 +485,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RemoveTester(childComplexity, args["email"].(string)), true
+
+	case "Mutation.setLanguagePreference":
+		if e.complexity.Mutation.SetLanguagePreference == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setLanguagePreference_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetLanguagePreference(childComplexity, args["language"].(base.Language)), true
 
 	case "Mutation.setUserPin":
 		if e.complexity.Mutation.SetUserPin == nil {
@@ -824,6 +839,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserProfile.IsTester(childComplexity), true
+
+	case "UserProfile.language":
+		if e.complexity.UserProfile.Language == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.Language(childComplexity), true
 
 	case "UserProfile.msisdns":
 		if e.complexity.UserProfile.Msisdns == nil {
@@ -1201,6 +1223,7 @@ extend type Mutation {
   rejectPractitionerSignup(practitionerID: String!): Boolean!
   setUserPin(msisdn: String!, pin: String!): Boolean!
   updateUserPin(msisdn: String!, pin: String!): Boolean!
+  setLanguagePreference(language:Language!):Boolean!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `type Practitioner {
@@ -1271,6 +1294,7 @@ type UserProfile @key(fields: "uid") {
   patientID: String
   name: String
   bio: String
+  language: Language
   practitionerApproved: Boolean
   practitionerTermsOfServiceAccepted: Boolean
   canExperiment: Boolean
@@ -1498,6 +1522,21 @@ func (ec *executionContext) field_Mutation_removeTester_args(ctx context.Context
 		}
 	}
 	args["email"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setLanguagePreference_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 base.Language
+	if tmp, ok := rawArgs["language"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("language"))
+		arg0, err = ec.unmarshalNLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["language"] = arg0
 	return args, nil
 }
 
@@ -2973,6 +3012,47 @@ func (ec *executionContext) _Mutation_updateUserPin(ctx context.Context, field g
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UpdateUserPin(rctx, args["msisdn"].(string), args["pin"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setLanguagePreference(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setLanguagePreference_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetLanguagePreference(rctx, args["language"].(base.Language))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4503,6 +4583,37 @@ func (ec *executionContext) _UserProfile_bio(ctx context.Context, field graphql.
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_language(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Language, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(base.Language)
+	fc.Result = res
+	return ec.marshalOLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserProfile_practitionerApproved(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
@@ -6545,6 +6656,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "setLanguagePreference":
+			out.Values[i] = ec._Mutation_setLanguagePreference(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6995,6 +7111,8 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_name(ctx, field, obj)
 		case "bio":
 			out.Values[i] = ec._UserProfile_bio(ctx, field, obj)
+		case "language":
+			out.Values[i] = ec._UserProfile_language(ctx, field, obj)
 		case "practitionerApproved":
 			out.Values[i] = ec._UserProfile_practitionerApproved(ctx, field, obj)
 		case "practitionerTermsOfServiceAccepted":
@@ -7499,6 +7617,16 @@ func (ec *executionContext) marshalNKMPDUPractitionerConnection2ᚖgitlabᚗslad
 		return graphql.Null
 	}
 	return ec._KMPDUPractitionerConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx context.Context, v interface{}) (base.Language, error) {
+	var res base.Language
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx context.Context, sel ast.SelectionSet, v base.Language) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNMarkdown2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐMarkdown(ctx context.Context, v interface{}) (base.Markdown, error) {
@@ -8158,6 +8286,16 @@ func (ec *executionContext) marshalOKMPDUPractitionerEdge2ᚖgitlabᚗslade360em
 		return graphql.Null
 	}
 	return ec._KMPDUPractitionerEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx context.Context, v interface{}) (base.Language, error) {
+	var res base.Language
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx context.Context, sel ast.SelectionSet, v base.Language) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalOPaginationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPaginationInput(ctx context.Context, v interface{}) (*base.PaginationInput, error) {

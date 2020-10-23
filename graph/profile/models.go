@@ -104,8 +104,9 @@ type UserProfile struct {
 	PractitionerApproved               *bool   `json:"practitionerApproved" firestore:"practitionerApproved"`
 	PractitionerTermsOfServiceAccepted *bool   `json:"practitionerTermsOfServiceAccepted" firestore:"practitionerTermsOfServiceAccepted"`
 
-	IsTester      bool `json:"isTester" firestore:"isTester"`
-	CanExperiment bool `json:"canExperiment" firestore:"canExperiment"`
+	IsTester      bool   `json:"isTester" firestore:"isTester"`
+	CanExperiment bool   `json:"canExperiment" firestore:"canExperiment"`
+	Language      string `json:"language" firestore:"language"`
 
 	// used to determine whether to persist asking the user on the UI
 	AskAgainToSetIsTester      bool `json:"askAgainToSetIsTester" firestore:"askAgainToSetIsTester"`

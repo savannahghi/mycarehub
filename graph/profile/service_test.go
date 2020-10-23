@@ -1325,3 +1325,55 @@ func TestService_UpdateUserPin(t *testing.T) {
 		})
 	}
 }
+
+func TestService_SetLanguagePreference(t *testing.T) {
+	service := NewService()
+	type args struct {
+		ctx      context.Context
+		language base.Language
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "An allowed language/enum type",
+			args: args{
+				ctx:      base.GetAuthenticatedContext(t),
+				language: base.LanguageEn,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "An allowed language/enum type",
+			args: args{
+				ctx:      base.GetAuthenticatedContext(t),
+				language: "not a language",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.SetLanguagePreference(tt.args.ctx, tt.args.language)
+			if err == nil {
+				assert.NotNil(t, got)
+			}
+			if err != nil {
+				assert.Empty(t, got)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.SetLanguagePreference() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.SetLanguagePreference() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
