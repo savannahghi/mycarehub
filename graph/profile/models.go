@@ -104,13 +104,15 @@ type UserProfile struct {
 	PractitionerApproved               *bool   `json:"practitionerApproved" firestore:"practitionerApproved"`
 	PractitionerTermsOfServiceAccepted *bool   `json:"practitionerTermsOfServiceAccepted" firestore:"practitionerTermsOfServiceAccepted"`
 
-	IsTester      bool   `json:"isTester" firestore:"isTester"`
-	CanExperiment bool   `json:"canExperiment" firestore:"canExperiment"`
-	Language      string `json:"language" firestore:"language"`
+	IsTester      bool          `json:"isTester" firestore:"isTester"`
+	CanExperiment bool          `json:"canExperiment" firestore:"canExperiment"`
+	Language      base.Language `json:"language" firestore:"language"`
 
 	// used to determine whether to persist asking the user on the UI
 	AskAgainToSetIsTester      bool `json:"askAgainToSetIsTester" firestore:"askAgainToSetIsTester"`
 	AskAgainToSetCanExperiment bool `json:"askAgainToSetCanExperiment" firestore:"askAgainToSetCanExperiment"`
+	IsEmailVerified            bool `json:"isEmailVerified" firestore:"isEmailVerified"`
+	IsMsisdnVerified           bool `json:"isMsisdnVerified" firestore:"isMsisdnVerified"`
 }
 
 // IsEntity ...

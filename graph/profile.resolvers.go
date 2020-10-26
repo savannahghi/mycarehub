@@ -102,6 +102,12 @@ func (r *mutationResolver) SetLanguagePreference(ctx context.Context, language b
 	return r.profileService.SetLanguagePreference(ctx, language)
 }
 
+func (r *mutationResolver) VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.VerifyEmailOtp(ctx, email, otp)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*profile.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
@@ -161,6 +167,18 @@ func (r *queryResolver) CheckUserWithMsisdn(ctx context.Context, msisdn string) 
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.CheckUserWithMsisdn(ctx, msisdn)
+}
+
+func (r *queryResolver) CheckEmailVerified(ctx context.Context) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.CheckEmailVerified(ctx)
+}
+
+func (r *queryResolver) CheckPhoneNumberVerified(ctx context.Context) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.CheckPhoneNumberVerified(ctx)
 }
 
 // Mutation returns generated.MutationResolver implementation.

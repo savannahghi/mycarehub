@@ -13,6 +13,8 @@ extend type Query {
   verifyMSISDNandPIN(msisdn: String!, pin: String!): Boolean!
   requestPinReset(msisdn: String!): String!
   checkUserWithMsisdn(msisdn: String!): Boolean!
+  checkEmailVerified: Boolean!
+  checkPhoneNumberVerified: Boolean!
 }
 
 extend type Mutation {
@@ -30,5 +32,6 @@ extend type Mutation {
   rejectPractitionerSignup(practitionerID: String!): Boolean!
   setUserPin(msisdn: String!, pin: String!): Boolean!
   updateUserPin(msisdn: String!, pin: String!): Boolean!
-  setLanguagePreference(language:Language!):Boolean!
+  setLanguagePreference(language: Language!): Boolean!
+  verifyEmailOTP(email: String!, otp: String!): Boolean!
 }

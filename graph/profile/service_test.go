@@ -5,8 +5,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"reflect"
+	"strconv"
 	"testing"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
@@ -1373,6 +1376,176 @@ func TestService_SetLanguagePreference(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("Service.SetLanguagePreference() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_VerifyEmailOtp(t *testing.T) {
+	service := NewService()
+	fc := &base.FirebaseClient{}
+	firebaseApp, err := fc.InitFirebase()
+	assert.Nil(t, err)
+
+	ctx := base.GetAuthenticatedContext(t)
+	firestoreClient, err := firebaseApp.Firestore(ctx)
+	assert.Nil(t, err)
+
+	validOtpCode := rand.Int()
+	validOtpData := map[string]interface{}{
+		"authorizationCode": strconv.Itoa(validOtpCode),
+		"isValid":           true,
+		"message":           "Testing email OTP message",
+		"timestamp":         time.Now(),
+		"email":             "ngure.nyaga@healthcloud.co.ke",
+	}
+	_, err = base.SaveDataToFirestore(firestoreClient, base.SuffixCollection(base.OTPCollectionName), validOtpData)
+	assert.Nil(t, err)
+	type args struct {
+		ctx   context.Context
+		email string
+		otp   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case - sent otp code",
+			args: args{
+				ctx:   ctx,
+				email: "ngure.nyaga@healthcloud.co.ke",
+				otp:   strconv.Itoa(validOtpCode),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case - non existent otp code",
+			args: args{
+				ctx:   ctx,
+				email: "ngure.nyaga@healthcloud.co.ke",
+				otp:   "029837",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.VerifyEmailOtp(tt.args.ctx, tt.args.email, tt.args.otp)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.VerifyEmailOtp() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.VerifyEmailOtp() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_CheckEmailVerified(t *testing.T) {
+	service := NewService()
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Verified email happy case",
+			args: args{
+				ctx: base.GetAuthenticatedContext(t),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "not verified email sad case",
+			args: args{
+				ctx: context.Background(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "verifed user with no email",
+			args: args{
+				ctx: base.GetPhoneNumberAuthenticatedContext(t),
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.CheckEmailVerified(tt.args.ctx)
+			fmt.Printf("%v", got)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.CheckEmailVerified() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.CheckEmailVerified() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_CheckPhoneNumberVerified(t *testing.T) {
+	service := NewService()
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "verified phone number user",
+			args: args{
+				ctx: base.GetPhoneNumberAuthenticatedContext(t),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Verified email user",
+			args: args{
+				ctx: base.GetAuthenticatedContext(t),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "not verified phone number sad case",
+			args: args{
+				ctx: context.Background(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.CheckPhoneNumberVerified(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.CheckPhoneNumberVerified() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.CheckPhoneNumberVerified() = %v, want %v", got, tt.want)
 			}
 		})
 	}

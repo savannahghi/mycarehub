@@ -39,9 +39,9 @@ type KMPDUPractitionerConnection {
 }
 
 type Cover
-@key(fields: "payerName")
-@key(fields: "payerSladeCode")
-@key(fields: "memberNumber") {
+  @key(fields: "payerName")
+  @key(fields: "payerSladeCode")
+  @key(fields: "memberNumber") {
   payerName: String!
   payerSladeCode: Int!
   memberNumber: String!
@@ -72,9 +72,10 @@ type UserProfile @key(fields: "uid") {
   canExperiment: Boolean
   askAgainToSetIsTester: Boolean
   askAgainToSetCanExperiment: Boolean
+  isEmailVerified: Boolean
+  isMsisdnVerified: Boolean
 }
 
 type TesterWhitelist {
   email: String!
 }
-

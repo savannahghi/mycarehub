@@ -97,6 +97,7 @@ type ComplexityRoot struct {
 		UpdateBiodata             func(childComplexity int, input profile.BiodataInput) int
 		UpdateUserPin             func(childComplexity int, msisdn string, pin string) int
 		UpdateUserProfile         func(childComplexity int, input profile.UserProfileInput) int
+		VerifyEmailOtp            func(childComplexity int, email string, otp string) int
 	}
 
 	PageInfo struct {
@@ -126,6 +127,8 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		CheckEmailVerified               func(childComplexity int) int
+		CheckPhoneNumberVerified         func(childComplexity int) int
 		CheckUserWithMsisdn              func(childComplexity int, msisdn string) int
 		GetKMPDURegisteredPractitioner   func(childComplexity int, regno string) int
 		GetProfile                       func(childComplexity int, uid string) int
@@ -154,6 +157,8 @@ type ComplexityRoot struct {
 		Emails                             func(childComplexity int) int
 		Gender                             func(childComplexity int) int
 		IsApproved                         func(childComplexity int) int
+		IsEmailVerified                    func(childComplexity int) int
+		IsMsisdnVerified                   func(childComplexity int) int
 		IsTester                           func(childComplexity int) int
 		Language                           func(childComplexity int) int
 		Msisdns                            func(childComplexity int) int
@@ -194,6 +199,7 @@ type MutationResolver interface {
 	SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
 	UpdateUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
 	SetLanguagePreference(ctx context.Context, language base.Language) (bool, error)
+	VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*profile.UserProfile, error)
@@ -206,6 +212,8 @@ type QueryResolver interface {
 	VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error)
 	RequestPinReset(ctx context.Context, msisdn string) (string, error)
 	CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, error)
+	CheckEmailVerified(ctx context.Context) (bool, error)
+	CheckPhoneNumberVerified(ctx context.Context) (bool, error)
 }
 
 type executableSchema struct {
@@ -546,6 +554,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUserProfile(childComplexity, args["input"].(profile.UserProfileInput)), true
 
+	case "Mutation.verifyEmailOTP":
+		if e.complexity.Mutation.VerifyEmailOtp == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verifyEmailOTP_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VerifyEmailOtp(childComplexity, args["email"].(string), args["otp"].(string)), true
+
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -643,6 +663,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PractitionerEdge.Node(childComplexity), true
+
+	case "Query.checkEmailVerified":
+		if e.complexity.Query.CheckEmailVerified == nil {
+			break
+		}
+
+		return e.complexity.Query.CheckEmailVerified(childComplexity), true
+
+	case "Query.checkPhoneNumberVerified":
+		if e.complexity.Query.CheckPhoneNumberVerified == nil {
+			break
+		}
+
+		return e.complexity.Query.CheckPhoneNumberVerified(childComplexity), true
 
 	case "Query.checkUserWithMsisdn":
 		if e.complexity.Query.CheckUserWithMsisdn == nil {
@@ -832,6 +866,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserProfile.IsApproved(childComplexity), true
+
+	case "UserProfile.isEmailVerified":
+		if e.complexity.UserProfile.IsEmailVerified == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.IsEmailVerified(childComplexity), true
+
+	case "UserProfile.isMsisdnVerified":
+		if e.complexity.UserProfile.IsMsisdnVerified == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.IsMsisdnVerified(childComplexity), true
 
 	case "UserProfile.isTester":
 		if e.complexity.UserProfile.IsTester == nil {
@@ -1206,6 +1254,8 @@ input BiodataInput {
   verifyMSISDNandPIN(msisdn: String!, pin: String!): Boolean!
   requestPinReset(msisdn: String!): String!
   checkUserWithMsisdn(msisdn: String!): Boolean!
+  checkEmailVerified: Boolean!
+  checkPhoneNumberVerified: Boolean!
 }
 
 extend type Mutation {
@@ -1223,7 +1273,8 @@ extend type Mutation {
   rejectPractitionerSignup(practitionerID: String!): Boolean!
   setUserPin(msisdn: String!, pin: String!): Boolean!
   updateUserPin(msisdn: String!, pin: String!): Boolean!
-  setLanguagePreference(language:Language!):Boolean!
+  setLanguagePreference(language: Language!): Boolean!
+  verifyEmailOTP(email: String!, otp: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `type Practitioner {
@@ -1267,9 +1318,9 @@ type KMPDUPractitionerConnection {
 }
 
 type Cover
-@key(fields: "payerName")
-@key(fields: "payerSladeCode")
-@key(fields: "memberNumber") {
+  @key(fields: "payerName")
+  @key(fields: "payerSladeCode")
+  @key(fields: "memberNumber") {
   payerName: String!
   payerSladeCode: Int!
   memberNumber: String!
@@ -1300,12 +1351,13 @@ type UserProfile @key(fields: "uid") {
   canExperiment: Boolean
   askAgainToSetIsTester: Boolean
   askAgainToSetCanExperiment: Boolean
+  isEmailVerified: Boolean
+  isMsisdnVerified: Boolean
 }
 
 type TesterWhitelist {
   email: String!
 }
-
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
@@ -1615,6 +1667,30 @@ func (ec *executionContext) field_Mutation_updateUserProfile_args(ctx context.Co
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_verifyEmailOTP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("email"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["otp"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("otp"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["otp"] = arg1
 	return args, nil
 }
 
@@ -3069,6 +3145,47 @@ func (ec *executionContext) _Mutation_setLanguagePreference(ctx context.Context,
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_verifyEmailOTP(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_verifyEmailOTP_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().VerifyEmailOtp(rctx, args["email"].(string), args["otp"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3896,6 +4013,74 @@ func (ec *executionContext) _Query_checkUserWithMsisdn(ctx context.Context, fiel
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().CheckUserWithMsisdn(rctx, args["msisdn"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_checkEmailVerified(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckEmailVerified(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_checkPhoneNumberVerified(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckPhoneNumberVerified(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4758,6 +4943,68 @@ func (ec *executionContext) _UserProfile_askAgainToSetCanExperiment(ctx context.
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AskAgainToSetCanExperiment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_isEmailVerified(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsEmailVerified, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_isMsisdnVerified(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsMsisdnVerified, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6661,6 +6908,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "verifyEmailOTP":
+			out.Values[i] = ec._Mutation_verifyEmailOTP(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6970,6 +7222,34 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "checkEmailVerified":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkEmailVerified(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "checkPhoneNumberVerified":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkPhoneNumberVerified(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "_entities":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -7123,6 +7403,10 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_askAgainToSetIsTester(ctx, field, obj)
 		case "askAgainToSetCanExperiment":
 			out.Values[i] = ec._UserProfile_askAgainToSetCanExperiment(ctx, field, obj)
+		case "isEmailVerified":
+			out.Values[i] = ec._UserProfile_isEmailVerified(ctx, field, obj)
+		case "isMsisdnVerified":
+			out.Values[i] = ec._UserProfile_isMsisdnVerified(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

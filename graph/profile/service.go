@@ -969,7 +969,7 @@ func (s Service) SetLanguagePreference(ctx context.Context, language base.Langua
 		return false, err
 	}
 
-	userProfile.Language = language.String()
+	userProfile.Language = language
 
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
@@ -977,5 +977,72 @@ func (s Service) SetLanguagePreference(ctx context.Context, language base.Langua
 	if err != nil {
 		return false, fmt.Errorf("unable to update user profile: %v", err)
 	}
+	return true, nil
+}
+
+// CheckEmailVerified checks if the logged in user's email is verified
+func (s Service) CheckEmailVerified(ctx context.Context) (bool, error) {
+	s.checkPreconditions()
+
+	userProfile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, fmt.Errorf("can't fetch user profile: %v", err)
+	}
+
+	emailVerified := userProfile.IsEmailVerified
+
+	if !emailVerified {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// CheckPhoneNumberVerified checks if the logged in user's phone number is verified
+func (s Service) CheckPhoneNumberVerified(ctx context.Context) (bool, error) {
+	s.checkPreconditions()
+
+	userProfile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, fmt.Errorf("can't fetch user profile: %v", err)
+	}
+
+	msisdnVerified := userProfile.IsMsisdnVerified
+
+	if !msisdnVerified {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// VerifyEmailOtp checks for the validity of the supplied OTP but does not invalidate it
+func (s Service) VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error) {
+	s.checkPreconditions()
+
+	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	_, emailErr := ValidateEmail(email, otp, s.firestoreClient)
+	if emailErr != nil {
+		return false, fmt.Errorf("email failed verification: %w", err)
+	}
+
+	userProfile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, fmt.Errorf("can't fetch user profile: %v", err)
+	}
+
+	userProfile.IsEmailVerified = true
+
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
+	)
+	if err != nil {
+		return false, fmt.Errorf("unable to update user profile: %v", err)
+	}
+
 	return true, nil
 }
