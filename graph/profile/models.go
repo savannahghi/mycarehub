@@ -192,3 +192,15 @@ type PIN struct {
 	PIN     string `json:"pin,omitempty" firestore:"pin"`
 	IsValid bool   `json:"isValid,omitempty" firestore:"isValid"`
 }
+
+// PinRecovery stores information required in resetting and updating a forgotten pin
+type PinRecovery struct {
+	MSISDN string `json:"msisdn"`
+	PIN    string `json:"pin"`
+	OTP    string `json:"otp"`
+}
+
+// OtpResponse returns an otp
+type OtpResponse struct {
+	OTP string `json:"otp"`
+}

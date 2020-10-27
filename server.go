@@ -17,6 +17,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph"
 	"gitlab.slade360emr.com/go/profile/graph/generated"
+	"gitlab.slade360emr.com/go/profile/graph/profile"
 )
 
 const serverTimeoutSeconds = 120
@@ -45,7 +46,7 @@ func main() {
 	}
 
 	// start up the router
-	r, err := Router()
+	r, err := Router(ctx)
 	if err != nil {
 		base.LogStartupError(ctx, err)
 	}
@@ -75,13 +76,14 @@ func main() {
 }
 
 // Router sets up the ginContext router
-func Router() (*mux.Router, error) {
+func Router(ctx context.Context) (*mux.Router, error) {
 	fc := &base.FirebaseClient{}
 	firebaseApp, err := fc.InitFirebase()
 	if err != nil {
 		return nil, err
 	}
 	r := mux.NewRouter() // gorilla mux
+	srv := profile.NewService()
 	r.Use(
 		handlers.RecoveryHandler(
 			handlers.PrintRecoveryStack(true),
@@ -92,6 +94,8 @@ func Router() (*mux.Router, error) {
 
 	// Unauthenticated routes
 	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))
+	r.Path("/request_pin_reset").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(profile.RequestPinResetFunc(ctx, srv))
 
 	// check server status.
 	r.Path("/health").HandlerFunc(HealthStatusCheck)
