@@ -3,6 +3,7 @@ package profile
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"cloud.google.com/go/firestore"
 	"github.com/asaskevich/govalidator"
@@ -40,4 +41,28 @@ func ValidateEmail(email, verificationCode string, firestoreClient *firestore.Cl
 		}
 	}
 	return email, nil
+}
+
+// ValidateUpdatePinPayload checks that the request payload supplied in the indicated request are valid
+func ValidateUpdatePinPayload(w http.ResponseWriter, r *http.Request) (*PinRecovery, error) {
+	payload := &PinRecovery{}
+	base.DecodeJSONToTargetStruct(w, r, payload)
+	if payload.MSISDN == "" || payload.PIN == "" || payload.OTP == "" {
+		err := fmt.Errorf("invalid pin update payload, expected a phone number, pin and an otp")
+		base.ReportErr(w, err, http.StatusBadRequest)
+		return nil, err
+	}
+	return payload, nil
+}
+
+// ValidateMsisdn checks that the msisdn supplied in the indicated request is valid
+func ValidateMsisdn(w http.ResponseWriter, r *http.Request) (*PinRecovery, error) {
+	data := &PinRecovery{}
+	base.DecodeJSONToTargetStruct(w, r, data)
+	if data.MSISDN == "" {
+		err := fmt.Errorf("invalid credentials, expected a phone number")
+		base.ReportErr(w, err, http.StatusBadRequest)
+		return nil, err
+	}
+	return data, nil
 }

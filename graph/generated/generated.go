@@ -95,7 +95,7 @@ type ComplexityRoot struct {
 		SetLanguagePreference     func(childComplexity int, language base.Language) int
 		SetUserPin                func(childComplexity int, msisdn string, pin string) int
 		UpdateBiodata             func(childComplexity int, input profile.BiodataInput) int
-		UpdateUserPin             func(childComplexity int, msisdn string, pin string) int
+		UpdateUserPin             func(childComplexity int, msisdn string, pin string, otp string) int
 		UpdateUserProfile         func(childComplexity int, input profile.UserProfileInput) int
 		VerifyEmailOtp            func(childComplexity int, email string, otp string) int
 	}
@@ -197,7 +197,7 @@ type MutationResolver interface {
 	ApprovePractitionerSignup(ctx context.Context, practitionerID string) (bool, error)
 	RejectPractitionerSignup(ctx context.Context, practitionerID string) (bool, error)
 	SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
-	UpdateUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
+	UpdateUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error)
 	SetLanguagePreference(ctx context.Context, language base.Language) (bool, error)
 	VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error)
 }
@@ -540,7 +540,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUserPin(childComplexity, args["msisdn"].(string), args["pin"].(string)), true
+		return e.complexity.Mutation.UpdateUserPin(childComplexity, args["msisdn"].(string), args["pin"].(string), args["otp"].(string)), true
 
 	case "Mutation.updateUserProfile":
 		if e.complexity.Mutation.UpdateUserProfile == nil {
@@ -1272,7 +1272,7 @@ extend type Mutation {
   approvePractitionerSignup(practitionerID: String!): Boolean!
   rejectPractitionerSignup(practitionerID: String!): Boolean!
   setUserPin(msisdn: String!, pin: String!): Boolean!
-  updateUserPin(msisdn: String!, pin: String!): Boolean!
+  updateUserPin(msisdn: String!, pin: String!, otp: String!): Boolean!
   setLanguagePreference(language: Language!): Boolean!
   verifyEmailOTP(email: String!, otp: String!): Boolean!
 }
@@ -1652,6 +1652,15 @@ func (ec *executionContext) field_Mutation_updateUserPin_args(ctx context.Contex
 		}
 	}
 	args["pin"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["otp"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("otp"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["otp"] = arg2
 	return args, nil
 }
 
@@ -3087,7 +3096,7 @@ func (ec *executionContext) _Mutation_updateUserPin(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserPin(rctx, args["msisdn"].(string), args["pin"].(string))
+		return ec.resolvers.Mutation().UpdateUserPin(rctx, args["msisdn"].(string), args["pin"].(string), args["otp"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

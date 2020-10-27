@@ -1270,12 +1270,18 @@ func TestService_RequestPinReset(t *testing.T) {
 	}
 }
 
+// TODO: Use a sanbox user for PIN testing
+
 func TestService_UpdateUserPin(t *testing.T) {
 	service := NewService()
+
+	otpOne, _ := service.otpService.GenerateAndSendOTP("+254778990088")
+	otpTwo, _ := service.otpService.GenerateAndSendOTP("+254778990088")
 	type args struct {
 		ctx    context.Context
 		msisdn string
 		pin    string
+		otp    string
 	}
 	tests := []struct {
 		name    string
@@ -1289,6 +1295,7 @@ func TestService_UpdateUserPin(t *testing.T) {
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
 				msisdn: "+254778990088",
 				pin:    "0987",
+				otp:    otpOne,
 			},
 			want:    true,
 			wantErr: false,
@@ -1299,6 +1306,7 @@ func TestService_UpdateUserPin(t *testing.T) {
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
 				msisdn: "+254778990088",
 				pin:    "1234",
+				otp:    otpTwo,
 			},
 			want:    true,
 			wantErr: false,
@@ -1317,7 +1325,7 @@ func TestService_UpdateUserPin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			got, err := s.UpdateUserPin(tt.args.ctx, tt.args.msisdn, tt.args.pin)
+			got, err := s.UpdateUserPin(tt.args.ctx, tt.args.msisdn, tt.args.pin, tt.args.otp)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.UpdateUserPin() error = %v, wantErr %v", err, tt.wantErr)
 				return

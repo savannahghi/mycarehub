@@ -82,8 +82,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	if err != nil {
 		return nil, err
 	}
-	r := mux.NewRouter() // gorilla mux
 	srv := profile.NewService()
+
+	r := mux.NewRouter() // gorilla mux
 	r.Use(
 		handlers.RecoveryHandler(
 			handlers.PrintRecoveryStack(true),
@@ -96,6 +97,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))
 	r.Path("/request_pin_reset").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(profile.RequestPinResetFunc(ctx, srv))
+	r.Path("/update_pin").HandlerFunc(profile.UpdatePinHandler(ctx, srv)).Methods(http.MethodPost)
 
 	// check server status.
 	r.Path("/health").HandlerFunc(HealthStatusCheck)

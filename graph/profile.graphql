@@ -31,7 +31,7 @@ extend type Mutation {
   approvePractitionerSignup(practitionerID: String!): Boolean!
   rejectPractitionerSignup(practitionerID: String!): Boolean!
   setUserPin(msisdn: String!, pin: String!): Boolean!
-  updateUserPin(msisdn: String!, pin: String!): Boolean!
+  updateUserPin(msisdn: String!, pin: String!, otp: String!): Boolean!
   setLanguagePreference(language: Language!): Boolean!
   verifyEmailOTP(email: String!, otp: String!): Boolean!
 }

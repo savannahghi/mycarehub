@@ -815,14 +815,19 @@ func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
 // and save them to Firestore
 func (s Service) SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
 	s.checkPreconditions()
+
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
 		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
+
 	profile, err := s.UserProfile(ctx)
 	if err != nil {
 		return false, fmt.Errorf("unable to get or create a user profile: %v", err)
 	}
+
+	// TODO: Handle user with an existing PIN
+
 	personalIDNumber := PIN{
 		UID:     profile.UID,
 		MSISDN:  phoneNumber,
@@ -893,7 +898,7 @@ func (s Service) CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, 
 	}
 	_, checkErr := s.RetrievePINFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
 	if checkErr != nil {
-		return false, fmt.Errorf("user does not exist: %v", err)
+		return false, fmt.Errorf("user does not exist: %v", checkErr)
 	}
 	return true, nil
 }
@@ -901,8 +906,8 @@ func (s Service) CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, 
 // RequestPinReset sends an otp to an exisitng user that is used to update their pin
 func (s Service) RequestPinReset(ctx context.Context, msisdn string) (string, error) {
 	s.checkPreconditions()
-	_, err := s.CheckUserWithMsisdn(ctx, msisdn)
 
+	_, err := s.CheckUserWithMsisdn(ctx, msisdn)
 	if err != nil {
 		return "", fmt.Errorf("unable to get user profile: %v", err)
 	}
@@ -921,11 +926,23 @@ func (s Service) RequestPinReset(ctx context.Context, msisdn string) (string, er
 }
 
 // UpdateUserPin resets a user's pin
-func (s Service) UpdateUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
+func (s Service) UpdateUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
 	s.checkPreconditions()
+
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
 		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
+	}
+
+	_, checkErr := s.CheckUserWithMsisdn(ctx, phoneNumber)
+	if checkErr != nil {
+		return false, fmt.Errorf("unable to get user profile: %v", checkErr)
+	}
+
+	// verify OTP
+	_, validateErr := base.ValidateMSISDN(phoneNumber, otp, false, s.firestoreClient)
+	if validateErr != nil {
+		return false, fmt.Errorf("OTP failed verification: %w", validateErr)
 	}
 
 	dsnap, err := s.RetrievePINFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
