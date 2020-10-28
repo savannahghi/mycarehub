@@ -95,9 +95,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Unauthenticated routes
 	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))
+	r.Path("/msisdn_login").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(base.GetPhoneNumberLoginFunc(ctx, fc))
 	r.Path("/request_pin_reset").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(profile.RequestPinResetFunc(ctx, srv))
-	r.Path("/update_pin").HandlerFunc(profile.UpdatePinHandler(ctx, srv)).Methods(http.MethodPost)
+	r.Path("/update_pin").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(profile.UpdatePinHandler(ctx, srv))
 
 	// check server status.
 	r.Path("/health").HandlerFunc(HealthStatusCheck)

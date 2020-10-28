@@ -118,8 +118,6 @@ github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072/go.mod 
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
 github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4/go.mod h1:T9YF2M40nIgbVgp3rreNmTged+9HrbNTIQf1PsaIiTA=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
-github.com/gabriel-vasile/mimetype v1.1.1 h1:qbN9MPuRf3bstHu9zkI9jDWNfH//9+9kHxr9oRBBBOA=
-github.com/gabriel-vasile/mimetype v1.1.1/go.mod h1:6CDPel/o/3/s4+bp6kIbsWATq8pmgOisOPG40CJa6To=
 github.com/gavv/httpexpect v2.0.0+incompatible/go.mod h1:x+9tiU1YnrOvnB725RkpoLv1M62hOWzwo5OXotisrKc=
 github.com/getsentry/sentry-go v0.7.0 h1:MR2yfR4vFfv/2+iBuSnkdQwVg7N9cJzihZ6KJu7srwQ=
 github.com/getsentry/sentry-go v0.7.0/go.mod h1:pLFpD2Y5RHIKF9Bw3KH6/68DeN2K/XBJd8awjdPnUwg=
@@ -324,8 +322,6 @@ github.com/pquerna/otp v1.2.0/go.mod h1:dkJfzwRKNiegxyNb54X/3fLwhCynbMspSyWKnvi1
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rs/cors v1.6.0/go.mod h1:gFx+x8UowdsKA9AchylcLynDq+nNFfI8FkUZdN/jGCU=
-github.com/rs/xid v1.2.1 h1:mhH9Nq+C1fY2l1XIpgxIiUOfNpRBYH1kKcr+qfKgjRc=
-github.com/rs/xid v1.2.1/go.mod h1:+uKXf+4Djp6Md1KODXJxgGQPKngRmWyn10oCKFzNHOQ=
 github.com/russross/blackfriday v1.5.2 h1:HyvC0ARfnZBqnXwABFeSZHpKvJHJJfPz81GNueLj0oo=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/russross/blackfriday/v2 v2.0.1 h1:lPqVAte+HuHNfhJ/0LC98ESWRz8afy9tM/0RK8m9o+Q=
@@ -400,8 +396,8 @@ gitlab.slade360emr.com/go/authorization v0.0.7 h1:nUF2TpcJRUyml0u+K2Y3MOFhNuzFbW
 gitlab.slade360emr.com/go/authorization v0.0.7/go.mod h1:t3plG1Ggf2iqq2ayaxVkElEIXzRaR8c99H7yy3vqs9c=
 gitlab.slade360emr.com/go/base v0.0.33 h1:F3GzjPKoR+q87nUyBhabn1ni3tdFb13XqOX03n+ED08=
 gitlab.slade360emr.com/go/base v0.0.33/go.mod h1:FSZG+DP8U+w5WTmYLE7iEV/eU4QSq0BkskS4Qc8aGz4=
-gitlab.slade360emr.com/go/base v0.0.38 h1:fEHUMHmICiIeZu+0CDzm9fxSTu8CWGxEkjewbtqd+iA=
-gitlab.slade360emr.com/go/base v0.0.38/go.mod h1:FSZG+DP8U+w5WTmYLE7iEV/eU4QSq0BkskS4Qc8aGz4=
+gitlab.slade360emr.com/go/base v0.0.39 h1:A59OnX8fk4VXKbmKK9REo6o3MtVvhNhsaEdr8U3xhvc=
+gitlab.slade360emr.com/go/base v0.0.39/go.mod h1:FSZG+DP8U+w5WTmYLE7iEV/eU4QSq0BkskS4Qc8aGz4=
 gitlab.slade360emr.com/go/chargemaster v0.0.6 h1:KwySFLacOO4YuPNS7BjzUyN5Avz+S48gGg7Th3fFEVk=
 gitlab.slade360emr.com/go/chargemaster v0.0.6/go.mod h1:QOso8jSalc/pc+jUZxgNqUowPP2e6nnBRk/GvGScB5k=
 gitlab.slade360emr.com/go/mailgun v0.0.8 h1:AtzPgXsTJxt5h6TglChKwf1rWt34OWiMF/PpvyZzxIk=
@@ -412,8 +408,6 @@ gitlab.slade360emr.com/go/sms v0.0.9 h1:PZM1aYx8RiSoLB93VsINU6vRYpAp8Fl2FtDI/36x
 gitlab.slade360emr.com/go/sms v0.0.9/go.mod h1:HA/hwvCarwiXC6WV1WsvCgMO4nWuq+k+8NEHrmZ2Fi8=
 gitlab.slade360emr.com/go/twilio v0.0.6 h1:18h6pJJP1erqTsk4TRKqwE8nR+oYrwXK9Hn6Ivb7pqs=
 gitlab.slade360emr.com/go/twilio v0.0.6/go.mod h1:f4ByGBEoY0JiZ/xR5dZOLc7/crsnNrCSsKe98OHRiew=
-gitlab.slade360emr.com/go/uploads v0.0.9 h1:EfJgT0i6gOKXzpxm9vvQBN3qfTN0uuxSJOxsJ441Hj4=
-gitlab.slade360emr.com/go/uploads v0.0.9/go.mod h1:xCrv5TVY1srhBu0U+P9LoH8UWU5RZfzIQTo3uBtlMVU=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=
