@@ -18,3 +18,11 @@ enum Gender {
   other
   unknown
 }
+
+enum SignUpMethod {
+  anonymous
+  apple
+  facebook
+  google
+  phone
+}

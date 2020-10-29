@@ -33,6 +33,7 @@ const (
 	appleTesterPractitionerLicense      = "A1B4C6"
 	legalAge                            = 18
 	PINCollectionName                   = "pins"
+	signUpInfoCollectionName            = "sign_up_info"
 )
 
 // NewService returns a new authentication service
@@ -137,6 +138,19 @@ func (s Service) GetPINCollectionName() string {
 func (s Service) SavePINToFirestore(personalIDNumber PIN) error {
 	ctx := context.Background()
 	_, _, err := s.firestoreClient.Collection(s.GetPINCollectionName()).Add(ctx, personalIDNumber)
+	return err
+}
+
+// GetSignUpInfoCollectionName ..
+func (s Service) GetSignUpInfoCollectionName() string {
+	suffixed := base.SuffixCollection(signUpInfoCollectionName)
+	return suffixed
+}
+
+// SaveSignUpInfoToFirestore persists the supplied sign up info
+func (s Service) SaveSignUpInfoToFirestore(info SignUpInfo) error {
+	ctx := context.Background()
+	_, _, err := s.firestoreClient.Collection(s.GetSignUpInfoCollectionName()).Add(ctx, info)
 	return err
 }
 
@@ -1062,4 +1076,69 @@ func (s Service) VerifyEmailOtp(ctx context.Context, email string, otp string) (
 	}
 
 	return true, nil
+}
+
+// CreateSignUpMethod attahces a users sign up method to a user's UID
+func (s Service) CreateSignUpMethod(ctx context.Context, signUpMethod SignUpMethod) (bool, error) {
+	s.checkPreconditions()
+	profile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, fmt.Errorf("unable to get or create a user profile: %v", err)
+	}
+
+	validSignUpMethod := signUpMethod.IsValid()
+	if !validSignUpMethod {
+		return false, fmt.Errorf("%v is not an allowed sign up method choice", signUpMethod.String())
+	}
+
+	signUpInfo := SignUpInfo{
+		UID:          profile.UID,
+		SignUpMethod: signUpMethod,
+	}
+
+	err = s.SaveSignUpInfoToFirestore(signUpInfo)
+	if err != nil {
+		return false, fmt.Errorf("unable to save user sign up info: %v", err)
+	}
+
+	return true, nil
+}
+
+// GetSignUpMethod returns a user's sign up method
+func (s Service) GetSignUpMethod(ctx context.Context, id string) (SignUpMethod, error) {
+	dsnap, err := s.RetrieveSignUpInfoFirebaseDocSnapshotByUID(ctx, id)
+	if err != nil {
+		return "", fmt.Errorf("unable to fetch sign up info: %v", err)
+	}
+
+	info := &SignUpInfo{}
+	err = dsnap.DataTo(info)
+	if err != nil {
+		return "", fmt.Errorf("unable to read sign up info: %w", err)
+	}
+
+	signUpMethod := info.SignUpMethod
+
+	return signUpMethod, nil
+}
+
+// RetrieveSignUpInfoFirebaseDocSnapshotByUID retrieves the user profile of a
+// specified user
+func (s Service) RetrieveSignUpInfoFirebaseDocSnapshotByUID(
+	ctx context.Context,
+	uid string,
+) (*firestore.DocumentSnapshot, error) {
+
+	collection := s.firestoreClient.Collection(s.GetSignUpInfoCollectionName())
+	query := collection.Where("uid", "==", uid)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve firebase query: %v", err)
+	}
+	if len(docs) != 1 {
+		return nil, fmt.Errorf("more than one entry found (%d found)", len(docs))
+	}
+
+	dsnap := docs[0]
+	return dsnap, nil
 }

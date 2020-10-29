@@ -87,6 +87,7 @@ type ComplexityRoot struct {
 		ApprovePractitionerSignup func(childComplexity int, practitionerID string) int
 		CompleteSignup            func(childComplexity int) int
 		ConfirmEmail              func(childComplexity int, email string) int
+		CreateSignUpMethod        func(childComplexity int, signUpMethod profile.SignUpMethod) int
 		PractitionerSignUp        func(childComplexity int, input profile.PractitionerSignupInput) int
 		RecordPostVisitSurvey     func(childComplexity int, input profile.PostVisitSurveyInput) int
 		RegisterPushToken         func(childComplexity int, token string) int
@@ -132,6 +133,7 @@ type ComplexityRoot struct {
 		CheckUserWithMsisdn              func(childComplexity int, msisdn string) int
 		GetKMPDURegisteredPractitioner   func(childComplexity int, regno string) int
 		GetProfile                       func(childComplexity int, uid string) int
+		GetSignUpMethod                  func(childComplexity int, id string) int
 		HealthcashBalance                func(childComplexity int) int
 		IsUnderAge                       func(childComplexity int) int
 		ListKMPDURegisteredPractitioners func(childComplexity int, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) int
@@ -200,6 +202,7 @@ type MutationResolver interface {
 	UpdateUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error)
 	SetLanguagePreference(ctx context.Context, language base.Language) (bool, error)
 	VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error)
+	CreateSignUpMethod(ctx context.Context, signUpMethod profile.SignUpMethod) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*profile.UserProfile, error)
@@ -214,6 +217,7 @@ type QueryResolver interface {
 	CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, error)
 	CheckEmailVerified(ctx context.Context) (bool, error)
 	CheckPhoneNumberVerified(ctx context.Context) (bool, error)
+	GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error)
 }
 
 type executableSchema struct {
@@ -433,6 +437,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ConfirmEmail(childComplexity, args["email"].(string)), true
+
+	case "Mutation.createSignUpMethod":
+		if e.complexity.Mutation.CreateSignUpMethod == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createSignUpMethod_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateSignUpMethod(childComplexity, args["signUpMethod"].(profile.SignUpMethod)), true
 
 	case "Mutation.practitionerSignUp":
 		if e.complexity.Mutation.PractitionerSignUp == nil {
@@ -713,6 +729,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetProfile(childComplexity, args["uid"].(string)), true
+
+	case "Query.getSignUpMethod":
+		if e.complexity.Query.GetSignUpMethod == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getSignUpMethod_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetSignUpMethod(childComplexity, args["id"].(string)), true
 
 	case "Query.healthcashBalance":
 		if e.complexity.Query.HealthcashBalance == nil {
@@ -1056,6 +1084,14 @@ enum Gender {
   other
   unknown
 }
+
+enum SignUpMethod {
+  anonymous
+  apple
+  facebook
+  google
+  phone
+}
 `, BuiltIn: false},
 	{Name: "graph/external.graphql", Input: `scalar Map
 scalar Any
@@ -1256,6 +1292,7 @@ input BiodataInput {
   checkUserWithMsisdn(msisdn: String!): Boolean!
   checkEmailVerified: Boolean!
   checkPhoneNumberVerified: Boolean!
+  getSignUpMethod(id: String!): SignUpMethod!
 }
 
 extend type Mutation {
@@ -1275,6 +1312,7 @@ extend type Mutation {
   updateUserPin(msisdn: String!, pin: String!, otp: String!): Boolean!
   setLanguagePreference(language: Language!): Boolean!
   verifyEmailOTP(email: String!, otp: String!): Boolean!
+  createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `type Practitioner {
@@ -1499,6 +1537,21 @@ func (ec *executionContext) field_Mutation_confirmEmail_args(ctx context.Context
 		}
 	}
 	args["email"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createSignUpMethod_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.SignUpMethod
+	if tmp, ok := rawArgs["signUpMethod"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("signUpMethod"))
+		arg0, err = ec.unmarshalNSignUpMethod2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSignUpMethod(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["signUpMethod"] = arg0
 	return args, nil
 }
 
@@ -1775,6 +1828,21 @@ func (ec *executionContext) field_Query_getProfile_args(ctx context.Context, raw
 		}
 	}
 	args["uid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getSignUpMethod_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -3195,6 +3263,47 @@ func (ec *executionContext) _Mutation_verifyEmailOTP(ctx context.Context, field 
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createSignUpMethod(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createSignUpMethod_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateSignUpMethod(rctx, args["signUpMethod"].(profile.SignUpMethod))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4104,6 +4213,47 @@ func (ec *executionContext) _Query_checkPhoneNumberVerified(ctx context.Context,
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getSignUpMethod(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getSignUpMethod_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetSignUpMethod(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.SignUpMethod)
+	fc.Result = res
+	return ec.marshalNSignUpMethod2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSignUpMethod(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6922,6 +7072,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "createSignUpMethod":
+			out.Values[i] = ec._Mutation_createSignUpMethod(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7254,6 +7409,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_checkPhoneNumberVerified(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getSignUpMethod":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getSignUpMethod(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -7983,6 +8152,16 @@ func (ec *executionContext) unmarshalNPractitionerSpecialty2gitlabᚗslade360emr
 }
 
 func (ec *executionContext) marshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPractitionerSpecialty(ctx context.Context, sel ast.SelectionSet, v base.PractitionerSpecialty) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNSignUpMethod2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSignUpMethod(ctx context.Context, v interface{}) (profile.SignUpMethod, error) {
+	var res profile.SignUpMethod
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSignUpMethod2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSignUpMethod(ctx context.Context, sel ast.SelectionSet, v profile.SignUpMethod) graphql.Marshaler {
 	return v
 }
 

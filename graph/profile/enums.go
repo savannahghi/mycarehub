@@ -114,3 +114,56 @@ func (e FivePointRating) MarshalGQL(w io.Writer) {
 		log.Printf("%v\n", err)
 	}
 }
+
+// SignUpMethod defines the various froentend sign up options
+type SignUpMethod string
+
+// SignUpMethodAnonymous ..
+const (
+	SignUpMethodAnonymous SignUpMethod = "anonymous"
+	SignUpMethodApple     SignUpMethod = "apple"
+	SignUpMethodFacebook  SignUpMethod = "facebook"
+	SignUpMethodGoogle    SignUpMethod = "google"
+	SignUpMethodPhone     SignUpMethod = "phone"
+)
+
+// AllSignUpMethod ..
+var AllSignUpMethod = []SignUpMethod{
+	SignUpMethodAnonymous,
+	SignUpMethodApple,
+	SignUpMethodFacebook,
+	SignUpMethodGoogle,
+	SignUpMethodPhone,
+}
+
+// IsValid ..
+func (e SignUpMethod) IsValid() bool {
+	switch e {
+	case SignUpMethodAnonymous, SignUpMethodApple, SignUpMethodFacebook, SignUpMethodGoogle, SignUpMethodPhone:
+		return true
+	}
+	return false
+}
+
+func (e SignUpMethod) String() string {
+	return string(e)
+}
+
+// UnmarshalGQL ..
+func (e *SignUpMethod) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SignUpMethod(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SignUpMethod", str)
+	}
+	return nil
+}
+
+// MarshalGQL ..
+func (e SignUpMethod) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}

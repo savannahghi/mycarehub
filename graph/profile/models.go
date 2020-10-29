@@ -204,3 +204,9 @@ type PinRecovery struct {
 type OtpResponse struct {
 	OTP string `json:"otp"`
 }
+
+// SignUpInfo stores the user UID and their sign up method
+type SignUpInfo struct {
+	UID          string       `json:"uid" firestore:"uid"`
+	SignUpMethod SignUpMethod `json:"signupmethod" firestore:"signupmethod"`
+}

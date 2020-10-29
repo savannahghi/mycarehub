@@ -15,6 +15,7 @@ extend type Query {
   checkUserWithMsisdn(msisdn: String!): Boolean!
   checkEmailVerified: Boolean!
   checkPhoneNumberVerified: Boolean!
+  getSignUpMethod(id: String!): SignUpMethod!
 }
 
 extend type Mutation {
@@ -34,4 +35,5 @@ extend type Mutation {
   updateUserPin(msisdn: String!, pin: String!, otp: String!): Boolean!
   setLanguagePreference(language: Language!): Boolean!
   verifyEmailOTP(email: String!, otp: String!): Boolean!
+  createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
 }

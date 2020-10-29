@@ -1558,3 +1558,105 @@ func TestService_CheckPhoneNumberVerified(t *testing.T) {
 		})
 	}
 }
+
+func TestService_CreateSignUpMethod(t *testing.T) {
+	service := NewService()
+	type args struct {
+		ctx          context.Context
+		signUpMethod SignUpMethod
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:          base.GetAuthenticatedContext(t),
+				signUpMethod: "google",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Invalid case",
+			args: args{
+				ctx:          base.GetAuthenticatedContext(t),
+				signUpMethod: "not a sign up method",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "No logged in user case",
+			args: args{
+				ctx:          context.Background(),
+				signUpMethod: "not a sign up method",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.CreateSignUpMethod(tt.args.ctx, tt.args.signUpMethod)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.CreateSignUpMethod() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.CreateSignUpMethod() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_GetSignUpMethod(t *testing.T) {
+	service := NewService()
+	ctx, authToken := base.GetAuthenticatedContextAndToken(t)
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    SignUpMethod
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx: ctx,
+				id:  authToken.UID,
+			},
+			want:    "google",
+			wantErr: false,
+		},
+		{
+			name: "sad case",
+			args: args{
+				ctx: ctx,
+				id:  "invalid uid",
+			},
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.GetSignUpMethod(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.GetSignUpMethod() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.GetSignUpMethod() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
