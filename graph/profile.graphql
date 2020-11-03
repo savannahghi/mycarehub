@@ -36,4 +36,7 @@ extend type Mutation {
   setLanguagePreference(language: Language!): Boolean!
   verifyEmailOTP(email: String!, otp: String!): Boolean!
   createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
+  addCustomer: Customer!
+  addCustomerKYC(input: CustomerKYCInput!): CustomerKYC!
+  updateCustomer(input: CustomerKYCInput!): Customer!
 }

@@ -34,7 +34,38 @@ const (
 	legalAge                            = 18
 	PINCollectionName                   = "pins"
 	signUpInfoCollectionName            = "sign_up_info"
+
+	//ERP client login settings
+	ERPHostEnvVarName       = "ERP_HOST"
+	ERPAPISchemeEnvVarName  = "ERP_API_SCHEME"
+	ERPTknURLEnvVarName     = "ERP_TOKEN_URL"
+	ERPClientIDEnvVarName   = "ERP_CLIENT_ID"
+	ERPClientScrtEnvVarName = "ERP_CLIENT_SECRET"
+	ERPUsernameEnvVarName   = "ERP_USERNAME"
+	ERPPasswordEnvVarName   = "ERP_PASSWORD"
+	ERPGrantTypeEnvVarName  = "ERP_GRANT_TYPE"
+	ERPDefaultWorkstationID = "ERP_DEFAULT_WORKSTATION_ID"
 )
+
+// NewERPClient initializes a new ERP client from the environment.
+// It assumes that the environment variables were confirmed to be present during
+// server initialization. For that reason, it will panic if an environment variable is
+// unexpectedly absent.
+func NewERPClient() (*base.ServerClient, error) {
+	clientID := base.MustGetEnvVar(ERPClientIDEnvVarName)
+	clientSecret := base.MustGetEnvVar(ERPClientScrtEnvVarName)
+	apiTokenURL := base.MustGetEnvVar(ERPTknURLEnvVarName)
+	apiHost := base.MustGetEnvVar(ERPHostEnvVarName)
+	apiScheme := base.MustGetEnvVar(ERPAPISchemeEnvVarName)
+	grantType := base.MustGetEnvVar(ERPGrantTypeEnvVarName)
+	username := base.MustGetEnvVar(ERPUsernameEnvVarName)
+	password := base.MustGetEnvVar(ERPPasswordEnvVarName)
+
+	extraHeaders := make(map[string]string)
+	extraHeaders["X-Workstation"] = base.MustGetEnvVar(ERPDefaultWorkstationID)
+
+	return base.NewServerClient(clientID, clientSecret, apiTokenURL, apiHost, apiScheme, grantType, username, password, extraHeaders)
+}
 
 // NewService returns a new authentication service
 func NewService() *Service {
@@ -56,11 +87,20 @@ func NewService() *Service {
 		log.Panicf("can't initialize Firestore client when setting up profile service: %s", err)
 	}
 
+	erpClient, err := NewERPClient()
+	if err != nil {
+		log.Panicf("unable to initialize ERP client for profile service: %s", err)
+	}
+	if !erpClient.IsInitialized() {
+		log.Panicf("uninitialized ERP client")
+	}
+
 	return &Service{
 		firestoreClient: firestore,
 		firebaseAuth:    auth,
 		emailService:    mailgun.NewService(),
 		otpService:      otp.NewService(),
+		client:          erpClient,
 	}
 }
 
@@ -71,6 +111,7 @@ type Service struct {
 	firebaseAuth    *auth.Client
 	emailService    *mailgun.Service
 	otpService      *otp.Service
+	client          *base.ServerClient
 }
 
 func (s Service) checkPreconditions() {
@@ -84,6 +125,10 @@ func (s Service) checkPreconditions() {
 
 	if s.emailService == nil {
 		log.Panicf("profile service does not have an initialized emailService")
+	}
+
+	if s.client == nil {
+		log.Panicf("profile service does not have an initialized ERP client")
 	}
 }
 

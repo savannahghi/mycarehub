@@ -18,7 +18,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/mailgun/graph/mailgun"
 	"gitlab.slade360emr.com/go/otp/graph/otp"
 )
 
@@ -78,7 +77,7 @@ func TestService_profileUpdates(t *testing.T) {
 	bs, err := ioutil.ReadFile("testdata/photo.jpg")
 	assert.Nil(t, err)
 	photoBase64 := base64.StdEncoding.EncodeToString(bs)
-	email := []string{"calvineotieno010@gmail.com"}
+	email := []string{gofakeit.Email()}
 	msisdn := "+254716862585"
 	otpService := otp.NewService()
 	otp, err := otpService.GenerateAndSendOTP(msisdn)
@@ -896,31 +895,18 @@ func TestService_RejectPractitionerSignup(t *testing.T) {
 }
 
 func TestService_GetRegisteredPractitionerByLicense(t *testing.T) {
-	firestoreClient := GetFirestoreClient(t)
-	emailService := mailgun.NewService()
-	firebaseAuth, _ := GetFirebaseAuthClient(t)
-	type fields struct {
-		firestoreClient *firestore.Client
-		firebaseAuth    *auth.Client
-		emailService    *mailgun.Service
-	}
+	service := NewService()
 	type args struct {
 		ctx     context.Context
 		license string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Happy case - Retrieve a single practitioner records",
-			fields: fields{
-				firestoreClient: firestoreClient,
-				firebaseAuth:    firebaseAuth,
-				emailService:    emailService,
-			},
 			args: args{
 				ctx:     base.GetAuthenticatedContext(t),
 				license: "A8082",
@@ -930,11 +916,7 @@ func TestService_GetRegisteredPractitionerByLicense(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := Service{
-				firestoreClient: tt.fields.firestoreClient,
-				firebaseAuth:    tt.fields.firebaseAuth,
-				emailService:    tt.fields.emailService,
-			}
+			s := service
 			_, err := s.GetRegisteredPractitionerByLicense(tt.args.ctx, tt.args.license)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.GetRegisteredPractitionerByLicense() error = %v, wantErr %v", err, tt.wantErr)
@@ -945,14 +927,7 @@ func TestService_GetRegisteredPractitionerByLicense(t *testing.T) {
 }
 
 func TestService_ListKMPDURegisteredPractitioners(t *testing.T) {
-	firestoreClient := GetFirestoreClient(t)
-	emailService := mailgun.NewService()
-	firebaseAuth, _ := GetFirebaseAuthClient(t)
-	type fields struct {
-		firestoreClient *firestore.Client
-		firebaseAuth    *auth.Client
-		emailService    *mailgun.Service
-	}
+	service := NewService()
 	type args struct {
 		ctx        context.Context
 		pagination *base.PaginationInput
@@ -961,17 +936,11 @@ func TestService_ListKMPDURegisteredPractitioners(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Happy case - Retreive all practitioner records",
-			fields: fields{
-				firestoreClient: firestoreClient,
-				firebaseAuth:    firebaseAuth,
-				emailService:    emailService,
-			},
 			args: args{
 				ctx:        base.GetAuthenticatedContext(t),
 				pagination: nil,
@@ -983,11 +952,7 @@ func TestService_ListKMPDURegisteredPractitioners(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := Service{
-				firestoreClient: tt.fields.firestoreClient,
-				firebaseAuth:    tt.fields.firebaseAuth,
-				emailService:    tt.fields.emailService,
-			}
+			s := service
 			_, err := s.ListKMPDURegisteredPractitioners(tt.args.ctx, tt.args.pagination, tt.args.filter, tt.args.sort)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.ListKMPDURegisteredPractitioners() error = %v, wantErr %v", err, tt.wantErr)

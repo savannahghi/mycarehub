@@ -41,3 +41,11 @@ input BiodataInput {
   name: String
   bio: String
 }
+
+input CustomerKYCInput {
+  KRAPin: String!
+  occupation: String!
+  idNumber: String!
+  address: String!
+  city: String!
+}

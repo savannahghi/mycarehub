@@ -80,3 +80,28 @@ type UserProfile @key(fields: "uid") {
 type TesterWhitelist {
   email: String!
 }
+
+type Customer {
+  uid: String!
+  userProfile: UserProfile!
+  customerId: String!
+  receivablesAccount: ReceivablesAccount!
+  customerKYC: CustomerKYC!
+}
+
+type ReceivablesAccount {
+  id: String!
+  name: String!
+  isActive: Boolean!
+  number: String!
+  tag: String!
+  description: String!
+}
+
+type CustomerKYC {
+  KRAPin: String!
+  occupation: String!
+  idNumber: String!
+  address: String!
+  city: String!
+}

@@ -114,6 +114,24 @@ func (r *mutationResolver) CreateSignUpMethod(ctx context.Context, signUpMethod 
 	return r.profileService.CreateSignUpMethod(ctx, signUpMethod)
 }
 
+func (r *mutationResolver) AddCustomer(ctx context.Context) (*profile.Customer, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.AddCustomer(ctx)
+}
+
+func (r *mutationResolver) AddCustomerKyc(ctx context.Context, input profile.CustomerKYCInput) (*profile.CustomerKYC, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.AddCustomerKYC(ctx, input)
+}
+
+func (r *mutationResolver) UpdateCustomer(ctx context.Context, input profile.CustomerKYCInput) (*profile.Customer, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.UpdateCustomer(ctx, input)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*profile.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()

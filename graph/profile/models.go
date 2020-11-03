@@ -211,3 +211,40 @@ type SignUpInfo struct {
 	UID          string       `json:"uid" firestore:"uid"`
 	SignUpMethod SignUpMethod `json:"signupmethod" firestore:"signupmethod"`
 }
+
+// Customer used to create a customer request payload
+type Customer struct {
+	UID                string             `json:"uid,omitempty"`
+	UserProfile        UserProfile        `json:"userprofile,omitempty"`
+	CustomerID         string             `json:"id,omitempty"`
+	ReceivablesAccount ReceivablesAccount `json:"receivables_account,omitempty"`
+	CustomerKYC        CustomerKYC        `json:"customer_kyc,omitempty"`
+}
+
+// ReceivablesAccount stores a customer's receivables account info
+type ReceivablesAccount struct {
+	ID          string `json:"id,omitempty"`
+	Name        string `json:"name,omitempty"`
+	IsActive    bool   `json:"is_active,omitempty"`
+	Number      string `json:"number,omitempty"`
+	Tag         string `json:"tag,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
+// CustomerKYC stores information required to know your customer
+type CustomerKYC struct {
+	KRAPin     string `json:"kra_pin,omitempty"`
+	Occupation string `json:"occupation,omitempty"` // Should this be an enum?
+	IDNumber   string `json:"id_number,omitempty"`
+	Address    string `json:"address,omitempty"`
+	City       string `json:"city,omitempty"`
+}
+
+// CustomerKYCInput stores customerKYC input details
+type CustomerKYCInput struct {
+	KRAPin     string `json:"KRAPin"`
+	Occupation string `json:"occupation"`
+	IDNumber   string `json:"idNumber"`
+	Address    string `json:"address"`
+	City       string `json:"city"`
+}
