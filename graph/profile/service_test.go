@@ -1036,6 +1036,7 @@ func TestService_IsUnderAge(t *testing.T) {
 
 func TestService_SetUserPin(t *testing.T) {
 	service := NewService()
+	ctx := base.GetPhoneNumberAuthenticatedContext(t)
 	type args struct {
 		ctx    context.Context
 		msisdn string
@@ -1050,7 +1051,7 @@ func TestService_SetUserPin(t *testing.T) {
 		{
 			name: "Happy registration of phone number pin user",
 			args: args{
-				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				ctx:    ctx,
 				msisdn: base.TestUserPhoneNumber,
 				pin:    "1234",
 			},
@@ -1078,6 +1079,10 @@ func TestService_SetUserPin(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("Service.SetUserPin() = %v, want %v", got, tt.want)
+			}
+			profile, err := s.UserProfile(ctx)
+			if err == nil {
+				assert.True(t, profile.HasPin)
 			}
 		})
 	}

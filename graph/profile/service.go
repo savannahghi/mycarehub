@@ -854,6 +854,18 @@ func (s Service) SetUserPin(ctx context.Context, msisdn string, pin string) (boo
 		return false, fmt.Errorf("unable to save PIN: %v", err)
 	}
 
+	profile.HasPin = true
+	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		return false, fmt.Errorf("unable to retrieve firebase user profile: %v", err)
+	}
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, profile,
+	)
+	if err != nil {
+		return false, fmt.Errorf("unable to update user profile: %v", err)
+	}
+
 	return true, nil
 }
 
@@ -1135,9 +1147,10 @@ func (s Service) RetrieveSignUpInfoFirebaseDocSnapshotByUID(
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve firebase query: %v", err)
 	}
-	if len(docs) != 1 {
-		return nil, fmt.Errorf("more than one entry found (%d found)", len(docs))
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("user does not have any sign up information")
 	}
+	//TODO...Can a user have more than one sign up information?
 
 	dsnap := docs[0]
 	return dsnap, nil

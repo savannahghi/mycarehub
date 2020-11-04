@@ -113,6 +113,7 @@ type UserProfile struct {
 	AskAgainToSetCanExperiment bool `json:"askAgainToSetCanExperiment" firestore:"askAgainToSetCanExperiment"`
 	IsEmailVerified            bool `json:"isEmailVerified" firestore:"isEmailVerified"`
 	IsMsisdnVerified           bool `json:"isMsisdnVerified" firestore:"isMsisdnVerified"`
+	HasPin                     bool `json:"hasPin" firestore:"hasPin"`
 }
 
 // IsEntity ...

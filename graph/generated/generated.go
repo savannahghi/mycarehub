@@ -158,6 +158,7 @@ type ComplexityRoot struct {
 		DateOfBirth                        func(childComplexity int) int
 		Emails                             func(childComplexity int) int
 		Gender                             func(childComplexity int) int
+		HasPin                             func(childComplexity int) int
 		IsApproved                         func(childComplexity int) int
 		IsEmailVerified                    func(childComplexity int) int
 		IsMsisdnVerified                   func(childComplexity int) int
@@ -888,6 +889,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.Gender(childComplexity), true
 
+	case "UserProfile.hasPin":
+		if e.complexity.UserProfile.HasPin == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.HasPin(childComplexity), true
+
 	case "UserProfile.isApproved":
 		if e.complexity.UserProfile.IsApproved == nil {
 			break
@@ -1391,6 +1399,7 @@ type UserProfile @key(fields: "uid") {
   askAgainToSetCanExperiment: Boolean
   isEmailVerified: Boolean
   isMsisdnVerified: Boolean
+  hasPin: Boolean
 }
 
 type TesterWhitelist {
@@ -5177,6 +5186,37 @@ func (ec *executionContext) _UserProfile_isMsisdnVerified(ctx context.Context, f
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserProfile_hasPin(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserProfile",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasPin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) __Service_sdl(ctx context.Context, field graphql.CollectedField, obj *fedruntime.Service) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7585,6 +7625,8 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_isEmailVerified(ctx, field, obj)
 		case "isMsisdnVerified":
 			out.Values[i] = ec._UserProfile_isMsisdnVerified(ctx, field, obj)
+		case "hasPin":
+			out.Values[i] = ec._UserProfile_hasPin(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

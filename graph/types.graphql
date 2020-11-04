@@ -74,6 +74,7 @@ type UserProfile @key(fields: "uid") {
   askAgainToSetCanExperiment: Boolean
   isEmailVerified: Boolean
   isMsisdnVerified: Boolean
+  hasPin: Boolean
 }
 
 type TesterWhitelist {
