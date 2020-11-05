@@ -459,7 +459,7 @@ func (s Service) PractitionerSignUp(
 		return false, fmt.Errorf("unable to save practitioner info: %w", err)
 	}
 
-	// is the license belongs to the once expected from apple tester, approove their
+	// is the license belongs to the once expected from apple tester, approve their
 	//profile automatically
 	if input.License == appleTesterPractitionerLicense {
 		return s.ApprovePractitionerSignup(ctx)
@@ -1197,6 +1197,93 @@ func (s Service) RetrieveSignUpInfoFirebaseDocSnapshotByUID(
 	}
 	//TODO...Can a user have more than one sign up information?
 
+	dsnap := docs[0]
+	return dsnap, nil
+}
+
+// AddPractitionerServices persists a practitioner services to firestore
+func (s Service) AddPractitionerServices(ctx context.Context, services PractitionerServiceInput, otherServices *OtherPractitionerServiceInput) (bool, error) {
+	s.checkPreconditions()
+
+	profile, err := s.UserProfile(ctx)
+	if err != nil {
+		return false, fmt.Errorf("unable to fetch user profile: %v", err)
+	}
+	dsnap, err := s.RetrievePractitionerFirebaseDocSnapshotByUID(ctx, profile.UID)
+	if err != nil {
+		return false, fmt.Errorf("unable to retreive practitioner: %v", err)
+	}
+	practitioner := &Practitioner{}
+	err = dsnap.DataTo(practitioner)
+	if err != nil {
+		return false, fmt.Errorf("unable to read practitioner information: %v", err)
+	}
+	offeredServices := practitioner.Services.Services
+	otherOfferedServices := practitioner.Services.OtherServices
+
+	for _, service := range services.Services {
+		validservice := service.IsValid()
+		if !validservice {
+			return false, fmt.Errorf("%v is not an allowed service enum", service.String())
+		}
+
+		if service == "OTHER" {
+			if otherServices == nil {
+				return false, fmt.Errorf("specify other services after selecting Others")
+			}
+			//TODO Pop the "others"
+			offeredServices = append(offeredServices, service)
+			otherOfferedServices = append(otherOfferedServices, otherServices.OtherServices...)
+
+			practitioner.Services.Services = offeredServices
+			practitioner.Services.OtherServices = otherOfferedServices
+
+			practitioner.HasServices = true
+
+			err = base.UpdateRecordOnFirestore(
+				s.firestoreClient, s.GetPractitionerCollectionName(), dsnap.Ref.ID, practitioner,
+			)
+			if err != nil {
+				return false, fmt.Errorf("unable to update practitioner info: %v", err)
+			}
+
+			return true, nil
+		}
+		offeredServices = append(offeredServices, service)
+		practitioner.Services.Services = offeredServices
+
+		practitioner.HasServices = true
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetPractitionerCollectionName(), dsnap.Ref.ID, practitioner,
+	)
+	if err != nil {
+		return false, fmt.Errorf("unable to update practitioner info: %v", err)
+	}
+
+	return true, nil
+}
+
+// RetrievePractitionerFirebaseDocSnapshotByUID retrieves the practitioner profile of a
+// specified user
+func (s Service) RetrievePractitionerFirebaseDocSnapshotByUID(
+	ctx context.Context,
+	uid string,
+) (*firestore.DocumentSnapshot, error) {
+
+	collection := s.firestoreClient.Collection(s.GetPractitionerCollectionName())
+	query := collection.Where("profile.uid", "==", uid)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) > 1 {
+		log.Printf("practitioner %s has > 1 records (they have %d)", uid, len(docs))
+	}
+	if len(docs) == 0 {
+		return nil, nil
+	}
 	dsnap := docs[0]
 	return dsnap, nil
 }

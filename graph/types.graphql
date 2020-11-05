@@ -5,6 +5,8 @@ type Practitioner {
   specialty: PractitionerSpecialty!
   professionalProfile: Markdown!
   averageConsultationPrice: Float!
+  services: ServicesOffered!
+  hasServices: Boolean
 }
 
 type PractitionerEdge {
@@ -104,4 +106,9 @@ type CustomerKYC {
   idNumber: String!
   address: String!
   city: String!
+}
+
+type ServicesOffered {
+  services: [PractitionerService!]!
+  otherServices: [String!]!
 }

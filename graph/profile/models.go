@@ -41,6 +41,8 @@ type Practitioner struct {
 	Specialty                base.PractitionerSpecialty `json:"specialty"`
 	ProfessionalProfile      base.Markdown              `json:"professionalProfile"`
 	AverageConsultationPrice float64                    `json:"averageConsultationPrice"`
+	Services                 ServicesOffered            `json:"services_offered"`
+	HasServices              bool                       `json:"hasServices"`
 }
 
 // PractitionerConnection is used to return lists of practitioners.
@@ -247,4 +249,20 @@ type CustomerKYCInput struct {
 	IDNumber   string `json:"idNumber"`
 	Address    string `json:"address"`
 	City       string `json:"city"`
+}
+
+// OtherPractitionerServiceInput ..
+type OtherPractitionerServiceInput struct {
+	OtherServices []string `json:"otherServices"`
+}
+
+// PractitionerServiceInput ..
+type PractitionerServiceInput struct {
+	Services []PractitionerService `json:"services"`
+}
+
+// ServicesOffered ..
+type ServicesOffered struct {
+	Services      []PractitionerService `json:"services"`
+	OtherServices []string              `json:"otherServices"`
 }

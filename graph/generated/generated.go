@@ -101,6 +101,7 @@ type ComplexityRoot struct {
 		AcceptTermsAndConditions  func(childComplexity int, accept bool) int
 		AddCustomer               func(childComplexity int) int
 		AddCustomerKyc            func(childComplexity int, input profile.CustomerKYCInput) int
+		AddPractitionerServices   func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
 		AddTester                 func(childComplexity int, email string) int
 		ApprovePractitionerSignup func(childComplexity int, practitionerID string) int
 		CompleteSignup            func(childComplexity int) int
@@ -130,9 +131,11 @@ type ComplexityRoot struct {
 	Practitioner struct {
 		AverageConsultationPrice func(childComplexity int) int
 		Cadre                    func(childComplexity int) int
+		HasServices              func(childComplexity int) int
 		License                  func(childComplexity int) int
 		ProfessionalProfile      func(childComplexity int) int
 		Profile                  func(childComplexity int) int
+		Services                 func(childComplexity int) int
 		Specialty                func(childComplexity int) int
 	}
 
@@ -171,6 +174,11 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 		Number      func(childComplexity int) int
 		Tag         func(childComplexity int) int
+	}
+
+	ServicesOffered struct {
+		OtherServices func(childComplexity int) int
+		Services      func(childComplexity int) int
 	}
 
 	TesterWhitelist struct {
@@ -235,6 +243,7 @@ type MutationResolver interface {
 	AddCustomer(ctx context.Context) (*profile.Customer, error)
 	AddCustomerKyc(ctx context.Context, input profile.CustomerKYCInput) (*profile.CustomerKYC, error)
 	UpdateCustomer(ctx context.Context, input profile.CustomerKYCInput) (*profile.Customer, error)
+	AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*profile.UserProfile, error)
@@ -516,6 +525,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddCustomerKyc(childComplexity, args["input"].(profile.CustomerKYCInput)), true
 
+	case "Mutation.addPractitionerServices":
+		if e.complexity.Mutation.AddPractitionerServices == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addPractitionerServices_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddPractitionerServices(childComplexity, args["services"].(profile.PractitionerServiceInput), args["otherServices"].(*profile.OtherPractitionerServiceInput)), true
+
 	case "Mutation.addTester":
 		if e.complexity.Mutation.AddTester == nil {
 			break
@@ -757,6 +778,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Practitioner.Cadre(childComplexity), true
 
+	case "Practitioner.hasServices":
+		if e.complexity.Practitioner.HasServices == nil {
+			break
+		}
+
+		return e.complexity.Practitioner.HasServices(childComplexity), true
+
 	case "Practitioner.license":
 		if e.complexity.Practitioner.License == nil {
 			break
@@ -777,6 +805,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Practitioner.Profile(childComplexity), true
+
+	case "Practitioner.services":
+		if e.complexity.Practitioner.Services == nil {
+			break
+		}
+
+		return e.complexity.Practitioner.Services(childComplexity), true
 
 	case "Practitioner.specialty":
 		if e.complexity.Practitioner.Specialty == nil {
@@ -999,6 +1034,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ReceivablesAccount.Tag(childComplexity), true
+
+	case "ServicesOffered.otherServices":
+		if e.complexity.ServicesOffered.OtherServices == nil {
+			break
+		}
+
+		return e.complexity.ServicesOffered.OtherServices(childComplexity), true
+
+	case "ServicesOffered.services":
+		if e.complexity.ServicesOffered.Services == nil {
+			break
+		}
+
+		return e.complexity.ServicesOffered.Services(childComplexity), true
 
 	case "TesterWhitelist.email":
 		if e.complexity.TesterWhitelist.Email == nil {
@@ -1274,6 +1323,15 @@ enum SignUpMethod {
   google
   phone
 }
+
+enum PractitionerService {
+  OUTPATIENT_SERVICES
+  INPATIENT_SERVICES
+  PHARMACY
+  MATERNITY
+  LAB_SERVICES
+  OTHER
+}
 `, BuiltIn: false},
 	{Name: "graph/external.graphql", Input: `scalar Map
 scalar Any
@@ -1464,6 +1522,14 @@ input CustomerKYCInput {
   address: String!
   city: String!
 }
+
+input PractitionerServiceInput {
+  services: [PractitionerService!]!
+}
+
+input OtherPractitionerServiceInput {
+  otherServices: [String!]!
+}
 `, BuiltIn: false},
 	{Name: "graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
@@ -1506,6 +1572,10 @@ extend type Mutation {
   addCustomer: Customer!
   addCustomerKYC(input: CustomerKYCInput!): CustomerKYC!
   updateCustomer(input: CustomerKYCInput!): Customer!
+  addPractitionerServices(
+    services: PractitionerServiceInput!
+    otherServices: OtherPractitionerServiceInput
+  ): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `type Practitioner {
@@ -1515,6 +1585,8 @@ extend type Mutation {
   specialty: PractitionerSpecialty!
   professionalProfile: Markdown!
   averageConsultationPrice: Float!
+  services: ServicesOffered!
+  hasServices: Boolean
 }
 
 type PractitionerEdge {
@@ -1614,6 +1686,11 @@ type CustomerKYC {
   idNumber: String!
   address: String!
   city: String!
+}
+
+type ServicesOffered {
+  services: [PractitionerService!]!
+  otherServices: [String!]!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -1726,6 +1803,30 @@ func (ec *executionContext) field_Mutation_addCustomerKYC_args(ctx context.Conte
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addPractitionerServices_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.PractitionerServiceInput
+	if tmp, ok := rawArgs["services"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("services"))
+		arg0, err = ec.unmarshalNPractitionerServiceInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerServiceInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["services"] = arg0
+	var arg1 *profile.OtherPractitionerServiceInput
+	if tmp, ok := rawArgs["otherServices"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otherServices"))
+		arg1, err = ec.unmarshalOOtherPractitionerServiceInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOtherPractitionerServiceInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["otherServices"] = arg1
 	return args, nil
 }
 
@@ -4058,6 +4159,48 @@ func (ec *executionContext) _Mutation_updateCustomer(ctx context.Context, field 
 	return ec.marshalNCustomer2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomer(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_addPractitionerServices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addPractitionerServices_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddPractitionerServices(rctx, args["services"].(profile.PractitionerServiceInput), args["otherServices"].(*profile.OtherPractitionerServiceInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4400,6 +4543,73 @@ func (ec *executionContext) _Practitioner_averageConsultationPrice(ctx context.C
 	res := resTmp.(float64)
 	fc.Result = res
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Practitioner_services(ctx context.Context, field graphql.CollectedField, obj *profile.Practitioner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Practitioner",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Services, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.ServicesOffered)
+	fc.Result = res
+	return ec.marshalNServicesOffered2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐServicesOffered(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Practitioner_hasServices(ctx context.Context, field graphql.CollectedField, obj *profile.Practitioner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Practitioner",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasServices, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PractitionerConnection_edges(ctx context.Context, field graphql.CollectedField, obj *profile.PractitionerConnection) (ret graphql.Marshaler) {
@@ -5393,6 +5603,76 @@ func (ec *executionContext) _ReceivablesAccount_description(ctx context.Context,
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServicesOffered_services(ctx context.Context, field graphql.CollectedField, obj *profile.ServicesOffered) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServicesOffered",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Services, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]profile.PractitionerService)
+	fc.Result = res
+	return ec.marshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerServiceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServicesOffered_otherServices(ctx context.Context, field graphql.CollectedField, obj *profile.ServicesOffered) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ServicesOffered",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OtherServices, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TesterWhitelist_email(ctx context.Context, field graphql.CollectedField, obj *profile.TesterWhitelist) (ret graphql.Marshaler) {
@@ -7515,6 +7795,26 @@ func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj i
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputOtherPractitionerServiceInput(ctx context.Context, obj interface{}) (profile.OtherPractitionerServiceInput, error) {
+	var it profile.OtherPractitionerServiceInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "otherServices":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otherServices"))
+			it.OtherServices, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, obj interface{}) (base.PaginationInput, error) {
 	var it base.PaginationInput
 	var asMap = obj.(map[string]interface{})
@@ -7586,6 +7886,26 @@ func (ec *executionContext) unmarshalInputPostVisitSurveyInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("suggestions"))
 			it.Suggestions, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPractitionerServiceInput(ctx context.Context, obj interface{}) (profile.PractitionerServiceInput, error) {
+	var it profile.PractitionerServiceInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "services":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("services"))
+			it.Services, err = ec.unmarshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerServiceᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8322,6 +8642,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "addPractitionerServices":
+			out.Values[i] = ec._Mutation_addPractitionerServices(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8410,6 +8735,13 @@ func (ec *executionContext) _Practitioner(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "services":
+			out.Values[i] = ec._Practitioner_services(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "hasServices":
+			out.Values[i] = ec._Practitioner_hasServices(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8754,6 +9086,38 @@ func (ec *executionContext) _ReceivablesAccount(ctx context.Context, sel ast.Sel
 			}
 		case "description":
 			out.Values[i] = ec._ReceivablesAccount_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var servicesOfferedImplementors = []string{"ServicesOffered"}
+
+func (ec *executionContext) _ServicesOffered(ctx context.Context, sel ast.SelectionSet, obj *profile.ServicesOffered) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, servicesOfferedImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServicesOffered")
+		case "services":
+			out.Values[i] = ec._ServicesOffered_services(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "otherServices":
+			out.Values[i] = ec._ServicesOffered_otherServices(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -9472,6 +9836,79 @@ func (ec *executionContext) marshalNPractitionerCadre2gitlabᚗslade360emrᚗcom
 	return v
 }
 
+func (ec *executionContext) unmarshalNPractitionerService2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerService(ctx context.Context, v interface{}) (profile.PractitionerService, error) {
+	var res profile.PractitionerService
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPractitionerService2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerService(ctx context.Context, sel ast.SelectionSet, v profile.PractitionerService) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerServiceᚄ(ctx context.Context, v interface{}) ([]profile.PractitionerService, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]profile.PractitionerService, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNPractitionerService2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerService(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerServiceᚄ(ctx context.Context, sel ast.SelectionSet, v []profile.PractitionerService) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPractitionerService2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerService(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalNPractitionerServiceInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerServiceInput(ctx context.Context, v interface{}) (profile.PractitionerServiceInput, error) {
+	res, err := ec.unmarshalInputPractitionerServiceInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNPractitionerSignupInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerSignupInput(ctx context.Context, v interface{}) (profile.PractitionerSignupInput, error) {
 	res, err := ec.unmarshalInputPractitionerSignupInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -9489,6 +9926,10 @@ func (ec *executionContext) marshalNPractitionerSpecialty2gitlabᚗslade360emr�
 
 func (ec *executionContext) marshalNReceivablesAccount2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐReceivablesAccount(ctx context.Context, sel ast.SelectionSet, v profile.ReceivablesAccount) graphql.Marshaler {
 	return ec._ReceivablesAccount(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServicesOffered2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐServicesOffered(ctx context.Context, sel ast.SelectionSet, v profile.ServicesOffered) graphql.Marshaler {
+	return ec._ServicesOffered(ctx, sel, &v)
 }
 
 func (ec *executionContext) unmarshalNSignUpMethod2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSignUpMethod(ctx context.Context, v interface{}) (profile.SignUpMethod, error) {
@@ -10104,6 +10545,14 @@ func (ec *executionContext) unmarshalOLanguage2gitlabᚗslade360emrᚗcomᚋgo�
 
 func (ec *executionContext) marshalOLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx context.Context, sel ast.SelectionSet, v base.Language) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalOOtherPractitionerServiceInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOtherPractitionerServiceInput(ctx context.Context, v interface{}) (*profile.OtherPractitionerServiceInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputOtherPractitionerServiceInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOPaginationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPaginationInput(ctx context.Context, v interface{}) (*base.PaginationInput, error) {

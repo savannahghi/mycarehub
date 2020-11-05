@@ -80,7 +80,7 @@ var AllFivePointRating = []FivePointRating{
 	FivePointRatingExcellent,
 }
 
-// IsValid returs true for valid ratings
+// IsValid returns true for valid ratings
 func (e FivePointRating) IsValid() bool {
 	switch e {
 	case FivePointRatingPoor, FivePointRatingUnsatisfactory, FivePointRatingAverage, FivePointRatingSatisfactory, FivePointRatingExcellent:
@@ -115,10 +115,10 @@ func (e FivePointRating) MarshalGQL(w io.Writer) {
 	}
 }
 
-// SignUpMethod defines the various froentend sign up options
+// SignUpMethod defines the various frontend sign up options
 type SignUpMethod string
 
-// SignUpMethodAnonymous ..
+// SignUpMethodAnonymous is a constant of all known sign up methods
 const (
 	SignUpMethodAnonymous SignUpMethod = "anonymous"
 	SignUpMethodApple     SignUpMethod = "apple"
@@ -127,7 +127,7 @@ const (
 	SignUpMethodPhone     SignUpMethod = "phone"
 )
 
-// AllSignUpMethod ..
+// AllSignUpMethod is a list of all known sign up methods
 var AllSignUpMethod = []SignUpMethod{
 	SignUpMethodAnonymous,
 	SignUpMethodApple,
@@ -136,7 +136,7 @@ var AllSignUpMethod = []SignUpMethod{
 	SignUpMethodPhone,
 }
 
-// IsValid ..
+// IsValid returns true for valid sign up method
 func (e SignUpMethod) IsValid() bool {
 	switch e {
 	case SignUpMethodAnonymous, SignUpMethodApple, SignUpMethodFacebook, SignUpMethodGoogle, SignUpMethodPhone:
@@ -149,7 +149,7 @@ func (e SignUpMethod) String() string {
 	return string(e)
 }
 
-// UnmarshalGQL ..
+// UnmarshalGQL converts the input, if valid, into a signup method value
 func (e *SignUpMethod) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
@@ -163,7 +163,62 @@ func (e *SignUpMethod) UnmarshalGQL(v interface{}) error {
 	return nil
 }
 
-// MarshalGQL ..
+// MarshalGQL coverts the sign up method into a valid JSON string
 func (e SignUpMethod) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// PractitionerService defines the various services practitioners offer
+type PractitionerService string
+
+// PractitionerServiceOutpatientServices is a constant of all known practitioner service
+const (
+	PractitionerServiceOutpatientServices PractitionerService = "OUTPATIENT_SERVICES"
+	PractitionerServiceInpatientServices  PractitionerService = "INPATIENT_SERVICES"
+	PractitionerServicePharmacy           PractitionerService = "PHARMACY"
+	PractitionerServiceMaternity          PractitionerService = "MATERNITY"
+	PractitionerServiceLabServices        PractitionerService = "LAB_SERVICES"
+	PractitionerServiceOther              PractitionerService = "OTHER"
+)
+
+//AllPractitionerService is a list of all known practitioner service
+var AllPractitionerService = []PractitionerService{
+	PractitionerServiceOutpatientServices,
+	PractitionerServiceInpatientServices,
+	PractitionerServicePharmacy,
+	PractitionerServiceMaternity,
+	PractitionerServiceLabServices,
+	PractitionerServiceOther,
+}
+
+// IsValid returns true for valid practitioner service
+func (e PractitionerService) IsValid() bool {
+	switch e {
+	case PractitionerServiceOutpatientServices, PractitionerServiceInpatientServices, PractitionerServicePharmacy, PractitionerServiceMaternity, PractitionerServiceLabServices, PractitionerServiceOther:
+		return true
+	}
+	return false
+}
+
+func (e PractitionerService) String() string {
+	return string(e)
+}
+
+// UnmarshalGQL converts the input, if valid, into a practitioner service value
+func (e *PractitionerService) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PractitionerService(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PractitionerService", str)
+	}
+	return nil
+}
+
+// MarshalGQL coverts the practitioner service into a valid JSON string
+func (e PractitionerService) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

@@ -39,4 +39,8 @@ extend type Mutation {
   addCustomer: Customer!
   addCustomerKYC(input: CustomerKYCInput!): CustomerKYC!
   updateCustomer(input: CustomerKYCInput!): Customer!
+  addPractitionerServices(
+    services: PractitionerServiceInput!
+    otherServices: OtherPractitionerServiceInput
+  ): Boolean!
 }

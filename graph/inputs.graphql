@@ -49,3 +49,11 @@ input CustomerKYCInput {
   address: String!
   city: String!
 }
+
+input PractitionerServiceInput {
+  services: [PractitionerService!]!
+}
+
+input OtherPractitionerServiceInput {
+  otherServices: [String!]!
+}

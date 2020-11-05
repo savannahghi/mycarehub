@@ -132,6 +132,12 @@ func (r *mutationResolver) UpdateCustomer(ctx context.Context, input profile.Cus
 	return r.profileService.UpdateCustomer(ctx, input)
 }
 
+func (r *mutationResolver) AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.AddPractitionerServices(ctx, services, otherServices)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*profile.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()

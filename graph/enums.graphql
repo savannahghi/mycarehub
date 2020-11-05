@@ -26,3 +26,12 @@ enum SignUpMethod {
   google
   phone
 }
+
+enum PractitionerService {
+  OUTPATIENT_SERVICES
+  INPATIENT_SERVICES
+  PHARMACY
+  MATERNITY
+  LAB_SERVICES
+  OTHER
+}

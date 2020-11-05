@@ -1630,3 +1630,97 @@ func TestService_GetSignUpMethod(t *testing.T) {
 		})
 	}
 }
+
+func TestService_AddPractitionerServices(t *testing.T) {
+	service := NewService()
+	ctx := base.GetAuthenticatedContext(t)
+	profile, err := service.UserProfile(ctx)
+	assert.Nil(t, err)
+	assert.NotNil(t, profile)
+
+	dsnap, err := service.RetrievePractitionerFirebaseDocSnapshotByUID(ctx, profile.UID)
+	assert.Nil(t, err)
+	assert.NotNil(t, dsnap)
+
+	practitioner := &Practitioner{}
+	err = dsnap.DataTo(practitioner)
+	assert.Nil(t, err)
+
+	type args struct {
+		ctx           context.Context
+		services      PractitionerServiceInput
+		otherServices *OtherPractitionerServiceInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case - without other option",
+			args: args{
+				ctx: ctx,
+				services: PractitionerServiceInput{
+					Services: []PractitionerService{"PHARMACY"},
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "happy case - with other option",
+			args: args{
+				ctx: base.GetAuthenticatedContext(t),
+				services: PractitionerServiceInput{
+					Services: []PractitionerService{"OUTPATIENT_SERVICES", "OTHER"},
+				},
+				otherServices: &OtherPractitionerServiceInput{
+					OtherServices: []string{"other-services"},
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case - invalid enums",
+			args: args{
+				ctx: base.GetAuthenticatedContext(t),
+				services: PractitionerServiceInput{
+					Services: []PractitionerService{"not a valid enum"},
+				},
+				otherServices: &OtherPractitionerServiceInput{
+					OtherServices: []string{"other-services"},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case - others specified but no data entered",
+			args: args{
+				ctx: base.GetAuthenticatedContext(t),
+				services: PractitionerServiceInput{
+					Services: []PractitionerService{"OTHER"},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.AddPractitionerServices(tt.args.ctx, tt.args.services, tt.args.otherServices)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.AddPractitionerServices() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.AddPractitionerServices() = %v, want %v", got, tt.want)
+			}
+			hasServices := practitioner.HasServices
+			assert.True(t, hasServices)
+		})
+	}
+}
