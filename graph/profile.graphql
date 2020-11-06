@@ -43,4 +43,5 @@ extend type Mutation {
     services: PractitionerServiceInput!
     otherServices: OtherPractitionerServiceInput
   ): Boolean!
+  addSupplier: Supplier!
 }

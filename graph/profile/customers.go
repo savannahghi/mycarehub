@@ -20,7 +20,7 @@ const (
 
 	// Fetch the orgnisation's default currency from the env
 	// Currency is used in the creation of a business partner in the ERP
-	erpCurrencyEnvName = "ERP_DEFAULT_CURRENCY" // Org's default currency
+	erpCurrencyEnvName = "ERP_DEFAULT_CURRENCY"
 )
 
 // SaveCustomerToFireStore persists customer data to firestore
@@ -65,7 +65,6 @@ func (s Service) AddCustomer(ctx context.Context) (*Customer, error) {
 		return nil, profileErr
 	}
 
-	// Check if the customer already exists
 	dsnap, exists, err := s.RetrieveCustomerFirebaseDocSnapshotByUID(ctx, profile.UID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve customer: %v", err)
@@ -121,7 +120,19 @@ func (s Service) AddCustomer(ctx context.Context) (*Customer, error) {
 		return nil, fmt.Errorf("unable to add customer to firestore: %v", err)
 	}
 
-	// Check if customer exists and return the customer
+	profile.HasCustomerAccount = true
+	profileDsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve firebase user profile: %v", err)
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), profileDsnap.Ref.ID, profile,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to update user profile: %v", err)
+	}
+
 	return &newCustomer, nil
 }
 

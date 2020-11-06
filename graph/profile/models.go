@@ -116,6 +116,8 @@ type UserProfile struct {
 	IsEmailVerified            bool `json:"isEmailVerified" firestore:"isEmailVerified"`
 	IsMsisdnVerified           bool `json:"isMsisdnVerified" firestore:"isMsisdnVerified"`
 	HasPin                     bool `json:"hasPin" firestore:"hasPin"`
+	HasSupplierAccount         bool `json:"hasSupplierAccount" firestore:"hasSupplierAccount"`
+	HasCustomerAccount         bool `json:"hasCustomerAccount" firestore:"hasCustomerAccount"`
 }
 
 // IsEntity ...
@@ -265,4 +267,22 @@ type PractitionerServiceInput struct {
 type ServicesOffered struct {
 	Services      []PractitionerService `json:"services"`
 	OtherServices []string              `json:"otherServices"`
+}
+
+// PayablesAccount stores a supplier's payables account info
+type PayablesAccount struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	IsActive    bool   `json:"is_active"`
+	Number      string `json:"number"`
+	Tag         string `json:"tag"`
+	Description string `json:"description"`
+}
+
+// Supplier used to create a supplier request payload
+type Supplier struct {
+	UID             string           `json:"uid"`
+	UserProfile     *UserProfile     `json:"userProfile"`
+	SupplierID      string           `json:"id"`
+	PayablesAccount *PayablesAccount `json:"payables_account"`
 }

@@ -102,6 +102,7 @@ type ComplexityRoot struct {
 		AddCustomer               func(childComplexity int) int
 		AddCustomerKyc            func(childComplexity int, input profile.CustomerKYCInput) int
 		AddPractitionerServices   func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
+		AddSupplier               func(childComplexity int) int
 		AddTester                 func(childComplexity int, email string) int
 		ApprovePractitionerSignup func(childComplexity int, practitionerID string) int
 		CompleteSignup            func(childComplexity int) int
@@ -126,6 +127,15 @@ type ComplexityRoot struct {
 		HasNextPage     func(childComplexity int) int
 		HasPreviousPage func(childComplexity int) int
 		StartCursor     func(childComplexity int) int
+	}
+
+	PayablesAccount struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		IsActive    func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Number      func(childComplexity int) int
+		Tag         func(childComplexity int) int
 	}
 
 	Practitioner struct {
@@ -181,6 +191,13 @@ type ComplexityRoot struct {
 		Services      func(childComplexity int) int
 	}
 
+	Supplier struct {
+		PayablesAccount func(childComplexity int) int
+		SupplierID      func(childComplexity int) int
+		UID             func(childComplexity int) int
+		UserProfile     func(childComplexity int) int
+	}
+
 	TesterWhitelist struct {
 		Email func(childComplexity int) int
 	}
@@ -194,7 +211,9 @@ type ComplexityRoot struct {
 		DateOfBirth                        func(childComplexity int) int
 		Emails                             func(childComplexity int) int
 		Gender                             func(childComplexity int) int
+		HasCustomerAccount                 func(childComplexity int) int
 		HasPin                             func(childComplexity int) int
+		HasSupplierAccount                 func(childComplexity int) int
 		IsApproved                         func(childComplexity int) int
 		IsEmailVerified                    func(childComplexity int) int
 		IsMsisdnVerified                   func(childComplexity int) int
@@ -244,6 +263,7 @@ type MutationResolver interface {
 	AddCustomerKyc(ctx context.Context, input profile.CustomerKYCInput) (*profile.CustomerKYC, error)
 	UpdateCustomer(ctx context.Context, input profile.CustomerKYCInput) (*profile.Customer, error)
 	AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error)
+	AddSupplier(ctx context.Context) (*profile.Supplier, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*profile.UserProfile, error)
@@ -537,6 +557,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddPractitionerServices(childComplexity, args["services"].(profile.PractitionerServiceInput), args["otherServices"].(*profile.OtherPractitionerServiceInput)), true
 
+	case "Mutation.addSupplier":
+		if e.complexity.Mutation.AddSupplier == nil {
+			break
+		}
+
+		return e.complexity.Mutation.AddSupplier(childComplexity), true
+
 	case "Mutation.addTester":
 		if e.complexity.Mutation.AddTester == nil {
 			break
@@ -763,6 +790,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
+
+	case "PayablesAccount.description":
+		if e.complexity.PayablesAccount.Description == nil {
+			break
+		}
+
+		return e.complexity.PayablesAccount.Description(childComplexity), true
+
+	case "PayablesAccount.id":
+		if e.complexity.PayablesAccount.ID == nil {
+			break
+		}
+
+		return e.complexity.PayablesAccount.ID(childComplexity), true
+
+	case "PayablesAccount.isActive":
+		if e.complexity.PayablesAccount.IsActive == nil {
+			break
+		}
+
+		return e.complexity.PayablesAccount.IsActive(childComplexity), true
+
+	case "PayablesAccount.name":
+		if e.complexity.PayablesAccount.Name == nil {
+			break
+		}
+
+		return e.complexity.PayablesAccount.Name(childComplexity), true
+
+	case "PayablesAccount.number":
+		if e.complexity.PayablesAccount.Number == nil {
+			break
+		}
+
+		return e.complexity.PayablesAccount.Number(childComplexity), true
+
+	case "PayablesAccount.tag":
+		if e.complexity.PayablesAccount.Tag == nil {
+			break
+		}
+
+		return e.complexity.PayablesAccount.Tag(childComplexity), true
 
 	case "Practitioner.averageConsultationPrice":
 		if e.complexity.Practitioner.AverageConsultationPrice == nil {
@@ -1049,6 +1118,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServicesOffered.Services(childComplexity), true
 
+	case "Supplier.payablesAccount":
+		if e.complexity.Supplier.PayablesAccount == nil {
+			break
+		}
+
+		return e.complexity.Supplier.PayablesAccount(childComplexity), true
+
+	case "Supplier.supplierId":
+		if e.complexity.Supplier.SupplierID == nil {
+			break
+		}
+
+		return e.complexity.Supplier.SupplierID(childComplexity), true
+
+	case "Supplier.uid":
+		if e.complexity.Supplier.UID == nil {
+			break
+		}
+
+		return e.complexity.Supplier.UID(childComplexity), true
+
+	case "Supplier.userProfile":
+		if e.complexity.Supplier.UserProfile == nil {
+			break
+		}
+
+		return e.complexity.Supplier.UserProfile(childComplexity), true
+
 	case "TesterWhitelist.email":
 		if e.complexity.TesterWhitelist.Email == nil {
 			break
@@ -1112,12 +1209,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.Gender(childComplexity), true
 
+	case "UserProfile.hasCustomerAccount":
+		if e.complexity.UserProfile.HasCustomerAccount == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.HasCustomerAccount(childComplexity), true
+
 	case "UserProfile.hasPin":
 		if e.complexity.UserProfile.HasPin == nil {
 			break
 		}
 
 		return e.complexity.UserProfile.HasPin(childComplexity), true
+
+	case "UserProfile.hasSupplierAccount":
+		if e.complexity.UserProfile.HasSupplierAccount == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.HasSupplierAccount(childComplexity), true
 
 	case "UserProfile.isApproved":
 		if e.complexity.UserProfile.IsApproved == nil {
@@ -1576,6 +1687,7 @@ extend type Mutation {
     services: PractitionerServiceInput!
     otherServices: OtherPractitionerServiceInput
   ): Boolean!
+  addSupplier: Supplier!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `type Practitioner {
@@ -1656,7 +1768,13 @@ type UserProfile @key(fields: "uid") {
   askAgainToSetCanExperiment: Boolean
   isEmailVerified: Boolean
   isMsisdnVerified: Boolean
+
+  # These flags are used to distinguish previously exisiting user and
+  # new users signing up. They help us create accounts for the existing
+  # users in the backgroud and ask the user to set up a pin.
   hasPin: Boolean
+  hasSupplierAccount: Boolean
+  hasCustomerAccount: Boolean
 }
 
 type TesterWhitelist {
@@ -1691,6 +1809,22 @@ type CustomerKYC {
 type ServicesOffered {
   services: [PractitionerService!]!
   otherServices: [String!]!
+}
+
+type Supplier {
+  uid: String!
+  userProfile: UserProfile!
+  supplierId: String!
+  payablesAccount: PayablesAccount!
+}
+
+type PayablesAccount {
+  id: String!
+  name: String!
+  isActive: Boolean!
+  number: String!
+  tag: String!
+  description: String!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -4201,6 +4335,41 @@ func (ec *executionContext) _Mutation_addPractitionerServices(ctx context.Contex
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_addSupplier(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddSupplier(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.Supplier)
+	fc.Result = res
+	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4333,6 +4502,216 @@ func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graph
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PayablesAccount_id(ctx context.Context, field graphql.CollectedField, obj *profile.PayablesAccount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PayablesAccount",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PayablesAccount_name(ctx context.Context, field graphql.CollectedField, obj *profile.PayablesAccount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PayablesAccount",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PayablesAccount_isActive(ctx context.Context, field graphql.CollectedField, obj *profile.PayablesAccount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PayablesAccount",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsActive, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PayablesAccount_number(ctx context.Context, field graphql.CollectedField, obj *profile.PayablesAccount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PayablesAccount",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Number, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PayablesAccount_tag(ctx context.Context, field graphql.CollectedField, obj *profile.PayablesAccount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PayablesAccount",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tag, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PayablesAccount_description(ctx context.Context, field graphql.CollectedField, obj *profile.PayablesAccount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PayablesAccount",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Practitioner_profile(ctx context.Context, field graphql.CollectedField, obj *profile.Practitioner) (ret graphql.Marshaler) {
@@ -5675,6 +6054,146 @@ func (ec *executionContext) _ServicesOffered_otherServices(ctx context.Context, 
 	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Supplier_uid(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_userProfile(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserProfile, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.UserProfile)
+	fc.Result = res
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_supplierId(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupplierID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_payablesAccount(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PayablesAccount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.PayablesAccount)
+	fc.Result = res
+	return ec.marshalNPayablesAccount2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPayablesAccount(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TesterWhitelist_email(ctx context.Context, field graphql.CollectedField, obj *profile.TesterWhitelist) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6495,6 +7014,70 @@ func (ec *executionContext) _UserProfile_hasPin(ctx context.Context, field graph
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.HasPin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_hasSupplierAccount(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasSupplierAccount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_hasCustomerAccount(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasCustomerAccount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8647,6 +9230,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "addSupplier":
+			out.Values[i] = ec._Mutation_addSupplier(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8683,6 +9271,58 @@ func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._PageInfo_startCursor(ctx, field, obj)
 		case "endCursor":
 			out.Values[i] = ec._PageInfo_endCursor(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var payablesAccountImplementors = []string{"PayablesAccount"}
+
+func (ec *executionContext) _PayablesAccount(ctx context.Context, sel ast.SelectionSet, obj *profile.PayablesAccount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, payablesAccountImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PayablesAccount")
+		case "id":
+			out.Values[i] = ec._PayablesAccount_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._PayablesAccount_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isActive":
+			out.Values[i] = ec._PayablesAccount_isActive(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "number":
+			out.Values[i] = ec._PayablesAccount_number(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "tag":
+			out.Values[i] = ec._PayablesAccount_tag(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			out.Values[i] = ec._PayablesAccount_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9132,6 +9772,48 @@ func (ec *executionContext) _ServicesOffered(ctx context.Context, sel ast.Select
 	return out
 }
 
+var supplierImplementors = []string{"Supplier"}
+
+func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet, obj *profile.Supplier) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, supplierImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Supplier")
+		case "uid":
+			out.Values[i] = ec._Supplier_uid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "userProfile":
+			out.Values[i] = ec._Supplier_userProfile(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supplierId":
+			out.Values[i] = ec._Supplier_supplierId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "payablesAccount":
+			out.Values[i] = ec._Supplier_payablesAccount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var testerWhitelistImplementors = []string{"TesterWhitelist"}
 
 func (ec *executionContext) _TesterWhitelist(ctx context.Context, sel ast.SelectionSet, obj *profile.TesterWhitelist) graphql.Marshaler {
@@ -9248,6 +9930,10 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_isMsisdnVerified(ctx, field, obj)
 		case "hasPin":
 			out.Values[i] = ec._UserProfile_hasPin(ctx, field, obj)
+		case "hasSupplierAccount":
+			out.Values[i] = ec._UserProfile_hasSupplierAccount(ctx, field, obj)
+		case "hasCustomerAccount":
+			out.Values[i] = ec._UserProfile_hasCustomerAccount(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9821,6 +10507,16 @@ func (ec *executionContext) marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 	return ec._PageInfo(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNPayablesAccount2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPayablesAccount(ctx context.Context, sel ast.SelectionSet, v *profile.PayablesAccount) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PayablesAccount(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNPostVisitSurveyInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPostVisitSurveyInput(ctx context.Context, v interface{}) (profile.PostVisitSurveyInput, error) {
 	res, err := ec.unmarshalInputPostVisitSurveyInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -9995,6 +10691,20 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNSupplier2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx context.Context, sel ast.SelectionSet, v profile.Supplier) graphql.Marshaler {
+	return ec._Supplier(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *profile.Supplier) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Supplier(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v profile.UserProfile) graphql.Marshaler {

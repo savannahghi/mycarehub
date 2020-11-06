@@ -76,7 +76,13 @@ type UserProfile @key(fields: "uid") {
   askAgainToSetCanExperiment: Boolean
   isEmailVerified: Boolean
   isMsisdnVerified: Boolean
+
+  # These flags are used to distinguish previously exisiting user and
+  # new users signing up. They help us create accounts for the existing
+  # users in the backgroud and ask the user to set up a pin.
   hasPin: Boolean
+  hasSupplierAccount: Boolean
+  hasCustomerAccount: Boolean
 }
 
 type TesterWhitelist {
@@ -111,4 +117,20 @@ type CustomerKYC {
 type ServicesOffered {
   services: [PractitionerService!]!
   otherServices: [String!]!
+}
+
+type Supplier {
+  uid: String!
+  userProfile: UserProfile!
+  supplierId: String!
+  payablesAccount: PayablesAccount!
+}
+
+type PayablesAccount {
+  id: String!
+  name: String!
+  isActive: Boolean!
+  number: String!
+  tag: String!
+  description: String!
 }
