@@ -885,7 +885,14 @@ func (s Service) SetUserPin(ctx context.Context, msisdn string, pin string) (boo
 		return false, fmt.Errorf("unable to get or create a user profile: %v", err)
 	}
 
-	// TODO: Handle user with an existing PIN
+	exists, err := s.CheckUserWithMsisdn(ctx, phoneNumber)
+	if err != nil {
+		return false, fmt.Errorf("unable to check if the user exists: %v", err)
+	}
+
+	if exists {
+		return true, nil // Don't create another record if one already exists
+	}
 
 	personalIDNumber := PIN{
 		UID:     profile.UID,
@@ -952,8 +959,11 @@ func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
 	if err != nil {
 		return nil, err
 	}
-	if len(docs) != 1 {
-		return nil, fmt.Errorf("msisdn %s pin is not one (they have %d)", msisdn, len(docs))
+	if len(docs) > 1 {
+		log.Printf("msisdn %s has more than one pin (it has %d)", msisdn, len(docs))
+	}
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("pin can't be retrieved beacuse it does not exist")
 	}
 	dsnap := docs[0]
 	return dsnap, nil
