@@ -1607,13 +1607,13 @@ func TestService_GetSignUpMethod(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "sad case",
+			name: "sad case - sign up method not found",
 			args: args{
 				ctx: ctx,
 				id:  "invalid uid",
 			},
 			want:    "",
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -1638,7 +1638,8 @@ func TestService_AddPractitionerServices(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, profile)
 
-	dsnap, err := service.RetrievePractitionerFirebaseDocSnapshotByUID(ctx, profile.UID)
+	dsnap, err := service.RetrieveFireStoreSnapshotByUID(
+		ctx, profile.UID, service.GetPractitionerCollectionName(), "profile.uid")
 	assert.Nil(t, err)
 	assert.NotNil(t, dsnap)
 
@@ -1721,6 +1722,50 @@ func TestService_AddPractitionerServices(t *testing.T) {
 			}
 			hasServices := practitioner.HasServices
 			assert.True(t, hasServices)
+		})
+	}
+}
+
+func TestService_RetrieveFireStoreSnapshotByUID(t *testing.T) {
+	service := NewService()
+	ctx := base.GetAuthenticatedContext(t)
+	profile, err := service.UserProfile(ctx)
+	assert.Nil(t, err)
+	assert.NotNil(t, profile)
+
+	type args struct {
+		ctx            context.Context
+		uid            string
+		collectionName string
+		field          string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:            ctx,
+				uid:            profile.UID,
+				collectionName: service.GetPractitionerCollectionName(),
+				field:          "profile.uid",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.RetrieveFireStoreSnapshotByUID(tt.args.ctx, tt.args.uid, tt.args.collectionName, tt.args.field)
+			if err == nil {
+				assert.NotNil(t, got)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.RetrieveFireStoreSnapshotByUID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 		})
 	}
 }

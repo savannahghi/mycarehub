@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"net/http"
 
-	"cloud.google.com/go/firestore"
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -36,45 +35,21 @@ func (s Service) GetCustomerCollectionName() string {
 	return suffixed
 }
 
-// RetrieveCustomerFirebaseDocSnapshotByUID retrieves a raw customer Firebase doc snapshot
-func (s Service) RetrieveCustomerFirebaseDocSnapshotByUID(
-	ctx context.Context, uid string) (*firestore.DocumentSnapshot, bool, error) {
-	collection := s.firestoreClient.Collection(s.GetCustomerCollectionName())
-	query := collection.Where("UID", "==", uid)
-	docs, err := query.Documents(ctx).GetAll()
-	if err != nil {
-		return nil, false, fmt.Errorf("unable to retrieve customer snapshot: %v", err)
-	}
-	if len(docs) > 1 {
-		log.Printf("user %s has > 1 customer profile (they have %d)", uid, len(docs))
-	}
-	if len(docs) == 0 {
-		return nil, false, nil
-	}
-	dsnap := docs[0]
-	return dsnap, true, nil
-}
-
 // AddCustomer creates a customer on the ERP when a user signs up in our Be.Well Consumer
 func (s Service) AddCustomer(ctx context.Context) (*Customer, error) {
 	s.checkPreconditions()
 
-	customer := &Customer{}
 	profile, profileErr := s.UserProfile(ctx)
 	if profileErr != nil {
 		return nil, profileErr
 	}
 
-	dsnap, exists, err := s.RetrieveCustomerFirebaseDocSnapshotByUID(ctx, profile.UID)
+	customer, err := s.FindCustomer(ctx, profile.UID)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve customer: %v", err)
+		return nil, fmt.Errorf("unable to get customer: %v", err)
 	}
 
-	if exists {
-		err = dsnap.DataTo(customer)
-		if err != nil {
-			return nil, fmt.Errorf("unable to read customer data: %v", err)
-		}
+	if customer != nil {
 		return customer, nil
 	}
 
@@ -106,7 +81,6 @@ func (s Service) AddCustomer(ctx context.Context) (*Customer, error) {
 		return nil, fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
 	}
 	newCustomer := Customer{
-		UID:         profile.UID,
 		UserProfile: *profile,
 	}
 
@@ -145,7 +119,8 @@ func (s Service) AddCustomerKYC(ctx context.Context, input CustomerKYCInput) (*C
 		return nil, fmt.Errorf("unable to fetch user profile: %v", err)
 	}
 
-	dsnap, _, err := s.RetrieveCustomerFirebaseDocSnapshotByUID(ctx, profile.UID)
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
+		ctx, profile.UID, s.GetCustomerCollectionName(), "userprofile.uid")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve customer: %v", err)
 	}
@@ -181,7 +156,8 @@ func (s Service) UpdateCustomer(ctx context.Context, input CustomerKYCInput) (*C
 		return nil, fmt.Errorf("unable to fetch user profile: %v", err)
 	}
 
-	dsnap, _, err := s.RetrieveCustomerFirebaseDocSnapshotByUID(ctx, profile.UID)
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
+		ctx, profile.UID, s.GetCustomerCollectionName(), "userprofile.uid")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve customer: %v", err)
 	}
@@ -220,4 +196,63 @@ func (s Service) UpdateCustomer(ctx context.Context, input CustomerKYCInput) (*C
 	}
 
 	return customer, nil
+}
+
+// FindCustomer fetches a customer by their UID
+func (s Service) FindCustomer(ctx context.Context, uid string) (*Customer, error) {
+	s.checkPreconditions()
+
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
+		ctx, uid, s.GetCustomerCollectionName(), "userprofile.uid")
+	if err != nil {
+		return nil, fmt.Errorf("unable to retreive doc snapshot by uid: %v", err)
+	}
+
+	if dsnap == nil {
+		return nil, nil
+	}
+
+	customer := &Customer{}
+	err = dsnap.DataTo(customer)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read customer: %v", err)
+	}
+
+	return customer, nil
+}
+
+// FindCustomerByUIDHandler is a used for inter service communication to return details about a customer
+func FindCustomerByUIDHandler(ctx context.Context, service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		customerUID, err := ValidateUID(w, r)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		customer, err := service.FindCustomer(ctx, customerUID)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		if customer == nil {
+			base.WriteJSONResponse(w, StatusResponse{Status: "not found"}, http.StatusNotFound)
+			return
+		}
+
+		customerResponse := CustomerResponse{
+			CustomerID: customer.CustomerID,
+			ReceivablesAccount: ReceivablesAccount{
+				ID:          customer.ReceivablesAccount.ID,
+				Name:        customer.ReceivablesAccount.Name,
+				IsActive:    customer.ReceivablesAccount.IsActive,
+				Number:      customer.ReceivablesAccount.Number,
+				Tag:         customer.ReceivablesAccount.Tag,
+				Description: customer.ReceivablesAccount.Description,
+			},
+		}
+
+		base.WriteJSONResponse(w, customerResponse, http.StatusOK)
+	}
 }

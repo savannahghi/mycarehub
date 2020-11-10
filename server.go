@@ -102,6 +102,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Path("/update_pin").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(profile.UpdatePinHandler(ctx, srv))
 
+	// Interservice Authenticated routes
+	isc := r.PathPrefix("/internal").Subrouter()
+	isc.Use(base.InterServiceAuthenticationMiddleware())
+	isc.Path("/customer").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(profile.FindCustomerByUIDHandler(ctx, srv))
+	isc.Path("/supplier").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(profile.FindSupplierByUIDHandler(ctx, srv))
+
 	// check server status.
 	r.Path("/health").HandlerFunc(HealthStatusCheck)
 

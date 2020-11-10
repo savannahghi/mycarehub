@@ -90,7 +90,6 @@ type TesterWhitelist {
 }
 
 type Customer {
-  uid: String!
   userProfile: UserProfile!
   customerId: String!
   receivablesAccount: ReceivablesAccount!
@@ -120,7 +119,6 @@ type ServicesOffered {
 }
 
 type Supplier {
-  uid: String!
   userProfile: UserProfile!
   supplierId: String!
   payablesAccount: PayablesAccount!

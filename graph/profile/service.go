@@ -249,6 +249,27 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshot(
 	return s.RetrieveUserProfileFirebaseDocSnapshotByUID(ctx, uid)
 }
 
+// RetrieveFireStoreSnapshotByUID retrieves a specified Firestore document snapshot by its UID
+func (s Service) RetrieveFireStoreSnapshotByUID(
+	ctx context.Context, uid string, collectionName string,
+	field string) (*firestore.DocumentSnapshot, error) {
+	collection := s.firestoreClient.Collection(collectionName)
+	query := collection.Where(field, "==", uid)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) > 1 {
+		log.Printf("more than one snapshot found (they have %d)", len(docs))
+	}
+	if len(docs) == 0 {
+		return nil, nil
+	}
+	dsnap := docs[0]
+
+	return dsnap, nil
+}
+
 // UserProfile retrieves the profile of the logged in user, if they have one
 func (s Service) UserProfile(ctx context.Context) (*UserProfile, error) {
 	s.checkPreconditions()
@@ -1173,9 +1194,13 @@ func (s Service) CreateSignUpMethod(ctx context.Context, signUpMethod SignUpMeth
 
 // GetSignUpMethod returns a user's sign up method
 func (s Service) GetSignUpMethod(ctx context.Context, id string) (SignUpMethod, error) {
-	dsnap, err := s.RetrieveSignUpInfoFirebaseDocSnapshotByUID(ctx, id)
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, id, s.GetSignUpInfoCollectionName(), "uid")
 	if err != nil {
 		return "", fmt.Errorf("unable to fetch sign up info: %v", err)
+	}
+
+	if dsnap == nil {
+		return "", nil
 	}
 
 	info := &SignUpInfo{}
@@ -1189,39 +1214,24 @@ func (s Service) GetSignUpMethod(ctx context.Context, id string) (SignUpMethod, 
 	return signUpMethod, nil
 }
 
-// RetrieveSignUpInfoFirebaseDocSnapshotByUID retrieves the user profile of a
-// specified user
-func (s Service) RetrieveSignUpInfoFirebaseDocSnapshotByUID(
-	ctx context.Context,
-	uid string,
-) (*firestore.DocumentSnapshot, error) {
-
-	collection := s.firestoreClient.Collection(s.GetSignUpInfoCollectionName())
-	query := collection.Where("uid", "==", uid)
-	docs, err := query.Documents(ctx).GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve firebase query: %v", err)
-	}
-	if len(docs) == 0 {
-		return nil, fmt.Errorf("user does not have any sign up information")
-	}
-	//TODO...Can a user have more than one sign up information?
-
-	dsnap := docs[0]
-	return dsnap, nil
-}
-
 // AddPractitionerServices persists a practitioner services to firestore
-func (s Service) AddPractitionerServices(ctx context.Context, services PractitionerServiceInput, otherServices *OtherPractitionerServiceInput) (bool, error) {
+func (s Service) AddPractitionerServices(
+	ctx context.Context, services PractitionerServiceInput,
+	otherServices *OtherPractitionerServiceInput) (bool, error) {
 	s.checkPreconditions()
 
 	profile, err := s.UserProfile(ctx)
 	if err != nil {
 		return false, fmt.Errorf("unable to fetch user profile: %v", err)
 	}
-	dsnap, err := s.RetrievePractitionerFirebaseDocSnapshotByUID(ctx, profile.UID)
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
+		ctx, profile.UID, s.GetPractitionerCollectionName(), "profile.uid")
 	if err != nil {
 		return false, fmt.Errorf("unable to retreive practitioner: %v", err)
+	}
+
+	if dsnap == nil {
+		return false, nil
 	}
 	practitioner := &Practitioner{}
 	err = dsnap.DataTo(practitioner)
@@ -1273,27 +1283,4 @@ func (s Service) AddPractitionerServices(ctx context.Context, services Practitio
 	}
 
 	return true, nil
-}
-
-// RetrievePractitionerFirebaseDocSnapshotByUID retrieves the practitioner profile of a
-// specified user
-func (s Service) RetrievePractitionerFirebaseDocSnapshotByUID(
-	ctx context.Context,
-	uid string,
-) (*firestore.DocumentSnapshot, error) {
-
-	collection := s.firestoreClient.Collection(s.GetPractitionerCollectionName())
-	query := collection.Where("profile.uid", "==", uid)
-	docs, err := query.Documents(ctx).GetAll()
-	if err != nil {
-		return nil, err
-	}
-	if len(docs) > 1 {
-		log.Printf("practitioner %s has > 1 records (they have %d)", uid, len(docs))
-	}
-	if len(docs) == 0 {
-		return nil, nil
-	}
-	dsnap := docs[0]
-	return dsnap, nil
 }

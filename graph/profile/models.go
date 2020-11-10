@@ -218,9 +218,8 @@ type SignUpInfo struct {
 
 // Customer used to create a customer request payload
 type Customer struct {
-	UID                string             `json:"uid,omitempty"`
-	UserProfile        UserProfile        `json:"userprofile,omitempty"`
-	CustomerID         string             `json:"id,omitempty"`
+	UserProfile        UserProfile        `json:"userprofile,omitempty" firestore:"userprofile"`
+	CustomerID         string             `json:"id,omitempty" firestore:"customerid"`
 	ReceivablesAccount ReceivablesAccount `json:"receivables_account,omitempty"`
 	CustomerKYC        CustomerKYC        `json:"customer_kyc,omitempty"`
 }
@@ -281,8 +280,29 @@ type PayablesAccount struct {
 
 // Supplier used to create a supplier request payload
 type Supplier struct {
-	UID             string           `json:"uid"`
-	UserProfile     *UserProfile     `json:"userProfile"`
-	SupplierID      string           `json:"id"`
-	PayablesAccount *PayablesAccount `json:"payables_account"`
+	UserProfile     UserProfile     `json:"userProfile" firestore:"userprofile"`
+	SupplierID      string          `json:"id" firestore:"supplierid"`
+	PayablesAccount PayablesAccount `json:"payables_account"`
+}
+
+// StatusResponse creates a status response for requests
+type StatusResponse struct {
+	Status string `json:"status"`
+}
+
+// BusinessPartnerUID is the business partner uid used in requests
+type BusinessPartnerUID struct {
+	UID string `json:"uid"`
+}
+
+// CustomerResponse returns customer accounts for interservice communication
+type CustomerResponse struct {
+	CustomerID         string             `json:"customer_id"`
+	ReceivablesAccount ReceivablesAccount `json:"receivables_account"`
+}
+
+// SupplierResponse returns supplier accounts for interservice communication
+type SupplierResponse struct {
+	SupplierID      string          `json:"supplier_id"`
+	PayablesAccount PayablesAccount `json:"payables_account"`
 }

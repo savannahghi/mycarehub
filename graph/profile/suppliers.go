@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"net/http"
 
-	"cloud.google.com/go/firestore"
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -30,45 +29,21 @@ func (s Service) GetSupplierCollectionName() string {
 	return suffixed
 }
 
-// RetrieveSupplierFirebaseDocSnapshotByUID retrieves a raw supplier Firebase doc snapshot
-func (s Service) RetrieveSupplierFirebaseDocSnapshotByUID(
-	ctx context.Context, uid string) (*firestore.DocumentSnapshot, bool, error) {
-	collection := s.firestoreClient.Collection(s.GetSupplierCollectionName())
-	query := collection.Where("UID", "==", uid)
-	docs, err := query.Documents(ctx).GetAll()
-	if err != nil {
-		return nil, false, fmt.Errorf("unable to retrieve supplier snapshot: %v", err)
-	}
-	if len(docs) > 1 {
-		log.Printf("user %s has > 1 supplier profile (they have %d)", uid, len(docs))
-	}
-	if len(docs) == 0 {
-		return nil, false, nil
-	}
-	dsnap := docs[0]
-	return dsnap, true, nil
-}
-
 // AddSupplier creates a supplier on the ERP when a user signs up in our Be.Well Pro
 func (s Service) AddSupplier(ctx context.Context) (*Supplier, error) {
 	s.checkPreconditions()
 
-	supplier := &Supplier{}
 	profile, profileErr := s.UserProfile(ctx)
 	if profileErr != nil {
 		return nil, profileErr
 	}
 
-	dsnap, exists, err := s.RetrieveSupplierFirebaseDocSnapshotByUID(ctx, profile.UID)
+	supplier, err := s.FindSupplier(ctx, profile.UID)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve supplier: %v", err)
+		return nil, fmt.Errorf("unable to get supplier: %v", err)
 	}
 
-	if exists {
-		err = dsnap.DataTo(supplier)
-		if err != nil {
-			return nil, fmt.Errorf("unable to read supplier data: %v", err)
-		}
+	if supplier != nil {
 		return supplier, nil
 	}
 
@@ -100,8 +75,7 @@ func (s Service) AddSupplier(ctx context.Context) (*Supplier, error) {
 		return nil, fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
 	}
 	newSupplier := Supplier{
-		UID:         profile.UID,
-		UserProfile: profile,
+		UserProfile: *profile,
 	}
 
 	err = base.ReadRequestToTarget(s.client, "POST", supplierAPIPath, "", content, &newSupplier)
@@ -128,4 +102,61 @@ func (s Service) AddSupplier(ctx context.Context) (*Supplier, error) {
 	}
 
 	return &newSupplier, nil
+}
+
+// FindSupplier fetches a supplier by their UID
+func (s Service) FindSupplier(ctx context.Context, uid string) (*Supplier, error) {
+	s.checkPreconditions()
+
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
+		ctx, uid, s.GetSupplierCollectionName(), "userprofile.uid")
+	if err != nil {
+		return nil, fmt.Errorf("unable to retreive doc snapshot by uid: %v", err)
+	}
+
+	if dsnap == nil {
+		return nil, nil
+	}
+	supplier := &Supplier{}
+	err = dsnap.DataTo(supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier: %v", err)
+	}
+
+	return supplier, nil
+}
+
+// FindSupplierByUIDHandler is a used for inter service communication to return details about a supplier
+func FindSupplierByUIDHandler(ctx context.Context, service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		supplierUID, err := ValidateUID(w, r)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+		supplier, err := service.FindSupplier(ctx, supplierUID)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		if supplier == nil {
+			base.WriteJSONResponse(w, StatusResponse{Status: "not found"}, http.StatusNotFound)
+			return
+		}
+
+		supplierResponse := SupplierResponse{
+			SupplierID: supplier.SupplierID,
+			PayablesAccount: PayablesAccount{
+				ID:          supplier.PayablesAccount.ID,
+				Name:        supplier.PayablesAccount.Name,
+				IsActive:    supplier.PayablesAccount.IsActive,
+				Number:      supplier.PayablesAccount.Number,
+				Tag:         supplier.PayablesAccount.Tag,
+				Description: supplier.PayablesAccount.Description,
+			},
+		}
+
+		base.WriteJSONResponse(w, supplierResponse, http.StatusOK)
+	}
 }

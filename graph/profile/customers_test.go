@@ -1,7 +1,12 @@
 package profile
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"firebase.google.com/go/auth"
@@ -199,6 +204,134 @@ func TestService_UpdateCustomer(t *testing.T) {
 				t.Errorf("Service.UpdateCustomer() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+		})
+	}
+}
+
+func TestService_FindCustomer(t *testing.T) {
+	service := NewService()
+	ctx, token := base.GetAuthenticatedContextAndToken(t)
+	assert.NotNil(t, ctx)
+	assert.NotNil(t, token)
+
+	type args struct {
+		ctx context.Context
+		uid string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx: ctx,
+				uid: token.UID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case - customer does not exist",
+			args: args{
+				ctx: context.Background(),
+				uid: "not a uid",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			customer, err := s.FindCustomer(tt.args.ctx, tt.args.uid)
+			if customer != nil {
+				assert.Nil(t, err)
+				assert.NotNil(t, customer)
+			}
+			if customer == nil {
+				assert.Nil(t, err)
+				assert.Nil(t, customer)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.FindCustomer() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestFindCustomerByUID(t *testing.T) {
+	ctx := base.GetAuthenticatedContext(t)
+	service := NewService()
+	profile, err := service.UserProfile(ctx)
+	assert.Nil(t, err)
+	assert.NotNil(t, profile)
+	findCustomer := FindCustomerByUIDHandler(ctx, service)
+
+	uid := &BusinessPartnerUID{UID: profile.UID}
+	goodUIDJSONBytes, err := json.Marshal(uid)
+	assert.Nil(t, err)
+	assert.NotNil(t, goodUIDJSONBytes)
+	goodCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	goodCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(goodUIDJSONBytes))
+
+	emptyUID := &BusinessPartnerUID{}
+	badUIDJSONBytes, err := json.Marshal(emptyUID)
+	assert.Nil(t, err)
+	assert.NotNil(t, badUIDJSONBytes)
+	badCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	badCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
+
+	nonExistentUID := &BusinessPartnerUID{UID: "this uid does not exist"}
+	nonExistentUIDJSONBytes, err := json.Marshal(nonExistentUID)
+	assert.Nil(t, err)
+	assert.NotNil(t, nonExistentUIDJSONBytes)
+	nonExistentCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	nonExistentCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(nonExistentUIDJSONBytes))
+
+	type args struct {
+		w http.ResponseWriter
+		r *http.Request
+	}
+	tests := []struct {
+		name           string
+		args           args
+		wantStatusCode int
+	}{
+		{
+			name: "happy find customer request",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: goodCustomerRequest,
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			name: "sad find customer request",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: badCustomerRequest,
+			},
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "not found customer request",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: nonExistentCustomerRequest,
+			},
+			wantStatusCode: http.StatusNotFound,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			findCustomer(tt.args.w, tt.args.r)
+
+			rec, ok := tt.args.w.(*httptest.ResponseRecorder)
+			assert.True(t, ok)
+			assert.NotNil(t, rec)
+
+			assert.Equal(t, rec.Code, tt.wantStatusCode)
 		})
 	}
 }
