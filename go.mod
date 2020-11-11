@@ -12,15 +12,13 @@ require (
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.4
 	github.com/mailru/easyjson v0.7.2 // indirect
-	github.com/securego/gosec/v2 v2.5.0 // indirect
 	github.com/shopspring/decimal v1.2.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
 	gitlab.slade360emr.com/go/authorization v0.0.7
-	gitlab.slade360emr.com/go/base v0.0.43
+	gitlab.slade360emr.com/go/base v0.0.55
 	gitlab.slade360emr.com/go/mailgun v0.0.8
 	gitlab.slade360emr.com/go/otp v0.0.16
 	gitlab.slade360emr.com/go/uploads v0.0.9 // indirect
-	honnef.co/go/tools v0.0.1-2020.1.6 // indirect
 )
