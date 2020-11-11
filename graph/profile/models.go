@@ -42,7 +42,6 @@ type Practitioner struct {
 	ProfessionalProfile      base.Markdown              `json:"professionalProfile"`
 	AverageConsultationPrice float64                    `json:"averageConsultationPrice"`
 	Services                 ServicesOffered            `json:"services_offered"`
-	HasServices              bool                       `json:"hasServices"`
 }
 
 // PractitionerConnection is used to return lists of practitioners.
@@ -118,6 +117,7 @@ type UserProfile struct {
 	HasPin                     bool `json:"hasPin" firestore:"hasPin"`
 	HasSupplierAccount         bool `json:"hasSupplierAccount" firestore:"hasSupplierAccount"`
 	HasCustomerAccount         bool `json:"hasCustomerAccount" firestore:"hasCustomerAccount"`
+	PractitionerHasServices    bool `json:"practitionerHasServices" firestore:"practitionerHasServices"`
 }
 
 // IsEntity ...
@@ -241,6 +241,7 @@ type CustomerKYC struct {
 	IDNumber   string `json:"id_number,omitempty"`
 	Address    string `json:"address,omitempty"`
 	City       string `json:"city,omitempty"`
+	// Beneficiary
 }
 
 // CustomerKYCInput stores customerKYC input details

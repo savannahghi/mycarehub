@@ -6,7 +6,6 @@ type Practitioner {
   professionalProfile: Markdown!
   averageConsultationPrice: Float!
   services: ServicesOffered!
-  hasServices: Boolean
 }
 
 type PractitionerEdge {
@@ -83,6 +82,7 @@ type UserProfile @key(fields: "uid") {
   hasPin: Boolean
   hasSupplierAccount: Boolean
   hasCustomerAccount: Boolean
+  practitionerHasServices: Boolean
 }
 
 type TesterWhitelist {

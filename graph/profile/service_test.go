@@ -1720,7 +1720,7 @@ func TestService_AddPractitionerServices(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("Service.AddPractitionerServices() = %v, want %v", got, tt.want)
 			}
-			hasServices := practitioner.HasServices
+			hasServices := practitioner.Profile.PractitionerHasServices
 			assert.True(t, hasServices)
 		})
 	}

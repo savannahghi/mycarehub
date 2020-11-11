@@ -1258,7 +1258,7 @@ func (s Service) AddPractitionerServices(
 			practitioner.Services.Services = offeredServices
 			practitioner.Services.OtherServices = otherOfferedServices
 
-			practitioner.HasServices = true
+			practitioner.Profile.PractitionerHasServices = true
 
 			err = base.UpdateRecordOnFirestore(
 				s.firestoreClient, s.GetPractitionerCollectionName(), dsnap.Ref.ID, practitioner,
@@ -1272,7 +1272,7 @@ func (s Service) AddPractitionerServices(
 		offeredServices = append(offeredServices, service)
 		practitioner.Services.Services = offeredServices
 
-		practitioner.HasServices = true
+		practitioner.Profile.PractitionerHasServices = true
 	}
 
 	err = base.UpdateRecordOnFirestore(

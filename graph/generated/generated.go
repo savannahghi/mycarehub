@@ -140,7 +140,6 @@ type ComplexityRoot struct {
 	Practitioner struct {
 		AverageConsultationPrice func(childComplexity int) int
 		Cadre                    func(childComplexity int) int
-		HasServices              func(childComplexity int) int
 		License                  func(childComplexity int) int
 		ProfessionalProfile      func(childComplexity int) int
 		Profile                  func(childComplexity int) int
@@ -223,6 +222,7 @@ type ComplexityRoot struct {
 		PhotoBase64                        func(childComplexity int) int
 		PhotoContentType                   func(childComplexity int) int
 		PractitionerApproved               func(childComplexity int) int
+		PractitionerHasServices            func(childComplexity int) int
 		PractitionerTermsOfServiceAccepted func(childComplexity int) int
 		PushTokens                         func(childComplexity int) int
 		TermsAccepted                      func(childComplexity int) int
@@ -838,13 +838,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Practitioner.Cadre(childComplexity), true
 
-	case "Practitioner.hasServices":
-		if e.complexity.Practitioner.HasServices == nil {
-			break
-		}
-
-		return e.complexity.Practitioner.HasServices(childComplexity), true
-
 	case "Practitioner.license":
 		if e.complexity.Practitioner.License == nil {
 			break
@@ -1291,6 +1284,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.PractitionerApproved(childComplexity), true
 
+	case "UserProfile.practitionerHasServices":
+		if e.complexity.UserProfile.PractitionerHasServices == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.PractitionerHasServices(childComplexity), true
+
 	case "UserProfile.practitionerTermsOfServiceAccepted":
 		if e.complexity.UserProfile.PractitionerTermsOfServiceAccepted == nil {
 			break
@@ -1682,7 +1682,6 @@ extend type Mutation {
   professionalProfile: Markdown!
   averageConsultationPrice: Float!
   services: ServicesOffered!
-  hasServices: Boolean
 }
 
 type PractitionerEdge {
@@ -1759,6 +1758,7 @@ type UserProfile @key(fields: "uid") {
   hasPin: Boolean
   hasSupplierAccount: Boolean
   hasCustomerAccount: Boolean
+  practitionerHasServices: Boolean
 }
 
 type TesterWhitelist {
@@ -4906,38 +4906,6 @@ func (ec *executionContext) _Practitioner_services(ctx context.Context, field gr
 	return ec.marshalNServicesOffered2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐServicesOffered(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Practitioner_hasServices(ctx context.Context, field graphql.CollectedField, obj *profile.Practitioner) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Practitioner",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HasServices, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _PractitionerConnection_edges(ctx context.Context, field graphql.CollectedField, obj *profile.PractitionerConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6990,6 +6958,38 @@ func (ec *executionContext) _UserProfile_hasCustomerAccount(ctx context.Context,
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.HasCustomerAccount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_practitionerHasServices(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PractitionerHasServices, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9287,8 +9287,6 @@ func (ec *executionContext) _Practitioner(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "hasServices":
-			out.Values[i] = ec._Practitioner_hasServices(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9836,6 +9834,8 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_hasSupplierAccount(ctx, field, obj)
 		case "hasCustomerAccount":
 			out.Values[i] = ec._UserProfile_hasCustomerAccount(ctx, field, obj)
+		case "practitionerHasServices":
+			out.Values[i] = ec._UserProfile_practitionerHasServices(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
