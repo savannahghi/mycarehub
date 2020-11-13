@@ -875,15 +875,6 @@ func (s Service) SetUserPin(ctx context.Context, msisdn string, pin string) (boo
 		return false, fmt.Errorf("unable to get or create a user profile: %v", err)
 	}
 
-	exists, err := s.CheckUserWithMsisdn(ctx, phoneNumber)
-	if err != nil {
-		return false, fmt.Errorf("unable to check if the user exists: %v", err)
-	}
-
-	if exists {
-		return true, nil // Don't create another record if one already exists
-	}
-
 	personalIDNumber := PIN{
 		UID:     profile.UID,
 		MSISDN:  phoneNumber,
