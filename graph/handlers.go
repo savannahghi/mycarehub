@@ -63,9 +63,17 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	isc := r.PathPrefix("/internal").Subrouter()
 	isc.Use(base.InterServiceAuthenticationMiddleware())
 	isc.Path("/customer").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(profile.FindCustomerByUIDHandler(ctx, srv))
+		http.MethodPost, http.MethodOptions,
+	).HandlerFunc(profile.FindCustomerByUIDHandler(ctx, srv))
+
 	isc.Path("/supplier").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(profile.FindSupplierByUIDHandler(ctx, srv))
+		http.MethodPost, http.MethodOptions,
+	).HandlerFunc(profile.FindSupplierByUIDHandler(ctx, srv))
+
+	isc.Path("/contactdetails/{attribute}/").Methods(
+		http.MethodGet).HandlerFunc(
+		GetProfileAttributesHandler(ctx),
+	).Name("getProfileAttributes")
 
 	// Authenticated routes
 	gqlR := r.Path("/graphql").Subrouter()
@@ -125,4 +133,25 @@ func PrepareServer(ctx context.Context, port int, allowedOrigins []string) *http
 	}
 	log.Infof("Server running at port %v", addr)
 	return srv
+}
+
+// GetProfileAttributesHandler retreives confirmed user profile attributes
+func GetProfileAttributesHandler(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		validUids, err := profile.ValidateUserProfileUIDs(w, r)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		uids := validUids.UIDs
+		response, err := profile.GetAttribute(ctx, r, uids)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, response, http.StatusOK)
+
+	}
 }

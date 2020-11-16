@@ -280,3 +280,72 @@ func TestValidateUID(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateUserProfileUIDs(t *testing.T) {
+	ctx := base.GetAuthenticatedContext(t)
+	service := NewService()
+	profile, err := service.UserProfile(ctx)
+	assert.Nil(t, err)
+	assert.NotNil(t, profile)
+
+	uid := &UserUIDs{
+		UIDs: []string{profile.UID},
+	}
+
+	goodUIDJSONBytes, err := json.Marshal(uid)
+	assert.Nil(t, err)
+	assert.NotNil(t, goodUIDJSONBytes)
+	goodRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	goodRequest.Body = ioutil.NopCloser(bytes.NewReader(goodUIDJSONBytes))
+
+	emptyUID := &UserUIDs{}
+	badUIDJSONBytes, err := json.Marshal(emptyUID)
+	assert.Nil(t, err)
+	assert.NotNil(t, badUIDJSONBytes)
+	badRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	badRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
+
+	type args struct {
+		w http.ResponseWriter
+		r *http.Request
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *UserUIDs
+		wantErr bool
+	}{
+		{
+			name: "valid uids",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: goodRequest,
+			},
+			want: &UserUIDs{
+				UIDs: []string{profile.UID},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid uids",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: badRequest,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ValidateUserProfileUIDs(tt.args.w, tt.args.r)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidateUserProfileUIDs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ValidateUserProfileUIDs() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

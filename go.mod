@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
 	gitlab.slade360emr.com/go/authorization v0.0.7
-	gitlab.slade360emr.com/go/base v0.0.58
+	gitlab.slade360emr.com/go/base v0.0.59
 	gitlab.slade360emr.com/go/otp v0.0.16
 	gopkg.in/yaml.v2 v2.3.0
 )

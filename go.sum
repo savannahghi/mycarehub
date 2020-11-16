@@ -440,8 +440,8 @@ gitlab.slade360emr.com/go/authorization v0.0.7 h1:nUF2TpcJRUyml0u+K2Y3MOFhNuzFbW
 gitlab.slade360emr.com/go/authorization v0.0.7/go.mod h1:t3plG1Ggf2iqq2ayaxVkElEIXzRaR8c99H7yy3vqs9c=
 gitlab.slade360emr.com/go/base v0.0.33 h1:F3GzjPKoR+q87nUyBhabn1ni3tdFb13XqOX03n+ED08=
 gitlab.slade360emr.com/go/base v0.0.33/go.mod h1:FSZG+DP8U+w5WTmYLE7iEV/eU4QSq0BkskS4Qc8aGz4=
-gitlab.slade360emr.com/go/base v0.0.58 h1:p25iXQ45AV7tIUN4eNLgBFMB4ellcRhqtTyITGmJFu0=
-gitlab.slade360emr.com/go/base v0.0.58/go.mod h1:D6V0F/8M7coDH+l/gj9BgUafKV7YQGVJr2NuJ46pLtw=
+gitlab.slade360emr.com/go/base v0.0.59 h1:pOek82nQMDhp+8IXlkCOAhxBYsbq8xpcw8eMhk3+NO8=
+gitlab.slade360emr.com/go/base v0.0.59/go.mod h1:D6V0F/8M7coDH+l/gj9BgUafKV7YQGVJr2NuJ46pLtw=
 gitlab.slade360emr.com/go/chargemaster v0.0.6 h1:KwySFLacOO4YuPNS7BjzUyN5Avz+S48gGg7Th3fFEVk=
 gitlab.slade360emr.com/go/chargemaster v0.0.6/go.mod h1:QOso8jSalc/pc+jUZxgNqUowPP2e6nnBRk/GvGScB5k=
 gitlab.slade360emr.com/go/mailgun v0.0.8 h1:AtzPgXsTJxt5h6TglChKwf1rWt34OWiMF/PpvyZzxIk=

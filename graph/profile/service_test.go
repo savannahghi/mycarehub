@@ -1268,7 +1268,6 @@ func TestService_UpdateUserPin(t *testing.T) {
 
 	otpOne, _ := service.otpService.GenerateAndSendOTP(base.TestUserPhoneNumber)
 	otpTwo, _ := service.otpService.GenerateAndSendOTP(base.TestUserPhoneNumber)
-
 	type args struct {
 		ctx    context.Context
 		msisdn string

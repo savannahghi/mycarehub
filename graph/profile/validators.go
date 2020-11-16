@@ -79,3 +79,15 @@ func ValidateUID(w http.ResponseWriter, r *http.Request) (string, error) {
 
 	return uid.UID, nil
 }
+
+// ValidateUserProfileUIDs checks that the uids supplied in the indicated request are valid
+func ValidateUserProfileUIDs(w http.ResponseWriter, r *http.Request) (*UserUIDs, error) {
+	uids := &UserUIDs{}
+	base.DecodeJSONToTargetStruct(w, r, uids)
+	if len(uids.UIDs) == 0 {
+		err := fmt.Errorf("invalid credentials, expected a slice of uids")
+		base.ReportErr(w, err, http.StatusBadRequest)
+		return nil, err
+	}
+	return uids, nil
+}

@@ -1070,7 +1070,7 @@ func (s Service) RequestPinReset(ctx context.Context, msisdn string) (string, er
 
 	_, err := s.CheckUserWithMsisdn(ctx, msisdn)
 	if err != nil {
-		return "", fmt.Errorf("unable to get user profile: %v", err)
+		return "", fmt.Errorf("unable to get user pin: %v", err)
 	}
 
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)

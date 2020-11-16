@@ -307,3 +307,8 @@ type SupplierResponse struct {
 	SupplierID      string          `json:"supplier_id"`
 	PayablesAccount PayablesAccount `json:"payables_account"`
 }
+
+// UserUIDs is an input of a list of user uids for isc requests
+type UserUIDs struct {
+	UIDs []string `json:"uids"`
+}

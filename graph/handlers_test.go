@@ -279,3 +279,117 @@ func TestGraphQLApprovePractitionerSignUp(t *testing.T) {
 		})
 	}
 }
+
+func TestGetProfileAttributesHandler(t *testing.T) {
+	client := http.DefaultClient
+	attribute := "emails"
+
+	uids := profile.UserUIDs{
+		UIDs: []string{"some-uids"},
+	}
+	bs, err := json.Marshal(uids)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	payload := bytes.NewBuffer(bs)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "successful get confirmed email addresses",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/contactdetails/%s/",
+					baseURL,
+					attribute,
+				),
+				httpMethod: http.MethodGet,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "failed get confirmed email addresses",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/contactdetails/%s/",
+					baseURL,
+					attribute,
+				),
+				httpMethod: http.MethodGet,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+
+			if data == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d and response %s", tt.wantStatus, resp.StatusCode, string(data))
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+		})
+	}
+}
