@@ -965,6 +965,27 @@ func TestService_ListKMPDURegisteredPractitioners(t *testing.T) {
 func TestService_IsUnderAge(t *testing.T) {
 	service := NewService()
 	ctx := base.GetAuthenticatedContext(t)
+	profile, err := service.UserProfile(ctx)
+	if err != nil {
+		t.Errorf("got %v, want %v", err, nil)
+	}
+	date := &base.Date{
+		Year:  1997,
+		Month: 12,
+		Day:   13,
+	}
+	profile.DateOfBirth = date
+	dsnap, err := service.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		t.Errorf("got %v, want %v", err, nil)
+	}
+	err = base.UpdateRecordOnFirestore(
+		service.firestoreClient, service.GetUserProfileCollectionName(),
+		dsnap.Ref.ID, profile,
+	)
+	if err != nil {
+		t.Errorf("got %v, want %v", err, nil)
+	}
 
 	type args struct {
 		ctx context.Context
@@ -1068,7 +1089,7 @@ func TestService_RetrievePINFirebaseDocSnapshotByMSISDN(t *testing.T) {
 			name: "Happy retrive pin using msisdn",
 			args: args{
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: "+254778990088",
+				msisdn: base.TestUserPhoneNumber,
 			},
 			wantErr: false,
 		},
@@ -1116,7 +1137,7 @@ func TestService_VerifyMSISDNandPin(t *testing.T) {
 			name: "happy case",
 			args: args{
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: "+254778990088",
+				msisdn: base.TestUserPhoneNumber,
 				pin:    "1234",
 			},
 			want:    true,
@@ -1164,7 +1185,7 @@ func TestService_CheckUserWithMsisdn(t *testing.T) {
 			name: "happy case",
 			args: args{
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: "+254778990088",
+				msisdn: base.TestUserPhoneNumber,
 			},
 			want:    true,
 			wantErr: false,
@@ -1209,7 +1230,7 @@ func TestService_RequestPinReset(t *testing.T) {
 			name: "request pin reset happy case",
 			args: args{
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: "+254778990088",
+				msisdn: base.TestUserPhoneNumber,
 			},
 			wantErr: false,
 		},
@@ -1245,8 +1266,9 @@ func TestService_RequestPinReset(t *testing.T) {
 func TestService_UpdateUserPin(t *testing.T) {
 	service := NewService()
 
-	otpOne, _ := service.otpService.GenerateAndSendOTP("+254778990088")
-	otpTwo, _ := service.otpService.GenerateAndSendOTP("+254778990088")
+	otpOne, _ := service.otpService.GenerateAndSendOTP(base.TestUserPhoneNumber)
+	otpTwo, _ := service.otpService.GenerateAndSendOTP(base.TestUserPhoneNumber)
+
 	type args struct {
 		ctx    context.Context
 		msisdn string
@@ -1263,7 +1285,7 @@ func TestService_UpdateUserPin(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: "+254778990088",
+				msisdn: base.TestUserPhoneNumber,
 				pin:    "0987",
 				otp:    otpOne,
 			},
@@ -1274,7 +1296,7 @@ func TestService_UpdateUserPin(t *testing.T) {
 			name: "Happy restoration case", // Restores the initial pin to avoid test breakages
 			args: args{
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: "+254778990088",
+				msisdn: base.TestUserPhoneNumber,
 				pin:    "1234",
 				otp:    otpTwo,
 			},

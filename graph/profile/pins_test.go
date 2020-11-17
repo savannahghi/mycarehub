@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gitlab.slade360emr.com/go/base"
 )
 
 func TestRequestPinResetFunc(t *testing.T) {
@@ -17,7 +18,7 @@ func TestRequestPinResetFunc(t *testing.T) {
 	srv := NewService()
 	requestPinReset := RequestPinResetFunc(ctx, srv)
 
-	goodResetDataJSONBytes, err := json.Marshal(&PinRecovery{MSISDN: "+254778990088"})
+	goodResetDataJSONBytes, err := json.Marshal(&PinRecovery{MSISDN: base.TestUserPhoneNumber})
 	assert.Nil(t, err)
 	assert.NotNil(t, goodResetDataJSONBytes)
 	goodResetDataRequest := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -101,10 +102,10 @@ func TestUpdatePinHandler(t *testing.T) {
 	service := NewService()
 
 	loginFunc := UpdatePinHandler(ctx, service)
-	otp, _ := service.otpService.GenerateAndSendOTP("+254778990088")
+	otp, _ := service.otpService.GenerateAndSendOTP(base.TestUserPhoneNumber)
 
 	goodUpdatePinPayloadJSONBytes, err := json.Marshal(&PinRecovery{
-		MSISDN: "+254778990088",
+		MSISDN: base.TestUserPhoneNumber,
 		PIN:    "1234",
 		OTP:    otp,
 	})
@@ -116,7 +117,7 @@ func TestUpdatePinHandler(t *testing.T) {
 	goodUpdatePinPayloadReq.Body = ioutil.NopCloser(bytes.NewReader(goodUpdatePinPayloadJSONBytes))
 
 	invalidOTPJSONBytes, err := json.Marshal(&PinRecovery{
-		MSISDN: "+254778990088",
+		MSISDN: base.TestUserPhoneNumber,
 		PIN:    "1234",
 		OTP:    otp,
 	})
