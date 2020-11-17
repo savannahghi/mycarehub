@@ -36,7 +36,7 @@ func TestRequestPinResetFunc(t *testing.T) {
 	incorrectResetDataRequest := httptest.NewRequest(http.MethodGet, "/", nil)
 	incorrectResetDataRequest.Body = ioutil.NopCloser(bytes.NewReader(incorrectResetDataJSONBytes))
 
-	nonExistentResetDataJSONBytes, err := json.Marshal(&PinRecovery{MSISDN: "+254712789456"})
+	nonExistentResetDataJSONBytes, err := json.Marshal(&PinRecovery{MSISDN: base.TestUserPhoneNumber})
 	assert.Nil(t, err)
 	assert.NotNil(t, nonExistentResetDataJSONBytes)
 	nonExistentResetDataRequest := httptest.NewRequest(http.MethodGet, "/", nil)
