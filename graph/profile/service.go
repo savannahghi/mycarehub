@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
-	"net/http/httputil"
 	"os"
 	"path/filepath"
 
@@ -552,8 +551,6 @@ func (s Service) SendPractitionerSignUpEmail(ctx context.Context, emailaddress s
 	if err != nil {
 		return fmt.Errorf("unable to send Practitioner signup email: %w", err)
 	}
-	b, _ := httputil.DumpResponse(resp, true)
-	log.Println(string(b))
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unable to send Practitioner signup email : %w, with status code %v", err, resp.StatusCode)
@@ -716,9 +713,6 @@ func (s Service) SendPractitionerWelcomeEmail(ctx context.Context, emailaddress 
 		return fmt.Errorf("unable to send welcome email: %w", err)
 	}
 
-	b, _ := httputil.DumpResponse(resp, true)
-	log.Println(string(b))
-
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unable to send welcome email: %w, with status code %v", err, resp.StatusCode)
 	}
@@ -744,9 +738,6 @@ func (s Service) SendPractitionerRejectionEmail(ctx context.Context, emailaddres
 	if err != nil {
 		return fmt.Errorf("unable to send rejection email: %w", err)
 	}
-
-	b, _ := httputil.DumpResponse(resp, true)
-	log.Println(string(b))
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unable to send rejection email : %w, with status code %v", err, resp.StatusCode)
