@@ -16,8 +16,8 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/graph/profile"
 	"gitlab.slade360emr.com/go/profile/graph/generated"
+	"gitlab.slade360emr.com/go/profile/graph/profile"
 )
 
 const serverTimeoutSeconds = 120
@@ -58,6 +58,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// check server status.
 	r.Path("/health").HandlerFunc(HealthStatusCheck)
+
+	// Interservice Authenticated routes
+	isc := r.PathPrefix("/internal").Subrouter()
+	isc.Use(base.InterServiceAuthenticationMiddleware())
+	isc.Path("/customer").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(profile.FindCustomerByUIDHandler(ctx, srv))
+	isc.Path("/supplier").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(profile.FindSupplierByUIDHandler(ctx, srv))
 
 	// Authenticated routes
 	gqlR := r.Path("/graphql").Subrouter()
