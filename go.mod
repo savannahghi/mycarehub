@@ -9,7 +9,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/google/uuid v1.1.2
-	github.com/gorilla/handlers v1.4.2
+	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.7.4
 	github.com/mailru/easyjson v0.7.2 // indirect
 	github.com/shopspring/decimal v1.2.0
@@ -17,8 +17,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
 	gitlab.slade360emr.com/go/authorization v0.0.7
-	gitlab.slade360emr.com/go/base v0.0.55
-	gitlab.slade360emr.com/go/mailgun v0.0.8
+	gitlab.slade360emr.com/go/base v0.0.58
 	gitlab.slade360emr.com/go/otp v0.0.16
-	gitlab.slade360emr.com/go/uploads v0.0.9 // indirect
+	gopkg.in/yaml.v2 v2.3.0
 )

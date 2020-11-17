@@ -1,0 +1,9 @@
+staging:
+  - depName: mailgun
+    depRootDomain: https://mailgun-staging.healthcloud.co.ke
+testing:
+  - depName: mailgun
+    depRootDomain: https://mailgun-testing.healthcloud.co.ke
+production:
+  - depName: mailgun
+    depRootDomain: https://mailgun-prod.healthcloud.co.ke

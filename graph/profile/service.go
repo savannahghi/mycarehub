@@ -4,18 +4,23 @@ package profile
 import (
 	"context"
 	"fmt"
-	"log"
+	"io/ioutil"
 	"math"
+	"net/http"
+	"net/http/httputil"
+	"os"
+	"path/filepath"
 
 	"time"
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"github.com/asaskevich/govalidator"
+	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/mailgun/graph/mailgun"
 	"gitlab.slade360emr.com/go/otp/graph/otp"
+	"gopkg.in/yaml.v2"
 )
 
 // configuration constants
@@ -36,8 +41,43 @@ const (
 	signUpInfoCollectionName            = "sign_up_info"
 )
 
+// dependencies names. Should match the names in the yaml file
+const (
+	mailgunService  = "mailgun"
+	smsService      = "sms"
+	twilioService   = "twilio"
+	whatsappService = "whatsapp"
+)
+
+// specific endpoint paths for ISC
+const (
+	// mailgun isc paths
+	sendEmail = "internal/send_email"
+
+	//whatsapp isc paths
+	//TODO:
+
+	// twilio isc paths
+	// TODO:
+)
+
 // NewService returns a new authentication service
 func NewService() *Service {
+
+	var config base.DepsConfig
+
+	//os file and parse it to go type
+	file, err := ioutil.ReadFile(filepath.Clean(base.PathToDepsFile()))
+	if err != nil {
+		log.Errorf("error occured while opening deps file %v", err)
+		os.Exit(1)
+	}
+
+	if err := yaml.Unmarshal(file, &config); err != nil {
+		log.Errorf("failed to unmarshal yaml config file %v", err)
+		os.Exit(1)
+	}
+
 	fc := &base.FirebaseClient{}
 	ctx := context.Background()
 
@@ -64,21 +104,48 @@ func NewService() *Service {
 		log.Panicf("uninitialized ERP client")
 	}
 
+	var mailgunClient *base.InterServiceClient
+
+	if base.GetRunningEnvironment() == base.StagingEnv {
+		mg := base.GetDepFromConfig(mailgunService, config.Staging)
+		mailgunClient, err = base.NewInterserviceClient(base.ISCService{Name: mg.DepName, RootDomain: mg.DepRootDomain})
+		if err != nil {
+			log.Panicf("unable to initialize inter service client: %s", err)
+		}
+	}
+
+	if base.GetRunningEnvironment() == base.TestingEnv {
+		mg := base.GetDepFromConfig(mailgunService, config.Testing)
+		mailgunClient, err = base.NewInterserviceClient(base.ISCService{Name: mg.DepName, RootDomain: mg.DepRootDomain})
+		if err != nil {
+			log.Panicf("unable to initialize inter service client: %s", err)
+		}
+	}
+
+	if base.GetRunningEnvironment() == base.ProdEnv {
+		mg := base.GetDepFromConfig(mailgunService, config.Production)
+		mailgunClient, err = base.NewInterserviceClient(base.ISCService{Name: mg.DepName, RootDomain: mg.DepRootDomain})
+		if err != nil {
+			log.Panicf("unable to initialize inter service client: %s", err)
+		}
+	}
+
 	return &Service{
 		firestoreClient: firestore,
 		firebaseAuth:    auth,
-		emailService:    mailgun.NewService(),
 		otpService:      otp.NewService(),
 		client:          erpClient,
+		mailgun:         mailgunClient,
 	}
 }
 
 // Service is an authentication service. It handles authentication related
 // issues e.g user profiles
 type Service struct {
+	mailgun *base.InterServiceClient
+
 	firestoreClient *firestore.Client
 	firebaseAuth    *auth.Client
-	emailService    *mailgun.Service
 	otpService      *otp.Service
 	client          *base.ServerClient
 }
@@ -92,8 +159,8 @@ func (s Service) checkPreconditions() {
 		log.Panicf("profile service does not have an initialized firebaseAuth")
 	}
 
-	if s.emailService == nil {
-		log.Panicf("profile service does not have an initialized emailService")
+	if s.mailgun == nil {
+		log.Panicf("profile service does not have an initialized mailgun Service")
 	}
 
 	if s.client == nil {
@@ -475,9 +542,21 @@ func (s Service) SendPractitionerSignUpEmail(ctx context.Context, emailaddress s
 		return nil
 	}
 
-	_, _, err := s.emailService.SendEmail(emailSignupSubject, text, emailaddress)
+	body := map[string]interface{}{
+		"to":      []string{emailaddress},
+		"text":    text,
+		"subject": emailSignupSubject,
+	}
+
+	resp, err := s.mailgun.MakeRequest(http.MethodPost, sendEmail, body)
 	if err != nil {
-		return nil
+		return fmt.Errorf("unable to send Practitioner signup email: %w", err)
+	}
+	b, _ := httputil.DumpResponse(resp, true)
+	log.Println(string(b))
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send Practitioner signup email : %w, with status code %v", err, resp.StatusCode)
 	}
 
 	return nil
@@ -625,9 +704,23 @@ func (s Service) SendPractitionerWelcomeEmail(ctx context.Context, emailaddress 
 	if !govalidator.IsEmail(emailaddress) {
 		return nil
 	}
-	_, _, err := s.emailService.SendEmail(emailWelcomeSubject, text, emailaddress)
+
+	body := map[string]interface{}{
+		"to":      []string{emailaddress},
+		"text":    text,
+		"subject": emailWelcomeSubject,
+	}
+
+	resp, err := s.mailgun.MakeRequest(http.MethodPost, sendEmail, body)
 	if err != nil {
 		return fmt.Errorf("unable to send welcome email: %w", err)
+	}
+
+	b, _ := httputil.DumpResponse(resp, true)
+	log.Println(string(b))
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send welcome email: %w, with status code %v", err, resp.StatusCode)
 	}
 
 	return nil
@@ -640,10 +733,25 @@ func (s Service) SendPractitionerRejectionEmail(ctx context.Context, emailaddres
 	if !govalidator.IsEmail(emailaddress) {
 		return nil
 	}
-	_, _, err := s.emailService.SendEmail(emailRejectionSubject, text, emailaddress)
+
+	body := map[string]interface{}{
+		"to":      []string{emailaddress},
+		"text":    text,
+		"subject": emailRejectionSubject,
+	}
+
+	resp, err := s.mailgun.MakeRequest(http.MethodPost, sendEmail, body)
 	if err != nil {
 		return fmt.Errorf("unable to send rejection email: %w", err)
 	}
+
+	b, _ := httputil.DumpResponse(resp, true)
+	log.Println(string(b))
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send rejection email : %w, with status code %v", err, resp.StatusCode)
+	}
+
 	return nil
 }
 
