@@ -159,7 +159,7 @@ func (s Service) checkPreconditions() {
 	}
 
 	if s.mailgun == nil {
-		log.Panicf("profile service does not have an initialized mailgun Service")
+		log.Panicf("profile service does not have an initialized mailgun ISC Client")
 	}
 
 	if s.client == nil {
