@@ -43,7 +43,7 @@ func TestService_AddSupplier(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			supplier, err := s.AddSupplier(tt.args.ctx)
+			supplier, err := s.AddSupplier(tt.args.ctx, nil)
 			if err == nil {
 				assert.Nil(t, err)
 				assert.NotNil(t, supplier)
@@ -71,12 +71,13 @@ func TestService_FindSupplier(t *testing.T) {
 		uid string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name        string
+		args        args
+		wantErr     bool
+		expectedErr string
 	}{
 		{
-			name: "happy case",
+			name: "valid : authenticated context",
 			args: args{
 				ctx: ctx,
 				uid: token.UID,
@@ -84,30 +85,34 @@ func TestService_FindSupplier(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "sad case",
+			name: "invalid : unautheniticated context",
 			args: args{
 				ctx: context.Background(),
 				uid: "not a uid",
 			},
-			wantErr: false,
+			wantErr:     true,
+			expectedErr: "unable to get Firebase user with UID not a uid: cannot find user from uid: \"not a uid\"",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
 			supplier, err := s.FindSupplier(tt.args.ctx, tt.args.uid)
-			if supplier == nil {
-				assert.Nil(t, err)
+
+			if tt.wantErr && (err == nil) {
+				t.Errorf("expected an error. got %v", err)
+			}
+
+			if tt.wantErr {
 				assert.Nil(t, supplier)
+				assert.Contains(t, err.Error(), tt.expectedErr)
 			}
-			if supplier != nil {
-				assert.Nil(t, err)
+
+			if !tt.wantErr {
 				assert.NotNil(t, supplier)
+				assert.Nil(t, err)
 			}
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.GetSupplier() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+
 		})
 	}
 }
@@ -121,7 +126,7 @@ func TestFindSupplierByUID(t *testing.T) {
 	findSupplier := FindSupplierByUIDHandler(ctx, service)
 
 	uid := &BusinessPartnerUID{
-		UID: profile.UID,
+		UID: &profile.UID,
 	}
 	goodUIDJSONBytes, err := json.Marshal(uid)
 	assert.Nil(t, err)
@@ -136,7 +141,8 @@ func TestFindSupplierByUID(t *testing.T) {
 	badSupplierRequest := httptest.NewRequest(http.MethodGet, "/", nil)
 	badSupplierRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
 
-	nonExistentUID := &BusinessPartnerUID{UID: "this uid does not exist"}
+	badUID := "this uid does not exist"
+	nonExistentUID := &BusinessPartnerUID{UID: &badUID}
 	nonExistentUIDJSONBytes, err := json.Marshal(nonExistentUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, nonExistentUIDJSONBytes)
@@ -153,7 +159,7 @@ func TestFindSupplierByUID(t *testing.T) {
 		wantStatusCode int
 	}{
 		{
-			name: "happy find Supplier request",
+			name: "valid : find customer",
 			args: args{
 				w: httptest.NewRecorder(),
 				r: goodSupplierRequest,
@@ -161,7 +167,7 @@ func TestFindSupplierByUID(t *testing.T) {
 			wantStatusCode: http.StatusOK,
 		},
 		{
-			name: "sad find supplier request",
+			name: "invalid : missing user uid",
 			args: args{
 				w: httptest.NewRecorder(),
 				r: badSupplierRequest,

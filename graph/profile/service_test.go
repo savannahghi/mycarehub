@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"os"
 	"reflect"
 	"strconv"
 	"testing"
 	"time"
 
-	"cloud.google.com/go/firestore"
-	"firebase.google.com/go/auth"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -21,30 +20,10 @@ import (
 	"gitlab.slade360emr.com/go/otp/graph/otp"
 )
 
-func GetFirestoreClient(t *testing.T) *firestore.Client {
-	fc := &base.FirebaseClient{}
-	firebaseApp, err := fc.InitFirebase()
-	assert.Nil(t, err)
-
-	ctx := base.GetAuthenticatedContext(t)
-	firestoreClient, err := firebaseApp.Firestore(ctx)
-	assert.Nil(t, err)
-	assert.NotNil(t, firestoreClient)
-	return firestoreClient
-}
-
-func GetFirebaseAuthClient(t *testing.T) (*auth.Client, error) {
-	fc := &base.FirebaseClient{}
-	firebaseApp, err := fc.InitFirebase()
-	if err != nil {
-		return nil, fmt.Errorf("unable to initialize Firebase app: %w", err)
-	}
-	ctx := base.GetAuthenticatedContext(t)
-	client, err := firebaseApp.Auth(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to initialize Firebase auth client: %w", err)
-	}
-	return client, nil
+func TestMain(m *testing.M) {
+	os.Setenv("ENVIRONMENT", "testing")
+	os.Setenv("ROOT_COLLECTION_SUFFIX", "testing_ci")
+	os.Exit(m.Run())
 }
 
 func TestNewService(t *testing.T) {

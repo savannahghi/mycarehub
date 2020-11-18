@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"firebase.google.com/go/auth"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 )
@@ -222,7 +223,8 @@ func TestValidateUID(t *testing.T) {
 	assert.NotNil(t, profile)
 
 	uid := &BusinessPartnerUID{
-		UID: profile.UID,
+		UID:   &profile.UID,
+		Token: &auth.Token{},
 	}
 
 	goodUIDJSONBytes, err := json.Marshal(uid)
@@ -245,7 +247,7 @@ func TestValidateUID(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    string
+		want    *BusinessPartnerUID
 		wantErr bool
 	}{
 		{
@@ -254,7 +256,10 @@ func TestValidateUID(t *testing.T) {
 				w: httptest.NewRecorder(),
 				r: goodCustomerRequest,
 			},
-			want:    profile.UID,
+			want: &BusinessPartnerUID{
+				UID:   &profile.UID,
+				Token: &auth.Token{},
+			},
 			wantErr: false,
 		},
 		{
@@ -263,7 +268,7 @@ func TestValidateUID(t *testing.T) {
 				w: httptest.NewRecorder(),
 				r: badCustomerRequest,
 			},
-			want:    "",
+			want:    nil,
 			wantErr: true,
 		},
 	}
@@ -274,7 +279,7 @@ func TestValidateUID(t *testing.T) {
 				t.Errorf("ValidateUID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ValidateUID() = %v, want %v", got, tt.want)
 			}
 		})

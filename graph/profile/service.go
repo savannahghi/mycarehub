@@ -105,28 +105,9 @@ func NewService() *Service {
 
 	var mailgunClient *base.InterServiceClient
 
-	if base.GetRunningEnvironment() == base.StagingEnv {
-		mg := base.GetDepFromConfig(mailgunService, config.Staging)
-		mailgunClient, err = base.NewInterserviceClient(base.ISCService{Name: mg.DepName, RootDomain: mg.DepRootDomain})
-		if err != nil {
-			log.Panicf("unable to initialize inter service client: %s", err)
-		}
-	}
-
-	if base.GetRunningEnvironment() == base.TestingEnv {
-		mg := base.GetDepFromConfig(mailgunService, config.Testing)
-		mailgunClient, err = base.NewInterserviceClient(base.ISCService{Name: mg.DepName, RootDomain: mg.DepRootDomain})
-		if err != nil {
-			log.Panicf("unable to initialize inter service client: %s", err)
-		}
-	}
-
-	if base.GetRunningEnvironment() == base.ProdEnv {
-		mg := base.GetDepFromConfig(mailgunService, config.Production)
-		mailgunClient, err = base.NewInterserviceClient(base.ISCService{Name: mg.DepName, RootDomain: mg.DepRootDomain})
-		if err != nil {
-			log.Panicf("unable to initialize inter service client: %s", err)
-		}
+	mailgunClient, err = base.SetupISCclient(config, mailgunService)
+	if err != nil {
+		log.Panicf("unable to initialize inter service client: %s", err)
 	}
 
 	return &Service{
@@ -249,7 +230,9 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 		return nil, err
 	}
 	if len(docs) > 1 {
-		log.Printf("user %s has > 1 profile (they have %d)", uid, len(docs))
+		if base.IsDebug() {
+			log.Printf("user %s has > 1 profile (they have %d)", uid, len(docs))
+		}
 	}
 	if len(docs) == 0 {
 		newProfile := &UserProfile{
@@ -295,7 +278,9 @@ func (s Service) RetrieveFireStoreSnapshotByUID(
 		return nil, err
 	}
 	if len(docs) > 1 {
-		log.Printf("more than one snapshot found (they have %d)", len(docs))
+		if base.IsDebug() {
+			log.Printf("more than one snapshot found (they have %d)", len(docs))
+		}
 	}
 	if len(docs) == 0 {
 		return nil, nil
@@ -1040,7 +1025,9 @@ func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
 		return nil, err
 	}
 	if len(docs) > 1 {
-		log.Printf("msisdn %s has more than one pin (it has %d)", msisdn, len(docs))
+		if base.IsDebug() {
+			log.Printf("msisdn %s has more than one pin (it has %d)", msisdn, len(docs))
+		}
 	}
 	if len(docs) == 0 {
 		return nil, fmt.Errorf("pin can't be retrieved beacuse it does not exist")
@@ -1310,7 +1297,7 @@ func (s Service) AddPractitionerServices(
 			if otherServices == nil {
 				return false, fmt.Errorf("specify other services after selecting Others")
 			}
-			//TODO Pop the "others"
+			//TODO: Pop the "others"
 			offeredServices = append(offeredServices, service)
 			otherOfferedServices = append(otherOfferedServices, otherServices.OtherServices...)
 
@@ -1342,4 +1329,12 @@ func (s Service) AddPractitionerServices(
 	}
 
 	return true, nil
+}
+
+// ParseUserProfileFromContextOrUID parses a user profile from either the logged-in context or uid
+func (s Service) ParseUserProfileFromContextOrUID(ctx context.Context, uid *string) (*UserProfile, error) {
+	if uid != nil {
+		return s.GetProfile(ctx, *uid)
+	}
+	return s.UserProfile(ctx)
 }

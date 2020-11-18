@@ -169,7 +169,6 @@ func TestGraphQLPractitionerSignUp(t *testing.T) {
 				return
 			}
 
-			log.Printf("response: %s", string(data))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -269,7 +268,6 @@ func TestGraphQLApprovePractitionerSignUp(t *testing.T) {
 				return
 			}
 
-			log.Printf("response: %s", string(data))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -30,28 +30,16 @@ func (s Service) GetSupplierCollectionName() string {
 }
 
 // AddSupplier creates a supplier on the ERP when a user signs up in our Be.Well Pro
-func (s Service) AddSupplier(ctx context.Context) (*Supplier, error) {
+func (s Service) AddSupplier(ctx context.Context, uid *string) (*Supplier, error) {
 	s.checkPreconditions()
 
-	profile, profileErr := s.UserProfile(ctx)
-	if profileErr != nil {
-		return nil, profileErr
-	}
-
-	supplier, err := s.FindSupplier(ctx, profile.UID)
+	profile, err := s.ParseUserProfileFromContextOrUID(ctx, uid)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get supplier: %v", err)
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
 
-	if supplier != nil {
-		return supplier, nil
-	}
+	user, userErr := s.firebaseAuth.GetUser(ctx, profile.UID)
 
-	fireBaseClient, clientErr := base.GetFirebaseAuthClient(ctx)
-	if clientErr != nil {
-		return nil, fmt.Errorf("unable to initialize Firebase auth client: %w", clientErr)
-	}
-	user, userErr := fireBaseClient.GetUser(ctx, profile.UID)
 	if userErr != nil {
 		return nil, fmt.Errorf("unable to get Firebase user with UID %s: %w", profile.UID, userErr)
 	}
@@ -60,12 +48,15 @@ func (s Service) AddSupplier(ctx context.Context) (*Supplier, error) {
 		return nil, fmt.Errorf("user does not have a DisplayName")
 	}
 
-	currency := base.MustGetEnvVar(erpCurrencyEnvName)
+	currency, err := base.FetchDefaultCurrency(s.client)
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch orgs default currency: %v", err)
+	}
 	payload := map[string]interface{}{
 		"active":        active,
 		"partner_name":  user.DisplayName,
 		"country":       country,
-		"currency":      currency,
+		"currency":      *currency.ID,
 		"is_supplier":   isSupplier,
 		"supplier_type": supplierType,
 	}
@@ -78,13 +69,11 @@ func (s Service) AddSupplier(ctx context.Context) (*Supplier, error) {
 		UserProfile: *profile,
 	}
 
-	err = base.ReadRequestToTarget(s.client, "POST", supplierAPIPath, "", content, &newSupplier)
-	if err != nil {
+	if err := base.ReadRequestToTarget(s.client, "POST", supplierAPIPath, "", content, &newSupplier); err != nil {
 		return nil, fmt.Errorf("unable to make request to the ERP: %v", err)
 	}
 
-	err = s.SaveSupplierToFireStore(newSupplier)
-	if err != nil {
+	if err := s.SaveSupplierToFireStore(newSupplier); err != nil {
 		return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
 	}
 
@@ -94,10 +83,9 @@ func (s Service) AddSupplier(ctx context.Context) (*Supplier, error) {
 		return nil, fmt.Errorf("unable to retrieve firebase user profile: %v", err)
 	}
 
-	err = base.UpdateRecordOnFirestore(
+	if err := base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), profileDsnap.Ref.ID, profile,
-	)
-	if err != nil {
+	); err != nil {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
 	}
 
@@ -115,7 +103,7 @@ func (s Service) FindSupplier(ctx context.Context, uid string) (*Supplier, error
 	}
 
 	if dsnap == nil {
-		return nil, nil
+		return s.AddSupplier(ctx, &uid)
 	}
 	supplier := &Supplier{}
 	err = dsnap.DataTo(supplier)
@@ -129,19 +117,23 @@ func (s Service) FindSupplier(ctx context.Context, uid string) (*Supplier, error
 // FindSupplierByUIDHandler is a used for inter service communication to return details about a supplier
 func FindSupplierByUIDHandler(ctx context.Context, service *Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		supplierUID, err := ValidateUID(w, r)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-		supplier, err := service.FindSupplier(ctx, supplierUID)
+		s, err := ValidateUID(w, r)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
-		if supplier == nil {
-			base.WriteJSONResponse(w, StatusResponse{Status: "not found"}, http.StatusNotFound)
+		var supplier *Supplier
+
+		if s.Token != nil {
+			newContext := context.WithValue(ctx, base.AuthTokenContextKey, s.Token)
+			supplier, err = service.FindSupplier(newContext, *s.UID)
+		} else {
+			supplier, err = service.FindSupplier(ctx, *s.UID)
+		}
+
+		if supplier == nil || err != nil {
+			base.ReportErr(w, err, http.StatusNotFound)
 			return
 		}
 
@@ -154,6 +146,15 @@ func FindSupplierByUIDHandler(ctx context.Context, service *Service) http.Handle
 				Number:      supplier.PayablesAccount.Number,
 				Tag:         supplier.PayablesAccount.Tag,
 				Description: supplier.PayablesAccount.Description,
+			},
+			Profile: BioData{
+				UID:        supplier.UserProfile.UID,
+				Name:       supplier.UserProfile.Name,
+				Gender:     supplier.UserProfile.Gender,
+				Msisdns:    supplier.UserProfile.Msisdns,
+				Emails:     supplier.UserProfile.Emails,
+				PushTokens: supplier.UserProfile.PushTokens,
+				Bio:        supplier.UserProfile.Bio,
 			},
 		}
 

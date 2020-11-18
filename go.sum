@@ -87,6 +87,8 @@ github.com/aws/aws-sdk-go v1.34.13 h1:wwNWSUh4FGJxXVOVVNj2lWI8wTe5hK8sGWlK7ziEcg
 github.com/aws/aws-sdk-go v1.34.13/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU8YkpAk0=
 github.com/aws/aws-sdk-go v1.35.31 h1:6tlaYq4Q311qfhft/fIaND33XI27aW3zIdictcHxifE=
 github.com/aws/aws-sdk-go v1.35.31/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
+github.com/aws/aws-sdk-go v1.35.32 h1:PMKbimvySE9aC5789AcNU4VOhIoicZX0EXUajTTuDxc=
+github.com/aws/aws-sdk-go v1.35.32/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
 github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc h1:biVzkmvwrH8WK8raXaxBx6fRVTlJILwEwQGL1I/ByEI=
 github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
@@ -474,8 +476,8 @@ gitlab.slade360emr.com/go/authorization v0.0.7 h1:nUF2TpcJRUyml0u+K2Y3MOFhNuzFbW
 gitlab.slade360emr.com/go/authorization v0.0.7/go.mod h1:t3plG1Ggf2iqq2ayaxVkElEIXzRaR8c99H7yy3vqs9c=
 gitlab.slade360emr.com/go/base v0.0.33 h1:F3GzjPKoR+q87nUyBhabn1ni3tdFb13XqOX03n+ED08=
 gitlab.slade360emr.com/go/base v0.0.33/go.mod h1:FSZG+DP8U+w5WTmYLE7iEV/eU4QSq0BkskS4Qc8aGz4=
-gitlab.slade360emr.com/go/base v0.0.61 h1:GVykGF00hCQ5pzJtWDoMsGwNyf7x/BiuDKDIUeND9Jo=
-gitlab.slade360emr.com/go/base v0.0.61/go.mod h1:8wLIgjpHIn0wbWcSb+kgZVk1YMHH/VDh134DFgSWwL4=
+gitlab.slade360emr.com/go/base v0.0.63 h1:6kTF92BZoUg31rjcH5b0f+ANEki6VeqSFk/ruKAzzYk=
+gitlab.slade360emr.com/go/base v0.0.63/go.mod h1:8wLIgjpHIn0wbWcSb+kgZVk1YMHH/VDh134DFgSWwL4=
 gitlab.slade360emr.com/go/chargemaster v0.0.6 h1:KwySFLacOO4YuPNS7BjzUyN5Avz+S48gGg7Th3fFEVk=
 gitlab.slade360emr.com/go/chargemaster v0.0.6/go.mod h1:QOso8jSalc/pc+jUZxgNqUowPP2e6nnBRk/GvGScB5k=
 gitlab.slade360emr.com/go/chargemaster v0.0.7 h1:iMmgqP++TflJuqepSD5nbkLoJrvzci8kq0c+hqfbJfk=
@@ -699,8 +701,8 @@ golang.org/x/tools v0.0.0-20201030143252-cf7a54d06671/go.mod h1:emZCQorbCU4vsT4f
 golang.org/x/tools v0.0.0-20201105220310-78b158585360/go.mod h1:emZCQorbCU4vsT4fOWvOPXz4eW1wZW4PmDk9uLelYpA=
 golang.org/x/tools v0.0.0-20201110124207-079ba7bd75cd/go.mod h1:emZCQorbCU4vsT4fOWvOPXz4eW1wZW4PmDk9uLelYpA=
 golang.org/x/tools v0.0.0-20201119054027-25dc3e1ccc3c/go.mod h1:emZCQorbCU4vsT4fOWvOPXz4eW1wZW4PmDk9uLelYpA=
-golang.org/x/tools v0.0.0-20201119132711-4783bc9bebf0 h1:26vapYZ9m+DJd68m3DCFP/swNNErXAU7tOMFG7NyUuM=
-golang.org/x/tools v0.0.0-20201119132711-4783bc9bebf0/go.mod h1:emZCQorbCU4vsT4fOWvOPXz4eW1wZW4PmDk9uLelYpA=
+golang.org/x/tools v0.0.0-20201120032337-6d151481565c h1:IXtuZap6vTKIQ3jemmcwf2gY4BT+lwfZHBYwxMGe5/k=
+golang.org/x/tools v0.0.0-20201120032337-6d151481565c/go.mod h1:emZCQorbCU4vsT4fOWvOPXz4eW1wZW4PmDk9uLelYpA=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=

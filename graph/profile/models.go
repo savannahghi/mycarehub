@@ -3,6 +3,7 @@ package profile
 import (
 	"time"
 
+	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -293,19 +294,33 @@ type StatusResponse struct {
 
 // BusinessPartnerUID is the business partner uid used in requests
 type BusinessPartnerUID struct {
-	UID string `json:"uid"`
+	UID   *string     `json:"uid"`
+	Token *auth.Token `json:"token"`
 }
 
 // CustomerResponse returns customer accounts for interservice communication
 type CustomerResponse struct {
 	CustomerID         string             `json:"customer_id"`
 	ReceivablesAccount ReceivablesAccount `json:"receivables_account"`
+	Profile            BioData            `json:"profile"`
+}
+
+//BioData returns user bio data details for isc responses
+type BioData struct {
+	UID        string       `json:"uid"`
+	Msisdns    []string     `json:"msisdns"`
+	Emails     []string     `json:"emails"`
+	Gender     *base.Gender `json:"gender"`
+	PushTokens []string     `json:"pushTokens"`
+	Name       *string      `json:"name"`
+	Bio        *string      `json:"bio"`
 }
 
 // SupplierResponse returns supplier accounts for interservice communication
 type SupplierResponse struct {
 	SupplierID      string          `json:"supplier_id"`
 	PayablesAccount PayablesAccount `json:"payables_account"`
+	Profile         BioData         `json:"profile"`
 }
 
 // UserUIDs is an input of a list of user uids for isc requests

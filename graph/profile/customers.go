@@ -14,12 +14,8 @@ const (
 	active                 = true
 	country                = "KEN" // Anticipate worldwide expansion
 	isCustomer             = true
-	customerType           = "PATIENT" // Further Discussions
+	customerType           = "PATIENT"
 	customerCollectionName = "customers"
-
-	// Fetch the orgnisation's default currency from the env
-	// Currency is used in the creation of a business partner in the ERP
-	erpCurrencyEnvName = "ERP_DEFAULT_CURRENCY"
 )
 
 // SaveCustomerToFireStore persists customer data to firestore
@@ -36,28 +32,16 @@ func (s Service) GetCustomerCollectionName() string {
 }
 
 // AddCustomer creates a customer on the ERP when a user signs up in our Be.Well Consumer
-func (s Service) AddCustomer(ctx context.Context) (*Customer, error) {
+func (s Service) AddCustomer(ctx context.Context, uid *string) (*Customer, error) {
 	s.checkPreconditions()
 
-	profile, profileErr := s.UserProfile(ctx)
-	if profileErr != nil {
-		return nil, profileErr
-	}
-
-	customer, err := s.FindCustomer(ctx, profile.UID)
+	profile, err := s.ParseUserProfileFromContextOrUID(ctx, uid)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get customer: %v", err)
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
 
-	if customer != nil {
-		return customer, nil
-	}
+	user, userErr := s.firebaseAuth.GetUser(ctx, profile.UID)
 
-	fireBaseClient, clientErr := base.GetFirebaseAuthClient(ctx)
-	if clientErr != nil {
-		return nil, fmt.Errorf("unable to initialize Firebase auth client: %w", clientErr)
-	}
-	user, userErr := fireBaseClient.GetUser(ctx, profile.UID)
 	if userErr != nil {
 		return nil, fmt.Errorf("unable to get Firebase user with UID %s: %w", profile.UID, userErr)
 	}
@@ -66,12 +50,15 @@ func (s Service) AddCustomer(ctx context.Context) (*Customer, error) {
 		return nil, fmt.Errorf("user does not have a DisplayName")
 	}
 
-	currency := base.MustGetEnvVar(erpCurrencyEnvName)
+	currency, err := base.FetchDefaultCurrency(s.client)
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch orgs default currency: %v", err)
+	}
 	payload := map[string]interface{}{
 		"active":        active,
 		"partner_name":  user.DisplayName,
 		"country":       country,
-		"currency":      currency,
+		"currency":      *currency.ID,
 		"is_customer":   isCustomer,
 		"customer_type": customerType,
 	}
@@ -84,13 +71,11 @@ func (s Service) AddCustomer(ctx context.Context) (*Customer, error) {
 		UserProfile: *profile,
 	}
 
-	err = base.ReadRequestToTarget(s.client, "POST", customerAPIPath, "", content, &newCustomer)
-	if err != nil {
+	if err := base.ReadRequestToTarget(s.client, "POST", customerAPIPath, "", content, &newCustomer); err != nil {
 		return nil, fmt.Errorf("unable to make request to the ERP: %v", err)
 	}
 
-	err = s.SaveCustomerToFireStore(newCustomer)
-	if err != nil {
+	if err := s.SaveCustomerToFireStore(newCustomer); err != nil {
 		return nil, fmt.Errorf("unable to add customer to firestore: %v", err)
 	}
 
@@ -100,10 +85,9 @@ func (s Service) AddCustomer(ctx context.Context) (*Customer, error) {
 		return nil, fmt.Errorf("unable to retrieve firebase user profile: %v", err)
 	}
 
-	err = base.UpdateRecordOnFirestore(
+	if err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), profileDsnap.Ref.ID, profile,
-	)
-	if err != nil {
+	); err != nil {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
 	}
 
@@ -209,7 +193,7 @@ func (s Service) FindCustomer(ctx context.Context, uid string) (*Customer, error
 	}
 
 	if dsnap == nil {
-		return nil, nil
+		return s.AddCustomer(ctx, &uid)
 	}
 
 	customer := &Customer{}
@@ -224,20 +208,23 @@ func (s Service) FindCustomer(ctx context.Context, uid string) (*Customer, error
 // FindCustomerByUIDHandler is a used for inter service communication to return details about a customer
 func FindCustomerByUIDHandler(ctx context.Context, service *Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		customerUID, err := ValidateUID(w, r)
+		c, err := ValidateUID(w, r)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
-		customer, err := service.FindCustomer(ctx, customerUID)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
+		var customer *Customer
+
+		if c.Token != nil {
+			newContext := context.WithValue(ctx, base.AuthTokenContextKey, c.Token)
+			customer, err = service.FindCustomer(newContext, *c.UID)
+		} else {
+			customer, err = service.FindCustomer(ctx, *c.UID)
 		}
 
-		if customer == nil {
-			base.WriteJSONResponse(w, StatusResponse{Status: "not found"}, http.StatusNotFound)
+		if customer == nil || err != nil {
+			base.ReportErr(w, err, http.StatusNotFound)
 			return
 		}
 
@@ -250,6 +237,15 @@ func FindCustomerByUIDHandler(ctx context.Context, service *Service) http.Handle
 				Number:      customer.ReceivablesAccount.Number,
 				Tag:         customer.ReceivablesAccount.Tag,
 				Description: customer.ReceivablesAccount.Description,
+			},
+			Profile: BioData{
+				UID:        customer.UserProfile.UID,
+				Name:       customer.UserProfile.Name,
+				Gender:     customer.UserProfile.Gender,
+				Msisdns:    customer.UserProfile.Msisdns,
+				Emails:     customer.UserProfile.Emails,
+				PushTokens: customer.UserProfile.PushTokens,
+				Bio:        customer.UserProfile.Bio,
 			},
 		}
 

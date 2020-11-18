@@ -2,7 +2,6 @@ package profile
 
 import (
 	"context"
-	"log"
 	"reflect"
 	"testing"
 
@@ -75,7 +74,6 @@ func TestService_GetConfirmedEmailAddresses(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
 			confirmedEmails, err := s.GetConfirmedEmailAddresses(tt.args.ctx, tt.args.uids)
-			log.Printf("Confirmed Emails....%v", confirmedEmails)
 			if err == nil {
 				assert.Nil(t, err)
 				assert.NotNil(t, confirmedEmails)

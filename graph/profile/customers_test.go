@@ -58,7 +58,7 @@ func TestService_AddCustomer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			customer, err := s.AddCustomer(tt.args.ctx)
+			customer, err := s.AddCustomer(tt.args.ctx, nil)
 			if err != nil {
 				assert.Nil(t, customer)
 			}
@@ -219,12 +219,13 @@ func TestService_FindCustomer(t *testing.T) {
 		uid string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name        string
+		args        args
+		wantErr     bool
+		expectedErr string
 	}{
 		{
-			name: "happy case",
+			name: "valid : authenicated context",
 			args: args{
 				ctx: ctx,
 				uid: token.UID,
@@ -232,30 +233,33 @@ func TestService_FindCustomer(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "sad case - customer does not exist",
+			name: "invalid: unauthenticated context",
 			args: args{
 				ctx: context.Background(),
 				uid: "not a uid",
 			},
-			wantErr: false,
+			wantErr:     true,
+			expectedErr: "unable to get Firebase user with UID not a uid: cannot find user from uid",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
 			customer, err := s.FindCustomer(tt.args.ctx, tt.args.uid)
-			if customer != nil {
-				assert.Nil(t, err)
-				assert.NotNil(t, customer)
+			if tt.wantErr && (err == nil) {
+				t.Errorf("expected an error. got %v", err)
 			}
-			if customer == nil {
-				assert.Nil(t, err)
+
+			if tt.wantErr {
 				assert.Nil(t, customer)
+				assert.Contains(t, err.Error(), tt.expectedErr)
 			}
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.FindCustomer() error = %v, wantErr %v", err, tt.wantErr)
-				return
+
+			if !tt.wantErr {
+				assert.NotNil(t, customer)
+				assert.Nil(t, err)
 			}
+
 		})
 	}
 }
@@ -268,7 +272,7 @@ func TestFindCustomerByUID(t *testing.T) {
 	assert.NotNil(t, profile)
 	findCustomer := FindCustomerByUIDHandler(ctx, service)
 
-	uid := &BusinessPartnerUID{UID: profile.UID}
+	uid := &BusinessPartnerUID{UID: &profile.UID}
 	goodUIDJSONBytes, err := json.Marshal(uid)
 	assert.Nil(t, err)
 	assert.NotNil(t, goodUIDJSONBytes)
@@ -282,7 +286,8 @@ func TestFindCustomerByUID(t *testing.T) {
 	badCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
 	badCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
 
-	nonExistentUID := &BusinessPartnerUID{UID: "this uid does not exist"}
+	badUID := "this uid does not exist"
+	nonExistentUID := &BusinessPartnerUID{UID: &badUID}
 	nonExistentUIDJSONBytes, err := json.Marshal(nonExistentUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, nonExistentUIDJSONBytes)
@@ -299,7 +304,7 @@ func TestFindCustomerByUID(t *testing.T) {
 		wantStatusCode int
 	}{
 		{
-			name: "happy find customer request",
+			name: "valid : find customer",
 			args: args{
 				w: httptest.NewRecorder(),
 				r: goodCustomerRequest,
@@ -307,7 +312,7 @@ func TestFindCustomerByUID(t *testing.T) {
 			wantStatusCode: http.StatusOK,
 		},
 		{
-			name: "sad find customer request",
+			name: "invalid : missing user uid",
 			args: args{
 				w: httptest.NewRecorder(),
 				r: badCustomerRequest,
@@ -331,7 +336,7 @@ func TestFindCustomerByUID(t *testing.T) {
 			assert.True(t, ok)
 			assert.NotNil(t, rec)
 
-			assert.Equal(t, rec.Code, tt.wantStatusCode)
+			assert.Equal(t, tt.wantStatusCode, rec.Code)
 		})
 	}
 }
