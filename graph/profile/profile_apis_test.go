@@ -55,7 +55,7 @@ func TestService_GetConfirmedEmailAddresses(t *testing.T) {
 			},
 			wantErr: false,
 			want: map[string][]string{
-				"not a uid": []string{},
+				"not a uid": {},
 			},
 		},
 		{
@@ -67,7 +67,7 @@ func TestService_GetConfirmedEmailAddresses(t *testing.T) {
 			wantErr: false,
 			want: map[string][]string{
 				token.UID:              profile.Emails,
-				phoneNumberProfile.UID: []string{},
+				phoneNumberProfile.UID: {},
 			},
 		},
 	}
@@ -135,7 +135,7 @@ func TestService_GetConfirmedPhoneNumbers(t *testing.T) {
 			},
 			wantErr: false,
 			want: map[string][]string{
-				"not a uid": []string{},
+				"not a uid": {},
 			},
 		},
 		{
@@ -147,7 +147,7 @@ func TestService_GetConfirmedPhoneNumbers(t *testing.T) {
 			wantErr: false,
 			want: map[string][]string{
 				profile.UID:            profile.Msisdns,
-				phoneNumberProfile.UID: []string{},
+				phoneNumberProfile.UID: {},
 			},
 		},
 	}
@@ -210,7 +210,7 @@ func TestService_GetValidFCMTokens(t *testing.T) {
 			},
 			wantErr: false,
 			want: map[string][]string{
-				"not a uid": []string{},
+				"not a uid": {},
 			},
 		},
 		{
@@ -222,7 +222,7 @@ func TestService_GetValidFCMTokens(t *testing.T) {
 			wantErr: false,
 			want: map[string][]string{
 				profile.UID:            profile.PushTokens,
-				phoneNumberProfile.UID: []string{},
+				phoneNumberProfile.UID: {},
 			},
 		},
 	}
