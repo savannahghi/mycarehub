@@ -6,10 +6,10 @@ input PractitionerSignupInput {
 }
 
 input UserProfileInput {
-  photoBase64: String!
-  photoContentType: ContentType!
-  msisdns: [UserProfilePhone!]!
-  emails: [String!]!
+  photoBase64: String
+  photoContentType: ContentType
+  msisdns: [UserProfilePhone!]
+  emails: [String!]
   pushTokens: [String]
 
   # optional fields

@@ -19,5 +19,6 @@ require (
 	gitlab.slade360emr.com/go/authorization v0.0.7
 	gitlab.slade360emr.com/go/base v0.0.59
 	gitlab.slade360emr.com/go/otp v0.0.16
+	gitlab.slade360emr.com/go/uploads v0.0.9 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 )
