@@ -394,19 +394,22 @@ func (s Service) UpdateUserProfile(
 	userProfile.PhotoContentType = input.PhotoContentType
 
 	verifiedMSISDNS := userProfile.Msisdns
-	for _, msisdnInp := range input.Msisdns {
-		validPhone, err := base.ValidateMSISDN(
-			msisdnInp.Phone,
-			msisdnInp.Otp,
-			false,
-			s.firestoreClient,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("invalid phone/OTP: %s", err)
+	if input.Msisdns != nil {
+		for _, msisdnInp := range input.Msisdns {
+			validPhone, err := base.ValidateMSISDN(
+				msisdnInp.Phone,
+				msisdnInp.Otp,
+				false,
+				s.firestoreClient,
+			)
+			if err != nil {
+				return nil, fmt.Errorf("invalid phone/OTP: %s", err)
+			}
+			if !base.StringSliceContains(verifiedMSISDNS, validPhone) {
+				verifiedMSISDNS = append(verifiedMSISDNS, validPhone)
+			}
 		}
-		if !base.StringSliceContains(verifiedMSISDNS, validPhone) {
-			verifiedMSISDNS = append(verifiedMSISDNS, validPhone)
-		}
+		userProfile.IsMsisdnVerified = true
 	}
 
 	verifiedEmails := userProfile.Emails
@@ -420,6 +423,7 @@ func (s Service) UpdateUserProfile(
 			}
 			verifiedEmails = append(verifiedEmails, email)
 		}
+		userProfile.IsEmailVerified = true
 	}
 
 	userProfile.Msisdns = verifiedMSISDNS

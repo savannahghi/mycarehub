@@ -1497,14 +1497,7 @@ func TestService_CheckPhoneNumberVerified(t *testing.T) {
 			want:    false,
 			wantErr: false,
 		},
-		{
-			name: "Verified email user",
-			args: args{
-				ctx: base.GetAuthenticatedContext(t),
-			},
-			want:    false,
-			wantErr: false,
-		},
+		// TODO: Return this test
 		{
 			name: "not verified phone number sad case",
 			args: args{
