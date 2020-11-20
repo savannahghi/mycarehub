@@ -9,31 +9,18 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"firebase.google.com/go/auth"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 )
 
 func TestService_AddCustomer(t *testing.T) {
 	service := NewService()
-	ctx, authToken := base.GetAuthenticatedContextAndToken(t)
-
-	fireBaseClient, clientErr := base.GetFirebaseAuthClient(ctx)
-	assert.Nil(t, clientErr)
-	assert.NotNil(t, fireBaseClient)
-
-	user, userErr := fireBaseClient.GetUser(ctx, authToken.UID)
-	assert.Nil(t, userErr)
-	assert.NotNil(t, user)
-
-	params := (&auth.UserToUpdate{}).
-		DisplayName("Be.Well Test User")
-	u, err := fireBaseClient.UpdateUser(ctx, authToken.UID, params)
-	assert.Nil(t, err)
-	assert.NotNil(t, u)
+	ctx := base.GetAuthenticatedContext(t)
+	assert.NotNil(t, ctx)
 
 	type args struct {
-		ctx context.Context
+		ctx  context.Context
+		name string
 	}
 	tests := []struct {
 		name    string
@@ -43,7 +30,8 @@ func TestService_AddCustomer(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx: ctx,
+				ctx:  ctx,
+				name: "Be.Well Test customer",
 			},
 			wantErr: false,
 		},
@@ -58,7 +46,7 @@ func TestService_AddCustomer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			customer, err := s.AddCustomer(tt.args.ctx, nil)
+			customer, err := s.AddCustomer(tt.args.ctx, nil, tt.args.name)
 			if err != nil {
 				assert.Nil(t, customer)
 			}

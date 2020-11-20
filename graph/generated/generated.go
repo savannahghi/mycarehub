@@ -47,6 +47,14 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Beneficiary struct {
+		DateOfBirth  func(childComplexity int) int
+		Emails       func(childComplexity int) int
+		Msisdns      func(childComplexity int) int
+		Name         func(childComplexity int) int
+		Relationship func(childComplexity int) int
+	}
+
 	Cover struct {
 		MemberName     func(childComplexity int) int
 		MemberNumber   func(childComplexity int) int
@@ -62,11 +70,12 @@ type ComplexityRoot struct {
 	}
 
 	CustomerKyc struct {
-		Address    func(childComplexity int) int
-		City       func(childComplexity int) int
-		IDNumber   func(childComplexity int) int
-		KRAPin     func(childComplexity int) int
-		Occupation func(childComplexity int) int
+		Address     func(childComplexity int) int
+		Beneficiary func(childComplexity int) int
+		City        func(childComplexity int) int
+		IDNumber    func(childComplexity int) int
+		KRAPin      func(childComplexity int) int
+		Occupation  func(childComplexity int) int
 	}
 
 	Entity struct {
@@ -98,10 +107,10 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AcceptTermsAndConditions  func(childComplexity int, accept bool) int
-		AddCustomer               func(childComplexity int) int
+		AddCustomer               func(childComplexity int, name string) int
 		AddCustomerKyc            func(childComplexity int, input profile.CustomerKYCInput) int
 		AddPractitionerServices   func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
-		AddSupplier               func(childComplexity int) int
+		AddSupplier               func(childComplexity int, name string) int
 		AddTester                 func(childComplexity int, email string) int
 		ApprovePractitionerSignup func(childComplexity int, practitionerID string) int
 		CompleteSignup            func(childComplexity int) int
@@ -265,11 +274,11 @@ type MutationResolver interface {
 	SetLanguagePreference(ctx context.Context, language base.Language) (bool, error)
 	VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error)
 	CreateSignUpMethod(ctx context.Context, signUpMethod profile.SignUpMethod) (bool, error)
-	AddCustomer(ctx context.Context) (*profile.Customer, error)
+	AddCustomer(ctx context.Context, name string) (*profile.Customer, error)
 	AddCustomerKyc(ctx context.Context, input profile.CustomerKYCInput) (*profile.CustomerKYC, error)
 	UpdateCustomer(ctx context.Context, input profile.CustomerKYCInput) (*profile.Customer, error)
 	AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error)
-	AddSupplier(ctx context.Context) (*profile.Supplier, error)
+	AddSupplier(ctx context.Context, name string) (*profile.Supplier, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*profile.UserProfile, error)
@@ -299,6 +308,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Beneficiary.dateOfBirth":
+		if e.complexity.Beneficiary.DateOfBirth == nil {
+			break
+		}
+
+		return e.complexity.Beneficiary.DateOfBirth(childComplexity), true
+
+	case "Beneficiary.emails":
+		if e.complexity.Beneficiary.Emails == nil {
+			break
+		}
+
+		return e.complexity.Beneficiary.Emails(childComplexity), true
+
+	case "Beneficiary.msisdns":
+		if e.complexity.Beneficiary.Msisdns == nil {
+			break
+		}
+
+		return e.complexity.Beneficiary.Msisdns(childComplexity), true
+
+	case "Beneficiary.name":
+		if e.complexity.Beneficiary.Name == nil {
+			break
+		}
+
+		return e.complexity.Beneficiary.Name(childComplexity), true
+
+	case "Beneficiary.relationship":
+		if e.complexity.Beneficiary.Relationship == nil {
+			break
+		}
+
+		return e.complexity.Beneficiary.Relationship(childComplexity), true
 
 	case "Cover.memberName":
 		if e.complexity.Cover.MemberName == nil {
@@ -362,6 +406,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CustomerKyc.Address(childComplexity), true
+
+	case "CustomerKYC.beneficiary":
+		if e.complexity.CustomerKyc.Beneficiary == nil {
+			break
+		}
+
+		return e.complexity.CustomerKyc.Beneficiary(childComplexity), true
 
 	case "CustomerKYC.city":
 		if e.complexity.CustomerKyc.City == nil {
@@ -528,7 +579,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Mutation.AddCustomer(childComplexity), true
+		args, err := ec.field_Mutation_addCustomer_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddCustomer(childComplexity, args["name"].(string)), true
 
 	case "Mutation.addCustomerKYC":
 		if e.complexity.Mutation.AddCustomerKyc == nil {
@@ -559,7 +615,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Mutation.AddSupplier(childComplexity), true
+		args, err := ec.field_Mutation_addSupplier_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddSupplier(childComplexity, args["name"].(string)), true
 
 	case "Mutation.addTester":
 		if e.complexity.Mutation.AddTester == nil {
@@ -1447,6 +1508,11 @@ enum PractitionerService {
   LAB_SERVICES
   OTHER
 }
+
+enum BeneficiaryRelationship {
+  SPOUSE
+  CHILD
+}
 `, BuiltIn: false},
 	{Name: "graph/external.graphql", Input: `scalar Map
 scalar Any
@@ -1631,11 +1697,20 @@ input BiodataInput {
 }
 
 input CustomerKYCInput {
-  KRAPin: String!
-  occupation: String!
-  idNumber: String!
-  address: String!
-  city: String!
+  KRAPin: String
+  occupation: String
+  idNumber: String
+  address: String
+  city: String
+  beneficiary: [BeneficiaryInput!]
+}
+
+input BeneficiaryInput {
+  name: String!
+  msisdns: [String!]
+  emails: [String!]
+  relationship: BeneficiaryRelationship!
+  dateOfBirth: Date!
 }
 
 input PractitionerServiceInput {
@@ -1682,14 +1757,14 @@ extend type Mutation {
   setLanguagePreference(language: Language!): Boolean!
   verifyEmailOTP(email: String!, otp: String!): Boolean!
   createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
-  addCustomer: Customer!
+  addCustomer(name: String!): Customer!
   addCustomerKYC(input: CustomerKYCInput!): CustomerKYC!
   updateCustomer(input: CustomerKYCInput!): Customer!
   addPractitionerServices(
     services: PractitionerServiceInput!
     otherServices: OtherPractitionerServiceInput
   ): Boolean!
-  addSupplier: Supplier!
+  addSupplier(name: String!): Supplier!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `type Practitioner {
@@ -1815,6 +1890,7 @@ type CustomerKYC {
   idNumber: String!
   address: String!
   city: String!
+  beneficiary: [Beneficiary!]
 }
 
 type ServicesOffered {
@@ -1835,6 +1911,14 @@ type PayablesAccount {
   number: String!
   tag: String!
   description: String!
+}
+
+type Beneficiary {
+  name: String!
+  msisdns: [String!]
+  emails: [String!]
+  relationship: BeneficiaryRelationship!
+  dateOfBirth: Date!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -1950,6 +2034,21 @@ func (ec *executionContext) field_Mutation_addCustomerKYC_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addCustomer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addPractitionerServices_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1971,6 +2070,21 @@ func (ec *executionContext) field_Mutation_addPractitionerServices_args(ctx cont
 		}
 	}
 	args["otherServices"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
 	return args, nil
 }
 
@@ -2450,6 +2564,175 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _Beneficiary_name(ctx context.Context, field graphql.CollectedField, obj *profile.Beneficiary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Beneficiary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Beneficiary_msisdns(ctx context.Context, field graphql.CollectedField, obj *profile.Beneficiary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Beneficiary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Msisdns, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Beneficiary_emails(ctx context.Context, field graphql.CollectedField, obj *profile.Beneficiary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Beneficiary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Emails, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Beneficiary_relationship(ctx context.Context, field graphql.CollectedField, obj *profile.Beneficiary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Beneficiary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Relationship, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.BeneficiaryRelationship)
+	fc.Result = res
+	return ec.marshalNBeneficiaryRelationship2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiaryRelationship(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Beneficiary_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *profile.Beneficiary) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Beneficiary",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DateOfBirth, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(base.Date)
+	fc.Result = res
+	return ec.marshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Cover_payerName(ctx context.Context, field graphql.CollectedField, obj *profile.Cover) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2903,6 +3186,38 @@ func (ec *executionContext) _CustomerKYC_city(ctx context.Context, field graphql
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CustomerKYC_beneficiary(ctx context.Context, field graphql.CollectedField, obj *profile.CustomerKYC) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CustomerKYC",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Beneficiary, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*profile.Beneficiary)
+	fc.Result = res
+	return ec.marshalOBeneficiary2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiaryᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Entity_findCoverByPayerName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4165,9 +4480,16 @@ func (ec *executionContext) _Mutation_addCustomer(ctx context.Context, field gra
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addCustomer_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddCustomer(rctx)
+		return ec.resolvers.Mutation().AddCustomer(rctx, args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4326,9 +4648,16 @@ func (ec *executionContext) _Mutation_addSupplier(ctx context.Context, field gra
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addSupplier_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddSupplier(rctx)
+		return ec.resolvers.Mutation().AddSupplier(rctx, args["name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8220,6 +8549,58 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputBeneficiaryInput(ctx context.Context, obj interface{}) (profile.BeneficiaryInput, error) {
+	var it profile.BeneficiaryInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "msisdns":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("msisdns"))
+			it.Msisdns, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "emails":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
+			it.Emails, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "relationship":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("relationship"))
+			it.Relationship, err = ec.unmarshalNBeneficiaryRelationship2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiaryRelationship(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "dateOfBirth":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
+			it.DateOfBirth, err = ec.unmarshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputBiodataInput(ctx context.Context, obj interface{}) (profile.BiodataInput, error) {
 	var it profile.BiodataInput
 	var asMap = obj.(map[string]interface{})
@@ -8274,7 +8655,7 @@ func (ec *executionContext) unmarshalInputCustomerKYCInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPin"))
-			it.KRAPin, err = ec.unmarshalNString2string(ctx, v)
+			it.KRAPin, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8282,7 +8663,7 @@ func (ec *executionContext) unmarshalInputCustomerKYCInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("occupation"))
-			it.Occupation, err = ec.unmarshalNString2string(ctx, v)
+			it.Occupation, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8290,7 +8671,7 @@ func (ec *executionContext) unmarshalInputCustomerKYCInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNumber"))
-			it.IDNumber, err = ec.unmarshalNString2string(ctx, v)
+			it.IDNumber, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8298,7 +8679,7 @@ func (ec *executionContext) unmarshalInputCustomerKYCInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
-			it.Address, err = ec.unmarshalNString2string(ctx, v)
+			it.Address, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8306,7 +8687,15 @@ func (ec *executionContext) unmarshalInputCustomerKYCInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city"))
-			it.City, err = ec.unmarshalNString2string(ctx, v)
+			it.City, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "beneficiary":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("beneficiary"))
+			it.Beneficiary, err = ec.unmarshalOBeneficiaryInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiaryInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8799,6 +9188,47 @@ func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, 
 
 // region    **************************** object.gotpl ****************************
 
+var beneficiaryImplementors = []string{"Beneficiary"}
+
+func (ec *executionContext) _Beneficiary(ctx context.Context, sel ast.SelectionSet, obj *profile.Beneficiary) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, beneficiaryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Beneficiary")
+		case "name":
+			out.Values[i] = ec._Beneficiary_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "msisdns":
+			out.Values[i] = ec._Beneficiary_msisdns(ctx, field, obj)
+		case "emails":
+			out.Values[i] = ec._Beneficiary_emails(ctx, field, obj)
+		case "relationship":
+			out.Values[i] = ec._Beneficiary_relationship(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "dateOfBirth":
+			out.Values[i] = ec._Beneficiary_dateOfBirth(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var coverImplementors = []string{"Cover", "_Entity"}
 
 func (ec *executionContext) _Cover(ctx context.Context, sel ast.SelectionSet, obj *profile.Cover) graphql.Marshaler {
@@ -8919,6 +9349,8 @@ func (ec *executionContext) _CustomerKYC(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "beneficiary":
+			out.Values[i] = ec._CustomerKYC_beneficiary(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10271,6 +10703,31 @@ func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) marshalNBeneficiary2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiary(ctx context.Context, sel ast.SelectionSet, v *profile.Beneficiary) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Beneficiary(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNBeneficiaryInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiaryInput(ctx context.Context, v interface{}) (*profile.BeneficiaryInput, error) {
+	res, err := ec.unmarshalInputBeneficiaryInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNBeneficiaryRelationship2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiaryRelationship(ctx context.Context, v interface{}) (profile.BeneficiaryRelationship, error) {
+	var res profile.BeneficiaryRelationship
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBeneficiaryRelationship2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiaryRelationship(ctx context.Context, sel ast.SelectionSet, v profile.BeneficiaryRelationship) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNBiodataInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBiodataInput(ctx context.Context, v interface{}) (profile.BiodataInput, error) {
 	res, err := ec.unmarshalInputBiodataInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -11095,6 +11552,70 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalOBeneficiary2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiaryᚄ(ctx context.Context, sel ast.SelectionSet, v []*profile.Beneficiary) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNBeneficiary2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiary(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalOBeneficiaryInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiaryInputᚄ(ctx context.Context, v interface{}) ([]*profile.BeneficiaryInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*profile.BeneficiaryInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNBeneficiaryInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiaryInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

@@ -237,6 +237,15 @@ type Customer struct {
 	CustomerKYC        CustomerKYC        `json:"customer_kyc,omitempty"`
 }
 
+// Beneficiary stores a customer's beneficiary details
+type Beneficiary struct {
+	Name         string                  `json:"name"`
+	Msisdns      []string                `json:"msisdns"`
+	Emails       []string                `json:"emails"`
+	Relationship BeneficiaryRelationship `json:"relationship"`
+	DateOfBirth  base.Date               `json:"dateOfBirth"`
+}
+
 // ReceivablesAccount stores a customer's receivables account info
 type ReceivablesAccount struct {
 	ID          string `json:"id,omitempty"`
@@ -249,21 +258,31 @@ type ReceivablesAccount struct {
 
 // CustomerKYC stores information required to know your customer
 type CustomerKYC struct {
-	KRAPin     string `json:"kra_pin,omitempty"`
-	Occupation string `json:"occupation,omitempty"` // Should this be an enum?
-	IDNumber   string `json:"id_number,omitempty"`
-	Address    string `json:"address,omitempty"`
-	City       string `json:"city,omitempty"`
-	// Beneficiary
+	KRAPin      string         `json:"kra_pin,omitempty"`
+	Occupation  string         `json:"occupation,omitempty"` // Should this be an enum?
+	IDNumber    string         `json:"id_number,omitempty"`
+	Address     string         `json:"address,omitempty"`
+	City        string         `json:"city,omitempty"`
+	Beneficiary []*Beneficiary `json:"beneficiary,omitempty"`
+}
+
+// BeneficiaryInput stores beneficiary input details
+type BeneficiaryInput struct {
+	Name         string                  `json:"name"`
+	Msisdns      []string                `json:"msisdns"`
+	Emails       []string                `json:"emails"`
+	Relationship BeneficiaryRelationship `json:"relationship"`
+	DateOfBirth  base.Date               `json:"dateOfBirth"`
 }
 
 // CustomerKYCInput stores customerKYC input details
 type CustomerKYCInput struct {
-	KRAPin     string `json:"KRAPin"`
-	Occupation string `json:"occupation"`
-	IDNumber   string `json:"idNumber"`
-	Address    string `json:"address"`
-	City       string `json:"city"`
+	KRAPin      string              `json:"KRAPin"`
+	Occupation  string              `json:"occupation"`
+	IDNumber    string              `json:"idNumber"`
+	Address     string              `json:"address"`
+	City        string              `json:"city"`
+	Beneficiary []*BeneficiaryInput `json:"beneficiary"`
 }
 
 // OtherPractitionerServiceInput ..
@@ -315,6 +334,7 @@ type CustomerResponse struct {
 	CustomerID         string             `json:"customer_id"`
 	ReceivablesAccount ReceivablesAccount `json:"receivables_account"`
 	Profile            BioData            `json:"profile"`
+	CustomerKYC        CustomerKYC        `json:"customer_kyc"`
 }
 
 //BioData returns user bio data details for isc responses

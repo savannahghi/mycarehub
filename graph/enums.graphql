@@ -35,3 +35,8 @@ enum PractitionerService {
   LAB_SERVICES
   OTHER
 }
+
+enum BeneficiaryRelationship {
+  SPOUSE
+  CHILD
+}

@@ -30,22 +30,12 @@ func (s Service) GetSupplierCollectionName() string {
 }
 
 // AddSupplier creates a supplier on the ERP when a user signs up in our Be.Well Pro
-func (s Service) AddSupplier(ctx context.Context, uid *string) (*Supplier, error) {
+func (s Service) AddSupplier(ctx context.Context, uid *string, name string) (*Supplier, error) {
 	s.checkPreconditions()
 
 	profile, err := s.ParseUserProfileFromContextOrUID(ctx, uid)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
-	}
-
-	user, userErr := s.firebaseAuth.GetUser(ctx, profile.UID)
-
-	if userErr != nil {
-		return nil, fmt.Errorf("unable to get Firebase user with UID %s: %w", profile.UID, userErr)
-	}
-
-	if user.DisplayName == "" {
-		return nil, fmt.Errorf("user does not have a DisplayName")
 	}
 
 	currency, err := base.FetchDefaultCurrency(s.client)
@@ -54,7 +44,7 @@ func (s Service) AddSupplier(ctx context.Context, uid *string) (*Supplier, error
 	}
 	payload := map[string]interface{}{
 		"active":        active,
-		"partner_name":  user.DisplayName,
+		"partner_name":  name,
 		"country":       country,
 		"currency":      *currency.ID,
 		"is_supplier":   isSupplier,
@@ -103,7 +93,14 @@ func (s Service) FindSupplier(ctx context.Context, uid string) (*Supplier, error
 	}
 
 	if dsnap == nil {
-		return s.AddSupplier(ctx, &uid)
+		// If supplier is not found,
+		// and the user exists
+		// then create one using their UID
+		user, userErr := s.firebaseAuth.GetUser(ctx, uid)
+		if userErr != nil {
+			return nil, fmt.Errorf("unable to get Firebase user with UID %s: %w", uid, userErr)
+		}
+		return s.AddSupplier(ctx, &uid, user.UID)
 	}
 	supplier := &Supplier{}
 	err = dsnap.DataTo(supplier)
@@ -138,15 +135,8 @@ func FindSupplierByUIDHandler(ctx context.Context, service *Service) http.Handle
 		}
 
 		supplierResponse := SupplierResponse{
-			SupplierID: supplier.SupplierID,
-			PayablesAccount: PayablesAccount{
-				ID:          supplier.PayablesAccount.ID,
-				Name:        supplier.PayablesAccount.Name,
-				IsActive:    supplier.PayablesAccount.IsActive,
-				Number:      supplier.PayablesAccount.Number,
-				Tag:         supplier.PayablesAccount.Tag,
-				Description: supplier.PayablesAccount.Description,
-			},
+			SupplierID:      supplier.SupplierID,
+			PayablesAccount: supplier.PayablesAccount,
 			Profile: BioData{
 				UID:        supplier.UserProfile.UID,
 				Name:       supplier.UserProfile.Name,

@@ -18,7 +18,8 @@ func TestService_AddSupplier(t *testing.T) {
 	ctx := base.GetAuthenticatedContext(t)
 
 	type args struct {
-		ctx context.Context
+		ctx  context.Context
+		name string
 	}
 	tests := []struct {
 		name    string
@@ -28,7 +29,8 @@ func TestService_AddSupplier(t *testing.T) {
 		{
 			name: "add supplier happy case",
 			args: args{
-				ctx: ctx,
+				ctx:  ctx,
+				name: "Be.Well Test Supplier",
 			},
 			wantErr: false,
 		},
@@ -43,7 +45,7 @@ func TestService_AddSupplier(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			supplier, err := s.AddSupplier(tt.args.ctx, nil)
+			supplier, err := s.AddSupplier(tt.args.ctx, nil, tt.args.name)
 			if err == nil {
 				assert.Nil(t, err)
 				assert.NotNil(t, supplier)

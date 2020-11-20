@@ -32,22 +32,12 @@ func (s Service) GetCustomerCollectionName() string {
 }
 
 // AddCustomer creates a customer on the ERP when a user signs up in our Be.Well Consumer
-func (s Service) AddCustomer(ctx context.Context, uid *string) (*Customer, error) {
+func (s Service) AddCustomer(ctx context.Context, uid *string, name string) (*Customer, error) {
 	s.checkPreconditions()
 
 	profile, err := s.ParseUserProfileFromContextOrUID(ctx, uid)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
-	}
-
-	user, userErr := s.firebaseAuth.GetUser(ctx, profile.UID)
-
-	if userErr != nil {
-		return nil, fmt.Errorf("unable to get Firebase user with UID %s: %w", profile.UID, userErr)
-	}
-
-	if user.DisplayName == "" {
-		return nil, fmt.Errorf("user does not have a DisplayName")
 	}
 
 	currency, err := base.FetchDefaultCurrency(s.client)
@@ -56,7 +46,7 @@ func (s Service) AddCustomer(ctx context.Context, uid *string) (*Customer, error
 	}
 	payload := map[string]interface{}{
 		"active":        active,
-		"partner_name":  user.DisplayName,
+		"partner_name":  name,
 		"country":       country,
 		"currency":      *currency.ID,
 		"is_customer":   isCustomer,
@@ -108,6 +98,11 @@ func (s Service) AddCustomerKYC(ctx context.Context, input CustomerKYCInput) (*C
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve customer: %v", err)
 	}
+
+	if dsnap == nil {
+		return nil, fmt.Errorf("customer not found")
+	}
+
 	customer := &Customer{}
 	err = dsnap.DataTo(customer)
 	if err != nil {
@@ -119,6 +114,21 @@ func (s Service) AddCustomerKYC(ctx context.Context, input CustomerKYCInput) (*C
 	customer.CustomerKYC.IDNumber = input.IDNumber
 	customer.CustomerKYC.Address = input.Address
 	customer.CustomerKYC.City = input.City
+
+	beneficiaries := customer.CustomerKYC.Beneficiary
+	for _, beneficiary := range input.Beneficiary {
+		beneficiaryData := &Beneficiary{
+			Name:         beneficiary.Name,
+			Msisdns:      beneficiary.Msisdns,
+			Emails:       beneficiary.Emails,
+			Relationship: beneficiary.Relationship,
+			DateOfBirth:  beneficiary.DateOfBirth,
+		}
+		beneficiaries = append(beneficiaries, beneficiaryData)
+	}
+	// TODO: If beneficiary exists then do nothing
+
+	customer.CustomerKYC.Beneficiary = beneficiaries
 
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetCustomerCollectionName(), dsnap.Ref.ID, customer,
@@ -172,6 +182,21 @@ func (s Service) UpdateCustomer(ctx context.Context, input CustomerKYCInput) (*C
 		customer.CustomerKYC.Address = input.Address
 	}
 
+	beneficiaries := customer.CustomerKYC.Beneficiary
+	if input.Beneficiary != nil {
+		for _, beneficiary := range input.Beneficiary {
+			beneficiaryData := &Beneficiary{
+				Name:         beneficiary.Name,
+				Msisdns:      beneficiary.Msisdns,
+				Emails:       beneficiary.Emails,
+				Relationship: beneficiary.Relationship,
+				DateOfBirth:  beneficiary.DateOfBirth,
+			}
+			beneficiaries = append(beneficiaries, beneficiaryData)
+		}
+		customer.CustomerKYC.Beneficiary = beneficiaries
+	}
+
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetCustomerCollectionName(), dsnap.Ref.ID, customer,
 	)
@@ -193,7 +218,15 @@ func (s Service) FindCustomer(ctx context.Context, uid string) (*Customer, error
 	}
 
 	if dsnap == nil {
-		return s.AddCustomer(ctx, &uid)
+		// If customer is not found,
+		// and the user exists
+		// then create one using their UID
+		user, userErr := s.firebaseAuth.GetUser(ctx, uid)
+		if userErr != nil {
+			return nil, fmt.Errorf("unable to get Firebase user with UID %s: %w", uid, userErr)
+		}
+
+		return s.AddCustomer(ctx, &uid, user.UID)
 	}
 
 	customer := &Customer{}
@@ -229,15 +262,8 @@ func FindCustomerByUIDHandler(ctx context.Context, service *Service) http.Handle
 		}
 
 		customerResponse := CustomerResponse{
-			CustomerID: customer.CustomerID,
-			ReceivablesAccount: ReceivablesAccount{
-				ID:          customer.ReceivablesAccount.ID,
-				Name:        customer.ReceivablesAccount.Name,
-				IsActive:    customer.ReceivablesAccount.IsActive,
-				Number:      customer.ReceivablesAccount.Number,
-				Tag:         customer.ReceivablesAccount.Tag,
-				Description: customer.ReceivablesAccount.Description,
-			},
+			CustomerID:         customer.CustomerID,
+			ReceivablesAccount: customer.ReceivablesAccount,
 			Profile: BioData{
 				UID:        customer.UserProfile.UID,
 				Name:       customer.UserProfile.Name,
@@ -247,6 +273,7 @@ func FindCustomerByUIDHandler(ctx context.Context, service *Service) http.Handle
 				PushTokens: customer.UserProfile.PushTokens,
 				Bio:        customer.UserProfile.Bio,
 			},
+			CustomerKYC: customer.CustomerKYC,
 		}
 
 		base.WriteJSONResponse(w, customerResponse, http.StatusOK)

@@ -107,7 +107,7 @@ func (e *FivePointRating) UnmarshalGQL(v interface{}) error {
 	return nil
 }
 
-// MarshalGQL coverts the rating into a valid JSON string
+// MarshalGQL converts the rating into a valid JSON string
 func (e FivePointRating) MarshalGQL(w io.Writer) {
 	_, err := fmt.Fprint(w, strconv.Quote(e.String()))
 	if err != nil {
@@ -163,7 +163,7 @@ func (e *SignUpMethod) UnmarshalGQL(v interface{}) error {
 	return nil
 }
 
-// MarshalGQL coverts the sign up method into a valid JSON string
+// MarshalGQL converts the sign up method into a valid JSON string
 func (e SignUpMethod) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
@@ -218,7 +218,54 @@ func (e *PractitionerService) UnmarshalGQL(v interface{}) error {
 	return nil
 }
 
-// MarshalGQL coverts the practitioner service into a valid JSON string
+// MarshalGQL converts the practitioner service into a valid JSON string
 func (e PractitionerService) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// BeneficiaryRelationship defines the various relationships with beneficiaries
+type BeneficiaryRelationship string
+
+// BeneficiaryRelationshipSpouse is a constant of beneficiary spouse relationship
+const (
+	BeneficiaryRelationshipSpouse BeneficiaryRelationship = "SPOUSE"
+	BeneficiaryRelationshipChild  BeneficiaryRelationship = "CHILD"
+)
+
+//AllBeneficiaryRelationship is a list of all known beneficiary relationships
+var AllBeneficiaryRelationship = []BeneficiaryRelationship{
+	BeneficiaryRelationshipSpouse,
+	BeneficiaryRelationshipChild,
+}
+
+// IsValid returns true for valid beneficiary relationship
+func (e BeneficiaryRelationship) IsValid() bool {
+	switch e {
+	case BeneficiaryRelationshipSpouse, BeneficiaryRelationshipChild:
+		return true
+	}
+	return false
+}
+
+func (e BeneficiaryRelationship) String() string {
+	return string(e)
+}
+
+// UnmarshalGQL converts the input, if valid, into a beneficiary relationship value
+func (e *BeneficiaryRelationship) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BeneficiaryRelationship(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid BeneficiaryRelationship", str)
+	}
+	return nil
+}
+
+// MarshalGQL converts the beneficiary relationship into a valid JSON string
+func (e BeneficiaryRelationship) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

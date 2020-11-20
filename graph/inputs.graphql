@@ -43,11 +43,20 @@ input BiodataInput {
 }
 
 input CustomerKYCInput {
-  KRAPin: String!
-  occupation: String!
-  idNumber: String!
-  address: String!
-  city: String!
+  KRAPin: String
+  occupation: String
+  idNumber: String
+  address: String
+  city: String
+  beneficiary: [BeneficiaryInput!]
+}
+
+input BeneficiaryInput {
+  name: String!
+  msisdns: [String!]
+  emails: [String!]
+  relationship: BeneficiaryRelationship!
+  dateOfBirth: Date!
 }
 
 input PractitionerServiceInput {

@@ -121,6 +121,7 @@ type CustomerKYC {
   idNumber: String!
   address: String!
   city: String!
+  beneficiary: [Beneficiary!]
 }
 
 type ServicesOffered {
@@ -141,4 +142,12 @@ type PayablesAccount {
   number: String!
   tag: String!
   description: String!
+}
+
+type Beneficiary {
+  name: String!
+  msisdns: [String!]
+  emails: [String!]
+  relationship: BeneficiaryRelationship!
+  dateOfBirth: Date!
 }
