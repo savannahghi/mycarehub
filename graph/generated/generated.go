@@ -158,8 +158,6 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		CheckEmailVerified               func(childComplexity int) int
-		CheckPhoneNumberVerified         func(childComplexity int) int
 		CheckUserWithMsisdn              func(childComplexity int, msisdn string) int
 		GetKMPDURegisteredPractitioner   func(childComplexity int, regno string) int
 		GetProfile                       func(childComplexity int, uid string) int
@@ -212,8 +210,6 @@ type ComplexityRoot struct {
 		HasPin                             func(childComplexity int) int
 		HasSupplierAccount                 func(childComplexity int) int
 		IsApproved                         func(childComplexity int) int
-		IsEmailVerified                    func(childComplexity int) int
-		IsMsisdnVerified                   func(childComplexity int) int
 		IsTester                           func(childComplexity int) int
 		Language                           func(childComplexity int) int
 		Msisdns                            func(childComplexity int) int
@@ -227,6 +223,18 @@ type ComplexityRoot struct {
 		PushTokens                         func(childComplexity int) int
 		TermsAccepted                      func(childComplexity int) int
 		UID                                func(childComplexity int) int
+		VerifiedEmails                     func(childComplexity int) int
+		VerifiedPhones                     func(childComplexity int) int
+	}
+
+	VerifiedEmail struct {
+		Email    func(childComplexity int) int
+		Verified func(childComplexity int) int
+	}
+
+	VerifiedMsisdn struct {
+		Msisdn   func(childComplexity int) int
+		Verified func(childComplexity int) int
 	}
 
 	Service struct {
@@ -274,8 +282,6 @@ type QueryResolver interface {
 	VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error)
 	RequestPinReset(ctx context.Context, msisdn string) (string, error)
 	CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, error)
-	CheckEmailVerified(ctx context.Context) (bool, error)
-	CheckPhoneNumberVerified(ctx context.Context) (bool, error)
 	GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error)
 }
 
@@ -901,20 +907,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PractitionerEdge.Node(childComplexity), true
 
-	case "Query.checkEmailVerified":
-		if e.complexity.Query.CheckEmailVerified == nil {
-			break
-		}
-
-		return e.complexity.Query.CheckEmailVerified(childComplexity), true
-
-	case "Query.checkPhoneNumberVerified":
-		if e.complexity.Query.CheckPhoneNumberVerified == nil {
-			break
-		}
-
-		return e.complexity.Query.CheckPhoneNumberVerified(childComplexity), true
-
 	case "Query.checkUserWithMsisdn":
 		if e.complexity.Query.CheckUserWithMsisdn == nil {
 			break
@@ -1214,20 +1206,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.IsApproved(childComplexity), true
 
-	case "UserProfile.isEmailVerified":
-		if e.complexity.UserProfile.IsEmailVerified == nil {
-			break
-		}
-
-		return e.complexity.UserProfile.IsEmailVerified(childComplexity), true
-
-	case "UserProfile.isMsisdnVerified":
-		if e.complexity.UserProfile.IsMsisdnVerified == nil {
-			break
-		}
-
-		return e.complexity.UserProfile.IsMsisdnVerified(childComplexity), true
-
 	case "UserProfile.isTester":
 		if e.complexity.UserProfile.IsTester == nil {
 			break
@@ -1318,6 +1296,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserProfile.UID(childComplexity), true
+
+	case "UserProfile.VerifiedEmails":
+		if e.complexity.UserProfile.VerifiedEmails == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.VerifiedEmails(childComplexity), true
+
+	case "UserProfile.VerifiedPhones":
+		if e.complexity.UserProfile.VerifiedPhones == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.VerifiedPhones(childComplexity), true
+
+	case "VerifiedEmail.email":
+		if e.complexity.VerifiedEmail.Email == nil {
+			break
+		}
+
+		return e.complexity.VerifiedEmail.Email(childComplexity), true
+
+	case "VerifiedEmail.verified":
+		if e.complexity.VerifiedEmail.Verified == nil {
+			break
+		}
+
+		return e.complexity.VerifiedEmail.Verified(childComplexity), true
+
+	case "VerifiedMsisdn.msisdn":
+		if e.complexity.VerifiedMsisdn.Msisdn == nil {
+			break
+		}
+
+		return e.complexity.VerifiedMsisdn.Msisdn(childComplexity), true
+
+	case "VerifiedMsisdn.verified":
+		if e.complexity.VerifiedMsisdn.Verified == nil {
+			break
+		}
+
+		return e.complexity.VerifiedMsisdn.Verified(childComplexity), true
 
 	case "_Service.sdl":
 		if e.complexity.Service.SDL == nil {
@@ -1641,8 +1661,6 @@ input OtherPractitionerServiceInput {
   verifyMSISDNandPIN(msisdn: String!, pin: String!): Boolean!
   requestPinReset(msisdn: String!): String!
   checkUserWithMsisdn(msisdn: String!): Boolean!
-  checkEmailVerified: Boolean!
-  checkPhoneNumberVerified: Boolean!
   getSignUpMethod(id: String!): SignUpMethod!
 }
 
@@ -1749,8 +1767,8 @@ type UserProfile @key(fields: "uid") {
   canExperiment: Boolean
   askAgainToSetIsTester: Boolean
   askAgainToSetCanExperiment: Boolean
-  isEmailVerified: Boolean
-  isMsisdnVerified: Boolean
+  VerifiedEmails: [VerifiedEmail]
+  VerifiedPhones: [VerifiedMsisdn]
 
   # These flags are used to distinguish previously exisiting user and
   # new users signing up. They help us create accounts for the existing
@@ -1759,6 +1777,16 @@ type UserProfile @key(fields: "uid") {
   hasSupplierAccount: Boolean
   hasCustomerAccount: Boolean
   practitionerHasServices: Boolean
+}
+
+type VerifiedMsisdn {
+  msisdn: String!
+  verified: Boolean!
+}
+
+type VerifiedEmail {
+  email: String!
+  verified: Boolean!
 }
 
 type TesterWhitelist {
@@ -5429,76 +5457,6 @@ func (ec *executionContext) _Query_checkUserWithMsisdn(ctx context.Context, fiel
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_checkEmailVerified(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().CheckEmailVerified(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_checkPhoneNumberVerified(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().CheckPhoneNumberVerified(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_getSignUpMethod(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6811,7 +6769,7 @@ func (ec *executionContext) _UserProfile_askAgainToSetCanExperiment(ctx context.
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_isEmailVerified(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_VerifiedEmails(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6829,7 +6787,7 @@ func (ec *executionContext) _UserProfile_isEmailVerified(ctx context.Context, fi
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IsEmailVerified, nil
+		return obj.VerifiedEmails, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6838,12 +6796,12 @@ func (ec *executionContext) _UserProfile_isEmailVerified(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.([]profile.VerifiedEmail)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOVerifiedEmail2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedEmail(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_isMsisdnVerified(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_VerifiedPhones(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6861,7 +6819,7 @@ func (ec *executionContext) _UserProfile_isMsisdnVerified(ctx context.Context, f
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IsMsisdnVerified, nil
+		return obj.VerifiedPhones, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6870,9 +6828,9 @@ func (ec *executionContext) _UserProfile_isMsisdnVerified(ctx context.Context, f
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.([]profile.VerifiedMsisdn)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOVerifiedMsisdn2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedMsisdn(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserProfile_hasPin(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
@@ -7001,6 +6959,146 @@ func (ec *executionContext) _UserProfile_practitionerHasServices(ctx context.Con
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifiedEmail_email(ctx context.Context, field graphql.CollectedField, obj *profile.VerifiedEmail) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifiedEmail",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifiedEmail_verified(ctx context.Context, field graphql.CollectedField, obj *profile.VerifiedEmail) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifiedEmail",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Verified, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifiedMsisdn_msisdn(ctx context.Context, field graphql.CollectedField, obj *profile.VerifiedMsisdn) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifiedMsisdn",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Msisdn, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifiedMsisdn_verified(ctx context.Context, field graphql.CollectedField, obj *profile.VerifiedMsisdn) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifiedMsisdn",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Verified, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) __Service_sdl(ctx context.Context, field graphql.CollectedField, obj *fedruntime.Service) (ret graphql.Marshaler) {
@@ -9508,34 +9606,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "checkEmailVerified":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_checkEmailVerified(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "checkPhoneNumberVerified":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_checkPhoneNumberVerified(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "getSignUpMethod":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -9824,10 +9894,10 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_askAgainToSetIsTester(ctx, field, obj)
 		case "askAgainToSetCanExperiment":
 			out.Values[i] = ec._UserProfile_askAgainToSetCanExperiment(ctx, field, obj)
-		case "isEmailVerified":
-			out.Values[i] = ec._UserProfile_isEmailVerified(ctx, field, obj)
-		case "isMsisdnVerified":
-			out.Values[i] = ec._UserProfile_isMsisdnVerified(ctx, field, obj)
+		case "VerifiedEmails":
+			out.Values[i] = ec._UserProfile_VerifiedEmails(ctx, field, obj)
+		case "VerifiedPhones":
+			out.Values[i] = ec._UserProfile_VerifiedPhones(ctx, field, obj)
 		case "hasPin":
 			out.Values[i] = ec._UserProfile_hasPin(ctx, field, obj)
 		case "hasSupplierAccount":
@@ -9836,6 +9906,70 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_hasCustomerAccount(ctx, field, obj)
 		case "practitionerHasServices":
 			out.Values[i] = ec._UserProfile_practitionerHasServices(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var verifiedEmailImplementors = []string{"VerifiedEmail"}
+
+func (ec *executionContext) _VerifiedEmail(ctx context.Context, sel ast.SelectionSet, obj *profile.VerifiedEmail) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, verifiedEmailImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VerifiedEmail")
+		case "email":
+			out.Values[i] = ec._VerifiedEmail_email(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "verified":
+			out.Values[i] = ec._VerifiedEmail_verified(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var verifiedMsisdnImplementors = []string{"VerifiedMsisdn"}
+
+func (ec *executionContext) _VerifiedMsisdn(ctx context.Context, sel ast.SelectionSet, obj *profile.VerifiedMsisdn) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, verifiedMsisdnImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VerifiedMsisdn")
+		case "msisdn":
+			out.Values[i] = ec._VerifiedMsisdn_msisdn(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "verified":
+			out.Values[i] = ec._VerifiedMsisdn_verified(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11370,6 +11504,94 @@ func (ec *executionContext) unmarshalOUserProfilePhone2ᚕᚖgitlabᚗslade360em
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) marshalOVerifiedEmail2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedEmail(ctx context.Context, sel ast.SelectionSet, v profile.VerifiedEmail) graphql.Marshaler {
+	return ec._VerifiedEmail(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOVerifiedEmail2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedEmail(ctx context.Context, sel ast.SelectionSet, v []profile.VerifiedEmail) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOVerifiedEmail2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedEmail(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOVerifiedMsisdn2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedMsisdn(ctx context.Context, sel ast.SelectionSet, v profile.VerifiedMsisdn) graphql.Marshaler {
+	return ec._VerifiedMsisdn(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOVerifiedMsisdn2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedMsisdn(ctx context.Context, sel ast.SelectionSet, v []profile.VerifiedMsisdn) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOVerifiedMsisdn2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedMsisdn(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalO_Entity2githubᚗcomᚋ99designsᚋgqlgenᚋpluginᚋfederationᚋfedruntimeᚐEntity(ctx context.Context, sel ast.SelectionSet, v fedruntime.Entity) graphql.Marshaler {

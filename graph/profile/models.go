@@ -111,18 +111,30 @@ type UserProfile struct {
 	Language      base.Language `json:"language" firestore:"language"`
 
 	// used to determine whether to persist asking the user on the UI
-	AskAgainToSetIsTester      bool `json:"askAgainToSetIsTester" firestore:"askAgainToSetIsTester"`
-	AskAgainToSetCanExperiment bool `json:"askAgainToSetCanExperiment" firestore:"askAgainToSetCanExperiment"`
-	IsEmailVerified            bool `json:"isEmailVerified" firestore:"isEmailVerified"`
-	IsMsisdnVerified           bool `json:"isMsisdnVerified" firestore:"isMsisdnVerified"`
-	HasPin                     bool `json:"hasPin" firestore:"hasPin"`
-	HasSupplierAccount         bool `json:"hasSupplierAccount" firestore:"hasSupplierAccount"`
-	HasCustomerAccount         bool `json:"hasCustomerAccount" firestore:"hasCustomerAccount"`
-	PractitionerHasServices    bool `json:"practitionerHasServices" firestore:"practitionerHasServices"`
+	AskAgainToSetIsTester      bool             `json:"askAgainToSetIsTester" firestore:"askAgainToSetIsTester"`
+	AskAgainToSetCanExperiment bool             `json:"askAgainToSetCanExperiment" firestore:"askAgainToSetCanExperiment"`
+	VerifiedEmails             []VerifiedEmail  `json:"verifiedEmails" firestore:"verifiedEmails"`
+	VerifiedPhones             []VerifiedMsisdn `json:"verifiedPhones" firestore:"verifiedPhones"`
+	HasPin                     bool             `json:"hasPin" firestore:"hasPin"`
+	HasSupplierAccount         bool             `json:"hasSupplierAccount" firestore:"hasSupplierAccount"`
+	HasCustomerAccount         bool             `json:"hasCustomerAccount" firestore:"hasCustomerAccount"`
+	PractitionerHasServices    bool             `json:"practitionerHasServices" firestore:"practitionerHasServices"`
 }
 
 // IsEntity ...
 func (u UserProfile) IsEntity() {}
+
+// VerifiedEmail ..
+type VerifiedEmail struct {
+	Email    string `json:"email"`
+	Verified bool   `json:"verified"`
+}
+
+// VerifiedMsisdn ..
+type VerifiedMsisdn struct {
+	Msisdn   string `json:"msisdn"`
+	Verified bool   `json:"verified"`
+}
 
 // UserProfileInput is used to create or update a user's profile.
 type UserProfileInput struct {

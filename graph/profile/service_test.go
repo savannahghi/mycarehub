@@ -1377,7 +1377,9 @@ func TestService_VerifyEmailOtp(t *testing.T) {
 		"timestamp":         time.Now(),
 		"email":             "ngure.nyaga@healthcloud.co.ke",
 	}
-	_, err = base.SaveDataToFirestore(firestoreClient, base.SuffixCollection(base.OTPCollectionName), validOtpData)
+	_, err = base.SaveDataToFirestore(firestoreClient,
+		base.SuffixCollection(base.OTPCollectionName), validOtpData)
+
 	assert.Nil(t, err)
 	type args struct {
 		ctx   context.Context
@@ -1421,102 +1423,6 @@ func TestService_VerifyEmailOtp(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("Service.VerifyEmailOtp() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestService_CheckEmailVerified(t *testing.T) {
-	service := NewService()
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "Verified email happy case",
-			args: args{
-				ctx: base.GetAuthenticatedContext(t),
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "not verified email sad case",
-			args: args{
-				ctx: context.Background(),
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "verifed user with no email",
-			args: args{
-				ctx: base.GetPhoneNumberAuthenticatedContext(t),
-			},
-			want:    false,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := service
-			got, err := s.CheckEmailVerified(tt.args.ctx)
-			fmt.Printf("%v", got)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.CheckEmailVerified() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("Service.CheckEmailVerified() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestService_CheckPhoneNumberVerified(t *testing.T) {
-	service := NewService()
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "verified phone number user",
-			args: args{
-				ctx: base.GetPhoneNumberAuthenticatedContext(t),
-			},
-			want:    false,
-			wantErr: false,
-		},
-		// TODO: Return this test
-		{
-			name: "not verified phone number sad case",
-			args: args{
-				ctx: context.Background(),
-			},
-			want:    false,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := service
-			got, err := s.CheckPhoneNumberVerified(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.CheckPhoneNumberVerified() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("Service.CheckPhoneNumberVerified() = %v, want %v", got, tt.want)
 			}
 		})
 	}

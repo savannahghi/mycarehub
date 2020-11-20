@@ -25,6 +25,7 @@ require (
 	gitlab.slade360emr.com/go/base v0.0.63
 	gitlab.slade360emr.com/go/chargemaster v0.0.7 // indirect
 	gitlab.slade360emr.com/go/otp v0.0.16
+	gitlab.slade360emr.com/go/uploads v0.0.9 // indirect
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
 	golang.org/x/tools v0.0.0-20201120032337-6d151481565c // indirect
 	google.golang.org/genproto v0.0.0-20201119123407-9b1e624d6bc4 // indirect

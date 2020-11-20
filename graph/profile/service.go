@@ -393,7 +393,8 @@ func (s Service) UpdateUserProfile(
 	userProfile.PhotoBase64 = input.PhotoBase64
 	userProfile.PhotoContentType = input.PhotoContentType
 
-	verifiedMSISDNS := userProfile.Msisdns
+	msisdns := userProfile.Msisdns
+	verifiedPhones := userProfile.VerifiedPhones
 	if input.Msisdns != nil {
 		for _, msisdnInp := range input.Msisdns {
 			validPhone, err := base.ValidateMSISDN(
@@ -405,29 +406,41 @@ func (s Service) UpdateUserProfile(
 			if err != nil {
 				return nil, fmt.Errorf("invalid phone/OTP: %s", err)
 			}
-			if !base.StringSliceContains(verifiedMSISDNS, validPhone) {
-				verifiedMSISDNS = append(verifiedMSISDNS, validPhone)
+			if !base.StringSliceContains(msisdns, validPhone) {
+				msisdns = append(msisdns, validPhone)
 			}
+			verifyPhone := VerifiedMsisdn{
+				Msisdn:   validPhone,
+				Verified: true,
+			}
+			verifiedPhones = append(verifiedPhones, verifyPhone)
 		}
-		userProfile.IsMsisdnVerified = true
 	}
 
-	verifiedEmails := userProfile.Emails
+	emails := userProfile.Emails
+	verifiedEmails := userProfile.VerifiedEmails
 	if input.Emails != nil {
 		for _, email := range input.Emails {
-			if base.StringSliceContains(verifiedEmails, email) {
+			if base.StringSliceContains(emails, email) {
 				continue
 			}
 			if !govalidator.IsEmail(email) {
 				return nil, fmt.Errorf("%s is not a valid email", email)
 			}
-			verifiedEmails = append(verifiedEmails, email)
+			emails = append(emails, email)
+			verifyEmail := VerifiedEmail{
+				Email:    email,
+				Verified: true,
+			}
+			verifiedEmails = append(verifiedEmails, verifyEmail)
 		}
-		userProfile.IsEmailVerified = true
 	}
 
-	userProfile.Msisdns = verifiedMSISDNS
-	userProfile.Emails = verifiedEmails
+	userProfile.Msisdns = msisdns
+	userProfile.Emails = emails
+	userProfile.VerifiedPhones = verifiedPhones
+	userProfile.VerifiedEmails = verifiedEmails
+
 	if input.PushTokens != nil && len(input.PushTokens) > 0 {
 		// facilitate updating of push tokens e.g retire older ones
 		for _, token := range input.PushTokens {
@@ -1149,42 +1162,6 @@ func (s Service) SetLanguagePreference(ctx context.Context, language base.Langua
 	return true, nil
 }
 
-// CheckEmailVerified checks if the logged in user's email is verified
-func (s Service) CheckEmailVerified(ctx context.Context) (bool, error) {
-	s.checkPreconditions()
-
-	userProfile, err := s.UserProfile(ctx)
-	if err != nil {
-		return false, fmt.Errorf("can't fetch user profile: %v", err)
-	}
-
-	emailVerified := userProfile.IsEmailVerified
-
-	if !emailVerified {
-		return false, nil
-	}
-
-	return true, nil
-}
-
-// CheckPhoneNumberVerified checks if the logged in user's phone number is verified
-func (s Service) CheckPhoneNumberVerified(ctx context.Context) (bool, error) {
-	s.checkPreconditions()
-
-	userProfile, err := s.UserProfile(ctx)
-	if err != nil {
-		return false, fmt.Errorf("can't fetch user profile: %v", err)
-	}
-
-	msisdnVerified := userProfile.IsMsisdnVerified
-
-	if !msisdnVerified {
-		return false, nil
-	}
-
-	return true, nil
-}
-
 // VerifyEmailOtp checks for the validity of the supplied OTP but does not invalidate it
 func (s Service) VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error) {
 	s.checkPreconditions()
@@ -1204,7 +1181,13 @@ func (s Service) VerifyEmailOtp(ctx context.Context, email string, otp string) (
 		return false, fmt.Errorf("can't fetch user profile: %v", err)
 	}
 
-	userProfile.IsEmailVerified = true
+	verifyEmail := VerifiedEmail{
+		Email:    email,
+		Verified: true,
+	}
+	verifiedEmails := userProfile.VerifiedEmails
+	verifiedEmails = append(verifiedEmails, verifyEmail)
+	userProfile.VerifiedEmails = verifiedEmails
 
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,

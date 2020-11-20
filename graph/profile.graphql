@@ -13,8 +13,6 @@ extend type Query {
   verifyMSISDNandPIN(msisdn: String!, pin: String!): Boolean!
   requestPinReset(msisdn: String!): String!
   checkUserWithMsisdn(msisdn: String!): Boolean!
-  checkEmailVerified: Boolean!
-  checkPhoneNumberVerified: Boolean!
   getSignUpMethod(id: String!): SignUpMethod!
 }
 

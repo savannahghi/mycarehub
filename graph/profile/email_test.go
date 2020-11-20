@@ -38,13 +38,13 @@ func Test_isTester(t *testing.T) {
 			},
 			want: true,
 		},
-		// {
-		// 	name: "does not exist",
-		// 	args: args{
-		// 		emails: []string{gofakeit.Email()},
-		// 	},
-		// 	want: false,
-		// },
+		{
+			name: "does not exist",
+			args: args{
+				emails: []string{gofakeit.Email()},
+			},
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

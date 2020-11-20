@@ -73,8 +73,8 @@ type UserProfile @key(fields: "uid") {
   canExperiment: Boolean
   askAgainToSetIsTester: Boolean
   askAgainToSetCanExperiment: Boolean
-  isEmailVerified: Boolean
-  isMsisdnVerified: Boolean
+  VerifiedEmails: [VerifiedEmail]
+  VerifiedPhones: [VerifiedMsisdn]
 
   # These flags are used to distinguish previously exisiting user and
   # new users signing up. They help us create accounts for the existing
@@ -83,6 +83,16 @@ type UserProfile @key(fields: "uid") {
   hasSupplierAccount: Boolean
   hasCustomerAccount: Boolean
   practitionerHasServices: Boolean
+}
+
+type VerifiedMsisdn {
+  msisdn: String!
+  verified: Boolean!
+}
+
+type VerifiedEmail {
+  email: String!
+  verified: Boolean!
 }
 
 type TesterWhitelist {

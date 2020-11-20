@@ -205,18 +205,6 @@ func (r *queryResolver) CheckUserWithMsisdn(ctx context.Context, msisdn string) 
 	return r.profileService.CheckUserWithMsisdn(ctx, msisdn)
 }
 
-func (r *queryResolver) CheckEmailVerified(ctx context.Context) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.CheckEmailVerified(ctx)
-}
-
-func (r *queryResolver) CheckPhoneNumberVerified(ctx context.Context) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.CheckPhoneNumberVerified(ctx)
-}
-
 func (r *queryResolver) GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
