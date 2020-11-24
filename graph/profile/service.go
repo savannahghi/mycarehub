@@ -18,7 +18,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/otp/graph/otp"
 	"gopkg.in/yaml.v2"
 )
 
@@ -40,24 +39,14 @@ const (
 	signUpInfoCollectionName            = "sign_up_info"
 )
 
-// dependencies names. Should match the names in the yaml file
 const (
-	mailgunService  = "mailgun"
-	smsService      = "sms"
-	twilioService   = "twilio"
-	whatsappService = "whatsapp"
+	mailgunService = "mailgun"
+	otpService     = "otp"
 )
 
-// specific endpoint paths for ISC
 const (
-	// mailgun isc paths
 	sendEmail = "internal/send_email"
-
-	//whatsapp isc paths
-	//TODO:
-
-	// twilio isc paths
-	// TODO:
+	sendOTP   = "internal/send_otp/"
 )
 
 // NewService returns a new authentication service
@@ -107,15 +96,23 @@ func NewService() *Service {
 
 	mailgunClient, err = base.SetupISCclient(config, mailgunService)
 	if err != nil {
-		log.Panicf("unable to initialize inter service client: %s", err)
+		log.Panicf("unable to initialize mailgun inter service client: %s", err)
+	}
+
+	var otpClient *base.InterServiceClient
+
+	otpClient, err = base.SetupISCclient(config, otpService)
+	if err != nil {
+		log.Panicf("unable to initialize otp inter service client: %s", err)
+
 	}
 
 	return &Service{
 		firestoreClient: firestore,
 		firebaseAuth:    auth,
-		otpService:      otp.NewService(),
 		client:          erpClient,
 		mailgun:         mailgunClient,
+		otp:             otpClient,
 	}
 }
 
@@ -123,10 +120,10 @@ func NewService() *Service {
 // issues e.g user profiles
 type Service struct {
 	mailgun *base.InterServiceClient
+	otp     *base.InterServiceClient
 
 	firestoreClient *firestore.Client
 	firebaseAuth    *auth.Client
-	otpService      *otp.Service
 	client          *base.ServerClient
 }
 
@@ -146,6 +143,11 @@ func (s Service) checkPreconditions() {
 	if s.client == nil {
 		log.Panicf("profile service does not have an initialized ERP client")
 	}
+
+	if s.otp == nil {
+		log.Panicf("profile service does not have an initialized otp ISC Client")
+	}
+
 }
 
 // GetUserProfileCollectionName ...
@@ -1082,12 +1084,25 @@ func (s Service) RequestPinReset(ctx context.Context, msisdn string) (string, er
 		return "", fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
 
-	otp, err := s.otpService.GenerateAndSendOTP(phoneNumber)
-	if err != nil {
-		return "", fmt.Errorf("unable to generate and send otp: %v", err)
+	body := map[string]interface{}{
+		"msisdn": phoneNumber,
 	}
 
-	return otp, nil
+	resp, err := s.otp.MakeRequest(http.MethodPost, sendOTP, body)
+	if err != nil {
+		return "", fmt.Errorf("unable to generate and send otp: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unable to generate and send otp, with status code %v", resp.StatusCode)
+	}
+
+	code, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("unable to convert response to string: %v", err)
+	}
+
+	return string(code), nil
 }
 
 // UpdateUserPin resets a user's pin

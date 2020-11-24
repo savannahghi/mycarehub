@@ -52,9 +52,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Path("/msisdn_login").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(base.GetPhoneNumberLoginFunc(ctx, fc))
 	r.Path("/request_pin_reset").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(profile.RequestPinResetFunc(ctx, srv))
+		http.MethodPost, http.MethodOptions).HandlerFunc(RequestPinResetFunc(ctx))
 	r.Path("/update_pin").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(profile.UpdatePinHandler(ctx, srv))
+		http.MethodPost, http.MethodOptions).HandlerFunc(UpdatePinHandler(ctx))
 
 	// check server status.
 	r.Path("/health").HandlerFunc(HealthStatusCheck)
@@ -152,6 +152,57 @@ func GetProfileAttributesHandler(ctx context.Context) http.HandlerFunc {
 		}
 
 		base.WriteJSONResponse(w, response, http.StatusOK)
+
+	}
+}
+
+// RequestPinResetFunc returns a function that sends an otp to an msisdn that requests a
+// pin reset request during login
+func RequestPinResetFunc(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s := profile.NewService()
+		validMsisdn, err := profile.ValidateMsisdn(w, r)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		msisdn := validMsisdn.MSISDN
+		otp, err := s.RequestPinReset(ctx, msisdn)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		otpResponse := profile.OtpResponse{
+			OTP: otp,
+		}
+
+		base.WriteJSONResponse(w, otpResponse, http.StatusOK)
+	}
+}
+
+// UpdatePinHandler used to update a user's PIN
+func UpdatePinHandler(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s := profile.NewService()
+		payload, validateErr := profile.ValidateUpdatePinPayload(w, r)
+		if validateErr != nil {
+			base.ReportErr(w, validateErr, http.StatusBadRequest)
+			return
+		}
+
+		_, updateErr := s.UpdateUserPin(ctx, payload.MSISDN, payload.PIN, payload.OTP)
+		if updateErr != nil {
+			base.ReportErr(w, updateErr, http.StatusBadRequest)
+			return
+		}
+
+		type okResp struct {
+			Status string `json:"status"`
+		}
+
+		base.WriteJSONResponse(w, okResp{Status: "ok"}, http.StatusOK)
 
 	}
 }

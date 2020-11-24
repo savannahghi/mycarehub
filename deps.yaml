@@ -1,9 +1,15 @@
 staging:
   - depName: mailgun
     depRootDomain: https://mailgun-staging.healthcloud.co.ke
+  - depName: otp
+    depRootDomain: https://otp-staging.healthcloud.co.ke
 testing:
   - depName: mailgun
     depRootDomain: https://mailgun-testing.healthcloud.co.ke
+  - depName: otp
+    depRootDomain: https://otp-testing.healthcloud.co.ke
 production:
   - depName: mailgun
     depRootDomain: https://mailgun-prod.healthcloud.co.ke
+  - depName: otp
+    depRootDomain: https://otp-prod.healthcloud.co.ke

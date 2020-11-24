@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/otp/graph/otp"
 )
 
 func TestMain(m *testing.M) {
@@ -32,36 +31,11 @@ func TestNewService(t *testing.T) {
 }
 
 func TestService_profileUpdates(t *testing.T) {
-	ctx := context.Background()
-
-	user, userErr := base.GetOrCreateFirebaseUser(ctx, base.TestUserEmail)
-	assert.Nil(t, userErr)
-	assert.NotNil(t, user)
-
-	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID)
-	assert.Nil(t, tokenErr)
-	assert.NotNil(t, customToken)
-
-	idTokens, idErr := base.AuthenticateCustomFirebaseToken(customToken)
-	assert.Nil(t, idErr)
-	assert.NotNil(t, idTokens)
-
-	bearerToken := idTokens.IDToken
-	authToken, err := base.ValidateBearerToken(ctx, bearerToken)
-	assert.Nil(t, err)
-	assert.NotNil(t, authToken)
-
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
-
+	ctx, token := base.GetAuthenticatedContextAndToken(t)
 	bs, err := ioutil.ReadFile("testdata/photo.jpg")
 	assert.Nil(t, err)
 	photoBase64 := base64.StdEncoding.EncodeToString(bs)
 	email := []string{gofakeit.Email()}
-	msisdn := "+254716862585"
-	otpService := otp.NewService()
-	otp, err := otpService.GenerateAndSendOTP(msisdn)
-	assert.Nil(t, err)
-	assert.NotZero(t, otp)
 
 	type args struct {
 		ctx context.Context
@@ -83,9 +57,9 @@ func TestService_profileUpdates(t *testing.T) {
 		{
 			name: "good_case",
 			args: args{
-				ctx: authenticatedContext, // should
+				ctx: ctx, // should
 			},
-			want:    user.UID,
+			want:    token.UID,
 			wantErr: false,
 		},
 	}
@@ -115,11 +89,8 @@ func TestService_profileUpdates(t *testing.T) {
 
 				// Update the user profile
 				userProfileInput := UserProfileInput{
-					PhotoBase64:      photoBase64,
-					PhotoContentType: base.ContentTypeJpg,
-					Msisdns: []*UserProfilePhone{
-						{Phone: msisdn, Otp: otp},
-					},
+					PhotoBase64:                photoBase64,
+					PhotoContentType:           base.ContentTypeJpg,
 					Emails:                     email,
 					CanExperiment:              false,
 					AskAgainToSetIsTester:      false,
@@ -191,33 +162,6 @@ func TestAppleTesterPractitionerSignup(t *testing.T) {
 }
 
 func TestService_RegisterPushToken(t *testing.T) {
-	ctx := context.Background()
-
-	user, userErr := base.GetOrCreateFirebaseUser(ctx, base.TestUserEmail)
-	assert.Nil(t, userErr)
-	assert.NotNil(t, user)
-
-	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID)
-	assert.Nil(t, tokenErr)
-	assert.NotNil(t, customToken)
-
-	idTokens, idErr := base.AuthenticateCustomFirebaseToken(customToken)
-	assert.Nil(t, idErr)
-	assert.NotNil(t, idTokens)
-
-	bearerToken := idTokens.IDToken
-	authToken, err := base.ValidateBearerToken(ctx, bearerToken)
-	assert.Nil(t, err)
-	assert.NotNil(t, authToken)
-
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
-
-	msisdn := "+254716862585"
-	otpService := otp.NewService()
-	otp, err := otpService.GenerateAndSendOTP(msisdn)
-	assert.Nil(t, err)
-	assert.NotZero(t, otp)
-
 	type args struct {
 		ctx   context.Context
 		token string
@@ -231,7 +175,7 @@ func TestService_RegisterPushToken(t *testing.T) {
 		{
 			name: "good_case",
 			args: args{
-				ctx:   authenticatedContext, // should
+				ctx:   base.GetAuthenticatedContext(t), // should
 				token: "an example push token for testing",
 			},
 			want:    true,
@@ -1189,119 +1133,6 @@ func TestService_CheckUserWithMsisdn(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("Service.CheckUserWithMsisdn() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestService_RequestPinReset(t *testing.T) {
-	service := NewService()
-	type args struct {
-		ctx    context.Context
-		msisdn string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "request pin reset happy case",
-			args: args{
-				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: base.TestUserPhoneNumber,
-			},
-			wantErr: false,
-		},
-		{
-			name: "request pin reset sad case",
-			args: args{
-				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: "ooliskia wapi",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := service
-			got, err := s.RequestPinReset(tt.args.ctx, tt.args.msisdn)
-			if err == nil {
-				assert.NotNil(t, got)
-			}
-			if err != nil {
-				assert.Empty(t, got)
-			}
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.RequestPinReset() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
-// TODO: Use a sanbox user for PIN testing
-
-func TestService_UpdateUserPin(t *testing.T) {
-	service := NewService()
-
-	otpOne, _ := service.otpService.GenerateAndSendOTP(base.TestUserPhoneNumber)
-	otpTwo, _ := service.otpService.GenerateAndSendOTP(base.TestUserPhoneNumber)
-	type args struct {
-		ctx    context.Context
-		msisdn string
-		pin    string
-		otp    string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: base.TestUserPhoneNumber,
-				pin:    "0987",
-				otp:    otpOne,
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "Happy restoration case", // Restores the initial pin to avoid test breakages
-			args: args{
-				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: base.TestUserPhoneNumber,
-				pin:    "1234",
-				otp:    otpTwo,
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: "not a number",
-				pin:    "not a pin",
-			},
-			want:    false,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := service
-			got, err := s.UpdateUserPin(tt.args.ctx, tt.args.msisdn, tt.args.pin, tt.args.otp)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.UpdateUserPin() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("Service.UpdateUserPin() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -8,8 +8,10 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -325,6 +327,416 @@ func TestGetProfileAttributesHandler(t *testing.T) {
 					attribute,
 				),
 				httpMethod: http.MethodGet,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+
+			if data == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d and response %s", tt.wantStatus, resp.StatusCode, string(data))
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+		})
+	}
+}
+
+func TestGraphQLRequestPinReset(t *testing.T) {
+	ctx := base.GetPhoneNumberAuthenticatedContext(t)
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("nil context")
+		return
+	}
+	gql := map[string]interface{}{}
+	gql["query"] = `
+	query requestPinReset{
+		requestPinReset(msisdn: "+254711223344")
+	}
+	`
+
+	validQueryReader, err := mapToJSONReader(gql)
+	if err != nil {
+		t.Errorf("unable to get GQL JSON io Reader: %s", err)
+		return
+	}
+	client := http.Client{
+		Timeout: time.Second * testHTTPClientTimeout,
+	}
+
+	type args struct {
+		body io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid query",
+			args: args{
+				body: validQueryReader,
+			},
+			wantStatus: 200,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				tt.args.body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			if resp == nil && !tt.wantErr {
+				t.Errorf("nil response")
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			assert.NotNil(t, data)
+			if data == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+
+}
+
+func TestGraphQLUpdatePin(t *testing.T) {
+	ctx := base.GetPhoneNumberAuthenticatedContext(t)
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("nil context")
+		return
+	}
+	gql := map[string]interface{}{}
+	gql["query"] = `
+	mutation updateUserPin{
+		updateUserPin(msisdn: "+254711223344", pin: "1234", otp: "654789")
+	}
+	`
+
+	validQueryReader, err := mapToJSONReader(gql)
+	if err != nil {
+		t.Errorf("unable to get GQL JSON io Reader: %s", err)
+		return
+	}
+	client := http.Client{
+		Timeout: time.Second * testHTTPClientTimeout,
+	}
+
+	type args struct {
+		body io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid query",
+			args: args{
+				body: validQueryReader,
+			},
+			wantStatus: 200,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				tt.args.body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			if resp == nil && !tt.wantErr {
+				t.Errorf("nil response")
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			assert.NotNil(t, data)
+			if data == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+
+}
+
+func TestUpdatePinHandler(t *testing.T) {
+	client := http.DefaultClient
+	pinRecovery := profile.PinRecovery{
+		MSISDN: base.TestUserPhoneNumber,
+		PIN:    base.TestUserPin,
+		OTP:    strconv.Itoa(rand.Int()),
+	}
+	bs, err := json.Marshal(pinRecovery)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	payload := bytes.NewBuffer(bs)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "successful update pin",
+			args: args{
+				url:        fmt.Sprintf("%s/update_pin", baseURL),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusBadRequest, // Not a verified otp code
+			wantErr:    false,
+		},
+		{
+			name: "failed generate and send otp",
+			args: args{
+				url:        fmt.Sprintf("%s/update_pin", baseURL),
+				httpMethod: http.MethodPost,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+
+			if data == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d and response %s", tt.wantStatus, resp.StatusCode, string(data))
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+		})
+	}
+}
+
+func TestRequestPinResetHandler(t *testing.T) {
+	client := http.DefaultClient
+	pinRecovery := profile.PinRecovery{
+		MSISDN: base.TestUserPhoneNumber,
+	}
+	bs, err := json.Marshal(pinRecovery)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	payload := bytes.NewBuffer(bs)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid pin reset request",
+			args: args{
+				url:        fmt.Sprintf("%s/request_pin_reset", baseURL),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "failed generate and send otp",
+			args: args{
+				url:        fmt.Sprintf("%s/request_pin_reset", baseURL),
+				httpMethod: http.MethodPost,
 				body:       nil,
 			},
 			wantStatus: http.StatusBadRequest,
