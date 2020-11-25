@@ -3,7 +3,6 @@ package graph
 import (
 	"compress/gzip"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -57,7 +56,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost, http.MethodOptions).HandlerFunc(UpdatePinHandler(ctx))
 
 	// check server status.
-	r.Path("/health").HandlerFunc(HealthStatusCheck)
+	r.Path("/health").HandlerFunc(base.HealthStatusCheck)
 
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()
@@ -71,7 +70,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	).HandlerFunc(profile.FindSupplierByUIDHandler(ctx, srv))
 
 	isc.Path("/contactdetails/{attribute}/").Methods(
-		http.MethodGet).HandlerFunc(
+		http.MethodPost).HandlerFunc(
 		GetProfileAttributesHandler(ctx),
 	).Name("getProfileAttributes")
 
@@ -83,14 +82,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	).HandlerFunc(graphqlHandler())
 	return r, nil
 
-}
-
-//HealthStatusCheck endpoint to check if the server is working.
-func HealthStatusCheck(w http.ResponseWriter, r *http.Request) {
-	err := json.NewEncoder(w).Encode(true)
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func graphqlHandler() http.HandlerFunc {
