@@ -1498,3 +1498,43 @@ func TestService_RetrieveFireStoreSnapshotByUID(t *testing.T) {
 		})
 	}
 }
+
+func TestService_SaveMemberCoverToFirestore(t *testing.T) {
+
+	ctx := base.GetAuthenticatedContext(t)
+	assert.NotNil(t, ctx, "context is nil")
+
+	srv := NewService()
+	assert.NotNil(t, srv, "service is nil")
+
+	type args struct {
+		payerName      string
+		memberNumber   string
+		memberName     string
+		PayerSladeCode int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid case",
+			args: args{
+				memberName:     "Jakaya",
+				memberNumber:   "144",
+				payerName:      "Jubilee",
+				PayerSladeCode: 136,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := srv.SaveMemberCoverToFirestore(ctx, tt.args.payerName, tt.args.memberNumber, tt.args.memberName, tt.args.PayerSladeCode); (err != nil) != tt.wantErr {
+				t.Errorf("Service.SaveMemberCoverToFirestore() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

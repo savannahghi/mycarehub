@@ -1339,3 +1339,46 @@ func (s Service) ParseUserProfileFromContextOrUID(ctx context.Context, uid *stri
 	}
 	return s.UserProfile(ctx)
 }
+
+// SaveMemberCoverToFirestore saves users cover details to firebase
+func (s Service) SaveMemberCoverToFirestore(ctx context.Context, payerName, memberNumber, memberName string, PayerSladeCode int) error {
+	cover := Cover{
+		PayerName:      payerName,
+		MemberName:     memberName,
+		MemberNumber:   memberNumber,
+		PayerSladeCode: PayerSladeCode,
+	}
+
+	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		log.Printf("unable to retrieve user profile snapshot for the logged in user: %v", err)
+		return fmt.Errorf("system error: unable to retrieve user profile. Please report a bug")
+	}
+
+	userProfile, err := s.UserProfile(ctx)
+	if err != nil {
+		log.Printf("unable to retrieve user profile snapshot for the logged in user: %v", err)
+		return fmt.Errorf("system error: unable to retrieve user profile. Please report a bug")
+	}
+
+	existingCovers := userProfile.Covers
+	exist := false
+
+	for _, profileCover := range existingCovers {
+		if profileCover.MemberNumber == cover.MemberNumber && profileCover.PayerSladeCode == cover.PayerSladeCode {
+			exist = true
+		}
+	}
+
+	if !exist {
+		existingCovers = append(existingCovers, cover)
+		userProfile.Covers = existingCovers
+		err := base.UpdateRecordOnFirestore(s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile)
+		if err != nil {
+			log.Printf("unable to save update on user profile %v for member %v: %v", userProfile, memberNumber, err)
+			return fmt.Errorf("system error: unable to update user profile. Please report a bug")
+		}
+	}
+
+	return nil
+}
