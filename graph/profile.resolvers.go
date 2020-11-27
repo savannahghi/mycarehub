@@ -144,6 +144,12 @@ func (r *mutationResolver) AddSupplier(ctx context.Context, name string) (*profi
 	return r.profileService.AddSupplier(ctx, nil, name)
 }
 
+func (r *mutationResolver) AddSupplierKyc(ctx context.Context, input profile.SupplierKYCInput) (*profile.SupplierKYC, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.AddSupplierKyc(ctx, input)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*profile.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()

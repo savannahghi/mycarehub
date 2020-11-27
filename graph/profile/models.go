@@ -313,9 +313,10 @@ type PayablesAccount struct {
 
 // Supplier used to create a supplier request payload
 type Supplier struct {
-	UserProfile     UserProfile     `json:"userProfile" firestore:"userprofile"`
-	SupplierID      string          `json:"id" firestore:"supplierid"`
-	PayablesAccount PayablesAccount `json:"payables_account"`
+	UserProfile     *UserProfile     `json:"userProfile" firestore:"userprofile"`
+	SupplierID      string           `json:"id" firestore:"supplierid"`
+	PayablesAccount *PayablesAccount `json:"payables_account"`
+	SupplierKYC     *SupplierKYC     `json:"supplierKYC"`
 }
 
 // StatusResponse creates a status response for requests
@@ -358,4 +359,38 @@ type SupplierResponse struct {
 // UserUIDs is an input of a list of user uids for isc requests
 type UserUIDs struct {
 	UIDs []string `json:"uids"`
+}
+
+// SupplierKYC stores details about a supplier's KYC
+type SupplierKYC struct {
+	AccountType                       AccountType            `json:"accountType"`
+	IdentificationDocType             *IdentificationDocType `json:"identificationDocType"`
+	IdentificationDocNumber           *string                `json:"identificationDocNumber"`
+	IdentificationDocPhotoBase64      *string                `json:"identificationDocPhotoBase64"`
+	IdentificationDocPhotoContentType *base.ContentType      `json:"identificationDocPhotoContentType"`
+	License                           *string                `json:"license"`
+	Cadre                             *PractitionerCadre     `json:"cadre"`
+	Profession                        *string                `json:"profession"`
+	KraPin                            *string                `json:"kraPIN"`
+	KraPINDocPhoto                    *string                `json:"kraPINDocPhoto"`
+	BusinessNumber                    *string                `json:"businessNumber"`
+	BusinessNumberDocPhotoBase64      *string                `json:"businessNumberDocPhotoBase64"`
+	BusinessNumberDocPhotoContentType *base.ContentType      `json:"businessNumberDocPhotoContentType"`
+}
+
+// SupplierKYCInput defines a supplier's KYC input
+type SupplierKYCInput struct {
+	AccountType                       AccountType            `json:"accountType"`
+	IdentificationDocType             *IdentificationDocType `json:"identificationDocType"`
+	IdentificationDocNumber           *string                `json:"identificationDocNumber"`
+	IdentificationDocPhotoBase64      *string                `json:"identificationDocPhotoBase64"`
+	IdentificationDocPhotoContentType *base.ContentType      `json:"identificationDocPhotoContentType"`
+	License                           *string                `json:"license"`
+	Cadre                             *PractitionerCadre     `json:"cadre"`
+	Profession                        *string                `json:"profession"`
+	KraPin                            *string                `json:"kraPIN"`
+	KraPINDocPhoto                    *string                `json:"kraPINDocPhoto"`
+	BusinessNumber                    *string                `json:"businessNumber"`
+	BusinessNumberDocPhotoBase64      *string                `json:"businessNumberDocPhotoBase64"`
+	BusinessNumberDocPhotoContentType *base.ContentType      `json:"businessNumberDocPhotoContentType"`
 }

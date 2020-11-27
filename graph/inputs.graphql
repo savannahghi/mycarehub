@@ -66,3 +66,19 @@ input PractitionerServiceInput {
 input OtherPractitionerServiceInput {
   otherServices: [String!]!
 }
+
+input SupplierKYCInput {
+  accountType: AccountType! 
+  identificationDocType: IdentificationDocType
+  identificationDocNumber: String
+  identificationDocPhotoBase64: String
+  identificationDocPhotoContentType: ContentType
+  license: String
+  cadre: PractitionerCadre
+  profession: String
+  kraPIN: String
+  kraPINDocPhoto: String
+  businessNumber: String
+  businessNumberDocPhotoBase64: String
+  businessNumberDocPhotoContentType: ContentType
+}

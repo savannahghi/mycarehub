@@ -11,13 +11,16 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
-	github.com/mitchellh/mapstructure v1.3.3 // indirect
+	github.com/mitchellh/mapstructure v1.4.0 // indirect
 	github.com/shopspring/decimal v1.2.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
 	gitlab.slade360emr.com/go/authorization v0.0.7
-	gitlab.slade360emr.com/go/base v0.0.68
+	gitlab.slade360emr.com/go/base v0.0.69
 	gitlab.slade360emr.com/go/chargemaster v0.0.7 // indirect
-	gopkg.in/yaml.v2 v2.3.0
+	gitlab.slade360emr.com/go/uploads v0.0.9 // indirect
+	golang.org/x/sys v0.0.0-20201126233918-771906719818 // indirect
+	golang.org/x/tools v0.0.0-20201125231158-b5590deeca9b // indirect
+	gopkg.in/yaml.v2 v2.4.0
 )

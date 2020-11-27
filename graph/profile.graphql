@@ -42,4 +42,5 @@ extend type Mutation {
     otherServices: OtherPractitionerServiceInput
   ): Boolean!
   addSupplier(name: String!): Supplier!
+  addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
 }

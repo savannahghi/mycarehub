@@ -56,7 +56,7 @@ func (s Service) AddSupplier(ctx context.Context, uid *string, name string) (*Su
 		return nil, fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
 	}
 	newSupplier := Supplier{
-		UserProfile: *profile,
+		UserProfile: profile,
 	}
 
 	if err := base.ReadRequestToTarget(s.client, "POST", supplierAPIPath, "", content, &newSupplier); err != nil {
@@ -136,7 +136,7 @@ func FindSupplierByUIDHandler(ctx context.Context, service *Service) http.Handle
 
 		supplierResponse := SupplierResponse{
 			SupplierID:      supplier.SupplierID,
-			PayablesAccount: supplier.PayablesAccount,
+			PayablesAccount: *supplier.PayablesAccount,
 			Profile: BioData{
 				UID:        supplier.UserProfile.UID,
 				Name:       supplier.UserProfile.Name,
@@ -150,4 +150,52 @@ func FindSupplierByUIDHandler(ctx context.Context, service *Service) http.Handle
 
 		base.WriteJSONResponse(w, supplierResponse, http.StatusOK)
 	}
+}
+
+// AddSupplierKyc persists a supplier KYC information to firestore
+func (s Service) AddSupplierKyc(
+	ctx context.Context,
+	input SupplierKYCInput) (*SupplierKYC, error) {
+	s.checkPreconditions()
+
+	profile, err := s.UserProfile(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch user profile: %v", err)
+	}
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
+		ctx, profile.UID, s.GetSupplierCollectionName(), "userprofile.uid")
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
+	}
+	if dsnap == nil {
+		return nil, fmt.Errorf("the supplier does not exist in out records")
+	}
+	supplier := &Supplier{}
+	err = dsnap.DataTo(supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier data: %v", err)
+	}
+
+	supplier.SupplierKYC.AccountType = input.AccountType
+	supplier.SupplierKYC.IdentificationDocType = input.IdentificationDocType
+	supplier.SupplierKYC.IdentificationDocNumber = input.IdentificationDocNumber
+	supplier.SupplierKYC.IdentificationDocPhotoBase64 = input.IdentificationDocPhotoBase64
+	supplier.SupplierKYC.IdentificationDocPhotoContentType = input.IdentificationDocPhotoContentType
+	supplier.SupplierKYC.License = input.License
+	supplier.SupplierKYC.Cadre = input.Cadre
+	supplier.SupplierKYC.Profession = input.Profession
+	supplier.SupplierKYC.KraPin = input.KraPin
+	supplier.SupplierKYC.KraPINDocPhoto = input.KraPINDocPhoto
+	supplier.SupplierKYC.BusinessNumber = input.BusinessNumber
+	supplier.SupplierKYC.BusinessNumberDocPhotoBase64 = input.BusinessNumberDocPhotoBase64
+	supplier.SupplierKYC.BusinessNumberDocPhotoContentType = input.BusinessNumberDocPhotoContentType
+
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+	supplierKYC := supplier.SupplierKYC
+	return supplierKYC, nil
 }

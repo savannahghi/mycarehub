@@ -197,3 +197,76 @@ func TestFindSupplierByUID(t *testing.T) {
 		})
 	}
 }
+
+func TestService_AddSupplierKyc(t *testing.T) {
+	srv := NewService()
+	idDocType := IdentificationDocTypeNationalid
+	idNo := "234567"
+	license := "UL15KIAWAP!"
+	cadre := PractitionerCadreDoctor
+	profession := "Wa Mifupa"
+	orgAccType := AccountTypeOrganisation
+	type args struct {
+		ctx   context.Context
+		input SupplierKYCInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "good case: add account type",
+			args: args{
+				ctx: base.GetAuthenticatedContext(t),
+				input: SupplierKYCInput{
+					AccountType: orgAccType,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "good case: add identification docs",
+			args: args{
+				ctx: base.GetAuthenticatedContext(t),
+				input: SupplierKYCInput{
+					IdentificationDocType:   &idDocType,
+					IdentificationDocNumber: &idNo,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "good case: add practice details",
+			args: args{
+				ctx: base.GetAuthenticatedContext(t),
+				input: SupplierKYCInput{
+					License:    &license,
+					Cadre:      &cadre,
+					Profession: &profession,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "bad case: nonexistent supplier",
+			args: args{
+				ctx: context.Background(),
+				input: SupplierKYCInput{
+					AccountType: AccountTypeIndividual,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := srv
+			_, err := s.AddSupplierKyc(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.AddSupplierKyc() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

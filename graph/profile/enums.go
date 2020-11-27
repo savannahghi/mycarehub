@@ -269,3 +269,99 @@ func (e *BeneficiaryRelationship) UnmarshalGQL(v interface{}) error {
 func (e BeneficiaryRelationship) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
+
+// AccountType defines the various supplier account types
+type AccountType string
+
+// AccountTypeIndivdual is an example of a suppiler account type
+const (
+	AccountTypeIndividual   AccountType = "INDIVIDUAL"
+	AccountTypeOrganisation AccountType = "ORGANISATION"
+)
+
+// AllAccountType is a slice that represents all the account types
+var AllAccountType = []AccountType{
+	AccountTypeIndividual,
+	AccountTypeOrganisation,
+}
+
+// IsValid checks if the account type is valid
+func (e AccountType) IsValid() bool {
+	switch e {
+	case AccountTypeIndividual, AccountTypeOrganisation:
+		return true
+	}
+	return false
+}
+
+func (e AccountType) String() string {
+	return string(e)
+}
+
+// UnmarshalGQL converts the input, if valid, into a account type value
+func (e *AccountType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AccountType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AccountType", str)
+	}
+	return nil
+}
+
+// MarshalGQL converts AccountType into a valid JSON string
+func (e AccountType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// IdentificationDocType defines the various supplier IdentificationDocTypes
+type IdentificationDocType string
+
+// IdentificationDocTypeNationalid is an example of a IdentificationDocType
+const (
+	IdentificationDocTypeNationalid IdentificationDocType = "NATIONALID"
+	IdentificationDocTypePassport   IdentificationDocType = "PASSPORT"
+	IdentificationDocTypeMilitary   IdentificationDocType = "MILITARY"
+)
+
+// AllIdentificationDocType contains a slice of all IdentificationDocTypes
+var AllIdentificationDocType = []IdentificationDocType{
+	IdentificationDocTypeNationalid,
+	IdentificationDocTypePassport,
+	IdentificationDocTypeMilitary,
+}
+
+// IsValid checks if the IdentificationDocType is valid
+func (e IdentificationDocType) IsValid() bool {
+	switch e {
+	case IdentificationDocTypeNationalid, IdentificationDocTypePassport, IdentificationDocTypeMilitary:
+		return true
+	}
+	return false
+}
+
+func (e IdentificationDocType) String() string {
+	return string(e)
+}
+
+// UnmarshalGQL converts the input, if valid, into an IdentificationDocType value
+func (e *IdentificationDocType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = IdentificationDocType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IdentificationDocType", str)
+	}
+	return nil
+}
+
+// MarshalGQL converts IdentificationDocType into a valid JSON string
+func (e IdentificationDocType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}

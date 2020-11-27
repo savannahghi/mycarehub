@@ -40,3 +40,14 @@ enum BeneficiaryRelationship {
   SPOUSE
   CHILD
 }
+
+enum AccountType {
+  INDIVIDUAL
+  ORGANISATION
+}
+
+enum IdentificationDocType {
+  NATIONALID
+  PASSPORT
+  MILITARY
+}
