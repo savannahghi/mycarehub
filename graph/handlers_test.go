@@ -7,14 +7,16 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
+	"firebase.google.com/go/auth"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph"
@@ -800,6 +802,70 @@ func TestRequestPinResetHandler(t *testing.T) {
 				t.Errorf("unexpected nil response (did not expect an error)")
 				return
 			}
+		})
+	}
+}
+
+func TestRetrieveUserProfileFirebaseDocSnapshotHandler(t *testing.T) {
+
+	ctx := base.GetAuthenticatedContext(t)
+	assert.NotNil(t, ctx)
+	auth := ctx.Value(base.AuthTokenContextKey).(*auth.Token)
+	assert.NotNil(t, auth)
+	profileUid := &profile.BusinessPartnerUID{
+		UID:   &auth.UID,
+		Token: auth,
+	}
+	assert.NotNil(t, profileUid)
+	srv := profile.NewService()
+	assert.NotNil(t, srv)
+	handler := graph.RetrieveUserProfileFirebaseDocSnapshotHandler(ctx, srv)
+
+	assert.NotNil(t, handler)
+
+	uidJson, err := json.Marshal(profileUid)
+	assert.NotNil(t, uidJson)
+	assert.Nil(t, err)
+
+	validRequest := httptest.NewRequest(http.MethodPost, "/", nil)
+	validRequest.Body = ioutil.NopCloser(bytes.NewReader(uidJson))
+
+	type args struct {
+		rw http.ResponseWriter
+		r  *http.Request
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "valid case",
+			args: args{
+				rw: httptest.NewRecorder(),
+				r:  validRequest,
+			},
+			want: http.StatusOK,
+		},
+
+		{
+			name: "invalid case",
+			args: args{
+				rw: httptest.NewRecorder(),
+				r:  httptest.NewRequest(http.MethodPost, "/", ioutil.NopCloser(bytes.NewReader([]byte{}))),
+			},
+			want: http.StatusBadRequest,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler(tt.args.rw, tt.args.r)
+
+			response, ok := tt.args.rw.(*httptest.ResponseRecorder)
+			assert.True(t, ok)
+			assert.NotNil(t, response)
+
+			assert.Equal(t, tt.want, response.Code)
 		})
 	}
 }

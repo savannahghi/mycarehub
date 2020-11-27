@@ -74,6 +74,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		GetProfileAttributesHandler(ctx),
 	).Name("getProfileAttributes")
 
+	isc.Path("/retrieve_user_profile_firebase_doc").Methods(
+		http.MethodPost).HandlerFunc(RetrieveUserProfileFirebaseDocSnapshotHandler(ctx, srv))
+
 	// Authenticated routes
 	gqlR := r.Path("/graphql").Subrouter()
 	gqlR.Use(base.AuthenticationMiddleware(firebaseApp))
@@ -195,5 +198,34 @@ func UpdatePinHandler(ctx context.Context) http.HandlerFunc {
 
 		base.WriteJSONResponse(w, okResp{Status: "ok"}, http.StatusOK)
 
+	}
+}
+
+// RetrieveUserProfileFirebaseDocSnapshotHandler process requests for ISC to RetrieveUserProfileFirebaseDocSnapshot
+func RetrieveUserProfileFirebaseDocSnapshotHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+
+		profileUID := &profile.BusinessPartnerUID{}
+		base.DecodeJSONToTargetStruct(rw, r, profileUID)
+		if profileUID == nil {
+			err := fmt.Errorf("invalid credetials")
+			base.RespondWithError(rw, http.StatusBadRequest, err)
+			return
+		}
+
+		if profileUID.Token == nil {
+			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("bad token provided"))
+			return
+		}
+
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, profileUID.Token)
+		doc, err := srv.RetrieveUserProfileFirebaseDocSnapshot(newContext)
+
+		if err != nil {
+			base.RespondWithError(rw, http.StatusBadRequest, err)
+			return
+		}
+
+		base.WriteJSONResponse(rw, doc, http.StatusOK)
 	}
 }
