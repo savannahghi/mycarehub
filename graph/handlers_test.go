@@ -954,3 +954,71 @@ func TestSaveMemberCoverToFirestoreHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestIsUnderAgeHandler(t *testing.T) {
+
+	ctx := base.GetAuthenticatedContext(t)
+	assert.NotNil(t, ctx, "context should not be nil")
+
+	aut := ctx.Value(base.AuthTokenContextKey).(*auth.Token)
+	assert.NotNil(t, aut, "auth should not be nil")
+
+	srv := profile.NewService()
+	assert.NotNil(t, srv, "service is nil")
+
+	handler := graph.IsUnderAgeHandler(ctx, srv)
+
+	type args struct {
+		uid profile.BusinessPartnerUID
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+		rw   http.ResponseWriter
+	}{
+		{
+			name: "Valid case",
+			args: args{
+				profile.BusinessPartnerUID{
+					UID:   &aut.UID,
+					Token: aut,
+				},
+			},
+			rw:   httptest.NewRecorder(),
+			want: http.StatusOK,
+		},
+
+		{
+			name: "invalid case",
+			args: args{
+				profile.BusinessPartnerUID{
+					UID:   &aut.UID,
+					Token: nil,
+				},
+			},
+			rw:   httptest.NewRecorder(),
+			want: http.StatusBadRequest,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			payloadJson, err := json.Marshal(tt.args.uid)
+			assert.Nil(t, err, "failed to marshal payload")
+			assert.NotNil(t, payloadJson, "payload is nil")
+
+			request := httptest.NewRequest(http.MethodPost, "/", nil)
+			request.Body = ioutil.NopCloser(bytes.NewReader(payloadJson))
+
+			handler(tt.rw, request)
+
+			response, ok := tt.rw.(*httptest.ResponseRecorder)
+
+			assert.True(t, ok)
+			assert.NotNil(t, response, "response should not be nil")
+
+			assert.Equal(t, tt.want, response.Code)
+
+		})
+	}
+}

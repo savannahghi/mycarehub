@@ -80,6 +80,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	isc.Path("/save_cover").Methods(http.MethodPost).HandlerFunc(SaveMemberCoverToFirestoreHandler(ctx, srv))
 
+	isc.Path("/is_underage").Methods(http.MethodPost).HandlerFunc(IsUnderAgeHandler(ctx, srv))
+
 	// Authenticated routes
 	gqlR := r.Path("/graphql").Subrouter()
 	gqlR.Use(base.AuthenticationMiddleware(firebaseApp))
@@ -266,5 +268,32 @@ func SaveMemberCoverToFirestoreHandler(ctx context.Context, srv *profile.Service
 
 		base.RespondWithJSON(rw, http.StatusOK, []byte{})
 
+	}
+}
+
+// IsUnderAgeHandler process ISC requests to IsUnderAge
+func IsUnderAgeHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		profileUID := &profile.BusinessPartnerUID{}
+		base.DecodeJSONToTargetStruct(rw, r, profileUID)
+		if profileUID == nil {
+			err := fmt.Errorf("invalid credetials")
+			base.RespondWithError(rw, http.StatusBadRequest, err)
+			return
+		}
+
+		if profileUID.Token == nil {
+			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("bad token provided"))
+			return
+		}
+
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, profileUID.Token)
+		isUnderAge, err := srv.IsUnderAge(newContext)
+
+		if err != nil {
+			base.RespondWithError(rw, http.StatusInternalServerError, err)
+		}
+
+		base.WriteJSONResponse(rw, isUnderAge, http.StatusOK)
 	}
 }
