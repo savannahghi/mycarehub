@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"firebase.google.com/go/auth"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 
@@ -76,6 +77,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	isc.Path("/retrieve_user_profile_firebase_doc").Methods(
 		http.MethodPost).HandlerFunc(RetrieveUserProfileFirebaseDocSnapshotHandler(ctx, srv))
+
+	isc.Path("/save_cover").Methods(http.MethodPost).HandlerFunc(SaveMemberCoverToFirestoreHandler(ctx, srv))
 
 	// Authenticated routes
 	gqlR := r.Path("/graphql").Subrouter()
@@ -227,5 +230,41 @@ func RetrieveUserProfileFirebaseDocSnapshotHandler(ctx context.Context, srv *pro
 		}
 
 		base.WriteJSONResponse(rw, doc, http.StatusOK)
+	}
+}
+
+// SaveMemberCoverToFirestoreHandler process ISC requests to SaveMemberCoverToFirestore
+func SaveMemberCoverToFirestoreHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+
+		type Payload struct {
+			PayerName      string      `json:"payerName"`
+			MemberName     string      `json:"memberName"`
+			MemberNumber   string      `json:"memberNumber"`
+			PayerSladeCode int         `json:"payerSladeCode"`
+			UUID           string      `json:"uid"`
+			Token          *auth.Token `json:"token"`
+		}
+
+		payload := &Payload{}
+
+		base.DecodeJSONToTargetStruct(rw, r, payload)
+
+		if payload.Token == nil {
+			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("bad token provided"))
+			return
+		}
+
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, payload.Token)
+
+		err := srv.SaveMemberCoverToFirestore(newContext, payload.PayerName, payload.MemberNumber, payload.MemberName, payload.PayerSladeCode)
+
+		if err != nil {
+			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("failed to save cover"))
+			return
+		}
+
+		base.RespondWithJSON(rw, http.StatusOK, []byte{})
+
 	}
 }

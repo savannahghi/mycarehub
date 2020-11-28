@@ -869,3 +869,88 @@ func TestRetrieveUserProfileFirebaseDocSnapshotHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestSaveMemberCoverToFirestoreHandler(t *testing.T) {
+
+	ctx := base.GetAuthenticatedContext(t)
+	assert.NotNil(t, ctx, "context should not be nil")
+
+	aut := ctx.Value(base.AuthTokenContextKey).(*auth.Token)
+	assert.NotNil(t, aut, "auth should not be nil")
+
+	srv := profile.NewService()
+	assert.NotNil(t, srv, "service is nil")
+
+	handler := graph.SaveMemberCoverToFirestoreHandler(ctx, srv)
+
+	type Payload struct {
+		PayerName      string      `json:"payerName"`
+		MemberName     string      `json:"memberName"`
+		MemberNumber   string      `json:"memberNumber"`
+		PayerSladeCode int         `json:"payerSladeCode"`
+		UUID           string      `json:"uid"`
+		Token          *auth.Token `json:"token"`
+	}
+
+	type args struct {
+		payload Payload
+		rw      http.ResponseWriter
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "valid case",
+			args: args{
+				payload: Payload{
+					PayerName:      "UAP",
+					MemberName:     "Jakaya",
+					MemberNumber:   "133",
+					PayerSladeCode: 144,
+					Token:          aut,
+					UUID:           aut.UID,
+				},
+				rw: httptest.NewRecorder(),
+			},
+			want: http.StatusOK,
+		},
+
+		{
+			name: "invalid case",
+			args: args{
+				payload: Payload{
+					MemberName:     "Jak",
+					MemberNumber:   "132",
+					PayerName:      "APA",
+					PayerSladeCode: 111,
+					Token:          nil,
+					UUID:           aut.UID,
+				},
+				rw: httptest.NewRecorder(),
+			},
+			want: http.StatusBadRequest,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			payloadJson, err := json.Marshal(tt.args.payload)
+			assert.Nil(t, err, "failed to marshal payload")
+			assert.NotNil(t, payloadJson, "payload is nil")
+
+			request := httptest.NewRequest(http.MethodPost, "/", nil)
+			request.Body = ioutil.NopCloser(bytes.NewReader(payloadJson))
+
+			handler(tt.args.rw, request)
+
+			response, ok := tt.args.rw.(*httptest.ResponseRecorder)
+
+			assert.True(t, ok)
+			assert.NotNil(t, response, "response should not be nil")
+
+			assert.Equal(t, tt.want, response.Code)
+
+		})
+	}
+}
