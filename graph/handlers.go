@@ -275,27 +275,38 @@ func SaveMemberCoverToFirestoreHandler(ctx context.Context, srv *profile.Service
 // IsUnderAgeHandler process ISC requests to IsUnderAge
 func IsUnderAgeHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		profileUID := &profile.BusinessPartnerUID{}
-		base.DecodeJSONToTargetStruct(rw, r, profileUID)
-		if profileUID == nil {
+		type UserContext struct {
+			Token *auth.Token `json:"token"`
+		}
+		var userContext *UserContext
+		base.DecodeJSONToTargetStruct(rw, r, &userContext)
+		if userContext == nil {
 			err := fmt.Errorf("invalid credetials")
 			base.RespondWithError(rw, http.StatusBadRequest, err)
 			return
 		}
 
-		if profileUID.Token == nil {
+		if userContext.Token == nil {
 			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("bad token provided"))
 			return
 		}
 
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, profileUID.Token)
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, userContext.Token)
 		isUnderAge, err := srv.IsUnderAge(newContext)
 
 		if err != nil {
 			base.RespondWithError(rw, http.StatusInternalServerError, err)
 		}
 
-		base.WriteJSONResponse(rw, isUnderAge, http.StatusOK)
+		type Payload struct {
+			IsUnderAge bool `json:"isUnderAge"`
+		}
+
+		payload := Payload{
+			IsUnderAge: isUnderAge,
+		}
+
+		base.WriteJSONResponse(rw, payload, http.StatusOK)
 	}
 }
 

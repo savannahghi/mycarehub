@@ -968,8 +968,12 @@ func TestIsUnderAgeHandler(t *testing.T) {
 
 	handler := graph.IsUnderAgeHandler(ctx, srv)
 
+	type UserContext struct {
+		Token *auth.Token `json:"token"`
+	}
+
 	type args struct {
-		uid profile.BusinessPartnerUID
+		userContext UserContext
 	}
 	tests := []struct {
 		name string
@@ -980,8 +984,7 @@ func TestIsUnderAgeHandler(t *testing.T) {
 		{
 			name: "Valid case",
 			args: args{
-				profile.BusinessPartnerUID{
-					UID:   &aut.UID,
+				UserContext{
 					Token: aut,
 				},
 			},
@@ -992,8 +995,7 @@ func TestIsUnderAgeHandler(t *testing.T) {
 		{
 			name: "invalid case",
 			args: args{
-				profile.BusinessPartnerUID{
-					UID:   &aut.UID,
+				UserContext{
 					Token: nil,
 				},
 			},
@@ -1003,7 +1005,7 @@ func TestIsUnderAgeHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			payloadJson, err := json.Marshal(tt.args.uid)
+			payloadJson, err := json.Marshal(tt.args.userContext)
 			assert.Nil(t, err, "failed to marshal payload")
 			assert.NotNil(t, payloadJson, "payload is nil")
 
