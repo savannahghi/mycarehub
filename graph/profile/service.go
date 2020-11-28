@@ -16,7 +16,6 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/asaskevich/govalidator"
 	log "github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
 	"gopkg.in/yaml.v2"
 )
@@ -262,7 +261,7 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 // for the logged in user's user profile or creates one if it does not exist
 func (s Service) RetrieveUserProfileFirebaseDocSnapshot(
 	ctx context.Context) (*firestore.DocumentSnapshot, error) {
-	uid, err := authorization.GetLoggedInUserUID(ctx)
+	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -758,7 +757,7 @@ func (s Service) RecordPostVisitSurvey(ctx context.Context, input PostVisitSurve
 		return false, fmt.Errorf("the likelihood of recommending should be an int between 0 and 10")
 	}
 
-	uid, err := authorization.GetLoggedInUserUID(ctx)
+	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return false, err
 	}

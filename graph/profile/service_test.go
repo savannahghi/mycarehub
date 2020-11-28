@@ -15,7 +15,6 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/authorization/graph/authorization"
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -66,13 +65,13 @@ func TestService_profileUpdates(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewService()
-			got, err := authorization.GetLoggedInUserUID(tt.args.ctx)
+			got, err := base.GetLoggedInUserUID(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("authorization.GetLoggedInUserUID error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("base.GetLoggedInUserUID error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("authorization.GetLoggedInUserUID = %v, want %v", got, tt.want)
+				t.Errorf("base.GetLoggedInUserUID = %v, want %v", got, tt.want)
 			}
 			if got == tt.want && err == nil {
 				profileSnapshot, err := s.RetrieveUserProfileFirebaseDocSnapshot(tt.args.ctx)
