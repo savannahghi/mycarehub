@@ -1022,3 +1022,70 @@ func TestIsUnderAgeHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestUserProfileHandler(t *testing.T) {
+	ctx := base.GetAuthenticatedContext(t)
+	assert.NotNil(t, ctx, "context should not be nil")
+
+	authToken := ctx.Value(base.AuthTokenContextKey).(*auth.Token)
+	assert.NotNil(t, authToken, "authToken should not be nil")
+
+	srv := profile.NewService()
+	assert.NotNil(t, srv, "service is nil")
+
+	handler := graph.UserProfileHandler(ctx, srv)
+
+	type UserContext struct {
+		Token *auth.Token `json:"token"`
+	}
+
+	type args struct {
+		userContext UserContext
+	}
+	tests := []struct {
+		name string
+		args args
+		rw   http.ResponseWriter
+		want int
+	}{
+		{
+			name: "valid case",
+			args: args{
+				userContext: UserContext{
+					Token: authToken,
+				},
+			},
+			rw:   httptest.NewRecorder(),
+			want: http.StatusOK,
+		},
+		{
+			name: "invalid case",
+			args: args{
+				userContext: UserContext{
+					Token: nil,
+				},
+			},
+			want: http.StatusBadRequest,
+			rw:   httptest.NewRecorder(),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			payloadJson, err := json.Marshal(tt.args.userContext)
+			assert.Nil(t, err, "failed to marshal payload")
+			assert.NotNil(t, payloadJson, "payload is nil")
+
+			request := httptest.NewRequest(http.MethodPost, "/", nil)
+			request.Body = ioutil.NopCloser(bytes.NewReader(payloadJson))
+
+			handler(tt.rw, request)
+
+			response, ok := tt.rw.(*httptest.ResponseRecorder)
+
+			assert.True(t, ok)
+			assert.NotNil(t, response, "response should not be nil")
+
+			assert.Equal(t, tt.want, response.Code)
+		})
+	}
+}

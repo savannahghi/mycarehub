@@ -30,3 +30,57 @@ export GOPRIVATE="gitlab.slade360emr.com/go/*,gitlab.slade360emr.com/optimalheal
 
 The server deploys to Google Cloud Run. The environment variables defined above
 should also be set on Google Cloud Run.
+
+---------------------------------------------------
+
+## ISC EndPoints
+
+### `/user_profile`
+
+ Expects a post request with a payload of context with format,
+
+ ```golang
+ type userContext struct {
+     token *auth.Token `json:"token"`
+ }
+ ```
+
+ token is a firebase auth Token.  
+ Returns a json response with the users profile.  
+
+```golang
+    type UserProfile struct {
+        UID              string           `json:"uid" firestore:"uid"`
+        TermsAccepted    bool             `json:"termsAccepted" firestore:"termsAccepted"`
+        IsApproved       bool             `json:"isApproved" firestore:"isApproved"`
+        Msisdns          []string         `json:"msisdns" firestore:"msisdns"`
+        Emails           []string         `json:"emails" firestore:"emails"`
+        PhotoBase64      string           `json:"photoBase64" firestore:"photoBase64"`
+        PhotoContentType base.ContentType `json:"photoContentType" firestore:"photoContentType"`
+        Covers           []Cover          `json:"covers" firestore:"covers"`
+
+        DateOfBirth *base.Date   `json:"dateOfBirth,omitempty" firestore:"dateOfBirth,omitempty"`
+        Gender      *base.Gender `json:"gender,omitempty" firestore:"gender,omitempty"`
+        PatientID   *string      `json:"patientID,omitempty" firestore:"patientID"`
+        PushTokens  []string     `json:"pushTokens" firestore:"pushTokens"`
+
+        Name                               *string `json:"name" firestore:"name"`
+        Bio                                *string `json:"bio" firestore:"bio"`
+        PractitionerApproved               *bool   `json:"practitionerApproved" firestore:"practitionerApproved"`
+        PractitionerTermsOfServiceAccepted *bool   `json:"practitionerTermsOfServiceAccepted" firestore:"practitionerTermsOfServiceAccepted"`
+
+        IsTester      bool          `json:"isTester" firestore:"isTester"`
+        CanExperiment bool          `json:"canExperiment" firestore:"canExperiment"`
+        Language      base.Language `json:"language" firestore:"language"`
+
+        // used to determine whether to persist asking the user on the UI
+        AskAgainToSetIsTester      bool             `json:"askAgainToSetIsTester" firestore:"askAgainToSetIsTester"`
+        AskAgainToSetCanExperiment bool             `json:"askAgainToSetCanExperiment" firestore:"askAgainToSetCanExperiment"`
+        VerifiedEmails             []VerifiedEmail  `json:"verifiedEmails" firestore:"verifiedEmails"`
+        VerifiedPhones             []VerifiedMsisdn `json:"verifiedPhones" firestore:"verifiedPhones"`
+        HasPin                     bool             `json:"hasPin" firestore:"hasPin"`
+        HasSupplierAccount         bool             `json:"hasSupplierAccount" firestore:"hasSupplierAccount"`
+        HasCustomerAccount         bool             `json:"hasCustomerAccount" firestore:"hasCustomerAccount"`
+        PractitionerHasServices    bool             `json:"practitionerHasServices" firestore:"practitionerHasServices"`
+}
+```

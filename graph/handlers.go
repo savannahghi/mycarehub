@@ -81,6 +81,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	isc.Path("/save_cover").Methods(http.MethodPost).HandlerFunc(SaveMemberCoverToFirestoreHandler(ctx, srv))
 
 	isc.Path("/is_underage").Methods(http.MethodPost).HandlerFunc(IsUnderAgeHandler(ctx, srv))
+	isc.Path("/user_profile").Methods(http.MethodPost).HandlerFunc(UserProfileHandler(ctx, srv))
 
 	// Authenticated routes
 	gqlR := r.Path("/graphql").Subrouter()
@@ -295,5 +296,39 @@ func IsUnderAgeHandler(ctx context.Context, srv *profile.Service) http.HandlerFu
 		}
 
 		base.WriteJSONResponse(rw, isUnderAge, http.StatusOK)
+	}
+}
+
+// UserProfileHandler process ISC request to UserProfile
+func UserProfileHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+
+		type userContext struct {
+			Token *auth.Token `json:"token"`
+		}
+
+		profileContext := &userContext{}
+		base.DecodeJSONToTargetStruct(rw, r, profileContext)
+		if profileContext == nil {
+			err := fmt.Errorf("invalid credetials")
+			base.RespondWithError(rw, http.StatusBadRequest, err)
+			return
+		}
+
+		if profileContext.Token == nil {
+			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("bad token provided"))
+			return
+		}
+
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, profileContext.Token)
+
+		userProfile, err := srv.UserProfile(newContext)
+		if err != nil {
+			base.RespondWithError(rw, http.StatusInternalServerError, err)
+			return
+		}
+
+		base.WriteJSONResponse(rw, userProfile, http.StatusOK)
+
 	}
 }
