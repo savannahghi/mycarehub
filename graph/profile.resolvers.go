@@ -217,6 +217,12 @@ func (r *queryResolver) GetSignUpMethod(ctx context.Context, id string) (profile
 	return r.profileService.GetSignUpMethod(ctx, id)
 }
 
+func (r *queryResolver) SupplierProfile(ctx context.Context, uid string) (*profile.Supplier, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.FindSupplier(ctx, uid)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
