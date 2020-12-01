@@ -1,5 +1,5 @@
 extend type Query {
-  userProfile: UserProfile!
+  userProfile(phone: String!): UserProfile!
   healthcashBalance: Decimal!
   getProfile(uid: String!): UserProfile!
   listTesters: [String!]!

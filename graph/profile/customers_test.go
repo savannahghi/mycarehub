@@ -253,14 +253,11 @@ func TestService_FindCustomer(t *testing.T) {
 }
 
 func TestFindCustomerByUID(t *testing.T) {
-	ctx := base.GetAuthenticatedContext(t)
+	ctx, token := base.GetAuthenticatedContextAndToken(t)
 	service := NewService()
-	profile, err := service.UserProfile(ctx)
-	assert.Nil(t, err)
-	assert.NotNil(t, profile)
 	findCustomer := FindCustomerByUIDHandler(ctx, service)
 
-	uid := &BusinessPartnerUID{UID: &profile.UID}
+	uid := &BusinessPartnerUID{UID: &token.UID}
 	goodUIDJSONBytes, err := json.Marshal(uid)
 	assert.Nil(t, err)
 	assert.NotNil(t, goodUIDJSONBytes)

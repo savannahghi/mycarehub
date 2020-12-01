@@ -81,7 +81,7 @@ type ComplexityRoot struct {
 	Entity struct {
 		FindCoverByPayerName      func(childComplexity int, payerName string) int
 		FindPageInfoByHasNextPage func(childComplexity int, hasNextPage bool) int
-		FindUserProfileByUID      func(childComplexity int, uid string) int
+		FindUserProfileByUids     func(childComplexity int, uids []string) int
 	}
 
 	KMPDUPractitioner struct {
@@ -178,7 +178,7 @@ type ComplexityRoot struct {
 		ListTesters                      func(childComplexity int) int
 		RequestPinReset                  func(childComplexity int, msisdn string) int
 		SupplierProfile                  func(childComplexity int, uid string) int
-		UserProfile                      func(childComplexity int) int
+		UserProfile                      func(childComplexity int, phone string) int
 		VerifyMSISDNandPin               func(childComplexity int, msisdn string, pin string) int
 		__resolve__service               func(childComplexity int) int
 		__resolve_entities               func(childComplexity int, representations []map[string]interface{}) int
@@ -250,7 +250,7 @@ type ComplexityRoot struct {
 		PractitionerTermsOfServiceAccepted func(childComplexity int) int
 		PushTokens                         func(childComplexity int) int
 		TermsAccepted                      func(childComplexity int) int
-		UID                                func(childComplexity int) int
+		Uids                               func(childComplexity int) int
 		VerifiedEmails                     func(childComplexity int) int
 		VerifiedPhones                     func(childComplexity int) int
 	}
@@ -273,7 +273,7 @@ type ComplexityRoot struct {
 type EntityResolver interface {
 	FindCoverByPayerName(ctx context.Context, payerName string) (*profile.Cover, error)
 	FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*base.PageInfo, error)
-	FindUserProfileByUID(ctx context.Context, uid string) (*profile.UserProfile, error)
+	FindUserProfileByUids(ctx context.Context, uids []string) (*profile.UserProfile, error)
 }
 type MutationResolver interface {
 	ConfirmEmail(ctx context.Context, email string) (*profile.UserProfile, error)
@@ -301,7 +301,7 @@ type MutationResolver interface {
 	AddSupplierKyc(ctx context.Context, input profile.SupplierKYCInput) (*profile.SupplierKYC, error)
 }
 type QueryResolver interface {
-	UserProfile(ctx context.Context) (*profile.UserProfile, error)
+	UserProfile(ctx context.Context, phone string) (*profile.UserProfile, error)
 	HealthcashBalance(ctx context.Context) (*base.Decimal, error)
 	GetProfile(ctx context.Context, uid string) (*profile.UserProfile, error)
 	ListTesters(ctx context.Context) ([]string, error)
@@ -487,17 +487,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Entity.FindPageInfoByHasNextPage(childComplexity, args["hasNextPage"].(bool)), true
 
-	case "Entity.findUserProfileByUID":
-		if e.complexity.Entity.FindUserProfileByUID == nil {
+	case "Entity.findUserProfileByUids":
+		if e.complexity.Entity.FindUserProfileByUids == nil {
 			break
 		}
 
-		args, err := ec.field_Entity_findUserProfileByUID_args(context.TODO(), rawArgs)
+		args, err := ec.field_Entity_findUserProfileByUids_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Entity.FindUserProfileByUID(childComplexity, args["uid"].(string)), true
+		return e.complexity.Entity.FindUserProfileByUids(childComplexity, args["uids"].([]string)), true
 
 	case "KMPDUPractitioner.active":
 		if e.complexity.KMPDUPractitioner.Active == nil {
@@ -1111,7 +1111,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.UserProfile(childComplexity), true
+		args, err := ec.field_Query_userProfile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UserProfile(childComplexity, args["phone"].(string)), true
 
 	case "Query.verifyMSISDNandPIN":
 		if e.complexity.Query.VerifyMSISDNandPin == nil {
@@ -1494,12 +1499,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.TermsAccepted(childComplexity), true
 
-	case "UserProfile.uid":
-		if e.complexity.UserProfile.UID == nil {
+	case "UserProfile.uids":
+		if e.complexity.UserProfile.Uids == nil {
 			break
 		}
 
-		return e.complexity.UserProfile.UID(childComplexity), true
+		return e.complexity.UserProfile.Uids(childComplexity), true
 
 	case "UserProfile.VerifiedEmails":
 		if e.complexity.UserProfile.VerifiedEmails == nil {
@@ -1890,7 +1895,7 @@ input SupplierKYCInput {
   businessNumberDocPhotoContentType: ContentType
 }`, BuiltIn: false},
 	{Name: "graph/profile.graphql", Input: `extend type Query {
-  userProfile: UserProfile!
+  userProfile(phone: String!): UserProfile!
   healthcashBalance: Decimal!
   getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
@@ -1988,8 +1993,8 @@ type Cover
   memberName: String!
 }
 
-type UserProfile @key(fields: "uid") {
-  uid: String!
+type UserProfile @key(fields: "uids") {
+  uids: [String!]!
   isApproved: Boolean!
   termsAccepted: Boolean!
   msisdns: [String!]!
@@ -2125,7 +2130,7 @@ union _Entity = Cover | PageInfo | UserProfile
 type Entity {
 		findCoverByPayerName(payerName: String!,): Cover!
 	findPageInfoByHasNextPage(hasNextPage: Boolean!,): PageInfo!
-	findUserProfileByUID(uid: String!,): UserProfile!
+	findUserProfileByUids(uids: [String!]!,): UserProfile!
 
 }
 
@@ -2175,18 +2180,18 @@ func (ec *executionContext) field_Entity_findPageInfoByHasNextPage_args(ctx cont
 	return args, nil
 }
 
-func (ec *executionContext) field_Entity_findUserProfileByUID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Entity_findUserProfileByUids_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["uid"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uid"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg0 []string
+	if tmp, ok := rawArgs["uids"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uids"))
+		arg0, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["uid"] = arg0
+	args["uids"] = arg0
 	return args, nil
 }
 
@@ -2715,6 +2720,21 @@ func (ec *executionContext) field_Query_supplierProfile_args(ctx context.Context
 		}
 	}
 	args["uid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_userProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["phone"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phone"] = arg0
 	return args, nil
 }
 
@@ -3520,7 +3540,7 @@ func (ec *executionContext) _Entity_findPageInfoByHasNextPage(ctx context.Contex
 	return ec.marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Entity_findUserProfileByUID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Entity_findUserProfileByUids(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3537,7 +3557,7 @@ func (ec *executionContext) _Entity_findUserProfileByUID(ctx context.Context, fi
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Entity_findUserProfileByUID_args(ctx, rawArgs)
+	args, err := ec.field_Entity_findUserProfileByUids_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -3545,7 +3565,7 @@ func (ec *executionContext) _Entity_findUserProfileByUID(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Entity().FindUserProfileByUID(rctx, args["uid"].(string))
+		return ec.resolvers.Entity().FindUserProfileByUids(rctx, args["uids"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5668,9 +5688,16 @@ func (ec *executionContext) _Query_userProfile(ctx context.Context, field graphq
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_userProfile_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserProfile(rctx)
+		return ec.resolvers.Query().UserProfile(rctx, args["phone"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7150,7 +7177,7 @@ func (ec *executionContext) _TesterWhitelist_email(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_uid(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_uids(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7168,7 +7195,7 @@ func (ec *executionContext) _UserProfile_uid(ctx context.Context, field graphql.
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UID, nil
+		return obj.Uids, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7180,9 +7207,9 @@ func (ec *executionContext) _UserProfile_uid(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserProfile_isApproved(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
@@ -10275,7 +10302,7 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 				}
 				return res
 			})
-		case "findUserProfileByUID":
+		case "findUserProfileByUids":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -10283,7 +10310,7 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Entity_findUserProfileByUID(ctx, field)
+				res = ec._Entity_findUserProfileByUids(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -11199,8 +11226,8 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UserProfile")
-		case "uid":
-			out.Values[i] = ec._UserProfile_uid(ctx, field, obj)
+		case "uids":
+			out.Values[i] = ec._UserProfile_uids(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

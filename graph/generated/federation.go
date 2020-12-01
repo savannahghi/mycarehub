@@ -68,12 +68,12 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 			list = append(list, entity)
 
 		case "UserProfile":
-			id0, err := ec.unmarshalNString2string(ctx, rep["uid"])
+			id0, err := ec.unmarshalNString2ᚕstringᚄ(ctx, rep["uids"])
 			if err != nil {
-				return nil, errors.New(fmt.Sprintf("Field %s undefined in schema.", "uid"))
+				return nil, errors.New(fmt.Sprintf("Field %s undefined in schema.", "uids"))
 			}
 
-			entity, err := ec.resolvers.Entity().FindUserProfileByUID(ctx,
+			entity, err := ec.resolvers.Entity().FindUserProfileByUids(ctx,
 				id0)
 			if err != nil {
 				return nil, err

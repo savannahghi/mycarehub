@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"firebase.google.com/go/auth"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -505,7 +506,7 @@ func TestService_UserProfile(t *testing.T) {
 					assert.NotNil(t, profile)
 					assert.NotZero(t, profile.Emails)
 					assert.True(t, base.StringSliceContains(profile.Emails, base.TestUserEmail))
-					assert.NotZero(t, profile.UID)
+					assert.NotZero(t, profile.Uids)
 				}
 			}
 		})
@@ -1362,19 +1363,7 @@ func TestService_GetSignUpMethod(t *testing.T) {
 
 func TestService_AddPractitionerServices(t *testing.T) {
 	service := NewService()
-	ctx := base.GetAuthenticatedContext(t)
-	profile, err := service.UserProfile(ctx)
-	assert.Nil(t, err)
-	assert.NotNil(t, profile)
-
-	dsnap, err := service.RetrieveFireStoreSnapshotByUID(
-		ctx, profile.UID, service.GetPractitionerCollectionName(), "profile.uid")
-	assert.Nil(t, err)
-	assert.NotNil(t, dsnap)
-
-	practitioner := &Practitioner{}
-	err = dsnap.DataTo(practitioner)
-	assert.Nil(t, err)
+	ctx, _ := base.GetAuthenticatedContextAndToken(t)
 
 	type args struct {
 		ctx           context.Context
@@ -1449,18 +1438,13 @@ func TestService_AddPractitionerServices(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("Service.AddPractitionerServices() = %v, want %v", got, tt.want)
 			}
-			hasServices := practitioner.Profile.PractitionerHasServices
-			assert.True(t, hasServices)
 		})
 	}
 }
 
 func TestService_RetrieveFireStoreSnapshotByUID(t *testing.T) {
 	service := NewService()
-	ctx := base.GetAuthenticatedContext(t)
-	profile, err := service.UserProfile(ctx)
-	assert.Nil(t, err)
-	assert.NotNil(t, profile)
+	ctx, token := base.GetAuthenticatedContextAndToken(t)
 
 	type args struct {
 		ctx            context.Context
@@ -1477,9 +1461,9 @@ func TestService_RetrieveFireStoreSnapshotByUID(t *testing.T) {
 			name: "happy case",
 			args: args{
 				ctx:            ctx,
-				uid:            profile.UID,
+				uid:            token.UID,
 				collectionName: service.GetPractitionerCollectionName(),
-				field:          "profile.uid",
+				field:          "profile.uids",
 			},
 			wantErr: false,
 		},
@@ -1534,6 +1518,88 @@ func TestService_SaveMemberCoverToFirestore(t *testing.T) {
 
 			if err := srv.SaveMemberCoverToFirestore(ctx, tt.args.payerName, tt.args.memberNumber, tt.args.memberName, tt.args.PayerSladeCode); (err != nil) != tt.wantErr {
 				t.Errorf("Service.SaveMemberCoverToFirestore() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func createNewUser(ctx context.Context, t *testing.T) (context.Context, *auth.Token) {
+	authClient, err := base.GetFirebaseAuthClient(ctx)
+	if err != nil {
+		return nil, nil
+	}
+	params := (&auth.UserToCreate{}).
+		EmailVerified(false).
+		Disabled(false)
+	newUser, createErr := authClient.CreateUser(ctx, params)
+	if createErr != nil {
+		return nil, nil
+	}
+
+	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, newUser.UID)
+	assert.Nil(t, tokenErr)
+	assert.NotNil(t, customToken)
+
+	idTokens, idErr := base.AuthenticateCustomFirebaseToken(customToken)
+	assert.Nil(t, idErr)
+	assert.NotNil(t, idTokens)
+
+	bearerToken := idTokens.IDToken
+	authToken, err := base.ValidateBearerToken(ctx, bearerToken)
+	assert.Nil(t, err)
+	assert.NotNil(t, authToken)
+
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	return authenticatedContext, authToken
+}
+func TestService_GetOrCreateUserProfile(t *testing.T) {
+	service := NewService()
+	ctx := context.Background()
+	newCtx, _ := createNewUser(ctx, t)
+	emailCtx, _ := base.GetAuthenticatedContextAndToken(t)
+
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Case 1: creating a new user profile",
+			args: args{
+				ctx:   emailCtx,
+				phone: "+254716862585",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Case 1: Linking a new uid to the existing profile",
+			args: args{
+				ctx:   newCtx,
+				phone: "+254716862585",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Bad Case: non existent user profile",
+			args: args{
+				ctx:   ctx,
+				phone: "+254716862585",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			_, err := s.GetOrCreateUserProfile(tt.args.ctx, tt.args.phone)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.GetOrCreateUserProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

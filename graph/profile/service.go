@@ -225,7 +225,7 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 
 	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
 	// the ordering is necessary in order to provide a stable sort order
-	query := collection.Where("uid", "==", uid)
+	query := collection.Where("uids", "array-contains", uid)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -235,9 +235,11 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 			log.Printf("user %s has > 1 profile (they have %d)", uid, len(docs))
 		}
 	}
+	var uids []string
 	if len(docs) == 0 {
+		uids = append(uids, uid)
 		newProfile := &UserProfile{
-			UID:           uid,
+			Uids:          uids,
 			IsApproved:    false,
 			TermsAccepted: false,
 			CanExperiment: false,
@@ -251,6 +253,72 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve newly created user profile: %w", err)
 		}
+		return dsnap, nil
+	}
+	dsnap := docs[0]
+	return dsnap, nil
+}
+
+// RetrieveOrCreateUserProfileFirebaseDocSnapshot retrieves the user profile of a
+// specified user using either their uid or phone number.
+// If the user perofile does not exist then a new one is created
+func (s Service) RetrieveOrCreateUserProfileFirebaseDocSnapshot(
+	ctx context.Context,
+	uid string,
+	phone string,
+) (*firestore.DocumentSnapshot, error) {
+	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
+	// the ordering is necessary in order to provide a stable sort order
+	query := collection.Where("uids", "array-contains", uid)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) > 1 {
+		if base.IsDebug() {
+			log.Printf("user %s has > 1 profile (they have %d)", uid, len(docs))
+		}
+	}
+
+	var uids []string
+	var msisdns []string
+
+	if len(docs) == 0 {
+		collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
+		query := collection.Where("msisdns", "array-contains", phone)
+		docs, err := query.Documents(ctx).GetAll()
+		if err != nil {
+			return nil, err
+		}
+		if len(docs) > 1 {
+			if base.IsDebug() {
+				log.Printf("phone number %s is in > 1 profile (%d)", phone, len(docs))
+			}
+		}
+
+		if len(docs) == 0 {
+			uids = append(uids, uid)
+			msisdns = append(msisdns, phone)
+			newProfile := &UserProfile{
+				Uids:          uids,
+				IsApproved:    false,
+				TermsAccepted: false,
+				CanExperiment: false,
+				Msisdns:       msisdns,
+			}
+			docID, err := base.SaveDataToFirestore(
+				s.firestoreClient, s.GetUserProfileCollectionName(), newProfile)
+			if err != nil {
+				return nil, fmt.Errorf("unable to create new user profile: %w", err)
+			}
+			dsnap, err := collection.Doc(docID).Get(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("unable to retrieve newly created user profile: %w", err)
+			}
+			return dsnap, nil
+		}
+
+		dsnap := docs[0]
 		return dsnap, nil
 	}
 	dsnap := docs[0]
@@ -273,7 +341,7 @@ func (s Service) RetrieveFireStoreSnapshotByUID(
 	ctx context.Context, uid string, collectionName string,
 	field string) (*firestore.DocumentSnapshot, error) {
 	collection := s.firestoreClient.Collection(collectionName)
-	query := collection.Where(field, "==", uid)
+	query := collection.Where(field, "array-contains", uid)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -304,6 +372,40 @@ func (s Service) UserProfile(ctx context.Context) (*UserProfile, error) {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
 	userProfile.IsTester = isTester(ctx, userProfile.Emails)
+	return userProfile, nil
+}
+
+// GetOrCreateUserProfile retrieves the user profile of a
+// specified user using either their uid or phone number.
+// If the user perofile does not exist then a new one is created
+func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*UserProfile, error) {
+	s.checkPreconditions()
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	dsnap, err := s.RetrieveOrCreateUserProfileFirebaseDocSnapshot(ctx, uid, phone)
+	if err != nil {
+		return nil, err
+	}
+	userProfile := &UserProfile{}
+	err = dsnap.DataTo(userProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+	userProfile.IsTester = isTester(ctx, userProfile.Emails)
+
+	if !base.StringSliceContains(userProfile.Uids, uid) {
+		userProfile.Uids = append(userProfile.Uids, uid)
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to update user profile: %v", err)
+	}
 	return userProfile, nil
 }
 
@@ -967,6 +1069,11 @@ func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
 func (s Service) SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
 	s.checkPreconditions()
 
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, fmt.Errorf("unable to get the logged in user: %v", err)
+	}
+
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
 		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
@@ -977,8 +1084,9 @@ func (s Service) SetUserPin(ctx context.Context, msisdn string, pin string) (boo
 		return false, fmt.Errorf("unable to get or create a user profile: %v", err)
 	}
 
+	// TODO: Linking pins
 	personalIDNumber := PIN{
-		UID:     profile.UID,
+		UID:     uid,
 		MSISDN:  phoneNumber,
 		PIN:     pin,
 		IsValid: true,
@@ -1216,9 +1324,10 @@ func (s Service) VerifyEmailOtp(ctx context.Context, email string, otp string) (
 // CreateSignUpMethod attahces a users sign up method to a user's UID
 func (s Service) CreateSignUpMethod(ctx context.Context, signUpMethod SignUpMethod) (bool, error) {
 	s.checkPreconditions()
-	profile, err := s.UserProfile(ctx)
+
+	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return false, fmt.Errorf("unable to get or create a user profile: %v", err)
+		return false, fmt.Errorf("unable to get the logged in user: %v", err)
 	}
 
 	validSignUpMethod := signUpMethod.IsValid()
@@ -1227,7 +1336,7 @@ func (s Service) CreateSignUpMethod(ctx context.Context, signUpMethod SignUpMeth
 	}
 
 	signUpInfo := SignUpInfo{
-		UID:          profile.UID,
+		UID:          uid,
 		SignUpMethod: signUpMethod,
 	}
 
@@ -1241,14 +1350,23 @@ func (s Service) CreateSignUpMethod(ctx context.Context, signUpMethod SignUpMeth
 
 // GetSignUpMethod returns a user's sign up method
 func (s Service) GetSignUpMethod(ctx context.Context, id string) (SignUpMethod, error) {
-	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, id, s.GetSignUpInfoCollectionName(), "uid")
-	if err != nil {
-		return "", fmt.Errorf("unable to fetch sign up info: %v", err)
-	}
+	s.checkPreconditions()
 
-	if dsnap == nil {
+	collection := s.firestoreClient.Collection(s.GetSignUpInfoCollectionName())
+	query := collection.Where("uid", "==", id)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return "", fmt.Errorf("unable to fetch sign up info: %w", err)
+	}
+	if len(docs) > 1 {
+		if base.IsDebug() {
+			log.Printf("more than one snapshot found (they have %d)", len(docs))
+		}
+	}
+	if len(docs) == 0 {
 		return "", nil
 	}
+	dsnap := docs[0]
 
 	info := &SignUpInfo{}
 	err = dsnap.DataTo(info)
@@ -1267,12 +1385,12 @@ func (s Service) AddPractitionerServices(
 	otherServices *OtherPractitionerServiceInput) (bool, error) {
 	s.checkPreconditions()
 
-	profile, err := s.UserProfile(ctx)
+	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return false, fmt.Errorf("unable to fetch user profile: %v", err)
+		return false, fmt.Errorf("unable to get the logged in user: %v", err)
 	}
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, profile.UID, s.GetPractitionerCollectionName(), "profile.uid")
+		ctx, uid, s.GetPractitionerCollectionName(), "profile.uids")
 	if err != nil {
 		return false, fmt.Errorf("unable to retreive practitioner: %v", err)
 	}

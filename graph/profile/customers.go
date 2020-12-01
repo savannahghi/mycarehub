@@ -88,13 +88,13 @@ func (s Service) AddCustomer(ctx context.Context, uid *string, name string) (*Cu
 func (s Service) AddCustomerKYC(ctx context.Context, input CustomerKYCInput) (*CustomerKYC, error) {
 	s.checkPreconditions()
 
-	profile, err := s.UserProfile(ctx)
+	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch user profile: %v", err)
+		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
 	}
 
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, profile.UID, s.GetCustomerCollectionName(), "userprofile.uid")
+		ctx, uid, s.GetCustomerCollectionName(), "userprofile.uids")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve customer: %v", err)
 	}
@@ -145,13 +145,13 @@ func (s Service) AddCustomerKYC(ctx context.Context, input CustomerKYCInput) (*C
 func (s Service) UpdateCustomer(ctx context.Context, input CustomerKYCInput) (*Customer, error) {
 	s.checkPreconditions()
 
-	profile, err := s.UserProfile(ctx)
+	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch user profile: %v", err)
+		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
 	}
 
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, profile.UID, s.GetCustomerCollectionName(), "userprofile.uid")
+		ctx, uid, s.GetCustomerCollectionName(), "userprofile.uids")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve customer: %v", err)
 	}
@@ -265,7 +265,6 @@ func FindCustomerByUIDHandler(ctx context.Context, service *Service) http.Handle
 			CustomerID:         customer.CustomerID,
 			ReceivablesAccount: customer.ReceivablesAccount,
 			Profile: BioData{
-				UID:        customer.UserProfile.UID,
 				Name:       customer.UserProfile.Name,
 				Gender:     customer.UserProfile.Gender,
 				Msisdns:    customer.UserProfile.Msisdns,

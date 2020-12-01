@@ -87,7 +87,7 @@ type TesterWhitelist struct {
 
 // UserProfile serializes the profile of the logged in user.
 type UserProfile struct {
-	UID              string           `json:"uid" firestore:"uid"`
+	Uids             []string         `json:"uids" firestore:"uids"`
 	TermsAccepted    bool             `json:"termsAccepted" firestore:"termsAccepted"`
 	IsApproved       bool             `json:"isApproved" firestore:"isApproved"`
 	Msisdns          []string         `json:"msisdns" firestore:"msisdns"`

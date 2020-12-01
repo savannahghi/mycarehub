@@ -61,12 +61,12 @@ func TestService_GetConfirmedEmailAddresses(t *testing.T) {
 			name: "Slice of uids case",
 			args: args{
 				ctx:  ctx,
-				uids: []string{phoneNumberProfile.UID, token.UID},
+				uids: []string{phoneNumberProfile.Uids[0], token.UID},
 			},
 			wantErr: false,
 			want: map[string][]string{
-				token.UID:              profile.Emails,
-				phoneNumberProfile.UID: {},
+				token.UID:                  profile.Emails,
+				phoneNumberProfile.Uids[0]: {},
 			},
 		},
 	}
@@ -88,8 +88,7 @@ func TestService_GetConfirmedEmailAddresses(t *testing.T) {
 
 func TestService_GetConfirmedPhoneNumbers(t *testing.T) {
 	service := NewService()
-	ctx := base.GetAuthenticatedContext(t)
-	assert.NotNil(t, ctx)
+	ctx, token := base.GetAuthenticatedContextAndToken(t)
 
 	profile, err := service.UserProfile(ctx)
 	assert.NotNil(t, profile)
@@ -115,11 +114,11 @@ func TestService_GetConfirmedPhoneNumbers(t *testing.T) {
 			name: "Existing uid case",
 			args: args{
 				ctx:  ctx,
-				uids: []string{profile.UID},
+				uids: []string{token.UID},
 			},
 			wantErr: false,
 			want: map[string][]string{
-				profile.UID: profile.Msisdns,
+				token.UID: profile.Msisdns,
 			},
 		},
 		{
@@ -137,12 +136,12 @@ func TestService_GetConfirmedPhoneNumbers(t *testing.T) {
 			name: "Slice of uids case",
 			args: args{
 				ctx:  ctx,
-				uids: []string{phoneNumberProfile.UID, profile.UID},
+				uids: []string{phoneNumberProfile.Uids[0], token.UID},
 			},
 			wantErr: false,
 			want: map[string][]string{
-				profile.UID:            profile.Msisdns,
-				phoneNumberProfile.UID: {},
+				token.UID:                  profile.Msisdns,
+				phoneNumberProfile.Uids[0]: {},
 			},
 		},
 	}
@@ -161,8 +160,7 @@ func TestService_GetConfirmedPhoneNumbers(t *testing.T) {
 
 func TestService_GetValidFCMTokens(t *testing.T) {
 	service := NewService()
-	ctx := base.GetAuthenticatedContext(t)
-	assert.NotNil(t, ctx)
+	ctx, token := base.GetAuthenticatedContextAndToken(t)
 
 	profile, err := service.UserProfile(ctx)
 	assert.NotNil(t, profile)
@@ -188,11 +186,11 @@ func TestService_GetValidFCMTokens(t *testing.T) {
 			name: "Existing uid case",
 			args: args{
 				ctx:  ctx,
-				uids: []string{profile.UID},
+				uids: []string{token.UID},
 			},
 			wantErr: false,
 			want: map[string][]string{
-				profile.UID: profile.PushTokens,
+				token.UID: profile.PushTokens,
 			},
 		},
 		{
@@ -210,12 +208,12 @@ func TestService_GetValidFCMTokens(t *testing.T) {
 			name: "Slice of uids case",
 			args: args{
 				ctx:  ctx,
-				uids: []string{phoneNumberProfile.UID, profile.UID},
+				uids: []string{phoneNumberProfile.Uids[0], token.UID},
 			},
 			wantErr: false,
 			want: map[string][]string{
-				profile.UID:            profile.PushTokens,
-				phoneNumberProfile.UID: {},
+				token.UID:                  profile.PushTokens,
+				phoneNumberProfile.Uids[0]: {},
 			},
 		},
 	}

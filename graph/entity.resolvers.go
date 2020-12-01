@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph/generated"
@@ -13,16 +12,18 @@ import (
 )
 
 func (r *entityResolver) FindCoverByPayerName(ctx context.Context, payerName string) (*profile.Cover, error) {
-	// todo(dexter) implement this
+	// Todo! (dexter) implement this
 	return nil, nil
 }
 
 func (r *entityResolver) FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*base.PageInfo, error) {
-	panic(fmt.Errorf("not implemented"))
+	// Todo! (Mathenge) implement this
+	return nil, nil
 }
 
-func (r *entityResolver) FindUserProfileByUID(ctx context.Context, uid string) (*profile.UserProfile, error) {
-	return r.profileService.GetProfile(ctx, uid)
+func (r *entityResolver) FindUserProfileByUids(ctx context.Context, uids []string) (*profile.UserProfile, error) {
+	// Todo! (Mathenge) implement this
+	return nil, nil
 }
 
 // Entity returns generated.EntityResolver implementation.

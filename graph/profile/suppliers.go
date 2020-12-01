@@ -138,7 +138,7 @@ func FindSupplierByUIDHandler(ctx context.Context, service *Service) http.Handle
 			SupplierID:      supplier.SupplierID,
 			PayablesAccount: *supplier.PayablesAccount,
 			Profile: BioData{
-				UID:        supplier.UserProfile.UID,
+				// UID:        supplier.UserProfile.UID,
 				Name:       supplier.UserProfile.Name,
 				Gender:     supplier.UserProfile.Gender,
 				Msisdns:    supplier.UserProfile.Msisdns,
@@ -158,17 +158,17 @@ func (s Service) AddSupplierKyc(
 	input SupplierKYCInput) (*SupplierKYC, error) {
 	s.checkPreconditions()
 
-	profile, err := s.UserProfile(ctx)
+	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch user profile: %v", err)
+		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
 	}
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, profile.UID, s.GetSupplierCollectionName(), "userprofile.uid")
+		ctx, uid, s.GetSupplierCollectionName(), "userprofile.uids")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
 	}
 	if dsnap == nil {
-		return nil, fmt.Errorf("the supplier does not exist in out records")
+		return nil, fmt.Errorf("the supplier does not exist in our records")
 	}
 	supplier := &Supplier{}
 	err = dsnap.DataTo(supplier)

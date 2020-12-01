@@ -8,6 +8,7 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
+	github.com/aws/aws-sdk-go v1.35.36 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/handlers v1.5.1
@@ -18,9 +19,8 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
-	gitlab.slade360emr.com/go/base v0.0.71
-	gitlab.slade360emr.com/go/uploads v0.0.9 // indirect
-	golang.org/x/sys v0.0.0-20201126233918-771906719818 // indirect
-	golang.org/x/tools v0.0.0-20201125231158-b5590deeca9b // indirect
+	gitlab.slade360emr.com/go/base v0.0.72
+	golang.org/x/sys v0.0.0-20201130171929-760e229fe7c5 // indirect
+	golang.org/x/tools v0.0.0-20201201064407-fd09bd90d85c // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

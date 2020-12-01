@@ -216,14 +216,10 @@ func TestValidateUpdatePinPayload(t *testing.T) {
 }
 
 func TestValidateUID(t *testing.T) {
-	ctx := base.GetAuthenticatedContext(t)
-	service := NewService()
-	profile, err := service.UserProfile(ctx)
-	assert.Nil(t, err)
-	assert.NotNil(t, profile)
+	_, token := base.GetAuthenticatedContextAndToken(t)
 
 	uid := &BusinessPartnerUID{
-		UID:   &profile.UID,
+		UID:   &token.UID,
 		Token: &auth.Token{},
 	}
 
@@ -257,7 +253,7 @@ func TestValidateUID(t *testing.T) {
 				r: goodCustomerRequest,
 			},
 			want: &BusinessPartnerUID{
-				UID:   &profile.UID,
+				UID:   &token.UID,
 				Token: &auth.Token{},
 			},
 			wantErr: false,
@@ -287,14 +283,10 @@ func TestValidateUID(t *testing.T) {
 }
 
 func TestValidateUserProfileUIDs(t *testing.T) {
-	ctx := base.GetAuthenticatedContext(t)
-	service := NewService()
-	profile, err := service.UserProfile(ctx)
-	assert.Nil(t, err)
-	assert.NotNil(t, profile)
+	_, token := base.GetAuthenticatedContextAndToken(t)
 
 	uid := &UserUIDs{
-		UIDs: []string{profile.UID},
+		UIDs: []string{token.UID},
 	}
 
 	goodUIDJSONBytes, err := json.Marshal(uid)
@@ -327,7 +319,7 @@ func TestValidateUserProfileUIDs(t *testing.T) {
 				r: goodRequest,
 			},
 			want: &UserUIDs{
-				UIDs: []string{profile.UID},
+				UIDs: []string{token.UID},
 			},
 			wantErr: false,
 		},

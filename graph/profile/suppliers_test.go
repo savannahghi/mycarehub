@@ -120,15 +120,12 @@ func TestService_FindSupplier(t *testing.T) {
 }
 
 func TestFindSupplierByUID(t *testing.T) {
-	ctx := base.GetAuthenticatedContext(t)
+	ctx, token := base.GetAuthenticatedContextAndToken(t)
 	service := NewService()
-	profile, err := service.UserProfile(ctx)
-	assert.Nil(t, err)
-	assert.NotNil(t, profile)
 	findSupplier := FindSupplierByUIDHandler(ctx, service)
 
 	uid := &BusinessPartnerUID{
-		UID: &profile.UID,
+		UID: &token.UID,
 	}
 	goodUIDJSONBytes, err := json.Marshal(uid)
 	assert.Nil(t, err)
