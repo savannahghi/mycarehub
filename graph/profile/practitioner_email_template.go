@@ -115,7 +115,7 @@ const practitionerSignupEmail = `
 									font-weight: 400;
 									line-height: 48px;
                                 ">
-                            <img src="https://storage.googleapis.com/bewell/Be.Well%20Logo%20updated.png"
+                            <img src="https://lh3.googleusercontent.com/pw/ACtC-3fN_p8U8EZgmtQymnwrhr_-5Go6Kw5e5U7lkjyk1jjMIEwSs6rDNELplpgVk2IciMfw5AbnphxJYwdocnsE6Y88xyKGlNXm1E1x3Sm9uxeMHhwjf8YgNwo622G8cb-d7ntlbNl7-uPCEylu5O_KzZY=s638-no"
                                 width="125" height="120" style="display: block; border: 0px; margin-bottom: 0;" />
                         </td>
                     </tr>
@@ -187,7 +187,7 @@ const practitionerSignupEmail = `
                        
                     ">
                     <p style="margin: 0;">For more information or queries, contact us at <a
-                            href="mailto:feedback@healthcloud.co.ke">feedback@healthcloud.co.ke</a>
+                            href="mailto:feedback@bewell.co.ke">feedback@bewell.co.ke</a>
                     </p>
                 </td>
             </tr>
@@ -315,7 +315,7 @@ const practitionerWelcomeEmail = `
 									font-weight: 400;
 									line-height: 48px;
                                 ">
-                            <img src="https://storage.googleapis.com/bewell/Be.Well%20Logo%20updated.png"
+                            <img src="https://lh3.googleusercontent.com/pw/ACtC-3fN_p8U8EZgmtQymnwrhr_-5Go6Kw5e5U7lkjyk1jjMIEwSs6rDNELplpgVk2IciMfw5AbnphxJYwdocnsE6Y88xyKGlNXm1E1x3Sm9uxeMHhwjf8YgNwo622G8cb-d7ntlbNl7-uPCEylu5O_KzZY=s638-no"
                                 width="125" height="120" style="display: block; border: 0px; margin-bottom: 0;" />
                         </td>
                     </tr>
@@ -387,7 +387,7 @@ const practitionerWelcomeEmail = `
                        
                     ">
                     <p style="margin: 0;">For more information or queries, contact us at <a
-                            href="mailto:feedback@healthcloud.co.ke">feedback@healthcloud.co.ke</a>
+                            href="mailto:feedback@bewell.co.ke">feedback@bewell.co.ke</a>
                     </p>
                 </td>
             </tr>
@@ -514,7 +514,7 @@ const practitionerSignupRejectionEmail = `
 									font-weight: 400;
 									line-height: 48px;
                                 ">
-                            <img src="https://storage.googleapis.com/bewell/Be.Well%20Logo%20updated.png"
+                            <img src="https://lh3.googleusercontent.com/pw/ACtC-3fN_p8U8EZgmtQymnwrhr_-5Go6Kw5e5U7lkjyk1jjMIEwSs6rDNELplpgVk2IciMfw5AbnphxJYwdocnsE6Y88xyKGlNXm1E1x3Sm9uxeMHhwjf8YgNwo622G8cb-d7ntlbNl7-uPCEylu5O_KzZY=s638-no"
                                 width="125" height="120" style="display: block; border: 0px; margin-bottom: 0;" />
 
                         </td>
@@ -588,7 +588,7 @@ const practitionerSignupRejectionEmail = `
                        
                     ">
                     <p style="margin: 0;">For more information or queries, contact us at <a
-                            href="mailto:feedback@healthcloud.co.ke">feedback@healthcloud.co.ke</a>
+                            href="mailto:feedback@bewell.co.ke">feedback@bewell.co.ke</a>
                     </p>
                 </td>
             </tr>
