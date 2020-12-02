@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"gitlab.slade360emr.com/go/base"
@@ -33,53 +34,80 @@ func (s Service) GetSupplierCollectionName() string {
 func (s Service) AddSupplier(ctx context.Context, uid *string, name string) (*Supplier, error) {
 	s.checkPreconditions()
 
+	userUID, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
+	}
+
 	profile, err := s.ParseUserProfileFromContextOrUID(ctx, uid)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
 
-	currency, err := base.FetchDefaultCurrency(s.client)
+	collection := s.firestoreClient.Collection(s.GetSupplierCollectionName())
+	query := collection.Where("userprofile.uids", "array-contains", userUID)
+	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch orgs default currency: %v", err)
+		return nil, err
 	}
-	payload := map[string]interface{}{
-		"active":        active,
-		"partner_name":  name,
-		"country":       country,
-		"currency":      *currency.ID,
-		"is_supplier":   isSupplier,
-		"supplier_type": supplierType,
+	if len(docs) > 1 {
+		if base.IsDebug() {
+			log.Printf("uid %s has more than one supplier records (it has %d)", userUID, len(docs))
+		}
+	}
+	if len(docs) == 0 {
+		currency, err := base.FetchDefaultCurrency(s.client)
+		if err != nil {
+			return nil, fmt.Errorf("unable to fetch orgs default currency: %v", err)
+		}
+		payload := map[string]interface{}{
+			"active":        active,
+			"partner_name":  name,
+			"country":       country,
+			"currency":      *currency.ID,
+			"is_supplier":   isSupplier,
+			"supplier_type": supplierType,
+		}
+
+		content, marshalErr := json.Marshal(payload)
+		if marshalErr != nil {
+			return nil, fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
+		}
+		newSupplier := Supplier{
+			UserProfile: profile,
+		}
+
+		if err := base.ReadRequestToTarget(s.client, "POST", supplierAPIPath, "", content, &newSupplier); err != nil {
+			return nil, fmt.Errorf("unable to make request to the ERP: %v", err)
+		}
+
+		if err := s.SaveSupplierToFireStore(newSupplier); err != nil {
+			return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
+		}
+
+		profile.HasSupplierAccount = true
+		profileDsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve firebase user profile: %v", err)
+		}
+
+		if err := base.UpdateRecordOnFirestore(
+			s.firestoreClient, s.GetUserProfileCollectionName(), profileDsnap.Ref.ID, profile,
+		); err != nil {
+			return nil, fmt.Errorf("unable to update user profile: %v", err)
+		}
+
+		return &newSupplier, nil
 	}
 
-	content, marshalErr := json.Marshal(payload)
-	if marshalErr != nil {
-		return nil, fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
-	}
-	newSupplier := Supplier{
-		UserProfile: profile,
-	}
-
-	if err := base.ReadRequestToTarget(s.client, "POST", supplierAPIPath, "", content, &newSupplier); err != nil {
-		return nil, fmt.Errorf("unable to make request to the ERP: %v", err)
-	}
-
-	if err := s.SaveSupplierToFireStore(newSupplier); err != nil {
-		return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
-	}
-
-	profile.HasSupplierAccount = true
-	profileDsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	dsnap := docs[0]
+	supplier := &Supplier{}
+	err = dsnap.DataTo(supplier)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve firebase user profile: %v", err)
+		return nil, fmt.Errorf("unable to read supplier: %w", err)
 	}
 
-	if err := base.UpdateRecordOnFirestore(
-		s.firestoreClient, s.GetUserProfileCollectionName(), profileDsnap.Ref.ID, profile,
-	); err != nil {
-		return nil, fmt.Errorf("unable to update user profile: %v", err)
-	}
-
-	return &newSupplier, nil
+	return supplier, nil
 }
 
 // FindSupplier fetches a supplier by their UID
