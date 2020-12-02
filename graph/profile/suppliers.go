@@ -197,5 +197,5 @@ func (s Service) AddSupplierKyc(
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
 	}
 	supplierKYC := supplier.SupplierKYC
-	return supplierKYC, nil
+	return &supplierKYC, nil
 }

@@ -115,18 +115,8 @@ const practitionerSignupEmail = `
 									font-weight: 400;
 									line-height: 48px;
                                 ">
-                            <img src=" 
-                            https://lh3.googleusercontent.com/gQhd1oXysyvGFUx9D4a64wIcYqaoMm4AggDy1fqmhTbixV7WxaHWhk2xNUpRm8ApFDWzGsuwCnC_vPx0uBvXLUpkg1U80o3_B2gioO2RSVV_mkkHcfSv2wwRDxIXx-WlZvBNUs0hsg=w512-h512"
+                            <img src="https://storage.googleapis.com/bewell/Be.Well%20Logo%20updated.png"
                                 width="125" height="120" style="display: block; border: 0px; margin-bottom: 0;" />
-                            <h3 style="
-										font-size: 30px;
-										font-weight: 400;
-                                        margin: 0;
-                                        color: #7B54C4 ;	
-									">
-                                HealthCloud
-                            </h3>
-
                         </td>
                     </tr>
                 </table>
@@ -150,7 +140,7 @@ const practitionerSignupEmail = `
                               
                           </p>
                             <p style="margin: 0;">
-                          	Thank you for signing up to Slade 360 Healthcloud. Incase of any queries, feel free to contact us via  +254 790 360 360</p>
+                          	Thank you for signing up to Be.Well Professional. Incase of any queries, feel free to contact us via  +254 790 360 360</p>
                         </td>
                     </tr>
 
@@ -177,7 +167,7 @@ const practitionerSignupEmail = `
 									font-weight: 400;
 									line-height: 25px;
 								">
-                            <p style="margin: 0;">Thanks,<br /> The HealthCloud Team</p>
+                            <p style="margin: 0;">Thanks,<br /> The Be.Well Team</p>
                         </td>
                     </tr>
                 </table>
@@ -325,18 +315,8 @@ const practitionerWelcomeEmail = `
 									font-weight: 400;
 									line-height: 48px;
                                 ">
-                            <img src=" 
-                            https://lh3.googleusercontent.com/gQhd1oXysyvGFUx9D4a64wIcYqaoMm4AggDy1fqmhTbixV7WxaHWhk2xNUpRm8ApFDWzGsuwCnC_vPx0uBvXLUpkg1U80o3_B2gioO2RSVV_mkkHcfSv2wwRDxIXx-WlZvBNUs0hsg=w512-h512"
+                            <img src="https://storage.googleapis.com/bewell/Be.Well%20Logo%20updated.png"
                                 width="125" height="120" style="display: block; border: 0px; margin-bottom: 0;" />
-                            <h3 style="
-										font-size: 30px;
-										font-weight: 400;
-                                        margin: 0;
-                                        color: #7B54C4 ;	
-									">
-                                HealthCloud
-                            </h3>
-
                         </td>
                     </tr>
                 </table>
@@ -387,7 +367,7 @@ const practitionerWelcomeEmail = `
 									font-weight: 400;
 									line-height: 25px;
 								">
-                            <p style="margin: 0;">Thanks,<br /> The HealthCloud Team</p>
+                            <p style="margin: 0;">Thanks,<br /> The Be.Well Team</p>
                         </td>
                     </tr>
                 </table>
@@ -534,17 +514,8 @@ const practitionerSignupRejectionEmail = `
 									font-weight: 400;
 									line-height: 48px;
                                 ">
-                            <img src=" 
-                            https://lh3.googleusercontent.com/gQhd1oXysyvGFUx9D4a64wIcYqaoMm4AggDy1fqmhTbixV7WxaHWhk2xNUpRm8ApFDWzGsuwCnC_vPx0uBvXLUpkg1U80o3_B2gioO2RSVV_mkkHcfSv2wwRDxIXx-WlZvBNUs0hsg=w512-h512"
+                            <img src="https://storage.googleapis.com/bewell/Be.Well%20Logo%20updated.png"
                                 width="125" height="120" style="display: block; border: 0px; margin-bottom: 0;" />
-                            <h3 style="
-										font-size: 30px;
-										font-weight: 400;
-                                        margin: 0;
-                                        color: #7B54C4 ;	
-									">
-                                HealthCloud
-                            </h3>
 
                         </td>
                     </tr>
@@ -566,10 +537,10 @@ const practitionerSignupRejectionEmail = `
                                 ">
                             <p style="margin: 0;">Hello,</p>
                           <p>
-                            
+
                           </p>
                             <p style="margin: 0;">
-                          	Your sign-up has been reviewed and was not approved. Incase of any queries, please contact Slade 360 Healthcloud on:  +254 790 360 360  
+                          	Your sign-up has been reviewed and was not approved. Incase of any queries, please contact us via  +254 790 360 360  
                           </p>
                         </td>
                     </tr>
@@ -597,7 +568,7 @@ const practitionerSignupRejectionEmail = `
 									font-weight: 400;
 									line-height: 25px;
 								">
-                            <p style="margin: 0;">Thanks,<br /> The HealthCloud Team</p>
+                            <p style="margin: 0;">Thanks,<br /> The Be.Well Team</p>
                         </td>
                     </tr>
                 </table>

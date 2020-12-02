@@ -316,7 +316,7 @@ type Supplier struct {
 	UserProfile     *UserProfile     `json:"userProfile" firestore:"userprofile"`
 	SupplierID      string           `json:"id" firestore:"supplierid"`
 	PayablesAccount *PayablesAccount `json:"payables_account"`
-	SupplierKYC     *SupplierKYC     `json:"supplierKYC"`
+	SupplierKYC     SupplierKYC      `json:"supplierKYC"`
 }
 
 // StatusResponse creates a status response for requests

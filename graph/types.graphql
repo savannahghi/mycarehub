@@ -133,7 +133,7 @@ type Supplier {
   userProfile: UserProfile!
   supplierId: String!
   payablesAccount: PayablesAccount!
-  supplierKYC: SupplierKYC
+  supplierKYC: SupplierKYC!
 }
 
 type PayablesAccount {

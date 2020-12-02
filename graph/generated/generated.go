@@ -2072,7 +2072,7 @@ type Supplier {
   userProfile: UserProfile!
   supplierId: String!
   payablesAccount: PayablesAccount!
-  supplierKYC: SupplierKYC
+  supplierKYC: SupplierKYC!
 }
 
 type PayablesAccount {
@@ -6686,11 +6686,14 @@ func (ec *executionContext) _Supplier_supplierKYC(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*profile.SupplierKYC)
+	res := resTmp.(profile.SupplierKYC)
 	fc.Result = res
-	return ec.marshalOSupplierKYC2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYC(ctx, field.Selections, res)
+	return ec.marshalNSupplierKYC2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYC(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SupplierKYC_accountType(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
@@ -11093,6 +11096,9 @@ func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "supplierKYC":
 			out.Values[i] = ec._Supplier_supplierKYC(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -13023,13 +13029,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
-}
-
-func (ec *executionContext) marshalOSupplierKYC2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYC(ctx context.Context, sel ast.SelectionSet, v *profile.SupplierKYC) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._SupplierKYC(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOUserProfilePhone2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfilePhoneᚄ(ctx context.Context, v interface{}) ([]*profile.UserProfilePhone, error) {

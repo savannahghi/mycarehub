@@ -227,7 +227,7 @@ func TestService_GetValidFCMTokens(t *testing.T) {
 				t.Errorf("Service.GetValidFCMTokens() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !reflect.DeepEqual(tt.want, got) {
 				t.Errorf("Service.GetValidFCMTokens() = %v, want %v", got, tt.want)
 			}
 		})
