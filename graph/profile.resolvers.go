@@ -150,7 +150,13 @@ func (r *mutationResolver) AddSupplierKyc(ctx context.Context, input profile.Sup
 	return r.profileService.AddSupplierKyc(ctx, input)
 }
 
-func (r *queryResolver) UserProfile(ctx context.Context, phone string) (*profile.UserProfile, error) {
+func (r *queryResolver) UserProfile(ctx context.Context) (*profile.UserProfile, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.UserProfile(ctx)
+}
+
+func (r *queryResolver) GetOrCreateUserProfile(ctx context.Context, phone string) (*profile.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.GetOrCreateUserProfile(ctx, phone)
