@@ -240,7 +240,7 @@ func (s Service) FindCustomer(ctx context.Context, uid string) (*Customer, error
 	s.checkPreconditions()
 
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, uid, s.GetCustomerCollectionName(), "userprofile.uid")
+		ctx, uid, s.GetCustomerCollectionName(), "userprofile.verifiedIdentifiers")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retreive doc snapshot by uid: %v", err)
 	}
@@ -305,4 +305,54 @@ func FindCustomerByUIDHandler(ctx context.Context, service *Service) http.Handle
 
 		base.WriteJSONResponse(w, customerResponse, http.StatusOK)
 	}
+}
+
+// SuspendCustomer flips the active boolean on the erp partner from true to false
+// consequently logically deleting the account
+func (s Service) SuspendCustomer(ctx context.Context, uid string) (bool, error) {
+	s.checkPreconditions()
+
+	err := s.DeleteUser(ctx, uid)
+	if err != nil {
+		return false, fmt.Errorf("error deleting user: %v", err)
+	}
+
+	collection := s.firestoreClient.Collection(s.GetCustomerCollectionName())
+	query := collection.Where("userprofile.verifiedIdentifiers", "array-contains", uid)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return false, err
+	}
+	if len(docs) == 0 {
+		return false, nil
+	}
+
+	dsnap := docs[0]
+	customer := &Customer{}
+	err = dsnap.DataTo(customer)
+	if err != nil {
+		return false, fmt.Errorf("unable to read customer: %w", err)
+	}
+
+	payload := map[string]interface{}{
+		"active": false,
+	}
+
+	content, marshalErr := json.Marshal(payload)
+	if marshalErr != nil {
+		return false, fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
+	}
+
+	customerPath := fmt.Sprintf("%s%s/", customerAPIPath, customer.CustomerID)
+	if err := base.ReadRequestToTarget(s.client, "PATCH", customerPath, "", content, &customer); err != nil {
+		return false, fmt.Errorf("unable to make request to the ERP: %v", err)
+	}
+
+	if err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetCustomerCollectionName(), dsnap.Ref.ID, customer,
+	); err != nil {
+		return false, fmt.Errorf("unable to update customer: %v", err)
+	}
+
+	return true, nil
 }

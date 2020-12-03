@@ -325,3 +325,55 @@ func TestFindCustomerByUID(t *testing.T) {
 		})
 	}
 }
+
+func TestService_SuspendCustomer(t *testing.T) {
+	service := NewService()
+	ctx, token := createNewUser(context.Background(), t)
+	_, err := service.AddCustomer(ctx, nil, "To Be Deleted")
+	if err != nil {
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+		uid string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "sad case: suspend a nonexisting customer",
+			args: args{
+				ctx: context.Background(),
+				uid: "some random uid",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Happy case: suspend an existing customer",
+			args: args{
+				ctx: ctx,
+				uid: token.UID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.SuspendCustomer(tt.args.ctx, tt.args.uid)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.SuspendCustomer() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.SuspendCustomer() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

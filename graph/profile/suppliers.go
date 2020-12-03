@@ -115,7 +115,7 @@ func (s Service) FindSupplier(ctx context.Context, uid string) (*Supplier, error
 	s.checkPreconditions()
 
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, uid, s.GetSupplierCollectionName(), "userprofile.uid")
+		ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retreive doc snapshot by uid: %v", err)
 	}
@@ -226,4 +226,53 @@ func (s Service) AddSupplierKyc(
 	}
 	supplierKYC := supplier.SupplierKYC
 	return &supplierKYC, nil
+}
+
+// SuspendSupplier flips the active boolean on the erp partner from true to false
+// consequently logically deleting the account
+func (s Service) SuspendSupplier(ctx context.Context, uid string) (bool, error) {
+	s.checkPreconditions()
+
+	err := s.DeleteUser(ctx, uid)
+	if err != nil {
+		return false, fmt.Errorf("error deleting user: %v", err)
+	}
+
+	collection := s.firestoreClient.Collection(s.GetSupplierCollectionName())
+	query := collection.Where("userprofile.verifiedIdentifiers", "array-contains", uid)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return false, err
+	}
+	if len(docs) == 0 {
+		return false, nil
+	}
+
+	dsnap := docs[0]
+	supplier := &Supplier{}
+	err = dsnap.DataTo(supplier)
+	if err != nil {
+		return false, fmt.Errorf("unable to read supplier: %w", err)
+	}
+
+	payload := map[string]interface{}{
+		"active": false,
+	}
+
+	content, marshalErr := json.Marshal(payload)
+	if marshalErr != nil {
+		return false, fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
+	}
+
+	supplierPath := fmt.Sprintf("%s%s/", customerAPIPath, supplier.SupplierID)
+	if err := base.ReadRequestToTarget(s.client, "PATCH", supplierPath, "", content, &supplier); err != nil {
+		return false, fmt.Errorf("unable to make request to the ERP: %v", err)
+	}
+
+	if err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier,
+	); err != nil {
+		return false, fmt.Errorf("unable to update supplier: %v", err)
+	}
+	return true, nil
 }

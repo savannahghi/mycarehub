@@ -158,7 +158,7 @@ func TestFindSupplierByUID(t *testing.T) {
 		wantStatusCode int
 	}{
 		{
-			name: "valid : find customer",
+			name: "valid : find Supplier",
 			args: args{
 				w: httptest.NewRecorder(),
 				r: goodSupplierRequest,
@@ -263,6 +263,57 @@ func TestService_AddSupplierKyc(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.AddSupplierKyc() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestService_SuspendSupplier(t *testing.T) {
+	service := NewService()
+	ctx, token := createNewUser(context.Background(), t)
+	_, err := service.AddSupplier(ctx, nil, "To Be Deleted")
+	if err != nil {
+		return
+	}
+	type args struct {
+		ctx context.Context
+		uid string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "sad case: suspend a nonexisting supplier",
+			args: args{
+				ctx: context.Background(),
+				uid: "some random uid",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Happy case: suspend an existing supplier",
+			args: args{
+				ctx: ctx,
+				uid: token.UID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.SuspendSupplier(tt.args.ctx, tt.args.uid)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.SuspendSupplier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Service.SuspendSupplier() = %v, want %v", got, tt.want)
 			}
 		})
 	}

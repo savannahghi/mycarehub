@@ -98,6 +98,7 @@ type UserProfile struct {
 	PhotoBase64         string           `json:"photoBase64,omitempty" firestore:"photoBase64"`
 	PhotoContentType    base.ContentType `json:"photoContentType,omitempty" firestore:"photoContentType"`
 	Covers              []Cover          `json:"covers,omitempty" firestore:"covers"`
+	Active              bool             `json:"active" firestore:"active"`
 
 	DateOfBirth *base.Date   `json:"dateOfBirth,omitempty" firestore:"dateOfBirth,omitempty"`
 	Gender      *base.Gender `json:"gender,omitempty" firestore:"gender,omitempty"`
@@ -238,6 +239,7 @@ type Customer struct {
 	CustomerID         string             `json:"id,omitempty" firestore:"customerid"`
 	ReceivablesAccount ReceivablesAccount `json:"receivables_account,omitempty"`
 	CustomerKYC        CustomerKYC        `json:"customer_kyc,omitempty"`
+	Active             bool               `json:"active" firestore:"active"`
 }
 
 // Beneficiary stores a customer's beneficiary details
@@ -320,6 +322,7 @@ type Supplier struct {
 	SupplierID      string           `json:"id" firestore:"supplierid"`
 	PayablesAccount *PayablesAccount `json:"payables_account"`
 	SupplierKYC     SupplierKYC      `json:"supplierKYC"`
+	Active          bool             `json:"active" firestore:"active"`
 }
 
 // StatusResponse creates a status response for requests

@@ -1642,3 +1642,38 @@ func (s Service) SaveMemberCoverToFirestore(ctx context.Context, payerName, memb
 
 	return nil
 }
+
+// DeleteUser deletes a user records given their uid
+func (s Service) DeleteUser(ctx context.Context, uid string) error {
+	s.checkPreconditions()
+
+	// Get all the other
+	profile, err := s.GetProfile(ctx, uid)
+	if err != nil {
+		return fmt.Errorf("unable to get user profile: %v", err)
+	}
+
+	for _, profileUID := range profile.VerifiedIdentifiers {
+		params := (&auth.UserToUpdate{}).
+			Disabled(true)
+		_, err := s.firebaseAuth.UpdateUser(ctx, profileUID, params)
+		if err != nil {
+			return fmt.Errorf("error updating user: %v", err)
+		}
+	}
+
+	profile.Active = false
+	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to retrieve user profile doc snapshot: %v", err)
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, profile,
+	)
+	if err != nil {
+		return fmt.Errorf("unable to update user profile: %v", err)
+	}
+
+	return nil
+}

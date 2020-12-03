@@ -150,6 +150,18 @@ func (r *mutationResolver) AddSupplierKyc(ctx context.Context, input profile.Sup
 	return r.profileService.AddSupplierKyc(ctx, input)
 }
 
+func (r *mutationResolver) SuspendCustomer(ctx context.Context, uid string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.SuspendCustomer(ctx, uid)
+}
+
+func (r *mutationResolver) SuspendSupplier(ctx context.Context, uid string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.SuspendSupplier(ctx, uid)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*profile.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()

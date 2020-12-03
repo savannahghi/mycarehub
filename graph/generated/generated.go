@@ -63,6 +63,7 @@ type ComplexityRoot struct {
 	}
 
 	Customer struct {
+		Active             func(childComplexity int) int
 		CustomerID         func(childComplexity int) int
 		CustomerKYC        func(childComplexity int) int
 		ReceivablesAccount func(childComplexity int) int
@@ -122,6 +123,8 @@ type ComplexityRoot struct {
 		RemoveTester              func(childComplexity int, email string) int
 		SetLanguagePreference     func(childComplexity int, language base.Language) int
 		SetUserPin                func(childComplexity int, msisdn string, pin int) int
+		SuspendCustomer           func(childComplexity int, uid string) int
+		SuspendSupplier           func(childComplexity int, uid string) int
 		UpdateBiodata             func(childComplexity int, input profile.BiodataInput) int
 		UpdateCustomer            func(childComplexity int, input profile.CustomerKYCInput) int
 		UpdateUserPin             func(childComplexity int, msisdn string, pin int, otp string) int
@@ -199,6 +202,7 @@ type ComplexityRoot struct {
 	}
 
 	Supplier struct {
+		Active          func(childComplexity int) int
 		PayablesAccount func(childComplexity int) int
 		SupplierID      func(childComplexity int) int
 		SupplierKYC     func(childComplexity int) int
@@ -226,6 +230,7 @@ type ComplexityRoot struct {
 	}
 
 	UserProfile struct {
+		Active                             func(childComplexity int) int
 		AskAgainToSetCanExperiment         func(childComplexity int) int
 		AskAgainToSetIsTester              func(childComplexity int) int
 		Bio                                func(childComplexity int) int
@@ -298,6 +303,8 @@ type MutationResolver interface {
 	AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error)
 	AddSupplier(ctx context.Context, name string) (*profile.Supplier, error)
 	AddSupplierKyc(ctx context.Context, input profile.SupplierKYCInput) (*profile.SupplierKYC, error)
+	SuspendCustomer(ctx context.Context, uid string) (bool, error)
+	SuspendSupplier(ctx context.Context, uid string) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*profile.UserProfile, error)
@@ -393,6 +400,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Cover.PayerSladeCode(childComplexity), true
+
+	case "Customer.active":
+		if e.complexity.Customer.Active == nil {
+			break
+		}
+
+		return e.complexity.Customer.Active(childComplexity), true
 
 	case "Customer.customerId":
 		if e.complexity.Customer.CustomerID == nil {
@@ -770,6 +784,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetUserPin(childComplexity, args["msisdn"].(string), args["pin"].(int)), true
+
+	case "Mutation.suspendCustomer":
+		if e.complexity.Mutation.SuspendCustomer == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_suspendCustomer_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SuspendCustomer(childComplexity, args["uid"].(string)), true
+
+	case "Mutation.suspendSupplier":
+		if e.complexity.Mutation.SuspendSupplier == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_suspendSupplier_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SuspendSupplier(childComplexity, args["uid"].(string)), true
 
 	case "Mutation.updateBiodata":
 		if e.complexity.Mutation.UpdateBiodata == nil {
@@ -1196,6 +1234,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServicesOffered.Services(childComplexity), true
 
+	case "Supplier.active":
+		if e.complexity.Supplier.Active == nil {
+			break
+		}
+
+		return e.complexity.Supplier.Active(childComplexity), true
+
 	case "Supplier.payablesAccount":
 		if e.complexity.Supplier.PayablesAccount == nil {
 			break
@@ -1321,6 +1366,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TesterWhitelist.Email(childComplexity), true
+
+	case "UserProfile.active":
+		if e.complexity.UserProfile.Active == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.Active(childComplexity), true
 
 	case "UserProfile.askAgainToSetCanExperiment":
 		if e.complexity.UserProfile.AskAgainToSetCanExperiment == nil {
@@ -1913,6 +1965,8 @@ extend type Mutation {
   ): Boolean!
   addSupplier(name: String!): Supplier!
   addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
+  suspendCustomer(uid: String!): Boolean!
+  suspendSupplier(uid: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `scalar Date
@@ -1980,6 +2034,7 @@ type UserProfile @key(fields: "id") {
   pushTokens: [String!]!
   covers: [Cover!]!
   isTester: Boolean!
+  active: Boolean!
 
   # optional fields
   dateOfBirth: Date
@@ -2024,6 +2079,7 @@ type Customer {
   customerId: String!
   receivablesAccount: ReceivablesAccount!
   customerKYC: CustomerKYC!
+  active: Boolean!
 }
 
 type ReceivablesAccount {
@@ -2054,6 +2110,7 @@ type Supplier {
   supplierId: String!
   payablesAccount: PayablesAccount!
   supplierKYC: SupplierKYC!
+  active: Boolean!
 }
 
 type PayablesAccount {
@@ -2409,6 +2466,36 @@ func (ec *executionContext) field_Mutation_setUserPin_args(ctx context.Context, 
 		}
 	}
 	args["pin"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_suspendCustomer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["uid"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uid"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["uid"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_suspendSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["uid"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uid"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["uid"] = arg0
 	return args, nil
 }
 
@@ -3191,6 +3278,41 @@ func (ec *executionContext) _Customer_customerKYC(ctx context.Context, field gra
 	res := resTmp.(profile.CustomerKYC)
 	fc.Result = res
 	return ec.marshalNCustomerKYC2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomerKYC(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Customer_active(ctx context.Context, field graphql.CollectedField, obj *profile.Customer) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Customer",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CustomerKYC_KRAPin(ctx context.Context, field graphql.CollectedField, obj *profile.CustomerKYC) (ret graphql.Marshaler) {
@@ -4810,6 +4932,90 @@ func (ec *executionContext) _Mutation_addSupplierKYC(ctx context.Context, field 
 	res := resTmp.(*profile.SupplierKYC)
 	fc.Result = res
 	return ec.marshalNSupplierKYC2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYC(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_suspendCustomer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_suspendCustomer_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SuspendCustomer(rctx, args["uid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_suspendSupplier(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_suspendSupplier_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SuspendSupplier(rctx, args["uid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
@@ -6653,6 +6859,41 @@ func (ec *executionContext) _Supplier_supplierKYC(ctx context.Context, field gra
 	return ec.marshalNSupplierKYC2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYC(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Supplier_active(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SupplierKYC_accountType(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7476,6 +7717,41 @@ func (ec *executionContext) _UserProfile_isTester(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.IsTester, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_active(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10141,6 +10417,11 @@ func (ec *executionContext) _Customer(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "active":
+			out.Values[i] = ec._Customer_active(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10485,6 +10766,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addSupplierKYC":
 			out.Values[i] = ec._Mutation_addSupplierKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "suspendCustomer":
+			out.Values[i] = ec._Mutation_suspendCustomer(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "suspendSupplier":
+			out.Values[i] = ec._Mutation_suspendSupplier(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -11068,6 +11359,11 @@ func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "active":
+			out.Values[i] = ec._Supplier_active(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11220,6 +11516,11 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			}
 		case "isTester":
 			out.Values[i] = ec._UserProfile_isTester(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "active":
+			out.Values[i] = ec._UserProfile_active(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

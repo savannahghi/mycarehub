@@ -1830,3 +1830,44 @@ func TestService_GetProfileByID(t *testing.T) {
 		})
 	}
 }
+
+func TestService_DeleteUser(t *testing.T) {
+	service := NewService()
+	ctx := context.Background()
+	userCtx, token := createNewUser(ctx, t)
+
+	type args struct {
+		ctx context.Context
+		uid string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: delete a user",
+			args: args{
+				ctx: userCtx,
+				uid: token.UID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to delete a user",
+			args: args{
+				ctx: context.Background(),
+				uid: token.UID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			if err := s.DeleteUser(tt.args.ctx, tt.args.uid); (err != nil) != tt.wantErr {
+				t.Errorf("Service.DeleteUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

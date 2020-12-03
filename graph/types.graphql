@@ -63,6 +63,7 @@ type UserProfile @key(fields: "id") {
   pushTokens: [String!]!
   covers: [Cover!]!
   isTester: Boolean!
+  active: Boolean!
 
   # optional fields
   dateOfBirth: Date
@@ -107,6 +108,7 @@ type Customer {
   customerId: String!
   receivablesAccount: ReceivablesAccount!
   customerKYC: CustomerKYC!
+  active: Boolean!
 }
 
 type ReceivablesAccount {
@@ -137,6 +139,7 @@ type Supplier {
   supplierId: String!
   payablesAccount: PayablesAccount!
   supplierKYC: SupplierKYC!
+  active: Boolean!
 }
 
 type PayablesAccount {

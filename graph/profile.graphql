@@ -46,4 +46,6 @@ extend type Mutation {
   ): Boolean!
   addSupplier(name: String!): Supplier!
   addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
+  suspendCustomer(uid: String!): Boolean!
+  suspendSupplier(uid: String!): Boolean!
 }
