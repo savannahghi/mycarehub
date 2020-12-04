@@ -511,8 +511,8 @@ func TestGraphQLUpdatePin(t *testing.T) {
 	}
 	gql := map[string]interface{}{}
 	gql["query"] = `
-	mutation updateUserPin{
-		updateUserPin(msisdn: "+254711223344", pin: "1234", otp: "654789")
+	mutation updateUserPIN{
+		updateUserPIN(msisdn: "+254711223344", pin: 1234, otp: "654789")
 	}
 	`
 
@@ -599,9 +599,9 @@ func TestGraphQLUpdatePin(t *testing.T) {
 func TestUpdatePinHandler(t *testing.T) {
 	client := http.DefaultClient
 	pinRecovery := profile.PinRecovery{
-		MSISDN: base.TestUserPhoneNumber,
-		PIN:    base.TestUserPin,
-		OTP:    strconv.Itoa(rand.Int()),
+		MSISDN:    base.TestUserPhoneNumber,
+		PINNumber: 1234,
+		OTP:       strconv.Itoa(rand.Int()),
 	}
 	bs, err := json.Marshal(pinRecovery)
 	if err != nil {
@@ -704,6 +704,21 @@ func TestUpdatePinHandler(t *testing.T) {
 
 func TestRequestPinResetHandler(t *testing.T) {
 	client := http.DefaultClient
+	srv := profile.NewService()
+	assert.NotNil(t, srv, "service is nil")
+
+	ctx, _ := base.GetAuthenticatedContextAndToken(t)
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+	set, err := srv.SetUserPIN(ctx, base.TestUserPhoneNumber, 1234)
+	if !set {
+		t.Errorf("setting a pin for test user failed. It returned false")
+	}
+	if err != nil {
+		t.Errorf("setting a pin for test user failed: %v", err)
+	}
 	pinRecovery := profile.PinRecovery{
 		MSISDN: base.TestUserPhoneNumber,
 	}
@@ -965,6 +980,42 @@ func TestIsUnderAgeHandler(t *testing.T) {
 
 	srv := profile.NewService()
 	assert.NotNil(t, srv, "service is nil")
+
+	fc := &base.FirebaseClient{}
+	fa, err := fc.InitFirebase()
+	if err != nil {
+		t.Errorf("can't initialize Firebase app when setting up profile service: %s", err)
+	}
+	firestore, err := fa.Firestore(context.Background())
+	if err != nil {
+		t.Errorf("can't initialize Firestore client when setting up profile service: %s", err)
+	}
+	profile, err := srv.UserProfile(ctx)
+	if profile == nil {
+		t.Errorf("expected a profile")
+		return
+	}
+	if err != nil {
+		t.Errorf("did not expect an error: %v", err)
+		return
+	}
+	date := &base.Date{
+		Year:  1997,
+		Month: 12,
+		Day:   13,
+	}
+	profile.DateOfBirth = date
+	dsnap, err := srv.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		t.Errorf("got %v, want %v", err, nil)
+	}
+	err = base.UpdateRecordOnFirestore(
+		firestore, srv.GetUserProfileCollectionName(),
+		dsnap.Ref.ID, profile,
+	)
+	if err != nil {
+		t.Errorf("got %v, want %v", err, nil)
+	}
 
 	handler := graph.IsUnderAgeHandler(ctx, srv)
 

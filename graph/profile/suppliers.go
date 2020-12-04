@@ -45,7 +45,7 @@ func (s Service) AddSupplier(ctx context.Context, uid *string, name string) (*Su
 	}
 
 	collection := s.firestoreClient.Collection(s.GetSupplierCollectionName())
-	query := collection.Where("userprofile.uids", "array-contains", userUID)
+	query := collection.Where("userprofile.verifiedIdentifiers", "array-contains", userUID)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -191,7 +191,7 @@ func (s Service) AddSupplierKyc(
 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
 	}
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, uid, s.GetSupplierCollectionName(), "userprofile.uids")
+		ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
 	}

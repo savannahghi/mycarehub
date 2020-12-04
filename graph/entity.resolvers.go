@@ -21,8 +21,8 @@ func (r *entityResolver) FindPageInfoByHasNextPage(ctx context.Context, hasNextP
 	return nil, nil
 }
 
-func (r *entityResolver) FindUserProfileByUids(ctx context.Context, uids []string) (*profile.UserProfile, error) {
-	// Todo! (Mathenge) implement this
+func (r *entityResolver) FindUserProfileByID(ctx context.Context, id string) (*profile.UserProfile, error) {
+	// Todo! (Mashaa) implement this
 	return nil, nil
 }
 

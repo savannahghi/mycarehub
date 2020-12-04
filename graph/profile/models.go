@@ -87,38 +87,41 @@ type TesterWhitelist struct {
 
 // UserProfile serializes the profile of the logged in user.
 type UserProfile struct {
-	Uids             []string         `json:"uids" firestore:"uids"`
-	TermsAccepted    bool             `json:"termsAccepted" firestore:"termsAccepted"`
-	IsApproved       bool             `json:"isApproved" firestore:"isApproved"`
-	Msisdns          []string         `json:"msisdns" firestore:"msisdns"`
-	Emails           []string         `json:"emails" firestore:"emails"`
-	PhotoBase64      string           `json:"photoBase64" firestore:"photoBase64"`
-	PhotoContentType base.ContentType `json:"photoContentType" firestore:"photoContentType"`
-	Covers           []Cover          `json:"covers" firestore:"covers"`
+	ID string `json:"id" firestore:"id"`
+	// `VerifiedIdentifiers` represent various ways the user has been able to login
+	// and these providers point to the same user
+	VerifiedIdentifiers []string         `json:"verified_identifiers" firestore:"verifiedIdentifiers"`
+	TermsAccepted       bool             `json:"termsAccepted,omitempty" firestore:"termsAccepted"`
+	IsApproved          bool             `json:"isApproved,omitempty" firestore:"isApproved"`
+	Msisdns             []string         `json:"msisdns,omitempty" firestore:"msisdns"`
+	Emails              []string         `json:"emails,omitempty" firestore:"emails"`
+	PhotoBase64         string           `json:"photoBase64,omitempty" firestore:"photoBase64"`
+	PhotoContentType    base.ContentType `json:"photoContentType,omitempty" firestore:"photoContentType"`
+	Covers              []Cover          `json:"covers,omitempty" firestore:"covers"`
 
 	DateOfBirth *base.Date   `json:"dateOfBirth,omitempty" firestore:"dateOfBirth,omitempty"`
 	Gender      *base.Gender `json:"gender,omitempty" firestore:"gender,omitempty"`
 	PatientID   *string      `json:"patientID,omitempty" firestore:"patientID"`
-	PushTokens  []string     `json:"pushTokens" firestore:"pushTokens"`
+	PushTokens  []string     `json:"pushTokens,omitempty" firestore:"pushTokens"`
 
-	Name                               *string `json:"name" firestore:"name"`
-	Bio                                *string `json:"bio" firestore:"bio"`
-	PractitionerApproved               *bool   `json:"practitionerApproved" firestore:"practitionerApproved"`
-	PractitionerTermsOfServiceAccepted *bool   `json:"practitionerTermsOfServiceAccepted" firestore:"practitionerTermsOfServiceAccepted"`
+	Name                               *string `json:"name,omitempty" firestore:"name"`
+	Bio                                *string `json:"bio,omitempty" firestore:"bio"`
+	PractitionerApproved               *bool   `json:"practitionerApproved,omitempty" firestore:"practitionerApproved"`
+	PractitionerTermsOfServiceAccepted *bool   `json:"practitionerTermsOfServiceAccepted,omitempty" firestore:"practitionerTermsOfServiceAccepted"`
 
-	IsTester      bool          `json:"isTester" firestore:"isTester"`
-	CanExperiment bool          `json:"canExperiment" firestore:"canExperiment"`
-	Language      base.Language `json:"language" firestore:"language"`
+	IsTester      bool          `json:"isTester,omitempty" firestore:"isTester"`
+	CanExperiment bool          `json:"canExperiment,omitempty" firestore:"canExperiment"`
+	Language      base.Language `json:"language,omitempty" firestore:"language"`
 
 	// used to determine whether to persist asking the user on the UI
-	AskAgainToSetIsTester      bool             `json:"askAgainToSetIsTester" firestore:"askAgainToSetIsTester"`
-	AskAgainToSetCanExperiment bool             `json:"askAgainToSetCanExperiment" firestore:"askAgainToSetCanExperiment"`
-	VerifiedEmails             []VerifiedEmail  `json:"verifiedEmails" firestore:"verifiedEmails"`
-	VerifiedPhones             []VerifiedMsisdn `json:"verifiedPhones" firestore:"verifiedPhones"`
-	HasPin                     bool             `json:"hasPin" firestore:"hasPin"`
-	HasSupplierAccount         bool             `json:"hasSupplierAccount" firestore:"hasSupplierAccount"`
-	HasCustomerAccount         bool             `json:"hasCustomerAccount" firestore:"hasCustomerAccount"`
-	PractitionerHasServices    bool             `json:"practitionerHasServices" firestore:"practitionerHasServices"`
+	AskAgainToSetIsTester      bool             `json:"askAgainToSetIsTester,omitempty" firestore:"askAgainToSetIsTester"`
+	AskAgainToSetCanExperiment bool             `json:"askAgainToSetCanExperiment,omitempty" firestore:"askAgainToSetCanExperiment"`
+	VerifiedEmails             []VerifiedEmail  `json:"verifiedEmails,omitempty" firestore:"verifiedEmails"`
+	VerifiedPhones             []VerifiedMsisdn `json:"verifiedPhones,omitempty" firestore:"verifiedPhones"`
+	HasPin                     bool             `json:"hasPin,omitempty" firestore:"hasPin"`
+	HasSupplierAccount         bool             `json:"hasSupplierAccount,omitempty" firestore:"hasSupplierAccount"`
+	HasCustomerAccount         bool             `json:"hasCustomerAccount,omitempty" firestore:"hasCustomerAccount"`
+	PractitionerHasServices    bool             `json:"practitionerHasServices,omitempty" firestore:"practitionerHasServices"`
 }
 
 // IsEntity ...
@@ -205,17 +208,17 @@ type PostVisitSurvey struct {
 // PIN is used to store a PIN (Personal Identifiation Number) associated
 // to a phone number sign up to Firebase
 type PIN struct {
-	UID     string `json:"uid" firestore:"uid"`
-	MSISDN  string `json:"msisdn,omitempty" firestore:"msisdn"`
-	PIN     string `json:"pin,omitempty" firestore:"pin"`
-	IsValid bool   `json:"isValid,omitempty" firestore:"isValid"`
+	ProfileID string `json:"profile_id" firestore:"profileID"`
+	MSISDN    string `json:"msisdn,omitempty" firestore:"msisdn"`
+	PINNumber int    `json:"pin_number" firestore:"PINNumber"`
+	IsValid   bool   `json:"isValid,omitempty" firestore:"isValid"`
 }
 
 // PinRecovery stores information required in resetting and updating a forgotten pin
 type PinRecovery struct {
-	MSISDN string `json:"msisdn"`
-	PIN    string `json:"pin"`
-	OTP    string `json:"otp"`
+	MSISDN    string `json:"msisdn" firestore:"msisdn"`
+	PINNumber int    `json:"pin_number" firestore:"PINNumber"`
+	OTP       string `json:"otp" firestore:"otp"`
 }
 
 // OtpResponse returns an otp

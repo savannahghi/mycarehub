@@ -60,12 +60,12 @@ func TestService_GetConfirmedEmailAddresses(t *testing.T) {
 			name: "Slice of uids case",
 			args: args{
 				ctx:  ctx,
-				uids: []string{phoneNumberProfile.Uids[0], token.UID},
+				uids: []string{phoneNumberProfile.VerifiedIdentifiers[0], token.UID},
 			},
 			wantErr: false,
 			want: map[string][]string{
-				token.UID:                  profile.Emails,
-				phoneNumberProfile.Uids[0]: {},
+				token.UID: profile.Emails,
+				phoneNumberProfile.VerifiedIdentifiers[0]: {},
 			},
 		},
 	}
@@ -135,12 +135,12 @@ func TestService_GetConfirmedPhoneNumbers(t *testing.T) {
 			name: "Slice of uids case",
 			args: args{
 				ctx:  ctx,
-				uids: []string{phoneNumberProfile.Uids[0], token.UID},
+				uids: []string{phoneNumberProfile.VerifiedIdentifiers[0], token.UID},
 			},
 			wantErr: false,
 			want: map[string][]string{
-				token.UID:                  profile.Msisdns,
-				phoneNumberProfile.Uids[0]: {},
+				token.UID: profile.Msisdns,
+				phoneNumberProfile.VerifiedIdentifiers[0]: {},
 			},
 		},
 	}
@@ -200,7 +200,7 @@ func TestService_GetValidFCMTokens(t *testing.T) {
 			name: "Slice of uids case",
 			args: args{
 				ctx:  ctx,
-				uids: []string{phoneNumberProfile.Uids[0], token.UID},
+				uids: []string{phoneNumberProfile.VerifiedIdentifiers[0], token.UID},
 			},
 			wantErr: false,
 		},

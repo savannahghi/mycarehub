@@ -154,9 +154,9 @@ func TestValidateMsisdn(t *testing.T) {
 
 func TestValidateUpdatePinPayload(t *testing.T) {
 	goodData := &PinRecovery{
-		MSISDN: "+254712789456",
-		PIN:    "1234",
-		OTP:    "123456",
+		MSISDN:    "+254712789456",
+		PINNumber: 1234,
+		OTP:       "123456",
 	}
 	goodDataJSONBytes, err := json.Marshal(goodData)
 	assert.Nil(t, err)
@@ -185,9 +185,9 @@ func TestValidateUpdatePinPayload(t *testing.T) {
 				r: validRequest,
 			},
 			want: &PinRecovery{
-				MSISDN: "+254712789456",
-				PIN:    "1234",
-				OTP:    "123456",
+				MSISDN:    "+254712789456",
+				PINNumber: 1234,
+				OTP:       "123456",
 			},
 			wantErr: false,
 		},

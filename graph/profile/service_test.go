@@ -560,7 +560,7 @@ func TestService_UserProfile(t *testing.T) {
 					assert.NotNil(t, profile)
 					assert.NotZero(t, profile.Emails)
 					assert.True(t, base.StringSliceContains(profile.Emails, base.TestUserEmail))
-					assert.NotZero(t, profile.Uids)
+					assert.NotZero(t, profile.VerifiedIdentifiers)
 				}
 			}
 		})
@@ -1003,7 +1003,7 @@ func TestService_SetUserPin(t *testing.T) {
 	type args struct {
 		ctx    context.Context
 		msisdn string
-		pin    string
+		pin    int
 	}
 	tests := []struct {
 		name    string
@@ -1016,43 +1016,25 @@ func TestService_SetUserPin(t *testing.T) {
 			args: args{
 				ctx:    ctx,
 				msisdn: base.TestUserPhoneNumber,
-				pin:    "1234",
+				pin:    1234,
 			},
 			want:    true,
 			wantErr: false,
-		},
-		{
-			name: "Sad case: user already has a pin",
-			args: args{
-				ctx:    ctx,
-				msisdn: base.TestUserPhoneNumber,
-				pin:    "5678",
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "Sad case: user with an invalid phone number",
-			args: args{
-				ctx:    ctx,
-				msisdn: "ofcourse it's not a real number",
-				pin:    "5678",
-			},
-			want:    false,
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			got, err := s.SetUserPIN(tt.args.ctx, tt.args.msisdn, tt.args.pin)
+			isPINSet, err := s.SetUserPIN(tt.args.ctx, tt.args.msisdn, tt.args.pin)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.SetUserPIN() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("Service.SetUserPIN() = %v, want %v", got, tt.want)
+			if isPINSet != tt.want {
+				t.Errorf("Service.SetUserPIN() = %v, want %v", isPINSet, tt.want)
 			}
+			// retrieve the logged in user
+			// they should have a PIN set
 			profile, err := s.UserProfile(ctx)
 			if err == nil {
 				assert.True(t, profile.HasPin)
@@ -1064,7 +1046,7 @@ func TestService_SetUserPin(t *testing.T) {
 func TestService_RetrievePINFirebaseDocSnapshotByMSISDN(t *testing.T) {
 	service := NewService()
 	ctx := base.GetPhoneNumberAuthenticatedContext(t)
-	set, err := service.SetUserPIN(ctx, "+254703754685", "1234")
+	set, err := service.SetUserPIN(ctx, "+254703754685", 1234)
 	if !set {
 		t.Errorf("setting a pin for test user failed. It returned false")
 	}
@@ -1114,7 +1096,7 @@ func TestService_VerifyMSISDNandPin(t *testing.T) {
 	type args struct {
 		ctx    context.Context
 		msisdn string
-		pin    string
+		pin    int
 	}
 	tests := []struct {
 		name    string
@@ -1127,7 +1109,7 @@ func TestService_VerifyMSISDNandPin(t *testing.T) {
 			args: args{
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
 				msisdn: base.TestUserPhoneNumber,
-				pin:    "1234",
+				pin:    1234,
 			},
 			want:    true,
 			wantErr: false,
@@ -1137,7 +1119,7 @@ func TestService_VerifyMSISDNandPin(t *testing.T) {
 			args: args{
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
 				msisdn: "not even close to an msisdn",
-				pin:    "not a pin",
+				pin:    1256,
 			},
 			want:    false,
 			wantErr: true,
@@ -1161,7 +1143,7 @@ func TestService_VerifyMSISDNandPin(t *testing.T) {
 func TestService_CheckHasPin(t *testing.T) {
 	service := NewService()
 	ctx := base.GetPhoneNumberAuthenticatedContext(t)
-	set, err := service.SetUserPIN(ctx, base.TestUserPhoneNumber, "1234")
+	set, err := service.SetUserPIN(ctx, base.TestUserPhoneNumber, 1234)
 	if !set {
 		t.Errorf("setting a pin for test user failed. It returned false")
 	}
@@ -1547,7 +1529,7 @@ func TestService_RetrieveFireStoreSnapshotByUID(t *testing.T) {
 				ctx:            ctx,
 				uid:            token.UID,
 				collectionName: service.GetPractitionerCollectionName(),
-				field:          "profile.uids",
+				field:          "profile.verifiedIdentifiers",
 			},
 			wantErr: false,
 		},
@@ -1704,7 +1686,13 @@ func TestService_GetOrCreateUserProfile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			_, err := s.GetOrCreateUserProfile(tt.args.ctx, tt.args.phone)
+			profile, err := s.GetOrCreateUserProfile(tt.args.ctx, tt.args.phone)
+			if err == nil && tt.wantErr == false {
+				if profile == nil {
+					t.Errorf("empty profile was found")
+					return
+				}
+			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.GetOrCreateUserProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return

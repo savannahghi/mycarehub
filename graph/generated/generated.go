@@ -81,7 +81,7 @@ type ComplexityRoot struct {
 	Entity struct {
 		FindCoverByPayerName      func(childComplexity int, payerName string) int
 		FindPageInfoByHasNextPage func(childComplexity int, hasNextPage bool) int
-		FindUserProfileByUids     func(childComplexity int, uids []string) int
+		FindUserProfileByID       func(childComplexity int, id string) int
 	}
 
 	KMPDUPractitioner struct {
@@ -123,10 +123,10 @@ type ComplexityRoot struct {
 		RejectPractitionerSignup  func(childComplexity int, practitionerID string) int
 		RemoveTester              func(childComplexity int, email string) int
 		SetLanguagePreference     func(childComplexity int, language base.Language) int
-		SetUserPin                func(childComplexity int, msisdn string, pin string) int
+		SetUserPin                func(childComplexity int, msisdn string, pin int) int
 		UpdateBiodata             func(childComplexity int, input profile.BiodataInput) int
 		UpdateCustomer            func(childComplexity int, input profile.CustomerKYCInput) int
-		UpdateUserPin             func(childComplexity int, msisdn string, pin string, otp string) int
+		UpdateUserPin             func(childComplexity int, msisdn string, pin int, otp string) int
 		UpdateUserProfile         func(childComplexity int, input profile.UserProfileInput) int
 		VerifyEmailOtp            func(childComplexity int, email string, otp string) int
 	}
@@ -181,7 +181,7 @@ type ComplexityRoot struct {
 		RequestPinReset                  func(childComplexity int, msisdn string) int
 		SupplierProfile                  func(childComplexity int, uid string) int
 		UserProfile                      func(childComplexity int) int
-		VerifyMSISDNandPin               func(childComplexity int, msisdn string, pin string) int
+		VerifyMSISDNandPin               func(childComplexity int, msisdn string, pin int) int
 		__resolve__service               func(childComplexity int) int
 		__resolve_entities               func(childComplexity int, representations []map[string]interface{}) int
 	}
@@ -239,6 +239,7 @@ type ComplexityRoot struct {
 		HasCustomerAccount                 func(childComplexity int) int
 		HasPin                             func(childComplexity int) int
 		HasSupplierAccount                 func(childComplexity int) int
+		ID                                 func(childComplexity int) int
 		IsApproved                         func(childComplexity int) int
 		IsTester                           func(childComplexity int) int
 		Language                           func(childComplexity int) int
@@ -252,8 +253,8 @@ type ComplexityRoot struct {
 		PractitionerTermsOfServiceAccepted func(childComplexity int) int
 		PushTokens                         func(childComplexity int) int
 		TermsAccepted                      func(childComplexity int) int
-		Uids                               func(childComplexity int) int
 		VerifiedEmails                     func(childComplexity int) int
+		VerifiedIdentifiers                func(childComplexity int) int
 		VerifiedPhones                     func(childComplexity int) int
 	}
 
@@ -275,7 +276,7 @@ type ComplexityRoot struct {
 type EntityResolver interface {
 	FindCoverByPayerName(ctx context.Context, payerName string) (*profile.Cover, error)
 	FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*base.PageInfo, error)
-	FindUserProfileByUids(ctx context.Context, uids []string) (*profile.UserProfile, error)
+	FindUserProfileByID(ctx context.Context, id string) (*profile.UserProfile, error)
 }
 type MutationResolver interface {
 	ConfirmEmail(ctx context.Context, email string) (*profile.UserProfile, error)
@@ -290,8 +291,8 @@ type MutationResolver interface {
 	RemoveTester(ctx context.Context, email string) (bool, error)
 	ApprovePractitionerSignup(ctx context.Context, practitionerID string) (bool, error)
 	RejectPractitionerSignup(ctx context.Context, practitionerID string) (bool, error)
-	SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
-	UpdateUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error)
+	SetUserPin(ctx context.Context, msisdn string, pin int) (bool, error)
+	UpdateUserPin(ctx context.Context, msisdn string, pin int, otp string) (bool, error)
 	SetLanguagePreference(ctx context.Context, language base.Language) (bool, error)
 	VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error)
 	CreateSignUpMethod(ctx context.Context, signUpMethod profile.SignUpMethod) (bool, error)
@@ -312,7 +313,7 @@ type QueryResolver interface {
 	ListKMPDURegisteredPractitioners(ctx context.Context, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) (*profile.KMPDUPractitionerConnection, error)
 	GetKMPDURegisteredPractitioner(ctx context.Context, regno string) (*profile.KMPDUPractitioner, error)
 	IsUnderAge(ctx context.Context) (bool, error)
-	VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error)
+	VerifyMSISDNandPin(ctx context.Context, msisdn string, pin int) (bool, error)
 	RequestPinReset(ctx context.Context, msisdn string) (string, error)
 	CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, error)
 	GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error)
@@ -491,17 +492,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Entity.FindPageInfoByHasNextPage(childComplexity, args["hasNextPage"].(bool)), true
 
-	case "Entity.findUserProfileByUids":
-		if e.complexity.Entity.FindUserProfileByUids == nil {
+	case "Entity.findUserProfileByID":
+		if e.complexity.Entity.FindUserProfileByID == nil {
 			break
 		}
 
-		args, err := ec.field_Entity_findUserProfileByUids_args(context.TODO(), rawArgs)
+		args, err := ec.field_Entity_findUserProfileByID_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Entity.FindUserProfileByUids(childComplexity, args["uids"].([]string)), true
+		return e.complexity.Entity.FindUserProfileByID(childComplexity, args["id"].(string)), true
 
 	case "KMPDUPractitioner.active":
 		if e.complexity.KMPDUPractitioner.Active == nil {
@@ -796,7 +797,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetUserPin(childComplexity, args["msisdn"].(string), args["pin"].(string)), true
+		return e.complexity.Mutation.SetUserPin(childComplexity, args["msisdn"].(string), args["pin"].(int)), true
 
 	case "Mutation.updateBiodata":
 		if e.complexity.Mutation.UpdateBiodata == nil {
@@ -822,17 +823,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateCustomer(childComplexity, args["input"].(profile.CustomerKYCInput)), true
 
-	case "Mutation.updateUserPin":
+	case "Mutation.updateUserPIN":
 		if e.complexity.Mutation.UpdateUserPin == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_updateUserPin_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_updateUserPIN_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUserPin(childComplexity, args["msisdn"].(string), args["pin"].(string), args["otp"].(string)), true
+		return e.complexity.Mutation.UpdateUserPin(childComplexity, args["msisdn"].(string), args["pin"].(int), args["otp"].(string)), true
 
 	case "Mutation.updateUserProfile":
 		if e.complexity.Mutation.UpdateUserProfile == nil {
@@ -1146,7 +1147,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.VerifyMSISDNandPin(childComplexity, args["msisdn"].(string), args["pin"].(string)), true
+		return e.complexity.Query.VerifyMSISDNandPin(childComplexity, args["msisdn"].(string), args["pin"].(int)), true
 
 	case "Query._service":
 		if e.complexity.Query.__resolve__service == nil {
@@ -1426,6 +1427,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.HasSupplierAccount(childComplexity), true
 
+	case "UserProfile.id":
+		if e.complexity.UserProfile.ID == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.ID(childComplexity), true
+
 	case "UserProfile.isApproved":
 		if e.complexity.UserProfile.IsApproved == nil {
 			break
@@ -1517,19 +1525,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.TermsAccepted(childComplexity), true
 
-	case "UserProfile.uids":
-		if e.complexity.UserProfile.Uids == nil {
-			break
-		}
-
-		return e.complexity.UserProfile.Uids(childComplexity), true
-
 	case "UserProfile.VerifiedEmails":
 		if e.complexity.UserProfile.VerifiedEmails == nil {
 			break
 		}
 
 		return e.complexity.UserProfile.VerifiedEmails(childComplexity), true
+
+	case "UserProfile.verifiedIdentifiers":
+		if e.complexity.UserProfile.VerifiedIdentifiers == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.VerifiedIdentifiers(childComplexity), true
 
 	case "UserProfile.VerifiedPhones":
 		if e.complexity.UserProfile.VerifiedPhones == nil {
@@ -1926,7 +1934,7 @@ input SupplierKYCInput {
   ): KMPDUPractitionerConnection!
   getKMPDURegisteredPractitioner(regno: String!): KMPDUPractitioner!
   isUnderAge: Boolean!
-  verifyMSISDNandPIN(msisdn: String!, pin: String!): Boolean!
+  verifyMSISDNandPIN(msisdn: String!, pin: Int!): Boolean!
   requestPinReset(msisdn: String!): String!
   checkUserWithMsisdn(msisdn: String!): Boolean!
   getSignUpMethod(id: String!): SignUpMethod!
@@ -1946,8 +1954,8 @@ extend type Mutation {
   removeTester(email: String!): Boolean!
   approvePractitionerSignup(practitionerID: String!): Boolean!
   rejectPractitionerSignup(practitionerID: String!): Boolean!
-  setUserPin(msisdn: String!, pin: String!): Boolean!
-  updateUserPin(msisdn: String!, pin: String!, otp: String!): Boolean!
+  setUserPin(msisdn: String!, pin: Int!): Boolean!
+  updateUserPIN(msisdn: String!, pin: Int!, otp: String!): Boolean!
   setLanguagePreference(language: Language!): Boolean!
   verifyEmailOTP(email: String!, otp: String!): Boolean!
   createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
@@ -2013,8 +2021,9 @@ type Cover
   memberName: String!
 }
 
-type UserProfile @key(fields: "uids") {
-  uids: [String!]!
+type UserProfile @key(fields: "id") {
+  id: String!
+  verifiedIdentifiers: [String!]!
   isApproved: Boolean!
   termsAccepted: Boolean!
   msisdns: [String!]!
@@ -2150,7 +2159,7 @@ union _Entity = Cover | PageInfo | UserProfile
 type Entity {
 		findCoverByPayerName(payerName: String!,): Cover!
 	findPageInfoByHasNextPage(hasNextPage: Boolean!,): PageInfo!
-	findUserProfileByUids(uids: [String!]!,): UserProfile!
+	findUserProfileByID(id: String!,): UserProfile!
 
 }
 
@@ -2200,18 +2209,18 @@ func (ec *executionContext) field_Entity_findPageInfoByHasNextPage_args(ctx cont
 	return args, nil
 }
 
-func (ec *executionContext) field_Entity_findUserProfileByUids_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Entity_findUserProfileByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 []string
-	if tmp, ok := rawArgs["uids"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uids"))
-		arg0, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["uids"] = arg0
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -2476,10 +2485,10 @@ func (ec *executionContext) field_Mutation_setUserPin_args(ctx context.Context, 
 		}
 	}
 	args["msisdn"] = arg0
-	var arg1 string
+	var arg1 int
 	if tmp, ok := rawArgs["pin"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2518,7 +2527,7 @@ func (ec *executionContext) field_Mutation_updateCustomer_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateUserPin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateUserPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -2530,10 +2539,10 @@ func (ec *executionContext) field_Mutation_updateUserPin_args(ctx context.Contex
 		}
 	}
 	args["msisdn"] = arg0
-	var arg1 string
+	var arg1 int
 	if tmp, ok := rawArgs["pin"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2770,10 +2779,10 @@ func (ec *executionContext) field_Query_verifyMSISDNandPIN_args(ctx context.Cont
 		}
 	}
 	args["msisdn"] = arg0
-	var arg1 string
+	var arg1 int
 	if tmp, ok := rawArgs["pin"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3560,7 +3569,7 @@ func (ec *executionContext) _Entity_findPageInfoByHasNextPage(ctx context.Contex
 	return ec.marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Entity_findUserProfileByUids(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Entity_findUserProfileByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3577,7 +3586,7 @@ func (ec *executionContext) _Entity_findUserProfileByUids(ctx context.Context, f
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Entity_findUserProfileByUids_args(ctx, rawArgs)
+	args, err := ec.field_Entity_findUserProfileByID_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -3585,7 +3594,7 @@ func (ec *executionContext) _Entity_findUserProfileByUids(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Entity().FindUserProfileByUids(rctx, args["uids"].([]string))
+		return ec.resolvers.Entity().FindUserProfileByID(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4535,7 +4544,7 @@ func (ec *executionContext) _Mutation_setUserPin(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetUserPin(rctx, args["msisdn"].(string), args["pin"].(string))
+		return ec.resolvers.Mutation().SetUserPin(rctx, args["msisdn"].(string), args["pin"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4552,7 +4561,7 @@ func (ec *executionContext) _Mutation_setUserPin(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateUserPin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_updateUserPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4569,7 +4578,7 @@ func (ec *executionContext) _Mutation_updateUserPin(ctx context.Context, field g
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateUserPin_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_updateUserPIN_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4577,7 +4586,7 @@ func (ec *executionContext) _Mutation_updateUserPin(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserPin(rctx, args["msisdn"].(string), args["pin"].(string), args["otp"].(string))
+		return ec.resolvers.Mutation().UpdateUserPin(rctx, args["msisdn"].(string), args["pin"].(int), args["otp"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6060,7 +6069,7 @@ func (ec *executionContext) _Query_verifyMSISDNandPIN(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().VerifyMSISDNandPin(rctx, args["msisdn"].(string), args["pin"].(string))
+		return ec.resolvers.Query().VerifyMSISDNandPin(rctx, args["msisdn"].(string), args["pin"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7267,7 +7276,7 @@ func (ec *executionContext) _TesterWhitelist_email(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_uids(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7285,7 +7294,42 @@ func (ec *executionContext) _UserProfile_uids(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Uids, nil
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_verifiedIdentifiers(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VerifiedIdentifiers, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10392,7 +10436,7 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 				}
 				return res
 			})
-		case "findUserProfileByUids":
+		case "findUserProfileByID":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -10400,7 +10444,7 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Entity_findUserProfileByUids(ctx, field)
+				res = ec._Entity_findUserProfileByID(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -10614,8 +10658,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updateUserPin":
-			out.Values[i] = ec._Mutation_updateUserPin(ctx, field)
+		case "updateUserPIN":
+			out.Values[i] = ec._Mutation_updateUserPIN(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -11344,8 +11388,13 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UserProfile")
-		case "uids":
-			out.Values[i] = ec._UserProfile_uids(ctx, field, obj)
+		case "id":
+			out.Values[i] = ec._UserProfile_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "verifiedIdentifiers":
+			out.Values[i] = ec._UserProfile_verifiedIdentifiers(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

@@ -49,8 +49,9 @@ type Cover
   memberName: String!
 }
 
-type UserProfile @key(fields: "uids") {
-  uids: [String!]!
+type UserProfile @key(fields: "id") {
+  id: String!
+  verifiedIdentifiers: [String!]!
   isApproved: Boolean!
   termsAccepted: Boolean!
   msisdns: [String!]!

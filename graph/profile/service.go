@@ -15,6 +15,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"github.com/asaskevich/govalidator"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gopkg.in/yaml.v2"
@@ -226,7 +227,7 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 
 	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
 	// the ordering is necessary in order to provide a stable sort order
-	query := collection.Where("uids", "array-contains", uid)
+	query := collection.Where("verifiedIdentifiers", "array-contains", uid)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -240,10 +241,11 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 	if len(docs) == 0 {
 		uids = append(uids, uid)
 		newProfile := &UserProfile{
-			Uids:          uids,
-			IsApproved:    false,
-			TermsAccepted: false,
-			CanExperiment: false,
+			ID:                  uuid.New().String(),
+			VerifiedIdentifiers: uids,
+			IsApproved:          false,
+			TermsAccepted:       false,
+			CanExperiment:       false,
 		}
 		docID, err := base.SaveDataToFirestore(
 			s.firestoreClient, s.GetUserProfileCollectionName(), newProfile)
@@ -270,7 +272,7 @@ func (s Service) RetrieveOrCreateUserProfileFirebaseDocSnapshot(
 ) (*firestore.DocumentSnapshot, error) {
 	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
 	// the ordering is necessary in order to provide a stable sort order
-	query := collection.Where("uids", "array-contains", uid)
+	query := collection.Where("verifiedIdentifiers", "array-contains", uid)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -300,12 +302,14 @@ func (s Service) RetrieveOrCreateUserProfileFirebaseDocSnapshot(
 		if len(docs) == 0 {
 			uids = append(uids, uid)
 			msisdns = append(msisdns, phone)
+			// generate a new internal ID for the profile
 			newProfile := &UserProfile{
-				Uids:          uids,
-				IsApproved:    false,
-				TermsAccepted: false,
-				CanExperiment: false,
-				Msisdns:       msisdns,
+				ID:                  uuid.New().String(),
+				VerifiedIdentifiers: uids,
+				IsApproved:          false,
+				TermsAccepted:       false,
+				CanExperiment:       false,
+				Msisdns:             msisdns,
 			}
 			docID, err := base.SaveDataToFirestore(
 				s.firestoreClient, s.GetUserProfileCollectionName(), newProfile)
@@ -402,8 +406,8 @@ func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*Use
 	}
 	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 
-	if !base.StringSliceContains(userProfile.Uids, uid) {
-		userProfile.Uids = append(userProfile.Uids, uid)
+	if !base.StringSliceContains(userProfile.VerifiedIdentifiers, uid) {
+		userProfile.VerifiedIdentifiers = append(userProfile.VerifiedIdentifiers, uid)
 	}
 
 	err = base.UpdateRecordOnFirestore(
@@ -445,7 +449,7 @@ func (s Service) FindProfile(ctx context.Context) (*UserProfile, error) {
 	}
 
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, uid, s.GetUserProfileCollectionName(), "uids")
+		ctx, uid, s.GetUserProfileCollectionName(), "verifiedIdentifiers")
 	if err != nil {
 		return nil, fmt.Errorf("unable to get a profile dsnap for this user: %v", err)
 	}
@@ -1102,45 +1106,33 @@ func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// SetUserPIN given a phone number and a PIN creates a PIN record in our firestore
-// that can be used during logging in and any other service that might require a PIN
-func (s Service) SetUserPIN(ctx context.Context, msisdn, pin string) (bool, error) {
+//SetUserPIN receives phone number and pin from phonenumber sign up
+// and save them to Firestore
+func (s Service) SetUserPIN(ctx context.Context, msisdn string, pin int) (bool, error) {
 	s.checkPreconditions()
-
-	exists, err := s.CheckHasPIN(ctx, msisdn)
+	// retrieve profile linked to this user
+	profile, err := s.UserProfile(ctx)
 	if err != nil {
-		return false, fmt.Errorf("unable to check if the user has a PIN: %v", err)
+		return false, fmt.Errorf("unable to get a user profile: %v", err)
 	}
-	if exists {
-		if base.IsDebug() {
-			log.Printf("user with msisdn %s has more than one PINs)", msisdn)
-		}
-		return true, nil
-	}
-
-	uid, err := base.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return false, fmt.Errorf("unable to get the logged in user: %v", err)
-	}
-
+	// ensure the phone number is valid
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
 		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
+	// TODO! check if user has PIN
 
-	profile, err := s.UserProfile(ctx)
-	if err != nil {
-		return false, fmt.Errorf("unable to get or create a user profile: %v", err)
+	// TODO: Linking pins
+	// we link the PIN to their profile
+	// one profile should have one PIN
+	PINPayload := PIN{
+		ProfileID: profile.ID,
+		MSISDN:    phoneNumber,
+		PINNumber: pin,
+		IsValid:   true,
 	}
 
-	personalIDNumber := PIN{
-		UID:     uid,
-		MSISDN:  phoneNumber,
-		PIN:     pin,
-		IsValid: true,
-	}
-
-	err = s.SavePINToFirestore(personalIDNumber)
+	err = s.SavePINToFirestore(PINPayload)
 	if err != nil {
 		return false, fmt.Errorf("unable to save PIN: %v", err)
 	}
@@ -1160,8 +1152,8 @@ func (s Service) SetUserPIN(ctx context.Context, msisdn, pin string) (bool, erro
 	return true, nil
 }
 
-// VerifyMSISDNandPIN verifies a given msisdn and PIN match.
-func (s Service) VerifyMSISDNandPIN(ctx context.Context, msisdn string, pin string) (bool, error) {
+// VerifyMSISDNandPIN verifies a given msisdn and pin match.
+func (s Service) VerifyMSISDNandPIN(ctx context.Context, msisdn string, pinNumber int) (bool, error) {
 	s.checkPreconditions()
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
@@ -1178,7 +1170,7 @@ func (s Service) VerifyMSISDNandPIN(ctx context.Context, msisdn string, pin stri
 		return false, fmt.Errorf("unable to read PIN: %w", err)
 	}
 
-	if msisdnPin.PIN != pin {
+	if msisdnPin.PINNumber != pinNumber {
 		return false, nil
 	}
 
@@ -1299,9 +1291,8 @@ func (s Service) RequestPINReset(ctx context.Context, msisdn string) (string, er
 	return string(code), nil
 }
 
-// UpdateUserPIN takes a phone number, a verified otp sent during the requesting for a PIN reset stage
-// and the new PIN that replaces the old PIN
-func (s Service) UpdateUserPIN(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
+// UpdateUserPIN resets a user's pin
+func (s Service) UpdateUserPIN(ctx context.Context, msisdn string, pin int, otp string) (bool, error) {
 	s.checkPreconditions()
 
 	exists, err := s.CheckHasPIN(ctx, msisdn)
@@ -1333,7 +1324,7 @@ func (s Service) UpdateUserPIN(ctx context.Context, msisdn string, pin string, o
 		return false, fmt.Errorf("unable to read PIN: %w", err)
 	}
 
-	msisdnPIN.PIN = pin
+	msisdnPIN.PINNumber = pin
 
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetPINCollectionName(), dsnap.Ref.ID, msisdnPIN,
@@ -1480,7 +1471,7 @@ func (s Service) AddPractitionerServices(
 		return false, fmt.Errorf("unable to get the logged in user: %v", err)
 	}
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, uid, s.GetPractitionerCollectionName(), "profile.uids")
+		ctx, uid, s.GetPractitionerCollectionName(), "profile.verifiedIdentifiers")
 	if err != nil {
 		return false, fmt.Errorf("unable to retreive practitioner: %v", err)
 	}

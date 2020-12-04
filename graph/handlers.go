@@ -194,7 +194,7 @@ func UpdatePinHandler(ctx context.Context) http.HandlerFunc {
 			return
 		}
 
-		_, updateErr := s.UpdateUserPIN(ctx, payload.MSISDN, payload.PIN, payload.OTP)
+		_, updateErr := s.UpdateUserPIN(ctx, payload.MSISDN, payload.PINNumber, payload.OTP)
 		if updateErr != nil {
 			base.ReportErr(w, updateErr, http.StatusBadRequest)
 			return

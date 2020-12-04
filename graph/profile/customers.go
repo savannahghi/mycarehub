@@ -47,7 +47,7 @@ func (s Service) AddCustomer(ctx context.Context, uid *string, name string) (*Cu
 	}
 
 	collection := s.firestoreClient.Collection(s.GetCustomerCollectionName())
-	query := collection.Where("userprofile.uids", "array-contains", userUID)
+	query := collection.Where("userprofile.verifiedIdentifiers", "array-contains", userUID)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func (s Service) AddCustomerKYC(ctx context.Context, input CustomerKYCInput) (*C
 	}
 
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, uid, s.GetCustomerCollectionName(), "userprofile.uids")
+		ctx, uid, s.GetCustomerCollectionName(), "userprofile.verifiedIdentifiers")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve customer: %v", err)
 	}
@@ -179,7 +179,7 @@ func (s Service) UpdateCustomer(ctx context.Context, input CustomerKYCInput) (*C
 	}
 
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, uid, s.GetCustomerCollectionName(), "userprofile.uids")
+		ctx, uid, s.GetCustomerCollectionName(), "userprofile.verifiedIdentifiers")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve customer: %v", err)
 	}
