@@ -22,5 +22,6 @@ require (
 	gitlab.slade360emr.com/go/base v0.0.72
 	golang.org/x/sys v0.0.0-20201130171929-760e229fe7c5 // indirect
 	golang.org/x/tools v0.0.0-20201201064407-fd09bd90d85c // indirect
+	google.golang.org/api v0.35.0
 	gopkg.in/yaml.v2 v2.4.0
 )

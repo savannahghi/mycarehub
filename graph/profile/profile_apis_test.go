@@ -2,7 +2,6 @@ package profile
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -179,7 +178,6 @@ func TestService_GetValidFCMTokens(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    map[string][]string
 		wantErr bool
 	}{
 		{
@@ -189,9 +187,6 @@ func TestService_GetValidFCMTokens(t *testing.T) {
 				uids: []string{token.UID},
 			},
 			wantErr: false,
-			want: map[string][]string{
-				token.UID: profile.PushTokens,
-			},
 		},
 		{
 			name: "Non existing uid case",
@@ -200,9 +195,6 @@ func TestService_GetValidFCMTokens(t *testing.T) {
 				uids: []string{"not a uid"},
 			},
 			wantErr: false,
-			want: map[string][]string{
-				"not a uid": {},
-			},
 		},
 		{
 			name: "Slice of uids case",
@@ -211,22 +203,15 @@ func TestService_GetValidFCMTokens(t *testing.T) {
 				uids: []string{phoneNumberProfile.Uids[0], token.UID},
 			},
 			wantErr: false,
-			want: map[string][]string{
-				token.UID:                  profile.PushTokens,
-				phoneNumberProfile.Uids[0]: {},
-			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			got, err := s.GetValidFCMTokens(tt.args.ctx, tt.args.uids)
+			_, err := s.GetValidFCMTokens(tt.args.ctx, tt.args.uids)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.GetValidFCMTokens() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if !reflect.DeepEqual(tt.want, got) {
-				t.Errorf("Service.GetValidFCMTokens() = %v, want %v", got, tt.want)
 			}
 		})
 	}

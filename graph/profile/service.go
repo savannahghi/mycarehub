@@ -1064,10 +1064,21 @@ func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-//SetUserPin receives phone number and pin from phonenumber sign up
-// and save them to Firestore
-func (s Service) SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
+// SetUserPIN given a phone number and a PIN creates a PIN record in our firestore
+// that can be used during logging in and any other service that might require a PIN
+func (s Service) SetUserPIN(ctx context.Context, msisdn, pin string) (bool, error) {
 	s.checkPreconditions()
+
+	exists, err := s.CheckHasPIN(ctx, msisdn)
+	if err != nil {
+		return false, fmt.Errorf("unable to check if the user has a PIN: %v", err)
+	}
+	if exists {
+		if base.IsDebug() {
+			log.Printf("user with msisdn %s has more than one PINs)", msisdn)
+		}
+		return true, nil
+	}
 
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
@@ -1084,7 +1095,6 @@ func (s Service) SetUserPin(ctx context.Context, msisdn string, pin string) (boo
 		return false, fmt.Errorf("unable to get or create a user profile: %v", err)
 	}
 
-	// TODO: Linking pins
 	personalIDNumber := PIN{
 		UID:     uid,
 		MSISDN:  phoneNumber,
@@ -1112,8 +1122,8 @@ func (s Service) SetUserPin(ctx context.Context, msisdn string, pin string) (boo
 	return true, nil
 }
 
-// VerifyMSISDNandPin verifies a given msisdn and pin match.
-func (s Service) VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error) {
+// VerifyMSISDNandPIN verifies a given msisdn and PIN match.
+func (s Service) VerifyMSISDNandPIN(ctx context.Context, msisdn string, pin string) (bool, error) {
 	s.checkPreconditions()
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
@@ -1152,38 +1162,47 @@ func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
 	}
 	if len(docs) > 1 {
 		if base.IsDebug() {
-			log.Printf("msisdn %s has more than one pin (it has %d)", msisdn, len(docs))
+			log.Printf("msisdn %s has more than one PIN (it has %d)", msisdn, len(docs))
 		}
 	}
 	if len(docs) == 0 {
-		return nil, fmt.Errorf("pin can't be retrieved beacuse it does not exist")
+		return nil, nil
 	}
 	dsnap := docs[0]
 	return dsnap, nil
 }
 
-// CheckUserWithMsisdn checks if a user msisdn is present in pins firestore collection
-// which essentially means that the number was used during user registration
-func (s Service) CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, error) {
+// CheckHasPIN given a phone number checks if the phonenumber is present in our collections
+// which essentially means that the number has an already existing PIN
+func (s Service) CheckHasPIN(ctx context.Context, msisdn string) (bool, error) {
 	s.checkPreconditions()
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
 		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
-	_, checkErr := s.RetrievePINFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
-	if checkErr != nil {
-		return false, fmt.Errorf("user does not exist: %v", checkErr)
+
+	dsnap, err := s.RetrievePINFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
+	if err != nil {
+		return false, fmt.Errorf("unable to fetch PINs dsnap: %v", err)
 	}
+	if dsnap == nil {
+		return false, nil
+	}
+
 	return true, nil
 }
 
-// RequestPinReset sends an otp to an exisitng user that is used to update their pin
-func (s Service) RequestPinReset(ctx context.Context, msisdn string) (string, error) {
+// RequestPINReset given an existing user's phone number, sends an otp to the phone number
+// that is then used in the process of updating their old PIN to a new one
+func (s Service) RequestPINReset(ctx context.Context, msisdn string) (string, error) {
 	s.checkPreconditions()
 
-	_, err := s.CheckUserWithMsisdn(ctx, msisdn)
+	exists, err := s.CheckHasPIN(ctx, msisdn)
 	if err != nil {
-		return "", fmt.Errorf("unable to get user pin: %v", err)
+		return "", fmt.Errorf("unable to check if the user has a PIN: %v", err)
+	}
+	if !exists {
+		return "", fmt.Errorf("request for a PIN reset failed. User does not have an existing PIN")
 	}
 
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
@@ -1212,21 +1231,24 @@ func (s Service) RequestPinReset(ctx context.Context, msisdn string) (string, er
 	return string(code), nil
 }
 
-// UpdateUserPin resets a user's pin
-func (s Service) UpdateUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
+// UpdateUserPIN takes a phone number, a verified otp sent during the requesting for a PIN reset stage
+// and the new PIN that replaces the old PIN
+func (s Service) UpdateUserPIN(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
 	s.checkPreconditions()
+
+	exists, err := s.CheckHasPIN(ctx, msisdn)
+	if err != nil {
+		return false, fmt.Errorf("unable to check if the user has a PIN: %v", err)
+	}
+	if !exists {
+		return false, fmt.Errorf("request for a PIN update failed. User does not have an existing PIN")
+	}
 
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
 		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
 
-	_, checkErr := s.CheckUserWithMsisdn(ctx, phoneNumber)
-	if checkErr != nil {
-		return false, fmt.Errorf("unable to get user profile: %v", checkErr)
-	}
-
-	// verify OTP
 	_, validateErr := base.ValidateMSISDN(phoneNumber, otp, false, s.firestoreClient)
 	if validateErr != nil {
 		return false, fmt.Errorf("OTP failed verification: %w", validateErr)
@@ -1237,16 +1259,16 @@ func (s Service) UpdateUserPin(ctx context.Context, msisdn string, pin string, o
 		return false, err
 	}
 
-	msisdnPin := &PIN{}
-	err = dsnap.DataTo(msisdnPin)
+	msisdnPIN := &PIN{}
+	err = dsnap.DataTo(msisdnPIN)
 	if err != nil {
 		return false, fmt.Errorf("unable to read PIN: %w", err)
 	}
 
-	msisdnPin.PIN = pin
+	msisdnPIN.PIN = pin
 
 	err = base.UpdateRecordOnFirestore(
-		s.firestoreClient, s.GetPINCollectionName(), dsnap.Ref.ID, msisdnPin,
+		s.firestoreClient, s.GetPINCollectionName(), dsnap.Ref.ID, msisdnPIN,
 	)
 	if err != nil {
 		return false, fmt.Errorf("unable to update user profile: %v", err)

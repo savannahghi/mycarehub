@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"os"
 	"reflect"
@@ -12,17 +13,70 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
+	"google.golang.org/api/iterator"
 )
 
+func deleteCollection(
+	ctx context.Context,
+	client *firestore.Client,
+	ref *firestore.CollectionRef,
+	batchSize int) error {
+	for {
+		iter := ref.Limit(batchSize).Documents(ctx)
+		numDeleted := 0
+		batch := client.Batch()
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return err
+			}
+
+			batch.Delete(doc.Ref)
+			numDeleted++
+		}
+
+		if numDeleted == 0 {
+			return nil
+		}
+
+		_, err := batch.Commit(ctx)
+		if err != nil {
+			return err
+		}
+	}
+}
+
 func TestMain(m *testing.M) {
+	log.Printf("Setting tests up ...")
 	os.Setenv("ENVIRONMENT", "testing")
-	os.Setenv("ROOT_COLLECTION_SUFFIX", "testing_ci")
-	os.Exit(m.Run())
+	os.Setenv("ROOT_COLLECTION_SUFFIX", "onboarding_testing")
+	ctx := context.Background()
+	s := NewService()
+
+	log.Printf("Running tests ...")
+	code := m.Run()
+
+	log.Printf("Tearing tests down ...")
+	collections := []string{
+		s.GetPINCollectionName(),
+		s.GetUserProfileCollectionName(),
+		s.GetPractitionerCollectionName(),
+	}
+	for _, collection := range collections {
+		ref := s.firestoreClient.Collection(collection)
+		deleteCollection(ctx, s.firestoreClient, ref, 10)
+	}
+
+	os.Exit(code)
 }
 
 func TestNewService(t *testing.T) {
@@ -958,7 +1012,7 @@ func TestService_SetUserPin(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy registration of phone number pin user",
+			name: "Happy case: successfully set a user pin",
 			args: args{
 				ctx:    ctx,
 				msisdn: base.TestUserPhoneNumber,
@@ -968,10 +1022,20 @@ func TestService_SetUserPin(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad registration of phone number pin user",
+			name: "Sad case: user already has a pin",
 			args: args{
-				ctx:    context.Background(),
-				msisdn: "number not found",
+				ctx:    ctx,
+				msisdn: base.TestUserPhoneNumber,
+				pin:    "5678",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: user with an invalid phone number",
+			args: args{
+				ctx:    ctx,
+				msisdn: "ofcourse it's not a real number",
 				pin:    "5678",
 			},
 			want:    false,
@@ -981,13 +1045,13 @@ func TestService_SetUserPin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			got, err := s.SetUserPin(tt.args.ctx, tt.args.msisdn, tt.args.pin)
+			got, err := s.SetUserPIN(tt.args.ctx, tt.args.msisdn, tt.args.pin)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.SetUserPin() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Service.SetUserPIN() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("Service.SetUserPin() = %v, want %v", got, tt.want)
+				t.Errorf("Service.SetUserPIN() = %v, want %v", got, tt.want)
 			}
 			profile, err := s.UserProfile(ctx)
 			if err == nil {
@@ -999,6 +1063,14 @@ func TestService_SetUserPin(t *testing.T) {
 
 func TestService_RetrievePINFirebaseDocSnapshotByMSISDN(t *testing.T) {
 	service := NewService()
+	ctx := base.GetPhoneNumberAuthenticatedContext(t)
+	set, err := service.SetUserPIN(ctx, "+254703754685", "1234")
+	if !set {
+		t.Errorf("setting a pin for test user failed. It returned false")
+	}
+	if err != nil {
+		t.Errorf("setting a pin for test user failed: %v", err)
+	}
 	type args struct {
 		ctx    context.Context
 		msisdn string
@@ -1009,32 +1081,26 @@ func TestService_RetrievePINFirebaseDocSnapshotByMSISDN(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy retrive pin using msisdn",
+			name: "Happy case: retreive a pin dsnap that exists",
 			args: args{
-				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				ctx:    ctx,
 				msisdn: base.TestUserPhoneNumber,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad retrive pin using msisdn",
+			name: "Sad case: retreive a pin that does not exist",
 			args: args{
-				ctx:    base.GetAuthenticatedContext(t),
+				ctx:    ctx,
 				msisdn: "ain't no such a number",
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			got, err := s.RetrievePINFirebaseDocSnapshotByMSISDN(tt.args.ctx, tt.args.msisdn)
-			if err == nil {
-				assert.NotNil(t, got)
-			}
-			if err != nil {
-				assert.Nil(t, got)
-			}
+			_, err := s.RetrievePINFirebaseDocSnapshotByMSISDN(tt.args.ctx, tt.args.msisdn)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.RetrievePINFirebaseDocSnapshotByMSISDN() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1080,20 +1146,29 @@ func TestService_VerifyMSISDNandPin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			got, err := s.VerifyMSISDNandPin(tt.args.ctx, tt.args.msisdn, tt.args.pin)
+			got, err := s.VerifyMSISDNandPIN(tt.args.ctx, tt.args.msisdn, tt.args.pin)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.VerifyMSISDNandPin() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Service.VerifyMSISDNandPIN() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("Service.VerifyMSISDNandPin() = %v, want %v", got, tt.want)
+				t.Errorf("Service.VerifyMSISDNandPIN() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestService_CheckUserWithMsisdn(t *testing.T) {
+func TestService_CheckHasPin(t *testing.T) {
 	service := NewService()
+	ctx := base.GetPhoneNumberAuthenticatedContext(t)
+	set, err := service.SetUserPIN(ctx, base.TestUserPhoneNumber, "1234")
+	if !set {
+		t.Errorf("setting a pin for test user failed. It returned false")
+	}
+	if err != nil {
+		t.Errorf("setting a pin for test user failed: %v", err)
+	}
+
 	type args struct {
 		ctx    context.Context
 		msisdn string
@@ -1105,34 +1180,43 @@ func TestService_CheckUserWithMsisdn(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "happy case",
+			name: "happy case: the user has a pin",
 			args: args{
-				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
+				ctx:    ctx,
 				msisdn: base.TestUserPhoneNumber,
 			},
 			want:    true,
 			wantErr: false,
 		},
 		{
-			name: "sad case",
+			name: "sad case: data with a bad phone number",
 			args: args{
-				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: "haiexist",
+				ctx:    ctx,
+				msisdn: "not a valid phone number",
 			},
 			want:    false,
 			wantErr: true,
+		},
+		{
+			name: "sad case: the user does not have a pin",
+			args: args{
+				ctx:    context.Background(),
+				msisdn: "+254712345678",
+			},
+			want:    false,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			got, err := s.CheckUserWithMsisdn(tt.args.ctx, tt.args.msisdn)
+			got, err := s.CheckHasPIN(tt.args.ctx, tt.args.msisdn)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.CheckUserWithMsisdn() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Service.CheckHasPIN() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("Service.CheckUserWithMsisdn() = %v, want %v", got, tt.want)
+				t.Errorf("Service.CheckHasPIN() = %v, want %v", got, tt.want)
 			}
 		})
 	}

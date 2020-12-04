@@ -87,13 +87,13 @@ func (r *mutationResolver) RejectPractitionerSignup(ctx context.Context, practit
 func (r *mutationResolver) SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.SetUserPin(ctx, msisdn, pin)
+	return r.profileService.SetUserPIN(ctx, msisdn, pin)
 }
 
 func (r *mutationResolver) UpdateUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.UpdateUserPin(ctx, msisdn, pin, otp)
+	return r.profileService.UpdateUserPIN(ctx, msisdn, pin, otp)
 }
 
 func (r *mutationResolver) SetLanguagePreference(ctx context.Context, language base.Language) (bool, error) {
@@ -202,19 +202,19 @@ func (r *queryResolver) IsUnderAge(ctx context.Context) (bool, error) {
 func (r *queryResolver) VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.VerifyMSISDNandPin(ctx, msisdn, pin)
+	return r.profileService.VerifyMSISDNandPIN(ctx, msisdn, pin)
 }
 
 func (r *queryResolver) RequestPinReset(ctx context.Context, msisdn string) (string, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.RequestPinReset(ctx, msisdn)
+	return r.profileService.RequestPINReset(ctx, msisdn)
 }
 
 func (r *queryResolver) CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.CheckUserWithMsisdn(ctx, msisdn)
+	return r.profileService.CheckHasPIN(ctx, msisdn)
 }
 
 func (r *queryResolver) GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error) {
