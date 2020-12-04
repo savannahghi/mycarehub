@@ -269,8 +269,11 @@ func SaveMemberCoverToFirestoreHandler(ctx context.Context, srv *profile.Service
 			return
 		}
 
-		base.RespondWithJSON(rw, http.StatusOK, []byte{})
+		type ResponsePayload struct {
+			SuccessfulySaved bool `json:"successfullySaved"`
+		}
 
+		base.WriteJSONResponse(rw, ResponsePayload{SuccessfulySaved: true}, http.StatusOK)
 	}
 }
 

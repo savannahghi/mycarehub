@@ -102,3 +102,152 @@ returns a response with json
         IsUnderAge bool `json:"isUnderAge"`
     }
 ```
+
+### `customer`
+
+requestPayload
+
+```json
+    {
+        "uid": string,
+        "token": auth.Token // firebase token
+    }
+```
+
+`profileClient.MakeRequest("internal/customer", "POST", requestPayload)`  
+responsePayload
+
+```json
+    {
+        "customer_id": string,
+        "receivables_account": {
+            "id": string,
+            "name": string,
+            "is_active": bool,
+            "number": string,
+            "tag": string,
+            "description" string
+        },
+        "profile": {
+            "uid": string,
+            "msisdns": [string],
+            "emails": [emails],
+            "gender": "male|female|other|unknown",
+            "pushTokens": [string],
+            "name": string,
+            "bio": string
+        },
+        "customer_kyc": {
+            "kra_pin": string,
+            "occupation": string,
+            "id_number": string,
+            "address": string,
+            "city": string,
+            "beneficiary": [
+                {
+                    "name": string,
+                    "msisdns": [string],
+                    "emails": [string],
+                    "relationship": "SPOUSE|CHILD",
+                    "dateOfBirth": {
+                        "Year": int,
+                        "Month": int,
+                        "Day": int
+                    }
+                }
+            ]
+        }
+    }
+```
+
+### `/supplier`
+
+requestPayload
+
+```json
+    {
+        "uid": string,
+        "token": auth.Token // firebase token
+    }
+```
+
+responsePayload
+
+```json
+    {
+        "supplier_id": string,
+        "payables_account": {
+            "id": string,
+            "name": string,
+            "is_active": bool,
+            "number": string,
+            "tag": string,
+            "description": string
+        },
+        "profile": {
+            "uid": string,
+            "msisdns": [string],
+            "emails": [emails],
+            "gender": "male|female|other|unknown",
+            "pushTokens": [string],
+            "name": string,
+            "bio": string
+        }
+    }
+```
+
+### `/contactdetails/{attribute}/`
+
+`profileClient.MakeRequest("internal/contactdetails/112", "POST", requestPayload)`
+
+requestPayload is
+
+```json
+    {
+        "uids": [string]
+    }
+```
+
+responsePayload is `map[string][]string`
+
+```json
+    {
+
+    }
+```
+
+### `/retrieve_user_profile_firebase_doc`
+
+requestPayload
+
+```json
+    {
+        "uid": string,
+        "token": auth.Token // firebase token
+    }
+```
+
+requestResponse `firestore.DocumentSnapshot`
+
+### `/save_cover`
+
+requestPayload
+
+```json
+    {
+        "payerName": string,
+        "memberName": string,
+        "memberNumber": string,
+        "payerSladeCode": int,
+        "uid": string,
+        "token": auth.Token
+    }
+```
+
+responsePayload
+
+```json
+    {
+        "successfullySaved": bool
+    }
+```
