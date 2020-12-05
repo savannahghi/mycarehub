@@ -330,6 +330,13 @@ type BusinessPartnerUID struct {
 	Token *auth.Token `json:"token"`
 }
 
+// SendRetryOTP is an input struct for generating and
+// sending fallback otp
+type SendRetryOTP struct {
+	Msisdn    string `json:"msisdn"`
+	RetryStep int    `json:"retryStep"`
+}
+
 // CustomerResponse returns customer accounts for interservice communication
 type CustomerResponse struct {
 	CustomerID         string             `json:"customer_id"`

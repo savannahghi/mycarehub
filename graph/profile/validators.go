@@ -91,3 +91,15 @@ func ValidateUserProfileUIDs(w http.ResponseWriter, r *http.Request) (*UserUIDs,
 	}
 	return uids, nil
 }
+
+// ValidateSendRetryOTPPayload checks the validity of the request payload
+func ValidateSendRetryOTPPayload(w http.ResponseWriter, r *http.Request) (*SendRetryOTP, error) {
+	payload := &SendRetryOTP{}
+	base.DecodeJSONToTargetStruct(w, r, payload)
+	if payload.Msisdn == "" || payload.RetryStep == 0 {
+		err := fmt.Errorf("invalid generate generates and fallback otp payload")
+		base.ReportErr(w, err, http.StatusBadRequest)
+		return nil, err
+	}
+	return payload, nil
+}

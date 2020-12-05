@@ -44,8 +44,9 @@ const (
 )
 
 const (
-	sendEmail = "internal/send_email"
-	sendOTP   = "internal/send_otp/"
+	sendEmail    = "internal/send_email"
+	sendOTP      = "internal/send_otp/"
+	sendRetryOTP = "internal/send_retry_otp/"
 )
 
 // NewService returns a new authentication service
@@ -1190,6 +1191,36 @@ func (s Service) CheckHasPIN(ctx context.Context, msisdn string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// SendRetryOTP generates fallback OTPs when Africa is talking sms fails
+func (s Service) SendRetryOTP(ctx context.Context, msisdn string, retryStep int) (string, error) {
+	s.checkPreconditions()
+
+	phoneNumber, err := base.NormalizeMSISDN(msisdn)
+	if err != nil {
+		return "", fmt.Errorf("unable to normalize the msisdn: %v", err)
+	}
+
+	body := map[string]interface{}{
+		"msisdn":    phoneNumber,
+		"retryStep": retryStep,
+	}
+	resp, err := s.otp.MakeRequest(http.MethodPost, sendRetryOTP, body)
+	if err != nil {
+		return "", fmt.Errorf("unable to generate and send fallback otp: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unable to generate and send fallback otp, with status code %v", resp.StatusCode)
+	}
+
+	code, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("unable to convert response to string: %v", err)
+	}
+
+	return string(code), nil
 }
 
 // RequestPINReset given an existing user's phone number, sends an otp to the phone number

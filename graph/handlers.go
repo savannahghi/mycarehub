@@ -55,6 +55,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost, http.MethodOptions).HandlerFunc(RequestPINResetFunc(ctx))
 	r.Path("/update_pin").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(UpdatePinHandler(ctx))
+	r.Path("/send_retry_otp").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(SendRetryOTPHandler(ctx))
 
 	// check server status.
 	r.Path("/health").HandlerFunc(base.HealthStatusCheck)
@@ -340,6 +342,31 @@ func UserProfileHandler(ctx context.Context, srv *profile.Service) http.HandlerF
 		}
 
 		base.WriteJSONResponse(rw, userProfile, http.StatusOK)
+
+	}
+}
+
+// SendRetryOTPHandler generates fallback OTPs when Africa is talking sms fails
+func SendRetryOTPHandler(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s := profile.NewService()
+		payload, validateErr := profile.ValidateSendRetryOTPPayload(w, r)
+		if validateErr != nil {
+			base.ReportErr(w, validateErr, http.StatusBadRequest)
+			return
+		}
+
+		_, updateErr := s.SendRetryOTP(ctx, payload.Msisdn, payload.RetryStep)
+		if updateErr != nil {
+			base.ReportErr(w, updateErr, http.StatusBadRequest)
+			return
+		}
+
+		type okResp struct {
+			Status string `json:"status"`
+		}
+
+		base.WriteJSONResponse(w, okResp{Status: "ok"}, http.StatusOK)
 
 	}
 }
