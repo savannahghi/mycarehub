@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/firestore"
+	"firebase.google.com/go/auth"
 	"github.com/asaskevich/govalidator"
 	"gitlab.slade360emr.com/go/base"
 )
@@ -102,4 +103,25 @@ func ValidateSendRetryOTPPayload(w http.ResponseWriter, r *http.Request) (*SendR
 		return nil, err
 	}
 	return payload, nil
+}
+
+// ValidateTokenPayload checks that token in payload is valid
+func ValidateTokenPayload(w http.ResponseWriter, r *http.Request) (*auth.Token, error) {
+	userToken := &UserAuthToken{}
+
+	base.DecodeJSONToTargetStruct(w, r, userToken)
+
+	if userToken == nil {
+		err := fmt.Errorf("empty token in payload")
+		base.RespondWithError(w, http.StatusBadRequest, err)
+		return nil, err
+	}
+
+	authToken, err := base.ValidateBearerToken(context.Background(), userToken.Token)
+	if err != nil {
+		base.RespondWithError(w, http.StatusBadRequest, err)
+		return nil, err
+	}
+
+	return authToken, nil
 }

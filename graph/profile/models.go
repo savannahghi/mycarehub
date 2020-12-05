@@ -371,6 +371,11 @@ type UserUIDs struct {
 	UIDs []string `json:"uids"`
 }
 
+// UserAuthToken contains a string of a firebase auth token
+type UserAuthToken struct {
+	Token string `json:"token"`
+}
+
 // SupplierKYC stores details about a supplier's KYC
 type SupplierKYC struct {
 	AccountType                       AccountType            `json:"accountType"`

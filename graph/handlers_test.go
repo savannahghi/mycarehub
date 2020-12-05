@@ -972,11 +972,11 @@ func TestSaveMemberCoverToFirestoreHandler(t *testing.T) {
 
 func TestIsUnderAgeHandler(t *testing.T) {
 
-	ctx := base.GetAuthenticatedContext(t)
+	ctx, tokenString := base.GetAuthenticatedContextAndBearerToken(t)
 	assert.NotNil(t, ctx, "context should not be nil")
 
-	aut := ctx.Value(base.AuthTokenContextKey).(*auth.Token)
-	assert.NotNil(t, aut, "auth should not be nil")
+	authToken, _ := base.ValidateBearerToken(ctx, tokenString)
+	assert.NotNil(t, authToken, "authToken should not be nil")
 
 	srv := profile.NewService()
 	assert.NotNil(t, srv, "service is nil")
@@ -1019,13 +1019,10 @@ func TestIsUnderAgeHandler(t *testing.T) {
 
 	handler := graph.IsUnderAgeHandler(ctx, srv)
 
-	type UserContext struct {
-		Token *auth.Token `json:"token"`
+	type args struct {
+		Token string `json:"token"`
 	}
 
-	type args struct {
-		userContext UserContext
-	}
 	tests := []struct {
 		name string
 		args args
@@ -1035,20 +1032,17 @@ func TestIsUnderAgeHandler(t *testing.T) {
 		{
 			name: "Valid case",
 			args: args{
-				UserContext{
-					Token: aut,
-				},
+
+				Token: tokenString,
 			},
 			rw:   httptest.NewRecorder(),
 			want: http.StatusOK,
 		},
-
 		{
 			name: "invalid case",
 			args: args{
-				UserContext{
-					Token: nil,
-				},
+
+				Token: "",
 			},
 			rw:   httptest.NewRecorder(),
 			want: http.StatusBadRequest,
@@ -1056,7 +1050,7 @@ func TestIsUnderAgeHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			payloadJson, err := json.Marshal(tt.args.userContext)
+			payloadJson, err := json.Marshal(tt.args)
 			assert.Nil(t, err, "failed to marshal payload")
 			assert.NotNil(t, payloadJson, "payload is nil")
 
@@ -1077,10 +1071,10 @@ func TestIsUnderAgeHandler(t *testing.T) {
 }
 
 func TestUserProfileHandler(t *testing.T) {
-	ctx := base.GetAuthenticatedContext(t)
+	ctx, tokenString := base.GetAuthenticatedContextAndBearerToken(t)
 	assert.NotNil(t, ctx, "context should not be nil")
 
-	authToken := ctx.Value(base.AuthTokenContextKey).(*auth.Token)
+	authToken, _ := base.ValidateBearerToken(ctx, tokenString)
 	assert.NotNil(t, authToken, "authToken should not be nil")
 
 	srv := profile.NewService()
@@ -1088,13 +1082,10 @@ func TestUserProfileHandler(t *testing.T) {
 
 	handler := graph.UserProfileHandler(ctx, srv)
 
-	type UserContext struct {
-		Token *auth.Token `json:"token"`
+	type args struct {
+		Token string `json:"token"`
 	}
 
-	type args struct {
-		userContext UserContext
-	}
 	tests := []struct {
 		name string
 		args args
@@ -1104,9 +1095,7 @@ func TestUserProfileHandler(t *testing.T) {
 		{
 			name: "valid case",
 			args: args{
-				userContext: UserContext{
-					Token: authToken,
-				},
+				Token: tokenString,
 			},
 			rw:   httptest.NewRecorder(),
 			want: http.StatusOK,
@@ -1114,9 +1103,7 @@ func TestUserProfileHandler(t *testing.T) {
 		{
 			name: "invalid case",
 			args: args{
-				userContext: UserContext{
-					Token: nil,
-				},
+				Token: "",
 			},
 			want: http.StatusBadRequest,
 			rw:   httptest.NewRecorder(),
@@ -1124,7 +1111,7 @@ func TestUserProfileHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			payloadJson, err := json.Marshal(tt.args.userContext)
+			payloadJson, err := json.Marshal(tt.args)
 			assert.Nil(t, err, "failed to marshal payload")
 			assert.NotNil(t, payloadJson, "payload is nil")
 
