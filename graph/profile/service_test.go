@@ -1640,8 +1640,24 @@ func createNewUser(ctx context.Context, t *testing.T) (context.Context, *auth.To
 func TestService_GetOrCreateUserProfile(t *testing.T) {
 	service := NewService()
 	ctx := context.Background()
-	newCtx, _ := createNewUser(ctx, t)
-	emailCtx, _ := base.GetAuthenticatedContextAndToken(t)
+	newCtx, newToken := createNewUser(ctx, t)
+	if newToken == nil {
+		t.Errorf("unable to create new user token")
+		return
+	}
+	if newCtx == nil {
+		t.Errorf("unable to create new user context")
+		return
+	}
+	emailCtx, emailToken := base.GetAuthenticatedContextAndToken(t)
+	if emailToken == nil {
+		t.Errorf("unable to create new email token")
+		return
+	}
+	if emailCtx == nil {
+		t.Errorf("unable to create new email context")
+		return
+	}
 
 	type args struct {
 		ctx   context.Context
@@ -1676,6 +1692,14 @@ func TestService_GetOrCreateUserProfile(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Bad Case: bad phone nnumber",
+			args: args{
+				ctx:   ctx,
+				phone: "not a valid phone number",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1683,6 +1707,50 @@ func TestService_GetOrCreateUserProfile(t *testing.T) {
 			_, err := s.GetOrCreateUserProfile(tt.args.ctx, tt.args.phone)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.GetOrCreateUserProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestService_FindProfile(t *testing.T) {
+	service := NewService()
+	ctx := context.Background()
+	emailCtx := base.GetAuthenticatedContext(t)
+	if emailCtx == nil {
+		t.Errorf("unable to create email user context")
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "sad case: the document does not exist",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+		{
+			name: "happy case: the document does exist",
+			args: args{
+				ctx: emailCtx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			_, err := s.FindProfile(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.FindProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

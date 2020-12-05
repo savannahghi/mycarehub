@@ -169,6 +169,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		CheckUserWithMsisdn              func(childComplexity int, msisdn string) int
+		FindProfile                      func(childComplexity int) int
 		GetKMPDURegisteredPractitioner   func(childComplexity int, regno string) int
 		GetOrCreateUserProfile           func(childComplexity int, phone string) int
 		GetProfile                       func(childComplexity int, uid string) int
@@ -304,6 +305,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*profile.UserProfile, error)
 	GetOrCreateUserProfile(ctx context.Context, phone string) (*profile.UserProfile, error)
+	FindProfile(ctx context.Context) (*profile.UserProfile, error)
 	HealthcashBalance(ctx context.Context) (*base.Decimal, error)
 	GetProfile(ctx context.Context, uid string) (*profile.UserProfile, error)
 	ListTesters(ctx context.Context) ([]string, error)
@@ -1014,6 +1016,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.CheckUserWithMsisdn(childComplexity, args["msisdn"].(string)), true
+
+	case "Query.findProfile":
+		if e.complexity.Query.FindProfile == nil {
+			break
+		}
+
+		return e.complexity.Query.FindProfile(childComplexity), true
 
 	case "Query.getKMPDURegisteredPractitioner":
 		if e.complexity.Query.GetKMPDURegisteredPractitioner == nil {
@@ -1906,6 +1915,7 @@ input SupplierKYCInput {
 	{Name: "graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
   getOrCreateUserProfile(phone: String!): UserProfile!
+  findProfile: UserProfile!
   healthcashBalance: Decimal!
   getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
@@ -5743,6 +5753,41 @@ func (ec *executionContext) _Query_getOrCreateUserProfile(ctx context.Context, f
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().GetOrCreateUserProfile(rctx, args["phone"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.UserProfile)
+	fc.Result = res
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindProfile(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10868,6 +10913,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getOrCreateUserProfile(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "findProfile":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findProfile(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

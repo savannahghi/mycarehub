@@ -382,11 +382,16 @@ func (s Service) UserProfile(ctx context.Context) (*UserProfile, error) {
 func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*UserProfile, error) {
 	s.checkPreconditions()
 
+	phoneNumber, err := base.NormalizeMSISDN(phone)
+	if err != nil {
+		return nil, fmt.Errorf("unable to normalize the msisdn: %v", err)
+	}
+
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	dsnap, err := s.RetrieveOrCreateUserProfileFirebaseDocSnapshot(ctx, uid, phone)
+	dsnap, err := s.RetrieveOrCreateUserProfileFirebaseDocSnapshot(ctx, uid, phoneNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -407,6 +412,7 @@ func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*Use
 	if err != nil {
 		return nil, fmt.Errorf("unable to update user profile: %v", err)
 	}
+
 	return userProfile, nil
 }
 
@@ -423,6 +429,37 @@ func (s Service) GetProfile(ctx context.Context, uid string) (*UserProfile, erro
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
 	userProfile.IsTester = isTester(ctx, userProfile.Emails)
+	return userProfile, nil
+}
+
+// FindProfile returns a user profile if it exists and returns a nil if the
+// profile does not exist instead of creating a new default profile
+// This purely handles the issue of backwards compatibility and should be depreciated
+// once the side effects are handled.
+func (s Service) FindProfile(ctx context.Context) (*UserProfile, error) {
+	s.checkPreconditions()
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
+	}
+
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
+		ctx, uid, s.GetUserProfileCollectionName(), "uids")
+	if err != nil {
+		return nil, fmt.Errorf("unable to get a profile dsnap for this user: %v", err)
+	}
+
+	if dsnap == nil {
+		return nil, fmt.Errorf("the user's profile has not been found")
+	}
+
+	userProfile := &UserProfile{}
+	err = dsnap.DataTo(userProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+
 	return userProfile, nil
 }
 

@@ -162,6 +162,12 @@ func (r *queryResolver) GetOrCreateUserProfile(ctx context.Context, phone string
 	return r.profileService.GetOrCreateUserProfile(ctx, phone)
 }
 
+func (r *queryResolver) FindProfile(ctx context.Context) (*profile.UserProfile, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.FindProfile(ctx)
+}
+
 func (r *queryResolver) HealthcashBalance(ctx context.Context) (*base.Decimal, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
