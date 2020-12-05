@@ -6,24 +6,14 @@ package graph
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph/generated"
 	"gitlab.slade360emr.com/go/profile/graph/profile"
 )
 
-func (r *entityResolver) FindCoverByPayerName(ctx context.Context, payerName string) (*profile.Cover, error) {
-	// Todo! (dexter) implement this
-	return nil, nil
-}
-
-func (r *entityResolver) FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*base.PageInfo, error) {
-	// Todo! (Mathenge) implement this
-	return nil, nil
-}
-
 func (r *entityResolver) FindUserProfileByID(ctx context.Context, id string) (*profile.UserProfile, error) {
-	// Todo! (Mashaa) implement this
-	return nil, nil
+	r.CheckDependencies()
+	r.CheckUserTokenInContext(ctx)
+	return r.profileService.GetProfileByID(ctx, id)
 }
 
 // Entity returns generated.EntityResolver implementation.

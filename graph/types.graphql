@@ -1,3 +1,8 @@
+scalar Date
+scalar Markdown
+scalar Any
+scalar Decimal
+
 type Practitioner {
   profile: UserProfile!
   license: String!
@@ -39,10 +44,7 @@ type KMPDUPractitionerConnection {
   pageInfo: PageInfo!
 }
 
-type Cover
-  @key(fields: "payerName")
-  @key(fields: "payerSladeCode")
-  @key(fields: "memberNumber") {
+type Cover {
   payerName: String!
   payerSladeCode: Int!
   memberNumber: String!

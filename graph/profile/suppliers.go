@@ -13,7 +13,7 @@ import (
 const (
 	supplierAPIPath        = "/api/business_partners/suppliers/"
 	supplierCollectionName = "suppliers"
-	supplierType           = "PHARMACEUTICAL" // TODO
+	supplierType           = "PHARMACEUTICAL" // TODO Use correct supplier type
 	isSupplier             = true
 )
 

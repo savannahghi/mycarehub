@@ -222,24 +222,19 @@ func (s Service) SaveSignUpInfoToFirestore(info SignUpInfo) error {
 // specified user
 func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 	ctx context.Context,
-	uid string,
+	uids []string,
 ) (*firestore.DocumentSnapshot, error) {
 
 	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
-	// the ordering is necessary in order to provide a stable sort order
-	query := collection.Where("verifiedIdentifiers", "array-contains", uid)
+	query := collection.Where("verifiedIdentifiers", "array-contains-any", uids)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}
-	if len(docs) > 1 {
-		if base.IsDebug() {
-			log.Printf("user %s has > 1 profile (they have %d)", uid, len(docs))
-		}
+	if len(docs) > 1 && base.IsDebug() {
+		log.Printf("user with uids %s has > 1 profile (they have %d)", uids, len(docs))
 	}
-	var uids []string
 	if len(docs) == 0 {
-		uids = append(uids, uid)
 		newProfile := &UserProfile{
 			ID:                  uuid.New().String(),
 			VerifiedIdentifiers: uids,
@@ -262,9 +257,46 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 	return dsnap, nil
 }
 
+// RetrieveUserProfileFirebaseDocSnapshotByID retrieves a user profile by ID
+func (s Service) RetrieveUserProfileFirebaseDocSnapshotByID(
+	ctx context.Context,
+	id string,
+) (*firestore.DocumentSnapshot, error) {
+	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
+	query := collection.Where("id", "==", id)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) > 1 && base.IsDebug() {
+		log.Printf("> 1 profile with id %s (count: %d)", id, len(docs))
+	}
+	if len(docs) == 0 {
+		newProfile := &UserProfile{
+			ID:                  uuid.New().String(),
+			VerifiedIdentifiers: []string{},
+			IsApproved:          false,
+			TermsAccepted:       false,
+			CanExperiment:       false,
+		}
+		docID, err := base.SaveDataToFirestore(
+			s.firestoreClient, s.GetUserProfileCollectionName(), newProfile)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create new user profile: %w", err)
+		}
+		dsnap, err := collection.Doc(docID).Get(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve newly created user profile: %w", err)
+		}
+		return dsnap, nil
+	}
+	dsnap := docs[0]
+	return dsnap, nil
+}
+
 // RetrieveOrCreateUserProfileFirebaseDocSnapshot retrieves the user profile of a
 // specified user using either their uid or phone number.
-// If the user perofile does not exist then a new one is created
+// If the user profile does not exist then a new one is created
 func (s Service) RetrieveOrCreateUserProfileFirebaseDocSnapshot(
 	ctx context.Context,
 	uid string,
@@ -338,7 +370,9 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshot(
 	if err != nil {
 		return nil, err
 	}
-	return s.RetrieveUserProfileFirebaseDocSnapshotByUID(ctx, uid)
+
+	uids := []string{uid}
+	return s.RetrieveUserProfileFirebaseDocSnapshotByUID(ctx, uids)
 }
 
 // RetrieveFireStoreSnapshotByUID retrieves a specified Firestore document snapshot by its UID
@@ -423,7 +457,25 @@ func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*Use
 // GetProfile returns the profile of the user with the supplied uid
 func (s Service) GetProfile(ctx context.Context, uid string) (*UserProfile, error) {
 	s.checkPreconditions()
-	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshotByUID(ctx, uid)
+	uids := []string{uid}
+	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshotByUID(ctx, uids)
+	if err != nil {
+		return nil, err
+	}
+	userProfile := &UserProfile{}
+	err = dsnap.DataTo(userProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+	userProfile.IsTester = isTester(ctx, userProfile.Emails)
+	return userProfile, nil
+}
+
+// GetProfileByID returns the profile identified by the indicated ID
+func (s Service) GetProfileByID(ctx context.Context, id string) (*UserProfile, error) {
+	s.checkPreconditions()
+
+	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshotByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}

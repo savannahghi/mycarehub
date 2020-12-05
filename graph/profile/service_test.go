@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"os"
 	"reflect"
@@ -17,6 +16,8 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/segmentio/ksuid"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 	"google.golang.org/api/iterator"
@@ -1753,6 +1754,78 @@ func TestService_FindProfile(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.FindProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestService_GetProfileByID(t *testing.T) {
+	s := NewService()
+	if s == nil {
+		t.Errorf("nil profile service, can't proceed with tests")
+		return
+	}
+
+	authenticatedContext := base.GetAuthenticatedContext(t)
+	if authenticatedContext == nil {
+		t.Errorf("can't initialize authenticated context for testing")
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantNil bool
+		wantErr bool
+	}{
+		{
+			name: "authenticated context",
+			args: args{
+				ctx: authenticatedContext,
+				id:  ksuid.New().String(),
+			},
+			wantNil: false,
+			wantErr: false,
+		},
+		{
+			name: "unauthenticated context",
+			args: args{
+				ctx: context.Background(),
+				id:  ksuid.New().String(),
+			},
+			wantNil: false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			profile, err := s.GetProfileByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.GetProfileByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantNil && profile == nil {
+				t.Errorf("got a nil profile, did not expect one")
+				return
+			}
+			if !tt.wantNil && !tt.wantErr && profile != nil {
+				profileID := profile.ID
+
+				// fetch again with the same profile ID
+				refetchedProfile, err := s.GetProfileByID(tt.args.ctx, profileID)
+				if err != nil {
+					t.Errorf("unable to re-fetch newly created profile by ID: %v", err)
+					return
+				}
+
+				if refetchedProfile == nil {
+					t.Errorf("newly created profile is nil when re-fetched")
+					return
+				}
 			}
 		})
 	}

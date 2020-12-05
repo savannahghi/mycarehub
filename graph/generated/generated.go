@@ -79,9 +79,7 @@ type ComplexityRoot struct {
 	}
 
 	Entity struct {
-		FindCoverByPayerName      func(childComplexity int, payerName string) int
-		FindPageInfoByHasNextPage func(childComplexity int, hasNextPage bool) int
-		FindUserProfileByID       func(childComplexity int, id string) int
+		FindUserProfileByID func(childComplexity int, id string) int
 	}
 
 	KMPDUPractitioner struct {
@@ -274,8 +272,6 @@ type ComplexityRoot struct {
 }
 
 type EntityResolver interface {
-	FindCoverByPayerName(ctx context.Context, payerName string) (*profile.Cover, error)
-	FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*base.PageInfo, error)
 	FindUserProfileByID(ctx context.Context, id string) (*profile.UserProfile, error)
 }
 type MutationResolver interface {
@@ -467,30 +463,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CustomerKyc.Occupation(childComplexity), true
-
-	case "Entity.findCoverByPayerName":
-		if e.complexity.Entity.FindCoverByPayerName == nil {
-			break
-		}
-
-		args, err := ec.field_Entity_findCoverByPayerName_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Entity.FindCoverByPayerName(childComplexity, args["payerName"].(string)), true
-
-	case "Entity.findPageInfoByHasNextPage":
-		if e.complexity.Entity.FindPageInfoByHasNextPage == nil {
-			break
-		}
-
-		args, err := ec.field_Entity_findPageInfoByHasNextPage_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Entity.FindPageInfoByHasNextPage(childComplexity, args["hasNextPage"].(bool)), true
 
 	case "Entity.findUserProfileByID":
 		if e.complexity.Entity.FindUserProfileByID == nil {
@@ -1698,27 +1670,7 @@ enum IdentificationDocType {
   PASSPORT
   MILITARY
 }`, BuiltIn: false},
-	{Name: "graph/external.graphql", Input: `scalar Map
-scalar Any
-scalar Time
-scalar Date
-scalar Markdown
-scalar Decimal
-scalar URL
-scalar ResourceList
-scalar Base64Binary
-scalar Canonical
-scalar Code
-scalar DateTime
-scalar Instant
-scalar Integer
-scalar OID
-scalar PositiveInt
-scalar UnsignedInt
-scalar URI
-scalar UUID
-scalar XHTMLal
-
+	{Name: "graph/external.graphql", Input: `
 # supported content types
 enum ContentType {
   PNG
@@ -1771,8 +1723,7 @@ enum PractitionerSpecialty {
   UROLOGY
 }
 
-# Relay spec page info
-type PageInfo @key(fields: "hasNextPage") @key(fields: "hasPreviousPage") {
+type PageInfo {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   startCursor: String
@@ -1828,12 +1779,6 @@ enum Operation {
   GREATER_THAN_OR_EQUAL_TO
   IN
   CONTAINS
-}
-
-# Node is needed by the Relay spec
-# This server attempts to be Relay spec compliant
-interface Node {
-  id: ID!
 }
 `, BuiltIn: false},
 	{Name: "graph/inputs.graphql", Input: `input PractitionerSignupInput {
@@ -1970,7 +1915,12 @@ extend type Mutation {
   addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
 }
 `, BuiltIn: false},
-	{Name: "graph/types.graphql", Input: `type Practitioner {
+	{Name: "graph/types.graphql", Input: `scalar Date
+scalar Markdown
+scalar Any
+scalar Decimal
+
+type Practitioner {
   profile: UserProfile!
   license: String!
   cadre: PractitionerCadre!
@@ -2011,10 +1961,7 @@ type KMPDUPractitionerConnection {
   pageInfo: PageInfo!
 }
 
-type Cover
-  @key(fields: "payerName")
-  @key(fields: "payerSladeCode")
-  @key(fields: "memberNumber") {
+type Cover {
   payerName: String!
   payerSladeCode: Int!
   memberNumber: String!
@@ -2153,13 +2100,11 @@ directive @extends on OBJECT
 `, BuiltIn: true},
 	{Name: "federation/entity.graphql", Input: `
 # a union of all types that use the @key directive
-union _Entity = Cover | PageInfo | UserProfile
+union _Entity = UserProfile
 
 # fake type to build resolver interfaces for users to implement
 type Entity {
-		findCoverByPayerName(payerName: String!,): Cover!
-	findPageInfoByHasNextPage(hasNextPage: Boolean!,): PageInfo!
-	findUserProfileByID(id: String!,): UserProfile!
+		findUserProfileByID(id: String!,): UserProfile!
 
 }
 
@@ -2178,36 +2123,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) field_Entity_findCoverByPayerName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["payerName"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payerName"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["payerName"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Entity_findPageInfoByHasNextPage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 bool
-	if tmp, ok := rawArgs["hasNextPage"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasNextPage"))
-		arg0, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["hasNextPage"] = arg0
-	return args, nil
-}
 
 func (ec *executionContext) field_Entity_findUserProfileByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -3483,90 +3398,6 @@ func (ec *executionContext) _CustomerKYC_beneficiary(ctx context.Context, field 
 	res := resTmp.([]*profile.Beneficiary)
 	fc.Result = res
 	return ec.marshalOBeneficiary2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBeneficiaryᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Entity_findCoverByPayerName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Entity",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Entity_findCoverByPayerName_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Entity().FindCoverByPayerName(rctx, args["payerName"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*profile.Cover)
-	fc.Result = res
-	return ec.marshalNCover2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCover(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Entity_findPageInfoByHasNextPage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Entity",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Entity_findPageInfoByHasNextPage_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Entity().FindPageInfoByHasNextPage(rctx, args["hasNextPage"].(bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*base.PageInfo)
-	fc.Result = res
-	return ec.marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Entity_findUserProfileByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10176,33 +10007,10 @@ func (ec *executionContext) unmarshalInputUserProfilePhone(ctx context.Context, 
 
 // region    ************************** interface.gotpl ***************************
 
-func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj base.Node) graphql.Marshaler {
-	switch obj := (obj).(type) {
-	case nil:
-		return graphql.Null
-	default:
-		panic(fmt.Errorf("unexpected type %T", obj))
-	}
-}
-
 func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, obj fedruntime.Entity) graphql.Marshaler {
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case profile.Cover:
-		return ec._Cover(ctx, sel, &obj)
-	case *profile.Cover:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._Cover(ctx, sel, obj)
-	case base.PageInfo:
-		return ec._PageInfo(ctx, sel, &obj)
-	case *base.PageInfo:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._PageInfo(ctx, sel, obj)
 	case profile.UserProfile:
 		return ec._UserProfile(ctx, sel, &obj)
 	case *profile.UserProfile:
@@ -10260,7 +10068,7 @@ func (ec *executionContext) _Beneficiary(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var coverImplementors = []string{"Cover", "_Entity"}
+var coverImplementors = []string{"Cover"}
 
 func (ec *executionContext) _Cover(ctx context.Context, sel ast.SelectionSet, obj *profile.Cover) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, coverImplementors)
@@ -10408,34 +10216,6 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Entity")
-		case "findCoverByPayerName":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Entity_findCoverByPayerName(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "findPageInfoByHasNextPage":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Entity_findPageInfoByHasNextPage(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "findUserProfileByID":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -10719,7 +10499,7 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
-var pageInfoImplementors = []string{"PageInfo", "_Entity"}
+var pageInfoImplementors = []string{"PageInfo"}
 
 func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *base.PageInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, pageInfoImplementors)
@@ -11948,16 +11728,6 @@ func (ec *executionContext) marshalNCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋp
 	return ret
 }
 
-func (ec *executionContext) marshalNCover2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCover(ctx context.Context, sel ast.SelectionSet, v *profile.Cover) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Cover(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNCustomer2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomer(ctx context.Context, sel ast.SelectionSet, v profile.Customer) graphql.Marshaler {
 	return ec._Customer(ctx, sel, &v)
 }
@@ -12133,10 +11903,6 @@ func (ec *executionContext) unmarshalNOperation2gitlabᚗslade360emrᚗcomᚋgo�
 
 func (ec *executionContext) marshalNOperation2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐOperation(ctx context.Context, sel ast.SelectionSet, v base.Operation) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) marshalNPageInfo2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v base.PageInfo) graphql.Marshaler {
-	return ec._PageInfo(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *base.PageInfo) graphql.Marshaler {
