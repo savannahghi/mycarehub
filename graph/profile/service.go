@@ -438,19 +438,18 @@ func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*Use
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
-	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 
 	if !base.StringSliceContains(userProfile.VerifiedIdentifiers, uid) {
 		userProfile.VerifiedIdentifiers = append(userProfile.VerifiedIdentifiers, uid)
+		err = base.UpdateRecordOnFirestore(
+			s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("unable to update user profile: %v", err)
+		}
 	}
 
-	err = base.UpdateRecordOnFirestore(
-		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update user profile: %v", err)
-	}
-
+	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 	return userProfile, nil
 }
 
