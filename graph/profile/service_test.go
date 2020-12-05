@@ -1011,12 +1011,25 @@ func TestService_SetUserPin(t *testing.T) {
 		want    bool
 		wantErr bool
 	}{
+		// expectation is creation of the new pin
 		{
 			name: "Happy case: successfully set a user pin",
 			args: args{
 				ctx:    ctx,
 				msisdn: base.TestUserPhoneNumber,
 				pin:    1234,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		// expectation is the return of the existing PIN
+		// since they have created it on the first place
+		{
+			name: "ensure PIN is only one",
+			args: args{
+				ctx:    ctx,
+				msisdn: base.TestUserPhoneNumber,
+				pin:    5645,
 			},
 			want:    true,
 			wantErr: false,

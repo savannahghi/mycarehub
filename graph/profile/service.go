@@ -1120,8 +1120,18 @@ func (s Service) SetUserPIN(ctx context.Context, msisdn string, pin int) (bool, 
 	if err != nil {
 		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
-	// TODO! check if user has PIN
-
+	// check if user has existing PIN
+	exists, err := s.CheckHasPIN(ctx, msisdn)
+	if err != nil {
+		return false, fmt.Errorf("unable to check if the user has a PIN: %v", err)
+	}
+	// return PIN for user if they already have one
+	if exists {
+		if base.IsDebug() {
+			log.Printf("user with msisdn %s has more than one PINs)", msisdn)
+		}
+		return true, nil
+	}
 	// TODO: Linking pins
 	// we link the PIN to their profile
 	// one profile should have one PIN
