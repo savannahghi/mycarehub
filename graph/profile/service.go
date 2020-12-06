@@ -1136,7 +1136,7 @@ func (s Service) GetRegisteredPractitionerByLicense(
 // TODO Separate practitioner and consumer profiles - isApproved
 // TODO practitionerTermsOfServiceAccepted
 
-// IsUnderAge checks if the user in context is underage or not
+// IsUnderAge checks if the user in context is an underage or not
 func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
 	userProfile, err := s.UserProfile(ctx)
 	if err != nil {

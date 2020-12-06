@@ -276,18 +276,28 @@ func SaveMemberCoverToFirestoreHandler(ctx context.Context, srv *profile.Service
 
 // IsUnderAgeHandler process ISC requests to IsUnderAge
 func IsUnderAgeHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		authToken, err := profile.ValidateTokenPayload(w, r)
-		if err != nil {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		type UserContext struct {
+			Token *auth.Token `json:"token"`
+		}
+		var userContext *UserContext
+		base.DecodeJSONToTargetStruct(rw, r, &userContext)
+		if userContext == nil {
+			err := fmt.Errorf("invalid credetials")
+			base.RespondWithError(rw, http.StatusBadRequest, err)
 			return
 		}
 
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+		if userContext.Token == nil {
+			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("bad token provided"))
+			return
+		}
 
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, userContext.Token)
 		isUnderAge, err := srv.IsUnderAge(newContext)
+
 		if err != nil {
-			base.RespondWithError(w, http.StatusInternalServerError, err)
+			base.RespondWithError(rw, http.StatusInternalServerError, err)
 		}
 
 		type Payload struct {
@@ -298,28 +308,40 @@ func IsUnderAgeHandler(ctx context.Context, srv *profile.Service) http.HandlerFu
 			IsUnderAge: isUnderAge,
 		}
 
-		base.WriteJSONResponse(w, payload, http.StatusOK)
+		base.WriteJSONResponse(rw, payload, http.StatusOK)
 	}
 }
 
 // UserProfileHandler process ISC request to UserProfile
 func UserProfileHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	return func(rw http.ResponseWriter, r *http.Request) {
 
-		authToken, err := profile.ValidateTokenPayload(w, r)
-		if err != nil {
+		type userContext struct {
+			Token *auth.Token `json:"token"`
+		}
+
+		profileContext := &userContext{}
+		base.DecodeJSONToTargetStruct(rw, r, profileContext)
+		if profileContext == nil {
+			err := fmt.Errorf("invalid credetials")
+			base.RespondWithError(rw, http.StatusBadRequest, err)
 			return
 		}
 
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+		if profileContext.Token == nil {
+			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("bad token provided"))
+			return
+		}
+
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, profileContext.Token)
 
 		userProfile, err := srv.UserProfile(newContext)
 		if err != nil {
-			base.RespondWithError(w, http.StatusInternalServerError, err)
+			base.RespondWithError(rw, http.StatusInternalServerError, err)
 			return
 		}
 
-		base.WriteJSONResponse(w, userProfile, http.StatusOK)
+		base.WriteJSONResponse(rw, userProfile, http.StatusOK)
 
 	}
 }
