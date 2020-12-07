@@ -112,7 +112,7 @@ func (s Service) AddCustomer(ctx context.Context, uid *string, name string) (*Cu
 	return customer, nil
 }
 
-// AddCustomerKYC persists information to know your customer
+// AddCustomerKYC persists information that is relevant to knowing our customers
 func (s Service) AddCustomerKYC(ctx context.Context, input CustomerKYCInput) (*CustomerKYC, error) {
 	s.checkPreconditions()
 
@@ -144,6 +144,12 @@ func (s Service) AddCustomerKYC(ctx context.Context, input CustomerKYCInput) (*C
 	customer.CustomerKYC.City = input.City
 
 	beneficiaries := customer.CustomerKYC.Beneficiary
+
+	var foundBeneficiariesNames []string
+	for _, b := range beneficiaries {
+		foundBeneficiariesNames = append(foundBeneficiariesNames, b.Name)
+	}
+
 	for _, beneficiary := range input.Beneficiary {
 		beneficiaryData := &Beneficiary{
 			Name:         beneficiary.Name,
@@ -152,9 +158,10 @@ func (s Service) AddCustomerKYC(ctx context.Context, input CustomerKYCInput) (*C
 			Relationship: beneficiary.Relationship,
 			DateOfBirth:  beneficiary.DateOfBirth,
 		}
-		beneficiaries = append(beneficiaries, beneficiaryData)
+		if !base.StringSliceContains(foundBeneficiariesNames, beneficiaryData.Name) {
+			beneficiaries = append(beneficiaries, beneficiaryData)
+		}
 	}
-	// TODO: If beneficiary exists then do nothing
 
 	customer.CustomerKYC.Beneficiary = beneficiaries
 
