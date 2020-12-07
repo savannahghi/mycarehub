@@ -1133,9 +1133,6 @@ func (s Service) GetRegisteredPractitionerByLicense(
 	return practitioner, nil
 }
 
-// TODO Separate practitioner and consumer profiles - isApproved
-// TODO practitionerTermsOfServiceAccepted
-
 // IsUnderAge checks if the user in context is an underage or not
 func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
 	userProfile, err := s.UserProfile(ctx)
@@ -1183,7 +1180,6 @@ func (s Service) SetUserPIN(ctx context.Context, msisdn string, pin int) (bool, 
 		}
 		return true, nil
 	}
-	// TODO: Linking pins
 	// we link the PIN to their profile
 	// one profile should have one PIN
 	PINPayload := PIN{
@@ -1545,7 +1541,6 @@ func (s Service) AddPractitionerServices(
 			if otherServices == nil {
 				return false, fmt.Errorf("specify other services after selecting Others")
 			}
-			//TODO: Pop the "others"
 			offeredServices = append(offeredServices, service)
 			otherOfferedServices = append(otherOfferedServices, otherServices.OtherServices...)
 

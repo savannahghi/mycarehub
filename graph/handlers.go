@@ -81,8 +81,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		GetProfileAttributesHandler(ctx),
 	).Name("getProfileAttributes")
 
-	isc.Path("/retrieve_user_profile_firebase_doc").Methods(
-		http.MethodPost).HandlerFunc(RetrieveUserProfileFirebaseDocSnapshotHandler(ctx, srv))
+	isc.Path("/retrieve_user_profile").Methods(
+		http.MethodPost).HandlerFunc(RetrieveUserProfileHandler(ctx, srv))
 
 	isc.Path("/save_cover").Methods(http.MethodPost).HandlerFunc(SaveMemberCoverToFirestoreHandler(ctx, srv))
 
@@ -213,32 +213,27 @@ func UpdatePinHandler(ctx context.Context) http.HandlerFunc {
 	}
 }
 
-// RetrieveUserProfileFirebaseDocSnapshotHandler process requests for ISC to RetrieveUserProfileFirebaseDocSnapshot
-func RetrieveUserProfileFirebaseDocSnapshotHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
+// RetrieveUserProfileHandler process requests for ISC to RetrieveUserProfileFirebaseDocSnapshot
+func RetrieveUserProfileHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-
-		profileUID := &profile.BusinessPartnerUID{}
-		base.DecodeJSONToTargetStruct(rw, r, profileUID)
-		if profileUID == nil {
-			err := fmt.Errorf("invalid credetials")
+		bpUID := &profile.BusinessPartnerUID{}
+		base.DecodeJSONToTargetStruct(rw, r, bpUID)
+		if bpUID == nil || bpUID.UID == "" {
+			err := fmt.Errorf("invalid credentials")
 			base.RespondWithError(rw, http.StatusBadRequest, err)
 			return
 		}
 
-		if profileUID.Token == nil {
-			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("bad token provided"))
-			return
-		}
-
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, profileUID.Token)
-		doc, err := srv.RetrieveUserProfileFirebaseDocSnapshot(newContext)
-
+		// the profile service only looks for the UID in the auth token that is in the context
+		token := &auth.Token{UID: bpUID.UID}
+		authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, token)
+		profile, err := srv.UserProfile(authenticatedContext)
 		if err != nil {
 			base.RespondWithError(rw, http.StatusBadRequest, err)
 			return
 		}
 
-		base.WriteJSONResponse(rw, doc, http.StatusOK)
+		base.WriteJSONResponse(rw, profile, http.StatusOK)
 	}
 }
 

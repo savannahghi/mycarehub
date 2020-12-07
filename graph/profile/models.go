@@ -3,7 +3,6 @@ package profile
 import (
 	"time"
 
-	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -332,8 +331,7 @@ type StatusResponse struct {
 
 // BusinessPartnerUID is the business partner uid used in requests
 type BusinessPartnerUID struct {
-	UID   *string     `json:"uid"`
-	Token *auth.Token `json:"token"`
+	UID string `json:"uid"`
 }
 
 // SendRetryOTP is an input struct for generating and

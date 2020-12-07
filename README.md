@@ -216,18 +216,17 @@ responsePayload is `map[string][]string`
     }
 ```
 
-### `/retrieve_user_profile_firebase_doc`
+### `/retrieve_user_profile`
 
 requestPayload
 
 ```json
     {
-        "uid": string,
-        "token": auth.Token // firebase token
+        "uid": string
     }
 ```
 
-requestResponse `firestore.DocumentSnapshot`
+requestResponse `UserProfile`
 
 ### `/save_cover`
 

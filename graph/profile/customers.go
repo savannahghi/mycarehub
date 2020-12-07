@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -284,11 +285,11 @@ func FindCustomerByUIDHandler(ctx context.Context, service *Service) http.Handle
 
 		var customer *Customer
 
-		if c.Token != nil {
-			newContext := context.WithValue(ctx, base.AuthTokenContextKey, c.Token)
-			customer, err = service.FindCustomer(newContext, *c.UID)
+		if c.UID != "" {
+			newContext := context.WithValue(ctx, base.AuthTokenContextKey, auth.Token{UID: c.UID})
+			customer, err = service.FindCustomer(newContext, c.UID)
 		} else {
-			customer, err = service.FindCustomer(ctx, *c.UID)
+			customer, err = service.FindCustomer(ctx, c.UID)
 		}
 
 		if customer == nil || err != nil {

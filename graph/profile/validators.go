@@ -71,7 +71,7 @@ func ValidateMsisdn(w http.ResponseWriter, r *http.Request) (*PinRecovery, error
 func ValidateUID(w http.ResponseWriter, r *http.Request) (*BusinessPartnerUID, error) {
 	p := &BusinessPartnerUID{}
 	base.DecodeJSONToTargetStruct(w, r, p)
-	if p.UID == nil {
+	if p.UID == "" {
 		err := fmt.Errorf("invalid credentials, expected a uid")
 		base.ReportErr(w, err, http.StatusBadRequest)
 		return nil, err

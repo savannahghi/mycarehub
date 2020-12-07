@@ -125,7 +125,7 @@ func TestFindSupplierByUID(t *testing.T) {
 	findSupplier := FindSupplierByUIDHandler(ctx, service)
 
 	uid := &BusinessPartnerUID{
-		UID: &token.UID,
+		UID: token.UID,
 	}
 	goodUIDJSONBytes, err := json.Marshal(uid)
 	assert.Nil(t, err)
@@ -141,7 +141,7 @@ func TestFindSupplierByUID(t *testing.T) {
 	badSupplierRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
 
 	badUID := "this uid does not exist"
-	nonExistentUID := &BusinessPartnerUID{UID: &badUID}
+	nonExistentUID := &BusinessPartnerUID{UID: badUID}
 	nonExistentUIDJSONBytes, err := json.Marshal(nonExistentUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, nonExistentUIDJSONBytes)

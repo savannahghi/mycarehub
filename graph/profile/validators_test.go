@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"firebase.google.com/go/auth"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 )
@@ -219,8 +218,7 @@ func TestValidateUID(t *testing.T) {
 	_, token := base.GetAuthenticatedContextAndToken(t)
 
 	uid := &BusinessPartnerUID{
-		UID:   &token.UID,
-		Token: &auth.Token{},
+		UID: token.UID,
 	}
 
 	goodUIDJSONBytes, err := json.Marshal(uid)
@@ -253,8 +251,7 @@ func TestValidateUID(t *testing.T) {
 				r: goodCustomerRequest,
 			},
 			want: &BusinessPartnerUID{
-				UID:   &token.UID,
-				Token: &auth.Token{},
+				UID: token.UID,
 			},
 			wantErr: false,
 		},

@@ -23,13 +23,14 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
-	gitlab.slade360emr.com/go/base v0.0.73
+	gitlab.slade360emr.com/go/base v0.0.74
+	gitlab.slade360emr.com/go/uploads v0.0.9 // indirect
 	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb // indirect
 	golang.org/x/oauth2 v0.0.0-20201203001011-0b49973bad19 // indirect
 	golang.org/x/sys v0.0.0-20201204225414-ed752295db88 // indirect
-	golang.org/x/tools v0.0.0-20201204222352-654352759326 // indirect
+	golang.org/x/tools v0.0.0-20201206230334-368bee879bfd // indirect
 	google.golang.org/api v0.36.0
-	google.golang.org/genproto v0.0.0-20201204160425-06b3db808446 // indirect
+	google.golang.org/genproto v0.0.0-20201207150747-9ee31aac76e7 // indirect
 	google.golang.org/grpc v1.34.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

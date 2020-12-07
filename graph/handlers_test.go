@@ -828,13 +828,12 @@ func TestRetrieveUserProfileFirebaseDocSnapshotHandler(t *testing.T) {
 	auth := ctx.Value(base.AuthTokenContextKey).(*auth.Token)
 	assert.NotNil(t, auth)
 	profileUid := &profile.BusinessPartnerUID{
-		UID:   &auth.UID,
-		Token: auth,
+		UID: auth.UID,
 	}
 	assert.NotNil(t, profileUid)
 	srv := profile.NewService()
 	assert.NotNil(t, srv)
-	handler := graph.RetrieveUserProfileFirebaseDocSnapshotHandler(ctx, srv)
+	handler := graph.RetrieveUserProfileHandler(ctx, srv)
 
 	assert.NotNil(t, handler)
 
@@ -1180,6 +1179,118 @@ func TestSendRetryOTPHandler(t *testing.T) {
 			name: "invalid generate and send retry OTPs request",
 			args: args{
 				url:        fmt.Sprintf("%s/send_retry_otp", baseURL),
+				httpMethod: http.MethodPost,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+
+			if data == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d and response %s", tt.wantStatus, resp.StatusCode, string(data))
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+		})
+	}
+}
+
+func TestRetrieveUserProfileHandler(t *testing.T) {
+	client := http.DefaultClient
+
+	_, authToken := base.GetAuthenticatedContextAndToken(t)
+	if authToken == nil {
+		t.Errorf("nil auth token")
+		return
+	}
+
+	bpUID := &profile.BusinessPartnerUID{
+		UID: authToken.UID,
+	}
+	bs, err := json.Marshal(bpUID)
+	if err != nil {
+		t.Errorf("unable to marshal BP UID payload to JSON: %s", err)
+		return
+	}
+	payload := bytes.NewBuffer(bs)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid user profile retrieve request - valid UID",
+			args: args{
+				url:        fmt.Sprintf("%s/internal/retrieve_user_profile", baseURL),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid user profile retrieve request - nil body",
+			args: args{
+				url:        fmt.Sprintf("%s/internal/retrieve_user_profile", baseURL),
 				httpMethod: http.MethodPost,
 				body:       nil,
 			},

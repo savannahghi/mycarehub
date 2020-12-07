@@ -257,7 +257,7 @@ func TestFindCustomerByUID(t *testing.T) {
 	service := NewService()
 	findCustomer := FindCustomerByUIDHandler(ctx, service)
 
-	uid := &BusinessPartnerUID{UID: &token.UID}
+	uid := &BusinessPartnerUID{UID: token.UID}
 	goodUIDJSONBytes, err := json.Marshal(uid)
 	assert.Nil(t, err)
 	assert.NotNil(t, goodUIDJSONBytes)
@@ -272,7 +272,7 @@ func TestFindCustomerByUID(t *testing.T) {
 	badCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
 
 	badUID := "this uid does not exist"
-	nonExistentUID := &BusinessPartnerUID{UID: &badUID}
+	nonExistentUID := &BusinessPartnerUID{UID: badUID}
 	nonExistentUIDJSONBytes, err := json.Marshal(nonExistentUID)
 	assert.Nil(t, err)
 	assert.NotNil(t, nonExistentUIDJSONBytes)

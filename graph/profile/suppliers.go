@@ -7,13 +7,14 @@ import (
 	"log"
 	"net/http"
 
+	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
 )
 
 const (
 	supplierAPIPath        = "/api/business_partners/suppliers/"
 	supplierCollectionName = "suppliers"
-	supplierType           = "PHARMACEUTICAL" // TODO Use correct supplier type
+	supplierType           = "PHARMACEUTICAL"
 	isSupplier             = true
 )
 
@@ -150,11 +151,11 @@ func FindSupplierByUIDHandler(ctx context.Context, service *Service) http.Handle
 
 		var supplier *Supplier
 
-		if s.Token != nil {
-			newContext := context.WithValue(ctx, base.AuthTokenContextKey, s.Token)
-			supplier, err = service.FindSupplier(newContext, *s.UID)
+		if s.UID != "" {
+			newContext := context.WithValue(ctx, base.AuthTokenContextKey, auth.Token{UID: s.UID})
+			supplier, err = service.FindSupplier(newContext, s.UID)
 		} else {
-			supplier, err = service.FindSupplier(ctx, *s.UID)
+			supplier, err = service.FindSupplier(ctx, s.UID)
 		}
 
 		if supplier == nil || err != nil {
