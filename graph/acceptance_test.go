@@ -284,3 +284,117 @@ func TestSendRetryOTP(t *testing.T) {
 		})
 	}
 }
+
+func TestRequestPinRest(t *testing.T) {
+	ctx := context.Background()
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+
+	requestPinRestUrl := fmt.Sprintf("%s/%s", baseURL, "request_pin_reset")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("unable to get request headers %v", err)
+		return
+	}
+
+	type args struct {
+		msisdn    string
+		PINNumber string
+		otp       string
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid case",
+			args: args{
+				msisdn:    base.TestUserPhoneNumberWithPin,
+				PINNumber: base.TestUserPin,
+				otp:       "1234",
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid phone number",
+			args: args{
+				msisdn:    "011",
+				PINNumber: base.TestUserPin,
+				otp:       "1234",
+			},
+			wantErr:    false,
+			wantStatus: http.StatusBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			requestInput := map[string]interface{}{}
+			requestInput["msisdn"] = tt.args.msisdn
+			requestInput["PINNumber"] = tt.args.PINNumber
+			requestInput["otp"] = tt.args.otp
+
+			body, err := mapToJSONReader(requestInput)
+			if err != nil {
+				t.Errorf("unable to get request JSON io Reader: %s", err)
+				return
+			}
+
+			request, err := http.NewRequest(
+				http.MethodPost,
+				requestPinRestUrl,
+				body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+			if request == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				request.Header.Add(k, v)
+			}
+			client := http.DefaultClient
+			resp, err := client.Do(request)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			if resp == nil && !tt.wantErr {
+				t.Errorf("nil response")
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+
+			if data == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("statusCode = %v, wantStatus %v", resp.StatusCode, tt.wantStatus)
+				return
+			}
+		})
+	}
+}
