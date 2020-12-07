@@ -155,3 +155,132 @@ func TestMSISDNLogin(t *testing.T) {
 		})
 	}
 }
+
+func TestSendRetryOTP(t *testing.T) {
+	ctx := context.Background()
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+
+	sendRetryOTP := fmt.Sprintf("%s/%s", baseURL, "send_retry_otp")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("unable to get request headers %v", err)
+		return
+	}
+
+	type args struct {
+		Msisdn    string
+		RetryStep int
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "send retry OTP via whatsapp",
+			args: args{
+				Msisdn:    base.TestUserPhoneNumberWithPin,
+				RetryStep: 1,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "send retry OTP via twilio",
+			args: args{
+				Msisdn:    base.TestUserPhoneNumberWithPin,
+				RetryStep: 2,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "send retry OTP via a non-existent channel",
+			args: args{
+				Msisdn:    base.TestUserPhoneNumberWithPin,
+				RetryStep: 300,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+		{
+			name: "send retry OTP using invalid credentials",
+			args: args{
+				Msisdn:    "+254795941530",
+				RetryStep: 300,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			requestInput := map[string]interface{}{}
+			requestInput["msisdn"] = tt.args.Msisdn
+			requestInput["retryStep"] = tt.args.RetryStep
+
+			body, err := mapToJSONReader(requestInput)
+			if err != nil {
+				t.Errorf("unable to get request JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				sendRetryOTP,
+				body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.DefaultClient
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			if resp == nil && !tt.wantErr {
+				t.Errorf("nil response")
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+
+			if data == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("statusCode = %v, wantStatus %v", resp.StatusCode, tt.wantStatus)
+				return
+			}
+
+		})
+	}
+}
