@@ -6,11 +6,11 @@ package graph
 import (
 	"context"
 
+	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph/generated"
-	"gitlab.slade360emr.com/go/profile/graph/profile"
 )
 
-func (r *entityResolver) FindUserProfileByID(ctx context.Context, id string) (*profile.UserProfile, error) {
+func (r *entityResolver) FindUserProfileByID(ctx context.Context, id string) (*base.UserProfile, error) {
 	r.CheckDependencies()
 	r.CheckUserTokenInContext(ctx)
 	return r.profileService.GetProfileByID(ctx, id)

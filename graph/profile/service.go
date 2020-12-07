@@ -235,7 +235,7 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 		log.Printf("user with uids %s has > 1 profile (they have %d)", uids, len(docs))
 	}
 	if len(docs) == 0 {
-		newProfile := &UserProfile{
+		newProfile := &base.UserProfile{
 			ID:                  uuid.New().String(),
 			VerifiedIdentifiers: uids,
 			IsApproved:          false,
@@ -272,7 +272,7 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByID(
 		log.Printf("> 1 profile with id %s (count: %d)", id, len(docs))
 	}
 	if len(docs) == 0 {
-		newProfile := &UserProfile{
+		newProfile := &base.UserProfile{
 			ID:                  uuid.New().String(),
 			VerifiedIdentifiers: []string{},
 			IsApproved:          false,
@@ -335,7 +335,7 @@ func (s Service) RetrieveOrCreateUserProfileFirebaseDocSnapshot(
 			uids = append(uids, uid)
 			msisdns = append(msisdns, phone)
 			// generate a new internal ID for the profile
-			newProfile := &UserProfile{
+			newProfile := &base.UserProfile{
 				ID:                  uuid.New().String(),
 				VerifiedIdentifiers: uids,
 				IsApproved:          false,
@@ -399,13 +399,13 @@ func (s Service) RetrieveFireStoreSnapshotByUID(
 }
 
 // UserProfile retrieves the profile of the logged in user, if they have one
-func (s Service) UserProfile(ctx context.Context) (*UserProfile, error) {
+func (s Service) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	s.checkPreconditions()
 	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
 	if err != nil {
 		return nil, err
 	}
-	userProfile := &UserProfile{}
+	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
@@ -417,7 +417,7 @@ func (s Service) UserProfile(ctx context.Context) (*UserProfile, error) {
 // GetOrCreateUserProfile retrieves the user profile of a
 // specified user using either their uid or phone number.
 // If the user perofile does not exist then a new one is created
-func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*UserProfile, error) {
+func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*base.UserProfile, error) {
 	s.checkPreconditions()
 
 	phoneNumber, err := base.NormalizeMSISDN(phone)
@@ -433,7 +433,7 @@ func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*Use
 	if err != nil {
 		return nil, err
 	}
-	userProfile := &UserProfile{}
+	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
@@ -454,14 +454,14 @@ func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*Use
 }
 
 // GetProfile returns the profile of the user with the supplied uid
-func (s Service) GetProfile(ctx context.Context, uid string) (*UserProfile, error) {
+func (s Service) GetProfile(ctx context.Context, uid string) (*base.UserProfile, error) {
 	s.checkPreconditions()
 	uids := []string{uid}
 	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshotByUID(ctx, uids)
 	if err != nil {
 		return nil, err
 	}
-	userProfile := &UserProfile{}
+	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
@@ -471,14 +471,14 @@ func (s Service) GetProfile(ctx context.Context, uid string) (*UserProfile, erro
 }
 
 // GetProfileByID returns the profile identified by the indicated ID
-func (s Service) GetProfileByID(ctx context.Context, id string) (*UserProfile, error) {
+func (s Service) GetProfileByID(ctx context.Context, id string) (*base.UserProfile, error) {
 	s.checkPreconditions()
 
 	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshotByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	userProfile := &UserProfile{}
+	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
@@ -491,7 +491,7 @@ func (s Service) GetProfileByID(ctx context.Context, id string) (*UserProfile, e
 // profile does not exist instead of creating a new default profile
 // This purely handles the issue of backwards compatibility and should be depreciated
 // once the side effects are handled.
-func (s Service) FindProfile(ctx context.Context) (*UserProfile, error) {
+func (s Service) FindProfile(ctx context.Context) (*base.UserProfile, error) {
 	s.checkPreconditions()
 
 	uid, err := base.GetLoggedInUserUID(ctx)
@@ -509,7 +509,7 @@ func (s Service) FindProfile(ctx context.Context) (*UserProfile, error) {
 		return nil, fmt.Errorf("the user's profile has not been found")
 	}
 
-	userProfile := &UserProfile{}
+	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
@@ -575,7 +575,7 @@ func (s Service) UpdatePhoneNumber(
 // UpdateUserProfile updates a practitioner's user profile with the supplied
 // data
 func (s Service) UpdateUserProfile(
-	ctx context.Context, input UserProfileInput) (*UserProfile, error) {
+	ctx context.Context, input UserProfileInput) (*base.UserProfile, error) {
 	s.checkPreconditions()
 
 	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
@@ -605,7 +605,7 @@ func (s Service) UpdateUserProfile(
 			if !base.StringSliceContains(msisdns, validPhone) {
 				msisdns = append(msisdns, validPhone)
 			}
-			verifyPhone := VerifiedMsisdn{
+			verifyPhone := base.VerifiedMsisdn{
 				Msisdn:   validPhone,
 				Verified: true,
 			}
@@ -624,7 +624,7 @@ func (s Service) UpdateUserProfile(
 				return nil, fmt.Errorf("%s is not a valid email", email)
 			}
 			emails = append(emails, email)
-			verifyEmail := VerifiedEmail{
+			verifyEmail := base.VerifiedEmail{
 				Email:    email,
 				Verified: true,
 			}
@@ -661,7 +661,7 @@ func (s Service) UpdateUserProfile(
 }
 
 // ConfirmEmail updates the profile of the logged in user with an email address
-func (s Service) ConfirmEmail(ctx context.Context, email string) (*UserProfile, error) {
+func (s Service) ConfirmEmail(ctx context.Context, email string) (*base.UserProfile, error) {
 	s.checkPreconditions()
 
 	if !govalidator.IsEmail(email) {
@@ -760,7 +760,7 @@ func (s Service) SendPractitionerSignUpEmail(ctx context.Context, emailaddress s
 // UpdateBiodata updates the profile of the logged in user with the supplied
 // bio-data
 func (s Service) UpdateBiodata(
-	ctx context.Context, input BiodataInput) (*UserProfile, error) {
+	ctx context.Context, input BiodataInput) (*base.UserProfile, error) {
 	s.checkPreconditions()
 
 	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
@@ -999,7 +999,7 @@ func (s Service) AddTester(ctx context.Context, email string) (bool, error) {
 	}
 	userProfile.IsTester = true
 	// reset covers
-	userProfile.Covers = []Cover{}
+	userProfile.Covers = []base.Cover{}
 
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
@@ -1039,7 +1039,7 @@ func (s Service) RemoveTester(ctx context.Context, email string) (bool, error) {
 	}
 	userProfile.IsTester = false
 	// reset covers
-	userProfile.Covers = []Cover{}
+	userProfile.Covers = []base.Cover{}
 
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
@@ -1428,7 +1428,7 @@ func (s Service) VerifyEmailOtp(ctx context.Context, email string, otp string) (
 		return false, fmt.Errorf("can't fetch user profile: %v", err)
 	}
 
-	verifyEmail := VerifiedEmail{
+	verifyEmail := base.VerifiedEmail{
 		Email:    email,
 		Verified: true,
 	}
@@ -1575,7 +1575,7 @@ func (s Service) AddPractitionerServices(
 }
 
 // ParseUserProfileFromContextOrUID parses a user profile from either the logged-in context or uid
-func (s Service) ParseUserProfileFromContextOrUID(ctx context.Context, uid *string) (*UserProfile, error) {
+func (s Service) ParseUserProfileFromContextOrUID(ctx context.Context, uid *string) (*base.UserProfile, error) {
 	if uid != nil {
 		return s.GetProfile(ctx, *uid)
 	}
@@ -1584,7 +1584,7 @@ func (s Service) ParseUserProfileFromContextOrUID(ctx context.Context, uid *stri
 
 // SaveMemberCoverToFirestore saves users cover details to firebase
 func (s Service) SaveMemberCoverToFirestore(ctx context.Context, payerName, memberNumber, memberName string, PayerSladeCode int) error {
-	cover := Cover{
+	cover := base.Cover{
 		PayerName:      payerName,
 		MemberName:     memberName,
 		MemberNumber:   memberNumber,

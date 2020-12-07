@@ -277,14 +277,14 @@ type ComplexityRoot struct {
 }
 
 type EntityResolver interface {
-	FindUserProfileByID(ctx context.Context, id string) (*profile.UserProfile, error)
+	FindUserProfileByID(ctx context.Context, id string) (*base.UserProfile, error)
 }
 type MutationResolver interface {
-	ConfirmEmail(ctx context.Context, email string) (*profile.UserProfile, error)
+	ConfirmEmail(ctx context.Context, email string) (*base.UserProfile, error)
 	AcceptTermsAndConditions(ctx context.Context, accept bool) (bool, error)
-	UpdateUserProfile(ctx context.Context, input profile.UserProfileInput) (*profile.UserProfile, error)
+	UpdateUserProfile(ctx context.Context, input profile.UserProfileInput) (*base.UserProfile, error)
 	PractitionerSignUp(ctx context.Context, input profile.PractitionerSignupInput) (bool, error)
-	UpdateBiodata(ctx context.Context, input profile.BiodataInput) (*profile.UserProfile, error)
+	UpdateBiodata(ctx context.Context, input profile.BiodataInput) (*base.UserProfile, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
 	CompleteSignup(ctx context.Context) (bool, error)
 	RecordPostVisitSurvey(ctx context.Context, input profile.PostVisitSurveyInput) (bool, error)
@@ -307,11 +307,11 @@ type MutationResolver interface {
 	SuspendSupplier(ctx context.Context, uid string) (bool, error)
 }
 type QueryResolver interface {
-	UserProfile(ctx context.Context) (*profile.UserProfile, error)
-	GetOrCreateUserProfile(ctx context.Context, phone string) (*profile.UserProfile, error)
-	FindProfile(ctx context.Context) (*profile.UserProfile, error)
+	UserProfile(ctx context.Context) (*base.UserProfile, error)
+	GetOrCreateUserProfile(ctx context.Context, phone string) (*base.UserProfile, error)
+	FindProfile(ctx context.Context) (*base.UserProfile, error)
 	HealthcashBalance(ctx context.Context) (*base.Decimal, error)
-	GetProfile(ctx context.Context, uid string) (*profile.UserProfile, error)
+	GetProfile(ctx context.Context, uid string) (*base.UserProfile, error)
 	ListTesters(ctx context.Context) ([]string, error)
 	ListKMPDURegisteredPractitioners(ctx context.Context, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) (*profile.KMPDUPractitionerConnection, error)
 	GetKMPDURegisteredPractitioner(ctx context.Context, regno string) (*profile.KMPDUPractitioner, error)
@@ -3000,7 +3000,7 @@ func (ec *executionContext) _Beneficiary_dateOfBirth(ctx context.Context, field 
 	return ec.marshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Cover_payerName(ctx context.Context, field graphql.CollectedField, obj *profile.Cover) (ret graphql.Marshaler) {
+func (ec *executionContext) _Cover_payerName(ctx context.Context, field graphql.CollectedField, obj *base.Cover) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3035,7 +3035,7 @@ func (ec *executionContext) _Cover_payerName(ctx context.Context, field graphql.
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Cover_payerSladeCode(ctx context.Context, field graphql.CollectedField, obj *profile.Cover) (ret graphql.Marshaler) {
+func (ec *executionContext) _Cover_payerSladeCode(ctx context.Context, field graphql.CollectedField, obj *base.Cover) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3070,7 +3070,7 @@ func (ec *executionContext) _Cover_payerSladeCode(ctx context.Context, field gra
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Cover_memberNumber(ctx context.Context, field graphql.CollectedField, obj *profile.Cover) (ret graphql.Marshaler) {
+func (ec *executionContext) _Cover_memberNumber(ctx context.Context, field graphql.CollectedField, obj *base.Cover) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3105,7 +3105,7 @@ func (ec *executionContext) _Cover_memberNumber(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Cover_memberName(ctx context.Context, field graphql.CollectedField, obj *profile.Cover) (ret graphql.Marshaler) {
+func (ec *executionContext) _Cover_memberName(ctx context.Context, field graphql.CollectedField, obj *base.Cover) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3170,9 +3170,9 @@ func (ec *executionContext) _Customer_userProfile(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(profile.UserProfile)
+	res := resTmp.(base.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Customer_customerId(ctx context.Context, field graphql.CollectedField, obj *profile.Customer) (ret graphql.Marshaler) {
@@ -3559,9 +3559,9 @@ func (ec *executionContext) _Entity_findUserProfileByID(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*profile.UserProfile)
+	res := resTmp.(*base.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _KMPDUPractitioner_name(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitioner) (ret graphql.Marshaler) {
@@ -4012,9 +4012,9 @@ func (ec *executionContext) _Mutation_confirmEmail(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*profile.UserProfile)
+	res := resTmp.(*base.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_acceptTermsAndConditions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4096,9 +4096,9 @@ func (ec *executionContext) _Mutation_updateUserProfile(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*profile.UserProfile)
+	res := resTmp.(*base.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_practitionerSignUp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4180,9 +4180,9 @@ func (ec *executionContext) _Mutation_updateBiodata(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*profile.UserProfile)
+	res := resTmp.(*base.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_registerPushToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5392,9 +5392,9 @@ func (ec *executionContext) _Practitioner_profile(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(profile.UserProfile)
+	res := resTmp.(base.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Practitioner_license(ctx context.Context, field graphql.CollectedField, obj *profile.Practitioner) (ret graphql.Marshaler) {
@@ -5768,9 +5768,9 @@ func (ec *executionContext) _Query_userProfile(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*profile.UserProfile)
+	res := resTmp.(*base.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getOrCreateUserProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5810,9 +5810,9 @@ func (ec *executionContext) _Query_getOrCreateUserProfile(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*profile.UserProfile)
+	res := resTmp.(*base.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_findProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5845,9 +5845,9 @@ func (ec *executionContext) _Query_findProfile(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*profile.UserProfile)
+	res := resTmp.(*base.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_healthcashBalance(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5922,9 +5922,9 @@ func (ec *executionContext) _Query_getProfile(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*profile.UserProfile)
+	res := resTmp.(*base.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_listTesters(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6749,9 +6749,9 @@ func (ec *executionContext) _Supplier_userProfile(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*profile.UserProfile)
+	res := resTmp.(*base.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Supplier_supplierId(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
@@ -7348,7 +7348,7 @@ func (ec *executionContext) _TesterWhitelist_email(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7383,7 +7383,7 @@ func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_verifiedIdentifiers(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_verifiedIdentifiers(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7418,7 +7418,7 @@ func (ec *executionContext) _UserProfile_verifiedIdentifiers(ctx context.Context
 	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_isApproved(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_isApproved(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7453,7 +7453,7 @@ func (ec *executionContext) _UserProfile_isApproved(ctx context.Context, field g
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_termsAccepted(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_termsAccepted(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7488,7 +7488,7 @@ func (ec *executionContext) _UserProfile_termsAccepted(ctx context.Context, fiel
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_msisdns(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_msisdns(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7523,7 +7523,7 @@ func (ec *executionContext) _UserProfile_msisdns(ctx context.Context, field grap
 	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_emails(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_emails(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7558,7 +7558,7 @@ func (ec *executionContext) _UserProfile_emails(ctx context.Context, field graph
 	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_photoBase64(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_photoBase64(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7593,7 +7593,7 @@ func (ec *executionContext) _UserProfile_photoBase64(ctx context.Context, field 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_photoContentType(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_photoContentType(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7628,7 +7628,7 @@ func (ec *executionContext) _UserProfile_photoContentType(ctx context.Context, f
 	return ec.marshalNContentType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_pushTokens(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_pushTokens(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7663,7 +7663,7 @@ func (ec *executionContext) _UserProfile_pushTokens(ctx context.Context, field g
 	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_covers(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_covers(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7693,12 +7693,12 @@ func (ec *executionContext) _UserProfile_covers(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]profile.Cover)
+	res := resTmp.([]base.Cover)
 	fc.Result = res
-	return ec.marshalNCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCoverᚄ(ctx, field.Selections, res)
+	return ec.marshalNCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐCoverᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_isTester(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_isTester(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7733,7 +7733,7 @@ func (ec *executionContext) _UserProfile_isTester(ctx context.Context, field gra
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_active(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_active(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7768,7 +7768,7 @@ func (ec *executionContext) _UserProfile_active(ctx context.Context, field graph
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7800,7 +7800,7 @@ func (ec *executionContext) _UserProfile_dateOfBirth(ctx context.Context, field 
 	return ec.marshalODate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_gender(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_gender(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7832,7 +7832,7 @@ func (ec *executionContext) _UserProfile_gender(ctx context.Context, field graph
 	return ec.marshalOGender2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_patientID(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_patientID(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7864,7 +7864,7 @@ func (ec *executionContext) _UserProfile_patientID(ctx context.Context, field gr
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_name(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_name(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7896,7 +7896,7 @@ func (ec *executionContext) _UserProfile_name(ctx context.Context, field graphql
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_bio(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_bio(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7928,7 +7928,7 @@ func (ec *executionContext) _UserProfile_bio(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_language(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_language(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7960,7 +7960,7 @@ func (ec *executionContext) _UserProfile_language(ctx context.Context, field gra
 	return ec.marshalOLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_practitionerApproved(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_practitionerApproved(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7992,7 +7992,7 @@ func (ec *executionContext) _UserProfile_practitionerApproved(ctx context.Contex
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_practitionerTermsOfServiceAccepted(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_practitionerTermsOfServiceAccepted(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8024,7 +8024,7 @@ func (ec *executionContext) _UserProfile_practitionerTermsOfServiceAccepted(ctx 
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_canExperiment(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_canExperiment(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8056,7 +8056,7 @@ func (ec *executionContext) _UserProfile_canExperiment(ctx context.Context, fiel
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_askAgainToSetIsTester(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_askAgainToSetIsTester(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8088,7 +8088,7 @@ func (ec *executionContext) _UserProfile_askAgainToSetIsTester(ctx context.Conte
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_askAgainToSetCanExperiment(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_askAgainToSetCanExperiment(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8120,7 +8120,7 @@ func (ec *executionContext) _UserProfile_askAgainToSetCanExperiment(ctx context.
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_VerifiedEmails(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_VerifiedEmails(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8147,12 +8147,12 @@ func (ec *executionContext) _UserProfile_VerifiedEmails(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]profile.VerifiedEmail)
+	res := resTmp.([]base.VerifiedEmail)
 	fc.Result = res
-	return ec.marshalOVerifiedEmail2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedEmail(ctx, field.Selections, res)
+	return ec.marshalOVerifiedEmail2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedEmail(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_VerifiedPhones(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_VerifiedPhones(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8179,12 +8179,12 @@ func (ec *executionContext) _UserProfile_VerifiedPhones(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]profile.VerifiedMsisdn)
+	res := resTmp.([]base.VerifiedMsisdn)
 	fc.Result = res
-	return ec.marshalOVerifiedMsisdn2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedMsisdn(ctx, field.Selections, res)
+	return ec.marshalOVerifiedMsisdn2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedMsisdn(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_hasPin(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_hasPin(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8216,7 +8216,7 @@ func (ec *executionContext) _UserProfile_hasPin(ctx context.Context, field graph
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_hasSupplierAccount(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_hasSupplierAccount(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8248,7 +8248,7 @@ func (ec *executionContext) _UserProfile_hasSupplierAccount(ctx context.Context,
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_hasCustomerAccount(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_hasCustomerAccount(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8280,7 +8280,7 @@ func (ec *executionContext) _UserProfile_hasCustomerAccount(ctx context.Context,
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_practitionerHasServices(ctx context.Context, field graphql.CollectedField, obj *profile.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_practitionerHasServices(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8312,7 +8312,7 @@ func (ec *executionContext) _UserProfile_practitionerHasServices(ctx context.Con
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VerifiedEmail_email(ctx context.Context, field graphql.CollectedField, obj *profile.VerifiedEmail) (ret graphql.Marshaler) {
+func (ec *executionContext) _VerifiedEmail_email(ctx context.Context, field graphql.CollectedField, obj *base.VerifiedEmail) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8347,7 +8347,7 @@ func (ec *executionContext) _VerifiedEmail_email(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VerifiedEmail_verified(ctx context.Context, field graphql.CollectedField, obj *profile.VerifiedEmail) (ret graphql.Marshaler) {
+func (ec *executionContext) _VerifiedEmail_verified(ctx context.Context, field graphql.CollectedField, obj *base.VerifiedEmail) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8382,7 +8382,7 @@ func (ec *executionContext) _VerifiedEmail_verified(ctx context.Context, field g
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VerifiedMsisdn_msisdn(ctx context.Context, field graphql.CollectedField, obj *profile.VerifiedMsisdn) (ret graphql.Marshaler) {
+func (ec *executionContext) _VerifiedMsisdn_msisdn(ctx context.Context, field graphql.CollectedField, obj *base.VerifiedMsisdn) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8417,7 +8417,7 @@ func (ec *executionContext) _VerifiedMsisdn_msisdn(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VerifiedMsisdn_verified(ctx context.Context, field graphql.CollectedField, obj *profile.VerifiedMsisdn) (ret graphql.Marshaler) {
+func (ec *executionContext) _VerifiedMsisdn_verified(ctx context.Context, field graphql.CollectedField, obj *base.VerifiedMsisdn) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10287,9 +10287,9 @@ func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, 
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case profile.UserProfile:
+	case base.UserProfile:
 		return ec._UserProfile(ctx, sel, &obj)
-	case *profile.UserProfile:
+	case *base.UserProfile:
 		if obj == nil {
 			return graphql.Null
 		}
@@ -10346,7 +10346,7 @@ func (ec *executionContext) _Beneficiary(ctx context.Context, sel ast.SelectionS
 
 var coverImplementors = []string{"Cover"}
 
-func (ec *executionContext) _Cover(ctx context.Context, sel ast.SelectionSet, obj *profile.Cover) graphql.Marshaler {
+func (ec *executionContext) _Cover(ctx context.Context, sel ast.SelectionSet, obj *base.Cover) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, coverImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -11455,7 +11455,7 @@ func (ec *executionContext) _TesterWhitelist(ctx context.Context, sel ast.Select
 
 var userProfileImplementors = []string{"UserProfile", "_Entity"}
 
-func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionSet, obj *profile.UserProfile) graphql.Marshaler {
+func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionSet, obj *base.UserProfile) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userProfileImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -11571,7 +11571,7 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 
 var verifiedEmailImplementors = []string{"VerifiedEmail"}
 
-func (ec *executionContext) _VerifiedEmail(ctx context.Context, sel ast.SelectionSet, obj *profile.VerifiedEmail) graphql.Marshaler {
+func (ec *executionContext) _VerifiedEmail(ctx context.Context, sel ast.SelectionSet, obj *base.VerifiedEmail) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, verifiedEmailImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -11603,7 +11603,7 @@ func (ec *executionContext) _VerifiedEmail(ctx context.Context, sel ast.Selectio
 
 var verifiedMsisdnImplementors = []string{"VerifiedMsisdn"}
 
-func (ec *executionContext) _VerifiedMsisdn(ctx context.Context, sel ast.SelectionSet, obj *profile.VerifiedMsisdn) graphql.Marshaler {
+func (ec *executionContext) _VerifiedMsisdn(ctx context.Context, sel ast.SelectionSet, obj *base.VerifiedMsisdn) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, verifiedMsisdnImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -11988,11 +11988,11 @@ func (ec *executionContext) marshalNContentType2gitlabᚗslade360emrᚗcomᚋgo�
 	return v
 }
 
-func (ec *executionContext) marshalNCover2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCover(ctx context.Context, sel ast.SelectionSet, v profile.Cover) graphql.Marshaler {
+func (ec *executionContext) marshalNCover2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐCover(ctx context.Context, sel ast.SelectionSet, v base.Cover) graphql.Marshaler {
 	return ec._Cover(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCoverᚄ(ctx context.Context, sel ast.SelectionSet, v []profile.Cover) graphql.Marshaler {
+func (ec *executionContext) marshalNCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐCoverᚄ(ctx context.Context, sel ast.SelectionSet, v []base.Cover) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12016,7 +12016,7 @@ func (ec *executionContext) marshalNCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋp
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCover2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCover(ctx, sel, v[i])
+			ret[i] = ec.marshalNCover2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐCover(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12435,11 +12435,11 @@ func (ec *executionContext) unmarshalNSupplierKYCInput2gitlabᚗslade360emrᚗco
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v profile.UserProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v base.UserProfile) graphql.Marshaler {
 	return ec._UserProfile(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v *profile.UserProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v *base.UserProfile) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -13316,11 +13316,11 @@ func (ec *executionContext) unmarshalOUserProfilePhone2ᚕᚖgitlabᚗslade360em
 	return res, nil
 }
 
-func (ec *executionContext) marshalOVerifiedEmail2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedEmail(ctx context.Context, sel ast.SelectionSet, v profile.VerifiedEmail) graphql.Marshaler {
+func (ec *executionContext) marshalOVerifiedEmail2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedEmail(ctx context.Context, sel ast.SelectionSet, v base.VerifiedEmail) graphql.Marshaler {
 	return ec._VerifiedEmail(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOVerifiedEmail2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedEmail(ctx context.Context, sel ast.SelectionSet, v []profile.VerifiedEmail) graphql.Marshaler {
+func (ec *executionContext) marshalOVerifiedEmail2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedEmail(ctx context.Context, sel ast.SelectionSet, v []base.VerifiedEmail) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -13347,7 +13347,7 @@ func (ec *executionContext) marshalOVerifiedEmail2ᚕgitlabᚗslade360emrᚗcom�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOVerifiedEmail2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedEmail(ctx, sel, v[i])
+			ret[i] = ec.marshalOVerifiedEmail2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedEmail(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13360,11 +13360,11 @@ func (ec *executionContext) marshalOVerifiedEmail2ᚕgitlabᚗslade360emrᚗcom�
 	return ret
 }
 
-func (ec *executionContext) marshalOVerifiedMsisdn2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedMsisdn(ctx context.Context, sel ast.SelectionSet, v profile.VerifiedMsisdn) graphql.Marshaler {
+func (ec *executionContext) marshalOVerifiedMsisdn2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedMsisdn(ctx context.Context, sel ast.SelectionSet, v base.VerifiedMsisdn) graphql.Marshaler {
 	return ec._VerifiedMsisdn(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOVerifiedMsisdn2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedMsisdn(ctx context.Context, sel ast.SelectionSet, v []profile.VerifiedMsisdn) graphql.Marshaler {
+func (ec *executionContext) marshalOVerifiedMsisdn2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedMsisdn(ctx context.Context, sel ast.SelectionSet, v []base.VerifiedMsisdn) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -13391,7 +13391,7 @@ func (ec *executionContext) marshalOVerifiedMsisdn2ᚕgitlabᚗslade360emrᚗcom
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOVerifiedMsisdn2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐVerifiedMsisdn(ctx, sel, v[i])
+			ret[i] = ec.marshalOVerifiedMsisdn2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedMsisdn(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

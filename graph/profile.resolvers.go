@@ -12,7 +12,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/graph/profile"
 )
 
-func (r *mutationResolver) ConfirmEmail(ctx context.Context, email string) (*profile.UserProfile, error) {
+func (r *mutationResolver) ConfirmEmail(ctx context.Context, email string) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.ConfirmEmail(ctx, email)
@@ -24,7 +24,7 @@ func (r *mutationResolver) AcceptTermsAndConditions(ctx context.Context, accept 
 	return r.profileService.AcceptTermsAndConditions(ctx, accept)
 }
 
-func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input profile.UserProfileInput) (*profile.UserProfile, error) {
+func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input profile.UserProfileInput) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.UpdateUserProfile(ctx, input)
@@ -36,7 +36,7 @@ func (r *mutationResolver) PractitionerSignUp(ctx context.Context, input profile
 	return r.profileService.PractitionerSignUp(ctx, input)
 }
 
-func (r *mutationResolver) UpdateBiodata(ctx context.Context, input profile.BiodataInput) (*profile.UserProfile, error) {
+func (r *mutationResolver) UpdateBiodata(ctx context.Context, input profile.BiodataInput) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.UpdateBiodata(ctx, input)
@@ -162,19 +162,19 @@ func (r *mutationResolver) SuspendSupplier(ctx context.Context, uid string) (boo
 	return r.profileService.SuspendSupplier(ctx, uid)
 }
 
-func (r *queryResolver) UserProfile(ctx context.Context) (*profile.UserProfile, error) {
+func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.UserProfile(ctx)
 }
 
-func (r *queryResolver) GetOrCreateUserProfile(ctx context.Context, phone string) (*profile.UserProfile, error) {
+func (r *queryResolver) GetOrCreateUserProfile(ctx context.Context, phone string) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.GetOrCreateUserProfile(ctx, phone)
 }
 
-func (r *queryResolver) FindProfile(ctx context.Context) (*profile.UserProfile, error) {
+func (r *queryResolver) FindProfile(ctx context.Context) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.FindProfile(ctx)
@@ -187,7 +187,7 @@ func (r *queryResolver) HealthcashBalance(ctx context.Context) (*base.Decimal, e
 	return &expectedBalance, nil
 }
 
-func (r *queryResolver) GetProfile(ctx context.Context, uid string) (*profile.UserProfile, error) {
+func (r *queryResolver) GetProfile(ctx context.Context, uid string) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.GetProfile(ctx, uid)

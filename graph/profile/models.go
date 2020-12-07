@@ -35,7 +35,7 @@ type KMPDUPractitionerEdge struct {
 // Practitioner is used to serialize practitioner profile details.
 // These details are in addition to the user profile that all users get.
 type Practitioner struct {
-	Profile                  UserProfile                `json:"profile" firestore:"profile"`
+	Profile                  base.UserProfile           `json:"profile" firestore:"profile"`
 	License                  string                     `json:"license"`
 	Cadre                    PractitionerCadre          `json:"cadre"`
 	Specialty                base.PractitionerSpecialty `json:"specialty"`
@@ -66,77 +66,11 @@ type PractitionerSignupInput struct {
 	Emails    []*string                  `json:"emails"`
 }
 
-// Cover is used to save a user's insurance details.
-type Cover struct {
-	PayerName      string `json:"payerName,omitempty" firestore:"payerName"`
-	PayerSladeCode int    `json:"payerSladeCode,omitempty" firestore:"payerSladeCode"`
-	MemberNumber   string `json:"memberNumber,omitempty" firestore:"memberNumber"`
-	MemberName     string `json:"memberName,omitempty" firestore:"memberName"`
-}
-
-// IsEntity ...
-func (c Cover) IsEntity() {}
-
 // TesterWhitelist is used to maintain
 type TesterWhitelist struct {
 	base.Model
 
 	Email string `json:"email" firestore:"email"`
-}
-
-// UserProfile serializes the profile of the logged in user.
-type UserProfile struct {
-	ID string `json:"id" firestore:"id"`
-	// `VerifiedIdentifiers` represent various ways the user has been able to login
-	// and these providers point to the same user
-	VerifiedIdentifiers []string         `json:"verified_identifiers" firestore:"verifiedIdentifiers"`
-	TermsAccepted       bool             `json:"termsAccepted,omitempty" firestore:"termsAccepted"`
-	IsApproved          bool             `json:"isApproved,omitempty" firestore:"isApproved"`
-	Msisdns             []string         `json:"msisdns,omitempty" firestore:"msisdns"`
-	Emails              []string         `json:"emails,omitempty" firestore:"emails"`
-	PhotoBase64         string           `json:"photoBase64,omitempty" firestore:"photoBase64"`
-	PhotoContentType    base.ContentType `json:"photoContentType,omitempty" firestore:"photoContentType"`
-	Covers              []Cover          `json:"covers,omitempty" firestore:"covers"`
-	Active              bool             `json:"active" firestore:"active"`
-
-	DateOfBirth *base.Date   `json:"dateOfBirth,omitempty" firestore:"dateOfBirth,omitempty"`
-	Gender      *base.Gender `json:"gender,omitempty" firestore:"gender,omitempty"`
-	PatientID   *string      `json:"patientID,omitempty" firestore:"patientID"`
-	PushTokens  []string     `json:"pushTokens,omitempty" firestore:"pushTokens"`
-
-	Name                               *string `json:"name,omitempty" firestore:"name"`
-	Bio                                *string `json:"bio,omitempty" firestore:"bio"`
-	PractitionerApproved               *bool   `json:"practitionerApproved,omitempty" firestore:"practitionerApproved"`
-	PractitionerTermsOfServiceAccepted *bool   `json:"practitionerTermsOfServiceAccepted,omitempty" firestore:"practitionerTermsOfServiceAccepted"`
-
-	IsTester      bool          `json:"isTester,omitempty" firestore:"isTester"`
-	CanExperiment bool          `json:"canExperiment,omitempty" firestore:"canExperiment"`
-	Language      base.Language `json:"language,omitempty" firestore:"language"`
-
-	// used to determine whether to persist asking the user on the UI
-	AskAgainToSetIsTester      bool             `json:"askAgainToSetIsTester,omitempty" firestore:"askAgainToSetIsTester"`
-	AskAgainToSetCanExperiment bool             `json:"askAgainToSetCanExperiment,omitempty" firestore:"askAgainToSetCanExperiment"`
-	VerifiedEmails             []VerifiedEmail  `json:"verifiedEmails,omitempty" firestore:"verifiedEmails"`
-	VerifiedPhones             []VerifiedMsisdn `json:"verifiedPhones,omitempty" firestore:"verifiedPhones"`
-	HasPin                     bool             `json:"hasPin,omitempty" firestore:"hasPin"`
-	HasSupplierAccount         bool             `json:"hasSupplierAccount,omitempty" firestore:"hasSupplierAccount"`
-	HasCustomerAccount         bool             `json:"hasCustomerAccount,omitempty" firestore:"hasCustomerAccount"`
-	PractitionerHasServices    bool             `json:"practitionerHasServices,omitempty" firestore:"practitionerHasServices"`
-}
-
-// IsEntity ...
-func (u UserProfile) IsEntity() {}
-
-// VerifiedEmail ..
-type VerifiedEmail struct {
-	Email    string `json:"email"`
-	Verified bool   `json:"verified"`
-}
-
-// VerifiedMsisdn ..
-type VerifiedMsisdn struct {
-	Msisdn   string `json:"msisdn"`
-	Verified bool   `json:"verified"`
 }
 
 // UserProfileInput is used to create or update a user's profile.
@@ -234,7 +168,7 @@ type SignUpInfo struct {
 
 // Customer used to create a customer request payload
 type Customer struct {
-	UserProfile        UserProfile        `json:"userprofile,omitempty" firestore:"userprofile"`
+	UserProfile        base.UserProfile   `json:"userprofile,omitempty" firestore:"userprofile"`
 	CustomerID         string             `json:"id,omitempty" firestore:"customerid"`
 	ReceivablesAccount ReceivablesAccount `json:"receivables_account,omitempty"`
 	CustomerKYC        CustomerKYC        `json:"customer_kyc,omitempty"`
@@ -317,11 +251,11 @@ type PayablesAccount struct {
 
 // Supplier used to create a supplier request payload
 type Supplier struct {
-	UserProfile     *UserProfile     `json:"userProfile" firestore:"userprofile"`
-	SupplierID      string           `json:"id" firestore:"supplierid"`
-	PayablesAccount *PayablesAccount `json:"payables_account"`
-	SupplierKYC     SupplierKYC      `json:"supplierKYC"`
-	Active          bool             `json:"active" firestore:"active"`
+	UserProfile     *base.UserProfile `json:"userProfile" firestore:"userprofile"`
+	SupplierID      string            `json:"id" firestore:"supplierid"`
+	PayablesAccount *PayablesAccount  `json:"payables_account"`
+	SupplierKYC     SupplierKYC       `json:"supplierKYC"`
+	Active          bool              `json:"active" firestore:"active"`
 }
 
 // StatusResponse creates a status response for requests
