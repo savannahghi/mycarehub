@@ -57,6 +57,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost, http.MethodOptions).HandlerFunc(UpdatePinHandler(ctx))
 	r.Path("/send_retry_otp").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(SendRetryOTPHandler(ctx))
+	r.Path("/verify_phone").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(VerifySignUpPhoneNumber(ctx))
 
 	// check server status.
 	r.Path("/health").HandlerFunc(base.HealthStatusCheck)
@@ -370,6 +374,36 @@ func SendRetryOTPHandler(ctx context.Context) http.HandlerFunc {
 		}
 
 		base.WriteJSONResponse(w, okResp{Status: "ok"}, http.StatusOK)
+
+	}
+}
+
+// VerifySignUpPhoneNumber is an unauthenticated endpoint that does a
+// sanity check on the supplied phone number, that is,
+// it checks if a record of the phone number exists in both our collection and
+// Firebase accounts. If it doesn't then an otp is generated and sent to the phone number.
+func VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s := profile.NewService()
+		type phoneNumber struct {
+			PhoneNumber string `json:"phoneNumber"`
+		}
+		phone := &phoneNumber{}
+
+		base.DecodeJSONToTargetStruct(w, r, phone)
+		if phone.PhoneNumber == "" {
+			err := fmt.Errorf("invalid credentials, expected to receive a phone number")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		response, err := s.VerifySignUpPhoneNumber(ctx, phone.PhoneNumber)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, response, http.StatusOK)
 
 	}
 }

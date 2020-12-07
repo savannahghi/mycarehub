@@ -1331,25 +1331,12 @@ func (s Service) RequestPINReset(ctx context.Context, msisdn string) (string, er
 		return "", fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
 
-	body := map[string]interface{}{
-		"msisdn": phoneNumber,
-	}
-
-	resp, err := s.otp.MakeRequest(http.MethodPost, sendOTP, body)
+	code, err := s.generateAndSendOTP(phoneNumber)
 	if err != nil {
-		return "", fmt.Errorf("unable to generate and send otp: %w", err)
+		return "", fmt.Errorf("can't generate and send an otp to %s: %v", phoneNumber, err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unable to generate and send otp, with status code %v", resp.StatusCode)
-	}
-
-	code, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("unable to convert response to string: %v", err)
-	}
-
-	return string(code), nil
+	return code, nil
 }
 
 // UpdateUserPIN resets a user's pin
@@ -1647,7 +1634,6 @@ func (s Service) SaveMemberCoverToFirestore(ctx context.Context, payerName, memb
 func (s Service) DeleteUser(ctx context.Context, uid string) error {
 	s.checkPreconditions()
 
-	// Get all the other
 	profile, err := s.GetProfile(ctx, uid)
 	if err != nil {
 		return fmt.Errorf("unable to get user profile: %v", err)
@@ -1676,4 +1662,66 @@ func (s Service) DeleteUser(ctx context.Context, uid string) error {
 	}
 
 	return nil
+}
+
+// VerifySignUpPhoneNumber does a sanity check on the supplied phone number, that is,
+// it checks if a record of the phone number exists in both our collection and
+// Firebase accounts. If it doesn't then an otp is generated and sent to the phone number.
+func (s Service) VerifySignUpPhoneNumber(ctx context.Context, phone string) (map[string]interface{}, error) {
+	s.checkPreconditions()
+
+	defaultData := map[string]interface{}{
+		"isNewUser": false,
+		"OTP":       "",
+	}
+
+	phoneNumber, err := base.NormalizeMSISDN(phone)
+	if err != nil {
+		return defaultData, fmt.Errorf("can't normalize the phone number: %v", err)
+	}
+
+	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
+	query := collection.Where("msisdns", "array-contains", phoneNumber)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return defaultData, fmt.Errorf("can't fetch user profile: %v", err)
+	}
+	if len(docs) > 1 && base.IsDebug() {
+		log.Printf("user with phone number %s has > 1 profile (they have %d)", phoneNumber, len(docs))
+	}
+
+	_, userErr := s.firebaseAuth.GetUserByPhoneNumber(ctx, phoneNumber)
+	if userErr != nil || len(docs) == 0 {
+		newUserData := make(map[string]interface{})
+		code, err := s.generateAndSendOTP(phoneNumber)
+		if err != nil {
+			return nil, fmt.Errorf("can't generate and send an otp to %s: %v", phoneNumber, err)
+		}
+		newUserData["OTP"] = code
+		newUserData["isNewUser"] = true
+
+		return newUserData, nil
+	}
+
+	return defaultData, nil
+}
+
+func (s Service) generateAndSendOTP(phone string) (string, error) {
+	body := map[string]interface{}{
+		"msisdn": phone,
+	}
+	defaultOTP := ""
+	resp, err := s.otp.MakeRequest(http.MethodPost, sendOTP, body)
+	if err != nil {
+		return defaultOTP, fmt.Errorf("unable to generate and send otp: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return defaultOTP, fmt.Errorf("unable to generate and send otp, with status code %v", resp.StatusCode)
+	}
+	code, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return defaultOTP, fmt.Errorf("unable to convert response to string: %v", err)
+	}
+
+	return string(code), nil
 }
