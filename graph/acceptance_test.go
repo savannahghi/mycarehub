@@ -3,7 +3,6 @@ package graph_test
 import (
 	"context"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -25,67 +24,9 @@ func TestMSISDNLogin(t *testing.T) {
 		return
 	}
 
-	goodReqInput := map[string]interface{}{}
-	goodReqInput["phonenumber"] = base.TestUserPhoneNumberWithPin
-	goodReqInput["pin"] = base.TestUserPin
-
-	validLoginReq, err := mapToJSONReader(goodReqInput)
-	if err != nil {
-		t.Errorf("unable to get goodReqInput JSON io Reader: %s", err)
-		return
-	}
-
-	incorrectReqInput := map[string]interface{}{}
-	incorrectReqInput["phonenumber"] = "not a real phone number"
-	incorrectReqInput["pin"] = "not a pin"
-
-	invalidLoginReq, err := mapToJSONReader(incorrectReqInput)
-	if err != nil {
-		t.Errorf("unable to get invalidLoginReq JSON io Reader: %s", err)
-		return
-	}
-
-	invalidReqFormatInput := map[string]interface{}{}
-	invalidReqFormatInput["invalidKey"] = "not a real phone number"
-
-	invalidLoginFormatReq, err := mapToJSONReader(invalidReqFormatInput)
-	if err != nil {
-		t.Errorf("unable to get invalidLoginFormatReq JSON io Reader: %s", err)
-		return
-	}
-
-	badReqInput := map[string]interface{}{}
-	badReqInput["phonenumber"] = base.TestUserPhoneNumberWithPin
-	badReqInput["pin"] = "wrong pin number"
-
-	badLoginReq, err := mapToJSONReader(badReqInput)
-	if err != nil {
-		t.Errorf("unable to get badLoginReq JSON io Reader: %s", err)
-		return
-	}
-
-	nonExistentCredReqInput := map[string]interface{}{}
-	nonExistentCredReqInput["phonenumber"] = "+254780654321"
-	nonExistentCredReqInput["pin"] = "0000"
-
-	nonExistentCredLoginReq, err := mapToJSONReader(nonExistentCredReqInput)
-	if err != nil {
-		t.Errorf("unable to get nonExistentCredLoginReq JSON io Reader: %s", err)
-		return
-	}
-
-	noPinCredReqInput := map[string]interface{}{}
-	noPinCredReqInput["phonenumber"] = "+254711223344"
-	noPinCredReqInput["pin"] = "has no pin"
-
-	noPinLoginReq, err := mapToJSONReader(noPinCredReqInput)
-	if err != nil {
-		t.Errorf("unable to get noPinLoginReq JSON io Reader: %s", err)
-		return
-	}
-
 	type args struct {
-		body io.Reader
+		PhoneNumber string
+		Pin         string
 	}
 	tests := []struct {
 		name       string
@@ -96,7 +37,8 @@ func TestMSISDNLogin(t *testing.T) {
 		{
 			name: "correct login credentials",
 			args: args{
-				body: validLoginReq,
+				PhoneNumber: base.TestUserPhoneNumberWithPin,
+				Pin:         base.TestUserPin,
 			},
 			wantStatus: http.StatusOK,
 			wantErr:    false,
@@ -104,7 +46,8 @@ func TestMSISDNLogin(t *testing.T) {
 		{
 			name: "totally incorrect login credentials",
 			args: args{
-				body: invalidLoginReq,
+				PhoneNumber: "not a real phone number",
+				Pin:         "not a pin",
 			},
 			wantStatus: http.StatusInternalServerError,
 			wantErr:    false,
@@ -112,7 +55,7 @@ func TestMSISDNLogin(t *testing.T) {
 		{
 			name: "invalid login credentials format",
 			args: args{
-				body: invalidLoginFormatReq,
+				PhoneNumber: "not a real phone number",
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    false,
@@ -120,7 +63,8 @@ func TestMSISDNLogin(t *testing.T) {
 		{
 			name: "wrong pin credentials",
 			args: args{
-				body: badLoginReq,
+				PhoneNumber: base.TestUserPhoneNumberWithPin,
+				Pin:         "wrong pin number",
 			},
 			wantStatus: http.StatusUnauthorized,
 			wantErr:    false,
@@ -128,7 +72,8 @@ func TestMSISDNLogin(t *testing.T) {
 		{
 			name: "non-existent login credentials",
 			args: args{
-				body: nonExistentCredLoginReq,
+				PhoneNumber: "+254780654321",
+				Pin:         "0000",
 			},
 			wantStatus: http.StatusInternalServerError,
 			wantErr:    false,
@@ -136,7 +81,8 @@ func TestMSISDNLogin(t *testing.T) {
 		{
 			name: "no pin login credentials",
 			args: args{
-				body: noPinLoginReq,
+				PhoneNumber: "+254711223344",
+				Pin:         "has no pin",
 			},
 			wantStatus: http.StatusUnauthorized,
 			wantErr:    false,
@@ -144,10 +90,21 @@ func TestMSISDNLogin(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			requestInput := map[string]interface{}{}
+			requestInput["phonenumber"] = tt.args.PhoneNumber
+			requestInput["pin"] = tt.args.Pin
+
+			body, err := mapToJSONReader(requestInput)
+			if err != nil {
+				t.Errorf("unable to get request JSON io Reader: %s", err)
+				return
+			}
+
 			r, err := http.NewRequest(
 				http.MethodPost,
 				msisdnLoginURL,
-				tt.args.body,
+				body,
 			)
 			if err != nil {
 				t.Errorf("unable to compose request: %s", err)
