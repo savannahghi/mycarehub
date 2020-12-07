@@ -1720,3 +1720,54 @@ func (s Service) generateAndSendOTP(phone string) (string, error) {
 
 	return string(code), nil
 }
+
+// CreateUserProfile creates a user via thier phone number in the database
+func (s Service) CreateUserProfile(phone string) (*base.UserProfile, error) {
+	// prepare user payload for creation
+	uids := []string{}
+	newProfile := &base.UserProfile{
+		ID:                  uuid.New().String(),
+		VerifiedIdentifiers: uids,
+		IsApproved:          false,
+		TermsAccepted:       false,
+		CanExperiment:       false,
+		Msisdns:             []string{phone},
+	}
+	// persist record to the database
+	_, err := base.SaveDataToFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), newProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new user profile: %w", err)
+	}
+	return newProfile, nil
+}
+
+// CreateUserByPhone represents logic to create a user via their phoneNumber
+func (s Service) CreateUserByPhone(ctx context.Context, phoneNumber string) (*CreatedUserResponse, error) {
+	// validate phone number
+	phone, err := base.NormalizeMSISDN(phoneNumber)
+	if err != nil {
+		return nil, fmt.Errorf("NormalizeMSISDN: invalid phone number: %w", err)
+	}
+	// get or create user via thier phone number
+	user, err := base.GetOrCreatePhoneNumberUser(ctx, phone)
+	if err != nil {
+		return nil, fmt.Errorf("CreateFirebasePhoneNumberAuthToken: unable to create firebase user: %w", err)
+	}
+	// generate a token for the user
+	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID)
+	if tokenErr != nil {
+		return nil, fmt.Errorf("CreateFirebaseCustomToken: unable to get or create custom token: %w", tokenErr)
+	}
+	// create a profile for the user
+	userProfile, err := s.CreateUserProfile(phone)
+	if err != nil {
+		return nil, fmt.Errorf("CreateUserProfile: unable to create a profile for the user: %w", err)
+	}
+	// prepare payload to return as response
+	createdUser := &CreatedUserResponse{
+		UserProfile: userProfile,
+		CustomToken: &customToken,
+	}
+	return createdUser, nil
+}

@@ -398,3 +398,105 @@ func TestRequestPinRest(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateUserByPhone(t *testing.T) {
+	client := http.DefaultClient
+	ctx := context.Background()
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+	createUserURL := fmt.Sprintf("%s/%s", baseURL, "create_user")
+	type args struct {
+		phoneNumber string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "successful create user",
+			args: args{
+				phoneNumber: base.TestUserPhoneNumber,
+			},
+			wantStatus: http.StatusCreated,
+			wantErr:    false,
+		},
+		{
+			name: "unsuccessful create user",
+			args: args{
+				phoneNumber: "072222222222568",
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			payload := map[string]interface{}{}
+			payload["msisdn"] = tt.args.phoneNumber
+
+			body, err := mapToJSONReader(payload)
+			if err != nil {
+				t.Errorf("unable to get request JSON io Reader: %s", err)
+				return
+			}
+			r, err := http.NewRequest(
+				http.MethodPost,
+				createUserURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+				r.Header.Add(k, v)
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if data == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d and response %s", tt.wantStatus, resp.StatusCode, string(data))
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+		})
+	}
+}

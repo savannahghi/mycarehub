@@ -61,6 +61,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(VerifySignUpPhoneNumber(ctx))
+	r.Path("/create_user").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(CreateUserByPhoneHandler(ctx))
 
 	// check server status.
 	r.Path("/health").HandlerFunc(base.HealthStatusCheck)
@@ -399,6 +403,27 @@ func VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc {
 		}
 
 		base.WriteJSONResponse(w, response, http.StatusOK)
+
+	}
+}
+
+// CreateUserByPhoneHandler represents an endpoint to create a new user
+func CreateUserByPhoneHandler(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s := profile.NewService()
+		// validate input: check for empty string
+		payload, validateErr := profile.ValidateCreateUserByPhonePayload(w, r)
+		if validateErr != nil {
+			base.ReportErr(w, validateErr, http.StatusBadRequest)
+			return
+		}
+		// create user and return the created user and an auth token
+		user, createErr := s.CreateUserByPhone(ctx, payload.MSISDN)
+		if createErr != nil {
+			base.ReportErr(w, createErr, http.StatusBadRequest)
+			return
+		}
+		base.WriteJSONResponse(w, user, http.StatusCreated)
 
 	}
 }

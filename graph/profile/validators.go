@@ -55,6 +55,18 @@ func ValidateUpdatePinPayload(w http.ResponseWriter, r *http.Request) (*PinRecov
 	return payload, nil
 }
 
+// ValidateCreateUserByPhonePayload checks that the request payload supplied in the indicated request are valid
+func ValidateCreateUserByPhonePayload(w http.ResponseWriter, r *http.Request) (*CreateUserViaPhoneInput, error) {
+	payload := &CreateUserViaPhoneInput{}
+	base.DecodeJSONToTargetStruct(w, r, payload)
+	if payload.MSISDN == "" {
+		err := fmt.Errorf("invalid create user payload, expected a phone number")
+		base.ReportErr(w, err, http.StatusBadRequest)
+		return nil, err
+	}
+	return payload, nil
+}
+
 // ValidateMsisdn checks that the msisdn supplied in the indicated request is valid
 func ValidateMsisdn(w http.ResponseWriter, r *http.Request) (*PinRecovery, error) {
 	data := &PinRecovery{}

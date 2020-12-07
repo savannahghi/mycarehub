@@ -339,3 +339,14 @@ type SupplierKYCInput struct {
 	BusinessNumberDocPhotoBase64      *string                `json:"businessNumberDocPhotoBase64"`
 	BusinessNumberDocPhotoContentType *base.ContentType      `json:"businessNumberDocPhotoContentType"`
 }
+
+// CreatedUserResponse represents payload returned after creating a user
+type CreatedUserResponse struct {
+	UserProfile *base.UserProfile `json:"user_profile"`
+	CustomToken *string           `json:"custom_token"`
+}
+
+// CreateUserViaPhoneInput represents input required to create a user via phoneNumber
+type CreateUserViaPhoneInput struct {
+	MSISDN string `json:"msisdn"`
+}

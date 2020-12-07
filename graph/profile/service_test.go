@@ -1871,3 +1871,50 @@ func TestService_DeleteUser(t *testing.T) {
 		})
 	}
 }
+
+func TestService_CreateUserByPhone(t *testing.T) {
+	service := NewService()
+	ctx := context.Background()
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *auth.UserRecord
+		wantErr bool
+	}{
+		{
+			name: "happy case: create a user",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "+254725120120",
+			},
+			wantErr: false,
+		},
+		{
+			name: "create a user: invalid phone provided",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "725120120000",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			createdUser, err := service.CreateUserByPhone(tt.args.ctx, tt.args.phoneNumber)
+			if !tt.wantErr {
+				assert.NotNil(t, createdUser.UserProfile)
+				assert.NotNil(t, createdUser.CustomToken)
+				assert.Equal(t, tt.args.phoneNumber, createdUser.UserProfile.Msisdns[0])
+			}
+			if tt.wantErr {
+				assert.NotNil(t, err)
+				return
+			}
+		})
+	}
+}
