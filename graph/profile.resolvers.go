@@ -84,13 +84,13 @@ func (r *mutationResolver) RejectPractitionerSignup(ctx context.Context, practit
 	return r.profileService.RejectPractitionerSignup(ctx)
 }
 
-func (r *mutationResolver) SetUserPin(ctx context.Context, msisdn string, pin int) (bool, error) {
+func (r *mutationResolver) SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.SetUserPIN(ctx, msisdn, pin)
 }
 
-func (r *mutationResolver) UpdateUserPin(ctx context.Context, msisdn string, pin int, otp string) (bool, error) {
+func (r *mutationResolver) UpdateUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.UpdateUserPIN(ctx, msisdn, pin, otp)
@@ -217,7 +217,7 @@ func (r *queryResolver) IsUnderAge(ctx context.Context) (bool, error) {
 	return r.profileService.IsUnderAge(ctx)
 }
 
-func (r *queryResolver) VerifyMSISDNandPin(ctx context.Context, msisdn string, pin int) (bool, error) {
+func (r *queryResolver) VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.VerifyMSISDNandPIN(ctx, msisdn, pin)

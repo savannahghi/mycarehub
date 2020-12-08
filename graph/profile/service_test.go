@@ -1004,7 +1004,7 @@ func TestService_SetUserPin(t *testing.T) {
 	type args struct {
 		ctx    context.Context
 		msisdn string
-		pin    int
+		pin    string
 	}
 	tests := []struct {
 		name    string
@@ -1018,7 +1018,7 @@ func TestService_SetUserPin(t *testing.T) {
 			args: args{
 				ctx:    ctx,
 				msisdn: base.TestUserPhoneNumber,
-				pin:    1234,
+				pin:    "1234",
 			},
 			want:    true,
 			wantErr: false,
@@ -1030,7 +1030,7 @@ func TestService_SetUserPin(t *testing.T) {
 			args: args{
 				ctx:    ctx,
 				msisdn: base.TestUserPhoneNumber,
-				pin:    5645,
+				pin:    "5645",
 			},
 			want:    true,
 			wantErr: false,
@@ -1060,7 +1060,7 @@ func TestService_SetUserPin(t *testing.T) {
 func TestService_RetrievePINFirebaseDocSnapshotByMSISDN(t *testing.T) {
 	service := NewService()
 	ctx := base.GetPhoneNumberAuthenticatedContext(t)
-	set, err := service.SetUserPIN(ctx, "+254703754685", 1234)
+	set, err := service.SetUserPIN(ctx, "+254703754685", "1234")
 	if !set {
 		t.Errorf("setting a pin for test user failed. It returned false")
 	}
@@ -1110,7 +1110,7 @@ func TestService_VerifyMSISDNandPin(t *testing.T) {
 	type args struct {
 		ctx    context.Context
 		msisdn string
-		pin    int
+		pin    string
 	}
 	tests := []struct {
 		name    string
@@ -1123,7 +1123,7 @@ func TestService_VerifyMSISDNandPin(t *testing.T) {
 			args: args{
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
 				msisdn: base.TestUserPhoneNumber,
-				pin:    1234,
+				pin:    "1234",
 			},
 			want:    true,
 			wantErr: false,
@@ -1133,7 +1133,7 @@ func TestService_VerifyMSISDNandPin(t *testing.T) {
 			args: args{
 				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
 				msisdn: "not even close to an msisdn",
-				pin:    1256,
+				pin:    "1256",
 			},
 			want:    false,
 			wantErr: true,
@@ -1157,7 +1157,7 @@ func TestService_VerifyMSISDNandPin(t *testing.T) {
 func TestService_CheckHasPin(t *testing.T) {
 	service := NewService()
 	ctx := base.GetPhoneNumberAuthenticatedContext(t)
-	set, err := service.SetUserPIN(ctx, base.TestUserPhoneNumber, 1234)
+	set, err := service.SetUserPIN(ctx, base.TestUserPhoneNumber, "1234")
 	if !set {
 		t.Errorf("setting a pin for test user failed. It returned false")
 	}
@@ -1179,7 +1179,7 @@ func TestService_CheckHasPin(t *testing.T) {
 			name: "happy case: the user has a pin",
 			args: args{
 				ctx:    ctx,
-				msisdn: base.TestUserPhoneNumber,
+				msisdn: "+254711223344",
 			},
 			want:    true,
 			wantErr: false,

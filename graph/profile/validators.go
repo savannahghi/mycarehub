@@ -47,7 +47,7 @@ func ValidateEmail(email, verificationCode string, firestoreClient *firestore.Cl
 func ValidateUpdatePinPayload(w http.ResponseWriter, r *http.Request) (*PinRecovery, error) {
 	payload := &PinRecovery{}
 	base.DecodeJSONToTargetStruct(w, r, payload)
-	if payload.MSISDN == "" || payload.PINNumber == 0 || payload.OTP == "" {
+	if payload.MSISDN == "" || payload.PINNumber == "" || payload.OTP == "" {
 		err := fmt.Errorf("invalid pin update payload, expected a phone number, pin and an otp")
 		base.ReportErr(w, err, http.StatusBadRequest)
 		return nil, err

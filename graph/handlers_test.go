@@ -512,7 +512,7 @@ func TestGraphQLUpdatePin(t *testing.T) {
 	gql := map[string]interface{}{}
 	gql["query"] = `
 	mutation updateUserPIN{
-		updateUserPIN(msisdn: "+254711223344", pin: 1234, otp: "654789")
+		updateUserPIN(msisdn: "+254711223344", pin: "1234", otp: "654789")
 	}
 	`
 
@@ -600,7 +600,7 @@ func TestUpdatePinHandler(t *testing.T) {
 	client := http.DefaultClient
 	pinRecovery := profile.PinRecovery{
 		MSISDN:    base.TestUserPhoneNumber,
-		PINNumber: 1234,
+		PINNumber: "4565",
 		OTP:       strconv.Itoa(rand.Int()),
 	}
 	bs, err := json.Marshal(pinRecovery)
@@ -712,7 +712,7 @@ func TestRequestPinResetHandler(t *testing.T) {
 		t.Errorf("nil context")
 		return
 	}
-	set, err := srv.SetUserPIN(ctx, base.TestUserPhoneNumber, 1234)
+	set, err := srv.SetUserPIN(ctx, base.TestUserPhoneNumber, "1234")
 	if !set {
 		t.Errorf("setting a pin for test user failed. It returned false")
 	}

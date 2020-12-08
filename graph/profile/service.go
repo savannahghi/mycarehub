@@ -1156,7 +1156,7 @@ func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
 
 //SetUserPIN receives phone number and pin from phonenumber sign up
 // and save them to Firestore
-func (s Service) SetUserPIN(ctx context.Context, msisdn string, pin int) (bool, error) {
+func (s Service) SetUserPIN(ctx context.Context, msisdn string, pin string) (bool, error) {
 	s.checkPreconditions()
 	// retrieve profile linked to this user
 	profile, err := s.UserProfile(ctx)
@@ -1173,19 +1173,25 @@ func (s Service) SetUserPIN(ctx context.Context, msisdn string, pin int) (bool, 
 	if err != nil {
 		return false, fmt.Errorf("unable to check if the user has a PIN: %v", err)
 	}
-	// return PIN for user if they already have one
+	// return true if the user already have one
 	if exists {
 		if base.IsDebug() {
 			log.Printf("user with msisdn %s has more than one PINs)", msisdn)
 		}
 		return true, nil
 	}
+	// EncryptPIN the PIN
+	encryptedPin, err := EncryptPIN(pin)
+	if err != nil {
+		return false, fmt.Errorf("unable to encrypt PIN: %w", err)
+	}
+
 	// we link the PIN to their profile
 	// one profile should have one PIN
 	PINPayload := PIN{
 		ProfileID: profile.ID,
 		MSISDN:    phoneNumber,
-		PINNumber: pin,
+		PINNumber: encryptedPin,
 		IsValid:   true,
 	}
 
@@ -1210,7 +1216,7 @@ func (s Service) SetUserPIN(ctx context.Context, msisdn string, pin int) (bool, 
 }
 
 // VerifyMSISDNandPIN verifies a given msisdn and pin match.
-func (s Service) VerifyMSISDNandPIN(ctx context.Context, msisdn string, pinNumber int) (bool, error) {
+func (s Service) VerifyMSISDNandPIN(ctx context.Context, msisdn string, pinNumber string) (bool, error) {
 	s.checkPreconditions()
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
@@ -1220,14 +1226,21 @@ func (s Service) VerifyMSISDNandPIN(ctx context.Context, msisdn string, pinNumbe
 	if err != nil {
 		return false, fmt.Errorf("unable to retrieve pin given the msisdn: %v", err)
 	}
+	if dsnap == nil {
+		return false, fmt.Errorf("VerifyMSISDNandPIN: unable to retrieve user PIN")
+	}
 
 	msisdnPin := &PIN{}
 	err = dsnap.DataTo(msisdnPin)
 	if err != nil {
 		return false, fmt.Errorf("unable to read PIN: %w", err)
 	}
-
-	if msisdnPin.PINNumber != pinNumber {
+	// compare if the two PINS match
+	isMatch, err := ComparePIN(msisdnPin.PINNumber, pinNumber)
+	if err != nil {
+		return false, fmt.Errorf("unable to match PIN Number provided: %w", err)
+	}
+	if !isMatch {
 		return false, nil
 	}
 
@@ -1336,7 +1349,7 @@ func (s Service) RequestPINReset(ctx context.Context, msisdn string) (string, er
 }
 
 // UpdateUserPIN resets a user's pin
-func (s Service) UpdateUserPIN(ctx context.Context, msisdn string, pin int, otp string) (bool, error) {
+func (s Service) UpdateUserPIN(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
 	s.checkPreconditions()
 
 	exists, err := s.CheckHasPIN(ctx, msisdn)
@@ -1361,14 +1374,21 @@ func (s Service) UpdateUserPIN(ctx context.Context, msisdn string, pin int, otp 
 	if err != nil {
 		return false, err
 	}
-
+	if dsnap == nil {
+		return false, fmt.Errorf("UpdateUserPIN: unable to retrieve user PIN")
+	}
 	msisdnPIN := &PIN{}
 	err = dsnap.DataTo(msisdnPIN)
 	if err != nil {
 		return false, fmt.Errorf("unable to read PIN: %w", err)
 	}
+	// encrypt the PIN
+	encryptedPin, err := EncryptPIN(pin)
+	if err != nil {
+		return false, fmt.Errorf("unable to encrypt PIN: %w", err)
+	}
 
-	msisdnPIN.PINNumber = pin
+	msisdnPIN.PINNumber = encryptedPin
 
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetPINCollectionName(), dsnap.Ref.ID, msisdnPIN,

@@ -144,14 +144,14 @@ type PostVisitSurvey struct {
 type PIN struct {
 	ProfileID string `json:"profile_id" firestore:"profileID"`
 	MSISDN    string `json:"msisdn,omitempty" firestore:"msisdn"`
-	PINNumber int    `json:"pin_number" firestore:"PINNumber"`
+	PINNumber string `json:"pin_number" firestore:"PINNumber"`
 	IsValid   bool   `json:"isValid,omitempty" firestore:"isValid"`
 }
 
 // PinRecovery stores information required in resetting and updating a forgotten pin
 type PinRecovery struct {
 	MSISDN    string `json:"msisdn" firestore:"msisdn"`
-	PINNumber int    `json:"pin_number" firestore:"PINNumber"`
+	PINNumber string `json:"pin_number" firestore:"PINNumber"`
 	OTP       string `json:"otp" firestore:"otp"`
 }
 

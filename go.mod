@@ -24,6 +24,8 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
 	gitlab.slade360emr.com/go/base v0.0.75
+	gitlab.slade360emr.com/go/uploads v0.0.9 // indirect
+	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c
 	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb // indirect
 	golang.org/x/oauth2 v0.0.0-20201207163604-931764155e3f // indirect
 	golang.org/x/sys v0.0.0-20201204225414-ed752295db88 // indirect
