@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -37,12 +38,12 @@ func TestMSISDNLogin(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "correct login credentials",
+			name: "correct format login credentials but PIN is not registered",
 			args: args{
 				PhoneNumber: base.TestUserPhoneNumberWithPin,
 				Pin:         base.TestUserPin,
 			},
-			wantStatus: http.StatusOK,
+			wantStatus: http.StatusUnauthorized,
 			wantErr:    false,
 		},
 		{
@@ -150,6 +151,7 @@ func TestMSISDNLogin(t *testing.T) {
 			}
 
 			if tt.wantStatus != resp.StatusCode {
+				log.Printf("raw response: %s", string(data))
 				t.Errorf("statusCode = %v, wantStatus %v", resp.StatusCode, tt.wantStatus)
 				return
 			}
@@ -314,13 +316,13 @@ func TestRequestPinRest(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "valid case",
+			name: "invalid case - PIN that is not registered",
 			args: args{
 				msisdn:    base.TestUserPhoneNumberWithPin,
 				PINNumber: base.TestUserPin,
-				otp:       "1234",
+				otp:       "1234", // this is not an existing/valid PIN
 			},
-			wantStatus: http.StatusOK,
+			wantStatus: http.StatusBadRequest,
 			wantErr:    false,
 		},
 		{
@@ -394,6 +396,7 @@ func TestRequestPinRest(t *testing.T) {
 			}
 
 			if tt.wantStatus != resp.StatusCode {
+				log.Printf("raw response: %s", string(data))
 				t.Errorf("statusCode = %v, wantStatus %v", resp.StatusCode, tt.wantStatus)
 				return
 			}

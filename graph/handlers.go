@@ -90,7 +90,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost).HandlerFunc(RetrieveUserProfileHandler(ctx, srv))
 
 	isc.Path("/save_cover").Methods(http.MethodPost).HandlerFunc(SaveMemberCoverToFirestoreHandler(ctx, srv))
-
 	isc.Path("/is_underage").Methods(http.MethodPost).HandlerFunc(IsUnderAgeHandler(ctx, srv))
 	isc.Path("/user_profile").Methods(http.MethodPost).HandlerFunc(UserProfileHandler(ctx, srv))
 
@@ -243,65 +242,103 @@ func RetrieveUserProfileHandler(ctx context.Context, srv *profile.Service) http.
 }
 
 // SaveMemberCoverToFirestoreHandler process ISC requests to SaveMemberCoverToFirestore
-func SaveMemberCoverToFirestoreHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
+func SaveMemberCoverToFirestoreHandler(
+	ctx context.Context,
+	srv *profile.Service,
+) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-
 		type Payload struct {
-			PayerName      string      `json:"payerName"`
-			MemberName     string      `json:"memberName"`
-			MemberNumber   string      `json:"memberNumber"`
-			PayerSladeCode int         `json:"payerSladeCode"`
-			UUID           string      `json:"uid"`
-			Token          *auth.Token `json:"token"`
+			PayerName      string `json:"payerName"`
+			MemberName     string `json:"memberName"`
+			MemberNumber   string `json:"memberNumber"`
+			PayerSladeCode int    `json:"payerSladeCode"`
+			UID            string `json:"uid"`
 		}
 
 		payload := &Payload{}
-
 		base.DecodeJSONToTargetStruct(rw, r, payload)
-
-		if payload.Token == nil {
-			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("bad token provided"))
+		if payload == nil {
+			base.RespondWithError(
+				rw,
+				http.StatusBadRequest,
+				fmt.Errorf("no cover payload sent"),
+			)
+			return
+		}
+		if payload.UID == "" {
+			base.RespondWithError(
+				rw,
+				http.StatusBadRequest,
+				fmt.Errorf("no uid provided"),
+			)
 			return
 		}
 
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, payload.Token)
-
-		err := srv.SaveMemberCoverToFirestore(newContext, payload.PayerName, payload.MemberNumber, payload.MemberName, payload.PayerSladeCode)
-
+		token := &auth.Token{UID: payload.UID}
+		authenticatedContext := context.WithValue(
+			ctx, base.AuthTokenContextKey, token)
+		err := srv.SaveMemberCoverToFirestore(
+			authenticatedContext,
+			payload.PayerName,
+			payload.MemberNumber,
+			payload.MemberName,
+			payload.PayerSladeCode,
+		)
 		if err != nil {
-			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("failed to save cover"))
+			base.RespondWithError(
+				rw,
+				http.StatusBadRequest,
+				fmt.Errorf("failed to save cover"),
+			)
 			return
 		}
 
 		type ResponsePayload struct {
-			SuccessfulySaved bool `json:"successfullySaved"`
+			SuccessfullySaved bool `json:"successfullySaved"`
 		}
-
-		base.WriteJSONResponse(rw, ResponsePayload{SuccessfulySaved: true}, http.StatusOK)
+		base.WriteJSONResponse(
+			rw,
+			ResponsePayload{SuccessfullySaved: true},
+			http.StatusOK,
+		)
 	}
 }
 
 // IsUnderAgeHandler process ISC requests to IsUnderAge
-func IsUnderAgeHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
+func IsUnderAgeHandler(
+	ctx context.Context,
+	srv *profile.Service,
+) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		type UserContext struct {
-			Token *auth.Token `json:"token"`
+			UID string `json:"uid"`
 		}
 		var userContext *UserContext
 		base.DecodeJSONToTargetStruct(rw, r, &userContext)
 		if userContext == nil {
-			err := fmt.Errorf("invalid credetials")
-			base.RespondWithError(rw, http.StatusBadRequest, err)
+			base.RespondWithError(
+				rw,
+				http.StatusBadRequest,
+				fmt.Errorf("invalid credetials"),
+			)
+			return
+		}
+		if userContext.UID == "" {
+			base.RespondWithError(
+				rw,
+				http.StatusBadRequest,
+				fmt.Errorf("blank UID"),
+			)
 			return
 		}
 
-		if userContext.Token == nil {
-			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("bad token provided"))
-			return
-		}
-
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, userContext.Token)
-		isUnderAge, err := srv.IsUnderAge(newContext)
+		token := &auth.Token{UID: userContext.UID}
+		authenticatedContext := context.WithValue(
+			ctx,
+			base.AuthTokenContextKey,
+			token,
+		)
+		isUnderAge, err := srv.IsUnderAge(authenticatedContext)
 
 		if err != nil {
 			base.RespondWithError(rw, http.StatusInternalServerError, err)
@@ -310,11 +347,9 @@ func IsUnderAgeHandler(ctx context.Context, srv *profile.Service) http.HandlerFu
 		type Payload struct {
 			IsUnderAge bool `json:"isUnderAge"`
 		}
-
 		payload := Payload{
 			IsUnderAge: isUnderAge,
 		}
-
 		base.WriteJSONResponse(rw, payload, http.StatusOK)
 	}
 }

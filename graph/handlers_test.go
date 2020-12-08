@@ -885,25 +885,32 @@ func TestRetrieveUserProfileFirebaseDocSnapshotHandler(t *testing.T) {
 }
 
 func TestSaveMemberCoverToFirestoreHandler(t *testing.T) {
-
 	ctx := base.GetAuthenticatedContext(t)
-	assert.NotNil(t, ctx, "context should not be nil")
+	if ctx == nil {
+		t.Error("nil context")
+		return
+	}
 
 	aut := ctx.Value(base.AuthTokenContextKey).(*auth.Token)
-	assert.NotNil(t, aut, "auth should not be nil")
+	if aut == nil {
+		t.Errorf("nil auth token")
+		return
+	}
 
 	srv := profile.NewService()
-	assert.NotNil(t, srv, "service is nil")
+	if srv == nil {
+		t.Errorf("nil profile service")
+		return
+	}
 
 	handler := graph.SaveMemberCoverToFirestoreHandler(ctx, srv)
 
 	type Payload struct {
-		PayerName      string      `json:"payerName"`
-		MemberName     string      `json:"memberName"`
-		MemberNumber   string      `json:"memberNumber"`
-		PayerSladeCode int         `json:"payerSladeCode"`
-		UUID           string      `json:"uid"`
-		Token          *auth.Token `json:"token"`
+		PayerName      string `json:"payerName"`
+		MemberName     string `json:"memberName"`
+		MemberNumber   string `json:"memberNumber"`
+		PayerSladeCode int    `json:"payerSladeCode"`
+		UID            string `json:"uid"`
 	}
 
 	type args struct {
@@ -922,9 +929,8 @@ func TestSaveMemberCoverToFirestoreHandler(t *testing.T) {
 					PayerName:      "UAP",
 					MemberName:     "Jakaya",
 					MemberNumber:   "133",
-					PayerSladeCode: 144,
-					Token:          aut,
-					UUID:           aut.UID,
+					PayerSladeCode: 457,
+					UID:            aut.UID,
 				},
 				rw: httptest.NewRecorder(),
 			},
@@ -939,8 +945,7 @@ func TestSaveMemberCoverToFirestoreHandler(t *testing.T) {
 					MemberNumber:   "132",
 					PayerName:      "APA",
 					PayerSladeCode: 111,
-					Token:          nil,
-					UUID:           aut.UID,
+					UID:            "",
 				},
 				rw: httptest.NewRecorder(),
 			},
@@ -950,45 +955,80 @@ func TestSaveMemberCoverToFirestoreHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			payloadJson, err := json.Marshal(tt.args.payload)
-			assert.Nil(t, err, "failed to marshal payload")
-			assert.NotNil(t, payloadJson, "payload is nil")
+			if err != nil {
+				t.Errorf("can't marshal payload to JSON")
+				return
+			}
+			if payloadJson == nil {
+				t.Errorf("nil JSON payload")
+				return
+			}
 
 			request := httptest.NewRequest(http.MethodPost, "/", nil)
 			request.Body = ioutil.NopCloser(bytes.NewReader(payloadJson))
-
 			handler(tt.args.rw, request)
 
 			response, ok := tt.args.rw.(*httptest.ResponseRecorder)
+			if response == nil {
+				t.Errorf("nil response")
+				return
+			}
+			if !ok {
+				t.Errorf(
+					"expected response to be a *httptest.ResponseRecorder")
+				return
+			}
 
-			assert.True(t, ok)
-			assert.NotNil(t, response, "response should not be nil")
+			if response.Code != tt.want {
+				t.Errorf(
+					"expected status code %d, got %d", tt.want, response.Code)
 
-			assert.Equal(t, tt.want, response.Code)
+				data, err := ioutil.ReadAll(response.Body)
+				if err != nil {
+					t.Errorf("can't read response body")
+					return
+				}
 
+				log.Printf("raw response data: \n%s\n", string(data))
+
+				return
+			}
 		})
 	}
 }
 
 func TestIsUnderAgeHandler(t *testing.T) {
-
 	ctx := base.GetAuthenticatedContext(t)
-	assert.NotNil(t, ctx, "context should not be nil")
+	if ctx == nil {
+		t.Error("nil context")
+		return
+	}
 
 	aut := ctx.Value(base.AuthTokenContextKey).(*auth.Token)
-	assert.NotNil(t, aut, "auth should not be nil")
+	if aut == nil {
+		t.Errorf("nil auth token")
+		return
+	}
 
 	srv := profile.NewService()
-	assert.NotNil(t, srv, "service is nil")
+	if srv == nil {
+		t.Errorf("nil profile service")
+		return
+	}
 
 	fc := &base.FirebaseClient{}
 	fa, err := fc.InitFirebase()
 	if err != nil {
-		t.Errorf("can't initialize Firebase app when setting up profile service: %s", err)
+		t.Errorf("can't initialize Firebase app: %s", err)
+		return
 	}
 	firestore, err := fa.Firestore(context.Background())
 	if err != nil {
-		t.Errorf("can't initialize Firestore client when setting up profile service: %s", err)
+		t.Errorf(
+			"can't initialize Firestore client: %s", err)
+		return
 	}
+
 	profile, err := srv.UserProfile(ctx)
 	if profile == nil {
 		t.Errorf("expected a profile")
@@ -998,6 +1038,7 @@ func TestIsUnderAgeHandler(t *testing.T) {
 		t.Errorf("did not expect an error: %v", err)
 		return
 	}
+
 	date := &base.Date{
 		Year:  1997,
 		Month: 12,
@@ -1006,20 +1047,23 @@ func TestIsUnderAgeHandler(t *testing.T) {
 	profile.DateOfBirth = date
 	dsnap, err := srv.RetrieveUserProfileFirebaseDocSnapshot(ctx)
 	if err != nil {
-		t.Errorf("got %v, want %v", err, nil)
+		t.Errorf("can't retrieve user profile firebase snapshot: %v", err)
+		return
 	}
+
 	err = base.UpdateRecordOnFirestore(
 		firestore, srv.GetUserProfileCollectionName(),
 		dsnap.Ref.ID, profile,
 	)
 	if err != nil {
-		t.Errorf("got %v, want %v", err, nil)
+		t.Errorf("can't update user profile on Firebase: %v", err)
+		return
 	}
 
 	handler := graph.IsUnderAgeHandler(ctx, srv)
 
 	type UserContext struct {
-		Token *auth.Token `json:"token"`
+		UID string `json:"uid"`
 	}
 
 	type args struct {
@@ -1032,10 +1076,10 @@ func TestIsUnderAgeHandler(t *testing.T) {
 		rw   http.ResponseWriter
 	}{
 		{
-			name: "Valid case",
+			name: "valid case - valid UID",
 			args: args{
 				UserContext{
-					Token: aut,
+					UID: aut.UID,
 				},
 			},
 			rw:   httptest.NewRecorder(),
@@ -1043,10 +1087,10 @@ func TestIsUnderAgeHandler(t *testing.T) {
 		},
 
 		{
-			name: "invalid case",
+			name: "invalid case - blank UID",
 			args: args{
 				UserContext{
-					Token: nil,
+					UID: "",
 				},
 			},
 			rw:   httptest.NewRecorder(),
@@ -1056,8 +1100,14 @@ func TestIsUnderAgeHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			payloadJson, err := json.Marshal(tt.args.userContext)
-			assert.Nil(t, err, "failed to marshal payload")
-			assert.NotNil(t, payloadJson, "payload is nil")
+			if err != nil {
+				t.Errorf("can't marshal payload to JSON")
+				return
+			}
+			if payloadJson == nil {
+				t.Errorf("nil JSON payload")
+				return
+			}
 
 			request := httptest.NewRequest(http.MethodPost, "/", nil)
 			request.Body = ioutil.NopCloser(bytes.NewReader(payloadJson))
@@ -1065,12 +1115,30 @@ func TestIsUnderAgeHandler(t *testing.T) {
 			handler(tt.rw, request)
 
 			response, ok := tt.rw.(*httptest.ResponseRecorder)
+			if response == nil {
+				t.Errorf("nil response")
+				return
+			}
+			if !ok {
+				t.Errorf(
+					"expected response to be a *httptest.ResponseRecorder")
+				return
+			}
 
-			assert.True(t, ok)
-			assert.NotNil(t, response, "response should not be nil")
+			if response.Code != tt.want {
+				t.Errorf(
+					"expected status code %d, got %d", tt.want, response.Code)
 
-			assert.Equal(t, tt.want, response.Code)
+				data, err := ioutil.ReadAll(response.Body)
+				if err != nil {
+					t.Errorf("can't read response body")
+					return
+				}
 
+				log.Printf("raw response data: \n%s\n", string(data))
+
+				return
+			}
 		})
 	}
 }
