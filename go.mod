@@ -10,8 +10,9 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
-	github.com/aws/aws-sdk-go v1.36.2 // indirect
+	github.com/aws/aws-sdk-go v1.36.3 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
+	github.com/getsentry/sentry-go v0.9.0 // indirect
 	github.com/google/pprof v0.0.0-20201203190320-1bf35d6f28c2 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/handlers v1.5.1
@@ -24,12 +25,12 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
 	gitlab.slade360emr.com/go/base v0.0.75
-	gitlab.slade360emr.com/go/uploads v0.0.9 // indirect
 	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c
-	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb // indirect
+	golang.org/x/net v0.0.0-20201207224615-747e23833adb // indirect
 	golang.org/x/oauth2 v0.0.0-20201207163604-931764155e3f // indirect
-	golang.org/x/sys v0.0.0-20201204225414-ed752295db88 // indirect
-	golang.org/x/tools v0.0.0-20201207165404-05664e2e8d55 // indirect
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
+	golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d // indirect
+	golang.org/x/tools v0.0.0-20201208062317-e652b2f42cc7 // indirect
 	google.golang.org/api v0.36.0
 	google.golang.org/genproto v0.0.0-20201207150747-9ee31aac76e7 // indirect
 	google.golang.org/grpc v1.34.0 // indirect

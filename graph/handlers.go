@@ -3,6 +3,7 @@ package graph
 import (
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -362,17 +363,23 @@ func SendRetryOTPHandler(ctx context.Context) http.HandlerFunc {
 			return
 		}
 
-		_, updateErr := s.SendRetryOTP(ctx, payload.Msisdn, payload.RetryStep)
+		code, updateErr := s.SendRetryOTP(ctx, payload.Msisdn, payload.RetryStep)
 		if updateErr != nil {
 			base.ReportErr(w, updateErr, http.StatusBadRequest)
 			return
 		}
 
-		type okResp struct {
-			Status string `json:"status"`
+		type OTPResponse struct {
+			OTP string `json:"otp"`
+		}
+		jsonBytes := []byte(code)
+		otpResponse := OTPResponse{}
+		err := json.Unmarshal(jsonBytes, &otpResponse)
+		if err != nil {
+			return
 		}
 
-		base.WriteJSONResponse(w, okResp{Status: "ok"}, http.StatusOK)
+		base.WriteJSONResponse(w, otpResponse, http.StatusOK)
 
 	}
 }
