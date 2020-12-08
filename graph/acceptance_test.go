@@ -490,7 +490,6 @@ func TestCreateUserByPhone(t *testing.T) {
 				t.Errorf("nil response body data")
 				return
 			}
-
 			if tt.wantStatus != resp.StatusCode {
 				t.Errorf("expected status %d, got %d and response %s", tt.wantStatus, resp.StatusCode, string(data))
 				return
