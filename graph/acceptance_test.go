@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"testing"
 
@@ -479,6 +480,120 @@ func TestCreateUserByPhone(t *testing.T) {
 			}
 
 			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if data == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d and response %s", tt.wantStatus, resp.StatusCode, string(data))
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+		})
+	}
+}
+
+func TestVerifySignUpPhoneNumber(t *testing.T) {
+	client := http.DefaultClient
+	ctx := context.Background()
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+	headers := base.GetDefaultHeaders(t, baseURL, "profile")
+
+	VerifyPhoneURL := fmt.Sprintf("%s/%s", baseURL, "verify_phone")
+	type args struct {
+		phoneNumber string
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		want       map[string]interface{}
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "successful verification of an existing user",
+			args: args{
+				phoneNumber: base.TestUserPhoneNumber,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+			want: map[string]interface{}{
+				"isNewUser": false,
+				"OTP":       "",
+			},
+		},
+		{
+			name: "successful verification of a nonexisting user",
+			args: args{
+				phoneNumber: "0722222222",
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true, // Returns an error with status 401 due to an external isc call to otp service
+			want: map[string]interface{}{
+				"isNewUser": true,
+				"OTP":       "1234",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			payload := map[string]interface{}{}
+			payload["phoneNumber"] = tt.args.phoneNumber
+
+			body, err := mapToJSONReader(payload)
+			if err != nil {
+				t.Errorf("unable to get request JSON io Reader: %s", err)
+				return
+			}
+			r, err := http.NewRequest(
+				http.MethodPost,
+				VerifyPhoneURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			log.Printf("Data...%v", data)
 			if err != nil {
 				t.Errorf("can't read response body: %v", err)
 				return

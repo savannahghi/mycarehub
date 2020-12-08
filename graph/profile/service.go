@@ -1714,9 +1714,12 @@ func (s Service) VerifySignUpPhoneNumber(ctx context.Context, phone string) (map
 	if len(docs) > 1 && base.IsDebug() {
 		log.Printf("user with phone number %s has > 1 profile (they have %d)", phoneNumber, len(docs))
 	}
+	if len(docs) == 0 && base.IsDebug() {
+		log.Printf("user with phone number %s has no user profile", phoneNumber)
+	}
 
 	_, userErr := s.firebaseAuth.GetUserByPhoneNumber(ctx, phoneNumber)
-	if userErr != nil || len(docs) == 0 {
+	if userErr != nil {
 		newUserData := make(map[string]interface{})
 		code, err := s.generateAndSendOTP(phoneNumber)
 		if err != nil {
