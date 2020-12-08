@@ -26,6 +26,17 @@ export AIT_ENVIRONMENT=sandbox
 
 # Go private modules
 export GOPRIVATE="gitlab.slade360emr.com/go/*,gitlab.slade360emr.com/optimalhealth/*"
+
+# Charge Master API settings
+export CHARGE_MASTER_API_HOST="<a charge master API host>"
+export CHARGE_MASTER_API_SCHEME=https
+export CHARGE_MASTER_TOKEN_URL="<an auth server token URL>"
+export CHARGE_MASTER_CLIENT_ID="<an auth server client ID>"
+export export CHARGE_MASTER_CLIENT_SECRET="<an auth server client secret>"
+export CHARGE_MASTER_USERNAME="<an auth server username>"
+export CHARGE_MASTER_PASSWORD="<an auth server password>"
+export CHARGE_MASTER_GRANT_TYPE="<an auth server grant type>"
+
 ```
 
 The server deploys to Google Cloud Run. The environment variables defined above

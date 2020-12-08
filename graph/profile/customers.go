@@ -60,7 +60,7 @@ func (s Service) AddCustomer(ctx context.Context, uid *string, name string) (*Cu
 	}
 
 	if len(docs) == 0 {
-		currency, err := base.FetchDefaultCurrency(s.client)
+		currency, err := base.FetchDefaultCurrency(s.erpClient)
 		if err != nil {
 			return nil, fmt.Errorf("unable to fetch orgs default currency: %v", err)
 		}
@@ -81,7 +81,7 @@ func (s Service) AddCustomer(ctx context.Context, uid *string, name string) (*Cu
 			UserProfile: *profile,
 		}
 
-		if err := base.ReadRequestToTarget(s.client, "POST", customerAPIPath, "", content, &newCustomer); err != nil {
+		if err := base.ReadRequestToTarget(s.erpClient, "POST", customerAPIPath, "", content, &newCustomer); err != nil {
 			return nil, fmt.Errorf("unable to make request to the ERP: %v", err)
 		}
 
@@ -352,7 +352,7 @@ func (s Service) SuspendCustomer(ctx context.Context, uid string) (bool, error) 
 	}
 
 	customerPath := fmt.Sprintf("%s%s/", customerAPIPath, customer.CustomerID)
-	if err := base.ReadRequestToTarget(s.client, "PATCH", customerPath, "", content, &customer); err != nil {
+	if err := base.ReadRequestToTarget(s.erpClient, "PATCH", customerPath, "", content, &customer); err != nil {
 		return false, fmt.Errorf("unable to make request to the ERP: %v", err)
 	}
 

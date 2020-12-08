@@ -93,6 +93,14 @@ func NewService() *Service {
 		log.Panicf("uninitialized ERP client")
 	}
 
+	chargemasterClient, err := NewChargeMasterClient()
+	if err != nil {
+		log.Panicf("unable to initialize chargemaster client for profile service: %s", err)
+	}
+	if !chargemasterClient.IsInitialized() {
+		log.Panicf("uninitialized chargemaster client")
+	}
+
 	var mailgunClient *base.InterServiceClient
 
 	mailgunClient, err = base.SetupISCclient(config, mailgunService)
@@ -109,11 +117,12 @@ func NewService() *Service {
 	}
 
 	return &Service{
-		firestoreClient: firestore,
-		firebaseAuth:    auth,
-		client:          erpClient,
-		mailgun:         mailgunClient,
-		otp:             otpClient,
+		firestoreClient:    firestore,
+		firebaseAuth:       auth,
+		erpClient:          erpClient,
+		mailgun:            mailgunClient,
+		otp:                otpClient,
+		chargemasterClient: chargemasterClient,
 	}
 }
 
@@ -123,9 +132,10 @@ type Service struct {
 	mailgun *base.InterServiceClient
 	otp     *base.InterServiceClient
 
-	firestoreClient *firestore.Client
-	firebaseAuth    *auth.Client
-	client          *base.ServerClient
+	firestoreClient    *firestore.Client
+	firebaseAuth       *auth.Client
+	erpClient          *base.ServerClient
+	chargemasterClient *base.ServerClient
 }
 
 func (s Service) checkPreconditions() {
@@ -141,7 +151,7 @@ func (s Service) checkPreconditions() {
 		log.Panicf("profile service does not have an initialized mailgun ISC Client")
 	}
 
-	if s.client == nil {
+	if s.erpClient == nil {
 		log.Panicf("profile service does not have an initialized ERP client")
 	}
 

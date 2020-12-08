@@ -57,7 +57,7 @@ func (s Service) AddSupplier(ctx context.Context, uid *string, name string) (*Su
 		}
 	}
 	if len(docs) == 0 {
-		currency, err := base.FetchDefaultCurrency(s.client)
+		currency, err := base.FetchDefaultCurrency(s.erpClient)
 		if err != nil {
 			return nil, fmt.Errorf("unable to fetch orgs default currency: %v", err)
 		}
@@ -78,7 +78,7 @@ func (s Service) AddSupplier(ctx context.Context, uid *string, name string) (*Su
 			UserProfile: profile,
 		}
 
-		if err := base.ReadRequestToTarget(s.client, "POST", supplierAPIPath, "", content, &newSupplier); err != nil {
+		if err := base.ReadRequestToTarget(s.erpClient, "POST", supplierAPIPath, "", content, &newSupplier); err != nil {
 			return nil, fmt.Errorf("unable to make request to the ERP: %v", err)
 		}
 
@@ -266,7 +266,7 @@ func (s Service) SuspendSupplier(ctx context.Context, uid string) (bool, error) 
 	}
 
 	supplierPath := fmt.Sprintf("%s%s/", customerAPIPath, supplier.SupplierID)
-	if err := base.ReadRequestToTarget(s.client, "PATCH", supplierPath, "", content, &supplier); err != nil {
+	if err := base.ReadRequestToTarget(s.erpClient, "PATCH", supplierPath, "", content, &supplier); err != nil {
 		return false, fmt.Errorf("unable to make request to the ERP: %v", err)
 	}
 
