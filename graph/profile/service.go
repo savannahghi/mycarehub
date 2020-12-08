@@ -1746,12 +1746,16 @@ func (s Service) CreateUserProfile(phone string) (*base.UserProfile, error) {
 	// prepare user payload for creation
 	uids := []string{}
 	newProfile := &base.UserProfile{
-		ID:                  uuid.New().String(),
-		VerifiedIdentifiers: uids,
-		IsApproved:          false,
-		TermsAccepted:       false,
-		CanExperiment:       false,
-		Msisdns:             []string{phone},
+		ID:                      uuid.New().String(),
+		VerifiedIdentifiers:     uids,
+		IsApproved:              false,
+		TermsAccepted:           false,
+		CanExperiment:           false,
+		HasPin:                  false,
+		HasSupplierAccount:      false,
+		HasCustomerAccount:      false,
+		PractitionerHasServices: false,
+		Msisdns:                 []string{phone},
 	}
 	// persist record to the database
 	_, err := base.SaveDataToFirestore(
