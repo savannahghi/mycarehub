@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"testing"
 	"time"
@@ -594,7 +593,6 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 			}
 
 			data, err := ioutil.ReadAll(resp.Body)
-			log.Printf("Data...%v", data)
 			if err != nil {
 				t.Errorf("can't read response body: %v", err)
 				return

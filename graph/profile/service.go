@@ -1543,14 +1543,16 @@ func (s Service) GetSignUpMethod(ctx context.Context, id string) (SignUpMethod, 
 
 // AddPractitionerServices persists a practitioner services to firestore
 func (s Service) AddPractitionerServices(
-	ctx context.Context, services PractitionerServiceInput,
+	ctx context.Context,
+	services PractitionerServiceInput,
 	otherServices *OtherPractitionerServiceInput) (bool, error) {
 	s.checkPreconditions()
 
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return false, fmt.Errorf("unable to get the logged in user: %v", err)
+		return false, fmt.Errorf("can't fetch the logged in user: %v", err)
 	}
+
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
 		ctx, uid, s.GetPractitionerCollectionName(), "profile.verifiedIdentifiers")
 	if err != nil {
@@ -1560,13 +1562,23 @@ func (s Service) AddPractitionerServices(
 	if dsnap == nil {
 		return false, nil
 	}
+
 	practitioner := &Practitioner{}
 	err = dsnap.DataTo(practitioner)
 	if err != nil {
 		return false, fmt.Errorf("unable to read practitioner information: %v", err)
 	}
+
 	offeredServices := practitioner.Services.Services
 	otherOfferedServices := practitioner.Services.OtherServices
+
+	var foundServices []string
+	for _, offeredService := range offeredServices {
+		foundServices = append(foundServices, offeredService.String())
+	}
+
+	var otherFoundServices []string
+	otherFoundServices = append(otherFoundServices, otherOfferedServices...)
 
 	for _, service := range services.Services {
 		validservice := service.IsValid()
@@ -1578,8 +1590,20 @@ func (s Service) AddPractitionerServices(
 			if otherServices == nil {
 				return false, fmt.Errorf("specify other services after selecting Others")
 			}
-			offeredServices = append(offeredServices, service)
-			otherOfferedServices = append(otherOfferedServices, otherServices.OtherServices...)
+			if !base.StringSliceContains(foundServices, service.String()) {
+				offeredServices = append(offeredServices, service)
+				for i, v := range offeredServices {
+					if v == "OTHER" {
+						offeredServices = append(offeredServices[:i], offeredServices[i+1:]...)
+					}
+				}
+			}
+
+			for _, otherService := range otherServices.OtherServices {
+				if !base.StringSliceContains(otherFoundServices, otherService) {
+					otherOfferedServices = append(otherOfferedServices, otherService)
+				}
+			}
 
 			practitioner.Services.Services = offeredServices
 			practitioner.Services.OtherServices = otherOfferedServices
@@ -1595,7 +1619,9 @@ func (s Service) AddPractitionerServices(
 
 			return true, nil
 		}
-		offeredServices = append(offeredServices, service)
+		if !base.StringSliceContains(foundServices, service.String()) {
+			offeredServices = append(offeredServices, service)
+		}
 		practitioner.Services.Services = offeredServices
 
 		practitioner.Profile.PractitionerHasServices = true
