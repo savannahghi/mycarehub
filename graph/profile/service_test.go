@@ -1918,3 +1918,64 @@ func TestService_CreateUserByPhone(t *testing.T) {
 		})
 	}
 }
+
+func Test_validatePIN(t *testing.T) {
+	type args struct {
+		pin string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: pin legth 4",
+			args: args{
+				pin: "1234",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: pin length 5",
+			args: args{
+				pin: "12346",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: pin length 6",
+			args: args{
+				pin: "123465",
+			},
+			wantErr: false,
+		},
+		{
+			name: "inavlid pin with letters",
+			args: args{
+				pin: "qwer",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: pin with less digits",
+			args: args{
+				pin: "11",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: empty pin",
+			args: args{
+				pin: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := validatePIN(tt.args.pin); (err != nil) != tt.wantErr {
+				t.Errorf("validatePIN() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"time"
 
@@ -1173,6 +1174,12 @@ func (s Service) SetUserPIN(ctx context.Context, msisdn string, pin string) (boo
 	if err != nil {
 		return false, fmt.Errorf("unable to get a user profile: %v", err)
 	}
+
+	err = validatePIN(pin)
+	if err != nil {
+		return false, fmt.Errorf("invalid pin: %w", err)
+	}
+
 	// ensure the phone number is valid
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
@@ -1807,4 +1814,18 @@ func (s Service) CreateUserByPhone(ctx context.Context, phoneNumber string) (*Cr
 		CustomToken: &customToken,
 	}
 	return createdUser, nil
+}
+
+func validatePIN(pin string) error {
+	// make sure pin is of only digits
+	_, err := strconv.ParseUint(pin, 10, 64)
+	if err != nil {
+		return fmt.Errorf("pin should be a valid number: %w", err)
+	}
+
+	// make sure pin length is [4-6]
+	if len(pin) < 4 || len(pin) > 6 {
+		return fmt.Errorf("pin should be of 4,5, or six digits")
+	}
+	return nil
 }
