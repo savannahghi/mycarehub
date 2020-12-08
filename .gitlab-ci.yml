@@ -88,7 +88,7 @@ deploy_develop_to_staging:
       CHARGE_MASTER_PASSWORD=$STAGING_CHARGE_MASTER_PASSWORD,CHARGE_MASTER_GRANT_TYPE=$STAGING_CHARGE_MASTER_GRANT_TYPE"
     - |
     - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile-staging --quiet
-
+    - google-cloud-sdk/bin/gcloud run services update-traffic profile-staging --to-latest
   tags:
     - healthcloud-multi
 
@@ -140,6 +140,7 @@ deploy_develop_to_test:
       CHARGE_MASTER_PASSWORD=$CHARGE_MASTER_PASSWORD,CHARGE_MASTER_GRANT_TYPE=$CHARGE_MASTER_GRANT_TYPE"
     - |
     - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile-testing --quiet
+    - google-cloud-sdk/bin/gcloud run services update-traffic profile-testing --to-latest
   tags:
     - healthcloud-multi
 
@@ -188,8 +189,9 @@ deploy_master_to_prod:
       ERP_GRANT_TYPE=$PROD_ERP_GRANT_TYPE,ERP_DEFAULT_WORKSTATION_ID=$PROD_ERP_DEFAULT_WORKSTATION_ID,ERP_DEFAULT_CURRENCY=$PROD_ERP_DEFAULT_CURRENCY,\
       CHARGE_MASTER_API_HOST=$PROD_CHARGE_MASTER_API_HOST,CHARGE_MASTER_API_SCHEME=$PROD_CHARGE_MASTER_API_SCHEME,CHARGE_MASTER_TOKEN_URL=$PROD_CHARGE_MASTER_TOKEN_URL,\
       CHARGE_MASTER_CLIENT_ID=$PROD_CHARGE_MASTER_CLIENT_ID,CHARGE_MASTER_CLIENT_SECRET=$PROD_CHARGE_MASTER_CLIENT_SECRET,CHARGE_MASTER_USERNAME=$PROD_CHARGE_MASTER_USERNAME,\
-      CHARGE_MASTER_PASSWORD=$PROD_CHARGE_MASTER_PASSWORD,CHARGE_MASTER_GRANT_TYPE=$PROD_CHARGE_MASTER_GRANT_TYPE"CHARGE_MASTER
+      CHARGE_MASTER_PASSWORD=$PROD_CHARGE_MASTER_PASSWORD,CHARGE_MASTER_GRANT_TYPE=$PROD_CHARGE_MASTER_GRANT_TYPE"
     - |
     - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile-prod --quiet
+    - google-cloud-sdk/bin/gcloud run services update-traffic profile-prod --to-latest
   tags:
     - healthcloud-multi

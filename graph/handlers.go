@@ -339,9 +339,9 @@ func IsUnderAgeHandler(
 			token,
 		)
 		isUnderAge, err := srv.IsUnderAge(authenticatedContext)
-
 		if err != nil {
 			base.RespondWithError(rw, http.StatusInternalServerError, err)
+			return
 		}
 
 		type Payload struct {

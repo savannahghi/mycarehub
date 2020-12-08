@@ -1152,12 +1152,12 @@ func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
 	}
 	dob := userProfile.DateOfBirth
 	if dob == nil {
-		return false, fmt.Errorf("user should have a date of birth")
+		log.Printf("user %s does not have a date of birth", userProfile.ID)
+		return true, nil
 	}
 	dateOfBirth := dob.AsTime()
 	today := time.Now()
 	age := math.Floor(today.Sub(dateOfBirth).Hours() / 24 / 365)
-
 	if age >= legalAge {
 		return false, nil
 	}
