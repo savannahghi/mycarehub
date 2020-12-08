@@ -55,6 +55,22 @@ type ComplexityRoot struct {
 		Relationship func(childComplexity int) int
 	}
 
+	BusinessPartner struct {
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
+		SladeCode func(childComplexity int) int
+	}
+
+	BusinessPartnerConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	BusinessPartnerEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	Cover struct {
 		MemberName     func(childComplexity int) int
 		MemberNumber   func(childComplexity int) int
@@ -171,6 +187,7 @@ type ComplexityRoot struct {
 	Query struct {
 		CheckUserWithMsisdn              func(childComplexity int, msisdn string) int
 		FindProfile                      func(childComplexity int) int
+		FindProvider                     func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) int
 		GetKMPDURegisteredPractitioner   func(childComplexity int, regno string) int
 		GetOrCreateUserProfile           func(childComplexity int, phone string) int
 		GetProfile                       func(childComplexity int, uid string) int
@@ -321,6 +338,7 @@ type QueryResolver interface {
 	CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, error)
 	GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error)
 	SupplierProfile(ctx context.Context, uid string) (*profile.Supplier, error)
+	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) (*profile.BusinessPartnerConnection, error)
 }
 
 type executableSchema struct {
@@ -372,6 +390,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Beneficiary.Relationship(childComplexity), true
+
+	case "BusinessPartner.id":
+		if e.complexity.BusinessPartner.ID == nil {
+			break
+		}
+
+		return e.complexity.BusinessPartner.ID(childComplexity), true
+
+	case "BusinessPartner.name":
+		if e.complexity.BusinessPartner.Name == nil {
+			break
+		}
+
+		return e.complexity.BusinessPartner.Name(childComplexity), true
+
+	case "BusinessPartner.sladeCode":
+		if e.complexity.BusinessPartner.SladeCode == nil {
+			break
+		}
+
+		return e.complexity.BusinessPartner.SladeCode(childComplexity), true
+
+	case "BusinessPartnerConnection.edges":
+		if e.complexity.BusinessPartnerConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.BusinessPartnerConnection.Edges(childComplexity), true
+
+	case "BusinessPartnerConnection.pageInfo":
+		if e.complexity.BusinessPartnerConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.BusinessPartnerConnection.PageInfo(childComplexity), true
+
+	case "BusinessPartnerEdge.cursor":
+		if e.complexity.BusinessPartnerEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.BusinessPartnerEdge.Cursor(childComplexity), true
+
+	case "BusinessPartnerEdge.node":
+		if e.complexity.BusinessPartnerEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.BusinessPartnerEdge.Node(childComplexity), true
 
 	case "Cover.memberName":
 		if e.complexity.Cover.MemberName == nil {
@@ -1034,6 +1101,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindProfile(childComplexity), true
+
+	case "Query.findProvider":
+		if e.complexity.Query.FindProvider == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findProvider_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindProvider(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*profile.BusinessPartnerFilterInput), args["sort"].([]*profile.BusinessPartnerSortInput)), true
 
 	case "Query.getKMPDURegisteredPractitioner":
 		if e.complexity.Query.GetKMPDURegisteredPractitioner == nil {
@@ -1916,6 +1995,17 @@ input SupplierKYCInput {
   businessNumber: String
   businessNumberDocPhotoBase64: String
   businessNumberDocPhotoContentType: ContentType
+}
+
+input BusinessPartnerFilterInput {
+  search: String
+  name: String
+  sladeCode: String
+}
+
+input BusinessPartnerSortInput {
+  name: SortOrder
+  sladeCode: SortOrder
 }`, BuiltIn: false},
 	{Name: "graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
@@ -1936,6 +2026,11 @@ input SupplierKYCInput {
   checkUserWithMsisdn(msisdn: String!): Boolean!
   getSignUpMethod(id: String!): SignUpMethod!
   supplierProfile(uid: String!): Supplier!
+  findProvider(
+    pagination: PaginationInput
+    filter: [BusinessPartnerFilterInput]
+    sort: [BusinessPartnerSortInput]
+  ): BusinessPartnerConnection!
 }
 
 extend type Mutation {
@@ -1967,8 +2062,7 @@ extend type Mutation {
   addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
   suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
-}
-`, BuiltIn: false},
+}`, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `scalar Date
 scalar Markdown
 scalar Any
@@ -2144,7 +2238,24 @@ type SupplierKYC {
   businessNumber: String
   businessNumberDocPhotoBase64: String
   businessNumberDocPhotoContentType: ContentType
-}`, BuiltIn: false},
+}
+
+type BusinessPartner {
+    id: ID!
+    name: String!
+    sladeCode: String!
+}
+
+type BusinessPartnerEdge {
+    cursor: String
+    node: BusinessPartner
+}
+
+type BusinessPartnerConnection {
+    edges: [BusinessPartnerEdge]
+    pageInfo: PageInfo!
+}
+`, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
 scalar _FieldSet
@@ -2646,6 +2757,39 @@ func (ec *executionContext) field_Query_checkUserWithMsisdn_args(ctx context.Con
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_findProvider_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *base.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 []*profile.BusinessPartnerFilterInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerFilterInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 []*profile.BusinessPartnerSortInput
+	if tmp, ok := rawArgs["sort"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+		arg2, err = ec.unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerSortInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sort"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getKMPDURegisteredPractitioner_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2998,6 +3142,242 @@ func (ec *executionContext) _Beneficiary_dateOfBirth(ctx context.Context, field 
 	res := resTmp.(base.Date)
 	fc.Result = res
 	return ec.marshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BusinessPartner_id(ctx context.Context, field graphql.CollectedField, obj *profile.BusinessPartner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BusinessPartner",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BusinessPartner_name(ctx context.Context, field graphql.CollectedField, obj *profile.BusinessPartner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BusinessPartner",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BusinessPartner_sladeCode(ctx context.Context, field graphql.CollectedField, obj *profile.BusinessPartner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BusinessPartner",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SladeCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BusinessPartnerConnection_edges(ctx context.Context, field graphql.CollectedField, obj *profile.BusinessPartnerConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BusinessPartnerConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*profile.BusinessPartnerEdge)
+	fc.Result = res
+	return ec.marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BusinessPartnerConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *profile.BusinessPartnerConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BusinessPartnerConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*base.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BusinessPartnerEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *profile.BusinessPartnerEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BusinessPartnerEdge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BusinessPartnerEdge_node(ctx context.Context, field graphql.CollectedField, obj *profile.BusinessPartnerEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BusinessPartnerEdge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*profile.BusinessPartner)
+	fc.Result = res
+	return ec.marshalOBusinessPartner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartner(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Cover_payerName(ctx context.Context, field graphql.CollectedField, obj *base.Cover) (ret graphql.Marshaler) {
@@ -6289,6 +6669,48 @@ func (ec *executionContext) _Query_supplierProfile(ctx context.Context, field gr
 	res := resTmp.(*profile.Supplier)
 	fc.Result = res
 	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findProvider(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findProvider_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindProvider(rctx, args["pagination"].(*base.PaginationInput), args["filter"].([]*profile.BusinessPartnerFilterInput), args["sort"].([]*profile.BusinessPartnerSortInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.BusinessPartnerConnection)
+	fc.Result = res
+	return ec.marshalNBusinessPartnerConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -9667,6 +10089,70 @@ func (ec *executionContext) unmarshalInputBiodataInput(ctx context.Context, obj 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputBusinessPartnerFilterInput(ctx context.Context, obj interface{}) (profile.BusinessPartnerFilterInput, error) {
+	var it profile.BusinessPartnerFilterInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "search":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sladeCode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sladeCode"))
+			it.SladeCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputBusinessPartnerSortInput(ctx context.Context, obj interface{}) (profile.BusinessPartnerSortInput, error) {
+	var it profile.BusinessPartnerSortInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOSortOrder2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sladeCode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sladeCode"))
+			it.SladeCode, err = ec.unmarshalOSortOrder2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCustomerKYCInput(ctx context.Context, obj interface{}) (profile.CustomerKYCInput, error) {
 	var it profile.CustomerKYCInput
 	var asMap = obj.(map[string]interface{})
@@ -10333,6 +10819,98 @@ func (ec *executionContext) _Beneficiary(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var businessPartnerImplementors = []string{"BusinessPartner"}
+
+func (ec *executionContext) _BusinessPartner(ctx context.Context, sel ast.SelectionSet, obj *profile.BusinessPartner) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, businessPartnerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BusinessPartner")
+		case "id":
+			out.Values[i] = ec._BusinessPartner_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._BusinessPartner_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sladeCode":
+			out.Values[i] = ec._BusinessPartner_sladeCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var businessPartnerConnectionImplementors = []string{"BusinessPartnerConnection"}
+
+func (ec *executionContext) _BusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, obj *profile.BusinessPartnerConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, businessPartnerConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BusinessPartnerConnection")
+		case "edges":
+			out.Values[i] = ec._BusinessPartnerConnection_edges(ctx, field, obj)
+		case "pageInfo":
+			out.Values[i] = ec._BusinessPartnerConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var businessPartnerEdgeImplementors = []string{"BusinessPartnerEdge"}
+
+func (ec *executionContext) _BusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, obj *profile.BusinessPartnerEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, businessPartnerEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BusinessPartnerEdge")
+		case "cursor":
+			out.Values[i] = ec._BusinessPartnerEdge_cursor(ctx, field, obj)
+		case "node":
+			out.Values[i] = ec._BusinessPartnerEdge_node(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11201,6 +11779,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "findProvider":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findProvider(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "_entities":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -11978,6 +12570,20 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNBusinessPartnerConnection2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, v profile.BusinessPartnerConnection) graphql.Marshaler {
+	return ec._BusinessPartnerConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBusinessPartnerConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, v *profile.BusinessPartnerConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._BusinessPartnerConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNContentType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx context.Context, v interface{}) (base.ContentType, error) {
 	var res base.ContentType
 	err := res.UnmarshalGQL(v)
@@ -12131,6 +12737,21 @@ func (ec *executionContext) unmarshalNGender2gitlabᚗslade360emrᚗcomᚋgoᚋb
 
 func (ec *executionContext) marshalNGender2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx context.Context, sel ast.SelectionSet, v base.Gender) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
@@ -12883,6 +13504,124 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
+func (ec *executionContext) marshalOBusinessPartner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartner(ctx context.Context, sel ast.SelectionSet, v *profile.BusinessPartner) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._BusinessPartner(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, v []*profile.BusinessPartnerEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOBusinessPartnerEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOBusinessPartnerEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, v *profile.BusinessPartnerEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._BusinessPartnerEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerFilterInput(ctx context.Context, v interface{}) ([]*profile.BusinessPartnerFilterInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*profile.BusinessPartnerFilterInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOBusinessPartnerFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerFilterInput(ctx context.Context, v interface{}) (*profile.BusinessPartnerFilterInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputBusinessPartnerFilterInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerSortInput(ctx context.Context, v interface{}) ([]*profile.BusinessPartnerSortInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*profile.BusinessPartnerSortInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOBusinessPartnerSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerSortInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBusinessPartnerSortInput(ctx context.Context, v interface{}) (*profile.BusinessPartnerSortInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputBusinessPartnerSortInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOContentType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx context.Context, v interface{}) (base.ContentType, error) {
 	var res base.ContentType
 	err := res.UnmarshalGQL(v)
@@ -13162,6 +13901,22 @@ func (ec *executionContext) unmarshalOSortInput2ᚖgitlabᚗslade360emrᚗcomᚋ
 	}
 	res, err := ec.unmarshalInputSortInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOSortOrder2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx context.Context, v interface{}) (*base.SortOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(base.SortOrder)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSortOrder2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx context.Context, sel ast.SelectionSet, v *base.SortOrder) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOSortParam2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortParam(ctx context.Context, v interface{}) ([]*base.SortParam, error) {

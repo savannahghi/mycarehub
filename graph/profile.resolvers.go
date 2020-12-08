@@ -247,6 +247,12 @@ func (r *queryResolver) SupplierProfile(ctx context.Context, uid string) (*profi
 	return r.profileService.FindSupplier(ctx, uid)
 }
 
+func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) (*profile.BusinessPartnerConnection, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.FindProvider(ctx, pagination, filter, sort)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

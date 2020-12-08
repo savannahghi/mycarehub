@@ -1,6 +1,11 @@
 package profile
 
-import "gitlab.slade360emr.com/go/base"
+import (
+	"context"
+	"net/url"
+
+	"gitlab.slade360emr.com/go/base"
+)
 
 const (
 	// ChargeMasterHostEnvVarName is the name of an environment variable that
@@ -38,6 +43,9 @@ const (
 	// "application" that will work for this client is a confidential one that supports
 	// password authentication.
 	ChargeMasterGrantTypeEnvVarName = "CHARGE_MASTER_GRANT_TYPE"
+
+	// ChargeMasterBusinessPartnerPath endpoint for business partners on charge master
+	ChargeMasterBusinessPartnerPath = "/v1/business_partners/"
 )
 
 // NewChargeMasterClient initializes a new charge master client from the environment.
@@ -56,4 +64,73 @@ func NewChargeMasterClient() (*base.ServerClient, error) {
 	extraHeaders := make(map[string]string)
 	return base.NewServerClient(
 		clientID, clientSecret, apiTokenURL, apiHost, apiScheme, grantType, username, password, extraHeaders)
+}
+
+// FindProvider search for a provider in chargemaster using their name
+//
+// Example https://base.chargemaster.slade360emr.com/v1/business_partners/?bp_type=PROVIDER&search={name}
+func (s Service) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*BusinessPartnerFilterInput, sort []*BusinessPartnerSortInput) (*BusinessPartnerConnection, error) {
+	s.checkPreconditions()
+
+	paginationParams, err := base.GetAPIPaginationParams(pagination)
+	if err != nil {
+		return nil, err
+	}
+
+	defaultParams := url.Values{}
+	defaultParams.Add("field", "id, name, slade_code")
+	defaultParams.Add("is_active", "True")
+	defaultParams.Add("bp_type", "PROVIDER")
+
+	queryParams := []url.Values{defaultParams, paginationParams}
+	for _, fp := range filter {
+		queryParams = append(queryParams, fp.ToURLValues())
+	}
+	for _, fp := range sort {
+		queryParams = append(queryParams, fp.ToURLValues())
+	}
+
+	mergedParams := base.MergeURLValues(queryParams...)
+	queryFragment := mergedParams.Encode()
+
+	type apiResp struct {
+		base.SladeAPIListRespBase
+
+		Results []*BusinessPartner `json:"results,omitempty"`
+	}
+
+	r := apiResp{}
+	err = base.ReadRequestToTarget(s.chargemasterClient, "GET", ChargeMasterBusinessPartnerPath, queryFragment, nil, &r)
+	if err != nil {
+		return nil, err
+	}
+
+	startOffset := base.CreateAndEncodeCursor(r.StartIndex)
+	endOffset := base.CreateAndEncodeCursor(r.EndIndex)
+	hasNextPage := r.Next != ""
+	hasPreviousPage := r.Previous != ""
+
+	edges := []*BusinessPartnerEdge{}
+	for pos, org := range r.Results {
+		edge := &BusinessPartnerEdge{
+			Node: &BusinessPartner{
+				ID:        org.ID,
+				Name:      org.Name,
+				SladeCode: org.SladeCode,
+			},
+			Cursor: base.CreateAndEncodeCursor(pos + 1),
+		}
+		edges = append(edges, edge)
+	}
+	pageInfo := &base.PageInfo{
+		HasNextPage:     hasNextPage,
+		HasPreviousPage: hasPreviousPage,
+		StartCursor:     startOffset,
+		EndCursor:       endOffset,
+	}
+	connection := &BusinessPartnerConnection{
+		Edges:    edges,
+		PageInfo: pageInfo,
+	}
+	return connection, nil
 }

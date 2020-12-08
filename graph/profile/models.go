@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"net/url"
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
@@ -349,4 +350,73 @@ type CreatedUserResponse struct {
 // CreateUserViaPhoneInput represents input required to create a user via phoneNumber
 type CreateUserViaPhoneInput struct {
 	MSISDN string `json:"msisdn"`
+}
+
+// BusinessPartner represents a Slade 360 Charge Master business partner
+type BusinessPartner struct {
+	base.Model
+
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	SladeCode string `json:"slade_code"`
+}
+
+// BusinessPartnerEdge is used to serialize GraphQL Relay edges for organization
+type BusinessPartnerEdge struct {
+	Cursor *string          `json:"cursor"`
+	Node   *BusinessPartner `json:"node"`
+}
+
+// BusinessPartnerConnection is used to serialize GraphQL Relay connections for organizations
+type BusinessPartnerConnection struct {
+	Edges    []*BusinessPartnerEdge `json:"edges"`
+	PageInfo *base.PageInfo         `json:"pageInfo"`
+}
+
+// BusinessPartnerFilterInput is used to supply filter parameters for organizatiom filter inputs
+type BusinessPartnerFilterInput struct {
+	Search    *string `json:"search"`
+	Name      *string `json:"name"`
+	SladeCode *string `json:"slade_code"`
+}
+
+// ToURLValues transforms the filter input to `url.Values`
+func (i *BusinessPartnerFilterInput) ToURLValues() (values url.Values) {
+	vals := url.Values{}
+	if i.Search != nil {
+		vals.Add("search", *i.Search)
+	}
+	if i.Name != nil {
+		vals.Add("name", *i.Name)
+	}
+	if i.SladeCode != nil {
+		vals.Add("slade_code", *i.SladeCode)
+	}
+	return vals
+}
+
+// BusinessPartnerSortInput is used to supply sort input for organization list queries
+type BusinessPartnerSortInput struct {
+	Name      *base.SortOrder `json:"name"`
+	SladeCode *base.SortOrder `json:"slade_code"`
+}
+
+// ToURLValues transforms the filter input to `url.Values`
+func (i *BusinessPartnerSortInput) ToURLValues() (values url.Values) {
+	vals := url.Values{}
+	if i.Name != nil {
+		if *i.Name == base.SortOrderAsc {
+			vals.Add("order_by", "name")
+		} else {
+			vals.Add("order_by", "-name")
+		}
+	}
+	if i.SladeCode != nil {
+		if *i.Name == base.SortOrderAsc {
+			vals.Add("slade_code", "number")
+		} else {
+			vals.Add("slade_code", "-number")
+		}
+	}
+	return vals
 }

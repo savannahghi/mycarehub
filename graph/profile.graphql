@@ -17,6 +17,11 @@ extend type Query {
   checkUserWithMsisdn(msisdn: String!): Boolean!
   getSignUpMethod(id: String!): SignUpMethod!
   supplierProfile(uid: String!): Supplier!
+  findProvider(
+    pagination: PaginationInput
+    filter: [BusinessPartnerFilterInput]
+    sort: [BusinessPartnerSortInput]
+  ): BusinessPartnerConnection!
 }
 
 extend type Mutation {

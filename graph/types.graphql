@@ -174,3 +174,19 @@ type SupplierKYC {
   businessNumberDocPhotoBase64: String
   businessNumberDocPhotoContentType: ContentType
 }
+
+type BusinessPartner {
+    id: ID!
+    name: String!
+    sladeCode: String!
+}
+
+type BusinessPartnerEdge {
+    cursor: String
+    node: BusinessPartner
+}
+
+type BusinessPartnerConnection {
+    edges: [BusinessPartnerEdge]
+    pageInfo: PageInfo!
+}

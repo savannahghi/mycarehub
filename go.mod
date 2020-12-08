@@ -10,7 +10,7 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
-	github.com/aws/aws-sdk-go v1.36.3 // indirect
+	github.com/aws/aws-sdk-go v1.36.4 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/getsentry/sentry-go v0.9.0 // indirect
 	github.com/google/pprof v0.0.0-20201203190320-1bf35d6f28c2 // indirect
@@ -24,13 +24,14 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
-	gitlab.slade360emr.com/go/base v0.0.77
-	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c
+	gitlab.slade360emr.com/go/base v0.0.78
+	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9
+	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
 	golang.org/x/net v0.0.0-20201207224615-747e23833adb // indirect
-	golang.org/x/oauth2 v0.0.0-20201207163604-931764155e3f // indirect
+	golang.org/x/oauth2 v0.0.0-20201208152858-08078c50e5b5 // indirect
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
 	golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d // indirect
-	golang.org/x/tools v0.0.0-20201208062317-e652b2f42cc7 // indirect
+	golang.org/x/tools v0.0.0-20201208194006-5737becde9d2 // indirect
 	google.golang.org/api v0.36.0
 	google.golang.org/genproto v0.0.0-20201207150747-9ee31aac76e7 // indirect
 	google.golang.org/grpc v1.34.0 // indirect
