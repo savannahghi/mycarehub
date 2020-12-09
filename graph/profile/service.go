@@ -47,8 +47,9 @@ const (
 
 const (
 	sendEmail    = "internal/send_email"
-	sendOTP      = "internal/send_otp/"
 	sendRetryOTP = "internal/send_retry_otp/"
+	// SendOTP is a REST isc end point that facilitates a call to otp service
+	SendOTP = "internal/send_otp/"
 )
 
 // NewService returns a new authentication service
@@ -121,8 +122,8 @@ func NewService() *Service {
 		firestoreClient:    firestore,
 		firebaseAuth:       auth,
 		erpClient:          erpClient,
-		mailgun:            mailgunClient,
-		otp:                otpClient,
+		Mailgun:            mailgunClient,
+		Otp:                otpClient,
 		chargemasterClient: chargemasterClient,
 	}
 }
@@ -130,8 +131,8 @@ func NewService() *Service {
 // Service is an authentication service. It handles authentication related
 // issues e.g user profiles
 type Service struct {
-	mailgun *base.InterServiceClient
-	otp     *base.InterServiceClient
+	Mailgun *base.InterServiceClient
+	Otp     *base.InterServiceClient
 
 	firestoreClient    *firestore.Client
 	firebaseAuth       *auth.Client
@@ -148,7 +149,7 @@ func (s Service) checkPreconditions() {
 		log.Panicf("profile service does not have an initialized firebaseAuth")
 	}
 
-	if s.mailgun == nil {
+	if s.Mailgun == nil {
 		log.Panicf("profile service does not have an initialized mailgun ISC Client")
 	}
 
@@ -156,7 +157,7 @@ func (s Service) checkPreconditions() {
 		log.Panicf("profile service does not have an initialized ERP client")
 	}
 
-	if s.otp == nil {
+	if s.Otp == nil {
 		log.Panicf("profile service does not have an initialized otp ISC Client")
 	}
 
@@ -756,7 +757,7 @@ func (s Service) SendPractitionerSignUpEmail(ctx context.Context, emailaddress s
 		"subject": emailSignupSubject,
 	}
 
-	resp, err := s.mailgun.MakeRequest(http.MethodPost, sendEmail, body)
+	resp, err := s.Mailgun.MakeRequest(http.MethodPost, sendEmail, body)
 	if err != nil {
 		return fmt.Errorf("unable to send Practitioner signup email: %w", err)
 	}
@@ -917,7 +918,7 @@ func (s Service) SendPractitionerWelcomeEmail(ctx context.Context, emailaddress 
 		"subject": emailWelcomeSubject,
 	}
 
-	resp, err := s.mailgun.MakeRequest(http.MethodPost, sendEmail, body)
+	resp, err := s.Mailgun.MakeRequest(http.MethodPost, sendEmail, body)
 	if err != nil {
 		return fmt.Errorf("unable to send welcome email: %w", err)
 	}
@@ -943,7 +944,7 @@ func (s Service) SendPractitionerRejectionEmail(ctx context.Context, emailaddres
 		"subject": emailRejectionSubject,
 	}
 
-	resp, err := s.mailgun.MakeRequest(http.MethodPost, sendEmail, body)
+	resp, err := s.Mailgun.MakeRequest(http.MethodPost, sendEmail, body)
 	if err != nil {
 		return fmt.Errorf("unable to send rejection email: %w", err)
 	}
@@ -1328,7 +1329,7 @@ func (s Service) SendRetryOTP(ctx context.Context, msisdn string, retryStep int)
 		"msisdn":    phoneNumber,
 		"retryStep": retryStep,
 	}
-	resp, err := s.otp.MakeRequest(http.MethodPost, sendRetryOTP, body)
+	resp, err := s.Otp.MakeRequest(http.MethodPost, sendRetryOTP, body)
 	if err != nil {
 		return "", fmt.Errorf("unable to generate and send fallback otp: %w", err)
 	}
@@ -1371,8 +1372,8 @@ func (s Service) RequestPINReset(ctx context.Context, msisdn string) (string, er
 	return code, nil
 }
 
-// UpdateUserPIN resets a user's pin
-func (s Service) UpdateUserPIN(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
+// ResetUserPIN resets a user's pin
+func (s Service) ResetUserPIN(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
 	s.checkPreconditions()
 
 	exists, err := s.CheckHasPIN(ctx, msisdn)
@@ -1398,7 +1399,7 @@ func (s Service) UpdateUserPIN(ctx context.Context, msisdn string, pin string, o
 		return false, err
 	}
 	if dsnap == nil {
-		return false, fmt.Errorf("UpdateUserPIN: unable to retrieve user PIN")
+		return false, fmt.Errorf("ResetUserPIN: unable to retrieve user PIN")
 	}
 	msisdnPIN := &PIN{}
 	err = dsnap.DataTo(msisdnPIN)
@@ -1778,7 +1779,7 @@ func (s Service) generateAndSendOTP(phone string) (string, error) {
 		"msisdn": phone,
 	}
 	defaultOTP := ""
-	resp, err := s.otp.MakeRequest(http.MethodPost, sendOTP, body)
+	resp, err := s.Otp.MakeRequest(http.MethodPost, SendOTP, body)
 	if err != nil {
 		return defaultOTP, fmt.Errorf("unable to generate and send otp: %w", err)
 	}

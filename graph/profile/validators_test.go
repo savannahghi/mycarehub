@@ -151,7 +151,7 @@ func TestValidateMsisdn(t *testing.T) {
 	}
 }
 
-func TestValidateUpdatePinPayload(t *testing.T) {
+func TestValidateResetPinPayload(t *testing.T) {
 	goodData := &PinRecovery{
 		MSISDN:    "+254712789456",
 		PINNumber: "1234",
@@ -202,7 +202,7 @@ func TestValidateUpdatePinPayload(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ValidateUpdatePinPayload(tt.args.w, tt.args.r)
+			got, err := ValidateResetPinPayload(tt.args.w, tt.args.r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateUpdatePinPayload() error = %v, wantErr %v", err, tt.wantErr)
 				return

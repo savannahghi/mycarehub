@@ -54,8 +54,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost, http.MethodOptions).HandlerFunc(PhoneSignIn(ctx, srv))
 	r.Path("/request_pin_reset").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(RequestPINResetFunc(ctx))
-	r.Path("/update_pin").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(UpdatePinHandler(ctx))
+	r.Path("/reset_pin").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(ResetPinHandler(ctx))
 	r.Path("/send_retry_otp").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(SendRetryOTPHandler(ctx))
 	r.Path("/verify_phone").Methods(
@@ -192,19 +192,19 @@ func RequestPINResetFunc(ctx context.Context) http.HandlerFunc {
 	}
 }
 
-// UpdatePinHandler used to update a user's PIN
-func UpdatePinHandler(ctx context.Context) http.HandlerFunc {
+// ResetPinHandler used to reset a user's PIN
+func ResetPinHandler(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		s := profile.NewService()
-		payload, validateErr := profile.ValidateUpdatePinPayload(w, r)
+		payload, validateErr := profile.ValidateResetPinPayload(w, r)
 		if validateErr != nil {
 			base.ReportErr(w, validateErr, http.StatusBadRequest)
 			return
 		}
 
-		_, updateErr := s.UpdateUserPIN(ctx, payload.MSISDN, payload.PINNumber, payload.OTP)
+		_, updateErr := s.ResetUserPIN(ctx, payload.MSISDN, payload.PINNumber, payload.OTP)
 		if updateErr != nil {
-			base.ReportErr(w, updateErr, http.StatusBadRequest)
+			base.ReportErr(w, updateErr, http.StatusInternalServerError)
 			return
 		}
 

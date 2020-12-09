@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -16,9 +17,43 @@ import (
 	"gitlab.slade360emr.com/go/profile/graph/profile"
 )
 
+
+
+func getOTPCode(msisdn string, s *profile.Service) (string, error) {
+
+	//  set up ISC call to get an actual  OTP code from otp service
+	body := map[string]interface{}{
+		"msisdn": msisdn,
+	}
+	defaultOTP := ""
+	
+	resp, err := s.Otp.MakeRequest(http.MethodPost, profile.SendOTP, body)
+	if err != nil {
+		return defaultOTP, fmt.Errorf("unable to generate and send otp: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return defaultOTP, fmt.Errorf("unable to generate and send otp, with status code %v", resp.StatusCode)
+	}
+	code, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return defaultOTP, fmt.Errorf("unable to convert response to byte: %v", err)
+	}
+
+	var codeResp map[string]string
+	if err := json.Unmarshal(code, &codeResp); err != nil {
+		return defaultOTP, fmt.Errorf("unable to convert response to map: %v", err)
+	}
+
+	otpCode := codeResp["otp"]
+
+	return otpCode, nil
+}
+
 func TestMSISDNLogin(t *testing.T) {
 	ctx := base.GetAuthenticatedContext(t)
-	s := profile.NewService()
+
+	var s *profile.Service = profile.NewService()
+
 	if ctx == nil {
 		t.Errorf("nil context")
 		return
@@ -281,6 +316,218 @@ func TestSendRetryOTP(t *testing.T) {
 			}
 
 		})
+	}
+}
+
+func TestRESTResetUserPIN(t *testing.T) {
+
+	// Simulate similar running environment to staging otp service
+	// get existing envars
+	existingGoogleAppCredentials := base.MustGetEnvVar("GOOGLE_APPLICATION_CREDENTIALS")
+	existingGcloudProject := base.MustGetEnvVar("GOOGLE_CLOUD_PROJECT")
+	existingGcloudProjectNo := base.MustGetEnvVar("GOOGLE_PROJECT_NUMBER")
+	existingFirebaseWebApiKey := base.MustGetEnvVar("FIREBASE_WEB_API_KEY")
+	existingRootCollectionSuffix := base.MustGetEnvVar("ROOT_COLLECTION_SUFFIX")
+	existingEnvironment := base.MustGetEnvVar("ENVIRONMENT")
+
+	// Staging environment envars
+	stagingGoogleAppCredentials := base.MustGetEnvVar("GCLOUD_STAGING_SERVICE_ACCOUNT")
+	stagingGcloudProject := base.MustGetEnvVar("STAGING_GOOGLE_CLOUD_PROJECT")
+	stagingGcloudProjectNo := base.MustGetEnvVar("STAGING_GOOGLE_PROJECT_NUMBER")
+	stagingFirebaseWebApiKey := base.MustGetEnvVar("STAGING_FIREBASE_WEB_API_KEY")
+	stagingRootCollectionSuffix := base.MustGetEnvVar("STAGING_ROOT_COLLECTION_SUFFIX")
+	stagingEnvironment := base.MustGetEnvVar("STAGING_ENVIRONMENT")
+
+	// finally set envars to match staging environment
+	err := os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", stagingGoogleAppCredentials)
+	if err != nil {
+		t.Errorf("unable to reset Google Cloud Project env var: %v", err)
+		return
+	}
+	err = os.Setenv("GOOGLE_CLOUD_PROJECT", stagingGcloudProject)
+	if err != nil {
+		t.Errorf("unable to reset Google Cloud Project env var: %v", err)
+		return
+	}
+	err = os.Setenv("GOOGLE_CLOUD_PROJECT_NUMBER", stagingGcloudProjectNo)
+	if err != nil {
+		t.Errorf("unable to reset Google Cloud Project env var: %v", err)
+		return
+	}
+	err = os.Setenv("FIREBASE_WEB_API_KEY", stagingFirebaseWebApiKey)
+	if err != nil {
+		t.Errorf("unable to reset Firebase Web Api Key env var: %v", err)
+		return
+	}
+	err = os.Setenv("ENVIRONMENT", stagingEnvironment)
+	if err != nil {
+		t.Errorf("unable to reset Environment env var: %v", err)
+		return
+	}
+	err = os.Setenv("ROOT_COLLECTION_SUFFIX", stagingRootCollectionSuffix)
+	if err != nil {
+		t.Errorf("unable to reset Root Collection Suffix env var: %v", err)
+		return
+	}
+
+	ctx := base.GetAuthenticatedContext(t)
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+
+	var s *profile.Service = profile.NewService()
+	set, err := s.SetUserPIN(ctx, base.TestUserPhoneNumberWithPin, base.TestUserPin)
+	if !set {
+		t.Errorf("can't set a test pin")
+	}
+	if err != nil {
+		t.Errorf("can't set a test pin: %v", err)
+		return
+	}
+
+	msisdnLoginURL := fmt.Sprintf("%s/%s", baseURL, "reset_pin")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("unable to get request headers %v", err)
+		return
+	}
+
+	type args struct {
+		msisdn string
+		pin    string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "happy case: a correct phone number and pin",
+			args: args{
+				msisdn: base.TestUserPhoneNumberWithPin,
+				pin:    base.TestUserPin,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "edge case: invalid phone number and pin",
+			args: args{
+				msisdn: "not a real phone number",
+				pin:    "not a pin",
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			requestInput := map[string]interface{}{}
+			requestInput["msisdn"] = tt.args.msisdn
+			requestInput["pin_number"] = tt.args.pin
+
+			otpCode, err := getOTPCode(tt.args.msisdn, s)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("unable to get otp code from the otp service: %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			requestInput["otp"] = otpCode
+
+			body, err := mapToJSONReader(requestInput)
+			if err != nil {
+				t.Errorf("unable to get request JSON io Reader: %s, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				msisdnLoginURL,
+				body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.DefaultClient
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			if resp == nil {
+				t.Errorf("nil response")
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if data == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			if err != nil {
+				t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				log.Printf("raw response: %s", string(data))
+				t.Errorf("statusCode = %v, wantStatus %v", resp.StatusCode, tt.wantStatus)
+				return
+			}
+
+		})
+
+	}
+
+	// Remember to restore everything to how it was before the test started running
+	err = os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", existingGoogleAppCredentials)
+	if err != nil {
+		t.Errorf("unable to restore Google Cloud Project env var: %v", err)
+		return
+	}
+	err = os.Setenv("GOOGLE_CLOUD_PROJECT", existingGcloudProject)
+	if err != nil {
+		t.Errorf("unable to restore Google Cloud Project env var: %v", err)
+		return
+	}
+	err = os.Setenv("GOOGLE_CLOUD_PROJECT_NUMBER", existingGcloudProjectNo)
+	if err != nil {
+		t.Errorf("unable to restore Google Cloud Project Number env var: %v", err)
+		return
+	}
+	err = os.Setenv("FIREBASE_WEB_API_KEY", existingFirebaseWebApiKey)
+	if err != nil {
+		t.Errorf("unable to restore Firebase Web Api Key env var: %v", err)
+		return
+	}
+	err = os.Setenv("ENVIRONMENT", existingEnvironment)
+	if err != nil {
+		t.Errorf("unable to restore Environment env var: %v", err)
+		return
+	}
+	err = os.Setenv("ROOT_COLLECTION_SUFFIX", existingRootCollectionSuffix)
+	if err != nil {
+		t.Errorf("unable to restore Root Collection Suffix env var: %v", err)
+		return
 	}
 }
 

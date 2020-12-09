@@ -90,10 +90,10 @@ func (r *mutationResolver) SetUserPin(ctx context.Context, msisdn string, pin st
 	return r.profileService.SetUserPIN(ctx, msisdn, pin)
 }
 
-func (r *mutationResolver) UpdateUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
+func (r *mutationResolver) ResetUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.UpdateUserPIN(ctx, msisdn, pin, otp)
+	return r.profileService.ResetUserPIN(ctx, msisdn, pin, otp)
 }
 
 func (r *mutationResolver) SetLanguagePreference(ctx context.Context, language base.Language) (bool, error) {

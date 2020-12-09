@@ -155,13 +155,13 @@ type ComplexityRoot struct {
 		RegisterPushToken         func(childComplexity int, token string) int
 		RejectPractitionerSignup  func(childComplexity int, practitionerID string) int
 		RemoveTester              func(childComplexity int, email string) int
+		ResetUserPin              func(childComplexity int, msisdn string, pin string, otp string) int
 		SetLanguagePreference     func(childComplexity int, language base.Language) int
 		SetUserPin                func(childComplexity int, msisdn string, pin string) int
 		SuspendCustomer           func(childComplexity int, uid string) int
 		SuspendSupplier           func(childComplexity int, uid string) int
 		UpdateBiodata             func(childComplexity int, input profile.BiodataInput) int
 		UpdateCustomer            func(childComplexity int, input profile.CustomerKYCInput) int
-		UpdateUserPin             func(childComplexity int, msisdn string, pin string, otp string) int
 		UpdateUserProfile         func(childComplexity int, input profile.UserProfileInput) int
 		VerifyEmailOtp            func(childComplexity int, email string, otp string) int
 	}
@@ -330,7 +330,7 @@ type MutationResolver interface {
 	ApprovePractitionerSignup(ctx context.Context, practitionerID string) (bool, error)
 	RejectPractitionerSignup(ctx context.Context, practitionerID string) (bool, error)
 	SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
-	UpdateUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error)
+	ResetUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error)
 	SetLanguagePreference(ctx context.Context, language base.Language) (bool, error)
 	VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error)
 	CreateSignUpMethod(ctx context.Context, signUpMethod profile.SignUpMethod) (bool, error)
@@ -917,6 +917,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RemoveTester(childComplexity, args["email"].(string)), true
 
+	case "Mutation.resetUserPIN":
+		if e.complexity.Mutation.ResetUserPin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_resetUserPIN_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ResetUserPin(childComplexity, args["msisdn"].(string), args["pin"].(string), args["otp"].(string)), true
+
 	case "Mutation.setLanguagePreference":
 		if e.complexity.Mutation.SetLanguagePreference == nil {
 			break
@@ -988,18 +1000,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateCustomer(childComplexity, args["input"].(profile.CustomerKYCInput)), true
-
-	case "Mutation.updateUserPIN":
-		if e.complexity.Mutation.UpdateUserPin == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateUserPIN_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateUserPin(childComplexity, args["msisdn"].(string), args["pin"].(string), args["otp"].(string)), true
 
 	case "Mutation.updateUserProfile":
 		if e.complexity.Mutation.UpdateUserProfile == nil {
@@ -2165,7 +2165,7 @@ extend type Mutation {
   approvePractitionerSignup(practitionerID: String!): Boolean!
   rejectPractitionerSignup(practitionerID: String!): Boolean!
   setUserPin(msisdn: String!, pin: String!): Boolean!
-  updateUserPIN(msisdn: String!, pin: String!, otp: String!): Boolean!
+  resetUserPIN(msisdn: String!, pin: String!, otp: String!): Boolean!
   setLanguagePreference(language: Language!): Boolean!
   verifyEmailOTP(email: String!, otp: String!): Boolean!
   createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
@@ -2696,6 +2696,39 @@ func (ec *executionContext) field_Mutation_removeTester_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_resetUserPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["msisdn"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("msisdn"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["msisdn"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["pin"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pin"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["otp"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["otp"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_setLanguagePreference_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2792,39 +2825,6 @@ func (ec *executionContext) field_Mutation_updateCustomer_args(ctx context.Conte
 		}
 	}
 	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_updateUserPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["msisdn"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("msisdn"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["msisdn"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["pin"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["pin"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["otp"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["otp"] = arg2
 	return args, nil
 }
 
@@ -5395,7 +5395,7 @@ func (ec *executionContext) _Mutation_setUserPin(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateUserPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_resetUserPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5412,7 +5412,7 @@ func (ec *executionContext) _Mutation_updateUserPIN(ctx context.Context, field g
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateUserPIN_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_resetUserPIN_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -5420,7 +5420,7 @@ func (ec *executionContext) _Mutation_updateUserPIN(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserPin(rctx, args["msisdn"].(string), args["pin"].(string), args["otp"].(string))
+		return ec.resolvers.Mutation().ResetUserPin(rctx, args["msisdn"].(string), args["pin"].(string), args["otp"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12022,8 +12022,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updateUserPIN":
-			out.Values[i] = ec._Mutation_updateUserPIN(ctx, field)
+		case "resetUserPIN":
+			out.Values[i] = ec._Mutation_resetUserPIN(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

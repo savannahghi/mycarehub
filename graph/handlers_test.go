@@ -532,8 +532,8 @@ func TestGraphQLUpdatePin(t *testing.T) {
 	}
 	gql := map[string]interface{}{}
 	gql["query"] = `
-	mutation updateUserPIN{
-		updateUserPIN(msisdn: "+254711223344", pin: "1234", otp: "654789")
+	mutation resetUserPIN{
+		resetUserPIN(msisdn: "+254711223344", pin: "1234", otp: "654789")
 	}
 	`
 
@@ -617,7 +617,7 @@ func TestGraphQLUpdatePin(t *testing.T) {
 
 }
 
-func TestUpdatePinHandler(t *testing.T) {
+func TestResetPinHandler(t *testing.T) {
 	client := http.DefaultClient
 	pinRecovery := profile.PinRecovery{
 		MSISDN:    base.TestUserPhoneNumber,
@@ -644,17 +644,17 @@ func TestUpdatePinHandler(t *testing.T) {
 		{
 			name: "successful update pin",
 			args: args{
-				url:        fmt.Sprintf("%s/update_pin", baseURL),
+				url:        fmt.Sprintf("%s/reset_pin", baseURL),
 				httpMethod: http.MethodPost,
 				body:       payload,
 			},
-			wantStatus: http.StatusBadRequest, // Not a verified otp code
+			wantStatus: http.StatusInternalServerError, // Not a verified otp code
 			wantErr:    false,
 		},
 		{
 			name: "failed generate and send otp",
 			args: args{
-				url:        fmt.Sprintf("%s/update_pin", baseURL),
+				url:        fmt.Sprintf("%s/reset_pin", baseURL),
 				httpMethod: http.MethodPost,
 				body:       nil,
 			},
