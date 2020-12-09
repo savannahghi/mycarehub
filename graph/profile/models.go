@@ -145,7 +145,7 @@ type PostVisitSurvey struct {
 type PIN struct {
 	ProfileID string `json:"profile_id" firestore:"profileID"`
 	MSISDN    string `json:"msisdn,omitempty" firestore:"msisdn"`
-	PINNumber string `json:"pin_number" firestore:"PINNumber"`
+	PINNumber string `json:"pin_number" firestore:"pin"`
 	IsValid   bool   `json:"isValid,omitempty" firestore:"isValid"`
 }
 

@@ -1252,6 +1252,12 @@ func (s Service) VerifyMSISDNandPIN(ctx context.Context, msisdn string, pinNumbe
 	if err != nil {
 		return false, fmt.Errorf("unable to read PIN: %w", err)
 	}
+
+	err = s.encryptExistingPin(msisdnPin, dsnap)
+	if err != nil {
+		return false, err
+	}
+
 	// compare if the two PINS match
 	isMatch, err := ComparePIN(msisdnPin.PINNumber, pinNumber)
 	if err != nil {
@@ -1856,9 +1862,14 @@ func (s Service) PhoneSignIn(ctx context.Context, phoneNumber, pin string) (*Pho
 		return nil, fmt.Errorf("PhoneSignIn: unable to read PIN: %w", err)
 	}
 
+	err = s.encryptExistingPin(msisdnPin, dsnap)
+	if err != nil {
+		return nil, err
+	}
+
 	isMatch, err := ComparePIN(msisdnPin.PINNumber, pin)
 	if err != nil {
-		return nil, fmt.Errorf("PhoneSignIn: unable to match PIN Number provided: %w", err)
+		return nil, fmt.Errorf("unable to match PIN Number provided. A wrong pin has been supplied")
 	}
 	if !isMatch {
 		return nil, fmt.Errorf("a wrong pin has been supplied")
@@ -1893,6 +1904,29 @@ func validatePIN(pin string) error {
 	// make sure pin length is [4-6]
 	if len(pin) < 4 || len(pin) > 6 {
 		return fmt.Errorf("pin should be of 4,5, or six digits")
+	}
+	return nil
+}
+func (s Service) encryptExistingPin(
+	p *PIN,
+	dsnap *firestore.DocumentSnapshot,
+) error {
+	_, convertPinToIntErr := strconv.Atoi(p.PINNumber)
+	if convertPinToIntErr == nil {
+		// if the pin is converted successfully then it implies that it has numbers only
+		// which means that it was probably not encrypted before
+		newEncryptedPin, err := EncryptPIN(p.PINNumber)
+		if err != nil {
+			return fmt.Errorf("PhoneSignIn: unable to encrypt PIN: %w", err)
+		}
+
+		p.PINNumber = newEncryptedPin
+		err = base.UpdateRecordOnFirestore(
+			s.firestoreClient, s.GetPINCollectionName(), dsnap.Ref.ID, p,
+		)
+		if err != nil {
+			return fmt.Errorf("PhoneSignIn: unable to update pins record: %v", err)
+		}
 	}
 	return nil
 }
