@@ -1457,7 +1457,7 @@ func (s Service) VerifyEmailOtp(ctx context.Context, email string, otp string) (
 
 	_, emailErr := ValidateEmail(email, otp, s.firestoreClient)
 	if emailErr != nil {
-		return false, fmt.Errorf("email failed verification: %w", err)
+		return false, fmt.Errorf("email failed verification: %w", emailErr)
 	}
 
 	userProfile, err := s.UserProfile(ctx)
