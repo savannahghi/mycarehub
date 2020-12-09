@@ -115,3 +115,16 @@ func ValidateSendRetryOTPPayload(w http.ResponseWriter, r *http.Request) (*SendR
 	}
 	return payload, nil
 }
+
+// ValidatePhoneSignInInput checks that the credentials supplied in the indicated request are valid
+func ValidatePhoneSignInInput(w http.ResponseWriter, r *http.Request) (*PhoneSignInInput, error) {
+	payload := &PhoneSignInInput{}
+	base.DecodeJSONToTargetStruct(w, r, payload)
+	_, err := base.NormalizeMSISDN(payload.PhoneNumber)
+	if err != nil || payload.PhoneNumber == "" || payload.Pin == "" {
+		err := fmt.Errorf("expected a correct value")
+		base.ReportErr(w, err, http.StatusBadRequest)
+		return nil, err
+	}
+	return payload, nil
+}

@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
@@ -20,41 +19,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
-	"google.golang.org/api/iterator"
 )
-
-func deleteCollection(
-	ctx context.Context,
-	client *firestore.Client,
-	ref *firestore.CollectionRef,
-	batchSize int) error {
-	for {
-		iter := ref.Limit(batchSize).Documents(ctx)
-		numDeleted := 0
-		batch := client.Batch()
-		for {
-			doc, err := iter.Next()
-			if err == iterator.Done {
-				break
-			}
-			if err != nil {
-				return err
-			}
-
-			batch.Delete(doc.Ref)
-			numDeleted++
-		}
-
-		if numDeleted == 0 {
-			return nil
-		}
-
-		_, err := batch.Commit(ctx)
-		if err != nil {
-			return err
-		}
-	}
-}
 
 func TestMain(m *testing.M) {
 	log.Printf("Setting tests up ...")
@@ -74,7 +39,7 @@ func TestMain(m *testing.M) {
 	}
 	for _, collection := range collections {
 		ref := s.firestoreClient.Collection(collection)
-		deleteCollection(ctx, s.firestoreClient, ref, 10)
+		base.DeleteCollection(ctx, s.firestoreClient, ref, 10)
 	}
 
 	os.Exit(code)

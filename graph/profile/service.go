@@ -1802,6 +1802,7 @@ func (s Service) CreateUserProfile(phone string) (*base.UserProfile, error) {
 		HasCustomerAccount:      false,
 		PractitionerHasServices: false,
 		Msisdns:                 []string{phone},
+		Active:                  true,
 	}
 	// persist record to the database
 	_, err := base.SaveDataToFirestore(
@@ -1840,6 +1841,57 @@ func (s Service) CreateUserByPhone(ctx context.Context, phoneNumber string) (*Cr
 		CustomToken: &customToken,
 	}
 	return createdUser, nil
+}
+
+// PhoneSignIn authenticates a phone number and a pin and generates a firebase token
+// that allows a user to access our application
+func (s Service) PhoneSignIn(ctx context.Context, phoneNumber, pin string) (*PhoneSignInResponse, error) {
+	s.checkPreconditions()
+
+	u, err := s.firebaseAuth.GetUserByPhoneNumber(ctx, phoneNumber)
+	if err != nil {
+		return nil, fmt.Errorf("PhoneSignIn: error getting user with phone %s: %w", phoneNumber, err)
+	}
+
+	dsnap, err := s.RetrievePINFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
+	if err != nil {
+		return nil, fmt.Errorf("PhoneSignIn: unable to retrieve pin given the msisdn %s: %v", phoneNumber, err)
+	}
+	if dsnap == nil {
+		return nil, fmt.Errorf("PhoneSignIn: unable to retrieve user PIN")
+	}
+
+	msisdnPin := &PIN{}
+	err = dsnap.DataTo(msisdnPin)
+	if err != nil {
+		return nil, fmt.Errorf("PhoneSignIn: unable to read PIN: %w", err)
+	}
+
+	isMatch, err := ComparePIN(msisdnPin.PINNumber, pin)
+	if err != nil {
+		return nil, fmt.Errorf("PhoneSignIn: unable to match PIN Number provided: %w", err)
+	}
+	if !isMatch {
+		return nil, fmt.Errorf("a wrong pin has been supplied")
+	}
+
+	customToken, err := base.CreateFirebaseCustomToken(ctx, u.UID)
+	if err != nil {
+		return nil, fmt.Errorf("can't to generate a custom token. Please contact Slade360 for assistance")
+	}
+
+	userTokens, err := base.AuthenticateCustomFirebaseToken(customToken)
+	if err != nil {
+		return nil, fmt.Errorf("can't authenticate the custom token. Please contact Slade360 for assistance")
+	}
+
+	loginResp := PhoneSignInResponse{
+		CustomToken:  customToken,
+		IDToken:      userTokens.IDToken,
+		RefreshToken: userTokens.RefreshToken,
+	}
+
+	return &loginResp, nil
 }
 
 func validatePIN(pin string) error {

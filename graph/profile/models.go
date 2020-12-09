@@ -352,6 +352,20 @@ type CreateUserViaPhoneInput struct {
 	MSISDN string `json:"msisdn"`
 }
 
+// PhoneSignInInput represents input required to sign in a user via phoneNumber
+type PhoneSignInInput struct {
+	PhoneNumber string `json:"phonenumber"`
+	Pin         string `json:"pin"`
+}
+
+// PhoneSignInResponse is a thin payload returned when a user signs in
+// with their phone number
+type PhoneSignInResponse struct {
+	CustomToken  string `json:"custom_token"`
+	IDToken      string `json:"id_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 // BusinessPartner represents a Slade 360 Charge Master business partner
 type BusinessPartner struct {
 	base.Model

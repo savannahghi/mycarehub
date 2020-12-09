@@ -46,6 +46,9 @@ var serverErr error
 func TestMain(m *testing.M) {
 	// setup
 	ctx := context.Background()
+	os.Setenv("ENVIRONMENT", "testing")
+	os.Setenv("ROOT_COLLECTION_SUFFIX", "onboarding_testing")
+	s := profile.NewService()
 	srv, baseURL, serverErr = base.StartTestServer(ctx, graph.PrepareServer, allowedOrigins) // set the globals
 	if serverErr != nil {
 		log.Printf("unable to start test server: %s", serverErr)
@@ -56,6 +59,24 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	log.Printf("finished running tests")
 
+	fc := &base.FirebaseClient{}
+	fa, err := fc.InitFirebase()
+	if err != nil {
+		log.Printf("can't initialize Firebase app: %s", err)
+	}
+	firestore, err := fa.Firestore(context.Background())
+	if err != nil {
+		log.Printf("can't initialize Firestore client: %s", err)
+	}
+	collections := []string{
+		s.GetPINCollectionName(),
+		s.GetUserProfileCollectionName(),
+		s.GetPractitionerCollectionName(),
+	}
+	for _, collection := range collections {
+		ref := firestore.Collection(collection)
+		base.DeleteCollection(ctx, firestore, ref, 10)
+	}
 	// cleanup here
 	defer func() {
 		err := srv.Shutdown(ctx)
@@ -1423,6 +1444,160 @@ func TestRetrieveUserProfileHandler(t *testing.T) {
 				t.Errorf("unexpected nil response (did not expect an error)")
 				return
 			}
+		})
+	}
+}
+
+func TestPhoneSignUp(t *testing.T) {
+	ctx := base.GetAuthenticatedContext(t)
+	s := profile.NewService()
+	loginFunc := graph.PhoneSignIn(ctx, s)
+
+	set, err := s.SetUserPIN(ctx, base.TestUserPhoneNumberWithPin, base.TestUserPin)
+	if !set {
+		t.Errorf("can't set a test pin")
+	}
+	if err != nil {
+		t.Errorf("can't set a test pin: %v", err)
+		return
+	}
+
+	goodLoginCredsJSONBytes, err := json.Marshal(&profile.PhoneSignInInput{
+		PhoneNumber: base.TestUserPhoneNumberWithPin,
+		Pin:         base.TestUserPin,
+	})
+	if err != nil {
+		t.Errorf("can't marshal the good login creds")
+		return
+	}
+	goodLoginCredsReq := httptest.NewRequest(http.MethodGet, "/", nil)
+	goodLoginCredsReq.Body = ioutil.NopCloser(bytes.NewReader(goodLoginCredsJSONBytes))
+
+	incorrectLoginCredsJSONBytes, err := json.Marshal(&profile.PhoneSignInInput{
+		PhoneNumber: "not a real phone number",
+		Pin:         "not a real pin",
+	})
+	if err != nil {
+		t.Errorf("can't marshal the incorrect login creds")
+		return
+	}
+	incorrectLoginCredsReq := httptest.NewRequest(http.MethodGet, "/", nil)
+	incorrectLoginCredsReq.Body = ioutil.NopCloser(bytes.NewReader(incorrectLoginCredsJSONBytes))
+
+	wrongFormatLoginCredsJSONBytes, err := json.Marshal(&base.AccessTokenPayload{})
+	if err != nil {
+		t.Errorf("can't marshal the login creds in wrong format")
+		return
+	}
+	wrongFormatLoginCredsReq := httptest.NewRequest(http.MethodGet, "/", nil)
+	wrongFormatLoginCredsReq.Body = ioutil.NopCloser(bytes.NewReader(wrongFormatLoginCredsJSONBytes))
+
+	badLoginCredsJSONBytes, err := json.Marshal(&profile.PhoneSignInInput{
+		PhoneNumber: base.TestUserPhoneNumberWithPin,
+		Pin:         "wrong pin number",
+	})
+	if err != nil {
+		t.Errorf("can't marshal the bad login creds")
+		return
+	}
+	badLoginCredsReq := httptest.NewRequest(http.MethodGet, "/", nil)
+	badLoginCredsReq.Body = ioutil.NopCloser(bytes.NewReader(badLoginCredsJSONBytes))
+
+	nonExistentLoginCredsJSONBytes, err := json.Marshal(&profile.PhoneSignInInput{
+		PhoneNumber: "+254780654321",
+		Pin:         "0000",
+	})
+	if err != nil {
+		t.Errorf("can't marshal the non existing login creds")
+		return
+	}
+	nonExistentLoginCredsReq := httptest.NewRequest(http.MethodGet, "/", nil)
+	nonExistentLoginCredsReq.Body = ioutil.NopCloser(bytes.NewReader(nonExistentLoginCredsJSONBytes))
+
+	noPinLoginCredsJSONBytes, err := json.Marshal(&profile.PhoneSignInInput{
+		PhoneNumber: "+254711223344",
+		Pin:         "has no pin",
+	})
+	if err != nil {
+		t.Errorf("can't marshal the login creds without a pin set up")
+		return
+	}
+	noPinLoginCredsReq := httptest.NewRequest(http.MethodGet, "/", nil)
+	noPinLoginCredsReq.Body = ioutil.NopCloser(bytes.NewReader(noPinLoginCredsJSONBytes))
+	type args struct {
+		w http.ResponseWriter
+		r *http.Request
+	}
+	tests := []struct {
+		name           string
+		args           args
+		wantStatusCode int
+		wantErr        bool
+	}{
+		{
+			name: "invalid login credentials - format",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: wrongFormatLoginCredsReq,
+			},
+			wantStatusCode: http.StatusBadRequest,
+			wantErr:        true,
+		},
+		{
+			name: "totally incorrect login credentials",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: incorrectLoginCredsReq,
+			},
+			wantStatusCode: http.StatusBadRequest,
+			wantErr:        true,
+		},
+		{
+			name: "correct login credentials",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: goodLoginCredsReq,
+			},
+			wantStatusCode: http.StatusOK,
+			wantErr:        false,
+		},
+		{
+			name: "wrong pin login credentials",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: badLoginCredsReq,
+			},
+			wantStatusCode: http.StatusUnauthorized,
+			wantErr:        true,
+		},
+		{
+			name: "non existent pin login credentials",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: nonExistentLoginCredsReq,
+			},
+			wantStatusCode: http.StatusUnauthorized,
+			wantErr:        true,
+		},
+		{
+			name: "user without pin set up",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: noPinLoginCredsReq,
+			},
+			wantStatusCode: http.StatusUnauthorized,
+			wantErr:        true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			loginFunc(tt.args.w, tt.args.r)
+
+			rec, ok := tt.args.w.(*httptest.ResponseRecorder)
+			assert.True(t, ok)
+			assert.NotNil(t, rec)
+
+			assert.Equal(t, rec.Code, tt.wantStatusCode)
 		})
 	}
 }

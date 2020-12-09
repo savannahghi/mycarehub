@@ -13,12 +13,22 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/graph/profile"
 )
 
 func TestMSISDNLogin(t *testing.T) {
-	ctx := context.Background()
+	ctx := base.GetAuthenticatedContext(t)
+	s := profile.NewService()
 	if ctx == nil {
 		t.Errorf("nil context")
+		return
+	}
+	set, err := s.SetUserPIN(ctx, base.TestUserPhoneNumberWithPin, base.TestUserPin)
+	if !set {
+		t.Errorf("can't set a test pin")
+	}
+	if err != nil {
+		t.Errorf("can't set a test pin: %v", err)
 		return
 	}
 
@@ -40,33 +50,25 @@ func TestMSISDNLogin(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "correct format login credentials but PIN is not registered",
+			name: "happy case: a correct phone number and pin",
 			args: args{
 				PhoneNumber: base.TestUserPhoneNumberWithPin,
 				Pin:         base.TestUserPin,
 			},
-			wantStatus: http.StatusUnauthorized,
+			wantStatus: http.StatusOK,
 			wantErr:    false,
 		},
 		{
-			name: "totally incorrect login credentials",
+			name: "edge case: invalid phone number and pin",
 			args: args{
 				PhoneNumber: "not a real phone number",
 				Pin:         "not a pin",
-			},
-			wantStatus: http.StatusInternalServerError,
-			wantErr:    false,
-		},
-		{
-			name: "invalid login credentials format",
-			args: args{
-				PhoneNumber: "not a real phone number",
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    false,
 		},
 		{
-			name: "wrong pin credentials",
+			name: "sad case: a correct phone number with a wrong pin",
 			args: args{
 				PhoneNumber: base.TestUserPhoneNumberWithPin,
 				Pin:         "wrong pin number",
@@ -75,19 +77,10 @@ func TestMSISDNLogin(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "non-existent login credentials",
+			name: "sad case: a non-existent phone number and pin",
 			args: args{
 				PhoneNumber: "+254780654321",
 				Pin:         "0000",
-			},
-			wantStatus: http.StatusInternalServerError,
-			wantErr:    false,
-		},
-		{
-			name: "no pin login credentials",
-			args: args{
-				PhoneNumber: "+254711223344",
-				Pin:         "has no pin",
 			},
 			wantStatus: http.StatusUnauthorized,
 			wantErr:    false,
@@ -291,14 +284,14 @@ func TestSendRetryOTP(t *testing.T) {
 	}
 }
 
-func TestRequestPinRest(t *testing.T) {
+func TestRequestPinReset(t *testing.T) {
 	ctx := context.Background()
 	if ctx == nil {
 		t.Errorf("nil context")
 		return
 	}
 
-	requestPinRestUrl := fmt.Sprintf("%s/%s", baseURL, "request_pin_reset")
+	requestPinResetUrl := fmt.Sprintf("%s/%s", baseURL, "request_pin_reset")
 	headers, err := base.GetGraphQLHeaders(ctx)
 	if err != nil {
 		t.Errorf("unable to get request headers %v", err)
@@ -306,9 +299,7 @@ func TestRequestPinRest(t *testing.T) {
 	}
 
 	type args struct {
-		msisdn    string
-		PINNumber string
-		otp       string
+		msisdn string
 	}
 
 	tests := []struct {
@@ -320,19 +311,15 @@ func TestRequestPinRest(t *testing.T) {
 		{
 			name: "invalid case - PIN that is not registered",
 			args: args{
-				msisdn:    base.TestUserPhoneNumberWithPin,
-				PINNumber: base.TestUserPin,
-				otp:       "1234", // this is not an existing/valid PIN
+				msisdn: base.TestUserPhoneNumberWithPin,
 			},
-			wantStatus: http.StatusBadRequest,
+			wantStatus: http.StatusOK,
 			wantErr:    false,
 		},
 		{
 			name: "invalid phone number",
 			args: args{
-				msisdn:    "011",
-				PINNumber: base.TestUserPin,
-				otp:       "1234",
+				msisdn: "011",
 			},
 			wantErr:    false,
 			wantStatus: http.StatusBadRequest,
@@ -343,8 +330,6 @@ func TestRequestPinRest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			requestInput := map[string]interface{}{}
 			requestInput["msisdn"] = tt.args.msisdn
-			requestInput["PINNumber"] = tt.args.PINNumber
-			requestInput["otp"] = tt.args.otp
 
 			body, err := mapToJSONReader(requestInput)
 			if err != nil {
@@ -354,7 +339,7 @@ func TestRequestPinRest(t *testing.T) {
 
 			request, err := http.NewRequest(
 				http.MethodPost,
-				requestPinRestUrl,
+				requestPinResetUrl,
 				body,
 			)
 			if err != nil {

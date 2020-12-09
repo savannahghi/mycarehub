@@ -343,3 +343,77 @@ func TestValidateUserProfileUIDs(t *testing.T) {
 		})
 	}
 }
+
+func TestValidatePhoneSignInInput(t *testing.T) {
+	goodCreds := PhoneSignInInput{
+		PhoneNumber: base.TestUserPhoneNumberWithPin,
+		Pin:         base.TestUserPin,
+	}
+	goodCredsJSONBytes, err := json.Marshal(goodCreds)
+	if err != nil {
+		t.Errorf("can't marshall the good creds")
+		return
+	}
+
+	validRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	validRequest.Body = ioutil.NopCloser(bytes.NewReader(goodCredsJSONBytes))
+
+	emptyCredsRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	emptyCredsRequest.Body = ioutil.NopCloser(bytes.NewReader([]byte{}))
+
+	bogusCreds := &PhoneSignInInput{
+		PhoneNumber: "not a phone number",
+		Pin:         base.TestUserPin,
+	}
+	bogusCredsJSONBytes, err := json.Marshal(bogusCreds)
+	if err != nil {
+		t.Errorf("can't marshal the bogus creds")
+		return
+	}
+	bogusRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	bogusRequest.Body = ioutil.NopCloser(bytes.NewReader(bogusCredsJSONBytes))
+
+	type args struct {
+		w http.ResponseWriter
+		r *http.Request
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid creds",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: validRequest,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid creds",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: emptyCredsRequest,
+			},
+			wantErr: true,
+		},
+		{
+			name: "bogus phone number",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: bogusRequest,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ValidatePhoneSignInInput(tt.args.w, tt.args.r)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePhoneSignInInput() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

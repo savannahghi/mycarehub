@@ -51,7 +51,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Unauthenticated routes
 	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))
 	r.Path("/msisdn_login").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(base.GetPhoneNumberLoginFunc(ctx, fc))
+		http.MethodPost, http.MethodOptions).HandlerFunc(PhoneSignIn(ctx, srv))
 	r.Path("/request_pin_reset").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(RequestPINResetFunc(ctx))
 	r.Path("/update_pin").Methods(
@@ -467,5 +467,24 @@ func CreateUserByPhoneHandler(ctx context.Context) http.HandlerFunc {
 		}
 		base.WriteJSONResponse(w, user, http.StatusCreated)
 
+	}
+}
+
+// PhoneSignIn returns a function that can authenticate against Firebase
+func PhoneSignIn(ctx context.Context, s *profile.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		input, err := profile.ValidatePhoneSignInInput(w, r)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		response, err := s.PhoneSignIn(ctx, input.PhoneNumber, input.Pin)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusUnauthorized)
+			return
+		}
+
+		base.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }

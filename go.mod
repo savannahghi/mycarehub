@@ -24,11 +24,11 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
-	gitlab.slade360emr.com/go/base v0.0.78
+	gitlab.slade360emr.com/go/base v0.0.79
 	gitlab.slade360emr.com/go/uploads v0.0.9 // indirect
 	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9
 	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
-	golang.org/x/net v0.0.0-20201207224615-747e23833adb // indirect
+	golang.org/x/net v0.0.0-20201209123823-ac852fbbde11 // indirect
 	golang.org/x/oauth2 v0.0.0-20201208152858-08078c50e5b5 // indirect
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
 	golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d // indirect
