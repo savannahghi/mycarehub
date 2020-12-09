@@ -88,7 +88,6 @@ deploy_develop_to_staging:
       CHARGE_MASTER_PASSWORD=$STAGING_CHARGE_MASTER_PASSWORD,CHARGE_MASTER_GRANT_TYPE=$STAGING_CHARGE_MASTER_GRANT_TYPE"
     - |
     - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile-staging --quiet
-    - google-cloud-sdk/bin/gcloud run services update-traffic profile-staging --to-latest
   tags:
     - healthcloud-multi
 
@@ -140,7 +139,6 @@ deploy_develop_to_test:
       CHARGE_MASTER_PASSWORD=$CHARGE_MASTER_PASSWORD,CHARGE_MASTER_GRANT_TYPE=$CHARGE_MASTER_GRANT_TYPE"
     - |
     - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile-testing --quiet
-    - google-cloud-sdk/bin/gcloud run services update-traffic profile-testing --to-latest
   tags:
     - healthcloud-multi
 
@@ -192,6 +190,5 @@ deploy_master_to_prod:
       CHARGE_MASTER_PASSWORD=$PROD_CHARGE_MASTER_PASSWORD,CHARGE_MASTER_GRANT_TYPE=$PROD_CHARGE_MASTER_GRANT_TYPE"
     - |
     - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile-prod --quiet
-    - google-cloud-sdk/bin/gcloud run services update-traffic profile-prod --to-latest
   tags:
     - healthcloud-multi
