@@ -360,7 +360,7 @@ func TestRequestPinReset(t *testing.T) {
 				t.Errorf("request error: %s", err)
 				return
 			}
-
+	
 			if resp == nil && !tt.wantErr {
 				t.Errorf("nil response")
 				return
@@ -371,17 +371,14 @@ func TestRequestPinReset(t *testing.T) {
 				t.Errorf("can't read request body: %s", err)
 				return
 			}
-
 			if data == nil {
 				t.Errorf("nil response data")
 				return
 			}
-
 			if (err != nil) != tt.wantErr {
 				t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-
 			if tt.wantStatus != resp.StatusCode {
 				log.Printf("raw response: %s", string(data))
 				t.Errorf("statusCode = %v, wantStatus %v", resp.StatusCode, tt.wantStatus)

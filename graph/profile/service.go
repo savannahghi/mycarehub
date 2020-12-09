@@ -1787,30 +1787,19 @@ func (s Service) generateAndSendOTP(phone string) (string, error) {
 	return string(code), nil
 }
 
-// CreateUserProfile creates a user via thier phone number in the database
-func (s Service) CreateUserProfile(phone string) (*base.UserProfile, error) {
+// RetrieveOrCreateUserProfile creates or retrieves user profile via thier phone number and uid  in the database
+func (s Service) RetrieveOrCreateUserProfile(ctx context.Context, phone, uid string) (*base.UserProfile, error) {
 	// prepare user payload for creation
-	uids := []string{}
-	newProfile := &base.UserProfile{
-		ID:                      uuid.New().String(),
-		VerifiedIdentifiers:     uids,
-		IsApproved:              false,
-		TermsAccepted:           false,
-		CanExperiment:           false,
-		HasPin:                  false,
-		HasSupplierAccount:      false,
-		HasCustomerAccount:      false,
-		PractitionerHasServices: false,
-		Msisdns:                 []string{phone},
-		Active:                  true,
-	}
-	// persist record to the database
-	_, err := base.SaveDataToFirestore(
-		s.firestoreClient, s.GetUserProfileCollectionName(), newProfile)
+	dsnap, err := s.RetrieveOrCreateUserProfileFirebaseDocSnapshot(ctx, uid, phone)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create new user profile: %w", err)
+		return nil, err
 	}
-	return newProfile, nil
+	userProfile := &base.UserProfile{}
+	err = dsnap.DataTo(userProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+	return userProfile, nil
 }
 
 // CreateUserByPhone represents logic to create a user via their phoneNumber
@@ -1830,10 +1819,10 @@ func (s Service) CreateUserByPhone(ctx context.Context, phoneNumber string) (*Cr
 	if tokenErr != nil {
 		return nil, fmt.Errorf("CreateFirebaseCustomToken: unable to get or create custom token: %w", tokenErr)
 	}
-	// create a profile for the user
-	userProfile, err := s.CreateUserProfile(phone)
+	//  get or create a profile for the user
+	userProfile, err := s.RetrieveOrCreateUserProfile(ctx, phone, user.UID)
 	if err != nil {
-		return nil, fmt.Errorf("CreateUserProfile: unable to create a profile for the user: %w", err)
+		return nil, fmt.Errorf("CreateUserProfile: unable to get or create a profile for the user: %w", err)
 	}
 	// prepare payload to return as response
 	createdUser := &CreatedUserResponse{
