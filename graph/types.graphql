@@ -190,3 +190,24 @@ type BusinessPartnerConnection {
     edges: [BusinessPartnerEdge]
     pageInfo: PageInfo!
 }
+
+# A location is a "branch" of an organization.
+type Branch {
+    id: ID!
+    name: String!
+    organizationSladeCode: String!
+    branchSladeCode: String!
+}
+
+type BranchEdge {
+    cursor: String
+    node: Branch
+}
+
+type BranchConnection {
+    edges: [BranchEdge]
+    pageInfo: PageInfo!
+}
+
+
+

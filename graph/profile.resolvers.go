@@ -253,6 +253,12 @@ func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.Pagin
 	return r.profileService.FindProvider(ctx, pagination, filter, sort)
 }
 
+func (r *queryResolver) FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) (*profile.BranchConnection, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.FindBranch(ctx, pagination, filter, sort)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

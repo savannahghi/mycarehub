@@ -2,7 +2,9 @@ package profile
 
 import (
 	"context"
+	"fmt"
 	"net/url"
+	"strings"
 
 	"gitlab.slade360emr.com/go/base"
 )
@@ -81,6 +83,7 @@ func (s Service) FindProvider(ctx context.Context, pagination *base.PaginationIn
 	defaultParams.Add("field", "id, name, slade_code")
 	defaultParams.Add("is_active", "True")
 	defaultParams.Add("bp_type", "PROVIDER")
+	defaultParams.Add("is_branch", "False")
 
 	queryParams := []url.Values{defaultParams, paginationParams}
 	for _, fp := range filter {
@@ -133,4 +136,88 @@ func (s Service) FindProvider(ctx context.Context, pagination *base.PaginationIn
 		PageInfo: pageInfo,
 	}
 	return connection, nil
+}
+
+// FindBranch lists all locations known to Slade 360 Charge Master
+// Example URL: https://base.chargemaster.slade360emr.com/v1/business_partners/?format=json&page_size=100&parent=6ba48d97-93d2-4815-a447-f51240cbcab8&fields=id,name,slade_code
+func (s Service) FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*BranchFilterInput, sort []*BranchSortInput) (*BranchConnection, error) {
+	s.checkPreconditions()
+	paginationParams, err := base.GetAPIPaginationParams(pagination)
+	if err != nil {
+		return nil, err
+	}
+	defaultParams := url.Values{}
+	defaultParams.Add("fields", "id,name,slade_code")
+	defaultParams.Add("is_active", "True")
+	defaultParams.Add("is_branch", "True")
+
+	queryParams := []url.Values{defaultParams, paginationParams}
+	for _, fp := range filter {
+		queryParams = append(queryParams, fp.ToURLValues())
+	}
+	for _, fp := range sort {
+		queryParams = append(queryParams, fp.ToURLValues())
+	}
+	mergedParams := base.MergeURLValues(queryParams...)
+	queryFragment := mergedParams.Encode()
+
+	type apiResp struct {
+		base.SladeAPIListRespBase
+
+		Results []*BusinessPartner `json:"results,omitempty"`
+	}
+
+	r := apiResp{}
+	err = base.ReadRequestToTarget(s.chargemasterClient, "GET", ChargeMasterBusinessPartnerPath, queryFragment, nil, &r)
+	if err != nil {
+		return nil, err
+	}
+	startOffset := base.CreateAndEncodeCursor(r.StartIndex)
+	endOffset := base.CreateAndEncodeCursor(r.EndIndex)
+	hasNextPage := r.Next != ""
+	hasPreviousPage := r.Previous != ""
+
+	edges := []*BranchEdge{}
+	for pos, branch := range r.Results {
+		orgSladeCode, err := parentOrgSladeCodeFromBranch(branch)
+		if err != nil {
+			return nil, err
+		}
+
+		edge := &BranchEdge{
+			Node: &Branch{
+				ID:                    branch.ID,
+				Name:                  branch.Name,
+				BranchSladeCode:       branch.SladeCode,
+				OrganizationSladeCode: orgSladeCode,
+			},
+			Cursor: base.CreateAndEncodeCursor(pos + 1),
+		}
+		edges = append(edges, edge)
+	}
+	pageInfo := &base.PageInfo{
+		HasNextPage:     hasNextPage,
+		HasPreviousPage: hasPreviousPage,
+		StartCursor:     startOffset,
+		EndCursor:       endOffset,
+	}
+	connection := &BranchConnection{
+		Edges:    edges,
+		PageInfo: pageInfo,
+	}
+	return connection, nil
+}
+
+func parentOrgSladeCodeFromBranch(branch *BusinessPartner) (string, error) {
+	if !strings.HasPrefix(branch.SladeCode, "BRA-") {
+		return "", fmt.Errorf("%s is not a valid branch Slade Code; expected a BRA- prefix", branch.SladeCode)
+	}
+	trunc := strings.TrimPrefix(branch.SladeCode, "BRA-")
+	split := strings.Split(trunc, "-")
+	if len(split) != 3 {
+		return "", fmt.Errorf("expected the branch Slade Code to split into 3 parts on -; got %s", split)
+	}
+	orgParts := split[0:2]
+	orgSladeCode := strings.Join(orgParts, "-")
+	return orgSladeCode, nil
 }

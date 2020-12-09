@@ -434,3 +434,73 @@ func (i *BusinessPartnerSortInput) ToURLValues() (values url.Values) {
 	}
 	return vals
 }
+
+// Branch represents a Slade 360 Charge Master branch
+type Branch struct {
+	base.Model
+
+	ID                    string `json:"id"`
+	Name                  string `json:"name"`
+	OrganizationSladeCode string `json:"organizationSladeCode"`
+	BranchSladeCode       string `json:"branchSladeCode"`
+}
+
+// BranchEdge is used to serialize GraphQL Relay edges for locations
+type BranchEdge struct {
+	Cursor *string `json:"cursor"`
+	Node   *Branch `json:"node"`
+}
+
+// BranchConnection is used tu serialize GraphQL Relay connections for locations
+type BranchConnection struct {
+	Edges    []*BranchEdge  `json:"edges"`
+	PageInfo *base.PageInfo `json:"pageInfo"`
+}
+
+// BranchFilterInput is used to supply filter parameters for locatioon list queries
+type BranchFilterInput struct {
+	Search               *string `json:"search"`
+	SladeCode            *string `json:"sladeCode"`
+	ParentOrganizationID *string `json:"parentOrganizationID"`
+}
+
+// ToURLValues transforms the filter input to `url.Values`
+func (i *BranchFilterInput) ToURLValues() url.Values {
+	vals := url.Values{}
+	if i.Search != nil {
+		vals.Add("search", *i.Search)
+	}
+	if i.SladeCode != nil {
+		vals.Add("slade_code", *i.SladeCode)
+	}
+	if i.ParentOrganizationID != nil {
+		vals.Add("parent", *i.ParentOrganizationID)
+	}
+	return vals
+}
+
+// BranchSortInput is used to supply sorting input for location list queries
+type BranchSortInput struct {
+	Name      *base.SortOrder `json:"name"`
+	SladeCode *base.SortOrder `json:"slade_code"`
+}
+
+// ToURLValues transforms the sort input to `url.Values`
+func (i *BranchSortInput) ToURLValues() (values url.Values) {
+	vals := url.Values{}
+	if i.Name != nil {
+		if *i.Name == base.SortOrderAsc {
+			vals.Add("order_by", "name")
+		} else {
+			vals.Add("order_by", "-name")
+		}
+	}
+	if i.SladeCode != nil {
+		if *i.SladeCode == base.SortOrderAsc {
+			vals.Add("slade_code", "number")
+		} else {
+			vals.Add("slade_code", "-number")
+		}
+	}
+	return vals
+}

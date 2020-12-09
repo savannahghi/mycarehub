@@ -93,3 +93,14 @@ input BusinessPartnerSortInput {
   name: SortOrder
   sladeCode: SortOrder
 }
+
+input BranchFilterInput {
+    search: String
+    sladeCode: String
+    parentOrganizationID: String
+}
+
+input BranchSortInput {
+    name: SortOrder
+    sladeCode: SortOrder
+}

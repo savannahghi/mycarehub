@@ -22,6 +22,11 @@ extend type Query {
     filter: [BusinessPartnerFilterInput]
     sort: [BusinessPartnerSortInput]
   ): BusinessPartnerConnection!
+  findBranch(
+    pagination: PaginationInput
+    filter: [BranchFilterInput]
+    sort: [BranchSortInput]
+  ): BranchConnection!
 }
 
 extend type Mutation {
