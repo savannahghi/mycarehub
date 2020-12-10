@@ -283,6 +283,19 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByID(
 	if len(docs) > 1 && base.IsDebug() {
 		log.Printf("> 1 profile with id %s (count: %d)", id, len(docs))
 	}
+
+	// allow user to have one profile by deleting the other profiles.
+	if len(docs) > 1 {
+		for i, doc := range docs {
+			if i != 0 {
+				_, err := doc.Ref.Delete(ctx)
+				if err != nil {
+					return nil, fmt.Errorf("failed to delete profile to avoid multiple user profile: %w", err)
+				}
+
+			}
+		}
+	}
 	if len(docs) == 0 {
 		newProfile := &base.UserProfile{
 			ID:                  uuid.New().String(),
