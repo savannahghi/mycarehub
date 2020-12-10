@@ -985,7 +985,7 @@ func TestSaveMemberCoverToFirestoreHandler(t *testing.T) {
 		return
 	}
 
-	handler := graph.SaveMemberCoverToFirestoreHandler(ctx, srv)
+	handler := graph.SaveMemberCoverHandler(ctx, srv)
 
 	type Payload struct {
 		PayerName      string `json:"payerName"`
@@ -1225,73 +1225,6 @@ func TestIsUnderAgeHandler(t *testing.T) {
 	}
 }
 
-func TestUserProfileHandler(t *testing.T) {
-	ctx := base.GetAuthenticatedContext(t)
-	assert.NotNil(t, ctx, "context should not be nil")
-
-	authToken := ctx.Value(base.AuthTokenContextKey).(*auth.Token)
-	assert.NotNil(t, authToken, "authToken should not be nil")
-
-	srv := profile.NewService()
-	assert.NotNil(t, srv, "service is nil")
-
-	handler := graph.UserProfileHandler(ctx, srv)
-
-	type UserContext struct {
-		Token *auth.Token `json:"token"`
-	}
-
-	type args struct {
-		userContext UserContext
-	}
-	tests := []struct {
-		name string
-		args args
-		rw   http.ResponseWriter
-		want int
-	}{
-		{
-			name: "valid case",
-			args: args{
-				userContext: UserContext{
-					Token: authToken,
-				},
-			},
-			rw:   httptest.NewRecorder(),
-			want: http.StatusOK,
-		},
-		{
-			name: "invalid case",
-			args: args{
-				userContext: UserContext{
-					Token: nil,
-				},
-			},
-			want: http.StatusBadRequest,
-			rw:   httptest.NewRecorder(),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			payloadJson, err := json.Marshal(tt.args.userContext)
-			assert.Nil(t, err, "failed to marshal payload")
-			assert.NotNil(t, payloadJson, "payload is nil")
-
-			request := httptest.NewRequest(http.MethodPost, "/", nil)
-			request.Body = ioutil.NopCloser(bytes.NewReader(payloadJson))
-
-			handler(tt.rw, request)
-
-			response, ok := tt.rw.(*httptest.ResponseRecorder)
-
-			assert.True(t, ok)
-			assert.NotNil(t, response, "response should not be nil")
-
-			assert.Equal(t, tt.want, response.Code)
-		})
-	}
-}
-
 func TestSendRetryOTPHandler(t *testing.T) {
 	client := http.DefaultClient
 	sendOTPRetry := profile.SendRetryOTP{
@@ -1430,7 +1363,8 @@ func TestRetrieveUserProfileHandler(t *testing.T) {
 		{
 			name: "valid user profile retrieve request - valid UID",
 			args: args{
-				url:        fmt.Sprintf("%s/internal/retrieve_user_profile", baseURL),
+				url: fmt.Sprintf(
+					"%s/internal/retrieve_user_profile", baseURL),
 				httpMethod: http.MethodPost,
 				body:       payload,
 			},
@@ -1440,7 +1374,8 @@ func TestRetrieveUserProfileHandler(t *testing.T) {
 		{
 			name: "invalid user profile retrieve request - nil body",
 			args: args{
-				url:        fmt.Sprintf("%s/internal/retrieve_user_profile", baseURL),
+				url: fmt.Sprintf(
+					"%s/internal/retrieve_user_profile", baseURL),
 				httpMethod: http.MethodPost,
 				body:       nil,
 			},
@@ -1497,13 +1432,149 @@ func TestRetrieveUserProfileHandler(t *testing.T) {
 			}
 
 			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("expected status %d, got %d and response %s", tt.wantStatus, resp.StatusCode, string(data))
+				t.Errorf(
+					"expected status %d, got %d and response %s",
+					tt.wantStatus,
+					resp.StatusCode,
+					string(data),
+				)
 				return
 			}
 
 			if !tt.wantErr && resp == nil {
 				t.Errorf("unexpected nil response (did not expect an error)")
 				return
+			}
+		})
+	}
+}
+
+func TestIsUnderageHandler(t *testing.T) {
+	client := http.DefaultClient
+
+	_, authToken := base.GetAuthenticatedContextAndToken(t)
+	if authToken == nil {
+		t.Errorf("nil auth token")
+		return
+	}
+
+	bpUID := &profile.BusinessPartnerUID{
+		UID: authToken.UID,
+	}
+	bs, err := json.Marshal(bpUID)
+	if err != nil {
+		t.Errorf("unable to marshal BP UID payload to JSON: %s", err)
+		return
+	}
+	payload := bytes.NewBuffer(bs)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid is underage request - valid UID that exists",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/is_underage", baseURL),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid is underage retrieve request - nil body",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/is_underage", baseURL),
+				httpMethod: http.MethodPost,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+
+			if data == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf(
+					"expected status %d, got %d and response %s",
+					tt.wantStatus,
+					resp.StatusCode,
+					string(data),
+				)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if !tt.wantErr {
+				//  check response payload format
+				var respPayload profile.UnderageResponsePayload
+				err = json.Unmarshal(data, &respPayload)
+				if err != nil {
+					log.Print(string(data))
+					t.Errorf(
+						"can't unmarshal is_underage resp payload: %v", err)
+					return
+				}
 			}
 		})
 	}

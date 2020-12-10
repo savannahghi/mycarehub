@@ -89,9 +89,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	isc.Path("/retrieve_user_profile").Methods(
 		http.MethodPost).HandlerFunc(RetrieveUserProfileHandler(ctx, srv))
 
-	isc.Path("/save_cover").Methods(http.MethodPost).HandlerFunc(SaveMemberCoverToFirestoreHandler(ctx, srv))
+	isc.Path("/save_cover").Methods(http.MethodPost).HandlerFunc(SaveMemberCoverHandler(ctx, srv))
 	isc.Path("/is_underage").Methods(http.MethodPost).HandlerFunc(IsUnderAgeHandler(ctx, srv))
-	isc.Path("/user_profile").Methods(http.MethodPost).HandlerFunc(UserProfileHandler(ctx, srv))
 
 	// Authenticated routes
 	gqlR := r.Path("/graphql").Subrouter()
@@ -208,11 +207,7 @@ func ResetPinHandler(ctx context.Context) http.HandlerFunc {
 			return
 		}
 
-		type okResp struct {
-			Status string `json:"status"`
-		}
-
-		base.WriteJSONResponse(w, okResp{Status: "ok"}, http.StatusOK)
+		base.WriteJSONResponse(w, profile.OKResp{Status: "ok"}, http.StatusOK)
 
 	}
 }
@@ -241,21 +236,13 @@ func RetrieveUserProfileHandler(ctx context.Context, srv *profile.Service) http.
 	}
 }
 
-// SaveMemberCoverToFirestoreHandler process ISC requests to SaveMemberCoverToFirestore
-func SaveMemberCoverToFirestoreHandler(
+// SaveMemberCoverHandler process ISC requests to save member covers
+func SaveMemberCoverHandler(
 	ctx context.Context,
 	srv *profile.Service,
 ) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		type Payload struct {
-			PayerName      string `json:"payerName"`
-			MemberName     string `json:"memberName"`
-			MemberNumber   string `json:"memberNumber"`
-			PayerSladeCode int    `json:"payerSladeCode"`
-			UID            string `json:"uid"`
-		}
-
-		payload := &Payload{}
+		payload := &profile.SaveMemberCoverPayload{}
 		base.DecodeJSONToTargetStruct(rw, r, payload)
 		if payload == nil {
 			base.RespondWithError(
@@ -265,6 +252,7 @@ func SaveMemberCoverToFirestoreHandler(
 			)
 			return
 		}
+
 		if payload.UID == "" {
 			base.RespondWithError(
 				rw,
@@ -293,12 +281,9 @@ func SaveMemberCoverToFirestoreHandler(
 			return
 		}
 
-		type ResponsePayload struct {
-			SuccessfullySaved bool `json:"successfullySaved"`
-		}
 		base.WriteJSONResponse(
 			rw,
-			ResponsePayload{SuccessfullySaved: true},
+			profile.SaveResponsePayload{SuccessfullySaved: true},
 			http.StatusOK,
 		)
 	}
@@ -310,19 +295,8 @@ func IsUnderAgeHandler(
 	srv *profile.Service,
 ) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		type UserContext struct {
-			UID string `json:"uid"`
-		}
-		var userContext *UserContext
+		var userContext profile.BusinessPartnerUID
 		base.DecodeJSONToTargetStruct(rw, r, &userContext)
-		if userContext == nil {
-			base.RespondWithError(
-				rw,
-				http.StatusBadRequest,
-				fmt.Errorf("invalid credetials"),
-			)
-			return
-		}
 		if userContext.UID == "" {
 			base.RespondWithError(
 				rw,
@@ -344,47 +318,10 @@ func IsUnderAgeHandler(
 			return
 		}
 
-		type Payload struct {
-			IsUnderAge bool `json:"isUnderAge"`
-		}
-		payload := Payload{
+		payload := profile.UnderageResponsePayload{
 			IsUnderAge: isUnderAge,
 		}
 		base.WriteJSONResponse(rw, payload, http.StatusOK)
-	}
-}
-
-// UserProfileHandler process ISC request to UserProfile
-func UserProfileHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request) {
-
-		type userContext struct {
-			Token *auth.Token `json:"token"`
-		}
-
-		profileContext := &userContext{}
-		base.DecodeJSONToTargetStruct(rw, r, profileContext)
-		if profileContext == nil {
-			err := fmt.Errorf("invalid credetials")
-			base.RespondWithError(rw, http.StatusBadRequest, err)
-			return
-		}
-
-		if profileContext.Token == nil {
-			base.RespondWithError(rw, http.StatusBadRequest, fmt.Errorf("bad token provided"))
-			return
-		}
-
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, profileContext.Token)
-
-		userProfile, err := srv.UserProfile(newContext)
-		if err != nil {
-			base.RespondWithError(rw, http.StatusInternalServerError, err)
-			return
-		}
-
-		base.WriteJSONResponse(rw, userProfile, http.StatusOK)
-
 	}
 }
 
@@ -404,11 +341,8 @@ func SendRetryOTPHandler(ctx context.Context) http.HandlerFunc {
 			return
 		}
 
-		type OTPResponse struct {
-			OTP string `json:"otp"`
-		}
 		jsonBytes := []byte(code)
-		otpResponse := OTPResponse{}
+		otpResponse := profile.OTPResponse{}
 		err := json.Unmarshal(jsonBytes, &otpResponse)
 		if err != nil {
 			return
@@ -426,11 +360,8 @@ func SendRetryOTPHandler(ctx context.Context) http.HandlerFunc {
 func VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		s := profile.NewService()
-		type phoneNumber struct {
-			PhoneNumber string `json:"phoneNumber"`
-		}
-		phone := &phoneNumber{}
 
+		phone := &profile.PhoneNumberInput{}
 		base.DecodeJSONToTargetStruct(w, r, phone)
 		if phone.PhoneNumber == "" {
 			err := fmt.Errorf("invalid credentials, expected to receive a phone number")
@@ -445,7 +376,6 @@ func VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc {
 		}
 
 		base.WriteJSONResponse(w, response, http.StatusOK)
-
 	}
 }
 

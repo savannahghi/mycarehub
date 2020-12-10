@@ -264,7 +264,7 @@ type StatusResponse struct {
 	Status string `json:"status"`
 }
 
-// BusinessPartnerUID is the business partner uid used in requests
+// BusinessPartnerUID is the user ID used in some inter-service requests
 type BusinessPartnerUID struct {
 	UID string `json:"uid"`
 }
@@ -503,4 +503,43 @@ func (i *BranchSortInput) ToURLValues() (values url.Values) {
 		}
 	}
 	return vals
+}
+
+// UnderageResponsePayload is used to respond to requests made to the
+// inter-service is_underage endpoint
+type UnderageResponsePayload struct {
+	IsUnderAge bool `json:"isUnderAge"`
+}
+
+// OKResp is used to return OK responses in inter-service calls
+type OKResp struct {
+	Status string `json:"status"`
+}
+
+// SaveMemberCoverPayload deserializes inter-service requests to save
+// member covers
+type SaveMemberCoverPayload struct {
+	PayerName      string `json:"payerName"`
+	MemberName     string `json:"memberName"`
+	MemberNumber   string `json:"memberNumber"`
+	PayerSladeCode int    `json:"payerSladeCode"`
+	UID            string `json:"uid"`
+}
+
+// SaveResponsePayload is used to return successful save feedback for
+// inter-service calls
+type SaveResponsePayload struct {
+	SuccessfullySaved bool `json:"successfullySaved"`
+}
+
+// OTPResponse is used to return the results of requesting an OTP
+// or OTP retry.
+type OTPResponse struct {
+	OTP string `json:"otp"`
+}
+
+// PhoneNumberInput is used to deserialize phone numbers sent to
+// inter-service APIs e.g phone number sign up or verify
+type PhoneNumberInput struct {
+	PhoneNumber string `json:"phoneNumber"`
 }
