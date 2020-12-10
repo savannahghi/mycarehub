@@ -50,10 +50,12 @@ func (s Service) AddSupplier(
 
 	collection := s.firestoreClient.Collection(s.GetSupplierCollectionName())
 	query := collection.Where("userprofile.verifiedIdentifiers", "array-contains", userUID)
+
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}
+
 	if len(docs) > 1 {
 		if base.IsDebug() {
 			log.Printf("uid %s has more than one supplier records (it has %d)", userUID, len(docs))
@@ -243,4 +245,79 @@ func (s Service) SuspendSupplier(ctx context.Context, uid string) (bool, error) 
 		return false, fmt.Errorf("unable to update supplier: %v", err)
 	}
 	return true, nil
+}
+
+// SetUpSupplier performs initial account set up during onboarding
+func (s Service) SetUpSupplier(ctx context.Context, input SupplierAccountInput) (*Supplier, error) {
+	s.checkPreconditions()
+
+	validAccountType := input.AccountType.IsValid()
+	if !validAccountType {
+		return nil, fmt.Errorf("%v is not an allowed AccountType choice", input.AccountType.String())
+	}
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user: %w", err)
+	}
+
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
+		ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
+	if err != nil {
+		return nil, fmt.Errorf("unable to retreive doc snapshot by uid: %w", err)
+	}
+	supplier := &Supplier{}
+
+	if dsnap != nil {
+		err = dsnap.DataTo(supplier)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read supplier: %v", err)
+		}
+	}
+
+	profile, err := s.ParseUserProfileFromContextOrUID(ctx, &uid)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+
+	supplier.UserProfile = profile
+	supplier.AccountType = input.AccountType
+	supplier.UnderOrganization = input.UnderOrganization
+
+	if input.IsOrganizationVerified != nil {
+		// TODO:
+		// verified := *input.IsOrganizationVerified
+		// if !verified {
+		// 	// Successful/unsuccessful authserver login
+		// 	// if false requires support follow up
+		// 	// send an email, send a nudge...??
+		// }
+		supplier.IsOrganizationVerified = *input.IsOrganizationVerified
+	}
+
+	if input.SladeCode == nil {
+		// TODO:
+		// User without slade code requires approval i.e creation of an account
+		// send an email to support for follow up, send a nudge ..?
+		// full KYC based on account type (individual or organisation)
+	} else {
+		supplier.SladeCode = *input.SladeCode
+	}
+
+	if input.ParentOrganizationID != nil {
+		supplier.ParentOrganizationID = *input.ParentOrganizationID
+		supplier.HasBranches = true
+	}
+
+	if input.Location != nil {
+		supplier.Location.ID = input.Location.ID
+		supplier.Location.Name = input.Location.Name
+		supplier.Location.BranchSladeCode = input.Location.BranchSladeCode
+	}
+
+	if err := s.SaveSupplierToFireStore(*supplier); err != nil {
+		return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
+	}
+
+	return supplier, nil
 }

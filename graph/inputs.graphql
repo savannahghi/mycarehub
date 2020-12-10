@@ -68,7 +68,7 @@ input OtherPractitionerServiceInput {
 }
 
 input SupplierKYCInput {
-  accountType: AccountType! 
+  accountType: AccountType!
   identificationDocType: IdentificationDocType
   identificationDocNumber: String
   identificationDocPhotoBase64: String
@@ -103,4 +103,21 @@ input BranchFilterInput {
 input BranchSortInput {
     name: SortOrder
     sladeCode: SortOrder
+}
+
+input LocationInput {
+    id: ID!
+    name: String!
+
+    branchSladeCode: String
+}
+
+input SupplierAccountInput {
+  accountType: AccountType!
+  underOrganization: Boolean!
+
+  isOrganizationVerified: Boolean
+  sladeCode: String
+  parentOrganizationID: String
+  location: LocationInput
 }

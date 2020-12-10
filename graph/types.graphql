@@ -134,14 +134,6 @@ type ServicesOffered {
   otherServices: [String!]!
 }
 
-type Supplier {
-  userProfile: UserProfile!
-  supplierId: String!
-  payablesAccount: PayablesAccount!
-  supplierKYC: SupplierKYC!
-  active: Boolean!
-}
-
 type PayablesAccount {
   id: String!
   name: String!
@@ -159,8 +151,32 @@ type Beneficiary {
   dateOfBirth: Date!
 }
 
+type Supplier {
+  userProfile: UserProfile!
+  supplierId: String!
+  payablesAccount: PayablesAccount!
+  supplierKYC: SupplierKYC!
+  active: Boolean!
+
+  accountType: AccountType!
+  underOrganization: Boolean!
+  isOrganizationVerified: Boolean!
+
+  sladeCode: String
+  parentOrganizationID: String
+  location: Location
+
+}
+
+type Location {
+    id: ID!
+    name: String!
+
+    branchSladeCode: String
+}
+
 type SupplierKYC {
-  accountType: AccountType! 
+  accountType: AccountType!
   identificationDocType: IdentificationDocType
   identificationDocNumber: String
   identificationDocPhotoBase64: String

@@ -161,6 +161,12 @@ func (r *mutationResolver) SuspendSupplier(ctx context.Context, uid string) (boo
 	return r.profileService.SuspendSupplier(ctx, uid)
 }
 
+func (r *mutationResolver) SetUpSupplier(ctx context.Context, input profile.SupplierAccountInput) (*profile.Supplier, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.SetUpSupplier(ctx, input)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()

@@ -80,10 +80,9 @@ func (s Service) FindProvider(ctx context.Context, pagination *base.PaginationIn
 	}
 
 	defaultParams := url.Values{}
-	defaultParams.Add("field", "id, name, slade_code")
+	defaultParams.Add("field", "id, name, slade_code, parent")
 	defaultParams.Add("is_active", "True")
 	defaultParams.Add("bp_type", "PROVIDER")
-	defaultParams.Add("is_branch", "False")
 
 	queryParams := []url.Values{defaultParams, paginationParams}
 	for _, fp := range filter {

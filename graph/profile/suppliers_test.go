@@ -264,3 +264,56 @@ func TestService_SuspendSupplier(t *testing.T) {
 		})
 	}
 }
+
+func TestService_SetUpSupplier(t *testing.T) {
+	service := NewService()
+	ctx, _ := base.GetAuthenticatedContextAndToken(t)
+
+	newIndividualSupplierInput := SupplierAccountInput{
+		AccountType:       AccountTypeIndividual,
+		UnderOrganization: false,
+	}
+
+	newOrganisationSupplierInput := SupplierAccountInput{
+		AccountType:       AccountTypeOrganisation,
+		UnderOrganization: false,
+	}
+
+	type args struct {
+		ctx   context.Context
+		input SupplierAccountInput
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Successful basic individual account set up",
+			args: args{
+				ctx:   ctx,
+				input: newIndividualSupplierInput,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Successful basic organisation account set up",
+			args: args{
+				ctx:   ctx,
+				input: newOrganisationSupplierInput,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			_, err := s.SetUpSupplier(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.SetUpSupplier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

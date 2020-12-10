@@ -242,11 +242,25 @@ type PayablesAccount struct {
 
 // Supplier used to create a supplier request payload
 type Supplier struct {
-	UserProfile     *base.UserProfile `json:"userProfile" firestore:"userprofile"`
-	SupplierID      string            `json:"id" firestore:"supplierid"`
-	PayablesAccount *PayablesAccount  `json:"payables_account"`
-	SupplierKYC     SupplierKYC       `json:"supplierKYC"`
-	Active          bool              `json:"active" firestore:"active"`
+	UserProfile            *base.UserProfile `json:"userProfile" firestore:"userprofile"`
+	SupplierID             string            `json:"id" firestore:"supplierid"`
+	PayablesAccount        *PayablesAccount  `json:"payables_account"`
+	SupplierKYC            SupplierKYC       `json:"supplierKYC"`
+	Active                 bool              `json:"active" firestore:"active"`
+	AccountType            AccountType       `json:"accountType"`
+	UnderOrganization      bool              `json:"underOrganization"`
+	IsOrganizationVerified bool              `json:"isOrganizationVerified"`
+	SladeCode              string            `json:"sladeCode"`
+	ParentOrganizationID   string            `json:"parentOrganizationID"`
+	HasBranches            bool              `json:"hasBranches,omitempty"`
+	Location               *Location         `json:"location,omitempty"`
+}
+
+// Location is used to store a user's branch or organisation
+type Location struct {
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	BranchSladeCode *string `json:"branchSladeCode"`
 }
 
 // StatusResponse creates a status response for requests
@@ -360,9 +374,10 @@ type PhoneSignInResponse struct {
 type BusinessPartner struct {
 	base.Model
 
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	SladeCode string `json:"slade_code"`
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	SladeCode string  `json:"slade_code"`
+	Parent    *string `json:"parent,omitempty"`
 }
 
 // BusinessPartnerEdge is used to serialize GraphQL Relay edges for organization
@@ -532,4 +547,22 @@ type OTPResponse struct {
 // inter-service APIs e.g phone number sign up or verify
 type PhoneNumberInput struct {
 	PhoneNumber string `json:"phoneNumber"`
+}
+
+// SupplierAccountInput is used when setting up basic/"key" supplier
+// account during onboarding
+type SupplierAccountInput struct {
+	AccountType            AccountType    `json:"accountType"`
+	UnderOrganization      bool           `json:"underOrganization"`
+	IsOrganizationVerified *bool          `json:"isOrganizationVerified"`
+	SladeCode              *string        `json:"sladeCode"`
+	ParentOrganizationID   *string        `json:"parentOrganizationID"`
+	Location               *LocationInput `json:"location,omitempty"`
+}
+
+// LocationInput is used when setting up a location (branch or parent) for a user
+type LocationInput struct {
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	BranchSladeCode *string `json:"branchSladeCode"`
 }

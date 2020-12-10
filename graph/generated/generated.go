@@ -138,6 +138,12 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	Location struct {
+		BranchSladeCode func(childComplexity int) int
+		ID              func(childComplexity int) int
+		Name            func(childComplexity int) int
+	}
+
 	Mutation struct {
 		AcceptTermsAndConditions  func(childComplexity int, accept bool) int
 		AddCustomer               func(childComplexity int, name string) int
@@ -157,6 +163,7 @@ type ComplexityRoot struct {
 		RemoveTester              func(childComplexity int, email string) int
 		ResetUserPin              func(childComplexity int, msisdn string, pin string, otp string) int
 		SetLanguagePreference     func(childComplexity int, language base.Language) int
+		SetUpSupplier             func(childComplexity int, input profile.SupplierAccountInput) int
 		SetUserPin                func(childComplexity int, msisdn string, pin string) int
 		SuspendCustomer           func(childComplexity int, uid string) int
 		SuspendSupplier           func(childComplexity int, uid string) int
@@ -237,11 +244,17 @@ type ComplexityRoot struct {
 	}
 
 	Supplier struct {
-		Active          func(childComplexity int) int
-		PayablesAccount func(childComplexity int) int
-		SupplierID      func(childComplexity int) int
-		SupplierKYC     func(childComplexity int) int
-		UserProfile     func(childComplexity int) int
+		AccountType            func(childComplexity int) int
+		Active                 func(childComplexity int) int
+		IsOrganizationVerified func(childComplexity int) int
+		Location               func(childComplexity int) int
+		ParentOrganizationID   func(childComplexity int) int
+		PayablesAccount        func(childComplexity int) int
+		SladeCode              func(childComplexity int) int
+		SupplierID             func(childComplexity int) int
+		SupplierKYC            func(childComplexity int) int
+		UnderOrganization      func(childComplexity int) int
+		UserProfile            func(childComplexity int) int
 	}
 
 	SupplierKyc struct {
@@ -341,6 +354,7 @@ type MutationResolver interface {
 	AddSupplierKyc(ctx context.Context, input profile.SupplierKYCInput) (*profile.SupplierKYC, error)
 	SuspendCustomer(ctx context.Context, uid string) (bool, error)
 	SuspendSupplier(ctx context.Context, uid string) (bool, error)
+	SetUpSupplier(ctx context.Context, input profile.SupplierAccountInput) (*profile.Supplier, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -728,6 +742,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.KMPDUPractitionerEdge.Node(childComplexity), true
 
+	case "Location.branchSladeCode":
+		if e.complexity.Location.BranchSladeCode == nil {
+			break
+		}
+
+		return e.complexity.Location.BranchSladeCode(childComplexity), true
+
+	case "Location.id":
+		if e.complexity.Location.ID == nil {
+			break
+		}
+
+		return e.complexity.Location.ID(childComplexity), true
+
+	case "Location.name":
+		if e.complexity.Location.Name == nil {
+			break
+		}
+
+		return e.complexity.Location.Name(childComplexity), true
+
 	case "Mutation.acceptTermsAndConditions":
 		if e.complexity.Mutation.AcceptTermsAndConditions == nil {
 			break
@@ -938,6 +973,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetLanguagePreference(childComplexity, args["language"].(base.Language)), true
+
+	case "Mutation.setUpSupplier":
+		if e.complexity.Mutation.SetUpSupplier == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setUpSupplier_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetUpSupplier(childComplexity, args["input"].(profile.SupplierAccountInput)), true
 
 	case "Mutation.setUserPin":
 		if e.complexity.Mutation.SetUserPin == nil {
@@ -1405,6 +1452,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServicesOffered.Services(childComplexity), true
 
+	case "Supplier.accountType":
+		if e.complexity.Supplier.AccountType == nil {
+			break
+		}
+
+		return e.complexity.Supplier.AccountType(childComplexity), true
+
 	case "Supplier.active":
 		if e.complexity.Supplier.Active == nil {
 			break
@@ -1412,12 +1466,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Supplier.Active(childComplexity), true
 
+	case "Supplier.isOrganizationVerified":
+		if e.complexity.Supplier.IsOrganizationVerified == nil {
+			break
+		}
+
+		return e.complexity.Supplier.IsOrganizationVerified(childComplexity), true
+
+	case "Supplier.location":
+		if e.complexity.Supplier.Location == nil {
+			break
+		}
+
+		return e.complexity.Supplier.Location(childComplexity), true
+
+	case "Supplier.parentOrganizationID":
+		if e.complexity.Supplier.ParentOrganizationID == nil {
+			break
+		}
+
+		return e.complexity.Supplier.ParentOrganizationID(childComplexity), true
+
 	case "Supplier.payablesAccount":
 		if e.complexity.Supplier.PayablesAccount == nil {
 			break
 		}
 
 		return e.complexity.Supplier.PayablesAccount(childComplexity), true
+
+	case "Supplier.sladeCode":
+		if e.complexity.Supplier.SladeCode == nil {
+			break
+		}
+
+		return e.complexity.Supplier.SladeCode(childComplexity), true
 
 	case "Supplier.supplierId":
 		if e.complexity.Supplier.SupplierID == nil {
@@ -1432,6 +1514,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Supplier.SupplierKYC(childComplexity), true
+
+	case "Supplier.underOrganization":
+		if e.complexity.Supplier.UnderOrganization == nil {
+			break
+		}
+
+		return e.complexity.Supplier.UnderOrganization(childComplexity), true
 
 	case "Supplier.userProfile":
 		if e.complexity.Supplier.UserProfile == nil {
@@ -2084,7 +2173,7 @@ input OtherPractitionerServiceInput {
 }
 
 input SupplierKYCInput {
-  accountType: AccountType! 
+  accountType: AccountType!
   identificationDocType: IdentificationDocType
   identificationDocNumber: String
   identificationDocPhotoBase64: String
@@ -2120,7 +2209,23 @@ input BranchSortInput {
     name: SortOrder
     sladeCode: SortOrder
 }
-`, BuiltIn: false},
+
+input LocationInput {
+    id: ID!
+    name: String!
+
+    branchSladeCode: String
+}
+
+input SupplierAccountInput {
+  accountType: AccountType!
+  underOrganization: Boolean!
+
+  isOrganizationVerified: Boolean
+  sladeCode: String
+  parentOrganizationID: String
+  location: LocationInput
+}`, BuiltIn: false},
 	{Name: "graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
   getOrCreateUserProfile(phone: String!): UserProfile!
@@ -2180,6 +2285,7 @@ extend type Mutation {
   addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
   suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
+  setUpSupplier(input: SupplierAccountInput!): Supplier
 }`, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `scalar Date
 scalar Markdown
@@ -2317,14 +2423,6 @@ type ServicesOffered {
   otherServices: [String!]!
 }
 
-type Supplier {
-  userProfile: UserProfile!
-  supplierId: String!
-  payablesAccount: PayablesAccount!
-  supplierKYC: SupplierKYC!
-  active: Boolean!
-}
-
 type PayablesAccount {
   id: String!
   name: String!
@@ -2342,8 +2440,32 @@ type Beneficiary {
   dateOfBirth: Date!
 }
 
+type Supplier {
+  userProfile: UserProfile!
+  supplierId: String!
+  payablesAccount: PayablesAccount!
+  supplierKYC: SupplierKYC!
+  active: Boolean!
+
+  accountType: AccountType!
+  underOrganization: Boolean!
+  isOrganizationVerified: Boolean!
+
+  sladeCode: String
+  parentOrganizationID: String
+  location: Location
+
+}
+
+type Location {
+    id: ID!
+    name: String!
+
+    branchSladeCode: String
+}
+
 type SupplierKYC {
-  accountType: AccountType! 
+  accountType: AccountType!
   identificationDocType: IdentificationDocType
   identificationDocNumber: String
   identificationDocPhotoBase64: String
@@ -2750,6 +2872,21 @@ func (ec *executionContext) field_Mutation_setLanguagePreference_args(ctx contex
 		}
 	}
 	args["language"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setUpSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.SupplierAccountInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNSupplierAccountInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierAccountInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -4865,6 +5002,108 @@ func (ec *executionContext) _KMPDUPractitionerEdge_node(ctx context.Context, fie
 	return ec.marshalOKMPDUPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitioner(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Location_id(ctx context.Context, field graphql.CollectedField, obj *profile.Location) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Location",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_name(ctx context.Context, field graphql.CollectedField, obj *profile.Location) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Location",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_branchSladeCode(ctx context.Context, field graphql.CollectedField, obj *profile.Location) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Location",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BranchSladeCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_confirmEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5906,6 +6145,45 @@ func (ec *executionContext) _Mutation_suspendSupplier(ctx context.Context, field
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setUpSupplier(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setUpSupplier_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetUpSupplier(rctx, args["input"].(profile.SupplierAccountInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*profile.Supplier)
+	fc.Result = res
+	return ec.marshalOSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
@@ -7831,6 +8109,207 @@ func (ec *executionContext) _Supplier_active(ctx context.Context, field graphql.
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_accountType(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AccountType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.AccountType)
+	fc.Result = res
+	return ec.marshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐAccountType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_underOrganization(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UnderOrganization, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_isOrganizationVerified(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsOrganizationVerified, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_sladeCode(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SladeCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_parentOrganizationID(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentOrganizationID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_location(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Location, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*profile.Location)
+	fc.Result = res
+	return ec.marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐLocation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SupplierKYC_accountType(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
@@ -10866,6 +11345,42 @@ func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj i
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj interface{}) (profile.LocationInput, error) {
+	var it profile.LocationInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "branchSladeCode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("branchSladeCode"))
+			it.BranchSladeCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputOtherPractitionerServiceInput(ctx context.Context, obj interface{}) (profile.OtherPractitionerServiceInput, error) {
 	var it profile.OtherPractitionerServiceInput
 	var asMap = obj.(map[string]interface{})
@@ -11069,6 +11584,66 @@ func (ec *executionContext) unmarshalInputSortParam(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortOrder"))
 			it.SortOrder, err = ec.unmarshalNSortOrder2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSupplierAccountInput(ctx context.Context, obj interface{}) (profile.SupplierAccountInput, error) {
+	var it profile.SupplierAccountInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "accountType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountType"))
+			it.AccountType, err = ec.unmarshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐAccountType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "underOrganization":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("underOrganization"))
+			it.UnderOrganization, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "isOrganizationVerified":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isOrganizationVerified"))
+			it.IsOrganizationVerified, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sladeCode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sladeCode"))
+			it.SladeCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "parentOrganizationID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentOrganizationID"))
+			it.ParentOrganizationID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "location":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
+			it.Location, err = ec.unmarshalOLocationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐLocationInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11916,6 +12491,40 @@ func (ec *executionContext) _KMPDUPractitionerEdge(ctx context.Context, sel ast.
 	return out
 }
 
+var locationImplementors = []string{"Location"}
+
+func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet, obj *profile.Location) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, locationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Location")
+		case "id":
+			out.Values[i] = ec._Location_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Location_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "branchSladeCode":
+			out.Values[i] = ec._Location_branchSladeCode(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -12056,6 +12665,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "setUpSupplier":
+			out.Values[i] = ec._Mutation_setUpSupplier(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12655,6 +13266,27 @@ func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "accountType":
+			out.Values[i] = ec._Supplier_accountType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "underOrganization":
+			out.Values[i] = ec._Supplier_underOrganization(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isOrganizationVerified":
+			out.Values[i] = ec._Supplier_isOrganizationVerified(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sladeCode":
+			out.Values[i] = ec._Supplier_sladeCode(ctx, field, obj)
+		case "parentOrganizationID":
+			out.Values[i] = ec._Supplier_parentOrganizationID(ctx, field, obj)
+		case "location":
+			out.Values[i] = ec._Supplier_location(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -13738,6 +14370,11 @@ func (ec *executionContext) marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 	return ec._Supplier(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNSupplierAccountInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierAccountInput(ctx context.Context, v interface{}) (profile.SupplierAccountInput, error) {
+	res, err := ec.unmarshalInputSupplierAccountInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNSupplierKYC2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYC(ctx context.Context, sel ast.SelectionSet, v profile.SupplierKYC) graphql.Marshaler {
 	return ec._SupplierKYC(ctx, sel, &v)
 }
@@ -14628,6 +15265,21 @@ func (ec *executionContext) marshalOLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋb
 	return v
 }
 
+func (ec *executionContext) marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐLocation(ctx context.Context, sel ast.SelectionSet, v *profile.Location) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Location(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOLocationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐLocationInput(ctx context.Context, v interface{}) (*profile.LocationInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputLocationInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOOtherPractitionerServiceInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOtherPractitionerServiceInput(ctx context.Context, v interface{}) (*profile.OtherPractitionerServiceInput, error) {
 	if v == nil {
 		return nil, nil
@@ -14864,6 +15516,13 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
+}
+
+func (ec *executionContext) marshalOSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *profile.Supplier) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Supplier(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOUserProfilePhone2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐUserProfilePhoneᚄ(ctx context.Context, v interface{}) ([]*profile.UserProfilePhone, error) {
