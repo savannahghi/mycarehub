@@ -1733,3 +1733,160 @@ func TestPhoneSignUp(t *testing.T) {
 		})
 	}
 }
+
+func TestSaveCoverPayloadHandler(t *testing.T) {
+	client := http.DefaultClient
+
+	emptyPayload := profile.SaveMemberCoverPayload{}
+	emptyPayloadJSONBytes, err := json.Marshal(emptyPayload)
+	if err != nil {
+		t.Errorf("can't marshal empty save cover payload to JSON: %v", err)
+		return
+	}
+
+	_, authToken := base.GetAuthenticatedContextAndToken(t)
+	if authToken == nil {
+		t.Errorf("nil auth token")
+		return
+	}
+
+	coverRequest := &profile.SaveMemberCoverPayload{
+		PayerName:      "Resolution Insurance Company Limited",
+		MemberName:     "Daniel Ngure Nyaga",
+		MemberNumber:   "1464409",
+		PayerSladeCode: 458,
+		UID:            authToken.UID,
+	}
+	coverRequestJSONBytes, err := json.Marshal(coverRequest)
+	if err != nil {
+		t.Errorf("unable to marshal cover request payload to JSON: %s", err)
+		return
+	}
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid save cover request - valid UID that exists",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/save_cover", baseURL),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(coverRequestJSONBytes),
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid save cover retrieve request - nil body",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/save_cover", baseURL),
+				httpMethod: http.MethodPost,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid save cover retrieve request - no UID",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/save_cover", baseURL),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(emptyPayloadJSONBytes),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+
+			if data == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf(
+					"expected status %d, got %d and response %s",
+					tt.wantStatus,
+					resp.StatusCode,
+					string(data),
+				)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if !tt.wantErr {
+				//  check response payload format
+				var respPayload profile.SaveResponsePayload
+				err = json.Unmarshal(data, &respPayload)
+				if err != nil {
+					log.Print(string(data))
+					t.Errorf(
+						"can't unmarshal save cover resp payload: %v", err)
+					return
+				}
+				if !respPayload.SuccessfullySaved {
+					t.Errorf(
+						"expected successfullySaved to be true in the response")
+					return
+				}
+			}
+		})
+	}
+}
