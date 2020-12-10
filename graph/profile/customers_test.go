@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 )
@@ -194,8 +195,23 @@ func TestService_UpdateCustomer(t *testing.T) {
 func TestService_FindCustomer(t *testing.T) {
 	service := NewService()
 	ctx, token := base.GetAuthenticatedContextAndToken(t)
-	assert.NotNil(t, ctx)
-	assert.NotNil(t, token)
+	if token == nil {
+		t.Errorf("nil token")
+		return
+	}
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+	customer, err := service.AddCustomer(ctx, &token.UID, gofakeit.Name())
+	if err != nil {
+		t.Errorf("can't add customer: %v", err)
+		return
+	}
+	if customer == nil {
+		t.Errorf("nil customer after adding a customer")
+		return
+	}
 
 	type args struct {
 		ctx context.Context
@@ -222,7 +238,7 @@ func TestService_FindCustomer(t *testing.T) {
 				uid: "not a uid",
 			},
 			wantErr:     true,
-			expectedErr: "unable to get Firebase user with UID not a uid: cannot find user from uid",
+			expectedErr: "a user with the UID not a uid does not have a customer's account",
 		},
 	}
 	for _, tt := range tests {

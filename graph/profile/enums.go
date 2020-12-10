@@ -365,3 +365,60 @@ func (e *IdentificationDocType) UnmarshalGQL(v interface{}) error {
 func (e IdentificationDocType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
+
+// PartnerTypes defines the different partner types we have in Be.Well
+type PartnerTypes string
+
+// PartnerTypesRider is an example of a partner type who is involved in delivery of goods
+const (
+	PartnerTypesRider          PartnerTypes = "RIDER"
+	PartnerTypesPractitioner   PartnerTypes = "PRACTITIONER"
+	PartnerTypesProvider       PartnerTypes = "PROVIDER"
+	PartnerTypesPharmaceutical PartnerTypes = "PHARMACEUTICAL"
+	PartnerTypesCoach          PartnerTypes = "COACH"
+	PartnerTypesNutrition      PartnerTypes = "NUTRITION"
+	PartnerTypesConsumer       PartnerTypes = "CONSUMER"
+)
+
+// AllPartnerTypes represents a list of the partner types we offer
+var AllPartnerTypes = []PartnerTypes{
+	PartnerTypesRider,
+	PartnerTypesPractitioner,
+	PartnerTypesProvider,
+	PartnerTypesPharmaceutical,
+	PartnerTypesCoach,
+	PartnerTypesNutrition,
+	PartnerTypesConsumer,
+}
+
+// IsValid checks if a partner type is valid or not
+func (e PartnerTypes) IsValid() bool {
+	switch e {
+	case PartnerTypesRider, PartnerTypesPractitioner, PartnerTypesProvider, PartnerTypesPharmaceutical, PartnerTypesCoach, PartnerTypesNutrition, PartnerTypesConsumer:
+		return true
+	}
+	return false
+}
+
+func (e PartnerTypes) String() string {
+	return string(e)
+}
+
+// UnmarshalGQL converts the input, if valid, into an correct partner type value
+func (e *PartnerTypes) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PartnerTypes(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PartnerTypes", str)
+	}
+	return nil
+}
+
+// MarshalGQL converts partner type into a valid JSON string
+func (e PartnerTypes) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}

@@ -14,7 +14,7 @@ const (
 	active                 = true
 	country                = "KEN" // Anticipate worldwide expansion
 	isCustomer             = true
-	customerType           = "PATIENT"
+	customerType           = PartnerTypesConsumer
 	customerCollectionName = "customers"
 )
 
@@ -31,7 +31,8 @@ func (s Service) GetCustomerCollectionName() string {
 	return suffixed
 }
 
-// AddCustomer creates a customer on the ERP when a user signs up in our Be.Well Consumer
+// AddCustomer makes a call to our own ERP and creates a customer account for the consumer users
+// that is used for transacting on Be.Well
 func (s Service) AddCustomer(ctx context.Context, uid *string, name string) (*Customer, error) {
 	s.checkPreconditions()
 
@@ -252,15 +253,9 @@ func (s Service) FindCustomer(ctx context.Context, uid string) (*Customer, error
 	}
 
 	if dsnap == nil {
-		// If customer is not found,
-		// and the user exists
-		// then create one using their UID
-		user, err := s.firebaseAuth.GetUser(ctx, uid)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"unable to get Firebase user with UID %s: %w", uid, err)
+		if dsnap == nil {
+			return nil, fmt.Errorf("a user with the UID %s does not have a customer's account", uid)
 		}
-		return s.AddCustomer(ctx, &uid, user.UID)
 	}
 
 	customer := &Customer{}

@@ -143,7 +143,7 @@ type ComplexityRoot struct {
 		AddCustomer               func(childComplexity int, name string) int
 		AddCustomerKyc            func(childComplexity int, input profile.CustomerKYCInput) int
 		AddPractitionerServices   func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
-		AddSupplier               func(childComplexity int, name string) int
+		AddSupplier               func(childComplexity int, name string, partnerType profile.PartnerTypes) int
 		AddSupplierKyc            func(childComplexity int, input profile.SupplierKYCInput) int
 		AddTester                 func(childComplexity int, email string) int
 		ApprovePractitionerSignup func(childComplexity int, practitionerID string) int
@@ -337,7 +337,7 @@ type MutationResolver interface {
 	AddCustomerKyc(ctx context.Context, input profile.CustomerKYCInput) (*profile.CustomerKYC, error)
 	UpdateCustomer(ctx context.Context, input profile.CustomerKYCInput) (*profile.Customer, error)
 	AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error)
-	AddSupplier(ctx context.Context, name string) (*profile.Supplier, error)
+	AddSupplier(ctx context.Context, name string, partnerType profile.PartnerTypes) (*profile.Supplier, error)
 	AddSupplierKyc(ctx context.Context, input profile.SupplierKYCInput) (*profile.SupplierKYC, error)
 	SuspendCustomer(ctx context.Context, uid string) (bool, error)
 	SuspendSupplier(ctx context.Context, uid string) (bool, error)
@@ -786,7 +786,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddSupplier(childComplexity, args["name"].(string)), true
+		return e.complexity.Mutation.AddSupplier(childComplexity, args["name"].(string), args["partnerType"].(profile.PartnerTypes)), true
 
 	case "Mutation.addSupplierKYC":
 		if e.complexity.Mutation.AddSupplierKyc == nil {
@@ -1892,6 +1892,16 @@ enum IdentificationDocType {
   NATIONALID
   PASSPORT
   MILITARY
+}
+
+enum PartnerTypes {
+  RIDER
+  PRACTITIONER
+  PROVIDER
+  PHARMACEUTICAL
+  COACH
+  NUTRITION
+  CONSUMER
 }`, BuiltIn: false},
 	{Name: "graph/external.graphql", Input: `
 # supported content types
@@ -2166,7 +2176,7 @@ extend type Mutation {
     services: PractitionerServiceInput!
     otherServices: OtherPractitionerServiceInput
   ): Boolean!
-  addSupplier(name: String!): Supplier!
+  addSupplier(name: String!, partnerType: PartnerTypes!): Supplier!
   addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
   suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
@@ -2548,6 +2558,15 @@ func (ec *executionContext) field_Mutation_addSupplier_args(ctx context.Context,
 		}
 	}
 	args["name"] = arg0
+	var arg1 profile.PartnerTypes
+	if tmp, ok := rawArgs["partnerType"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("partnerType"))
+		arg1, err = ec.unmarshalNPartnerTypes2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPartnerTypes(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["partnerType"] = arg1
 	return args, nil
 }
 
@@ -5746,7 +5765,7 @@ func (ec *executionContext) _Mutation_addSupplier(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddSupplier(rctx, args["name"].(string))
+		return ec.resolvers.Mutation().AddSupplier(rctx, args["name"].(string), args["partnerType"].(profile.PartnerTypes))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13507,6 +13526,16 @@ func (ec *executionContext) marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 		return graphql.Null
 	}
 	return ec._PageInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPartnerTypes2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPartnerTypes(ctx context.Context, v interface{}) (profile.PartnerTypes, error) {
+	var res profile.PartnerTypes
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPartnerTypes2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPartnerTypes(ctx context.Context, sel ast.SelectionSet, v profile.PartnerTypes) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNPayablesAccount2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPayablesAccount(ctx context.Context, sel ast.SelectionSet, v *profile.PayablesAccount) graphql.Marshaler {

@@ -12,7 +12,6 @@ import (
 const (
 	supplierAPIPath        = "/api/business_partners/suppliers/"
 	supplierCollectionName = "suppliers"
-	supplierType           = "PHARMACEUTICAL"
 	isSupplier             = true
 )
 
@@ -29,8 +28,14 @@ func (s Service) GetSupplierCollectionName() string {
 	return suffixed
 }
 
-// AddSupplier creates a supplier on the ERP when a user signs up in our Be.Well Pro
-func (s Service) AddSupplier(ctx context.Context, uid *string, name string) (*Supplier, error) {
+// AddSupplier makes a call to our own ERP and creates a supplier account for the pro users based
+// on their correct partner types that is used for transacting on Be.Well
+func (s Service) AddSupplier(
+	ctx context.Context,
+	uid *string,
+	name string,
+	partnerType PartnerTypes,
+) (*Supplier, error) {
 	s.checkPreconditions()
 
 	userUID, err := base.GetLoggedInUserUID(ctx)
@@ -59,13 +64,19 @@ func (s Service) AddSupplier(ctx context.Context, uid *string, name string) (*Su
 		if err != nil {
 			return nil, fmt.Errorf("unable to fetch orgs default currency: %v", err)
 		}
+
+		validPartnerType := partnerType.IsValid()
+		if !validPartnerType {
+			return nil, fmt.Errorf("%v is not an allowed partner type choice", partnerType.String())
+		}
+
 		payload := map[string]interface{}{
 			"active":        active,
 			"partner_name":  name,
 			"country":       country,
 			"currency":      *currency.ID,
 			"is_supplier":   isSupplier,
-			"supplier_type": supplierType,
+			"supplier_type": partnerType,
 		}
 
 		content, marshalErr := json.Marshal(payload)
@@ -125,16 +136,9 @@ func (s Service) FindSupplier(ctx context.Context, uid string) (*Supplier, error
 	}
 
 	if dsnap == nil {
-		// If supplier is not found,
-		// and the user exists
-		// then create one using their UID
-		user, err := s.firebaseAuth.GetUser(ctx, uid)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"unable to get Firebase user with UID %s: %w", uid, err)
-		}
-		return s.AddSupplier(ctx, &uid, user.UID)
+		return nil, fmt.Errorf("a user with the UID %s does not have a supplier's account", uid)
 	}
+
 	supplier := &Supplier{}
 	err = dsnap.DataTo(supplier)
 	if err != nil {

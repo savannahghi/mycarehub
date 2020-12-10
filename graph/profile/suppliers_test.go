@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 )
@@ -13,8 +14,9 @@ func TestService_AddSupplier(t *testing.T) {
 	ctx := base.GetAuthenticatedContext(t)
 
 	type args struct {
-		ctx  context.Context
-		name string
+		ctx         context.Context
+		name        string
+		partnerType PartnerTypes
 	}
 	tests := []struct {
 		name    string
@@ -22,17 +24,26 @@ func TestService_AddSupplier(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "add supplier happy case",
+			name: "happy case: successfully create a supplier",
 			args: args{
-				ctx:  ctx,
-				name: "Be.Well Test Supplier",
+				ctx:         ctx,
+				name:        "Be.Well Test Supplier",
+				partnerType: PartnerTypesProvider,
 			},
 			wantErr: false,
 		},
 		{
-			name: "add supplier sad case",
+			name: "sad case:add supplier without basic partner details",
 			args: args{
 				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: add supplier with the wrong partner type",
+			args: args{
+				ctx:         context.Background(),
+				partnerType: "not a valid partner type",
 			},
 			wantErr: true,
 		},
@@ -40,7 +51,7 @@ func TestService_AddSupplier(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			supplier, err := s.AddSupplier(tt.args.ctx, nil, tt.args.name)
+			supplier, err := s.AddSupplier(tt.args.ctx, nil, tt.args.name, tt.args.partnerType)
 			if err == nil {
 				assert.Nil(t, err)
 				assert.NotNil(t, supplier)
@@ -60,8 +71,23 @@ func TestService_AddSupplier(t *testing.T) {
 func TestService_FindSupplier(t *testing.T) {
 	service := NewService()
 	ctx, token := base.GetAuthenticatedContextAndToken(t)
-	assert.NotNil(t, ctx)
-	assert.NotNil(t, token)
+	if token == nil {
+		t.Errorf("nil token")
+		return
+	}
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+	supplier, err := service.AddSupplier(ctx, &token.UID, gofakeit.Name(), PartnerTypesProvider)
+	if err != nil {
+		t.Errorf("can't add supplier: %v", err)
+		return
+	}
+	if supplier == nil {
+		t.Errorf("nil supplier after adding a supplier")
+		return
+	}
 
 	type args struct {
 		ctx context.Context
@@ -88,7 +114,7 @@ func TestService_FindSupplier(t *testing.T) {
 				uid: "not a uid",
 			},
 			wantErr:     true,
-			expectedErr: "unable to get Firebase user with UID not a uid: cannot find user from uid: \"not a uid\"",
+			expectedErr: "a user with the UID not a uid does not have a supplier's account",
 		},
 	}
 	for _, tt := range tests {
@@ -190,8 +216,9 @@ func TestService_AddSupplierKyc(t *testing.T) {
 func TestService_SuspendSupplier(t *testing.T) {
 	service := NewService()
 	ctx, token := createNewUser(context.Background(), t)
-	_, err := service.AddSupplier(ctx, nil, "To Be Deleted")
+	_, err := service.AddSupplier(ctx, nil, "To Be Deleted", PartnerTypesProvider)
 	if err != nil {
+		t.Errorf("can't create a supplier")
 		return
 	}
 	type args struct {
