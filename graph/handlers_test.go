@@ -2076,10 +2076,6 @@ func TestFindSupplierByUIDHandler(t *testing.T) {
 		UID: authToken.UID,
 	}
 
-	uid := authToken.UID
-	validRequest = &profile.BusinessPartnerUID{
-		UID: uid,
-	}
 	requestJSONBytes, err := json.Marshal(validRequest)
 	if err != nil {
 		t.Errorf("unable to marshal cover request payload to JSON: %s", err)
@@ -2087,12 +2083,12 @@ func TestFindSupplierByUIDHandler(t *testing.T) {
 	}
 
 	s := profile.NewService()
-	cust, err := s.AddSupplier(ctx, &uid, gofakeit.Name())
+	supplier, err := s.AddSupplier(ctx, &authToken.UID, gofakeit.Name())
 	if err != nil {
 		t.Errorf("can't add supplier: %v", err)
 		return
 	}
-	if cust == nil {
+	if supplier == nil {
 		t.Errorf("nil supplier after adding a supplier")
 		return
 	}
@@ -2191,6 +2187,7 @@ func TestFindSupplierByUIDHandler(t *testing.T) {
 			}
 
 			if tt.wantStatus != resp.StatusCode {
+				log.Printf("raw response: \n%s\n", string(data))
 				t.Errorf(
 					"expected status %d, got %d and response %s",
 					tt.wantStatus,

@@ -434,8 +434,8 @@ func FindCustomerByUIDHandler(
 			return
 		}
 
-		newContext := context.WithValue(
-			ctx, base.AuthTokenContextKey, auth.Token{UID: bpUID.UID})
+		token := &auth.Token{UID: bpUID.UID}
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, token)
 		customer, err := service.FindCustomer(newContext, bpUID.UID)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusNotFound)
@@ -470,10 +470,15 @@ func FindSupplierByUIDHandler(
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
-		newContext := context.WithValue(
-			ctx, base.AuthTokenContextKey, auth.Token{UID: bpUID.UID})
+		token := &auth.Token{UID: bpUID.UID}
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, token)
 		supplier, err := service.FindSupplier(newContext, bpUID.UID)
 		if err != nil {
+			base.ReportErr(w, err, http.StatusNotFound)
+			return
+		}
+		if supplier == nil {
+			err := fmt.Errorf("nil supplier for UID %s", bpUID.UID)
 			base.ReportErr(w, err, http.StatusNotFound)
 			return
 		}
