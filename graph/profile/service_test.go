@@ -53,7 +53,9 @@ func TestNewService(t *testing.T) {
 func TestService_profileUpdates(t *testing.T) {
 	ctx, token := base.GetAuthenticatedContextAndToken(t)
 	bs, err := ioutil.ReadFile("testdata/photo.jpg")
-	assert.Nil(t, err)
+	if err != nil {
+		t.Errorf("unable to readfile: %V", err)
+	}
 	photoBase64 := base64.StdEncoding.EncodeToString(bs)
 	email := []string{gofakeit.Email()}
 
@@ -118,8 +120,13 @@ func TestService_profileUpdates(t *testing.T) {
 				}
 				updatedProfile, err := s.UpdateUserProfile(
 					tt.args.ctx, userProfileInput)
-				assert.Nil(t, err)
-				assert.NotNil(t, updatedProfile)
+				if err != nil {
+					t.Errorf("unable to updateUserProfile: %v", err)
+					return
+				}
+				if updatedProfile == nil {
+					t.Errorf("nil updatedProfile")
+				}
 
 				practitionerSignupInput := PractitionerSignupInput{
 					License:   "fake license",
@@ -128,8 +135,10 @@ func TestService_profileUpdates(t *testing.T) {
 				}
 				signedUp, err := s.PractitionerSignUp(
 					tt.args.ctx, practitionerSignupInput)
-				assert.Nil(t, err)
-				assert.True(t, signedUp)
+				if err != nil || !signedUp {
+					t.Errorf("unable to sign practitioner up: %v", err)
+					return
+				}
 			}
 		})
 	}
