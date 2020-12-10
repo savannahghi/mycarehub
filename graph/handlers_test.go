@@ -2072,10 +2072,9 @@ func TestFindSupplierByUIDHandler(t *testing.T) {
 		return
 	}
 
-	validRequest := &profile.BusinessPartnerUID{
+	validRequest := profile.BusinessPartnerUID{
 		UID: authToken.UID,
 	}
-
 	requestJSONBytes, err := json.Marshal(validRequest)
 	if err != nil {
 		t.Errorf("unable to marshal cover request payload to JSON: %s", err)
@@ -2083,7 +2082,8 @@ func TestFindSupplierByUIDHandler(t *testing.T) {
 	}
 
 	s := profile.NewService()
-	supplier, err := s.AddSupplier(ctx, &authToken.UID, gofakeit.Name(), profile.PartnerTypesProvider)
+	supplier, err := s.AddSupplier(
+		ctx, &authToken.UID, gofakeit.Name(), profile.PartnerTypesProvider)
 	if err != nil {
 		t.Errorf("can't add supplier: %v", err)
 		return
@@ -2209,14 +2209,6 @@ func TestFindSupplierByUIDHandler(t *testing.T) {
 				if err != nil {
 					t.Errorf(
 						"can't unmarshal save cover resp payload: %v", err)
-					return
-				}
-				if respPayload.SupplierID == "" {
-					t.Errorf("blank customer ID")
-					return
-				}
-				if respPayload.PayablesAccount.ID == "" {
-					t.Errorf("blank payables account")
 					return
 				}
 			}

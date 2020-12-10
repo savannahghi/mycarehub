@@ -13,17 +13,6 @@ export GOOGLE_APPLICATION_CREDENTIALS="<a path to a Google service account JSON 
 export GOOGLE_CLOUD_PROJECT="<the name of the project that the service account above belongs to>"
 export FIREBASE_WEB_API_KEY="<an API key from the Firebase console for the project mentioned above>"
 
-# Mailgun settings
-export MAILGUN_API_KEY=key="<an API key>"
-export MAILGUN_DOMAIN=app.healthcloud.co.ke
-export MAILGUN_FROM=hello@app.healthcloud.co.ke
-
-# AfricasTalking SMS API settings
-export AIT_API_KEY="<an API key>"
-export AIT_USERNAME=sandbox
-export AIT_SENDER_ID=HealthCloud
-export AIT_ENVIRONMENT=sandbox
-
 # Go private modules
 export GOPRIVATE="gitlab.slade360emr.com/go/*,gitlab.slade360emr.com/optimalhealth/*"
 

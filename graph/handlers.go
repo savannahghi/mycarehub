@@ -470,6 +470,11 @@ func FindSupplierByUIDHandler(
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
+		if bpUID == nil {
+			err := fmt.Errorf("nil business partner UID struct")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
 		token := &auth.Token{UID: bpUID.UID}
 		newContext := context.WithValue(ctx, base.AuthTokenContextKey, token)
 		supplier, err := service.FindSupplier(newContext, bpUID.UID)
@@ -484,8 +489,7 @@ func FindSupplierByUIDHandler(
 		}
 
 		supplierResponse := profile.SupplierResponse{
-			SupplierID:      supplier.SupplierID,
-			PayablesAccount: *supplier.PayablesAccount,
+			SupplierID: supplier.SupplierID,
 			Profile: profile.BioData{
 				UID:        bpUID.UID,
 				Name:       supplier.UserProfile.Name,
@@ -495,6 +499,9 @@ func FindSupplierByUIDHandler(
 				PushTokens: supplier.UserProfile.PushTokens,
 				Bio:        supplier.UserProfile.Bio,
 			},
+		}
+		if supplier.PayablesAccount != nil {
+			supplierResponse.PayablesAccount = *supplier.PayablesAccount
 		}
 		base.WriteJSONResponse(w, supplierResponse, http.StatusOK)
 	}
