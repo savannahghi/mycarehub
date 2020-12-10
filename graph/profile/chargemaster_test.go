@@ -185,3 +185,58 @@ func TestFindBranch(t *testing.T) {
 		})
 	}
 }
+
+func Test_parentOrgSladeCodeFromBranch(t *testing.T) {
+	type args struct {
+		branch *BusinessPartner
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				branch: &BusinessPartner{
+					SladeCode: "BRA-PRO-4313-1",
+				},
+			},
+			want:    "PRO-4313",
+			wantErr: false,
+		},
+		{
+			name: "no BRA prefix",
+			args: args{
+				branch: &BusinessPartner{
+					SladeCode: "PRO-4313-1",
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "sad case (long branch slade code)",
+			args: args{
+				branch: &BusinessPartner{
+					SladeCode: "BRA-PRO-4313-1-9393030",
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parentOrgSladeCodeFromBranch(tt.args.branch)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parentOrgSladeCodeFromBranch() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("parentOrgSladeCodeFromBranch() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
