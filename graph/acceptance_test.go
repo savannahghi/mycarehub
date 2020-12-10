@@ -2928,3 +2928,155 @@ func TestSupplierProfileQuery(t *testing.T) {
 		})
 	}
 }
+
+func TestGraphGQLmutationPractitionerSignUp(t *testing.T) {
+	ctx := base.GetAuthenticatedContext(t)
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	query := map[string]interface{}{}
+	query["query"] = `mutation PractitionerSignUp($input: PractitionerSignupInput!){
+		practitionerSignUp(input: $input)
+	  }	`
+
+	type args struct {
+		license   string
+		cadre     string
+		specialty string
+		emails    []string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid mutation request",
+			args: args{
+				license:   "123456",
+				cadre:     "DOCTOR",
+				specialty: "PUBLIC_HEALTH",
+				emails:    []string{"be.well@bewell.co.ke", "info@bewell.co.ke"},
+			},
+			wantStatus: 200,
+			wantErr:    false,
+		},
+		{
+			name: "invalid: wrong cadre",
+			args: args{
+				license:   "123456",
+				cadre:     "JUST_PROFESSIONAL",
+				specialty: "PUBLIC_HEALTH",
+				emails:    []string{"be.well@bewell.co.ke", "info@bewell.co.ke"},
+			},
+			wantStatus: http.StatusUnprocessableEntity,
+			wantErr:    true,
+		},
+		{
+			name: "invalid: wrong speciality",
+			args: args{
+				license:   "123456",
+				cadre:     "DOCTOR",
+				specialty: "JUST_A_SPECIALITY",
+				emails:    []string{"be.well@bewell.co.ke", "info@bewell.co.ke"},
+			},
+			wantStatus: http.StatusUnprocessableEntity,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			variables := map[string]interface{}{
+				"input": map[string]interface{}{
+					"license":   tt.args.license,
+					"cadre":     tt.args.cadre,
+					"specialty": tt.args.specialty,
+					"emails":    tt.args.emails,
+				},
+			}
+			query["variables"] = variables
+
+			body, err := mapToJSONReader(query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected got error: %w", err)
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status reponse returned")
+				return
+			}
+
+		})
+	}
+}
