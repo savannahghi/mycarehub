@@ -10,8 +10,8 @@ import (
 
 const (
 	emailsAttribute       = "emails"
-	phoneNumbersAttribute = "phoneNumbers"
-	fcmTokensAttribute    = "fcmTokens"
+	phoneNumbersAttribute = "phonenumbers"
+	fcmTokensAttribute    = "tokens"
 )
 
 // GetProfileAttributes given a slice of user uids returns the specified

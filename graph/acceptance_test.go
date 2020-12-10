@@ -2129,7 +2129,7 @@ func TestGraphGQLqueryGetProfile(t *testing.T) {
 				},
 			},
 			wantStatus: 200,
-			wantErr:    true,
+			wantErr:    false,
 		},
 		{
 			name: "test get profile with empty uid",
@@ -2150,7 +2150,7 @@ func TestGraphGQLqueryGetProfile(t *testing.T) {
 				},
 			},
 			wantStatus: 200,
-			wantErr:    true,
+			wantErr:    false,
 		},
 	}
 

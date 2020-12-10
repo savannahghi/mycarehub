@@ -51,7 +51,7 @@ func TestService_GetConfirmedEmailAddresses(t *testing.T) {
 				ctx:  ctx,
 				uids: []string{"not a uid"},
 			},
-			wantErr: true,
+			wantErr: false,
 			want: map[string][]string{
 				"not a uid": {},
 			},
@@ -126,7 +126,7 @@ func TestService_GetConfirmedPhoneNumbers(t *testing.T) {
 				ctx:  ctx,
 				uids: []string{"not a uid"},
 			},
-			wantErr: true,
+			wantErr: false,
 			want: map[string][]string{
 				"not a uid": {},
 			},
@@ -194,7 +194,7 @@ func TestService_GetValidFCMTokens(t *testing.T) {
 				ctx:  ctx,
 				uids: []string{"not a uid"},
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "Slice of uids case",

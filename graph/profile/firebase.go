@@ -14,10 +14,6 @@ import (
 func (s Service) RetrieveFireStoreSnapshotByUID(
 	ctx context.Context, uid string, collectionName string,
 	field string) (*firestore.DocumentSnapshot, error) {
-	_, userErr := s.firebaseAuth.GetUser(ctx, uid)
-	if userErr != nil {
-		return nil, fmt.Errorf("unable to get Firebase user with UID %s: %w", uid, userErr)
-	}
 	collection := s.firestoreClient.Collection(collectionName)
 	query := collection.Where(field, "array-contains", uid)
 	docs, err := query.Documents(ctx).GetAll()
@@ -42,11 +38,6 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 	ctx context.Context,
 	uid string,
 ) (*firestore.DocumentSnapshot, error) {
-	// check user exists
-	_, userErr := s.firebaseAuth.GetUser(ctx, uid)
-	if userErr != nil {
-		return nil, fmt.Errorf("unable to get Firebase user with UID %s: %w", uid, userErr)
-	}
 	uids := []string{uid}
 	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
 	query := collection.Where("verifiedIdentifiers", "array-contains-any", uids)

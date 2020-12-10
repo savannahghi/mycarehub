@@ -1554,21 +1554,17 @@ func TestService_RetrieveFireStoreSnapshotByUID(t *testing.T) {
 				collectionName: s.GetUserProfileCollectionName(),
 				field:          "verifiedIdentifiers",
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.RetrieveFireStoreSnapshotByUID(
+			_, err := s.RetrieveFireStoreSnapshotByUID(
 				tt.args.ctx,
 				tt.args.uid,
 				tt.args.collectionName,
 				tt.args.field,
 			)
-			if err == nil && got == nil {
-				t.Errorf("nil firestore snapshot")
-				return
-			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.RetrieveFireStoreSnapshotByUID() error = %v, wantErr %v", err, tt.wantErr)
 				return

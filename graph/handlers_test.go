@@ -367,7 +367,7 @@ func TestGetProfileAttributesHandler(t *testing.T) {
 				url: fmt.Sprintf(
 					"%s/internal/contactdetails/%s/",
 					baseURL,
-					"phoneNumbers",
+					"phonenumbers",
 				),
 				httpMethod: http.MethodPost,
 				body:       bytes.NewBuffer(bs),
@@ -381,7 +381,7 @@ func TestGetProfileAttributesHandler(t *testing.T) {
 				url: fmt.Sprintf(
 					"%s/internal/contactdetails/%s/",
 					baseURL,
-					"phoneNumbers",
+					"phonenumbers",
 				),
 				httpMethod: http.MethodPost,
 				body:       nil,
@@ -395,7 +395,7 @@ func TestGetProfileAttributesHandler(t *testing.T) {
 				url: fmt.Sprintf(
 					"%s/internal/contactdetails/%s/",
 					baseURL,
-					"fcmTokens",
+					"tokens",
 				),
 				httpMethod: http.MethodPost,
 				body:       bytes.NewBuffer(bs),
@@ -409,7 +409,7 @@ func TestGetProfileAttributesHandler(t *testing.T) {
 				url: fmt.Sprintf(
 					"%s/internal/contactdetails/%s/",
 					baseURL,
-					"fcmTokens",
+					"tokens",
 				),
 				httpMethod: http.MethodPost,
 				body:       nil,
