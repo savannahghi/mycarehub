@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 
-	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -116,18 +114,24 @@ func (s Service) FindSupplier(ctx context.Context, uid string) (*Supplier, error
 	s.checkPreconditions()
 
 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
+		ctx,
+		uid,
+		s.GetSupplierCollectionName(),
+		"userprofile.verifiedIdentifiers",
+	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retreive doc snapshot by uid: %v", err)
+		return nil, fmt.Errorf(
+			"unable to retreive doc snapshot by uid: %v", err)
 	}
 
 	if dsnap == nil {
 		// If supplier is not found,
 		// and the user exists
 		// then create one using their UID
-		user, userErr := s.firebaseAuth.GetUser(ctx, uid)
-		if userErr != nil {
-			return nil, fmt.Errorf("unable to get Firebase user with UID %s: %w", uid, userErr)
+		user, err := s.firebaseAuth.GetUser(ctx, uid)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to get Firebase user with UID %s: %w", uid, err)
 		}
 		return s.AddSupplier(ctx, &uid, user.UID)
 	}
@@ -138,47 +142,6 @@ func (s Service) FindSupplier(ctx context.Context, uid string) (*Supplier, error
 	}
 
 	return supplier, nil
-}
-
-// FindSupplierByUIDHandler is a used for inter service communication to return details about a supplier
-func FindSupplierByUIDHandler(ctx context.Context, service *Service) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		s, err := ValidateUID(w, r)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		var supplier *Supplier
-
-		if s.UID != "" {
-			newContext := context.WithValue(ctx, base.AuthTokenContextKey, auth.Token{UID: s.UID})
-			supplier, err = service.FindSupplier(newContext, s.UID)
-		} else {
-			supplier, err = service.FindSupplier(ctx, s.UID)
-		}
-
-		if supplier == nil || err != nil {
-			base.ReportErr(w, err, http.StatusNotFound)
-			return
-		}
-
-		supplierResponse := SupplierResponse{
-			SupplierID:      supplier.SupplierID,
-			PayablesAccount: *supplier.PayablesAccount,
-			Profile: BioData{
-				// UID:        supplier.UserProfile.UID,
-				Name:       supplier.UserProfile.Name,
-				Gender:     supplier.UserProfile.Gender,
-				Msisdns:    supplier.UserProfile.Msisdns,
-				Emails:     supplier.UserProfile.Emails,
-				PushTokens: supplier.UserProfile.PushTokens,
-				Bio:        supplier.UserProfile.Bio,
-			},
-		}
-
-		base.WriteJSONResponse(w, supplierResponse, http.StatusOK)
-	}
 }
 
 // AddSupplierKyc persists a supplier KYC information to firestore

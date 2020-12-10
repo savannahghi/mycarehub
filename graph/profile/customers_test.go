@@ -1,12 +1,7 @@
 package profile
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -248,80 +243,6 @@ func TestService_FindCustomer(t *testing.T) {
 				assert.Nil(t, err)
 			}
 
-		})
-	}
-}
-
-func TestFindCustomerByUID(t *testing.T) {
-	ctx, token := base.GetAuthenticatedContextAndToken(t)
-	service := NewService()
-	findCustomer := FindCustomerByUIDHandler(ctx, service)
-
-	uid := &BusinessPartnerUID{UID: token.UID}
-	goodUIDJSONBytes, err := json.Marshal(uid)
-	assert.Nil(t, err)
-	assert.NotNil(t, goodUIDJSONBytes)
-	goodCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	goodCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(goodUIDJSONBytes))
-
-	emptyUID := &BusinessPartnerUID{}
-	badUIDJSONBytes, err := json.Marshal(emptyUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, badUIDJSONBytes)
-	badCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	badCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
-
-	badUID := "this uid does not exist"
-	nonExistentUID := &BusinessPartnerUID{UID: badUID}
-	nonExistentUIDJSONBytes, err := json.Marshal(nonExistentUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, nonExistentUIDJSONBytes)
-	nonExistentCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	nonExistentCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(nonExistentUIDJSONBytes))
-
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name           string
-		args           args
-		wantStatusCode int
-	}{
-		{
-			name: "valid : find customer",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: goodCustomerRequest,
-			},
-			wantStatusCode: http.StatusOK,
-		},
-		{
-			name: "invalid : missing user uid",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: badCustomerRequest,
-			},
-			wantStatusCode: http.StatusBadRequest,
-		},
-		{
-			name: "not found customer request",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: nonExistentCustomerRequest,
-			},
-			wantStatusCode: http.StatusNotFound,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			findCustomer(tt.args.w, tt.args.r)
-
-			rec, ok := tt.args.w.(*httptest.ResponseRecorder)
-			assert.True(t, ok)
-			assert.NotNil(t, rec)
-
-			assert.Equal(t, tt.wantStatusCode, rec.Code)
 		})
 	}
 }

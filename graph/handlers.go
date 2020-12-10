@@ -75,22 +75,24 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	isc.Use(base.InterServiceAuthenticationMiddleware())
 	isc.Path("/customer").Methods(
 		http.MethodPost, http.MethodOptions,
-	).HandlerFunc(profile.FindCustomerByUIDHandler(ctx, srv))
-
+	).HandlerFunc(FindCustomerByUIDHandler(ctx, srv))
 	isc.Path("/supplier").Methods(
 		http.MethodPost, http.MethodOptions,
-	).HandlerFunc(profile.FindSupplierByUIDHandler(ctx, srv))
-
+	).HandlerFunc(FindSupplierByUIDHandler(ctx, srv))
 	isc.Path("/contactdetails/{attribute}/").Methods(
-		http.MethodPost).HandlerFunc(
+		http.MethodPost,
+	).HandlerFunc(
 		GetProfileAttributesHandler(ctx),
 	).Name("getProfileAttributes")
-
 	isc.Path("/retrieve_user_profile").Methods(
-		http.MethodPost).HandlerFunc(RetrieveUserProfileHandler(ctx, srv))
-
-	isc.Path("/save_cover").Methods(http.MethodPost).HandlerFunc(SaveMemberCoverHandler(ctx, srv))
-	isc.Path("/is_underage").Methods(http.MethodPost).HandlerFunc(IsUnderAgeHandler(ctx, srv))
+		http.MethodPost,
+	).HandlerFunc(RetrieveUserProfileHandler(ctx, srv))
+	isc.Path("/save_cover").Methods(
+		http.MethodPost,
+	).HandlerFunc(SaveMemberCoverHandler(ctx, srv))
+	isc.Path("/is_underage").Methods(
+		http.MethodPost,
+	).HandlerFunc(IsUnderAgeHandler(ctx, srv))
 
 	// Authenticated routes
 	gqlR := r.Path("/graphql").Subrouter()
@@ -416,5 +418,79 @@ func PhoneSignIn(ctx context.Context, s *profile.Service) http.HandlerFunc {
 		}
 
 		base.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// FindCustomerByUIDHandler is a used for inter service communication
+// to return details about a customer
+func FindCustomerByUIDHandler(
+	ctx context.Context,
+	service *profile.Service,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		bpUID, err := profile.ValidateUID(w, r)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		newContext := context.WithValue(
+			ctx, base.AuthTokenContextKey, auth.Token{UID: bpUID.UID})
+		customer, err := service.FindCustomer(newContext, bpUID.UID)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusNotFound)
+			return
+		}
+		customerResponse := profile.CustomerResponse{
+			CustomerID:         customer.CustomerID,
+			ReceivablesAccount: customer.ReceivablesAccount,
+			Profile: profile.BioData{
+				Name:       customer.UserProfile.Name,
+				Gender:     customer.UserProfile.Gender,
+				Msisdns:    customer.UserProfile.Msisdns,
+				Emails:     customer.UserProfile.Emails,
+				PushTokens: customer.UserProfile.PushTokens,
+				Bio:        customer.UserProfile.Bio,
+			},
+			CustomerKYC: customer.CustomerKYC,
+		}
+
+		base.WriteJSONResponse(w, customerResponse, http.StatusOK)
+	}
+}
+
+// FindSupplierByUIDHandler is a used for inter service communication to return details about a supplier
+func FindSupplierByUIDHandler(
+	ctx context.Context,
+	service *profile.Service,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		bpUID, err := profile.ValidateUID(w, r)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+		newContext := context.WithValue(
+			ctx, base.AuthTokenContextKey, auth.Token{UID: bpUID.UID})
+		supplier, err := service.FindSupplier(newContext, bpUID.UID)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusNotFound)
+			return
+		}
+
+		supplierResponse := profile.SupplierResponse{
+			SupplierID:      supplier.SupplierID,
+			PayablesAccount: *supplier.PayablesAccount,
+			Profile: profile.BioData{
+				UID:        bpUID.UID,
+				Name:       supplier.UserProfile.Name,
+				Gender:     supplier.UserProfile.Gender,
+				Msisdns:    supplier.UserProfile.Msisdns,
+				Emails:     supplier.UserProfile.Emails,
+				PushTokens: supplier.UserProfile.PushTokens,
+				Bio:        supplier.UserProfile.Bio,
+			},
+		}
+		base.WriteJSONResponse(w, supplierResponse, http.StatusOK)
 	}
 }

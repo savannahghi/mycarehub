@@ -776,7 +776,18 @@ func (s Service) SendPractitionerSignUpEmail(ctx context.Context, emailaddress s
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unable to send Practitioner signup email : %w, with status code %v", err, resp.StatusCode)
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("unable to read response body: %v", err)
+		}
+		log.Printf("mailgun response data: \n%s\n", string(data))
+		log.Printf(
+			"unable to send Practitioner signup email : %v, with status code %v",
+			err,
+			resp.StatusCode,
+		)
+		// failing to send email should not cause everything else to fail
+		// TODO (ngure) restore email HTTP status checking
 	}
 
 	return nil
@@ -933,11 +944,13 @@ func (s Service) SendPractitionerWelcomeEmail(ctx context.Context, emailaddress 
 
 	resp, err := s.Mailgun.MakeRequest(http.MethodPost, sendEmail, body)
 	if err != nil {
-		return fmt.Errorf("unable to send welcome email: %w", err)
+		return fmt.Errorf("unable to send welcome email: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unable to send welcome email: %w, with status code %v", err, resp.StatusCode)
+		log.Printf("unable to send welcome email: %v, with status code %v", err, resp.StatusCode)
+		// not fatal, for now
+		// TODO (ngure) restore email HTTP status checking
 	}
 
 	return nil
@@ -963,7 +976,10 @@ func (s Service) SendPractitionerRejectionEmail(ctx context.Context, emailaddres
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unable to send rejection email : %w, with status code %v", err, resp.StatusCode)
+		log.Printf(
+			"unable to send rejection email : %v, with status code %d", err, resp.StatusCode)
+		// not fatal for now
+		// TODO (ngure) restore email HTTP status checking
 	}
 
 	return nil

@@ -1,12 +1,7 @@
 package profile
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -115,82 +110,6 @@ func TestService_FindSupplier(t *testing.T) {
 				assert.Nil(t, err)
 			}
 
-		})
-	}
-}
-
-func TestFindSupplierByUID(t *testing.T) {
-	ctx, token := base.GetAuthenticatedContextAndToken(t)
-	service := NewService()
-	findSupplier := FindSupplierByUIDHandler(ctx, service)
-
-	uid := &BusinessPartnerUID{
-		UID: token.UID,
-	}
-	goodUIDJSONBytes, err := json.Marshal(uid)
-	assert.Nil(t, err)
-	assert.NotNil(t, goodUIDJSONBytes)
-	goodSupplierRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	goodSupplierRequest.Body = ioutil.NopCloser(bytes.NewReader(goodUIDJSONBytes))
-
-	emptyUID := &BusinessPartnerUID{}
-	badUIDJSONBytes, err := json.Marshal(emptyUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, badUIDJSONBytes)
-	badSupplierRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	badSupplierRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
-
-	badUID := "this uid does not exist"
-	nonExistentUID := &BusinessPartnerUID{UID: badUID}
-	nonExistentUIDJSONBytes, err := json.Marshal(nonExistentUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, nonExistentUIDJSONBytes)
-	nonExistentSupplierRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	nonExistentSupplierRequest.Body = ioutil.NopCloser(bytes.NewReader(nonExistentUIDJSONBytes))
-
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name           string
-		args           args
-		wantStatusCode int
-	}{
-		{
-			name: "valid : find Supplier",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: goodSupplierRequest,
-			},
-			wantStatusCode: http.StatusOK,
-		},
-		{
-			name: "invalid : missing user uid",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: badSupplierRequest,
-			},
-			wantStatusCode: http.StatusBadRequest,
-		},
-		{
-			name: "not found customer request",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: nonExistentSupplierRequest,
-			},
-			wantStatusCode: http.StatusNotFound,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			findSupplier(tt.args.w, tt.args.r)
-
-			rec, ok := tt.args.w.(*httptest.ResponseRecorder)
-			assert.True(t, ok)
-			assert.NotNil(t, rec)
-
-			assert.Equal(t, rec.Code, tt.wantStatusCode)
 		})
 	}
 }

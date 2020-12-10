@@ -85,7 +85,11 @@ func ValidateUID(w http.ResponseWriter, r *http.Request) (*BusinessPartnerUID, e
 	base.DecodeJSONToTargetStruct(w, r, p)
 	if p.UID == "" {
 		err := fmt.Errorf("invalid credentials, expected a uid")
-		base.ReportErr(w, err, http.StatusBadRequest)
+		return nil, err
+	}
+	if p == nil {
+		err := fmt.Errorf(
+			"nil business partner UID struct after decoding input")
 		return nil, err
 	}
 

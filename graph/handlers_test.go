@@ -1890,3 +1890,461 @@ func TestSaveCoverPayloadHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestFindCustomerByUID(t *testing.T) {
+	ctx, token := base.GetAuthenticatedContextAndToken(t)
+	service := profile.NewService()
+	findCustomer := graph.FindCustomerByUIDHandler(ctx, service)
+
+	uid := &profile.BusinessPartnerUID{UID: token.UID}
+	goodUIDJSONBytes, err := json.Marshal(uid)
+	assert.Nil(t, err)
+	assert.NotNil(t, goodUIDJSONBytes)
+	goodCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	goodCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(goodUIDJSONBytes))
+
+	emptyUID := &profile.BusinessPartnerUID{}
+	badUIDJSONBytes, err := json.Marshal(emptyUID)
+	assert.Nil(t, err)
+	assert.NotNil(t, badUIDJSONBytes)
+	badCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	badCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
+
+	badUID := "this uid does not exist"
+	nonExistentUID := &profile.BusinessPartnerUID{UID: badUID}
+	nonExistentUIDJSONBytes, err := json.Marshal(nonExistentUID)
+	assert.Nil(t, err)
+	assert.NotNil(t, nonExistentUIDJSONBytes)
+	nonExistentCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	nonExistentCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(nonExistentUIDJSONBytes))
+
+	type args struct {
+		w http.ResponseWriter
+		r *http.Request
+	}
+	tests := []struct {
+		name           string
+		args           args
+		wantStatusCode int
+	}{
+		{
+			name: "valid : find customer",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: goodCustomerRequest,
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			name: "invalid : missing user uid",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: badCustomerRequest,
+			},
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "not found customer request",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: nonExistentCustomerRequest,
+			},
+			wantStatusCode: http.StatusNotFound,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			findCustomer(tt.args.w, tt.args.r)
+
+			rec, ok := tt.args.w.(*httptest.ResponseRecorder)
+			assert.True(t, ok)
+			assert.NotNil(t, rec)
+
+			assert.Equal(t, tt.wantStatusCode, rec.Code)
+		})
+	}
+}
+
+func TestFindSupplierByUID(t *testing.T) {
+	ctx, token := base.GetAuthenticatedContextAndToken(t)
+	service := profile.NewService()
+	findSupplier := graph.FindSupplierByUIDHandler(ctx, service)
+	uid := &profile.BusinessPartnerUID{
+		UID: token.UID,
+	}
+
+	goodUIDJSONBytes, err := json.Marshal(uid)
+	assert.Nil(t, err)
+	assert.NotNil(t, goodUIDJSONBytes)
+	goodSupplierRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	goodSupplierRequest.Body = ioutil.NopCloser(bytes.NewReader(goodUIDJSONBytes))
+
+	emptyUID := &profile.BusinessPartnerUID{}
+	badUIDJSONBytes, err := json.Marshal(emptyUID)
+	assert.Nil(t, err)
+	assert.NotNil(t, badUIDJSONBytes)
+	badSupplierRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	badSupplierRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
+
+	badUID := "this uid does not exist"
+	nonExistentUID := &profile.BusinessPartnerUID{UID: badUID}
+	nonExistentUIDJSONBytes, err := json.Marshal(nonExistentUID)
+	assert.Nil(t, err)
+	assert.NotNil(t, nonExistentUIDJSONBytes)
+	nonExistentSupplierRequest := httptest.NewRequest(http.MethodGet, "/", nil)
+	nonExistentSupplierRequest.Body = ioutil.NopCloser(bytes.NewReader(nonExistentUIDJSONBytes))
+
+	type args struct {
+		w http.ResponseWriter
+		r *http.Request
+	}
+	tests := []struct {
+		name           string
+		args           args
+		wantStatusCode int
+	}{
+		{
+			name: "valid : find Supplier",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: goodSupplierRequest,
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			name: "invalid : missing user uid",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: badSupplierRequest,
+			},
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "not found customer request",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: nonExistentSupplierRequest,
+			},
+			wantStatusCode: http.StatusNotFound,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			findSupplier(tt.args.w, tt.args.r)
+
+			rec, ok := tt.args.w.(*httptest.ResponseRecorder)
+			assert.True(t, ok)
+			assert.NotNil(t, rec)
+
+			assert.Equal(t, rec.Code, tt.wantStatusCode)
+		})
+	}
+}
+
+func TestFindCustomerByUIDHandler(t *testing.T) {
+	client := http.DefaultClient
+	emptyPayload := profile.BusinessPartnerUID{}
+	emptyPayloadJSONBytes, err := json.Marshal(emptyPayload)
+	if err != nil {
+		t.Errorf("can't marshal empty save cover payload to JSON: %v", err)
+		return
+	}
+
+	_, authToken := base.GetAuthenticatedContextAndToken(t)
+	if authToken == nil {
+		t.Errorf("nil auth token")
+		return
+	}
+
+	validRequest := &profile.BusinessPartnerUID{
+		UID: authToken.UID,
+	}
+	coverRequestJSONBytes, err := json.Marshal(validRequest)
+	if err != nil {
+		t.Errorf("unable to marshal cover request payload to JSON: %s", err)
+		return
+	}
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid request - valid UID that exists",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/customer", baseURL),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(coverRequestJSONBytes),
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid request - nil body",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/customer", baseURL),
+				httpMethod: http.MethodPost,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid request - no UID",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/customer", baseURL),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(emptyPayloadJSONBytes),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+
+			if data == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf(
+					"expected status %d, got %d and response %s",
+					tt.wantStatus,
+					resp.StatusCode,
+					string(data),
+				)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if !tt.wantErr {
+				//  check response payload format
+				var respPayload profile.CustomerResponse
+				err = json.Unmarshal(data, &respPayload)
+				if err != nil {
+					t.Errorf(
+						"can't unmarshal save cover resp payload: %v", err)
+					return
+				}
+				if respPayload.CustomerID == "" {
+					t.Errorf("blank customer ID")
+					return
+				}
+				if respPayload.ReceivablesAccount.ID == "" {
+					t.Errorf("blank receivables account")
+					return
+				}
+			}
+		})
+	}
+}
+func TestFindSupplierByUIDHandler(t *testing.T) {
+	client := http.DefaultClient
+
+	emptyPayload := profile.BusinessPartnerUID{}
+	emptyPayloadJSONBytes, err := json.Marshal(emptyPayload)
+	if err != nil {
+		t.Errorf("can't marshal empty save cover payload to JSON: %v", err)
+		return
+	}
+
+	_, authToken := base.GetAuthenticatedContextAndToken(t)
+	if authToken == nil {
+		t.Errorf("nil auth token")
+		return
+	}
+
+	validRequest := &profile.BusinessPartnerUID{
+		UID: authToken.UID,
+	}
+	coverRequestJSONBytes, err := json.Marshal(validRequest)
+	if err != nil {
+		t.Errorf("unable to marshal cover request payload to JSON: %s", err)
+		return
+	}
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid request - valid UID that exists",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/supplier", baseURL),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(coverRequestJSONBytes),
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid request - nil body",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/supplier", baseURL),
+				httpMethod: http.MethodPost,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid request - no UID",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/supplier", baseURL),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(emptyPayloadJSONBytes),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+
+			if data == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf(
+					"expected status %d, got %d and response %s",
+					tt.wantStatus,
+					resp.StatusCode,
+					string(data),
+				)
+				return
+			}
+
+			if !tt.wantErr && resp == nil {
+				t.Errorf("unexpected nil response (did not expect an error)")
+				return
+			}
+
+			if !tt.wantErr {
+				//  check response payload format
+				var respPayload profile.SupplierResponse
+				err = json.Unmarshal(data, &respPayload)
+				if err != nil {
+					t.Errorf(
+						"can't unmarshal save cover resp payload: %v", err)
+					return
+				}
+				if respPayload.SupplierID == "" {
+					t.Errorf("blank customer ID")
+					return
+				}
+				if respPayload.PayablesAccount.ID == "" {
+					t.Errorf("blank payables account")
+					return
+				}
+			}
+		})
+	}
+}

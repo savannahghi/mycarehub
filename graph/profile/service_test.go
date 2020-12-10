@@ -79,7 +79,7 @@ func TestService_profileUpdates(t *testing.T) {
 		{
 			name: "good_case",
 			args: args{
-				ctx: ctx, // should
+				ctx: ctx,
 			},
 			want:    token.UID,
 			wantErr: false,
@@ -1497,7 +1497,7 @@ func TestService_AddPractitionerServices(t *testing.T) {
 }
 
 func TestService_RetrieveFireStoreSnapshotByUID(t *testing.T) {
-	service := NewService()
+	s := NewService()
 	ctx, token := base.GetAuthenticatedContextAndToken(t)
 
 	type args struct {
@@ -1516,7 +1516,7 @@ func TestService_RetrieveFireStoreSnapshotByUID(t *testing.T) {
 			args: args{
 				ctx:            ctx,
 				uid:            token.UID,
-				collectionName: service.GetPractitionerCollectionName(),
+				collectionName: s.GetPractitionerCollectionName(),
 				field:          "profile.verifiedIdentifiers",
 			},
 			wantErr: false,
@@ -1524,10 +1524,15 @@ func TestService_RetrieveFireStoreSnapshotByUID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := service
-			got, err := s.RetrieveFireStoreSnapshotByUID(tt.args.ctx, tt.args.uid, tt.args.collectionName, tt.args.field)
-			if err == nil {
-				assert.NotNil(t, got)
+			got, err := s.RetrieveFireStoreSnapshotByUID(
+				tt.args.ctx,
+				tt.args.uid,
+				tt.args.collectionName,
+				tt.args.field,
+			)
+			if err == nil && got == nil {
+				t.Errorf("nil firestore snapshot")
+				return
 			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.RetrieveFireStoreSnapshotByUID() error = %v, wantErr %v", err, tt.wantErr)

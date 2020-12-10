@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 
-	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -257,11 +255,11 @@ func (s Service) FindCustomer(ctx context.Context, uid string) (*Customer, error
 		// If customer is not found,
 		// and the user exists
 		// then create one using their UID
-		user, userErr := s.firebaseAuth.GetUser(ctx, uid)
-		if userErr != nil {
-			return nil, fmt.Errorf("unable to get Firebase user with UID %s: %w", uid, userErr)
+		user, err := s.firebaseAuth.GetUser(ctx, uid)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to get Firebase user with UID %s: %w", uid, err)
 		}
-
 		return s.AddCustomer(ctx, &uid, user.UID)
 	}
 
@@ -270,49 +268,7 @@ func (s Service) FindCustomer(ctx context.Context, uid string) (*Customer, error
 	if err != nil {
 		return nil, fmt.Errorf("unable to read customer: %v", err)
 	}
-
 	return customer, nil
-}
-
-// FindCustomerByUIDHandler is a used for inter service communication to return details about a customer
-func FindCustomerByUIDHandler(ctx context.Context, service *Service) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c, err := ValidateUID(w, r)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		var customer *Customer
-
-		if c.UID != "" {
-			newContext := context.WithValue(ctx, base.AuthTokenContextKey, auth.Token{UID: c.UID})
-			customer, err = service.FindCustomer(newContext, c.UID)
-		} else {
-			customer, err = service.FindCustomer(ctx, c.UID)
-		}
-
-		if customer == nil || err != nil {
-			base.ReportErr(w, err, http.StatusNotFound)
-			return
-		}
-
-		customerResponse := CustomerResponse{
-			CustomerID:         customer.CustomerID,
-			ReceivablesAccount: customer.ReceivablesAccount,
-			Profile: BioData{
-				Name:       customer.UserProfile.Name,
-				Gender:     customer.UserProfile.Gender,
-				Msisdns:    customer.UserProfile.Msisdns,
-				Emails:     customer.UserProfile.Emails,
-				PushTokens: customer.UserProfile.PushTokens,
-				Bio:        customer.UserProfile.Bio,
-			},
-			CustomerKYC: customer.CustomerKYC,
-		}
-
-		base.WriteJSONResponse(w, customerResponse, http.StatusOK)
-	}
 }
 
 // SuspendCustomer flips the active boolean on the erp partner from true to false
