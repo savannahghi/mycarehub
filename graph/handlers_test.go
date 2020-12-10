@@ -305,16 +305,21 @@ func TestGraphQLApprovePractitionerSignUp(t *testing.T) {
 
 func TestGetProfileAttributesHandler(t *testing.T) {
 	client := http.DefaultClient
-	attribute := "emails"
+	_, emailUserAuthToken := base.GetAuthenticatedContextAndToken(t)
+	if emailUserAuthToken == nil {
+		t.Errorf("can't get test auth token")
+		return
+	}
 
 	uids := profile.UserUIDs{
-		UIDs: []string{"some-uids"},
+		UIDs: []string{
+			emailUserAuthToken.UID,
+		},
 	}
 	bs, err := json.Marshal(uids)
 	if err != nil {
 		t.Errorf("unable to marshal test item to JSON: %s", err)
 	}
-	payload := bytes.NewBuffer(bs)
 
 	type args struct {
 		url        string
@@ -333,10 +338,10 @@ func TestGetProfileAttributesHandler(t *testing.T) {
 				url: fmt.Sprintf(
 					"%s/internal/contactdetails/%s/",
 					baseURL,
-					attribute,
+					"emails",
 				),
 				httpMethod: http.MethodPost,
-				body:       payload,
+				body:       bytes.NewBuffer(bs),
 			},
 			wantStatus: http.StatusOK,
 			wantErr:    false,
@@ -347,7 +352,63 @@ func TestGetProfileAttributesHandler(t *testing.T) {
 				url: fmt.Sprintf(
 					"%s/internal/contactdetails/%s/",
 					baseURL,
-					attribute,
+					"emails",
+				),
+				httpMethod: http.MethodPost,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+		{
+			name: "successful get confirmed phone numbers",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/contactdetails/%s/",
+					baseURL,
+					"phoneNumbers",
+				),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(bs),
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "failed get confirmed phone numbers",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/contactdetails/%s/",
+					baseURL,
+					"phoneNumbers",
+				),
+				httpMethod: http.MethodPost,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+		{
+			name: "successful get FCM tokens",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/contactdetails/%s/",
+					baseURL,
+					"fcmTokens",
+				),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(bs),
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "failed get FCN tokens",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/internal/contactdetails/%s/",
+					baseURL,
+					"fcmTokens",
 				),
 				httpMethod: http.MethodPost,
 				body:       nil,
