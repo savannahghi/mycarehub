@@ -36,6 +36,11 @@ func TestMain(m *testing.M) {
 		s.GetPINCollectionName(),
 		s.GetUserProfileCollectionName(),
 		s.GetPractitionerCollectionName(),
+		s.GetCustomerCollectionName(),
+		s.GetSignUpInfoCollectionName(),
+		s.GetSupplierCollectionName(),
+		s.GetSurveyCollectionName(),
+		base.GetCollectionName(&TesterWhitelist{}),
 	}
 	for _, collection := range collections {
 		ref := s.firestoreClient.Collection(collection)

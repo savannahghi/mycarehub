@@ -112,16 +112,6 @@ type BiodataInput struct {
 	Bio  *string `json:"bio"`
 }
 
-// HealthcashTransaction is used to record increases in a user's HealthCash.
-// In order for the aggregations to be manageable, instances of this
-// in firestore MUST be nested under users' uids.
-type HealthcashTransaction struct {
-	At       time.Time `json:"at,omitempty" firestore:"at,omitempty"`
-	Amount   float64   `json:"amount,omitempty" firestore:"amount,omitempty"`
-	Reason   string    `json:"reason,omitempty" firestore:"reason,omitempty"`
-	Currency string    `json:"currency,omitempty" firestore:"currency,omitempty"`
-}
-
 // PostVisitSurveyInput is used to send the results of post-visit surveys to the
 // server.
 type PostVisitSurveyInput struct {

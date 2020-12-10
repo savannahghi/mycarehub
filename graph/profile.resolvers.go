@@ -6,7 +6,6 @@ package graph
 import (
 	"context"
 
-	"github.com/shopspring/decimal"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph/generated"
 	"gitlab.slade360emr.com/go/profile/graph/profile"
@@ -178,13 +177,6 @@ func (r *queryResolver) FindProfile(ctx context.Context) (*base.UserProfile, err
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.FindProfile(ctx)
-}
-
-func (r *queryResolver) HealthcashBalance(ctx context.Context) (*base.Decimal, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	expectedBalance := base.Decimal(decimal.NewFromFloat(0))
-	return &expectedBalance, nil
 }
 
 func (r *queryResolver) GetProfile(ctx context.Context, uid string) (*base.UserProfile, error) {

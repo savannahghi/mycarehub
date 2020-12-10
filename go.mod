@@ -10,17 +10,16 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
-	github.com/aws/aws-sdk-go v1.36.4 // indirect
+	github.com/aws/aws-sdk-go v1.36.5 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/getsentry/sentry-go v0.9.0 // indirect
-	github.com/google/pprof v0.0.0-20201203190320-1bf35d6f28c2 // indirect
+	github.com/google/pprof v0.0.0-20201210044954-4ba3a2d95264 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/mitchellh/mapstructure v1.4.0 // indirect
 	github.com/segmentio/ksuid v1.0.3
-	github.com/shopspring/decimal v1.2.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
@@ -32,7 +31,7 @@ require (
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
 	golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d // indirect
 	golang.org/x/tools v0.0.0-20201208233053-a543418bbed2 // indirect
-	google.golang.org/genproto v0.0.0-20201207150747-9ee31aac76e7 // indirect
+	google.golang.org/genproto v0.0.0-20201209185603-f92720507ed4 // indirect
 	google.golang.org/grpc v1.34.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

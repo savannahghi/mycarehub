@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"firebase.google.com/go/auth"
+	"github.com/brianvoe/gofakeit"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
@@ -1891,156 +1892,6 @@ func TestSaveCoverPayloadHandler(t *testing.T) {
 	}
 }
 
-func TestFindCustomerByUID(t *testing.T) {
-	ctx, token := base.GetAuthenticatedContextAndToken(t)
-	service := profile.NewService()
-	findCustomer := graph.FindCustomerByUIDHandler(ctx, service)
-
-	uid := &profile.BusinessPartnerUID{UID: token.UID}
-	goodUIDJSONBytes, err := json.Marshal(uid)
-	assert.Nil(t, err)
-	assert.NotNil(t, goodUIDJSONBytes)
-	goodCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	goodCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(goodUIDJSONBytes))
-
-	emptyUID := &profile.BusinessPartnerUID{}
-	badUIDJSONBytes, err := json.Marshal(emptyUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, badUIDJSONBytes)
-	badCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	badCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
-
-	badUID := "this uid does not exist"
-	nonExistentUID := &profile.BusinessPartnerUID{UID: badUID}
-	nonExistentUIDJSONBytes, err := json.Marshal(nonExistentUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, nonExistentUIDJSONBytes)
-	nonExistentCustomerRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	nonExistentCustomerRequest.Body = ioutil.NopCloser(bytes.NewReader(nonExistentUIDJSONBytes))
-
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name           string
-		args           args
-		wantStatusCode int
-	}{
-		{
-			name: "valid : find customer",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: goodCustomerRequest,
-			},
-			wantStatusCode: http.StatusOK,
-		},
-		{
-			name: "invalid : missing user uid",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: badCustomerRequest,
-			},
-			wantStatusCode: http.StatusBadRequest,
-		},
-		{
-			name: "not found customer request",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: nonExistentCustomerRequest,
-			},
-			wantStatusCode: http.StatusNotFound,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			findCustomer(tt.args.w, tt.args.r)
-
-			rec, ok := tt.args.w.(*httptest.ResponseRecorder)
-			assert.True(t, ok)
-			assert.NotNil(t, rec)
-
-			assert.Equal(t, tt.wantStatusCode, rec.Code)
-		})
-	}
-}
-
-func TestFindSupplierByUID(t *testing.T) {
-	ctx, token := base.GetAuthenticatedContextAndToken(t)
-	service := profile.NewService()
-	findSupplier := graph.FindSupplierByUIDHandler(ctx, service)
-	uid := &profile.BusinessPartnerUID{
-		UID: token.UID,
-	}
-
-	goodUIDJSONBytes, err := json.Marshal(uid)
-	assert.Nil(t, err)
-	assert.NotNil(t, goodUIDJSONBytes)
-	goodSupplierRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	goodSupplierRequest.Body = ioutil.NopCloser(bytes.NewReader(goodUIDJSONBytes))
-
-	emptyUID := &profile.BusinessPartnerUID{}
-	badUIDJSONBytes, err := json.Marshal(emptyUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, badUIDJSONBytes)
-	badSupplierRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	badSupplierRequest.Body = ioutil.NopCloser(bytes.NewReader(badUIDJSONBytes))
-
-	badUID := "this uid does not exist"
-	nonExistentUID := &profile.BusinessPartnerUID{UID: badUID}
-	nonExistentUIDJSONBytes, err := json.Marshal(nonExistentUID)
-	assert.Nil(t, err)
-	assert.NotNil(t, nonExistentUIDJSONBytes)
-	nonExistentSupplierRequest := httptest.NewRequest(http.MethodGet, "/", nil)
-	nonExistentSupplierRequest.Body = ioutil.NopCloser(bytes.NewReader(nonExistentUIDJSONBytes))
-
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name           string
-		args           args
-		wantStatusCode int
-	}{
-		{
-			name: "valid : find Supplier",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: goodSupplierRequest,
-			},
-			wantStatusCode: http.StatusOK,
-		},
-		{
-			name: "invalid : missing user uid",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: badSupplierRequest,
-			},
-			wantStatusCode: http.StatusBadRequest,
-		},
-		{
-			name: "not found customer request",
-			args: args{
-				w: httptest.NewRecorder(),
-				r: nonExistentSupplierRequest,
-			},
-			wantStatusCode: http.StatusNotFound,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			findSupplier(tt.args.w, tt.args.r)
-
-			rec, ok := tt.args.w.(*httptest.ResponseRecorder)
-			assert.True(t, ok)
-			assert.NotNil(t, rec)
-
-			assert.Equal(t, rec.Code, tt.wantStatusCode)
-		})
-	}
-}
-
 func TestFindCustomerByUIDHandler(t *testing.T) {
 	client := http.DefaultClient
 	emptyPayload := profile.BusinessPartnerUID{}
@@ -2050,18 +1901,29 @@ func TestFindCustomerByUIDHandler(t *testing.T) {
 		return
 	}
 
-	_, authToken := base.GetAuthenticatedContextAndToken(t)
+	ctx, authToken := base.GetAuthenticatedContextAndToken(t)
 	if authToken == nil {
 		t.Errorf("nil auth token")
 		return
 	}
-
+	uid := authToken.UID
 	validRequest := &profile.BusinessPartnerUID{
-		UID: authToken.UID,
+		UID: uid,
 	}
-	coverRequestJSONBytes, err := json.Marshal(validRequest)
+	requestJSONBytes, err := json.Marshal(validRequest)
 	if err != nil {
 		t.Errorf("unable to marshal cover request payload to JSON: %s", err)
+		return
+	}
+
+	s := profile.NewService()
+	cust, err := s.AddCustomer(ctx, &uid, gofakeit.Name())
+	if err != nil {
+		t.Errorf("can't add customer: %v", err)
+		return
+	}
+	if cust == nil {
+		t.Errorf("nil customer after adding a customer")
 		return
 	}
 
@@ -2082,7 +1944,7 @@ func TestFindCustomerByUIDHandler(t *testing.T) {
 				url: fmt.Sprintf(
 					"%s/internal/customer", baseURL),
 				httpMethod: http.MethodPost,
-				body:       bytes.NewBuffer(coverRequestJSONBytes),
+				body:       bytes.NewBuffer(requestJSONBytes),
 			},
 			wantStatus: http.StatusOK,
 			wantErr:    false,
@@ -2204,7 +2066,7 @@ func TestFindSupplierByUIDHandler(t *testing.T) {
 		return
 	}
 
-	_, authToken := base.GetAuthenticatedContextAndToken(t)
+	ctx, authToken := base.GetAuthenticatedContextAndToken(t)
 	if authToken == nil {
 		t.Errorf("nil auth token")
 		return
@@ -2213,9 +2075,25 @@ func TestFindSupplierByUIDHandler(t *testing.T) {
 	validRequest := &profile.BusinessPartnerUID{
 		UID: authToken.UID,
 	}
-	coverRequestJSONBytes, err := json.Marshal(validRequest)
+
+	uid := authToken.UID
+	validRequest = &profile.BusinessPartnerUID{
+		UID: uid,
+	}
+	requestJSONBytes, err := json.Marshal(validRequest)
 	if err != nil {
 		t.Errorf("unable to marshal cover request payload to JSON: %s", err)
+		return
+	}
+
+	s := profile.NewService()
+	cust, err := s.AddSupplier(ctx, &uid, gofakeit.Name())
+	if err != nil {
+		t.Errorf("can't add supplier: %v", err)
+		return
+	}
+	if cust == nil {
+		t.Errorf("nil supplier after adding a supplier")
 		return
 	}
 
@@ -2236,7 +2114,7 @@ func TestFindSupplierByUIDHandler(t *testing.T) {
 				url: fmt.Sprintf(
 					"%s/internal/supplier", baseURL),
 				httpMethod: http.MethodPost,
-				body:       bytes.NewBuffer(coverRequestJSONBytes),
+				body:       bytes.NewBuffer(requestJSONBytes),
 			},
 			wantStatus: http.StatusOK,
 			wantErr:    false,

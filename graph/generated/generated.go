@@ -211,7 +211,6 @@ type ComplexityRoot struct {
 		GetOrCreateUserProfile           func(childComplexity int, phone string) int
 		GetProfile                       func(childComplexity int, uid string) int
 		GetSignUpMethod                  func(childComplexity int, id string) int
-		HealthcashBalance                func(childComplexity int) int
 		IsUnderAge                       func(childComplexity int) int
 		ListKMPDURegisteredPractitioners func(childComplexity int, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) int
 		ListTesters                      func(childComplexity int) int
@@ -347,7 +346,6 @@ type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
 	GetOrCreateUserProfile(ctx context.Context, phone string) (*base.UserProfile, error)
 	FindProfile(ctx context.Context) (*base.UserProfile, error)
-	HealthcashBalance(ctx context.Context) (*base.Decimal, error)
 	GetProfile(ctx context.Context, uid string) (*base.UserProfile, error)
 	ListTesters(ctx context.Context) ([]string, error)
 	ListKMPDURegisteredPractitioners(ctx context.Context, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) (*profile.KMPDUPractitionerConnection, error)
@@ -1263,13 +1261,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetSignUpMethod(childComplexity, args["id"].(string)), true
 
-	case "Query.healthcashBalance":
-		if e.complexity.Query.HealthcashBalance == nil {
-			break
-		}
-
-		return e.complexity.Query.HealthcashBalance(childComplexity), true
-
 	case "Query.isUnderAge":
 		if e.complexity.Query.IsUnderAge == nil {
 			break
@@ -2124,7 +2115,6 @@ input BranchSortInput {
   userProfile: UserProfile!
   getOrCreateUserProfile(phone: String!): UserProfile!
   findProfile: UserProfile!
-  healthcashBalance: Decimal!
   getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
   listKMPDURegisteredPractitioners(
@@ -6729,41 +6719,6 @@ func (ec *executionContext) _Query_findProfile(ctx context.Context, field graphq
 	res := resTmp.(*base.UserProfile)
 	fc.Result = res
 	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_healthcashBalance(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().HealthcashBalance(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*base.Decimal)
-	fc.Result = res
-	return ec.marshalNDecimal2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDecimal(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12350,20 +12305,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "healthcashBalance":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_healthcashBalance(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "getProfile":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -13428,32 +13369,6 @@ func (ec *executionContext) unmarshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbas
 }
 
 func (ec *executionContext) marshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, sel ast.SelectionSet, v base.Date) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) unmarshalNDecimal2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDecimal(ctx context.Context, v interface{}) (base.Decimal, error) {
-	var res base.Decimal
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNDecimal2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDecimal(ctx context.Context, sel ast.SelectionSet, v base.Decimal) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) unmarshalNDecimal2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDecimal(ctx context.Context, v interface{}) (*base.Decimal, error) {
-	var res = new(base.Decimal)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNDecimal2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDecimal(ctx context.Context, sel ast.SelectionSet, v *base.Decimal) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
 	return v
 }
 

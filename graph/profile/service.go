@@ -24,20 +24,16 @@ import (
 
 // configuration constants
 const (
-	userProfileCollectionName           = "user_profiles"
-	practitionerCollectionName          = "practitioners"
-	surveyCollectionName                = "post_visit_survey"
-	healthcashRootCollectionName        = "healthcash"
-	healthcashDepositsCollectionName    = "healthcash_deposits"
-	healthcashWithdrawalsCollectionName = "healthcash_withdrawals"
-	healthcashCurrency                  = "KES"
-	emailSignupSubject                  = "Thank you for signing up"
-	emailWelcomeSubject                 = "Welcome to Slade 360 HealthCloud"
-	emailRejectionSubject               = "Your Account was not Approved"
-	appleTesterPractitionerLicense      = "A1B4C6"
-	legalAge                            = 18
-	PINCollectionName                   = "pins"
-	signUpInfoCollectionName            = "sign_up_info"
+	userProfileCollectionName      = "user_profiles"
+	practitionerCollectionName     = "practitioners"
+	surveyCollectionName           = "post_visit_survey"
+	emailSignupSubject             = "Thank you for signing up"
+	emailWelcomeSubject            = "Welcome to Slade 360 HealthCloud"
+	emailRejectionSubject          = "Your Account was not Approved"
+	appleTesterPractitionerLicense = "A1B4C6"
+	legalAge                       = 18
+	PINCollectionName              = "pins"
+	signUpInfoCollectionName       = "sign_up_info"
 )
 
 const (
@@ -160,7 +156,6 @@ func (s Service) checkPreconditions() {
 	if s.Otp == nil {
 		log.Panicf("profile service does not have an initialized otp ISC Client")
 	}
-
 }
 
 // GetUserProfileCollectionName ...
@@ -180,27 +175,6 @@ func (s Service) GetPractitionerCollectionName() string {
 func (s Service) GetSurveyCollectionName() string {
 	// add env suffix
 	suffixed := base.SuffixCollection(surveyCollectionName)
-	return suffixed
-}
-
-// GetHealthcashRootCollectionName ..
-func (s Service) GetHealthcashRootCollectionName() string {
-	// add env suffix
-	suffixed := base.SuffixCollection(healthcashRootCollectionName)
-	return suffixed
-}
-
-// GetHealthcashDepositsCollectionName ..
-func (s Service) GetHealthcashDepositsCollectionName() string {
-	// add env suffix
-	suffixed := base.SuffixCollection(healthcashDepositsCollectionName)
-	return suffixed
-}
-
-// GetHealthcashWithdrawalsCollectionName ..
-func (s Service) GetHealthcashWithdrawalsCollectionName() string {
-	// add env suffix
-	suffixed := base.SuffixCollection(healthcashWithdrawalsCollectionName)
 	return suffixed
 }
 
