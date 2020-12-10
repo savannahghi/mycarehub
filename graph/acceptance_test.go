@@ -2129,10 +2129,10 @@ func TestGraphGQLqueryGetProfile(t *testing.T) {
 				},
 			},
 			wantStatus: 200,
-			wantErr:    false,
+			wantErr:    true,
 		},
 		{
-			name: "invalid query",
+			name: "test get profile with empty uid",
 			args: args{
 				query: map[string]interface{}{
 					"query": `query GetProfile($uid: String!){
@@ -2150,7 +2150,7 @@ func TestGraphGQLqueryGetProfile(t *testing.T) {
 				},
 			},
 			wantStatus: 200,
-			wantErr:    false, // when validation is added this test should fail.
+			wantErr:    true,
 		},
 	}
 
@@ -2222,7 +2222,6 @@ func TestGraphGQLqueryGetProfile(t *testing.T) {
 					return
 				}
 			}
-
 			if tt.wantStatus != resp.StatusCode {
 				t.Errorf("Bad status reponse returned")
 				return
@@ -2513,9 +2512,6 @@ func TestGraphQLListTestersQuery(t *testing.T) {
 				t.Errorf("bad data returned")
 				return
 			}
-
-			fmt.Println(data)
-
 			if tt.wantErr {
 				_, ok := data["errors"]
 				if !ok {

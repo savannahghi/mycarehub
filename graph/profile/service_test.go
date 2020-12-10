@@ -1422,7 +1422,23 @@ func TestService_GetSignUpMethod(t *testing.T) {
 
 func TestService_AddPractitionerServices(t *testing.T) {
 	service := NewService()
-	ctx, _ := base.GetAuthenticatedContextAndToken(t)
+	ctx, token := base.GetAuthenticatedContextAndToken(t)
+	// ensure a profile  is created
+	profile, err := service.GetProfile(ctx, token.UID)
+	assert.Nil(t, err)
+	if err != nil {
+		t.Errorf("unable to add a profile %v", err)
+		return
+	}
+	// ensure a practitioner  is created
+	practitioner := &Practitioner{
+		Profile: *profile,
+	}
+	_, err = service.AddPractitionerHelper(practitioner)
+	if err != nil {
+		t.Errorf("unable to add a practitioner %v", err)
+		return
+	}
 
 	type args struct {
 		ctx           context.Context
@@ -1504,6 +1520,9 @@ func TestService_AddPractitionerServices(t *testing.T) {
 func TestService_RetrieveFireStoreSnapshotByUID(t *testing.T) {
 	s := NewService()
 	ctx, token := base.GetAuthenticatedContextAndToken(t)
+	// ensure a user profile is created
+	_, err := s.GetProfile(ctx, token.UID)
+	assert.Nil(t, err)
 
 	type args struct {
 		ctx            context.Context
@@ -1521,10 +1540,21 @@ func TestService_RetrieveFireStoreSnapshotByUID(t *testing.T) {
 			args: args{
 				ctx:            ctx,
 				uid:            token.UID,
-				collectionName: s.GetPractitionerCollectionName(),
-				field:          "profile.verifiedIdentifiers",
+				collectionName: s.GetUserProfileCollectionName(),
+				field:          "verifiedIdentifiers",
 			},
 			wantErr: false,
+		},
+
+		{
+			name: "non existent uid",
+			args: args{
+				ctx:            ctx,
+				uid:            "122555",
+				collectionName: s.GetUserProfileCollectionName(),
+				field:          "verifiedIdentifiers",
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
