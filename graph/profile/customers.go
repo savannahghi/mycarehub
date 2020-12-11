@@ -191,6 +191,10 @@ func (s Service) UpdateCustomer(ctx context.Context, input CustomerKYCInput) (*C
 		return nil, fmt.Errorf("unable to retrieve customer: %v", err)
 	}
 
+	if dsnap == nil {
+		return nil, fmt.Errorf("the customer you are trying to update does not exist")
+	}
+
 	customer := &Customer{}
 	err = dsnap.DataTo(customer)
 	if err != nil {
