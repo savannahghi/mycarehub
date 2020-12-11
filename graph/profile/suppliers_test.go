@@ -216,7 +216,7 @@ func TestService_AddSupplierKyc(t *testing.T) {
 func TestService_SuspendSupplier(t *testing.T) {
 	service := NewService()
 	ctx, token := createNewUser(context.Background(), t)
-	_, err := service.AddSupplier(ctx, nil, "To Be Deleted", PartnerTypesProvider)
+	_, err := service.AddSupplier(ctx, nil, gofakeit.Name(), PartnerTypesProvider)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return

@@ -3,7 +3,6 @@ package profile
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -13,8 +12,6 @@ import (
 	"time"
 
 	"firebase.google.com/go/auth"
-	"github.com/brianvoe/gofakeit"
-	"github.com/google/uuid"
 	"github.com/segmentio/ksuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -62,7 +59,7 @@ func TestService_profileUpdates(t *testing.T) {
 		t.Errorf("unable to readfile: %V", err)
 	}
 	photoBase64 := base64.StdEncoding.EncodeToString(bs)
-	email := []string{gofakeit.Email()}
+	email := []string{base.GenerateRandomEmail()}
 
 	type args struct {
 		ctx context.Context
@@ -368,7 +365,7 @@ func TestService_ConfirmEmail(t *testing.T) {
 			name: "good case",
 			args: args{
 				ctx:   ctx,
-				email: fmt.Sprintf("test-%s@healthcloud.co.ke", uuid.New()),
+				email: base.GenerateRandomEmail(),
 			},
 			wantErr: false,
 		},
@@ -443,7 +440,7 @@ func TestService_SendPractitionerSignUpEmail(t *testing.T) {
 			name: "Good case",
 			args: args{
 				ctx:          context.Background(),
-				emailaddress: "ngure.nyaga@savannahinformatics.com",
+				emailaddress: base.GenerateRandomEmail(),
 			},
 			wantErr: false,
 		},
@@ -580,7 +577,7 @@ func TestService_SendPractitionerWelcomeEmail(t *testing.T) {
 			name: "Good case",
 			args: args{
 				ctx:          context.Background(),
-				emailaddress: "ngure.nyaga@savannahinformatics.com",
+				emailaddress: base.GenerateRandomEmail(),
 			},
 			wantErr: false,
 		},
@@ -611,7 +608,7 @@ func TestService_AddTester(t *testing.T) {
 			name: "valid test case",
 			args: args{
 				ctx:   ctx,
-				email: gofakeit.Email(),
+				email: base.GenerateRandomEmail(),
 			},
 			want:    true,
 			wantErr: false,
@@ -642,7 +639,7 @@ func TestService_AddTester(t *testing.T) {
 }
 
 func TestService_RemoveTester(t *testing.T) {
-	validTesterEmail := gofakeit.Email()
+	validTesterEmail := base.GenerateRandomEmail()
 	srv := NewService()
 	ctx := base.GetAuthenticatedContext(t)
 	added, err := srv.AddTester(ctx, validTesterEmail)
@@ -672,7 +669,7 @@ func TestService_RemoveTester(t *testing.T) {
 			name: "tester that does not exist",
 			args: args{
 				ctx:   ctx,
-				email: fmt.Sprintf("%s@healthcloud.co.ke", uuid.New().String()),
+				email: base.GenerateRandomEmail(),
 			},
 			want:    true,
 			wantErr: false,
@@ -694,7 +691,7 @@ func TestService_RemoveTester(t *testing.T) {
 }
 
 func TestService_ListTesters(t *testing.T) {
-	validTesterEmail := gofakeit.Email()
+	validTesterEmail := base.GenerateRandomEmail()
 	srv := NewService()
 	ctx := base.GetAuthenticatedContext(t)
 	added, err := srv.AddTester(ctx, validTesterEmail)
@@ -763,7 +760,7 @@ func TestService_SendPractitionerRejectionEmail(t *testing.T) {
 			name: "Good case",
 			args: args{
 				ctx:          context.Background(),
-				emailaddress: "ngure.nyaga@savannahinformatics.com",
+				emailaddress: base.GenerateRandomEmail(),
 			},
 			wantErr: false,
 		},
@@ -1265,7 +1262,7 @@ func TestService_VerifyEmailOtp(t *testing.T) {
 		"isValid":           true,
 		"message":           "Testing email OTP message",
 		"timestamp":         time.Now(),
-		"email":             "ngure.nyaga@healthcloud.co.ke",
+		"email":             base.GenerateRandomEmail(),
 	}
 	_, err = base.SaveDataToFirestore(firestoreClient,
 		base.SuffixCollection(base.OTPCollectionName), validOtpData)
@@ -1286,7 +1283,7 @@ func TestService_VerifyEmailOtp(t *testing.T) {
 			name: "Happy case - sent otp code",
 			args: args{
 				ctx:   ctx,
-				email: "ngure.nyaga@healthcloud.co.ke",
+				email: base.GenerateRandomEmail(),
 				otp:   strconv.Itoa(validOtpCode),
 			},
 			want:    true,
@@ -1296,7 +1293,7 @@ func TestService_VerifyEmailOtp(t *testing.T) {
 			name: "Sad case - non existent otp code",
 			args: args{
 				ctx:   ctx,
-				email: "ngure.nyaga@healthcloud.co.ke",
+				email: base.GenerateRandomEmail(),
 				otp:   "029837",
 			},
 			want:    false,

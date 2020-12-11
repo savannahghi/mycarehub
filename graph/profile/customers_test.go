@@ -266,7 +266,7 @@ func TestService_FindCustomer(t *testing.T) {
 func TestService_SuspendCustomer(t *testing.T) {
 	service := NewService()
 	ctx, token := createNewUser(context.Background(), t)
-	_, err := service.AddCustomer(ctx, nil, "To Be Deleted")
+	_, err := service.AddCustomer(ctx, nil, gofakeit.Name())
 	if err != nil {
 		return
 	}

@@ -13,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph/profile"
@@ -1289,7 +1288,7 @@ func TestVerifyEmailOTPMutation(t *testing.T) {
 		"isValid":           true,
 		"message":           "Testing email OTP message",
 		"timestamp":         time.Now(),
-		"email":             "automated.test.user.bewell-app-ci@healthcloud.co.ke",
+		"email":             base.TestUserEmail,
 	}
 
 	_, err = base.SaveDataToFirestore(firestoreClient,
@@ -2305,7 +2304,7 @@ func TestGraphQlConfirmEmail(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"emailInput": fmt.Sprintf("test-%s@healthcloud.co.ke", uuid.New()),
+						"emailInput": base.GenerateRandomEmail(),
 					},
 				},
 			},
@@ -2619,7 +2618,7 @@ func TestGraphQLUpdateUserProfile(t *testing.T) {
 						"userProfileInput": map[string]interface{}{
 							"photoBase64":                photoBase64,
 							"photoContentType":           base.ContentTypeJpg,
-							"emails":                     []string{"be.well@bewell.co.ke"},
+							"emails":                     []string{base.GenerateRandomEmail()},
 							"canExperiment":              false,
 							"askAgainToSetIsTester":      false,
 							"askAgainToSetCanExperiment": false,
@@ -2963,7 +2962,7 @@ func TestGraphGQLmutationPractitionerSignUp(t *testing.T) {
 				license:   "123456",
 				cadre:     "DOCTOR",
 				specialty: "PUBLIC_HEALTH",
-				emails:    []string{"be.well@bewell.co.ke", "info@bewell.co.ke"},
+				emails:    []string{base.GenerateRandomEmail()},
 			},
 			wantStatus: 200,
 			wantErr:    false,
@@ -2974,7 +2973,7 @@ func TestGraphGQLmutationPractitionerSignUp(t *testing.T) {
 				license:   "123456",
 				cadre:     "JUST_PROFESSIONAL",
 				specialty: "PUBLIC_HEALTH",
-				emails:    []string{"be.well@bewell.co.ke", "info@bewell.co.ke"},
+				emails:    []string{base.GenerateRandomEmail()},
 			},
 			wantStatus: http.StatusUnprocessableEntity,
 			wantErr:    true,
@@ -2985,7 +2984,7 @@ func TestGraphGQLmutationPractitionerSignUp(t *testing.T) {
 				license:   "123456",
 				cadre:     "DOCTOR",
 				specialty: "JUST_A_SPECIALITY",
-				emails:    []string{"be.well@bewell.co.ke", "info@bewell.co.ke"},
+				emails:    []string{base.GenerateRandomEmail()},
 			},
 			wantStatus: http.StatusUnprocessableEntity,
 			wantErr:    true,
@@ -3664,7 +3663,7 @@ func TestGraphGQLmutationRemoveTester(t *testing.T) {
 					  }`,
 				},
 				variables: map[string]interface{}{
-					"email": "be.well@bewell.co.ke",
+					"email": base.GenerateRandomEmail(),
 				},
 			},
 			wantStatus: http.StatusOK,
@@ -4481,7 +4480,7 @@ func TestUpdateCustomerMutation(t *testing.T) {
 							"beneficiary": []map[string]interface{}{
 								{"name": "New Customer Name",
 									"msisdns":      []string{base.TestUserPhoneNumber},
-									"emails":       []string{"be.well@bewell.co.ke"},
+									"emails":       []string{base.GenerateRandomEmail()},
 									"relationship": "SPOUSE",
 									"dateOfBirth":  "1990-01-01",
 								},
@@ -4508,7 +4507,7 @@ func TestUpdateCustomerMutation(t *testing.T) {
 							"beneficiary": []map[string]interface{}{
 								{"name": "New Customer Name",
 									"msisdns":      []string{base.TestUserPhoneNumber},
-									"emails":       []string{"be.well@bewell.co.ke"},
+									"emails":       []string{base.GenerateRandomEmail()},
 									"relationship": "SPOUSE",
 									"dateOfBirth":  1990 - 01 - 01,
 								},

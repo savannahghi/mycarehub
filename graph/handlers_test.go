@@ -122,7 +122,7 @@ func TestGraphQLPractitionerSignUp(t *testing.T) {
 			"license":   "fake license",
 			"cadre":     profile.PractitionerCadreDoctor,
 			"specialty": base.PractitionerSpecialtyAnaesthesia,
-			"emails":    []string{"mike.farad@healthcloud.co.ke"},
+			"emails":    []string{base.GenerateRandomEmail()},
 		},
 	}
 

@@ -3,13 +3,12 @@ package profile
 import (
 	"testing"
 
-	"github.com/brianvoe/gofakeit"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 )
 
 func Test_isTester(t *testing.T) {
-	validTesterEmail := gofakeit.Email()
+	validTesterEmail := base.GenerateRandomEmail()
 	srv := NewService()
 	ctx := base.GetAuthenticatedContext(t)
 	added, err := srv.AddTester(ctx, validTesterEmail)
