@@ -145,32 +145,34 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcceptTermsAndConditions  func(childComplexity int, accept bool) int
-		AddCustomer               func(childComplexity int, name string) int
-		AddCustomerKyc            func(childComplexity int, input profile.CustomerKYCInput) int
-		AddPractitionerServices   func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
-		AddSupplier               func(childComplexity int, name string, partnerType profile.PartnerType) int
-		AddSupplierKyc            func(childComplexity int, input profile.SupplierKYCInput) int
-		AddTester                 func(childComplexity int, email string) int
-		ApprovePractitionerSignup func(childComplexity int, practitionerID string) int
-		CompleteSignup            func(childComplexity int) int
-		ConfirmEmail              func(childComplexity int, email string) int
-		CreateSignUpMethod        func(childComplexity int, signUpMethod profile.SignUpMethod) int
-		PractitionerSignUp        func(childComplexity int, input profile.PractitionerSignupInput) int
-		RecordPostVisitSurvey     func(childComplexity int, input profile.PostVisitSurveyInput) int
-		RegisterPushToken         func(childComplexity int, token string) int
-		RejectPractitionerSignup  func(childComplexity int, practitionerID string) int
-		RemoveTester              func(childComplexity int, email string) int
-		ResetUserPin              func(childComplexity int, msisdn string, pin string, otp string) int
-		SetLanguagePreference     func(childComplexity int, language base.Language) int
-		SetUpSupplier             func(childComplexity int, input profile.SupplierAccountInput) int
-		SetUserPin                func(childComplexity int, msisdn string, pin string) int
-		SuspendCustomer           func(childComplexity int, uid string) int
-		SuspendSupplier           func(childComplexity int, uid string) int
-		UpdateBiodata             func(childComplexity int, input profile.BiodataInput) int
-		UpdateCustomer            func(childComplexity int, input profile.CustomerKYCInput) int
-		UpdateUserProfile         func(childComplexity int, input profile.UserProfileInput) int
-		VerifyEmailOtp            func(childComplexity int, email string, otp string) int
+		AcceptTermsAndConditions   func(childComplexity int, accept bool) int
+		AddCustomer                func(childComplexity int, name string) int
+		AddCustomerKyc             func(childComplexity int, input profile.CustomerKYCInput) int
+		AddPractitionerServices    func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
+		AddSupplier                func(childComplexity int, name string, partnerType profile.PartnerType) int
+		AddSupplierKyc             func(childComplexity int, input profile.SupplierKYCInput) int
+		AddTester                  func(childComplexity int, email string) int
+		ApprovePractitionerSignup  func(childComplexity int, practitionerID string) int
+		CompleteSignup             func(childComplexity int) int
+		ConfirmEmail               func(childComplexity int, email string) int
+		CreateSignUpMethod         func(childComplexity int, signUpMethod profile.SignUpMethod) int
+		PractitionerSignUp         func(childComplexity int, input profile.PractitionerSignupInput) int
+		RecordPostVisitSurvey      func(childComplexity int, input profile.PostVisitSurveyInput) int
+		RegisterPushToken          func(childComplexity int, token string) int
+		RejectPractitionerSignup   func(childComplexity int, practitionerID string) int
+		RemoveTester               func(childComplexity int, email string) int
+		ResetUserPin               func(childComplexity int, msisdn string, pin string, otp string) int
+		SetLanguagePreference      func(childComplexity int, language base.Language) int
+		SetUpSupplier              func(childComplexity int, input profile.SupplierAccountInput) int
+		SetUserPin                 func(childComplexity int, msisdn string, pin string) int
+		SupplierEDILogin           func(childComplexity int, username string, password string, sladeCode string) int
+		SupplierSetDefaultLocation func(childComplexity int, locatonID string) int
+		SuspendCustomer            func(childComplexity int, uid string) int
+		SuspendSupplier            func(childComplexity int, uid string) int
+		UpdateBiodata              func(childComplexity int, input profile.BiodataInput) int
+		UpdateCustomer             func(childComplexity int, input profile.CustomerKYCInput) int
+		UpdateUserProfile          func(childComplexity int, input profile.UserProfileInput) int
+		VerifyEmailOtp             func(childComplexity int, email string, otp string) int
 	}
 
 	PageInfo struct {
@@ -211,6 +213,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		CheckUserWithMsisdn              func(childComplexity int, msisdn string) int
+		FetchSupplierAllowedLocations    func(childComplexity int) int
 		FindBranch                       func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) int
 		FindProfile                      func(childComplexity int) int
 		FindProvider                     func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) int
@@ -356,6 +359,8 @@ type MutationResolver interface {
 	SuspendCustomer(ctx context.Context, uid string) (bool, error)
 	SuspendSupplier(ctx context.Context, uid string) (bool, error)
 	SetUpSupplier(ctx context.Context, input profile.SupplierAccountInput) (*profile.Supplier, error)
+	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*profile.BranchConnection, error)
+	SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -373,6 +378,7 @@ type QueryResolver interface {
 	SupplierProfile(ctx context.Context, uid string) (*profile.Supplier, error)
 	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) (*profile.BusinessPartnerConnection, error)
 	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) (*profile.BranchConnection, error)
+	FetchSupplierAllowedLocations(ctx context.Context) (*profile.BranchConnection, error)
 }
 
 type executableSchema struct {
@@ -999,6 +1005,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetUserPin(childComplexity, args["msisdn"].(string), args["pin"].(string)), true
 
+	case "Mutation.supplierEDILogin":
+		if e.complexity.Mutation.SupplierEDILogin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_supplierEDILogin_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SupplierEDILogin(childComplexity, args["username"].(string), args["password"].(string), args["sladeCode"].(string)), true
+
+	case "Mutation.supplierSetDefaultLocation":
+		if e.complexity.Mutation.SupplierSetDefaultLocation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_supplierSetDefaultLocation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SupplierSetDefaultLocation(childComplexity, args["locatonID"].(string)), true
+
 	case "Mutation.suspendCustomer":
 		if e.complexity.Mutation.SuspendCustomer == nil {
 			break
@@ -1229,6 +1259,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.CheckUserWithMsisdn(childComplexity, args["msisdn"].(string)), true
+
+	case "Query.fetchSupplierAllowedLocations":
+		if e.complexity.Query.FetchSupplierAllowedLocations == nil {
+			break
+		}
+
+		return e.complexity.Query.FetchSupplierAllowedLocations(childComplexity), true
 
 	case "Query.findBranch":
 		if e.complexity.Query.FindBranch == nil {
@@ -2262,6 +2299,7 @@ input SupplierAccountInput {
     filter: [BranchFilterInput]
     sort: [BranchSortInput]
   ): BranchConnection!
+  fetchSupplierAllowedLocations: BranchConnection!
 }
 
 extend type Mutation {
@@ -2294,6 +2332,8 @@ extend type Mutation {
   suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
   setUpSupplier(input: SupplierAccountInput!): Supplier
+  supplierEDILogin(username:String!, password: String!, sladeCode: String!): BranchConnection!
+  supplierSetDefaultLocation(locatonID:String!): Boolean!  
 }`, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `scalar Date
 scalar Markdown
@@ -2920,6 +2960,54 @@ func (ec *executionContext) field_Mutation_setUserPin_args(ctx context.Context, 
 		}
 	}
 	args["pin"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_supplierEDILogin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["password"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["sladeCode"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sladeCode"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sladeCode"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_supplierSetDefaultLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["locatonID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locatonID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["locatonID"] = arg0
 	return args, nil
 }
 
@@ -6195,6 +6283,90 @@ func (ec *executionContext) _Mutation_setUpSupplier(ctx context.Context, field g
 	return ec.marshalOSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_supplierEDILogin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_supplierEDILogin_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SupplierEDILogin(rctx, args["username"].(string), args["password"].(string), args["sladeCode"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.BranchConnection)
+	fc.Result = res
+	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBranchConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_supplierSetDefaultLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_supplierSetDefaultLocation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SupplierSetDefaultLocation(rctx, args["locatonID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7501,6 +7673,41 @@ func (ec *executionContext) _Query_findBranch(ctx context.Context, field graphql
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().FindBranch(rctx, args["pagination"].(*base.PaginationInput), args["filter"].([]*profile.BranchFilterInput), args["sort"].([]*profile.BranchSortInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.BranchConnection)
+	fc.Result = res
+	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBranchConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_fetchSupplierAllowedLocations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FetchSupplierAllowedLocations(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12711,6 +12918,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "setUpSupplier":
 			out.Values[i] = ec._Mutation_setUpSupplier(ctx, field)
+		case "supplierEDILogin":
+			out.Values[i] = ec._Mutation_supplierEDILogin(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supplierSetDefaultLocation":
+			out.Values[i] = ec._Mutation_supplierSetDefaultLocation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -13142,6 +13359,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_findBranch(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "fetchSupplierAllowedLocations":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_fetchSupplierAllowedLocations(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

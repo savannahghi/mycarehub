@@ -167,6 +167,18 @@ func (r *mutationResolver) SetUpSupplier(ctx context.Context, input profile.Supp
 	return r.profileService.SetUpSupplier(ctx, input)
 }
 
+func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*profile.BranchConnection, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.SupplierEDILogin(ctx, username, password, sladeCode)
+}
+
+func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.SupplierSetDefaultLocation(ctx, locatonID)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
@@ -255,6 +267,12 @@ func (r *queryResolver) FindBranch(ctx context.Context, pagination *base.Paginat
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.FindBranch(ctx, pagination, filter, sort)
+}
+
+func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*profile.BranchConnection, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.FetchSupplierAllowedLocations(ctx)
 }
 
 // Mutation returns generated.MutationResolver implementation.

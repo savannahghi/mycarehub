@@ -322,3 +322,38 @@ func (s Service) SetUpSupplier(ctx context.Context, input SupplierAccountInput) 
 
 	return supplier, nil
 }
+
+// SupplierEDILogin it used to instiate as call when setting up a supplier's account's who
+// has an affliation to a provider with the slade ecosystem. The logic is as follows;
+// 1 . login to the relevant edi to assert the user has an account
+// 2 . fetch the branches of the provider given the slade code which we have
+// 3 . update the user's supplier record
+// 4. return the list of branches to the frontend so that a default location can be set
+func (s Service) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*BranchConnection, error) {
+	s.checkPreconditions()
+
+	//TODO (calvine) login to edi
+
+	// TODO (calvine) fetch the branches of the providers
+
+	// TODO (muchogo) update the supplier record and return the branches back to the frontend
+
+	return nil, nil
+}
+
+// SupplierSetDefaultLocation updates the default location ot the supplier by the given location id
+func (s Service) SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error) {
+	s.checkPreconditions()
+
+	//TODO (dexter) update default location
+
+	return false, nil
+}
+
+// FetchSupplierAllowedLocations retrieves all the locations that the user in context can work on.
+func (s *Service) FetchSupplierAllowedLocations(ctx context.Context) (*BranchConnection, error) {
+	s.checkPreconditions()
+	//TODO (calvine)
+
+	return nil, nil
+}

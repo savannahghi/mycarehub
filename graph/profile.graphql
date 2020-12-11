@@ -26,6 +26,7 @@ extend type Query {
     filter: [BranchFilterInput]
     sort: [BranchSortInput]
   ): BranchConnection!
+  fetchSupplierAllowedLocations: BranchConnection!
 }
 
 extend type Mutation {
@@ -58,4 +59,6 @@ extend type Mutation {
   suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
   setUpSupplier(input: SupplierAccountInput!): Supplier
+  supplierEDILogin(username:String!, password: String!, sladeCode: String!): BranchConnection!
+  supplierSetDefaultLocation(locatonID:String!): Boolean!  
 }
