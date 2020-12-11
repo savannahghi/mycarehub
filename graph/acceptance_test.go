@@ -4249,7 +4249,7 @@ func TestGraphGQLmutationAddSupplier(t *testing.T) {
 			name: "valid mutation request",
 			args: args{
 				query: map[string]interface{}{
-					"query": `mutation AddSuplier($na: String!, $partnerType: PartnerTypes!){
+					"query": `mutation AddSuplier($na: String!, $partnerType: PartnerType!){
 						addSupplier(name: $na, partnerType: $partnerType){
 						  supplierId
 						  active
@@ -4270,7 +4270,7 @@ func TestGraphGQLmutationAddSupplier(t *testing.T) {
 			name: "invalid: wrong partner type",
 			args: args{
 				query: map[string]interface{}{
-					"query": `mutation AddSuplier($na: String!, $partnerType: PartnerTypes!){
+					"query": `mutation AddSuplier($na: String!, $partnerType: PartnerType!){
 						addSupplier(name: $na, partnerType: $partnerType){
 						  supplierId
 						  active

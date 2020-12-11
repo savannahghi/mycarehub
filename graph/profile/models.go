@@ -254,6 +254,7 @@ type Supplier struct {
 	ParentOrganizationID   string            `json:"parentOrganizationID"`
 	HasBranches            bool              `json:"hasBranches,omitempty"`
 	Location               *Location         `json:"location,omitempty"`
+	PartnerType            PartnerType       `json:"partnerType"`
 }
 
 // Location is used to store a user's branch or organisation

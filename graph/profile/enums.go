@@ -366,59 +366,59 @@ func (e IdentificationDocType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-// PartnerTypes defines the different partner types we have in Be.Well
-type PartnerTypes string
+// PartnerType defines the different partner types we have in Be.Well
+type PartnerType string
 
-// PartnerTypesRider is an example of a partner type who is involved in delivery of goods
+// PartnerTypeRider is an example of a partner type who is involved in delivery of goods
 const (
-	PartnerTypesRider          PartnerTypes = "RIDER"
-	PartnerTypesPractitioner   PartnerTypes = "PRACTITIONER"
-	PartnerTypesProvider       PartnerTypes = "PROVIDER"
-	PartnerTypesPharmaceutical PartnerTypes = "PHARMACEUTICAL"
-	PartnerTypesCoach          PartnerTypes = "COACH"
-	PartnerTypesNutrition      PartnerTypes = "NUTRITION"
-	PartnerTypesConsumer       PartnerTypes = "CONSUMER"
+	PartnerTypeRider          PartnerType = "RIDER"
+	PartnerTypePractitioner   PartnerType = "PRACTITIONER"
+	PartnerTypeProvider       PartnerType = "PROVIDER"
+	PartnerTypePharmaceutical PartnerType = "PHARMACEUTICAL"
+	PartnerTypeCoach          PartnerType = "COACH"
+	PartnerTypeNutrition      PartnerType = "NUTRITION"
+	PartnerTypeConsumer       PartnerType = "CONSUMER"
 )
 
-// AllPartnerTypes represents a list of the partner types we offer
-var AllPartnerTypes = []PartnerTypes{
-	PartnerTypesRider,
-	PartnerTypesPractitioner,
-	PartnerTypesProvider,
-	PartnerTypesPharmaceutical,
-	PartnerTypesCoach,
-	PartnerTypesNutrition,
-	PartnerTypesConsumer,
+// AllPartnerType represents a list of the partner types we offer
+var AllPartnerType = []PartnerType{
+	PartnerTypeRider,
+	PartnerTypePractitioner,
+	PartnerTypeProvider,
+	PartnerTypePharmaceutical,
+	PartnerTypeCoach,
+	PartnerTypeNutrition,
+	PartnerTypeConsumer,
 }
 
 // IsValid checks if a partner type is valid or not
-func (e PartnerTypes) IsValid() bool {
+func (e PartnerType) IsValid() bool {
 	switch e {
-	case PartnerTypesRider, PartnerTypesPractitioner, PartnerTypesProvider, PartnerTypesPharmaceutical, PartnerTypesCoach, PartnerTypesNutrition, PartnerTypesConsumer:
+	case PartnerTypeRider, PartnerTypePractitioner, PartnerTypeProvider, PartnerTypePharmaceutical, PartnerTypeCoach, PartnerTypeNutrition, PartnerTypeConsumer:
 		return true
 	}
 	return false
 }
 
-func (e PartnerTypes) String() string {
+func (e PartnerType) String() string {
 	return string(e)
 }
 
 // UnmarshalGQL converts the input, if valid, into an correct partner type value
-func (e *PartnerTypes) UnmarshalGQL(v interface{}) error {
+func (e *PartnerType) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = PartnerTypes(str)
+	*e = PartnerType(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid PartnerTypes", str)
+		return fmt.Errorf("%s is not a valid PartnerType", str)
 	}
 	return nil
 }
 
 // MarshalGQL converts partner type into a valid JSON string
-func (e PartnerTypes) MarshalGQL(w io.Writer) {
+func (e PartnerType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

@@ -16,7 +16,7 @@ func TestService_AddSupplier(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		name        string
-		partnerType PartnerTypes
+		partnerType PartnerType
 	}
 	tests := []struct {
 		name    string
@@ -28,7 +28,7 @@ func TestService_AddSupplier(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        "Be.Well Test Supplier",
-				partnerType: PartnerTypesProvider,
+				partnerType: PartnerTypeProvider,
 			},
 			wantErr: false,
 		},
@@ -79,7 +79,7 @@ func TestService_FindSupplier(t *testing.T) {
 		t.Errorf("nil context")
 		return
 	}
-	supplier, err := service.AddSupplier(ctx, &token.UID, gofakeit.Name(), PartnerTypesProvider)
+	supplier, err := service.AddSupplier(ctx, &token.UID, gofakeit.Name(), PartnerTypeProvider)
 	if err != nil {
 		t.Errorf("can't add supplier: %v", err)
 		return
@@ -216,7 +216,7 @@ func TestService_AddSupplierKyc(t *testing.T) {
 func TestService_SuspendSupplier(t *testing.T) {
 	service := NewService()
 	ctx, token := createNewUser(context.Background(), t)
-	_, err := service.AddSupplier(ctx, nil, gofakeit.Name(), PartnerTypesProvider)
+	_, err := service.AddSupplier(ctx, nil, "To Be Deleted", PartnerTypeProvider)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return

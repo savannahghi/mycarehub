@@ -53,7 +53,7 @@ extend type Mutation {
     services: PractitionerServiceInput!
     otherServices: OtherPractitionerServiceInput
   ): Boolean!
-  addSupplier(name: String!, partnerType: PartnerTypes!): Supplier!
+  addSupplier(name: String!, partnerType: PartnerType!): Supplier!
   addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
   suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!

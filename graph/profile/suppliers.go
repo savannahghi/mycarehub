@@ -34,7 +34,7 @@ func (s Service) AddSupplier(
 	ctx context.Context,
 	uid *string,
 	name string,
-	partnerType PartnerTypes,
+	partnerType PartnerType,
 ) (*Supplier, error) {
 	s.checkPreconditions()
 
@@ -87,6 +87,7 @@ func (s Service) AddSupplier(
 		}
 		newSupplier := Supplier{
 			UserProfile: profile,
+			PartnerType: partnerType,
 		}
 
 		if err := base.ReadRequestToTarget(s.erpClient, "POST", supplierAPIPath, "", content, &newSupplier); err != nil {

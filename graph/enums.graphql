@@ -52,7 +52,7 @@ enum IdentificationDocType {
   MILITARY
 }
 
-enum PartnerTypes {
+enum PartnerType {
   RIDER
   PRACTITIONER
   PROVIDER

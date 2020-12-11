@@ -14,7 +14,7 @@ const (
 	active                 = true
 	country                = "KEN" // Anticipate worldwide expansion
 	isCustomer             = true
-	customerType           = PartnerTypesConsumer
+	customerType           = PartnerTypeConsumer
 	customerCollectionName = "customers"
 )
 

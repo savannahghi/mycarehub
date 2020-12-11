@@ -161,6 +161,7 @@ type Supplier {
   accountType: AccountType!
   underOrganization: Boolean!
   isOrganizationVerified: Boolean!
+  partnerType: PartnerType!
 
   sladeCode: String
   parentOrganizationID: String
