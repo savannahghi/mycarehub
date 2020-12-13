@@ -10,7 +10,7 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
-	github.com/aws/aws-sdk-go v1.36.6 // indirect
+	github.com/aws/aws-sdk-go v1.36.7 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/getsentry/sentry-go v0.9.0 // indirect
 	github.com/google/pprof v0.0.0-20201211104106-9bd6f8a8ed4b // indirect
@@ -26,6 +26,7 @@ require (
 	gitlab.slade360emr.com/go/base v0.0.83
 	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9
 	golang.org/x/sys v0.0.0-20201211090839-8ad439b19e0f // indirect
-	golang.org/x/tools v0.0.0-20201211025543-abf6a1d87e11 // indirect
+	golang.org/x/tools v0.0.0-20201211185031-d93e913c1a58 // indirect
+	google.golang.org/genproto v0.0.0-20201211151036-40ec1c210f7a // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

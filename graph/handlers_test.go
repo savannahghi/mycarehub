@@ -576,7 +576,6 @@ func TestGraphQLRequestPinReset(t *testing.T) {
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
 	}
-
 }
 
 func TestGraphQLUpdatePin(t *testing.T) {

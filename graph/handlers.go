@@ -67,6 +67,17 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(CreateUserByPhoneHandler(ctx))
 
+	// login routes - primarily for use by developers and by other SIL systems
+	// e.g Slade 360 EDI
+	r.Path("/login").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(base.GetLoginFunc(ctx, fc))
+	r.Path("/logout").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(base.GetLogoutFunc(ctx, fc))
+	r.Path("/refresh").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(base.GetRefreshFunc())
+	r.Path("/verify_access_token").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(base.GetVerifyTokenFunc(ctx, fc))
+
 	// check server status.
 	r.Path("/health").HandlerFunc(base.HealthStatusCheck)
 
@@ -142,7 +153,6 @@ func PrepareServer(ctx context.Context, port int, allowedOrigins []string) *http
 		WriteTimeout: serverTimeoutSeconds * time.Second,
 		ReadTimeout:  serverTimeoutSeconds * time.Second,
 	}
-	log.Infof("Server running at port %v", addr)
 	return srv
 }
 
