@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"gitlab.slade360emr.com/go/base"
 )
@@ -392,9 +393,9 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 	}
 
 	//Verify slade code
-	if ediUserProfile.BusinessPartner != sladeCode {
+	if ediUserProfile.BusinessPartner != strings.Split(sladeCode, "-")[1] {
 		supplier.IsOrganizationVerified = false
-		return nil, fmt.Errorf("invalid slade code for selected provider: %v", sladeCode)
+		return nil, fmt.Errorf("invalid slade code for selected provider: %v, got: %v", sladeCode, ediUserProfile.BusinessPartner)
 	}
 
 	supplier.EDIUserProfile = ediUserProfile
@@ -429,19 +430,29 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 		}
 
 		brFilter = append(brFilter, filter)
-	} else {
-		filter := &BranchFilterInput{
-			SladeCode: &businessPartner.SladeCode,
+		if err := s.SaveSupplierToFireStore(*supplier); err != nil {
+			return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
 		}
 
-		brFilter = append(brFilter, filter)
+		return s.FindBranch(ctx, nil, brFilter, nil)
 	}
+	loc := Location{
+		ID:   businessPartner.ID,
+		Name: businessPartner.Name,
+	}
+	supplier.Location = &loc
 
 	if err := s.SaveSupplierToFireStore(*supplier); err != nil {
 		return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
 	}
+	pageInfo := &base.PageInfo{
+		HasNextPage:     false,
+		HasPreviousPage: false,
+		StartCursor:     nil,
+		EndCursor:       nil,
+	}
 
-	return s.FindBranch(ctx, nil, brFilter, nil)
+	return &BranchConnection{PageInfo: pageInfo}, nil
 }
 
 // SupplierSetDefaultLocation updates the default location ot the supplier by the given location id
