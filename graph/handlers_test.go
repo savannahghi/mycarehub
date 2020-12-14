@@ -593,8 +593,8 @@ func TestGraphQLUpdatePin(t *testing.T) {
 	}
 	gql := map[string]interface{}{}
 	gql["query"] = `
-	mutation resetUserPIN{
-		resetUserPIN(msisdn: "+254711223344", pin: "1234", otp: "654789")
+	mutation updateUserPIN{
+		updateUserPIN(msisdn: "+254711223344", pin: "1234")
 	}
 	`
 
@@ -678,8 +678,26 @@ func TestGraphQLUpdatePin(t *testing.T) {
 
 }
 
-func TestResetPinHandler(t *testing.T) {
+func TestUpdatePinHandler(t *testing.T) {
 	client := http.DefaultClient
+	srv := profile.NewService()
+	assert.NotNil(t, srv, "service is nil")
+
+	ctx, _ := base.GetAuthenticatedContextAndToken(t)
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+	set, err := srv.SetUserPIN(ctx, base.TestUserPhoneNumber, "1234")
+	if !set {
+		t.Errorf("setting a pin for test user failed. It returned false")
+	}
+	if err != nil {
+		t.Errorf("setting a pin for test user failed: %v", err)
+	}
+	if !set {
+		t.Errorf("setting a pin for test user failed. It returned false")
+	}
 	pinRecovery := profile.PinRecovery{
 		MSISDN:    base.TestUserPhoneNumber,
 		PINNumber: "4565",
@@ -705,22 +723,22 @@ func TestResetPinHandler(t *testing.T) {
 		{
 			name: "successful update pin",
 			args: args{
-				url:        fmt.Sprintf("%s/reset_pin", baseURL),
+				url:        fmt.Sprintf("%s/update_pin", baseURL),
 				httpMethod: http.MethodPost,
 				body:       payload,
 			},
-			wantStatus: http.StatusInternalServerError, // Not a verified otp code
+			wantStatus: http.StatusOK,
 			wantErr:    false,
 		},
 		{
 			name: "failed generate and send otp",
 			args: args{
-				url:        fmt.Sprintf("%s/reset_pin", baseURL),
+				url:        fmt.Sprintf("%s/update_pin", baseURL),
 				httpMethod: http.MethodPost,
 				body:       nil,
 			},
 			wantStatus: http.StatusBadRequest,
-			wantErr:    false,
+			wantErr:    true,
 		},
 	}
 	for _, tt := range tests {

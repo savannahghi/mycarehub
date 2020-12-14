@@ -318,7 +318,7 @@ func TestSendRetryOTP(t *testing.T) {
 	}
 }
 
-func TestRESTResetUserPIN(t *testing.T) {
+func TestRESTUpdateUserPIN(t *testing.T) {
 
 	// Simulate similar running environment to staging otp service
 	// get existing envars
@@ -385,7 +385,7 @@ func TestRESTResetUserPIN(t *testing.T) {
 		return
 	}
 
-	msisdnLoginURL := fmt.Sprintf("%s/%s", baseURL, "reset_pin")
+	msisdnLoginURL := fmt.Sprintf("%s/%s", baseURL, "update_pin")
 	headers, err := base.GetGraphQLHeaders(ctx)
 	if err != nil {
 		t.Errorf("unable to get request headers %v", err)

@@ -1170,10 +1170,9 @@ func (s Service) RequestPINReset(ctx context.Context, msisdn string) (string, er
 	return code, nil
 }
 
-// ResetUserPIN resets a user's pin
-func (s Service) ResetUserPIN(ctx context.Context, msisdn string, pin string, otp string) (bool, error) {
+// UpdateUserPIN resets a user's pin
+func (s Service) UpdateUserPIN(ctx context.Context, msisdn string, pin string) (bool, error) {
 	s.checkPreconditions()
-
 	exists, err := s.CheckHasPIN(ctx, msisdn)
 	if err != nil {
 		return false, fmt.Errorf("unable to check if the user has a PIN: %v", err)
@@ -1187,17 +1186,12 @@ func (s Service) ResetUserPIN(ctx context.Context, msisdn string, pin string, ot
 		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
 
-	_, validateErr := base.VerifyOTP(phoneNumber, otp, s.Otp)
-	if validateErr != nil {
-		return false, fmt.Errorf("OTP failed verification: %w", validateErr)
-	}
-
 	dsnap, err := s.RetrievePINFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
 	if err != nil {
 		return false, err
 	}
 	if dsnap == nil {
-		return false, fmt.Errorf("ResetUserPIN: unable to retrieve user PIN")
+		return false, fmt.Errorf("UpdateUserPIN: unable to retrieve user PIN")
 	}
 	msisdnPIN := &PIN{}
 	err = dsnap.DataTo(msisdnPIN)
