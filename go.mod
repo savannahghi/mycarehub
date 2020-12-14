@@ -18,7 +18,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
-	gitlab.slade360emr.com/go/base v0.0.84
+	gitlab.slade360emr.com/go/base v0.0.85
 	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9
 	gopkg.in/yaml.v2 v2.4.0
 )

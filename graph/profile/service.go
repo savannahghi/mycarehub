@@ -360,12 +360,16 @@ func (s Service) UpdatePhoneNumber(
 	if err != nil {
 		return false, err
 	}
-	validatedPhone, err := base.ValidateMSISDN(phone, "", true, s.firestoreClient)
+	valid, err := base.VerifyOTP(phone, "", s.Otp)
 	if err != nil {
 		return false, err
 	}
+	if !valid {
+		return false, fmt.Errorf("phonenumber given is not valid")
+	}
+
 	if !base.StringSliceContains(userProfile.Msisdns, phone) {
-		userProfile.Msisdns = append(userProfile.Msisdns, validatedPhone)
+		userProfile.Msisdns = append(userProfile.Msisdns, phone)
 	}
 	err = base.UpdateRecordOnFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
@@ -397,20 +401,22 @@ func (s Service) UpdateUserProfile(
 	verifiedPhones := userProfile.VerifiedPhones
 	if input.Msisdns != nil {
 		for _, msisdnInp := range input.Msisdns {
-			validPhone, err := base.ValidateMSISDN(
+			valid, err := base.VerifyOTP(
 				msisdnInp.Phone,
 				msisdnInp.Otp,
-				false,
-				s.firestoreClient,
+				s.Otp,
 			)
 			if err != nil {
 				return nil, fmt.Errorf("invalid phone/OTP: %s", err)
 			}
-			if !base.StringSliceContains(msisdns, validPhone) {
-				msisdns = append(msisdns, validPhone)
+			if !valid {
+				return nil, fmt.Errorf("phonenumber given is not valid")
+			}
+			if !base.StringSliceContains(msisdns, msisdnInp.Phone) {
+				msisdns = append(msisdns, msisdnInp.Phone)
 			}
 			verifyPhone := base.VerifiedMsisdn{
-				Msisdn:   validPhone,
+				Msisdn:   msisdnInp.Phone,
 				Verified: true,
 			}
 			verifiedPhones = append(verifiedPhones, verifyPhone)
@@ -1181,7 +1187,7 @@ func (s Service) ResetUserPIN(ctx context.Context, msisdn string, pin string, ot
 		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
 
-	_, validateErr := base.ValidateMSISDN(phoneNumber, otp, false, s.firestoreClient)
+	_, validateErr := base.VerifyOTP(phoneNumber, otp, s.Otp)
 	if validateErr != nil {
 		return false, fmt.Errorf("OTP failed verification: %w", validateErr)
 	}
