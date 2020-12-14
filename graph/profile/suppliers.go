@@ -342,18 +342,111 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 }
 
 // SupplierSetDefaultLocation updates the default location ot the supplier by the given location id
-func (s Service) SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error) {
+func (s Service) SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error) {
 	s.checkPreconditions()
 
-	//TODO (dexter) update default location
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, fmt.Errorf("unable to get the logged in user: %w", err)
+	}
 
-	return false, nil
+	// fetch the supplier records
+	collection := s.firestoreClient.Collection(s.GetSupplierCollectionName())
+	query := collection.Where("userprofile.verifiedIdentifiers", "array-contains", uid)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return false, fmt.Errorf("unable to fetch supplier record: %w", err)
+	}
+	if len(docs) == 0 {
+		return false, fmt.Errorf("unable to find supplier record: %w", err)
+	}
+
+	dsnap := docs[0]
+	sup := &Supplier{}
+	err = dsnap.DataTo(sup)
+	if err != nil {
+		return false, fmt.Errorf("unable to read supplier: %w", err)
+	}
+
+	// fetch the branches of the provider filtered by sladecode and ParentOrganizationID
+	filter := []*BranchFilterInput{
+		{
+			SladeCode:            &sup.SladeCode,
+			ParentOrganizationID: &sup.ParentOrganizationID,
+		},
+	}
+
+	brs, err := s.FindBranch(ctx, nil, filter, nil)
+	if err != nil {
+		return false, fmt.Errorf("unable to fetch organization branches location: %v", err)
+	}
+
+	branch := func(brs *BranchConnection, location string) *BranchEdge {
+		for _, b := range brs.Edges {
+			if b.Node.ID == location {
+				return b
+			}
+		}
+		return nil
+	}(brs, locationID)
+
+	if branch != nil {
+		loc := Location{
+			ID:              branch.Node.ID,
+			Name:            branch.Node.Name,
+			BranchSladeCode: &branch.Node.BranchSladeCode,
+		}
+		sup.Location = &loc
+
+		// update the supplier record with new location
+		if err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, sup); err != nil {
+			return false, fmt.Errorf("unable to update supplier default location: %v", err)
+		}
+	}
+
+	return false, fmt.Errorf("unable to get location of id %v : %v", locationID, err)
 }
 
 // FetchSupplierAllowedLocations retrieves all the locations that the user in context can work on.
 func (s *Service) FetchSupplierAllowedLocations(ctx context.Context) (*BranchConnection, error) {
-	s.checkPreconditions()
-	//TODO (calvine)
 
-	return nil, nil
+	s.checkPreconditions()
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user: %w", err)
+	}
+
+	// fetch the supplier records
+	collection := s.firestoreClient.Collection(s.GetSupplierCollectionName())
+	query := collection.Where("userprofile.verifiedIdentifiers", "array-contains", uid)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch supplier record: %w", err)
+	}
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("unable to find supplier record: %w", err)
+	}
+
+	dsnap := docs[0]
+	sup := &Supplier{}
+	err = dsnap.DataTo(sup)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier record: %w", err)
+	}
+
+	// fetch the branches of the provider filtered by sladecode and ParentOrganizationID
+	filter := []*BranchFilterInput{
+		{
+			SladeCode:            &sup.SladeCode,
+			ParentOrganizationID: &sup.ParentOrganizationID,
+		},
+	}
+
+	brs, err := s.FindBranch(ctx, nil, filter, nil)
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch organization branches location: %v", err)
+	}
+
+	return brs, nil
 }
