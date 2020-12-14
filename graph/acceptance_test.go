@@ -4632,7 +4632,7 @@ func TestGraphGQLmutationAddTester(t *testing.T) {
 					  }`,
 				},
 				variables: map[string]interface{}{
-					"email": "be.well@bewell.com",
+					"email": base.TestUserEmail,
 				},
 			},
 			wantStatus: http.StatusOK,
