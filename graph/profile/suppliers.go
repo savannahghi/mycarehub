@@ -323,6 +323,27 @@ func (s Service) SetUpSupplier(ctx context.Context, input SupplierAccountInput) 
 	return supplier, nil
 }
 
+// EDIUserLogin used to login a user to EDI and return their EDI profile
+func EDIUserLogin(username, password string) (*base.EDIUserProfile, error) {
+
+	if username == "" || password == "" {
+		return nil, fmt.Errorf("invalid credentials, expected a username AND password")
+	}
+
+	ediClient, err := base.LoginClient(username, password)
+	if err != nil {
+		return nil, fmt.Errorf("cannot initialize edi client with supplied credentials: %w", err)
+	}
+
+	userProfile, err := base.FetchUserProfile(ediClient)
+	if err != nil {
+		return nil, fmt.Errorf("cannot retrieve EDI user profile: %w", err)
+	}
+
+	return userProfile, nil
+
+}
+
 // SupplierEDILogin it used to instiate as call when setting up a supplier's account's who
 // has an affliation to a provider with the slade ecosystem. The logic is as follows;
 // 1 . login to the relevant edi to assert the user has an account
@@ -331,14 +352,96 @@ func (s Service) SetUpSupplier(ctx context.Context, input SupplierAccountInput) 
 // 4. return the list of branches to the frontend so that a default location can be set
 func (s Service) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*BranchConnection, error) {
 	s.checkPreconditions()
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user: %w", err)
+	}
 
-	//TODO (calvine) login to edi
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
+	if err != nil {
+		return nil, fmt.Errorf("unable to retreive doc snapshot by uid: %w", err)
+	}
 
-	// TODO (calvine) fetch the branches of the providers
+	supplier := &Supplier{}
 
-	// TODO (muchogo) update the supplier record and return the branches back to the frontend
+	if dsnap != nil {
+		err = dsnap.DataTo(supplier)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read supplier: %v", err)
+		}
+	}
 
-	return nil, nil
+	profile, err := s.ParseUserProfileFromContextOrUID(ctx, &uid)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+
+	supplier.UserProfile = profile
+	supplier.AccountType = AccountTypeIndividual
+	supplier.UnderOrganization = true
+
+	//Login to edi
+	ediUserProfile, err := EDIUserLogin(username, password)
+	if err != nil {
+		supplier.IsOrganizationVerified = false
+		return nil, fmt.Errorf("cannot get edi user profile: %w", err)
+	}
+
+	if ediUserProfile == nil {
+		return nil, fmt.Errorf("edi user profile not found")
+	}
+
+	//Verify slade code
+	if ediUserProfile.BusinessPartner != sladeCode {
+		supplier.IsOrganizationVerified = false
+		return nil, fmt.Errorf("invalid slade code for selected provider: %v", sladeCode)
+	}
+
+	supplier.EDIUserProfile = ediUserProfile
+	supplier.IsOrganizationVerified = true
+	supplier.SladeCode = sladeCode
+
+	filter := []*BusinessPartnerFilterInput{
+		{
+			SladeCode: &sladeCode,
+		},
+	}
+
+	partner, err := s.FindProvider(ctx, nil, filter, nil)
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch organization branches location: %v", err)
+	}
+
+	var businessPartner BusinessPartner
+
+	if len(partner.Edges) != 1 {
+		return nil, fmt.Errorf("expected one business partner, found: %v", len(partner.Edges))
+	}
+
+	businessPartner = *partner.Edges[0].Node
+
+	var brFilter []*BranchFilterInput
+
+	if businessPartner.Parent != nil {
+		supplier.ParentOrganizationID = *businessPartner.Parent
+		filter := &BranchFilterInput{
+			ParentOrganizationID: businessPartner.Parent,
+		}
+
+		brFilter = append(brFilter, filter)
+	} else {
+		filter := &BranchFilterInput{
+			SladeCode: &businessPartner.SladeCode,
+		}
+
+		brFilter = append(brFilter, filter)
+	}
+
+	if err := s.SaveSupplierToFireStore(*supplier); err != nil {
+		return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
+	}
+
+	return s.FindBranch(ctx, nil, brFilter, nil)
 }
 
 // SupplierSetDefaultLocation updates the default location ot the supplier by the given location id

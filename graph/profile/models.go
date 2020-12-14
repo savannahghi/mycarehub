@@ -242,19 +242,20 @@ type PayablesAccount struct {
 
 // Supplier used to create a supplier request payload
 type Supplier struct {
-	UserProfile            *base.UserProfile `json:"userProfile" firestore:"userprofile"`
-	SupplierID             string            `json:"id" firestore:"supplierid"`
-	PayablesAccount        *PayablesAccount  `json:"payables_account"`
-	SupplierKYC            SupplierKYC       `json:"supplierKYC"`
-	Active                 bool              `json:"active" firestore:"active"`
-	AccountType            AccountType       `json:"accountType"`
-	UnderOrganization      bool              `json:"underOrganization"`
-	IsOrganizationVerified bool              `json:"isOrganizationVerified"`
-	SladeCode              string            `json:"sladeCode"`
-	ParentOrganizationID   string            `json:"parentOrganizationID"`
-	HasBranches            bool              `json:"hasBranches,omitempty"`
-	Location               *Location         `json:"location,omitempty"`
-	PartnerType            PartnerType       `json:"partnerType"`
+	UserProfile            *base.UserProfile    `json:"userProfile" firestore:"userprofile"`
+	SupplierID             string               `json:"id" firestore:"supplierid"`
+	PayablesAccount        *PayablesAccount     `json:"payablesAccount"`
+	SupplierKYC            SupplierKYC          `json:"supplierKYC"`
+	Active                 bool                 `json:"active" firestore:"active"`
+	AccountType            AccountType          `json:"accountType"`
+	UnderOrganization      bool                 `json:"underOrganization"`
+	IsOrganizationVerified bool                 `json:"isOrganizationVerified"`
+	SladeCode              string               `json:"sladeCode"`
+	ParentOrganizationID   string               `json:"parentOrganizationID"`
+	HasBranches            bool                 `json:"hasBranches,omitempty"`
+	Location               *Location            `json:"location,omitempty"`
+	PartnerType            PartnerType          `json:"partnerType"`
+	EDIUserProfile         *base.EDIUserProfile `json:"ediuserprofile" firestore:"ediuserprofile"`
 }
 
 // Location is used to store a user's branch or organisation
