@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"gitlab.slade360emr.com/go/base"
 )
@@ -14,6 +17,12 @@ const (
 	supplierAPIPath        = "/api/business_partners/suppliers/"
 	supplierCollectionName = "suppliers"
 	isSupplier             = true
+	futureHours            = 878400
+)
+
+const (
+	// engagement ISC paths
+	publishNudge = "/feed/%s/PRO/false/nudges/"
 )
 
 // SaveSupplierToFireStore persists supplier data to firestore
@@ -29,11 +38,74 @@ func (s Service) GetSupplierCollectionName() string {
 	return suffixed
 }
 
+// AddPartnerType create the initial supplier record
+func (s Service) AddPartnerType(ctx context.Context, name *string,
+	partnerType *PartnerType) (bool, error) {
+
+	s.checkPreconditions()
+
+	if name == nil || partnerType == nil || *name == " " || !partnerType.IsValid() {
+		return false, fmt.Errorf("expected `name` to be defined and `partnerType` to be valid")
+	}
+
+	if *partnerType == PartnerTypeConsumer {
+		return false, fmt.Errorf("invalid `partnerType`. cannot use CONSUMER in this context")
+	}
+
+	userUID, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, fmt.Errorf("unable to get the logged in user: %v", err)
+	}
+
+	profile, err := s.ParseUserProfileFromContextOrUID(ctx, &userUID)
+	if err != nil {
+		return false, fmt.Errorf("unable to read user profile: %w", err)
+	}
+
+	collection := s.firestoreClient.Collection(s.GetSupplierCollectionName())
+	query := collection.Where("userprofile.verifiedIdentifiers", "array-contains", userUID)
+
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return false, err
+	}
+
+	// if record length is equal to on 1, update otherwise create
+	if len(docs) == 1 {
+		// update
+		supplier := &Supplier{}
+		err = docs[0].DataTo(supplier)
+		if err != nil {
+			return false, fmt.Errorf("unable to read supplier: %v", err)
+		}
+
+		supplier.UserProfile.Name = name
+		supplier.PartnerType = *partnerType
+
+		if err := s.SaveSupplierToFireStore(*supplier); err != nil {
+			return false, fmt.Errorf("unable to add supplier to firestore: %v", err)
+		}
+		return true, nil
+	}
+
+	// create new record
+	profile.Name = name
+	newSupplier := Supplier{
+		UserProfile: profile,
+		PartnerType: *partnerType,
+	}
+
+	if err := s.SaveSupplierToFireStore(newSupplier); err != nil {
+		return false, fmt.Errorf("unable to add supplier to firestore: %v", err)
+	}
+
+	return true, nil
+}
+
 // AddSupplier makes a call to our own ERP and creates a supplier account for the pro users based
 // on their correct partner types that is used for transacting on Be.Well
 func (s Service) AddSupplier(
 	ctx context.Context,
-	uid *string,
 	name string,
 	partnerType PartnerType,
 ) (*Supplier, error) {
@@ -44,7 +116,7 @@ func (s Service) AddSupplier(
 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
 	}
 
-	profile, err := s.ParseUserProfileFromContextOrUID(ctx, uid)
+	profile, err := s.ParseUserProfileFromContextOrUID(ctx, &userUID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
@@ -394,6 +466,10 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 	businessPartner = *partner.Edges[0].Node
 	var brFilter []*BranchFilterInput
 
+	if err := s.PublishKYCNudge(uid, supplier.PartnerType); err != nil {
+		return nil, err
+	}
+
 	if businessPartner.Parent != nil {
 		supplier.ParentOrganizationID = *businessPartner.Parent
 		filter := &BranchFilterInput{
@@ -534,4 +610,40 @@ func (s *Service) FetchSupplierAllowedLocations(ctx context.Context) (*BranchCon
 	}
 
 	return brs, nil
+}
+
+// PublishKYCNudge pushes a kyc nudge to the user feed
+func (s *Service) PublishKYCNudge(uid string, partner PartnerType) error {
+	payload := map[string]interface{}{
+		"id":             strconv.Itoa(int(time.Now().Unix())),
+		"sequenceNumber": strconv.Itoa(int(time.Now().Unix())),
+		"visibility":     "SHOW",
+		"status":         "PENDING",
+		"expiry":         time.Now().Add(time.Hour * futureHours),
+		"title":          fmt.Sprintf("Complete your %v KYC", strings.ToLower(partner.String())),
+		"text":           "Fill in your Be.Well business KYC in order to start transacting",
+		"actions": []map[string]interface{}{
+			{
+				"id":             strconv.Itoa(int(time.Now().Unix())),
+				"sequenceNumber": strconv.Itoa(int(time.Now().Unix())),
+				"name":           strings.ToUpper(fmt.Sprintf("COMPLETE_%v_KYC", partner.String())),
+				"actionType":     "PRIMARY",
+				"handling":       "FULL_PAGE",
+				"allowAnonymous": false,
+			},
+		},
+		"users":                []string{uid},
+		"notificationChannels": []string{"EMAIL", "FCM"},
+	}
+
+	resp, err := s.engagement.MakeRequest("POST", fmt.Sprintf(publishNudge, uid), payload)
+	if err != nil {
+		return fmt.Errorf("unable to publish kyc nudge : %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to publish kyc nudge. unexpected status code  %v", resp.StatusCode)
+	}
+
+	return nil
 }

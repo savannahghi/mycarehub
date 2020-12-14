@@ -2001,7 +2001,7 @@ func TestFindSupplierByUIDHandler(t *testing.T) {
 
 	s := profile.NewService()
 	supplier, err := s.AddSupplier(
-		ctx, &authToken.UID, gofakeit.Name(), profile.PartnerTypeProvider)
+		ctx, gofakeit.Name(), profile.PartnerTypeProvider)
 	if err != nil {
 		t.Errorf("can't add supplier: %v", err)
 		return

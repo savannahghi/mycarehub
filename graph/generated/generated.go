@@ -148,8 +148,8 @@ type ComplexityRoot struct {
 		AcceptTermsAndConditions   func(childComplexity int, accept bool) int
 		AddCustomer                func(childComplexity int, name string) int
 		AddCustomerKyc             func(childComplexity int, input profile.CustomerKYCInput) int
+		AddPartnerType             func(childComplexity int, name string, partnerType profile.PartnerType) int
 		AddPractitionerServices    func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
-		AddSupplier                func(childComplexity int, name string, partnerType profile.PartnerType) int
 		AddSupplierKyc             func(childComplexity int, input profile.SupplierKYCInput) int
 		AddTester                  func(childComplexity int, email string) int
 		CompleteSignup             func(childComplexity int) int
@@ -352,7 +352,7 @@ type MutationResolver interface {
 	AddCustomerKyc(ctx context.Context, input profile.CustomerKYCInput) (*profile.CustomerKYC, error)
 	UpdateCustomer(ctx context.Context, input profile.CustomerKYCInput) (*profile.Customer, error)
 	AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error)
-	AddSupplier(ctx context.Context, name string, partnerType profile.PartnerType) (*profile.Supplier, error)
+	AddPartnerType(ctx context.Context, name string, partnerType profile.PartnerType) (bool, error)
 	AddSupplierKyc(ctx context.Context, input profile.SupplierKYCInput) (*profile.SupplierKYC, error)
 	SuspendCustomer(ctx context.Context, uid string) (bool, error)
 	SuspendSupplier(ctx context.Context, uid string) (bool, error)
@@ -806,6 +806,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddCustomerKyc(childComplexity, args["input"].(profile.CustomerKYCInput)), true
 
+	case "Mutation.addPartnerType":
+		if e.complexity.Mutation.AddPartnerType == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addPartnerType_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddPartnerType(childComplexity, args["name"].(string), args["partnerType"].(profile.PartnerType)), true
+
 	case "Mutation.addPractitionerServices":
 		if e.complexity.Mutation.AddPractitionerServices == nil {
 			break
@@ -817,18 +829,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddPractitionerServices(childComplexity, args["services"].(profile.PractitionerServiceInput), args["otherServices"].(*profile.OtherPractitionerServiceInput)), true
-
-	case "Mutation.addSupplier":
-		if e.complexity.Mutation.AddSupplier == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addSupplier_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddSupplier(childComplexity, args["name"].(string), args["partnerType"].(profile.PartnerType)), true
 
 	case "Mutation.addSupplierKYC":
 		if e.complexity.Mutation.AddSupplierKyc == nil {
@@ -2309,7 +2309,7 @@ extend type Mutation {
     services: PractitionerServiceInput!
     otherServices: OtherPractitionerServiceInput
   ): Boolean!
-  addSupplier(name: String!, partnerType: PartnerType!): Supplier!
+  addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
   addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
   suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
@@ -2496,7 +2496,6 @@ type Supplier {
 type Location {
     id: ID!
     name: String!
-
     branchSladeCode: String
 }
 
@@ -2665,6 +2664,30 @@ func (ec *executionContext) field_Mutation_addCustomer_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addPartnerType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	var arg1 profile.PartnerType
+	if tmp, ok := rawArgs["partnerType"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("partnerType"))
+		arg1, err = ec.unmarshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPartnerType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["partnerType"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addPractitionerServices_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2701,30 +2724,6 @@ func (ec *executionContext) field_Mutation_addSupplierKYC_args(ctx context.Conte
 		}
 	}
 	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_addSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg0
-	var arg1 profile.PartnerType
-	if tmp, ok := rawArgs["partnerType"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("partnerType"))
-		arg1, err = ec.unmarshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPartnerType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["partnerType"] = arg1
 	return args, nil
 }
 
@@ -5940,7 +5939,7 @@ func (ec *executionContext) _Mutation_addPractitionerServices(ctx context.Contex
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addSupplier(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_addPartnerType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5957,7 +5956,7 @@ func (ec *executionContext) _Mutation_addSupplier(ctx context.Context, field gra
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addSupplier_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_addPartnerType_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -5965,7 +5964,7 @@ func (ec *executionContext) _Mutation_addSupplier(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddSupplier(rctx, args["name"].(string), args["partnerType"].(profile.PartnerType))
+		return ec.resolvers.Mutation().AddPartnerType(rctx, args["name"].(string), args["partnerType"].(profile.PartnerType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5977,9 +5976,9 @@ func (ec *executionContext) _Mutation_addSupplier(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*profile.Supplier)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addSupplierKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12760,8 +12759,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "addSupplier":
-			out.Values[i] = ec._Mutation_addSupplier(ctx, field)
+		case "addPartnerType":
+			out.Values[i] = ec._Mutation_addPartnerType(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

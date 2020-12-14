@@ -125,10 +125,10 @@ func (r *mutationResolver) AddPractitionerServices(ctx context.Context, services
 	return r.profileService.AddPractitionerServices(ctx, services, otherServices)
 }
 
-func (r *mutationResolver) AddSupplier(ctx context.Context, name string, partnerType profile.PartnerType) (*profile.Supplier, error) {
+func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, partnerType profile.PartnerType) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.AddSupplier(ctx, nil, name, partnerType)
+	return r.profileService.AddPartnerType(ctx, &name, &partnerType)
 }
 
 func (r *mutationResolver) AddSupplierKyc(ctx context.Context, input profile.SupplierKYCInput) (*profile.SupplierKYC, error) {

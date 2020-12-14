@@ -36,8 +36,9 @@ const (
 )
 
 const (
-	mailgunService = "mailgun"
-	otpService     = "otp"
+	mailgunService    = "mailgun"
+	otpService        = "otp"
+	engagementService = "engagement"
 )
 
 const (
@@ -113,6 +114,14 @@ func NewService() *Service {
 
 	}
 
+	var engagementClient *base.InterServiceClient
+
+	engagementClient, err = base.SetupISCclient(config, engagementService)
+	if err != nil {
+		log.Panicf("unable to initialize engagement inter service client: %s", err)
+
+	}
+
 	return &Service{
 		firestoreClient:    firestore,
 		firebaseAuth:       auth,
@@ -120,14 +129,16 @@ func NewService() *Service {
 		Mailgun:            mailgunClient,
 		Otp:                otpClient,
 		chargemasterClient: chargemasterClient,
+		engagement:         engagementClient,
 	}
 }
 
 // Service is an authentication service. It handles authentication related
 // issues e.g user profiles
 type Service struct {
-	Mailgun *base.InterServiceClient
-	Otp     *base.InterServiceClient
+	Mailgun    *base.InterServiceClient
+	Otp        *base.InterServiceClient
+	engagement *base.InterServiceClient
 
 	firestoreClient    *firestore.Client
 	firebaseAuth       *auth.Client

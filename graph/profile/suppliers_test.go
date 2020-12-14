@@ -9,6 +9,141 @@ import (
 	"gitlab.slade360emr.com/go/base"
 )
 
+func TestService_AddPartnerType(t *testing.T) {
+	service := NewService()
+	ctx := base.GetAuthenticatedContext(t)
+
+	type args struct {
+		ctx         context.Context
+		name        string
+		partnerType PartnerType
+	}
+
+	tests := []struct {
+		name        string
+		args        args
+		wantErr     bool
+		expectedErr string
+	}{
+		{
+			name: "valid: add PartnerTypeRider ",
+			args: args{
+				ctx:         ctx,
+				name:        "Test Rider",
+				partnerType: PartnerTypeRider,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypePractitioner ",
+			args: args{
+				ctx:         ctx,
+				name:        "Test Rider",
+				partnerType: PartnerTypePractitioner,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypeProvider ",
+			args: args{
+				ctx:         ctx,
+				name:        "Test Provider",
+				partnerType: PartnerTypeProvider,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypePharmaceutical",
+			args: args{
+				ctx:         ctx,
+				name:        "Test Pharmaceutical",
+				partnerType: PartnerTypePharmaceutical,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypeCoach",
+			args: args{
+				ctx:         ctx,
+				name:        "Test coach",
+				partnerType: PartnerTypeCoach,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypeNutrition",
+			args: args{
+				ctx:         ctx,
+				name:        "Test nutrition",
+				partnerType: PartnerTypeNutrition,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "invalid: add PartnerTypeConsumer",
+			args: args{
+				ctx:         ctx,
+				name:        "Test consumer",
+				partnerType: PartnerTypeConsumer,
+			},
+			wantErr:     true,
+			expectedErr: "invalid `partnerType`. cannot use CONSUMER in this context",
+		},
+
+		{
+			name: "invalid : invalid context",
+			args: args{
+				ctx:         context.Background(),
+				name:        "Test Rider",
+				partnerType: PartnerTypeRider,
+			},
+			wantErr:     true,
+			expectedErr: `unable to get the logged in user: auth token not found in context: unable to get auth token from context with key "UID" `,
+		},
+		{
+			name: "invalid : missing name arg",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr:     true,
+			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
+		},
+		{
+			name: "invalid : unknown partner type",
+			args: args{
+				ctx:         ctx,
+				name:        "Test Partner",
+				partnerType: "not a valid partner type",
+			},
+			wantErr:     true,
+			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			resp, err := s.AddPartnerType(tt.args.ctx, &tt.args.name, &tt.args.partnerType)
+			if tt.wantErr {
+				assert.Equal(t, false, resp)
+				assert.NotNil(t, err)
+				assert.Contains(t, tt.expectedErr, err.Error())
+			}
+			if err == nil {
+				assert.Nil(t, err)
+				assert.Equal(t, true, resp)
+			}
+		})
+	}
+
+}
+
 func TestService_AddSupplier(t *testing.T) {
 	service := NewService()
 	ctx := base.GetAuthenticatedContext(t)
@@ -51,7 +186,7 @@ func TestService_AddSupplier(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			supplier, err := s.AddSupplier(tt.args.ctx, nil, tt.args.name, tt.args.partnerType)
+			supplier, err := s.AddSupplier(tt.args.ctx, tt.args.name, tt.args.partnerType)
 			if err == nil {
 				assert.Nil(t, err)
 				assert.NotNil(t, supplier)
@@ -79,7 +214,7 @@ func TestService_FindSupplier(t *testing.T) {
 		t.Errorf("nil context")
 		return
 	}
-	supplier, err := service.AddSupplier(ctx, &token.UID, gofakeit.Name(), PartnerTypeProvider)
+	supplier, err := service.AddSupplier(ctx, gofakeit.Name(), PartnerTypeProvider)
 	if err != nil {
 		t.Errorf("can't add supplier: %v", err)
 		return
@@ -216,7 +351,7 @@ func TestService_AddSupplierKyc(t *testing.T) {
 func TestService_SuspendSupplier(t *testing.T) {
 	service := NewService()
 	ctx, token := createNewUser(context.Background(), t)
-	_, err := service.AddSupplier(ctx, nil, "To Be Deleted", PartnerTypeProvider)
+	_, err := service.AddSupplier(ctx, "To Be Deleted", PartnerTypeProvider)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return

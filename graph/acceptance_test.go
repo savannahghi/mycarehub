@@ -4215,7 +4215,7 @@ func TestAddCustomerMutation(t *testing.T) {
 	}
 }
 
-func TestGraphGQLmutationAddSupplier(t *testing.T) {
+func TestGraphGQLmutationAddPartnerType(t *testing.T) {
 	ctx := base.GetAuthenticatedContext(t)
 	if ctx == nil {
 		t.Errorf("nil context")
@@ -4243,17 +4243,12 @@ func TestGraphGQLmutationAddSupplier(t *testing.T) {
 			name: "valid mutation request",
 			args: args{
 				query: map[string]interface{}{
-					"query": `mutation AddSuplier($na: String!, $partnerType: PartnerType!){
-						addSupplier(name: $na, partnerType: $partnerType){
-						  supplierId
-						  active
-						  sladeCode
-						  parentOrganizationID
-						}
+					"query": `mutation AddPartner($name: String!, $partnerType: PartnerType!){
+						addPartnerType(name: $name, partnerType: $partnerType)
 					  }`,
 				},
 				variables: map[string]interface{}{
-					"na":          "just a name",
+					"name":        "just a name",
 					"partnerType": "PRACTITIONER",
 				},
 			},
@@ -4264,17 +4259,12 @@ func TestGraphGQLmutationAddSupplier(t *testing.T) {
 			name: "invalid: wrong partner type",
 			args: args{
 				query: map[string]interface{}{
-					"query": `mutation AddSuplier($na: String!, $partnerType: PartnerType!){
-						addSupplier(name: $na, partnerType: $partnerType){
-						  supplierId
-						  active
-						  sladeCode
-						  parentOrganizationID
-						}
+					"query": `mutation AddPartner($name: String!, $partnerType: PartnerType!){
+						addPartnerType(name: $name, partnerType: $partnerType)
 					  }`,
 				},
 				variables: map[string]interface{}{
-					"na":          "just a name",
+					"name":        "just a name",
 					"partnerType": "alien partner type",
 				},
 			},
@@ -4346,7 +4336,8 @@ func TestGraphGQLmutationAddSupplier(t *testing.T) {
 			}
 
 			if !tt.wantErr {
-				_, ok := data["errors"]
+				err, ok := data["errors"]
+				log.Println(err)
 				if ok {
 					t.Errorf("error not expected got error: %w", err)
 					return
