@@ -5380,3 +5380,205 @@ func TestRegisterPushTokenMutation(t *testing.T) {
 	}
 
 }
+
+func TestUpdateBioDataMutation(t *testing.T) {
+
+	ctx, authToken := base.GetAuthenticatedContextAndToken(t)
+	if authToken == nil {
+		t.Errorf("nil auth token")
+		return
+	}
+
+	var s *profile.Service = profile.NewService()
+
+	set, err := s.SetUserPIN(ctx, base.TestUserPhoneNumberWithPin, base.TestUserPin)
+	if !set {
+		t.Errorf("can't set a test pin")
+	}
+	if err != nil {
+		t.Errorf("can't set a test pin: %v", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLQueryPayload := `
+	mutation UpdateBiodata($bioDataInput: BiodataInput!){
+		updateBiodata(input:$bioDataInput) {
+			  id
+		  verifiedIdentifiers
+		  isApproved
+		  termsAccepted
+		  msisdns
+		  emails
+		  photoBase64
+		  photoContentType
+		  pushTokens
+		  covers {
+				  payerName,
+			payerSladeCode,
+			memberNumber,
+			memberName
+		  }
+		  isTester
+		  active
+		  dateOfBirth
+		  gender
+		  patientID
+		  name
+		  bio
+		  language
+		  practitionerApproved
+		  practitionerTermsOfServiceAccepted
+		  canExperiment
+		  askAgainToSetIsTester
+		  askAgainToSetCanExperiment
+		  VerifiedEmails {
+				  email
+			verified
+		  }
+		  VerifiedPhones {
+				  msisdn
+			verified
+		  }
+		  hasPin
+		  hasSupplierAccount
+		  hasCustomerAccount
+		  practitionerHasServices
+		
+		}
+	}`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLQueryPayload,
+					"variables": map[string]interface{}{
+						"bioDataInput": map[string]interface{}{
+							"dateOfBirth": "2000-10-10",
+							"gender":      "male",
+							"name":        "TestUser",
+							"bio":         "Just your average Test User",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid request - empty values",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLQueryPayload,
+					"variables": map[string]interface{}{
+						"bioDataInput": map[string]interface{}{
+							"dateOfBirth": "",
+							"gender":      "male",
+							"name":        "",
+							"bio":         "",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := mapToJSONReader(tt.args.query)
+
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			log.Printf(string(dataResponse))
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status reponse returned")
+				return
+			}
+
+		})
+	}
+
+}
