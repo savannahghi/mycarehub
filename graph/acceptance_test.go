@@ -3350,8 +3350,8 @@ func TestSetUpSupplier(t *testing.T) {
 	}
 
 	graphQlMutation := `
-	mutation createSupplier($dataInput:SupplierAccountInput!){
-		setUpSupplier(input:$dataInput) {
+	mutation createSupplier($accountType: AccountType!){
+		setUpSupplier(accountType:$accountType) {
 		  userProfile {
 			id
 		  }
@@ -3378,10 +3378,7 @@ func TestSetUpSupplier(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphQlMutation,
 					"variables": map[string]interface{}{
-						"dataInput": map[string]interface{}{
-							"accountType":       "INDIVIDUAL",
-							"underOrganization": false,
-						},
+						"accountType": "INDIVIDUAL",
 					},
 				},
 			},
@@ -3394,10 +3391,7 @@ func TestSetUpSupplier(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphQlMutation,
 					"variables": map[string]interface{}{
-						"dataInput": map[string]interface{}{
-							"accountType":       "NOT VALID ACCOUNT TYPE",
-							"underOrganization": false,
-						},
+						"accountType": "NOT VALID ACCOUNT TYPE",
 					},
 				},
 			},

@@ -161,10 +161,10 @@ func (r *mutationResolver) SuspendSupplier(ctx context.Context, uid string) (boo
 	return r.profileService.SuspendSupplier(ctx, uid)
 }
 
-func (r *mutationResolver) SetUpSupplier(ctx context.Context, input profile.SupplierAccountInput) (*profile.Supplier, error) {
+func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType profile.AccountType) (*profile.Supplier, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.SetUpSupplier(ctx, input)
+	return r.profileService.SetUpSupplier(ctx, accountType)
 }
 
 func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*profile.BranchConnection, error) {

@@ -58,7 +58,7 @@ extend type Mutation {
   addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
   suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
-  setUpSupplier(input: SupplierAccountInput!): Supplier
+  setUpSupplier(accountType: AccountType!): Supplier
   supplierEDILogin(username:String!, password: String!, sladeCode: String!): BranchConnection!
   supplierSetDefaultLocation(locatonID:String!): Boolean!  
 }

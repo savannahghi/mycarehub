@@ -112,12 +112,3 @@ input LocationInput {
     branchSladeCode: String
 }
 
-input SupplierAccountInput {
-  accountType: AccountType!
-  underOrganization: Boolean!
-
-  isOrganizationVerified: Boolean
-  sladeCode: String
-  parentOrganizationID: String
-  location: LocationInput
-}

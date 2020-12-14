@@ -269,19 +269,9 @@ func TestService_SetUpSupplier(t *testing.T) {
 	service := NewService()
 	ctx, _ := base.GetAuthenticatedContextAndToken(t)
 
-	newIndividualSupplierInput := SupplierAccountInput{
-		AccountType:       AccountTypeIndividual,
-		UnderOrganization: false,
-	}
-
-	newOrganisationSupplierInput := SupplierAccountInput{
-		AccountType:       AccountTypeOrganisation,
-		UnderOrganization: false,
-	}
-
 	type args struct {
 		ctx   context.Context
-		input SupplierAccountInput
+		input AccountType
 	}
 
 	tests := []struct {
@@ -293,7 +283,7 @@ func TestService_SetUpSupplier(t *testing.T) {
 			name: "Successful basic individual account set up",
 			args: args{
 				ctx:   ctx,
-				input: newIndividualSupplierInput,
+				input: "INDIVIDUAL",
 			},
 			wantErr: false,
 		},
@@ -301,7 +291,7 @@ func TestService_SetUpSupplier(t *testing.T) {
 			name: "Successful basic organisation account set up",
 			args: args{
 				ctx:   ctx,
-				input: newOrganisationSupplierInput,
+				input: "ORGANISATION",
 			},
 			wantErr: false,
 		},

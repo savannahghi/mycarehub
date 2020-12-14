@@ -163,7 +163,7 @@ type ComplexityRoot struct {
 		RemoveTester               func(childComplexity int, email string) int
 		ResetUserPin               func(childComplexity int, msisdn string, pin string, otp string) int
 		SetLanguagePreference      func(childComplexity int, language base.Language) int
-		SetUpSupplier              func(childComplexity int, input profile.SupplierAccountInput) int
+		SetUpSupplier              func(childComplexity int, accountType profile.AccountType) int
 		SetUserPin                 func(childComplexity int, msisdn string, pin string) int
 		SupplierEDILogin           func(childComplexity int, username string, password string, sladeCode string) int
 		SupplierSetDefaultLocation func(childComplexity int, locatonID string) int
@@ -358,7 +358,7 @@ type MutationResolver interface {
 	AddSupplierKyc(ctx context.Context, input profile.SupplierKYCInput) (*profile.SupplierKYC, error)
 	SuspendCustomer(ctx context.Context, uid string) (bool, error)
 	SuspendSupplier(ctx context.Context, uid string) (bool, error)
-	SetUpSupplier(ctx context.Context, input profile.SupplierAccountInput) (*profile.Supplier, error)
+	SetUpSupplier(ctx context.Context, accountType profile.AccountType) (*profile.Supplier, error)
 	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*profile.BranchConnection, error)
 	SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error)
 }
@@ -991,7 +991,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetUpSupplier(childComplexity, args["input"].(profile.SupplierAccountInput)), true
+		return e.complexity.Mutation.SetUpSupplier(childComplexity, args["accountType"].(profile.AccountType)), true
 
 	case "Mutation.setUserPin":
 		if e.complexity.Mutation.SetUserPin == nil {
@@ -2262,15 +2262,7 @@ input LocationInput {
     branchSladeCode: String
 }
 
-input SupplierAccountInput {
-  accountType: AccountType!
-  underOrganization: Boolean!
-
-  isOrganizationVerified: Boolean
-  sladeCode: String
-  parentOrganizationID: String
-  location: LocationInput
-}`, BuiltIn: false},
+`, BuiltIn: false},
 	{Name: "graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
   getOrCreateUserProfile(phone: String!): UserProfile!
@@ -2331,7 +2323,7 @@ extend type Mutation {
   addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
   suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
-  setUpSupplier(input: SupplierAccountInput!): Supplier
+  setUpSupplier(accountType: AccountType!): Supplier
   supplierEDILogin(username:String!, password: String!, sladeCode: String!): BranchConnection!
   supplierSetDefaultLocation(locatonID:String!): Boolean!  
 }`, BuiltIn: false},
@@ -2927,15 +2919,15 @@ func (ec *executionContext) field_Mutation_setLanguagePreference_args(ctx contex
 func (ec *executionContext) field_Mutation_setUpSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.SupplierAccountInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNSupplierAccountInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierAccountInput(ctx, tmp)
+	var arg0 profile.AccountType
+	if tmp, ok := rawArgs["accountType"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountType"))
+		arg0, err = ec.unmarshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐAccountType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["accountType"] = arg0
 	return args, nil
 }
 
@@ -6269,7 +6261,7 @@ func (ec *executionContext) _Mutation_setUpSupplier(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetUpSupplier(rctx, args["input"].(profile.SupplierAccountInput))
+		return ec.resolvers.Mutation().SetUpSupplier(rctx, args["accountType"].(profile.AccountType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11844,66 +11836,6 @@ func (ec *executionContext) unmarshalInputSortParam(ctx context.Context, obj int
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSupplierAccountInput(ctx context.Context, obj interface{}) (profile.SupplierAccountInput, error) {
-	var it profile.SupplierAccountInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "accountType":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountType"))
-			it.AccountType, err = ec.unmarshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐAccountType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "underOrganization":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("underOrganization"))
-			it.UnderOrganization, err = ec.unmarshalNBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "isOrganizationVerified":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isOrganizationVerified"))
-			it.IsOrganizationVerified, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "sladeCode":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sladeCode"))
-			it.SladeCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "parentOrganizationID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentOrganizationID"))
-			it.ParentOrganizationID, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "location":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
-			it.Location, err = ec.unmarshalOLocationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐLocationInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputSupplierKYCInput(ctx context.Context, obj interface{}) (profile.SupplierKYCInput, error) {
 	var it profile.SupplierKYCInput
 	var asMap = obj.(map[string]interface{})
@@ -14650,11 +14582,6 @@ func (ec *executionContext) marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 	return ec._Supplier(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSupplierAccountInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierAccountInput(ctx context.Context, v interface{}) (profile.SupplierAccountInput, error) {
-	res, err := ec.unmarshalInputSupplierAccountInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNSupplierKYC2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYC(ctx context.Context, sel ast.SelectionSet, v profile.SupplierKYC) graphql.Marshaler {
 	return ec._SupplierKYC(ctx, sel, &v)
 }
@@ -15550,14 +15477,6 @@ func (ec *executionContext) marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 		return graphql.Null
 	}
 	return ec._Location(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOLocationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐLocationInput(ctx context.Context, v interface{}) (*profile.LocationInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputLocationInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOOtherPractitionerServiceInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOtherPractitionerServiceInput(ctx context.Context, v interface{}) (*profile.OtherPractitionerServiceInput, error) {

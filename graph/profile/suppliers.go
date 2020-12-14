@@ -250,12 +250,12 @@ func (s Service) SuspendSupplier(ctx context.Context, uid string) (bool, error) 
 }
 
 // SetUpSupplier performs initial account set up during onboarding
-func (s Service) SetUpSupplier(ctx context.Context, input SupplierAccountInput) (*Supplier, error) {
+func (s Service) SetUpSupplier(ctx context.Context, accountType AccountType) (*Supplier, error) {
 	s.checkPreconditions()
 
-	validAccountType := input.AccountType.IsValid()
+	validAccountType := accountType.IsValid()
 	if !validAccountType {
-		return nil, fmt.Errorf("%v is not an allowed AccountType choice", input.AccountType.String())
+		return nil, fmt.Errorf("%v is not an allowed AccountType choice", accountType.String())
 	}
 
 	uid, err := base.GetLoggedInUserUID(ctx)
@@ -283,39 +283,10 @@ func (s Service) SetUpSupplier(ctx context.Context, input SupplierAccountInput) 
 	}
 
 	supplier.UserProfile = profile
-	supplier.AccountType = input.AccountType
-	supplier.UnderOrganization = input.UnderOrganization
-
-	if input.IsOrganizationVerified != nil {
-		// TODO:
-		// verified := *input.IsOrganizationVerified
-		// if !verified {
-		// 	// Successful/unsuccessful authserver login
-		// 	// if false requires support follow up
-		// 	// send an email, send a nudge...??
-		// }
-		supplier.IsOrganizationVerified = *input.IsOrganizationVerified
-	}
-
-	if input.SladeCode == nil {
-		// TODO:
-		// User without slade code requires approval i.e creation of an account
-		// send an email to support for follow up, send a nudge ..?
-		// full KYC based on account type (individual or organisation)
-	} else {
-		supplier.SladeCode = *input.SladeCode
-	}
-
-	if input.ParentOrganizationID != nil {
-		supplier.ParentOrganizationID = *input.ParentOrganizationID
-		supplier.HasBranches = true
-	}
-
-	if input.Location != nil {
-		supplier.Location.ID = input.Location.ID
-		supplier.Location.Name = input.Location.Name
-		supplier.Location.BranchSladeCode = input.Location.BranchSladeCode
-	}
+	supplier.AccountType = accountType
+	supplier.UnderOrganization = false
+	supplier.IsOrganizationVerified = false
+	supplier.HasBranches = true
 
 	if err := s.SaveSupplierToFireStore(*supplier); err != nil {
 		return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
@@ -345,7 +316,7 @@ func EDIUserLogin(username, password string) (*base.EDIUserProfile, error) {
 
 }
 
-// SupplierEDILogin it used to instiate as call when setting up a supplier's account's who
+// SupplierEDILogin it used to instantiate as call when setting up a supplier's account's who
 // has an affliation to a provider with the slade ecosystem. The logic is as follows;
 // 1 . login to the relevant edi to assert the user has an account
 // 2 . fetch the branches of the provider given the slade code which we have
@@ -392,7 +363,8 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 		return nil, fmt.Errorf("edi user profile not found")
 	}
 
-	//Verify slade code
+	// verify slade code. The slade code comes in the form 'PRO-1234' hence
+	// we split it to get the interger part of the slade code.
 	if ediUserProfile.BusinessPartner != strings.Split(sladeCode, "-")[1] {
 		supplier.IsOrganizationVerified = false
 		return nil, fmt.Errorf("invalid slade code for selected provider: %v, got: %v", sladeCode, ediUserProfile.BusinessPartner)
@@ -420,7 +392,6 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 	}
 
 	businessPartner = *partner.Edges[0].Node
-
 	var brFilter []*BranchFilterInput
 
 	if businessPartner.Parent != nil {
