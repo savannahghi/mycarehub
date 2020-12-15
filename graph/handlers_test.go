@@ -47,7 +47,7 @@ var serverErr error
 func TestMain(m *testing.M) {
 	// setup
 	ctx := context.Background()
-	os.Setenv("ENVIRONMENT", "testing")
+	os.Setenv("ENVIRONMENT", "staging")
 	os.Setenv("ROOT_COLLECTION_SUFFIX", "onboarding_testing")
 	s := profile.NewService()
 	srv, baseURL, serverErr = base.StartTestServer(ctx, graph.PrepareServer, allowedOrigins) // set the globals

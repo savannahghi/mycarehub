@@ -20,7 +20,7 @@ import (
 
 func TestMain(m *testing.M) {
 	log.Printf("Setting tests up ...")
-	os.Setenv("ENVIRONMENT", "testing")
+	os.Setenv("ENVIRONMENT", "staging")
 	os.Setenv("ROOT_COLLECTION_SUFFIX", "onboarding_testing")
 	ctx := context.Background()
 	s := NewService()
