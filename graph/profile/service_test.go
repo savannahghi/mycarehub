@@ -1422,7 +1422,6 @@ func TestService_AddPractitionerServices(t *testing.T) {
 	ctx, token := base.GetAuthenticatedContextAndToken(t)
 	// ensure a profile  is created
 	profile, err := service.GetProfile(ctx, token.UID)
-	assert.Nil(t, err)
 	if err != nil {
 		t.Errorf("unable to add a profile %v", err)
 		return

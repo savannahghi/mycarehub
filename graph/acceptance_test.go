@@ -5918,3 +5918,202 @@ func TestGetOrCreateUserProfileQuery(t *testing.T) {
 	}
 
 }
+
+func TestAddPractitionerServicesMutation(t *testing.T) {
+
+	ctx, authToken := base.GetAuthenticatedContextAndToken(t)
+	if authToken == nil {
+		t.Errorf("nil auth token")
+		return
+	}
+
+	var s *profile.Service = profile.NewService()
+
+	// ensure a profile  is created
+	prof, err := s.GetProfile(ctx, authToken.UID)
+	if err != nil {
+		t.Errorf("unable to add a profile %v", err)
+		return
+	}
+
+	// ensure a practitioner  is created
+	practitioner := &profile.Practitioner{
+		Profile: *prof,
+	}
+	_, err = s.AddPractitionerHelper(practitioner)
+	if err != nil {
+		t.Errorf("unable to add a practitioner %v", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLQueryPayload := `
+	mutation AddPractitionerServices($servicesInput: PractitionerServiceInput!, 
+							$otherServicesInput: OtherPractitionerServiceInput){
+		addPractitionerServices(services:$servicesInput, otherServices: $otherServicesInput)
+	  }`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid request - without other option",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLQueryPayload,
+					"variables": map[string]interface{}{
+						"servicesInput": map[string]interface{}{
+							"services": []profile.PractitionerService{"PHARMACY"},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "valid request - with other option",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLQueryPayload,
+					"variables": map[string]interface{}{
+						"servicesInput": map[string]interface{}{
+							"services": []profile.PractitionerService{"PHARMACY", "OTHER"},
+						},
+						"otherServicesInput": map[string]interface{}{
+							"otherServices": []string{"other-services"},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid request - others specified but no data entered",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLQueryPayload,
+					"variables": map[string]interface{}{
+						"servicesInput": map[string]interface{}{
+							"services": []profile.PractitionerService{"OTHER"},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+		{
+			name: "invalid request - invalid enums",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLQueryPayload,
+					"variables": map[string]interface{}{
+						"servicesInput": map[string]interface{}{
+							"services": []profile.PractitionerService{"not a valid enum"},
+						},
+						"otherServicesInput": map[string]interface{}{
+							"otherServices": []string{"other-services"},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusUnprocessableEntity,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := mapToJSONReader(tt.args.query)
+
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			log.Printf(string(dataResponse))
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status reponse returned")
+				return
+			}
+
+		})
+	}
+
+}
