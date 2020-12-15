@@ -812,8 +812,7 @@ func TestService_ApprovePractitionerSignup(t *testing.T) {
 func TestService_RejectPractitionerSignup(t *testing.T) {
 
 	type args struct {
-		ctx            context.Context
-		practitionerID string
+		ctx context.Context
 	}
 	tests := []struct {
 		name    string
@@ -824,8 +823,7 @@ func TestService_RejectPractitionerSignup(t *testing.T) {
 		{
 			name: "Good case - Reject a profile",
 			args: args{
-				ctx:            base.GetAuthenticatedContext(t),
-				practitionerID: "a7942fb4-61b4-4cf2-ab39-a2904d3090c3",
+				ctx: base.GetAuthenticatedContext(t),
 			},
 			wantErr: false,
 			want:    false,
