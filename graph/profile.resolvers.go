@@ -71,12 +71,6 @@ func (r *mutationResolver) RemoveTester(ctx context.Context, email string) (bool
 	return r.profileService.RemoveTester(ctx, email)
 }
 
-func (r *mutationResolver) ApprovePractitionerSignup(ctx context.Context, practitionerID string) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.ApprovePractitionerSignup(ctx)
-}
-
 func (r *mutationResolver) RejectPractitionerSignup(ctx context.Context, practitionerID string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
@@ -273,6 +267,12 @@ func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*pro
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.FetchSupplierAllowedLocations(ctx)
+}
+
+func (r *queryResolver) ApprovePractitionerSignup(ctx context.Context) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.ApprovePractitionerSignup(ctx)
 }
 
 // Mutation returns generated.MutationResolver implementation.

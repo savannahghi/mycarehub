@@ -27,6 +27,7 @@ extend type Query {
     sort: [BranchSortInput]
   ): BranchConnection!
   fetchSupplierAllowedLocations: BranchConnection!
+  approvePractitionerSignup: Boolean!
 }
 
 extend type Mutation {
@@ -40,7 +41,6 @@ extend type Mutation {
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
   addTester(email: String!): Boolean!
   removeTester(email: String!): Boolean!
-  approvePractitionerSignup(practitionerID: String!): Boolean!
   rejectPractitionerSignup(practitionerID: String!): Boolean!
   setUserPin(msisdn: String!, pin: String!): Boolean!
   updateUserPIN(msisdn: String!, pin: String!): Boolean!
