@@ -21,6 +21,7 @@ import (
 func TestMain(m *testing.M) {
 	log.Printf("Setting tests up ...")
 	os.Setenv("ENVIRONMENT", "staging")
+	os.Setenv("DEBUG", "true")
 	os.Setenv("ROOT_COLLECTION_SUFFIX", "onboarding_testing")
 	ctx := context.Background()
 	s := NewService()
@@ -37,6 +38,7 @@ func TestMain(m *testing.M) {
 		s.GetSignUpInfoCollectionName(),
 		s.GetSupplierCollectionName(),
 		s.GetSurveyCollectionName(),
+		s.GetProfileNudgesCollectionName(),
 		base.GetCollectionName(&TesterWhitelist{}),
 	}
 	for _, collection := range collections {

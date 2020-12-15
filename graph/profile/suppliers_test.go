@@ -404,6 +404,10 @@ func TestService_SetUpSupplier(t *testing.T) {
 	service := NewService()
 	ctx, _ := base.GetAuthenticatedContextAndToken(t)
 
+	partnerName := gofakeit.Name()
+	partnerType := PartnerTypePractitioner
+	service.AddPartnerType(ctx, &partnerName, &partnerType)
+
 	type args struct {
 		ctx   context.Context
 		input AccountType
@@ -439,6 +443,117 @@ func TestService_SetUpSupplier(t *testing.T) {
 				t.Errorf("Service.SetUpSupplier() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+		})
+	}
+}
+
+func TestService_PublishKYCNudge(t *testing.T) {
+	service := NewService()
+
+	_, token := base.GetAuthenticatedContextAndToken(t)
+
+	type args struct {
+		uid     string
+		partner PartnerType
+		account AccountType
+	}
+
+	tests := []struct {
+		name           string
+		args           args
+		wantErr        bool
+		expectedErr    string
+		invalidService bool
+	}{
+		{
+			name: "valid : Individual Rider KYC Nudge",
+			args: args{
+				uid:     token.UID,
+				partner: PartnerTypeRider,
+				account: AccountTypeIndividual,
+			},
+			wantErr:        false,
+			invalidService: false,
+		},
+		{
+			name: "valid : Organization Practitioner KYC Nudge",
+			args: args{
+				uid:     token.UID,
+				partner: PartnerTypePractitioner,
+				account: AccountTypeOrganisation,
+			},
+			wantErr:        false,
+			invalidService: false,
+		},
+
+		{
+			name: "invalid : unknow partner type",
+			args: args{
+				uid:     token.UID,
+				partner: "alien partner",
+				account: AccountTypeOrganisation,
+			},
+			wantErr:        true,
+			invalidService: false,
+			expectedErr:    "expected `partner` to be defined and to be valid",
+		},
+		{
+			name: "invalid : consumer partner",
+			args: args{
+				uid:     token.UID,
+				partner: PartnerTypeConsumer,
+				account: AccountTypeOrganisation,
+			},
+			wantErr:        true,
+			invalidService: false,
+			expectedErr:    "invalid `partner`. cannot use CONSUMER in this context",
+		},
+		{
+			name: "invalid : unknow account type",
+			args: args{
+				uid:     token.UID,
+				partner: PartnerTypePractitioner,
+				account: "alien account",
+			},
+			wantErr:        true,
+			invalidService: false,
+			expectedErr:    "provided `account` is not valid",
+		},
+
+		{
+			name: "invalid : wrong engagement service",
+			args: args{
+				uid:     token.UID,
+				partner: PartnerTypePractitioner,
+				account: AccountTypeOrganisation,
+			},
+			wantErr:        true,
+			invalidService: true,
+			expectedErr:    "unable to publish kyc nudge. unexpected status code  404",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if !tt.invalidService {
+				s := service
+				err := s.PublishKYCNudge(tt.args.uid, &tt.args.partner, &tt.args.account)
+				if !tt.wantErr {
+					assert.Nil(t, err)
+				}
+
+				if tt.wantErr {
+					assert.NotNil(t, err)
+					assert.Contains(t, tt.expectedErr, err.Error())
+				}
+				return
+			}
+
+			is := service
+			is.engagement = service.Otp
+			err := is.PublishKYCNudge(tt.args.uid, &tt.args.partner, &tt.args.account)
+			assert.NotNil(t, err)
+			assert.Contains(t, tt.expectedErr, err.Error())
+
 		})
 	}
 }

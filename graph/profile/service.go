@@ -32,6 +32,7 @@ const (
 	appleTesterPractitionerLicense = "A1B4C6"
 	legalAge                       = 18
 	PINCollectionName              = "pins"
+	ProfileNudgesCollectionName    = "profile_nudges"
 	signUpInfoCollectionName       = "sign_up_info"
 )
 
@@ -166,6 +167,10 @@ func (s Service) checkPreconditions() {
 	if s.Otp == nil {
 		log.Panicf("profile service does not have an initialized otp ISC Client")
 	}
+
+	if s.engagement == nil {
+		log.Panicf("profile service does not have an initialized engagement ISC Client")
+	}
 }
 
 // GetUserProfileCollectionName ...
@@ -207,10 +212,25 @@ func (s Service) GetSignUpInfoCollectionName() string {
 	return suffixed
 }
 
+// GetProfileNudgesCollectionName return the storage location of profile nudges
+func (s Service) GetProfileNudgesCollectionName() string {
+	suffixed := base.SuffixCollection(ProfileNudgesCollectionName)
+	return suffixed
+}
+
 // SaveSignUpInfoToFirestore persists the supplied sign up info
 func (s Service) SaveSignUpInfoToFirestore(info SignUpInfo) error {
 	ctx := context.Background()
 	_, _, err := s.firestoreClient.Collection(s.GetSignUpInfoCollectionName()).Add(ctx, info)
+	return err
+}
+
+// SaveProfileNudge stages nudges published from this service. These nudges will be
+// referenced later to support some specialized use-case. A nudge will be uniquely
+// identified by its id and sequenceNumber
+func (s Service) SaveProfileNudge(nudge map[string]interface{}) error {
+	ctx := context.Background()
+	_, _, err := s.firestoreClient.Collection(s.GetProfileNudgesCollectionName()).Add(ctx, nudge)
 	return err
 }
 

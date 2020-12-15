@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -22,7 +23,7 @@ const (
 
 const (
 	// engagement ISC paths
-	publishNudge = "/feed/%s/PRO/false/nudges/"
+	publishNudge = "feed/%s/PRO/false/nudges/"
 )
 
 // SaveSupplierToFireStore persists supplier data to firestore
@@ -342,11 +343,13 @@ func (s Service) SetUpSupplier(ctx context.Context, accountType AccountType) (*S
 	}
 	supplier := &Supplier{}
 
-	if dsnap != nil {
-		err = dsnap.DataTo(supplier)
-		if err != nil {
-			return nil, fmt.Errorf("unable to read supplier: %v", err)
-		}
+	if dsnap == nil {
+		return nil, fmt.Errorf("cannot find supplier record")
+	}
+
+	err = dsnap.DataTo(supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier: %v", err)
 	}
 
 	profile, err := s.ParseUserProfileFromContextOrUID(ctx, &uid)
@@ -358,10 +361,14 @@ func (s Service) SetUpSupplier(ctx context.Context, accountType AccountType) (*S
 	supplier.AccountType = accountType
 	supplier.UnderOrganization = false
 	supplier.IsOrganizationVerified = false
-	supplier.HasBranches = true
+	supplier.HasBranches = false
 
 	if err := s.SaveSupplierToFireStore(*supplier); err != nil {
 		return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
+	}
+
+	if err := s.PublishKYCNudge(uid, &supplier.PartnerType, &supplier.AccountType); err != nil {
+		return nil, err
 	}
 
 	return supplier, nil
@@ -408,11 +415,13 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 
 	supplier := &Supplier{}
 
-	if dsnap != nil {
-		err = dsnap.DataTo(supplier)
-		if err != nil {
-			return nil, fmt.Errorf("unable to read supplier: %v", err)
-		}
+	if dsnap == nil {
+		return nil, fmt.Errorf("cannot find supplier record")
+	}
+
+	err = dsnap.DataTo(supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier: %v", err)
 	}
 
 	profile, err := s.ParseUserProfileFromContextOrUID(ctx, &uid)
@@ -466,11 +475,12 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 	businessPartner = *partner.Edges[0].Node
 	var brFilter []*BranchFilterInput
 
-	if err := s.PublishKYCNudge(uid, supplier.PartnerType); err != nil {
+	if err := s.PublishKYCNudge(uid, &supplier.PartnerType, &supplier.AccountType); err != nil {
 		return nil, err
 	}
 
 	if businessPartner.Parent != nil {
+		supplier.HasBranches = true
 		supplier.ParentOrganizationID = *businessPartner.Parent
 		filter := &BranchFilterInput{
 			ParentOrganizationID: businessPartner.Parent,
@@ -613,26 +623,60 @@ func (s *Service) FetchSupplierAllowedLocations(ctx context.Context) (*BranchCon
 }
 
 // PublishKYCNudge pushes a kyc nudge to the user feed
-func (s *Service) PublishKYCNudge(uid string, partner PartnerType) error {
+func (s *Service) PublishKYCNudge(uid string, partner *PartnerType, account *AccountType) error {
+
+	s.checkPreconditions()
+
+	if partner == nil || !partner.IsValid() {
+		return fmt.Errorf("expected `partner` to be defined and to be valid")
+	}
+
+	if *partner == PartnerTypeConsumer {
+		return fmt.Errorf("invalid `partner`. cannot use CONSUMER in this context")
+	}
+
+	if !account.IsValid() {
+		return fmt.Errorf("provided `account` is not valid")
+	}
+
 	payload := map[string]interface{}{
 		"id":             strconv.Itoa(int(time.Now().Unix())),
-		"sequenceNumber": strconv.Itoa(int(time.Now().Unix())),
+		"sequenceNumber": int(time.Now().Unix()),
 		"visibility":     "SHOW",
 		"status":         "PENDING",
 		"expiry":         time.Now().Add(time.Hour * futureHours),
 		"title":          fmt.Sprintf("Complete your %v KYC", strings.ToLower(partner.String())),
 		"text":           "Fill in your Be.Well business KYC in order to start transacting",
+		"links": []map[string]interface{}{
+			{
+				"id":          strconv.Itoa(int(time.Now().Unix())),
+				"url":         "https://assets.healthcloud.co.ke/bewell_logo.png",
+				"linkType":    "PNG_IMAGE",
+				"title":       "KYC",
+				"description": fmt.Sprintf("KYC for %v", partner.String()),
+				"thumbnail":   "https://assets.healthcloud.co.ke/bewell_logo.png",
+			},
+		},
 		"actions": []map[string]interface{}{
 			{
 				"id":             strconv.Itoa(int(time.Now().Unix())),
-				"sequenceNumber": strconv.Itoa(int(time.Now().Unix())),
-				"name":           strings.ToUpper(fmt.Sprintf("COMPLETE_%v_KYC", partner.String())),
+				"sequenceNumber": int(time.Now().Unix()),
+				"name":           strings.ToUpper(fmt.Sprintf("COMPLETE_%v_%v_KYC", account.String(), partner.String())),
 				"actionType":     "PRIMARY",
 				"handling":       "FULL_PAGE",
 				"allowAnonymous": false,
+				"icon": map[string]interface{}{
+					"id":          strconv.Itoa(int(time.Now().Unix())),
+					"url":         "https://assets.healthcloud.co.ke/1px.png",
+					"linkType":    "PNG_IMAGE",
+					"title":       fmt.Sprintf("Complete your %v KYC", strings.ToLower(partner.String())),
+					"description": "Fill in your Be.Well business KYC in order to start transacting",
+					"thumbnail":   "https://assets.healthcloud.co.ke/1px.png",
+				},
 			},
 		},
 		"users":                []string{uid},
+		"groups":               []string{uid},
 		"notificationChannels": []string{"EMAIL", "FCM"},
 	}
 
@@ -642,6 +686,10 @@ func (s *Service) PublishKYCNudge(uid string, partner PartnerType) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
+		// stage the nudge
+		if err := s.SaveProfileNudge(payload); err != nil {
+			logrus.Errorf("failed to stage nudge : %v", err)
+		}
 		return fmt.Errorf("unable to publish kyc nudge. unexpected status code  %v", resp.StatusCode)
 	}
 
