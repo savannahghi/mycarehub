@@ -116,7 +116,7 @@ input IndividualRiderInput {
 }
 
 input OrganizationRiderInput {
-  # common for oragization account types
+  # common for organization account types
   organizationTypeName: OrganizationType!
 
   # common for all
@@ -150,7 +150,7 @@ input IndividualPractitionerInput {
 }
 
 input OrganizationPractitionerInput {
-  # common for oragization account types
+  # common for organization account types
   organizationTypeName: OrganizationType!
 
   # common for all
@@ -174,7 +174,7 @@ input OrganizationPractitionerInput {
 }
 
 input OrganizationProviderInput {
-  # common for oragization account types
+  # common for organization account types
   organizationTypeName: OrganizationType!
 
   # common for all
@@ -209,4 +209,97 @@ input IndividualPharmaceuticalInput {
   # unique to practitioner
   registrationNumber: String!
   licenseUploadID: String!
+}
+input IndividualCoachInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique fo coach
+  licenseUploadID: String!
+}
+
+input IndividualNutritionInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique for Nutrition
+  licenseUploadID: String!
+}
+
+input OrganizationNutritionInput {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [IdentificationInput]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for nutrition
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+
+}
+
+input OrganizationCoachInput {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [IdentificationInput]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for coach
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+
+}
+
+input OrganizationPharmaceuticalInput {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [IdentificationInput]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for pharmaceutical
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
 }

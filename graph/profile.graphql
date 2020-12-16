@@ -66,16 +66,40 @@ extend type Mutation {
   supplierSetDefaultLocation(locatonID: String!): Boolean!
   addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
   addOrganizationRiderKYC(input: OrganizationRiderInput!): OrganizationRider!
+
   addIndividualPractitionerKYC(
     input: IndividualPractitionerInput!
   ): IndividualPractitioner!
+
   addOrganizationPractitionerKYC(
     input: OrganizationPractitionerInput!
   ): OrganizationPractitioner!
+
   addOrganizationProviderKYC(
     input: OrganizationProviderInput!
   ): OrganizationProvider!
+
   addIndividualPharmaceuticalKYC(
     input: IndividualPharmaceuticalInput!
   ): IndividualPharmaceutical!
+
+  addOrganizationPharmaceuticalKYC(
+    input: OrganizationPharmaceuticalInput!
+  ): OrganizationPharmaceutical!
+
+  addIndividualCoachKYC(
+    input: IndividualCoachInput!
+  ): IndividualCoach!
+
+  addOrganizationCoachKYC(
+    input: OrganizationCoachInput!
+  ): OrganizationCoach!
+
+  addIndividualNutritionKYC(
+    input: IndividualNutritionInput!
+  ): IndividualNutrition!
+
+  addOrganizationNutritionKYC(
+    input: OrganizationNutritionInput!
+  ): OrganizationNutrition!
 }

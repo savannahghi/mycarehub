@@ -165,3 +165,123 @@ type IndividualPharmaceutical struct {
 	RegistrationNumber          string         `json:"registrationNumber" mapstructure:"registrationNumber"`
 	LicenseUploadID             string         `json:"licenseUploadID " mapstructure:"licenseUploadID "`
 }
+
+// IndividualCoach ...
+type IndividualCoach struct {
+	IdentificationDoc           Identification `json:"identificationDoc" mapstructure:"identificationDoc"`
+	KRAPIN                      string         `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID              string         `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
+	SupportingDocumentsUploadID []string       `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
+	LicenseUploadID             string         `json:"licenseUploadID " mapstructure:"licenseUploadID "`
+}
+
+// IndividualCoachInput ...
+type IndividualCoachInput struct {
+	IdentificationDoc           IdentificationInput `json:"identificationDoc" mapstructure:"identificationDoc"`
+	KRAPIN                      string              `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID              string              `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
+	SupportingDocumentsUploadID []string            `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
+	LicenseUploadID             string              `json:"licenseUploadID " mapstructure:"licenseUploadID "`
+}
+
+// IndividualNutrition ...
+type IndividualNutrition struct {
+	IdentificationDoc           Identification `json:"identificationDoc" mapstructure:"identificationDoc"`
+	KRAPIN                      string         `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID              string         `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
+	SupportingDocumentsUploadID []string       `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
+	LicenseUploadID             string         `json:"licenseUploadID " mapstructure:"licenseUploadID "`
+}
+
+// IndividualNutritionInput ...
+type IndividualNutritionInput struct {
+	IdentificationDoc           IdentificationInput `json:"identificationDoc" mapstructure:"identificationDoc"`
+	KRAPIN                      string              `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID              string              `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
+	SupportingDocumentsUploadID []string            `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
+	LicenseUploadID             string              `json:"licenseUploadID " mapstructure:"licenseUploadID "`
+}
+
+// OrganizationNutrition ...
+type OrganizationNutrition struct {
+	OrganizationTypeName               OrganizationType `json:"organizationTypeName" mapstructure:"organizationTypeName"`
+	KRAPIN                             string           `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID                     string           `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
+	SupportingDocumentsUploadID        []string         `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
+	CertificateOfIncorporation         string           `json:"certificateOfIncorporation" mapstructure:"certificateOfIncorporation"`
+	CertificateOfInCorporationUploadID string           `json:"certificateOfInCorporationUploadID" mapstructure:"certificateOfInCorporationUploadID"`
+	DirectorIdentifications            []Identification `json:"directorIdentifications" mapstructure:"directorIdentifications"`
+	OrganizationCertificate            string           `json:"organizationCertificate" mapstructure:"organizationCertificate"`
+	RegistrationNumber                 string           `json:"registrationNumber" mapstructure:"registrationNumber"`
+	PracticeLicenseUploadID            string           `json:"practiceLicenseUploadID" mapstructure:"practiceLicenseUploadID"`
+}
+
+// OrganizationNutritionInput ...
+type OrganizationNutritionInput struct {
+	OrganizationTypeName               OrganizationType      `json:"organizationTypeName" mapstructure:"organizationTypeName"`
+	KRAPIN                             string                `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID                     string                `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
+	SupportingDocumentsUploadID        []string              `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
+	CertificateOfIncorporation         string                `json:"certificateOfIncorporation" mapstructure:"certificateOfIncorporation"`
+	CertificateOfInCorporationUploadID string                `json:"certificateOfInCorporationUploadID" mapstructure:"certificateOfInCorporationUploadID"`
+	DirectorIdentifications            []IdentificationInput `json:"directorIdentifications" mapstructure:"directorIdentifications"`
+	OrganizationCertificate            string                `json:"organizationCertificate" mapstructure:"organizationCertificate"`
+	RegistrationNumber                 string                `json:"registrationNumber" mapstructure:"registrationNumber"`
+	PracticeLicenseUploadID            string                `json:"practiceLicenseUploadID" mapstructure:"practiceLicenseUploadID"`
+}
+
+// OrganizationCoach ...
+type OrganizationCoach struct {
+	OrganizationTypeName               OrganizationType `json:"organizationTypeName" mapstructure:"organizationTypeName"`
+	KRAPIN                             string           `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID                     string           `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
+	SupportingDocumentsUploadID        []string         `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
+	CertificateOfIncorporation         string           `json:"certificateOfIncorporation" mapstructure:"certificateOfIncorporation"`
+	CertificateOfInCorporationUploadID string           `json:"certificateOfInCorporationUploadID" mapstructure:"certificateOfInCorporationUploadID"`
+	DirectorIdentifications            []Identification `json:"directorIdentifications" mapstructure:"directorIdentifications"`
+	OrganizationCertificate            string           `json:"organizationCertificate" mapstructure:"organizationCertificate"`
+	RegistrationNumber                 string           `json:"registrationNumber" mapstructure:"registrationNumber"`
+	PracticeLicenseUploadID            string           `json:"practiceLicenseUploadID" mapstructure:"practiceLicenseUploadID"`
+}
+
+// OrganizationCoachInput ...
+type OrganizationCoachInput struct {
+	OrganizationTypeName               OrganizationType      `json:"organizationTypeName" mapstructure:"organizationTypeName"`
+	KRAPIN                             string                `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID                     string                `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
+	SupportingDocumentsUploadID        []string              `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
+	CertificateOfIncorporation         string                `json:"certificateOfIncorporation" mapstructure:"certificateOfIncorporation"`
+	CertificateOfInCorporationUploadID string                `json:"certificateOfInCorporationUploadID" mapstructure:"certificateOfInCorporationUploadID"`
+	DirectorIdentifications            []IdentificationInput `json:"directorIdentifications" mapstructure:"directorIdentifications"`
+	OrganizationCertificate            string                `json:"organizationCertificate" mapstructure:"organizationCertificate"`
+	RegistrationNumber                 string                `json:"registrationNumber" mapstructure:"registrationNumber"`
+	PracticeLicenseUploadID            string                `json:"practiceLicenseUploadID" mapstructure:"practiceLicenseUploadID"`
+}
+
+// OrganizationPharmaceutical ...
+type OrganizationPharmaceutical struct {
+	OrganizationTypeName               OrganizationType `json:"organizationTypeName" mapstructure:"organizationTypeName"`
+	KRAPIN                             string           `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID                     string           `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
+	SupportingDocumentsUploadID        []string         `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
+	CertificateOfIncorporation         string           `json:"certificateOfIncorporation" mapstructure:"certificateOfIncorporation"`
+	CertificateOfInCorporationUploadID string           `json:"certificateOfInCorporationUploadID" mapstructure:"certificateOfInCorporationUploadID"`
+	DirectorIdentifications            []Identification `json:"directorIdentifications" mapstructure:"directorIdentifications"`
+	OrganizationCertificate            string           `json:"organizationCertificate" mapstructure:"organizationCertificate"`
+	RegistrationNumber                 string           `json:"registrationNumber" mapstructure:"registrationNumber"`
+	PracticeLicenseUploadID            string           `json:"practiceLicenseUploadID" mapstructure:"practiceLicenseUploadID"`
+}
+
+// OrganizationPharmaceuticalInput ...
+type OrganizationPharmaceuticalInput struct {
+	OrganizationTypeName               OrganizationType      `json:"organizationTypeName" mapstructure:"organizationTypeName"`
+	KRAPIN                             string                `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID                     string                `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
+	SupportingDocumentsUploadID        []string              `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
+	CertificateOfIncorporation         string                `json:"certificateOfIncorporation" mapstructure:"certificateOfIncorporation"`
+	CertificateOfInCorporationUploadID string                `json:"certificateOfInCorporationUploadID" mapstructure:"certificateOfInCorporationUploadID"`
+	DirectorIdentifications            []IdentificationInput `json:"directorIdentifications" mapstructure:"directorIdentifications"`
+	OrganizationCertificate            string                `json:"organizationCertificate" mapstructure:"organizationCertificate"`
+	RegistrationNumber                 string                `json:"registrationNumber" mapstructure:"registrationNumber"`
+	PracticeLicenseUploadID            string                `json:"practiceLicenseUploadID" mapstructure:"practiceLicenseUploadID"`
+}

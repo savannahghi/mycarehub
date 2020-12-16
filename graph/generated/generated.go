@@ -123,6 +123,22 @@ type ComplexityRoot struct {
 		IdentificationDocType           func(childComplexity int) int
 	}
 
+	IndividualCoach struct {
+		IdentificationDoc           func(childComplexity int) int
+		KRAPIN                      func(childComplexity int) int
+		KRAPINUploadID              func(childComplexity int) int
+		LicenseUploadID             func(childComplexity int) int
+		SupportingDocumentsUploadID func(childComplexity int) int
+	}
+
+	IndividualNutrition struct {
+		IdentificationDoc           func(childComplexity int) int
+		KRAPIN                      func(childComplexity int) int
+		KRAPINUploadID              func(childComplexity int) int
+		LicenseUploadID             func(childComplexity int) int
+		SupportingDocumentsUploadID func(childComplexity int) int
+	}
+
 	IndividualPharmaceutical struct {
 		IdentificationDoc           func(childComplexity int) int
 		KRAPIN                      func(childComplexity int) int
@@ -180,37 +196,81 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcceptTermsAndConditions       func(childComplexity int, accept bool) int
-		AddCustomer                    func(childComplexity int, name string) int
-		AddCustomerKyc                 func(childComplexity int, input profile.CustomerKYCInput) int
-		AddIndividualPharmaceuticalKyc func(childComplexity int, input profile.IndividualPharmaceuticalInput) int
-		AddIndividualPractitionerKyc   func(childComplexity int, input profile.IndividualPractitionerInput) int
-		AddIndividualRiderKyc          func(childComplexity int, input profile.IndividualRiderInput) int
-		AddOrganizationPractitionerKyc func(childComplexity int, input profile.OrganizationPractitionerInput) int
-		AddOrganizationProviderKyc     func(childComplexity int, input profile.OrganizationProviderInput) int
-		AddOrganizationRiderKyc        func(childComplexity int, input profile.OrganizationRiderInput) int
-		AddPartnerType                 func(childComplexity int, name string, partnerType profile.PartnerType) int
-		AddPractitionerServices        func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
-		AddTester                      func(childComplexity int, email string) int
-		CompleteSignup                 func(childComplexity int) int
-		ConfirmEmail                   func(childComplexity int, email string) int
-		CreateSignUpMethod             func(childComplexity int, signUpMethod profile.SignUpMethod) int
-		PractitionerSignUp             func(childComplexity int, input profile.PractitionerSignupInput) int
-		RecordPostVisitSurvey          func(childComplexity int, input profile.PostVisitSurveyInput) int
-		RegisterPushToken              func(childComplexity int, token string) int
-		RemoveTester                   func(childComplexity int, email string) int
-		SetLanguagePreference          func(childComplexity int, language base.Language) int
-		SetUpSupplier                  func(childComplexity int, accountType profile.AccountType) int
-		SetUserPin                     func(childComplexity int, msisdn string, pin string) int
-		SupplierEDILogin               func(childComplexity int, username string, password string, sladeCode string) int
-		SupplierSetDefaultLocation     func(childComplexity int, locatonID string) int
-		SuspendCustomer                func(childComplexity int, uid string) int
-		SuspendSupplier                func(childComplexity int, uid string) int
-		UpdateBiodata                  func(childComplexity int, input profile.BiodataInput) int
-		UpdateCustomer                 func(childComplexity int, input profile.CustomerKYCInput) int
-		UpdateUserPin                  func(childComplexity int, msisdn string, pin string) int
-		UpdateUserProfile              func(childComplexity int, input profile.UserProfileInput) int
-		VerifyEmailOtp                 func(childComplexity int, email string, otp string) int
+		AcceptTermsAndConditions         func(childComplexity int, accept bool) int
+		AddCustomer                      func(childComplexity int, name string) int
+		AddCustomerKyc                   func(childComplexity int, input profile.CustomerKYCInput) int
+		AddIndividualCoachKyc            func(childComplexity int, input profile.IndividualCoachInput) int
+		AddIndividualNutritionKyc        func(childComplexity int, input profile.IndividualNutritionInput) int
+		AddIndividualPharmaceuticalKyc   func(childComplexity int, input profile.IndividualPharmaceuticalInput) int
+		AddIndividualPractitionerKyc     func(childComplexity int, input profile.IndividualPractitionerInput) int
+		AddIndividualRiderKyc            func(childComplexity int, input profile.IndividualRiderInput) int
+		AddOrganizationCoachKyc          func(childComplexity int, input profile.OrganizationCoachInput) int
+		AddOrganizationNutritionKyc      func(childComplexity int, input profile.OrganizationNutritionInput) int
+		AddOrganizationPharmaceuticalKyc func(childComplexity int, input profile.OrganizationPharmaceuticalInput) int
+		AddOrganizationPractitionerKyc   func(childComplexity int, input profile.OrganizationPractitionerInput) int
+		AddOrganizationProviderKyc       func(childComplexity int, input profile.OrganizationProviderInput) int
+		AddOrganizationRiderKyc          func(childComplexity int, input profile.OrganizationRiderInput) int
+		AddPartnerType                   func(childComplexity int, name string, partnerType profile.PartnerType) int
+		AddPractitionerServices          func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
+		AddTester                        func(childComplexity int, email string) int
+		CompleteSignup                   func(childComplexity int) int
+		ConfirmEmail                     func(childComplexity int, email string) int
+		CreateSignUpMethod               func(childComplexity int, signUpMethod profile.SignUpMethod) int
+		PractitionerSignUp               func(childComplexity int, input profile.PractitionerSignupInput) int
+		RecordPostVisitSurvey            func(childComplexity int, input profile.PostVisitSurveyInput) int
+		RegisterPushToken                func(childComplexity int, token string) int
+		RemoveTester                     func(childComplexity int, email string) int
+		SetLanguagePreference            func(childComplexity int, language base.Language) int
+		SetUpSupplier                    func(childComplexity int, accountType profile.AccountType) int
+		SetUserPin                       func(childComplexity int, msisdn string, pin string) int
+		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
+		SupplierSetDefaultLocation       func(childComplexity int, locatonID string) int
+		SuspendCustomer                  func(childComplexity int, uid string) int
+		SuspendSupplier                  func(childComplexity int, uid string) int
+		UpdateBiodata                    func(childComplexity int, input profile.BiodataInput) int
+		UpdateCustomer                   func(childComplexity int, input profile.CustomerKYCInput) int
+		UpdateUserPin                    func(childComplexity int, msisdn string, pin string) int
+		UpdateUserProfile                func(childComplexity int, input profile.UserProfileInput) int
+		VerifyEmailOtp                   func(childComplexity int, email string, otp string) int
+	}
+
+	OrganizationCoach struct {
+		CertificateOfInCorporationUploadID func(childComplexity int) int
+		CertificateOfIncorporation         func(childComplexity int) int
+		DirectorIdentifications            func(childComplexity int) int
+		KRAPIN                             func(childComplexity int) int
+		KRAPINUploadID                     func(childComplexity int) int
+		OrganizationCertificate            func(childComplexity int) int
+		OrganizationTypeName               func(childComplexity int) int
+		PracticeLicenseUploadID            func(childComplexity int) int
+		RegistrationNumber                 func(childComplexity int) int
+		SupportingDocumentsUploadID        func(childComplexity int) int
+	}
+
+	OrganizationNutrition struct {
+		CertificateOfInCorporationUploadID func(childComplexity int) int
+		CertificateOfIncorporation         func(childComplexity int) int
+		DirectorIdentifications            func(childComplexity int) int
+		KRAPIN                             func(childComplexity int) int
+		KRAPINUploadID                     func(childComplexity int) int
+		OrganizationCertificate            func(childComplexity int) int
+		OrganizationTypeName               func(childComplexity int) int
+		PracticeLicenseUploadID            func(childComplexity int) int
+		RegistrationNumber                 func(childComplexity int) int
+		SupportingDocumentsUploadID        func(childComplexity int) int
+	}
+
+	OrganizationPharmaceutical struct {
+		CertificateOfInCorporationUploadID func(childComplexity int) int
+		CertificateOfIncorporation         func(childComplexity int) int
+		DirectorIdentifications            func(childComplexity int) int
+		KRAPIN                             func(childComplexity int) int
+		KRAPINUploadID                     func(childComplexity int) int
+		OrganizationCertificate            func(childComplexity int) int
+		OrganizationTypeName               func(childComplexity int) int
+		PracticeLicenseUploadID            func(childComplexity int) int
+		RegistrationNumber                 func(childComplexity int) int
+		SupportingDocumentsUploadID        func(childComplexity int) int
 	}
 
 	OrganizationPractitioner struct {
@@ -429,6 +489,11 @@ type MutationResolver interface {
 	AddOrganizationPractitionerKyc(ctx context.Context, input profile.OrganizationPractitionerInput) (*profile.OrganizationPractitioner, error)
 	AddOrganizationProviderKyc(ctx context.Context, input profile.OrganizationProviderInput) (*profile.OrganizationProvider, error)
 	AddIndividualPharmaceuticalKyc(ctx context.Context, input profile.IndividualPharmaceuticalInput) (*profile.IndividualPharmaceutical, error)
+	AddOrganizationPharmaceuticalKyc(ctx context.Context, input profile.OrganizationPharmaceuticalInput) (*profile.OrganizationPharmaceutical, error)
+	AddIndividualCoachKyc(ctx context.Context, input profile.IndividualCoachInput) (*profile.IndividualCoach, error)
+	AddOrganizationCoachKyc(ctx context.Context, input profile.OrganizationCoachInput) (*profile.OrganizationCoach, error)
+	AddIndividualNutritionKyc(ctx context.Context, input profile.IndividualNutritionInput) (*profile.IndividualNutrition, error)
+	AddOrganizationNutritionKyc(ctx context.Context, input profile.OrganizationNutritionInput) (*profile.OrganizationNutrition, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -756,6 +821,76 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Identification.IdentificationDocType(childComplexity), true
 
+	case "IndividualCoach.identificationDoc":
+		if e.complexity.IndividualCoach.IdentificationDoc == nil {
+			break
+		}
+
+		return e.complexity.IndividualCoach.IdentificationDoc(childComplexity), true
+
+	case "IndividualCoach.KRAPIN":
+		if e.complexity.IndividualCoach.KRAPIN == nil {
+			break
+		}
+
+		return e.complexity.IndividualCoach.KRAPIN(childComplexity), true
+
+	case "IndividualCoach.KRAPINUploadID":
+		if e.complexity.IndividualCoach.KRAPINUploadID == nil {
+			break
+		}
+
+		return e.complexity.IndividualCoach.KRAPINUploadID(childComplexity), true
+
+	case "IndividualCoach.licenseUploadID":
+		if e.complexity.IndividualCoach.LicenseUploadID == nil {
+			break
+		}
+
+		return e.complexity.IndividualCoach.LicenseUploadID(childComplexity), true
+
+	case "IndividualCoach.supportingDocumentsUploadID":
+		if e.complexity.IndividualCoach.SupportingDocumentsUploadID == nil {
+			break
+		}
+
+		return e.complexity.IndividualCoach.SupportingDocumentsUploadID(childComplexity), true
+
+	case "IndividualNutrition.identificationDoc":
+		if e.complexity.IndividualNutrition.IdentificationDoc == nil {
+			break
+		}
+
+		return e.complexity.IndividualNutrition.IdentificationDoc(childComplexity), true
+
+	case "IndividualNutrition.KRAPIN":
+		if e.complexity.IndividualNutrition.KRAPIN == nil {
+			break
+		}
+
+		return e.complexity.IndividualNutrition.KRAPIN(childComplexity), true
+
+	case "IndividualNutrition.KRAPINUploadID":
+		if e.complexity.IndividualNutrition.KRAPINUploadID == nil {
+			break
+		}
+
+		return e.complexity.IndividualNutrition.KRAPINUploadID(childComplexity), true
+
+	case "IndividualNutrition.licenseUploadID":
+		if e.complexity.IndividualNutrition.LicenseUploadID == nil {
+			break
+		}
+
+		return e.complexity.IndividualNutrition.LicenseUploadID(childComplexity), true
+
+	case "IndividualNutrition.supportingDocumentsUploadID":
+		if e.complexity.IndividualNutrition.SupportingDocumentsUploadID == nil {
+			break
+		}
+
+		return e.complexity.IndividualNutrition.SupportingDocumentsUploadID(childComplexity), true
+
 	case "IndividualPharmaceutical.identificationDoc":
 		if e.complexity.IndividualPharmaceutical.IdentificationDoc == nil {
 			break
@@ -1037,6 +1172,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddCustomerKyc(childComplexity, args["input"].(profile.CustomerKYCInput)), true
 
+	case "Mutation.addIndividualCoachKYC":
+		if e.complexity.Mutation.AddIndividualCoachKyc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addIndividualCoachKYC_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddIndividualCoachKyc(childComplexity, args["input"].(profile.IndividualCoachInput)), true
+
+	case "Mutation.addIndividualNutritionKYC":
+		if e.complexity.Mutation.AddIndividualNutritionKyc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addIndividualNutritionKYC_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddIndividualNutritionKyc(childComplexity, args["input"].(profile.IndividualNutritionInput)), true
+
 	case "Mutation.addIndividualPharmaceuticalKYC":
 		if e.complexity.Mutation.AddIndividualPharmaceuticalKyc == nil {
 			break
@@ -1072,6 +1231,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddIndividualRiderKyc(childComplexity, args["input"].(profile.IndividualRiderInput)), true
+
+	case "Mutation.addOrganizationCoachKYC":
+		if e.complexity.Mutation.AddOrganizationCoachKyc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addOrganizationCoachKYC_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddOrganizationCoachKyc(childComplexity, args["input"].(profile.OrganizationCoachInput)), true
+
+	case "Mutation.addOrganizationNutritionKYC":
+		if e.complexity.Mutation.AddOrganizationNutritionKyc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addOrganizationNutritionKYC_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddOrganizationNutritionKyc(childComplexity, args["input"].(profile.OrganizationNutritionInput)), true
+
+	case "Mutation.addOrganizationPharmaceuticalKYC":
+		if e.complexity.Mutation.AddOrganizationPharmaceuticalKyc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addOrganizationPharmaceuticalKYC_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddOrganizationPharmaceuticalKyc(childComplexity, args["input"].(profile.OrganizationPharmaceuticalInput)), true
 
 	case "Mutation.addOrganizationPractitionerKYC":
 		if e.complexity.Mutation.AddOrganizationPractitionerKyc == nil {
@@ -1367,6 +1562,216 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.VerifyEmailOtp(childComplexity, args["email"].(string), args["otp"].(string)), true
+
+	case "OrganizationCoach.certificateOfInCorporationUploadID":
+		if e.complexity.OrganizationCoach.CertificateOfInCorporationUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationCoach.CertificateOfInCorporationUploadID(childComplexity), true
+
+	case "OrganizationCoach.certificateOfIncorporation":
+		if e.complexity.OrganizationCoach.CertificateOfIncorporation == nil {
+			break
+		}
+
+		return e.complexity.OrganizationCoach.CertificateOfIncorporation(childComplexity), true
+
+	case "OrganizationCoach.directorIdentifications":
+		if e.complexity.OrganizationCoach.DirectorIdentifications == nil {
+			break
+		}
+
+		return e.complexity.OrganizationCoach.DirectorIdentifications(childComplexity), true
+
+	case "OrganizationCoach.KRAPIN":
+		if e.complexity.OrganizationCoach.KRAPIN == nil {
+			break
+		}
+
+		return e.complexity.OrganizationCoach.KRAPIN(childComplexity), true
+
+	case "OrganizationCoach.KRAPINUploadID":
+		if e.complexity.OrganizationCoach.KRAPINUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationCoach.KRAPINUploadID(childComplexity), true
+
+	case "OrganizationCoach.organizationCertificate":
+		if e.complexity.OrganizationCoach.OrganizationCertificate == nil {
+			break
+		}
+
+		return e.complexity.OrganizationCoach.OrganizationCertificate(childComplexity), true
+
+	case "OrganizationCoach.organizationTypeName":
+		if e.complexity.OrganizationCoach.OrganizationTypeName == nil {
+			break
+		}
+
+		return e.complexity.OrganizationCoach.OrganizationTypeName(childComplexity), true
+
+	case "OrganizationCoach.practiceLicenseUploadID":
+		if e.complexity.OrganizationCoach.PracticeLicenseUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationCoach.PracticeLicenseUploadID(childComplexity), true
+
+	case "OrganizationCoach.registrationNumber":
+		if e.complexity.OrganizationCoach.RegistrationNumber == nil {
+			break
+		}
+
+		return e.complexity.OrganizationCoach.RegistrationNumber(childComplexity), true
+
+	case "OrganizationCoach.supportingDocumentsUploadID":
+		if e.complexity.OrganizationCoach.SupportingDocumentsUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationCoach.SupportingDocumentsUploadID(childComplexity), true
+
+	case "OrganizationNutrition.certificateOfInCorporationUploadID":
+		if e.complexity.OrganizationNutrition.CertificateOfInCorporationUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationNutrition.CertificateOfInCorporationUploadID(childComplexity), true
+
+	case "OrganizationNutrition.certificateOfIncorporation":
+		if e.complexity.OrganizationNutrition.CertificateOfIncorporation == nil {
+			break
+		}
+
+		return e.complexity.OrganizationNutrition.CertificateOfIncorporation(childComplexity), true
+
+	case "OrganizationNutrition.directorIdentifications":
+		if e.complexity.OrganizationNutrition.DirectorIdentifications == nil {
+			break
+		}
+
+		return e.complexity.OrganizationNutrition.DirectorIdentifications(childComplexity), true
+
+	case "OrganizationNutrition.KRAPIN":
+		if e.complexity.OrganizationNutrition.KRAPIN == nil {
+			break
+		}
+
+		return e.complexity.OrganizationNutrition.KRAPIN(childComplexity), true
+
+	case "OrganizationNutrition.KRAPINUploadID":
+		if e.complexity.OrganizationNutrition.KRAPINUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationNutrition.KRAPINUploadID(childComplexity), true
+
+	case "OrganizationNutrition.organizationCertificate":
+		if e.complexity.OrganizationNutrition.OrganizationCertificate == nil {
+			break
+		}
+
+		return e.complexity.OrganizationNutrition.OrganizationCertificate(childComplexity), true
+
+	case "OrganizationNutrition.organizationTypeName":
+		if e.complexity.OrganizationNutrition.OrganizationTypeName == nil {
+			break
+		}
+
+		return e.complexity.OrganizationNutrition.OrganizationTypeName(childComplexity), true
+
+	case "OrganizationNutrition.practiceLicenseUploadID":
+		if e.complexity.OrganizationNutrition.PracticeLicenseUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationNutrition.PracticeLicenseUploadID(childComplexity), true
+
+	case "OrganizationNutrition.registrationNumber":
+		if e.complexity.OrganizationNutrition.RegistrationNumber == nil {
+			break
+		}
+
+		return e.complexity.OrganizationNutrition.RegistrationNumber(childComplexity), true
+
+	case "OrganizationNutrition.supportingDocumentsUploadID":
+		if e.complexity.OrganizationNutrition.SupportingDocumentsUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationNutrition.SupportingDocumentsUploadID(childComplexity), true
+
+	case "OrganizationPharmaceutical.certificateOfInCorporationUploadID":
+		if e.complexity.OrganizationPharmaceutical.CertificateOfInCorporationUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationPharmaceutical.CertificateOfInCorporationUploadID(childComplexity), true
+
+	case "OrganizationPharmaceutical.certificateOfIncorporation":
+		if e.complexity.OrganizationPharmaceutical.CertificateOfIncorporation == nil {
+			break
+		}
+
+		return e.complexity.OrganizationPharmaceutical.CertificateOfIncorporation(childComplexity), true
+
+	case "OrganizationPharmaceutical.directorIdentifications":
+		if e.complexity.OrganizationPharmaceutical.DirectorIdentifications == nil {
+			break
+		}
+
+		return e.complexity.OrganizationPharmaceutical.DirectorIdentifications(childComplexity), true
+
+	case "OrganizationPharmaceutical.KRAPIN":
+		if e.complexity.OrganizationPharmaceutical.KRAPIN == nil {
+			break
+		}
+
+		return e.complexity.OrganizationPharmaceutical.KRAPIN(childComplexity), true
+
+	case "OrganizationPharmaceutical.KRAPINUploadID":
+		if e.complexity.OrganizationPharmaceutical.KRAPINUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationPharmaceutical.KRAPINUploadID(childComplexity), true
+
+	case "OrganizationPharmaceutical.organizationCertificate":
+		if e.complexity.OrganizationPharmaceutical.OrganizationCertificate == nil {
+			break
+		}
+
+		return e.complexity.OrganizationPharmaceutical.OrganizationCertificate(childComplexity), true
+
+	case "OrganizationPharmaceutical.organizationTypeName":
+		if e.complexity.OrganizationPharmaceutical.OrganizationTypeName == nil {
+			break
+		}
+
+		return e.complexity.OrganizationPharmaceutical.OrganizationTypeName(childComplexity), true
+
+	case "OrganizationPharmaceutical.practiceLicenseUploadID":
+		if e.complexity.OrganizationPharmaceutical.PracticeLicenseUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationPharmaceutical.PracticeLicenseUploadID(childComplexity), true
+
+	case "OrganizationPharmaceutical.registrationNumber":
+		if e.complexity.OrganizationPharmaceutical.RegistrationNumber == nil {
+			break
+		}
+
+		return e.complexity.OrganizationPharmaceutical.RegistrationNumber(childComplexity), true
+
+	case "OrganizationPharmaceutical.supportingDocumentsUploadID":
+		if e.complexity.OrganizationPharmaceutical.SupportingDocumentsUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationPharmaceutical.SupportingDocumentsUploadID(childComplexity), true
 
 	case "OrganizationPractitioner.cadre":
 		if e.complexity.OrganizationPractitioner.Cadre == nil {
@@ -2690,7 +3095,7 @@ input IndividualRiderInput {
 }
 
 input OrganizationRiderInput {
-  # common for oragization account types
+  # common for organization account types
   organizationTypeName: OrganizationType!
 
   # common for all
@@ -2724,7 +3129,7 @@ input IndividualPractitionerInput {
 }
 
 input OrganizationPractitionerInput {
-  # common for oragization account types
+  # common for organization account types
   organizationTypeName: OrganizationType!
 
   # common for all
@@ -2748,7 +3153,7 @@ input OrganizationPractitionerInput {
 }
 
 input OrganizationProviderInput {
-  # common for oragization account types
+  # common for organization account types
   organizationTypeName: OrganizationType!
 
   # common for all
@@ -2783,6 +3188,99 @@ input IndividualPharmaceuticalInput {
   # unique to practitioner
   registrationNumber: String!
   licenseUploadID: String!
+}
+input IndividualCoachInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique fo coach
+  licenseUploadID: String!
+}
+
+input IndividualNutritionInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique for Nutrition
+  licenseUploadID: String!
+}
+
+input OrganizationNutritionInput {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [IdentificationInput]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for nutrition
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+
+}
+
+input OrganizationCoachInput {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [IdentificationInput]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for coach
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+
+}
+
+input OrganizationPharmaceuticalInput {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [IdentificationInput]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for pharmaceutical
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
 }
 `, BuiltIn: false},
 	{Name: "graph/profile.graphql", Input: `extend type Query {
@@ -2853,18 +3351,42 @@ extend type Mutation {
   supplierSetDefaultLocation(locatonID: String!): Boolean!
   addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
   addOrganizationRiderKYC(input: OrganizationRiderInput!): OrganizationRider!
+
   addIndividualPractitionerKYC(
     input: IndividualPractitionerInput!
   ): IndividualPractitioner!
+
   addOrganizationPractitionerKYC(
     input: OrganizationPractitionerInput!
   ): OrganizationPractitioner!
+
   addOrganizationProviderKYC(
     input: OrganizationProviderInput!
   ): OrganizationProvider!
+
   addIndividualPharmaceuticalKYC(
     input: IndividualPharmaceuticalInput!
   ): IndividualPharmaceutical!
+
+  addOrganizationPharmaceuticalKYC(
+    input: OrganizationPharmaceuticalInput!
+  ): OrganizationPharmaceutical!
+
+  addIndividualCoachKYC(
+    input: IndividualCoachInput!
+  ): IndividualCoach!
+
+  addOrganizationCoachKYC(
+    input: OrganizationCoachInput!
+  ): OrganizationCoach!
+
+  addIndividualNutritionKYC(
+    input: IndividualNutritionInput!
+  ): IndividualNutrition!
+
+  addOrganizationNutritionKYC(
+    input: OrganizationNutritionInput!
+  ): OrganizationNutrition!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `scalar Date
@@ -3127,7 +3649,7 @@ type IndividualPractitioner {
 }
 
 type OrganizationPractitioner {
-  # common for oragization account types
+  # common for organization account types
   organizationTypeName: OrganizationType!
 
   # common for all
@@ -3151,7 +3673,7 @@ type OrganizationPractitioner {
 }
 
 type OrganizationProvider {
-  # common for oragization account types
+  # common for organization account types
   organizationTypeName: OrganizationType!
 
   # common for all
@@ -3186,6 +3708,103 @@ type IndividualPharmaceutical {
   # unique to practitioner
   registrationNumber: String!
   licenseUploadID: String!
+}
+
+type IndividualCoach {
+  # common for individual account types
+  identificationDoc: Identification!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique for coach
+  licenseUploadID: String!
+
+}
+
+type IndividualNutrition {
+  # common for individual account types
+  identificationDoc: Identification!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique for Nutrition
+  licenseUploadID: String!
+
+}
+
+type OrganizationNutrition {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [Identification]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for nutrition
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+
+}
+
+type OrganizationCoach {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [Identification]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for coach
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+
+}
+
+type OrganizationPharmaceutical {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [Identification]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for pharmaceutical
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -3300,6 +3919,36 @@ func (ec *executionContext) field_Mutation_addCustomer_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addIndividualCoachKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.IndividualCoachInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNIndividualCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualCoachInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addIndividualNutritionKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.IndividualNutritionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNIndividualNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualNutritionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addIndividualPharmaceuticalKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3337,6 +3986,51 @@ func (ec *executionContext) field_Mutation_addIndividualRiderKYC_args(ctx contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNIndividualRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRiderInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addOrganizationCoachKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.OrganizationCoachInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOrganizationCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationCoachInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addOrganizationNutritionKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.OrganizationNutritionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOrganizationNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationNutritionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addOrganizationPharmaceuticalKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.OrganizationPharmaceuticalInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOrganizationPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPharmaceuticalInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5435,6 +6129,350 @@ func (ec *executionContext) _Identification_identificationDocNumberUploadID(ctx 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.IdentificationDocNumberUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualCoach_identificationDoc(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IdentificationDoc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.Identification)
+	fc.Result = res
+	return ec.marshalNIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualCoach_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPIN, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualCoach_KRAPINUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPINUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualCoach_supportingDocumentsUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupportingDocumentsUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualCoach_licenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LicenseUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualNutrition_identificationDoc(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IdentificationDoc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.Identification)
+	fc.Result = res
+	return ec.marshalNIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualNutrition_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPIN, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualNutrition_KRAPINUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPINUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualNutrition_supportingDocumentsUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupportingDocumentsUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualNutrition_licenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LicenseUploadID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7945,6 +8983,1221 @@ func (ec *executionContext) _Mutation_addIndividualPharmaceuticalKYC(ctx context
 	res := resTmp.(*profile.IndividualPharmaceutical)
 	fc.Result = res
 	return ec.marshalNIndividualPharmaceutical2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPharmaceutical(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addOrganizationPharmaceuticalKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addOrganizationPharmaceuticalKYC_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddOrganizationPharmaceuticalKyc(rctx, args["input"].(profile.OrganizationPharmaceuticalInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.OrganizationPharmaceutical)
+	fc.Result = res
+	return ec.marshalNOrganizationPharmaceutical2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPharmaceutical(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addIndividualCoachKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addIndividualCoachKYC_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddIndividualCoachKyc(rctx, args["input"].(profile.IndividualCoachInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.IndividualCoach)
+	fc.Result = res
+	return ec.marshalNIndividualCoach2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualCoach(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addOrganizationCoachKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addOrganizationCoachKYC_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddOrganizationCoachKyc(rctx, args["input"].(profile.OrganizationCoachInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.OrganizationCoach)
+	fc.Result = res
+	return ec.marshalNOrganizationCoach2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationCoach(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addIndividualNutritionKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addIndividualNutritionKYC_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddIndividualNutritionKyc(rctx, args["input"].(profile.IndividualNutritionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.IndividualNutrition)
+	fc.Result = res
+	return ec.marshalNIndividualNutrition2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualNutrition(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addOrganizationNutritionKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addOrganizationNutritionKYC_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddOrganizationNutritionKyc(rctx, args["input"].(profile.OrganizationNutritionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.OrganizationNutrition)
+	fc.Result = res
+	return ec.marshalNOrganizationNutrition2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationNutrition(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationCoach_organizationTypeName(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationTypeName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.OrganizationType)
+	fc.Result = res
+	return ec.marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationCoach_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPIN, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationCoach_KRAPINUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPINUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationCoach_supportingDocumentsUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupportingDocumentsUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationCoach_certificateOfIncorporation(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CertificateOfIncorporation, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationCoach_certificateOfInCorporationUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CertificateOfInCorporationUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationCoach_directorIdentifications(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DirectorIdentifications, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]profile.Identification)
+	fc.Result = res
+	return ec.marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationCoach_organizationCertificate(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationCertificate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationCoach_registrationNumber(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RegistrationNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationCoach_practiceLicenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PracticeLicenseUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationNutrition_organizationTypeName(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationTypeName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.OrganizationType)
+	fc.Result = res
+	return ec.marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationNutrition_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPIN, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationNutrition_KRAPINUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPINUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationNutrition_supportingDocumentsUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupportingDocumentsUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationNutrition_certificateOfIncorporation(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CertificateOfIncorporation, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationNutrition_certificateOfInCorporationUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CertificateOfInCorporationUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationNutrition_directorIdentifications(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DirectorIdentifications, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]profile.Identification)
+	fc.Result = res
+	return ec.marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationNutrition_organizationCertificate(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationCertificate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationNutrition_registrationNumber(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RegistrationNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationNutrition_practiceLicenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationNutrition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationNutrition",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PracticeLicenseUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationPharmaceutical_organizationTypeName(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPharmaceutical) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationPharmaceutical",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationTypeName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.OrganizationType)
+	fc.Result = res
+	return ec.marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationPharmaceutical_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPharmaceutical) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationPharmaceutical",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPIN, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationPharmaceutical_KRAPINUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPharmaceutical) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationPharmaceutical",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPINUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationPharmaceutical_supportingDocumentsUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPharmaceutical) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationPharmaceutical",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupportingDocumentsUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationPharmaceutical_certificateOfIncorporation(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPharmaceutical) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationPharmaceutical",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CertificateOfIncorporation, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationPharmaceutical_certificateOfInCorporationUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPharmaceutical) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationPharmaceutical",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CertificateOfInCorporationUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationPharmaceutical_directorIdentifications(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPharmaceutical) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationPharmaceutical",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DirectorIdentifications, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]profile.Identification)
+	fc.Result = res
+	return ec.marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationPharmaceutical_organizationCertificate(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPharmaceutical) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationPharmaceutical",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationCertificate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationPharmaceutical_registrationNumber(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPharmaceutical) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationPharmaceutical",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RegistrationNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationPharmaceutical_practiceLicenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPharmaceutical) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationPharmaceutical",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PracticeLicenseUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationPractitioner_organizationTypeName(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPractitioner) (ret graphql.Marshaler) {
@@ -13938,6 +16191,110 @@ func (ec *executionContext) unmarshalInputIdentificationInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputIndividualCoachInput(ctx context.Context, obj interface{}) (profile.IndividualCoachInput, error) {
+	var it profile.IndividualCoachInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "identificationDoc":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPIN":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPIN"))
+			it.KRAPIN, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPINUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPINUploadID"))
+			it.KRAPINUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "supportingDocumentsUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocumentsUploadID"))
+			it.SupportingDocumentsUploadID, err = ec.unmarshalOString2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "licenseUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("licenseUploadID"))
+			it.LicenseUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputIndividualNutritionInput(ctx context.Context, obj interface{}) (profile.IndividualNutritionInput, error) {
+	var it profile.IndividualNutritionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "identificationDoc":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPIN":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPIN"))
+			it.KRAPIN, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPINUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPINUploadID"))
+			it.KRAPINUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "supportingDocumentsUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocumentsUploadID"))
+			it.SupportingDocumentsUploadID, err = ec.unmarshalOString2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "licenseUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("licenseUploadID"))
+			it.LicenseUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputIndividualPharmaceuticalInput(ctx context.Context, obj interface{}) (profile.IndividualPharmaceuticalInput, error) {
 	var it profile.IndividualPharmaceuticalInput
 	var asMap = obj.(map[string]interface{})
@@ -14161,6 +16518,282 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("branchSladeCode"))
 			it.BranchSladeCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputOrganizationCoachInput(ctx context.Context, obj interface{}) (profile.OrganizationCoachInput, error) {
+	var it profile.OrganizationCoachInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "organizationTypeName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
+			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPIN":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPIN"))
+			it.KRAPIN, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPINUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPINUploadID"))
+			it.KRAPINUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "supportingDocumentsUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocumentsUploadID"))
+			it.SupportingDocumentsUploadID, err = ec.unmarshalOString2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "certificateOfIncorporation":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfIncorporation"))
+			it.CertificateOfIncorporation, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "certificateOfInCorporationUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfInCorporationUploadID"))
+			it.CertificateOfInCorporationUploadID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "directorIdentifications":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "organizationCertificate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationCertificate"))
+			it.OrganizationCertificate, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "registrationNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("registrationNumber"))
+			it.RegistrationNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "practiceLicenseUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseUploadID"))
+			it.PracticeLicenseUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputOrganizationNutritionInput(ctx context.Context, obj interface{}) (profile.OrganizationNutritionInput, error) {
+	var it profile.OrganizationNutritionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "organizationTypeName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
+			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPIN":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPIN"))
+			it.KRAPIN, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPINUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPINUploadID"))
+			it.KRAPINUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "supportingDocumentsUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocumentsUploadID"))
+			it.SupportingDocumentsUploadID, err = ec.unmarshalOString2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "certificateOfIncorporation":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfIncorporation"))
+			it.CertificateOfIncorporation, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "certificateOfInCorporationUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfInCorporationUploadID"))
+			it.CertificateOfInCorporationUploadID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "directorIdentifications":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "organizationCertificate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationCertificate"))
+			it.OrganizationCertificate, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "registrationNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("registrationNumber"))
+			it.RegistrationNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "practiceLicenseUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseUploadID"))
+			it.PracticeLicenseUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputOrganizationPharmaceuticalInput(ctx context.Context, obj interface{}) (profile.OrganizationPharmaceuticalInput, error) {
+	var it profile.OrganizationPharmaceuticalInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "organizationTypeName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
+			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPIN":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPIN"))
+			it.KRAPIN, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPINUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPINUploadID"))
+			it.KRAPINUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "supportingDocumentsUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocumentsUploadID"))
+			it.SupportingDocumentsUploadID, err = ec.unmarshalOString2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "certificateOfIncorporation":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfIncorporation"))
+			it.CertificateOfIncorporation, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "certificateOfInCorporationUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfInCorporationUploadID"))
+			it.CertificateOfInCorporationUploadID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "directorIdentifications":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "organizationCertificate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationCertificate"))
+			it.OrganizationCertificate, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "registrationNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("registrationNumber"))
+			it.RegistrationNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "practiceLicenseUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseUploadID"))
+			it.PracticeLicenseUploadID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15316,6 +17949,94 @@ func (ec *executionContext) _Identification(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var individualCoachImplementors = []string{"IndividualCoach"}
+
+func (ec *executionContext) _IndividualCoach(ctx context.Context, sel ast.SelectionSet, obj *profile.IndividualCoach) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, individualCoachImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IndividualCoach")
+		case "identificationDoc":
+			out.Values[i] = ec._IndividualCoach_identificationDoc(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "KRAPIN":
+			out.Values[i] = ec._IndividualCoach_KRAPIN(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "KRAPINUploadID":
+			out.Values[i] = ec._IndividualCoach_KRAPINUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supportingDocumentsUploadID":
+			out.Values[i] = ec._IndividualCoach_supportingDocumentsUploadID(ctx, field, obj)
+		case "licenseUploadID":
+			out.Values[i] = ec._IndividualCoach_licenseUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var individualNutritionImplementors = []string{"IndividualNutrition"}
+
+func (ec *executionContext) _IndividualNutrition(ctx context.Context, sel ast.SelectionSet, obj *profile.IndividualNutrition) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, individualNutritionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IndividualNutrition")
+		case "identificationDoc":
+			out.Values[i] = ec._IndividualNutrition_identificationDoc(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "KRAPIN":
+			out.Values[i] = ec._IndividualNutrition_KRAPIN(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "KRAPINUploadID":
+			out.Values[i] = ec._IndividualNutrition_KRAPINUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supportingDocumentsUploadID":
+			out.Values[i] = ec._IndividualNutrition_supportingDocumentsUploadID(ctx, field, obj)
+		case "licenseUploadID":
+			out.Values[i] = ec._IndividualNutrition_licenseUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var individualPharmaceuticalImplementors = []string{"IndividualPharmaceutical"}
 
 func (ec *executionContext) _IndividualPharmaceutical(ctx context.Context, sel ast.SelectionSet, obj *profile.IndividualPharmaceutical) graphql.Marshaler {
@@ -15788,6 +18509,202 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addIndividualPharmaceuticalKYC":
 			out.Values[i] = ec._Mutation_addIndividualPharmaceuticalKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addOrganizationPharmaceuticalKYC":
+			out.Values[i] = ec._Mutation_addOrganizationPharmaceuticalKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addIndividualCoachKYC":
+			out.Values[i] = ec._Mutation_addIndividualCoachKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addOrganizationCoachKYC":
+			out.Values[i] = ec._Mutation_addOrganizationCoachKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addIndividualNutritionKYC":
+			out.Values[i] = ec._Mutation_addIndividualNutritionKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addOrganizationNutritionKYC":
+			out.Values[i] = ec._Mutation_addOrganizationNutritionKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var organizationCoachImplementors = []string{"OrganizationCoach"}
+
+func (ec *executionContext) _OrganizationCoach(ctx context.Context, sel ast.SelectionSet, obj *profile.OrganizationCoach) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, organizationCoachImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OrganizationCoach")
+		case "organizationTypeName":
+			out.Values[i] = ec._OrganizationCoach_organizationTypeName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "KRAPIN":
+			out.Values[i] = ec._OrganizationCoach_KRAPIN(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "KRAPINUploadID":
+			out.Values[i] = ec._OrganizationCoach_KRAPINUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supportingDocumentsUploadID":
+			out.Values[i] = ec._OrganizationCoach_supportingDocumentsUploadID(ctx, field, obj)
+		case "certificateOfIncorporation":
+			out.Values[i] = ec._OrganizationCoach_certificateOfIncorporation(ctx, field, obj)
+		case "certificateOfInCorporationUploadID":
+			out.Values[i] = ec._OrganizationCoach_certificateOfInCorporationUploadID(ctx, field, obj)
+		case "directorIdentifications":
+			out.Values[i] = ec._OrganizationCoach_directorIdentifications(ctx, field, obj)
+		case "organizationCertificate":
+			out.Values[i] = ec._OrganizationCoach_organizationCertificate(ctx, field, obj)
+		case "registrationNumber":
+			out.Values[i] = ec._OrganizationCoach_registrationNumber(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "practiceLicenseUploadID":
+			out.Values[i] = ec._OrganizationCoach_practiceLicenseUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var organizationNutritionImplementors = []string{"OrganizationNutrition"}
+
+func (ec *executionContext) _OrganizationNutrition(ctx context.Context, sel ast.SelectionSet, obj *profile.OrganizationNutrition) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, organizationNutritionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OrganizationNutrition")
+		case "organizationTypeName":
+			out.Values[i] = ec._OrganizationNutrition_organizationTypeName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "KRAPIN":
+			out.Values[i] = ec._OrganizationNutrition_KRAPIN(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "KRAPINUploadID":
+			out.Values[i] = ec._OrganizationNutrition_KRAPINUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supportingDocumentsUploadID":
+			out.Values[i] = ec._OrganizationNutrition_supportingDocumentsUploadID(ctx, field, obj)
+		case "certificateOfIncorporation":
+			out.Values[i] = ec._OrganizationNutrition_certificateOfIncorporation(ctx, field, obj)
+		case "certificateOfInCorporationUploadID":
+			out.Values[i] = ec._OrganizationNutrition_certificateOfInCorporationUploadID(ctx, field, obj)
+		case "directorIdentifications":
+			out.Values[i] = ec._OrganizationNutrition_directorIdentifications(ctx, field, obj)
+		case "organizationCertificate":
+			out.Values[i] = ec._OrganizationNutrition_organizationCertificate(ctx, field, obj)
+		case "registrationNumber":
+			out.Values[i] = ec._OrganizationNutrition_registrationNumber(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "practiceLicenseUploadID":
+			out.Values[i] = ec._OrganizationNutrition_practiceLicenseUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var organizationPharmaceuticalImplementors = []string{"OrganizationPharmaceutical"}
+
+func (ec *executionContext) _OrganizationPharmaceutical(ctx context.Context, sel ast.SelectionSet, obj *profile.OrganizationPharmaceutical) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, organizationPharmaceuticalImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OrganizationPharmaceutical")
+		case "organizationTypeName":
+			out.Values[i] = ec._OrganizationPharmaceutical_organizationTypeName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "KRAPIN":
+			out.Values[i] = ec._OrganizationPharmaceutical_KRAPIN(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "KRAPINUploadID":
+			out.Values[i] = ec._OrganizationPharmaceutical_KRAPINUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supportingDocumentsUploadID":
+			out.Values[i] = ec._OrganizationPharmaceutical_supportingDocumentsUploadID(ctx, field, obj)
+		case "certificateOfIncorporation":
+			out.Values[i] = ec._OrganizationPharmaceutical_certificateOfIncorporation(ctx, field, obj)
+		case "certificateOfInCorporationUploadID":
+			out.Values[i] = ec._OrganizationPharmaceutical_certificateOfInCorporationUploadID(ctx, field, obj)
+		case "directorIdentifications":
+			out.Values[i] = ec._OrganizationPharmaceutical_directorIdentifications(ctx, field, obj)
+		case "organizationCertificate":
+			out.Values[i] = ec._OrganizationPharmaceutical_organizationCertificate(ctx, field, obj)
+		case "registrationNumber":
+			out.Values[i] = ec._OrganizationPharmaceutical_registrationNumber(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "practiceLicenseUploadID":
+			out.Values[i] = ec._OrganizationPharmaceutical_practiceLicenseUploadID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -17393,6 +20310,44 @@ func (ec *executionContext) unmarshalNIdentificationInput2gitlabᚗslade360emr�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNIndividualCoach2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualCoach(ctx context.Context, sel ast.SelectionSet, v profile.IndividualCoach) graphql.Marshaler {
+	return ec._IndividualCoach(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIndividualCoach2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualCoach(ctx context.Context, sel ast.SelectionSet, v *profile.IndividualCoach) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._IndividualCoach(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNIndividualCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualCoachInput(ctx context.Context, v interface{}) (profile.IndividualCoachInput, error) {
+	res, err := ec.unmarshalInputIndividualCoachInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNIndividualNutrition2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualNutrition(ctx context.Context, sel ast.SelectionSet, v profile.IndividualNutrition) graphql.Marshaler {
+	return ec._IndividualNutrition(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIndividualNutrition2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualNutrition(ctx context.Context, sel ast.SelectionSet, v *profile.IndividualNutrition) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._IndividualNutrition(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNIndividualNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualNutritionInput(ctx context.Context, v interface{}) (profile.IndividualNutritionInput, error) {
+	res, err := ec.unmarshalInputIndividualNutritionInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNIndividualPharmaceutical2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPharmaceutical(ctx context.Context, sel ast.SelectionSet, v profile.IndividualPharmaceutical) graphql.Marshaler {
 	return ec._IndividualPharmaceutical(ctx, sel, &v)
 }
@@ -17542,6 +20497,63 @@ func (ec *executionContext) unmarshalNOperation2gitlabᚗslade360emrᚗcomᚋgo�
 
 func (ec *executionContext) marshalNOperation2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐOperation(ctx context.Context, sel ast.SelectionSet, v base.Operation) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNOrganizationCoach2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationCoach(ctx context.Context, sel ast.SelectionSet, v profile.OrganizationCoach) graphql.Marshaler {
+	return ec._OrganizationCoach(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOrganizationCoach2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationCoach(ctx context.Context, sel ast.SelectionSet, v *profile.OrganizationCoach) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._OrganizationCoach(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOrganizationCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationCoachInput(ctx context.Context, v interface{}) (profile.OrganizationCoachInput, error) {
+	res, err := ec.unmarshalInputOrganizationCoachInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOrganizationNutrition2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationNutrition(ctx context.Context, sel ast.SelectionSet, v profile.OrganizationNutrition) graphql.Marshaler {
+	return ec._OrganizationNutrition(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOrganizationNutrition2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationNutrition(ctx context.Context, sel ast.SelectionSet, v *profile.OrganizationNutrition) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._OrganizationNutrition(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOrganizationNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationNutritionInput(ctx context.Context, v interface{}) (profile.OrganizationNutritionInput, error) {
+	res, err := ec.unmarshalInputOrganizationNutritionInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOrganizationPharmaceutical2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPharmaceutical(ctx context.Context, sel ast.SelectionSet, v profile.OrganizationPharmaceutical) graphql.Marshaler {
+	return ec._OrganizationPharmaceutical(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOrganizationPharmaceutical2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPharmaceutical(ctx context.Context, sel ast.SelectionSet, v *profile.OrganizationPharmaceutical) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._OrganizationPharmaceutical(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOrganizationPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPharmaceuticalInput(ctx context.Context, v interface{}) (profile.OrganizationPharmaceuticalInput, error) {
+	res, err := ec.unmarshalInputOrganizationPharmaceuticalInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNOrganizationPractitioner2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPractitioner(ctx context.Context, sel ast.SelectionSet, v profile.OrganizationPractitioner) graphql.Marshaler {

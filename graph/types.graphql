@@ -258,7 +258,7 @@ type IndividualPractitioner {
 }
 
 type OrganizationPractitioner {
-  # common for oragization account types
+  # common for organization account types
   organizationTypeName: OrganizationType!
 
   # common for all
@@ -282,7 +282,7 @@ type OrganizationPractitioner {
 }
 
 type OrganizationProvider {
-  # common for oragization account types
+  # common for organization account types
   organizationTypeName: OrganizationType!
 
   # common for all
@@ -317,4 +317,101 @@ type IndividualPharmaceutical {
   # unique to practitioner
   registrationNumber: String!
   licenseUploadID: String!
+}
+
+type IndividualCoach {
+  # common for individual account types
+  identificationDoc: Identification!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique for coach
+  licenseUploadID: String!
+
+}
+
+type IndividualNutrition {
+  # common for individual account types
+  identificationDoc: Identification!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique for Nutrition
+  licenseUploadID: String!
+
+}
+
+type OrganizationNutrition {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [Identification]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for nutrition
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+
+}
+
+type OrganizationCoach {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [Identification]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for coach
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+
+}
+
+type OrganizationPharmaceutical {
+  # common for organization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [Identification]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique for pharmaceutical
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+
 }

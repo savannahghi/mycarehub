@@ -1058,3 +1058,335 @@ func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input Indi
 
 	return &kyc, nil
 }
+
+// AddOrganizationPharmaceuticalKyc adds KYC for a pharmacy organization
+func (s *Service) AddOrganizationPharmaceuticalKyc(ctx context.Context, input OrganizationPharmaceuticalInput) (*OrganizationPharmaceutical, error) {
+	s.checkPreconditions()
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
+	}
+
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
+	}
+	if dsnap == nil {
+		return nil, fmt.Errorf("the supplier does not exist in our records")
+	}
+
+	supplier := &Supplier{}
+
+	err = dsnap.DataTo(supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier data: %v", err)
+	}
+
+	kyc := OrganizationPharmaceutical{
+		OrganizationTypeName:               input.OrganizationTypeName,
+		KRAPIN:                             input.KRAPIN,
+		KRAPINUploadID:                     input.KRAPINUploadID,
+		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+		CertificateOfIncorporation:         input.CertificateOfIncorporation,
+		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+		DirectorIdentifications: func(p []IdentificationInput) []Identification {
+			pl := []Identification{}
+			for _, i := range p {
+				pl = append(pl, Identification(i))
+			}
+			return pl
+		}(input.DirectorIdentifications),
+		OrganizationCertificate: input.OrganizationCertificate,
+		RegistrationNumber:      input.RegistrationNumber,
+		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	k, err := json.Marshal(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+	var kycAsMap map[string]interface{}
+	err = json.Unmarshal(k, &kycAsMap)
+	if err != nil {
+		return nil, fmt.Errorf("cannot unmarshal kyc from json")
+	}
+
+	supplier.SupplierKYC = kycAsMap
+
+	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+
+	return &kyc, nil
+}
+
+// AddIndividualCoachKyc adds KYC for an individual coach
+func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoachInput) (*IndividualCoach, error) {
+	s.checkPreconditions()
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
+	}
+
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
+	}
+	if dsnap == nil {
+		return nil, fmt.Errorf("the supplier does not exist in our records")
+	}
+
+	supplier := &Supplier{}
+
+	err = dsnap.DataTo(supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier data: %v", err)
+	}
+
+	kyc := IndividualCoach{
+		IdentificationDoc: func(p IdentificationInput) Identification {
+			return Identification(p)
+		}(input.IdentificationDoc),
+		KRAPIN:                      input.KRAPIN,
+		KRAPINUploadID:              input.KRAPINUploadID,
+		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+		LicenseUploadID:             input.LicenseUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	k, err := json.Marshal(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+	var kycAsMap map[string]interface{}
+	err = json.Unmarshal(k, &kycAsMap)
+	if err != nil {
+		return nil, fmt.Errorf("cannot unmarshal kyc from json")
+	}
+
+	supplier.SupplierKYC = kycAsMap
+
+	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+
+	return &kyc, nil
+}
+
+// AddOrganizationCoachKyc adds KYC for an organization coach
+func (s *Service) AddOrganizationCoachKyc(ctx context.Context, input OrganizationCoachInput) (*OrganizationCoach, error) {
+	s.checkPreconditions()
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
+	}
+
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
+	}
+	if dsnap == nil {
+		return nil, fmt.Errorf("the supplier does not exist in our records")
+	}
+
+	supplier := &Supplier{}
+
+	err = dsnap.DataTo(supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier data: %v", err)
+	}
+
+	kyc := OrganizationCoach{
+		OrganizationTypeName:               input.OrganizationTypeName,
+		KRAPIN:                             input.KRAPIN,
+		KRAPINUploadID:                     input.KRAPINUploadID,
+		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+		CertificateOfIncorporation:         input.CertificateOfIncorporation,
+		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+		DirectorIdentifications: func(p []IdentificationInput) []Identification {
+			pl := []Identification{}
+			for _, i := range p {
+				pl = append(pl, Identification(i))
+			}
+			return pl
+		}(input.DirectorIdentifications),
+		OrganizationCertificate: input.OrganizationCertificate,
+		RegistrationNumber:      input.RegistrationNumber,
+		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	k, err := json.Marshal(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+	var kycAsMap map[string]interface{}
+	err = json.Unmarshal(k, &kycAsMap)
+	if err != nil {
+		return nil, fmt.Errorf("cannot unmarshal kyc from json")
+	}
+
+	supplier.SupplierKYC = kycAsMap
+
+	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+
+	return &kyc, nil
+}
+
+// AddIndividualNutritionKyc adds KYC for an individual nutritionist
+func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input IndividualNutritionInput) (*IndividualNutrition, error) {
+	s.checkPreconditions()
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
+	}
+
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
+	}
+	if dsnap == nil {
+		return nil, fmt.Errorf("the supplier does not exist in our records")
+	}
+
+	supplier := &Supplier{}
+
+	err = dsnap.DataTo(supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier data: %v", err)
+	}
+
+	kyc := IndividualNutrition{
+		IdentificationDoc: func(p IdentificationInput) Identification {
+			return Identification(p)
+		}(input.IdentificationDoc),
+		KRAPIN:                      input.KRAPIN,
+		KRAPINUploadID:              input.KRAPINUploadID,
+		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+		LicenseUploadID:             input.LicenseUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	k, err := json.Marshal(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+	var kycAsMap map[string]interface{}
+	err = json.Unmarshal(k, &kycAsMap)
+	if err != nil {
+		return nil, fmt.Errorf("cannot unmarshal kyc from json")
+	}
+
+	supplier.SupplierKYC = kycAsMap
+
+	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+
+	return &kyc, nil
+}
+
+// AddOrganizationNutritionKyc adds kyc for a nutritionist organisation
+func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input OrganizationNutritionInput) (*OrganizationNutrition, error) {
+	s.checkPreconditions()
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
+	}
+
+	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
+	}
+	if dsnap == nil {
+		return nil, fmt.Errorf("the supplier does not exist in our records")
+	}
+
+	supplier := &Supplier{}
+
+	err = dsnap.DataTo(supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier data: %v", err)
+	}
+
+	kyc := OrganizationNutrition{
+		OrganizationTypeName:               input.OrganizationTypeName,
+		KRAPIN:                             input.KRAPIN,
+		KRAPINUploadID:                     input.KRAPINUploadID,
+		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+		CertificateOfIncorporation:         input.CertificateOfIncorporation,
+		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+		DirectorIdentifications: func(p []IdentificationInput) []Identification {
+			pl := []Identification{}
+			for _, i := range p {
+				pl = append(pl, Identification(i))
+			}
+			return pl
+		}(input.DirectorIdentifications),
+		OrganizationCertificate: input.OrganizationCertificate,
+		RegistrationNumber:      input.RegistrationNumber,
+		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	k, err := json.Marshal(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+	var kycAsMap map[string]interface{}
+	err = json.Unmarshal(k, &kycAsMap)
+	if err != nil {
+		return nil, fmt.Errorf("cannot unmarshal kyc from json")
+	}
+
+	supplier.SupplierKYC = kycAsMap
+
+	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+
+	return &kyc, nil
+}
