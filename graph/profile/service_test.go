@@ -3,6 +3,7 @@ package profile
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -22,7 +23,7 @@ func TestMain(m *testing.M) {
 	log.Printf("Setting tests up ...")
 	os.Setenv("ENVIRONMENT", "staging")
 	os.Setenv("DEBUG", "true")
-	os.Setenv("ROOT_COLLECTION_SUFFIX", "onboarding_testing")
+	os.Setenv("ROOT_COLLECTION_SUFFIX", fmt.Sprintf("profile_ci_%v", time.Now().Unix()))
 	ctx := context.Background()
 	s := NewService()
 

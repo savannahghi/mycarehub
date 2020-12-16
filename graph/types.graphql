@@ -240,3 +240,81 @@ type OrganizationRider {
   kraPINUploadID: String!
   supportingDocumentsUploadID: [String]
 }
+
+type IndividualPractitioner {
+  # common for individual account types
+  identificationDoc: Identification!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique to practitioner
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+  practiceServices: [PractitionerService!]!
+  cadre: PractitionerCadre!
+}
+
+type OrganizationPractitioner {
+  # common for oragization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [Identification]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique to practitioner
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+  practiceServices: [PractitionerService!]!
+  cadre: PractitionerCadre!
+}
+
+type OrganizationProvider {
+  # common for oragization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [Identification]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique to practitioner
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+  practiceServices: [PractitionerService!]!
+  cadre: PractitionerCadre!
+}
+
+type IndividualPharmaceutical {
+  # common for individual account types
+  identificationDoc: Identification!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique to practitioner
+  registrationNumber: String!
+  licenseUploadID: String!
+}

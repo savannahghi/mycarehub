@@ -116,6 +116,7 @@ input IndividualRiderInput {
 }
 
 input OrganizationRiderInput {
+  # common for oragization account types
   organizationTypeName: OrganizationType!
 
   # common for all
@@ -130,4 +131,82 @@ input OrganizationRiderInput {
 
   # common for organization : others
   organizationCertificate: String
+}
+
+input IndividualPractitionerInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique to practitioner
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+  practiceServices: [PractitionerService!]!
+  cadre: PractitionerCadre!
+}
+
+input OrganizationPractitionerInput {
+  # common for oragization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [IdentificationInput]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique to practitioner
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+  practiceServices: [PractitionerService!]!
+  cadre: PractitionerCadre!
+}
+
+input OrganizationProviderInput {
+  # common for oragization account types
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [IdentificationInput]
+
+  # common for organization : others
+  organizationCertificate: String
+
+  # unique to practitioner
+  registrationNumber: String!
+  practiceLicenseUploadID: String!
+  practiceServices: [PractitionerService!]!
+  cadre: PractitionerCadre!
+}
+
+input IndividualPharmaceuticalInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique to practitioner
+  registrationNumber: String!
+  licenseUploadID: String!
 }
