@@ -237,17 +237,11 @@ func (s Service) SaveProfileNudge(nudge map[string]interface{}) error {
 // UserProfile retrieves the profile of the logged in user, if they have one
 func (s Service) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	s.checkPreconditions()
-	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	userProfile := &base.UserProfile{}
-	err = dsnap.DataTo(userProfile)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read user profile: %w", err)
-	}
-	userProfile.IsTester = isTester(ctx, userProfile.Emails)
-	return userProfile, nil
+	return s.GetUserProfile(ctx, uid)
 }
 
 // GetOrCreateUserProfile retrieves the user profile of a
@@ -1549,9 +1543,6 @@ func (s Service) VerifySignUpPhoneNumber(ctx context.Context, phone string) (map
 	if err != nil {
 		return defaultData, fmt.Errorf("can't fetch user profile: %v", err)
 	}
-	if len(docs) > 1 && base.IsDebug() {
-		log.Printf("user with phone number %s has > 1 profile (they have %d)", phoneNumber, len(docs))
-	}
 	if len(docs) == 0 && base.IsDebug() {
 		log.Printf("user with phone number %s has no user profile", phoneNumber)
 	}
@@ -1609,7 +1600,7 @@ func (s Service) CreateUserByPhone(ctx context.Context, phoneNumber string) (*Cr
 	if tokenErr != nil {
 		return nil, fmt.Errorf("CreateUserByPhone: unable to get or create custom token: %w", tokenErr)
 	}
-	//  get or create a profile for the user
+	//  create a profile for the user
 	userProfile, err := s.CreateUserProfile(ctx, phone, user.UID)
 	if err != nil {
 		return nil, fmt.Errorf("CreateUserByPhone: unable to get or create a profile for the user: %w", err)

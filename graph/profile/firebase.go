@@ -32,8 +32,7 @@ func (s Service) RetrieveFireStoreSnapshotByUID(
 	return dsnap, nil
 }
 
-// RetrieveUserProfileFirebaseDocSnapshotByUID retrieves the user profile of a
-// specified user
+// RetrieveUserProfileFirebaseDocSnapshotByUID retrieves the user profile
 func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 	ctx context.Context,
 	uid string,
@@ -49,7 +48,6 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 
 		log.Printf("user with uids %s has > 1 profile (they have %d)", uids, len(docs))
 	}
-	// remove the other profiles and retain the first one that was initially created
 	if len(docs) > 1 {
 		for i, doc := range docs {
 			if i != 0 {
@@ -68,6 +66,7 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 			IsApproved:          false,
 			TermsAccepted:       false,
 			CanExperiment:       false,
+			Active:              true,
 		}
 		docID, err := base.SaveDataToFirestore(
 			s.firestoreClient, s.GetUserProfileCollectionName(), newProfile)
@@ -273,7 +272,7 @@ func (s Service) AddPractitionerHelper(practitioner *Practitioner) (*string, err
 }
 
 // CreateUserProfile creates a user profile in the database given a phone number and verified firebase auth uid
-func (s Service) CreateUserProfile(ctx context.Context, msisdn, uid string) (*base.UserProfile, error){
+func (s Service) CreateUserProfile(ctx context.Context, msisdn, uid string) (*base.UserProfile, error) {
 	// prepare the user payload
 	var uids []string
 	var msisdns []string
@@ -305,5 +304,128 @@ func (s Service) CreateUserProfile(ctx context.Context, msisdn, uid string) (*ba
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
+	return userProfile, nil
+}
+
+// RetrieveAndUpdateOldProfile retrieve old profile and update with new
+func (s Service) RetrieveAndUpdateOldProfile(
+	ctx context.Context,
+	uid string,
+) (*base.UserProfile, error) {
+	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
+	query := collection.Where("uid", "==", uid)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	// No profile found with uid check with uids
+	if len(docs) == 0 {
+		// check with uids
+		return s.RetrieveOldProfileByUIDS(ctx, uid)
+	}
+	return s.AssignNewProfile(ctx, uid)
+}
+
+
+// RetrieveOldProfileByUIDS retrieve old profiles  that used uids as the primary reference
+func (s Service) RetrieveOldProfileByUIDS(
+	ctx context.Context,
+	uid string,
+) (*base.UserProfile, error) {
+	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
+	query := collection.Where("uids", "array-contains", uid)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	// No profile found assign new one
+	if len(docs) == 0 {
+		return s.AssignNewProfile(ctx, uid)
+	}
+	// user has an old profile give them a new one
+	return s.AssignNewProfile(ctx, uid)
+}
+
+// AssignNewProfile gives user a new profile
+func (s Service) AssignNewProfile(
+	ctx context.Context,
+	uid string,
+) (*base.UserProfile, error) {
+	uids := []string{uid}
+	newProfile := &base.UserProfile{
+		ID:                  uuid.New().String(),
+		VerifiedIdentifiers: uids,
+		IsApproved:          false,
+		TermsAccepted:       false,
+		CanExperiment:       false,
+		Active:              true,
+		// for backward comaptibility old user profiles  will have to reset thier PIN
+		HasPin: true,
+	}
+	docID, err := base.SaveDataToFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), newProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new user profile: %w", err)
+	}
+	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
+	dsnap, err := collection.Doc(docID).Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve newly created user profile: %w", err)
+	}
+	// read and unpack profile
+	userProfile := &base.UserProfile{}
+	err = dsnap.DataTo(userProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+	// check whether they are Testers and update accordingly
+	userProfile.IsTester = isTester(ctx, userProfile.Emails)
+	return userProfile, nil
+}
+
+
+// GetUserProfile retrieves the user profile
+func (s Service) GetUserProfile(
+	ctx context.Context,
+	uid string,
+) (*base.UserProfile, error) {
+	// Retrieve the user profile
+	uids := []string{uid}
+	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
+	query := collection.Where("verifiedIdentifiers", "array-contains-any", uids)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) > 1 && base.IsDebug() {
+		log.Printf("user with uids %s has > 1 profile (they have %d)", uids, len(docs))
+	}
+	// if user has more than one profile retain the first one initially created
+	if len(docs) > 1 {
+		for i, doc := range docs {
+			if i != 0 {
+				_, err := doc.Ref.Delete(ctx)
+				if err != nil {
+					return nil, fmt.Errorf("failed to delete profile to avoid multiple user profile: %w", err)
+				}
+
+			}
+		}
+	}
+	// no profile found check for old ones and link/assign a new one
+	// this ensures we port old profiles to new for backward compatibility
+	if len(docs) == 0 {
+		// check if they user has any old profile and update with new
+		return s.RetrieveAndUpdateOldProfile(ctx, uid)
+	}
+	// read and unpack profile
+	dsnap := docs[0]
+	userProfile := &base.UserProfile{}
+	err = dsnap.DataTo(userProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+	// check whether they are Testers and update accordingly
+	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 	return userProfile, nil
 }
