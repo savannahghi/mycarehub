@@ -46,7 +46,20 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByUID(
 		return nil, err
 	}
 	if len(docs) > 1 && base.IsDebug() {
+
 		log.Printf("user with uids %s has > 1 profile (they have %d)", uids, len(docs))
+	}
+	// remove the other profiles and retain the first one that was initially created
+	if len(docs) > 1 {
+		for i, doc := range docs {
+			if i != 0 {
+				_, err := doc.Ref.Delete(ctx)
+				if err != nil {
+					return nil, fmt.Errorf("failed to delete profile to avoid multiple user profile: %w", err)
+				}
+
+			}
+		}
 	}
 	if len(docs) == 0 {
 		newProfile := &base.UserProfile{
@@ -141,7 +154,18 @@ func (s Service) RetrieveOrCreateUserProfileFirebaseDocSnapshot(
 			log.Printf("user %s has > 1 profile (they have %d)", uid, len(docs))
 		}
 	}
+	// remove the other profiles and retain the first one that was initially created
+	if len(docs) > 1 {
+		for i, doc := range docs {
+			if i != 0 {
+				_, err := doc.Ref.Delete(ctx)
+				if err != nil {
+					return nil, fmt.Errorf("failed to delete profile to avoid multiple user profile: %w", err)
+				}
 
+			}
+		}
+	}
 	var uids []string
 	var msisdns []string
 
@@ -169,6 +193,7 @@ func (s Service) RetrieveOrCreateUserProfileFirebaseDocSnapshot(
 				TermsAccepted:       false,
 				CanExperiment:       false,
 				Msisdns:             msisdns,
+				Active:              true,
 			}
 			docID, err := base.SaveDataToFirestore(
 				s.firestoreClient, s.GetUserProfileCollectionName(), newProfile)
@@ -200,6 +225,43 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshot(
 	return s.RetrieveUserProfileFirebaseDocSnapshotByUID(ctx, uid)
 }
 
+// RetrievePINFirebaseDocSnapshotByMSISDN retrieves the user profile of a
+// specified user
+func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
+	ctx context.Context,
+	msisdn string,
+) (*firestore.DocumentSnapshot, error) {
+
+	collection := s.firestoreClient.Collection(s.GetPINCollectionName())
+	query := collection.Where("msisdn", "==", msisdn).Where("isValid", "==", true)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) > 1 {
+		if base.IsDebug() {
+			log.Printf("msisdn %s has more than one PIN (it has %d)", msisdn, len(docs))
+		}
+	}
+	// remove the other PINs and retain the first one that was initially created
+	if len(docs) > 1 {
+		for i, doc := range docs {
+			if i != 0 {
+				_, err := doc.Ref.Delete(ctx)
+				if err != nil {
+					return nil, fmt.Errorf("failed to delete PIN to avoid multiple user PINs: %w", err)
+				}
+
+			}
+		}
+	}
+	if len(docs) == 0 {
+		return nil, nil
+	}
+	dsnap := docs[0]
+	return dsnap, nil
+}
+
 // AddPractitionerHelper helper to add a practitioner to use in tests
 func (s Service) AddPractitionerHelper(practitioner *Practitioner) (*string, error) {
 	docID, err := base.SaveDataToFirestore(
@@ -208,4 +270,40 @@ func (s Service) AddPractitionerHelper(practitioner *Practitioner) (*string, err
 		return nil, fmt.Errorf("unable to create new user profile: %w", err)
 	}
 	return &docID, nil
+}
+
+// CreateUserProfile creates a user profile in the database given a phone number and verified firebase auth uid
+func (s Service) CreateUserProfile(ctx context.Context, msisdn, uid string) (*base.UserProfile, error){
+	// prepare the user payload
+	var uids []string
+	var msisdns []string
+	uids = append(uids, uid)
+	msisdns = append(msisdns, msisdn)
+	newProfile := &base.UserProfile{
+		ID:                  uuid.New().String(),
+		VerifiedIdentifiers: uids,
+		IsApproved:          false,
+		TermsAccepted:       false,
+		CanExperiment:       false,
+		Msisdns:             msisdns,
+		Active:              true,
+	}
+	// persist the data to a datastore
+	docID, err := base.SaveDataToFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), newProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new user profile: %w", err)
+	}
+	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
+	dsnap, err := collection.Doc(docID).Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve newly created user profile: %w", err)
+	}
+	// return the newly created user profile
+	userProfile := &base.UserProfile{}
+	err = dsnap.DataTo(userProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+	return userProfile, nil
 }

@@ -1100,31 +1100,6 @@ func (s Service) VerifyMSISDNandPIN(ctx context.Context, msisdn string, pinNumbe
 	return true, nil
 }
 
-// RetrievePINFirebaseDocSnapshotByMSISDN retrieves the user profile of a
-// specified user
-func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
-	ctx context.Context,
-	msisdn string,
-) (*firestore.DocumentSnapshot, error) {
-
-	collection := s.firestoreClient.Collection(s.GetPINCollectionName())
-	query := collection.Where("msisdn", "==", msisdn).Where("isValid", "==", true)
-	docs, err := query.Documents(ctx).GetAll()
-	if err != nil {
-		return nil, err
-	}
-	if len(docs) > 1 {
-		if base.IsDebug() {
-			log.Printf("msisdn %s has more than one PIN (it has %d)", msisdn, len(docs))
-		}
-	}
-	if len(docs) == 0 {
-		return nil, nil
-	}
-	dsnap := docs[0]
-	return dsnap, nil
-}
-
 // CheckHasPIN given a phone number checks if the phonenumber is present in our collections
 // which essentially means that the number has an already existing PIN
 func (s Service) CheckHasPIN(ctx context.Context, msisdn string) (bool, error) {
@@ -1617,42 +1592,27 @@ func (s Service) generateAndSendOTP(phone string) (string, error) {
 	return string(code), nil
 }
 
-// RetrieveOrCreateUserProfile creates or retrieves user profile via thier phone number and uid  in the database
-func (s Service) RetrieveOrCreateUserProfile(ctx context.Context, phone, uid string) (*base.UserProfile, error) {
-	// prepare user payload for creation
-	dsnap, err := s.RetrieveOrCreateUserProfileFirebaseDocSnapshot(ctx, uid, phone)
-	if err != nil {
-		return nil, err
-	}
-	userProfile := &base.UserProfile{}
-	err = dsnap.DataTo(userProfile)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read user profile: %w", err)
-	}
-	return userProfile, nil
-}
-
 // CreateUserByPhone represents logic to create a user via their phoneNumber
 func (s Service) CreateUserByPhone(ctx context.Context, phoneNumber string) (*CreatedUserResponse, error) {
 	// validate phone number
 	phone, err := base.NormalizeMSISDN(phoneNumber)
 	if err != nil {
-		return nil, fmt.Errorf("NormalizeMSISDN: invalid phone number: %w", err)
+		return nil, fmt.Errorf("CreateUserByPhone: invalid phone number: %w", err)
 	}
 	// get or create user via thier phone number
 	user, err := base.GetOrCreatePhoneNumberUser(ctx, phone)
 	if err != nil {
-		return nil, fmt.Errorf("CreateFirebasePhoneNumberAuthToken: unable to create firebase user: %w", err)
+		return nil, fmt.Errorf("CreateUserByPhone: unable to create firebase user: %w", err)
 	}
 	// generate a token for the user
 	customToken, tokenErr := base.CreateFirebaseCustomToken(ctx, user.UID)
 	if tokenErr != nil {
-		return nil, fmt.Errorf("CreateFirebaseCustomToken: unable to get or create custom token: %w", tokenErr)
+		return nil, fmt.Errorf("CreateUserByPhone: unable to get or create custom token: %w", tokenErr)
 	}
 	//  get or create a profile for the user
-	userProfile, err := s.RetrieveOrCreateUserProfile(ctx, phone, user.UID)
+	userProfile, err := s.CreateUserProfile(ctx, phone, user.UID)
 	if err != nil {
-		return nil, fmt.Errorf("CreateUserProfile: unable to get or create a profile for the user: %w", err)
+		return nil, fmt.Errorf("CreateUserByPhone: unable to get or create a profile for the user: %w", err)
 	}
 	// prepare payload to return as response
 	createdUser := &CreatedUserResponse{
