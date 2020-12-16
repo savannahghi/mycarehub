@@ -422,3 +422,52 @@ func (e *PartnerType) UnmarshalGQL(v interface{}) error {
 func (e PartnerType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
+
+// OrganizationType defines the various OrganizationTypes
+type OrganizationType string
+
+// IdentificationDocTypeNationalid is an example of a IdentificationDocType
+const (
+	OrganizationTypeLimitedCompany OrganizationType = "LIMITED_COMPANY"
+	OrganizationTypeTrust          OrganizationType = "TRUST"
+	OrganizationTypeUniversity     OrganizationType = "UNIVERSITY"
+)
+
+// AllOrganizationType contains a slice of all OrganizationType
+var AllOrganizationType = []OrganizationType{
+	OrganizationTypeLimitedCompany,
+	OrganizationTypeTrust,
+	OrganizationTypeUniversity,
+}
+
+// IsValid checks if the IdentificationDocType is valid
+func (e OrganizationType) IsValid() bool {
+	switch e {
+	case OrganizationTypeLimitedCompany, OrganizationTypeTrust, OrganizationTypeUniversity:
+		return true
+	}
+	return false
+}
+
+func (e OrganizationType) String() string {
+	return string(e)
+}
+
+// UnmarshalGQL converts the input, if valid, into an IdentificationDocType value
+func (e *OrganizationType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrganizationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IdentificationDocType", str)
+	}
+	return nil
+}
+
+// MarshalGQL converts IdentificationDocType into a valid JSON string
+func (e OrganizationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}

@@ -167,60 +167,76 @@ type Supplier {
   sladeCode: String
   parentOrganizationID: String
   location: Location
-
 }
 
 type Location {
-    id: ID!
-    name: String!
-    branchSladeCode: String
+  id: ID!
+  name: String!
+  branchSladeCode: String
 }
 
 type BusinessPartner {
-    id: ID!
-    name: String!
-    sladeCode: String!
+  id: ID!
+  name: String!
+  sladeCode: String!
 }
 
 type BusinessPartnerEdge {
-    cursor: String
-    node: BusinessPartner
+  cursor: String
+  node: BusinessPartner
 }
 
 type BusinessPartnerConnection {
-    edges: [BusinessPartnerEdge]
-    pageInfo: PageInfo!
+  edges: [BusinessPartnerEdge]
+  pageInfo: PageInfo!
 }
 
 # A location is a "branch" of an organization.
 type Branch {
-    id: ID!
-    name: String!
-    organizationSladeCode: String!
-    branchSladeCode: String!
+  id: ID!
+  name: String!
+  organizationSladeCode: String!
+  branchSladeCode: String!
 }
 
 type BranchEdge {
-    cursor: String
-    node: Branch
+  cursor: String
+  node: Branch
 }
 
 type BranchConnection {
-    edges: [BranchEdge]
-    pageInfo: PageInfo!
+  edges: [BranchEdge]
+  pageInfo: PageInfo!
 }
 
-
-type IndividualRider {
-  identificationDocType: IdentificationDocType
+type Identification {
+  identificationDocType: IdentificationDocType!
   identificationDocNumber: String!
   identificationDocNumberUploadID: String!
+}
+
+type IndividualRider {
+  identificationDoc: Identification!
 
   kraPIN: String!
   kraPINUploadID: String!
 
   drivingLicenseUploadID: String!
-  supportingDocumentsUploadID: [String]
   certificateGoodConductUploadID: String!
+  supportingDocumentsUploadID: [String]
 }
 
+type OrganizationRider {
+  organizationTypeName: OrganizationType!
+
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [Identification]
+
+  organizationCertificate: String
+
+  # common for all
+  kraPIN: String!
+  kraPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+}

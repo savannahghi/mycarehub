@@ -79,33 +79,55 @@ input BusinessPartnerSortInput {
 }
 
 input BranchFilterInput {
-    search: String
-    sladeCode: String
-    parentOrganizationID: String
+  search: String
+  sladeCode: String
+  parentOrganizationID: String
 }
 
 input BranchSortInput {
-    name: SortOrder
-    sladeCode: SortOrder
+  name: SortOrder
+  sladeCode: SortOrder
 }
 
 input LocationInput {
-    id: ID!
-    name: String!
-
-    branchSladeCode: String
+  id: ID!
+  name: String!
+  branchSladeCode: String
 }
 
-
-input IndividualRiderInput {
-  identificationDocType: IdentificationDocType
+input IdentificationInput {
+  identificationDocType: IdentificationDocType!
   identificationDocNumber: String!
   identificationDocNumberUploadID: String!
+}
 
-  kraPIN: String!
-  kraPINUploadID: String!
+input IndividualRiderInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
 
-  drivingLicenseUploadID: String!
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
   supportingDocumentsUploadID: [String]
+
+  # unique to riders
+  drivingLicenseUploadID: String!
   certificateGoodConductUploadID: String!
+}
+
+input OrganizationRiderInput {
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [IdentificationInput]
+
+  # common for organization : others
+  organizationCertificate: String
 }

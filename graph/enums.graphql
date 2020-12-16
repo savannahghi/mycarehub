@@ -61,3 +61,12 @@ enum PartnerType {
   NUTRITION
   CONSUMER
 }
+
+enum OrganizationType {
+  # main
+  LIMITED_COMPANY
+
+  # others
+  TRUST
+  UNIVERSITY
+}

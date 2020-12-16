@@ -534,27 +534,3 @@ type LocationInput struct {
 	Name            string  `json:"name"`
 	BranchSladeCode *string `json:"branchSladeCode"`
 }
-
-// IndividualRider holds the KYC for an individual rider
-type IndividualRider struct {
-	IdentificationDocType           IdentificationDocType `json:"identificationDocType" mapstructure:"identificationDocType"`
-	IdentificationDocNumber         string                `json:"identificationDocNumber" mapstructure:"identificationDocNumber"`
-	IdentificationDocNumberUploadID string                `json:"identificationDocNumberUploadID" mapstructure:"identificationDocNumberUploadID"`
-	KRAPIN                          string                `json:"kraPIN" mapstructure:"kraPIN"`
-	KRAPINUploadID                  string                `json:"kraPINUploadID" mapstructure:"kraPINUploadID"`
-	DrivingLicenseUploadID          string                `json:"drivingLicenseUploadID" mapstructure:"drivingLicenseUploadID"`
-	CertificateGoodConductUploadID  string                `json:"certificateGoodConductUploadID" mapstructure:"certificateGoodConductUploadID"`
-	SupportingDocumentsUploadID     []string              `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
-}
-
-// IndividualRiderInput is used to record the KYC for an individual rider
-type IndividualRiderInput struct {
-	IdentificationDocType           IdentificationDocType `json:"identificationDocType"`
-	IdentificationDocNumber         string                `json:"identificationDocNumber"`
-	IdentificationDocNumberUploadID string                `json:"identificationDocNumberUploadID"`
-	KRAPIN                          string                `json:"kraPIN"`
-	KRAPINUploadID                  string                `json:"kraPINUploadID"`
-	DrivingLicenseUploadID          string                `json:"drivingLicenseUploadID"`
-	CertificateGoodConductUploadID  string                `json:"certificateGoodConductUploadID"`
-	SupportingDocumentsUploadID     []string              `json:"supportingDocumentsUploadID"`
-}

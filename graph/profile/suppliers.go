@@ -674,13 +674,15 @@ func (s *Service) AddIndividualRiderKyc(ctx context.Context, input IndividualRid
 	}
 
 	kyc := IndividualRider{
-		IdentificationDocType:           input.IdentificationDocType,
-		IdentificationDocNumber:         input.IdentificationDocNumber,
-		IdentificationDocNumberUploadID: input.IdentificationDocNumberUploadID,
-		KRAPIN:                          input.KRAPIN,
-		KRAPINUploadID:                  input.KRAPINUploadID,
-		DrivingLicenseUploadID:          input.DrivingLicenseUploadID,
-		CertificateGoodConductUploadID:  input.IdentificationDocNumberUploadID,
+		IdentificationDoc: Identification{
+			IdentificationDocType:           input.IdentificationDoc.IdentificationDocType,
+			IdentificationDocNumber:         input.IdentificationDoc.IdentificationDocNumber,
+			IdentificationDocNumberUploadID: input.IdentificationDoc.IdentificationDocNumberUploadID,
+		},
+		KRAPIN:                         input.KRAPIN,
+		KRAPINUploadID:                 input.KRAPINUploadID,
+		DrivingLicenseUploadID:         input.DrivingLicenseUploadID,
+		CertificateGoodConductUploadID: input.CertificateGoodConductUploadID,
 	}
 
 	if len(input.SupportingDocumentsUploadID) != 0 {

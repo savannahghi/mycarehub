@@ -505,22 +505,26 @@ func TestService_AddIndividualRiderKyc(t *testing.T) {
 	}
 
 	riderInput := IndividualRiderInput{
-		IdentificationDocType:           IdentificationDocTypeNationalid,
-		IdentificationDocNumber:         "12345678",
-		IdentificationDocNumberUploadID: "12345678",
-		KRAPIN:                          "12345678",
-		KRAPINUploadID:                  "12345678",
-		DrivingLicenseUploadID:          "12345678",
-		CertificateGoodConductUploadID:  "12345678",
+		IdentificationDoc: IdentificationInput{
+			IdentificationDocType:           IdentificationDocTypeNationalid,
+			IdentificationDocNumber:         "12345678",
+			IdentificationDocNumberUploadID: "12345678",
+		},
+		KRAPIN:                         "12345678",
+		KRAPINUploadID:                 "12345678",
+		DrivingLicenseUploadID:         "12345678",
+		CertificateGoodConductUploadID: "12345678",
 	}
 	riderKYC := &IndividualRider{
-		IdentificationDocType:           IdentificationDocTypeNationalid,
-		IdentificationDocNumber:         "12345678",
-		IdentificationDocNumberUploadID: "12345678",
-		KRAPIN:                          "12345678",
-		KRAPINUploadID:                  "12345678",
-		DrivingLicenseUploadID:          "12345678",
-		CertificateGoodConductUploadID:  "12345678",
+		IdentificationDoc: Identification{
+			IdentificationDocType:           IdentificationDocTypeNationalid,
+			IdentificationDocNumber:         "12345678",
+			IdentificationDocNumberUploadID: "12345678",
+		},
+		KRAPIN:                         "12345678",
+		KRAPINUploadID:                 "12345678",
+		DrivingLicenseUploadID:         "12345678",
+		CertificateGoodConductUploadID: "12345678",
 	}
 
 	type args struct {

@@ -117,15 +117,19 @@ type ComplexityRoot struct {
 		FindUserProfileByID       func(childComplexity int, id string) int
 	}
 
-	IndividualRider struct {
-		CertificateGoodConductUploadID  func(childComplexity int) int
-		DrivingLicenseUploadID          func(childComplexity int) int
+	Identification struct {
 		IdentificationDocNumber         func(childComplexity int) int
 		IdentificationDocNumberUploadID func(childComplexity int) int
 		IdentificationDocType           func(childComplexity int) int
-		KRAPIN                          func(childComplexity int) int
-		KRAPINUploadID                  func(childComplexity int) int
-		SupportingDocumentsUploadID     func(childComplexity int) int
+	}
+
+	IndividualRider struct {
+		CertificateGoodConductUploadID func(childComplexity int) int
+		DrivingLicenseUploadID         func(childComplexity int) int
+		IdentificationDoc              func(childComplexity int) int
+		KRAPIN                         func(childComplexity int) int
+		KRAPINUploadID                 func(childComplexity int) int
+		SupportingDocumentsUploadID    func(childComplexity int) int
 	}
 
 	KMPDUPractitioner struct {
@@ -182,6 +186,17 @@ type ComplexityRoot struct {
 		UpdateUserPin              func(childComplexity int, msisdn string, pin string) int
 		UpdateUserProfile          func(childComplexity int, input profile.UserProfileInput) int
 		VerifyEmailOtp             func(childComplexity int, email string, otp string) int
+	}
+
+	OrganizationRider struct {
+		CertificateOfInCorporationUploadID func(childComplexity int) int
+		CertificateOfIncorporation         func(childComplexity int) int
+		DirectorIdentifications            func(childComplexity int) int
+		KRAPIN                             func(childComplexity int) int
+		KRAPINUploadID                     func(childComplexity int) int
+		OrganizationCertificate            func(childComplexity int) int
+		OrganizationTypeName               func(childComplexity int) int
+		SupportingDocumentsUploadID        func(childComplexity int) int
 	}
 
 	PageInfo struct {
@@ -660,6 +675,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Entity.FindUserProfileByID(childComplexity, args["id"].(string)), true
 
+	case "Identification.identificationDocNumber":
+		if e.complexity.Identification.IdentificationDocNumber == nil {
+			break
+		}
+
+		return e.complexity.Identification.IdentificationDocNumber(childComplexity), true
+
+	case "Identification.identificationDocNumberUploadID":
+		if e.complexity.Identification.IdentificationDocNumberUploadID == nil {
+			break
+		}
+
+		return e.complexity.Identification.IdentificationDocNumberUploadID(childComplexity), true
+
+	case "Identification.identificationDocType":
+		if e.complexity.Identification.IdentificationDocType == nil {
+			break
+		}
+
+		return e.complexity.Identification.IdentificationDocType(childComplexity), true
+
 	case "IndividualRider.certificateGoodConductUploadID":
 		if e.complexity.IndividualRider.CertificateGoodConductUploadID == nil {
 			break
@@ -674,26 +710,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.IndividualRider.DrivingLicenseUploadID(childComplexity), true
 
-	case "IndividualRider.identificationDocNumber":
-		if e.complexity.IndividualRider.IdentificationDocNumber == nil {
+	case "IndividualRider.identificationDoc":
+		if e.complexity.IndividualRider.IdentificationDoc == nil {
 			break
 		}
 
-		return e.complexity.IndividualRider.IdentificationDocNumber(childComplexity), true
-
-	case "IndividualRider.identificationDocNumberUploadID":
-		if e.complexity.IndividualRider.IdentificationDocNumberUploadID == nil {
-			break
-		}
-
-		return e.complexity.IndividualRider.IdentificationDocNumberUploadID(childComplexity), true
-
-	case "IndividualRider.identificationDocType":
-		if e.complexity.IndividualRider.IdentificationDocType == nil {
-			break
-		}
-
-		return e.complexity.IndividualRider.IdentificationDocType(childComplexity), true
+		return e.complexity.IndividualRider.IdentificationDoc(childComplexity), true
 
 	case "IndividualRider.kraPIN":
 		if e.complexity.IndividualRider.KRAPIN == nil {
@@ -1127,6 +1149,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.VerifyEmailOtp(childComplexity, args["email"].(string), args["otp"].(string)), true
+
+	case "OrganizationRider.certificateOfInCorporationUploadID":
+		if e.complexity.OrganizationRider.CertificateOfInCorporationUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationRider.CertificateOfInCorporationUploadID(childComplexity), true
+
+	case "OrganizationRider.certificateOfIncorporation":
+		if e.complexity.OrganizationRider.CertificateOfIncorporation == nil {
+			break
+		}
+
+		return e.complexity.OrganizationRider.CertificateOfIncorporation(childComplexity), true
+
+	case "OrganizationRider.directorIdentifications":
+		if e.complexity.OrganizationRider.DirectorIdentifications == nil {
+			break
+		}
+
+		return e.complexity.OrganizationRider.DirectorIdentifications(childComplexity), true
+
+	case "OrganizationRider.kraPIN":
+		if e.complexity.OrganizationRider.KRAPIN == nil {
+			break
+		}
+
+		return e.complexity.OrganizationRider.KRAPIN(childComplexity), true
+
+	case "OrganizationRider.kraPINUploadID":
+		if e.complexity.OrganizationRider.KRAPINUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationRider.KRAPINUploadID(childComplexity), true
+
+	case "OrganizationRider.organizationCertificate":
+		if e.complexity.OrganizationRider.OrganizationCertificate == nil {
+			break
+		}
+
+		return e.complexity.OrganizationRider.OrganizationCertificate(childComplexity), true
+
+	case "OrganizationRider.organizationTypeName":
+		if e.complexity.OrganizationRider.OrganizationTypeName == nil {
+			break
+		}
+
+		return e.complexity.OrganizationRider.OrganizationTypeName(childComplexity), true
+
+	case "OrganizationRider.supportingDocumentsUploadID":
+		if e.complexity.OrganizationRider.SupportingDocumentsUploadID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationRider.SupportingDocumentsUploadID(childComplexity), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -1986,7 +2064,17 @@ enum PartnerType {
   COACH
   NUTRITION
   CONSUMER
-}`, BuiltIn: false},
+}
+
+enum OrganizationType {
+  # main
+  LIMITED_COMPANY
+
+  # others
+  TRUST
+  UNIVERSITY
+}
+`, BuiltIn: false},
 	{Name: "graph/external.graphql", Input: `
 # supported content types
 enum ContentType {
@@ -2179,36 +2267,59 @@ input BusinessPartnerSortInput {
 }
 
 input BranchFilterInput {
-    search: String
-    sladeCode: String
-    parentOrganizationID: String
+  search: String
+  sladeCode: String
+  parentOrganizationID: String
 }
 
 input BranchSortInput {
-    name: SortOrder
-    sladeCode: SortOrder
+  name: SortOrder
+  sladeCode: SortOrder
 }
 
 input LocationInput {
-    id: ID!
-    name: String!
-
-    branchSladeCode: String
+  id: ID!
+  name: String!
+  branchSladeCode: String
 }
 
-
-input IndividualRiderInput {
-  identificationDocType: IdentificationDocType
+input IdentificationInput {
+  identificationDocType: IdentificationDocType!
   identificationDocNumber: String!
   identificationDocNumberUploadID: String!
+}
 
-  kraPIN: String!
-  kraPINUploadID: String!
+input IndividualRiderInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
 
-  drivingLicenseUploadID: String!
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
   supportingDocumentsUploadID: [String]
+
+  # unique to riders
+  drivingLicenseUploadID: String!
   certificateGoodConductUploadID: String!
-}`, BuiltIn: false},
+}
+
+input OrganizationRiderInput {
+  organizationTypeName: OrganizationType!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # common for organization : limited company
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [IdentificationInput]
+
+  # common for organization : others
+  organizationCertificate: String
+}
+`, BuiltIn: false},
 	{Name: "graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
   getOrCreateUserProfile(phone: String!): UserProfile!
@@ -2447,63 +2558,79 @@ type Supplier {
   sladeCode: String
   parentOrganizationID: String
   location: Location
-
 }
 
 type Location {
-    id: ID!
-    name: String!
-    branchSladeCode: String
+  id: ID!
+  name: String!
+  branchSladeCode: String
 }
 
 type BusinessPartner {
-    id: ID!
-    name: String!
-    sladeCode: String!
+  id: ID!
+  name: String!
+  sladeCode: String!
 }
 
 type BusinessPartnerEdge {
-    cursor: String
-    node: BusinessPartner
+  cursor: String
+  node: BusinessPartner
 }
 
 type BusinessPartnerConnection {
-    edges: [BusinessPartnerEdge]
-    pageInfo: PageInfo!
+  edges: [BusinessPartnerEdge]
+  pageInfo: PageInfo!
 }
 
 # A location is a "branch" of an organization.
 type Branch {
-    id: ID!
-    name: String!
-    organizationSladeCode: String!
-    branchSladeCode: String!
+  id: ID!
+  name: String!
+  organizationSladeCode: String!
+  branchSladeCode: String!
 }
 
 type BranchEdge {
-    cursor: String
-    node: Branch
+  cursor: String
+  node: Branch
 }
 
 type BranchConnection {
-    edges: [BranchEdge]
-    pageInfo: PageInfo!
+  edges: [BranchEdge]
+  pageInfo: PageInfo!
 }
 
-
-type IndividualRider {
-  identificationDocType: IdentificationDocType
+type Identification {
+  identificationDocType: IdentificationDocType!
   identificationDocNumber: String!
   identificationDocNumberUploadID: String!
+}
+
+type IndividualRider {
+  identificationDoc: Identification!
 
   kraPIN: String!
   kraPINUploadID: String!
 
   drivingLicenseUploadID: String!
-  supportingDocumentsUploadID: [String]
   certificateGoodConductUploadID: String!
+  supportingDocumentsUploadID: [String]
 }
 
+type OrganizationRider {
+  organizationTypeName: OrganizationType!
+
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [Identification]
+
+  organizationCertificate: String
+
+  # common for all
+  kraPIN: String!
+  kraPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+}
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
@@ -4588,7 +4715,7 @@ func (ec *executionContext) _Entity_findUserProfileByID(ctx context.Context, fie
 	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualRider_identificationDocType(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+func (ec *executionContext) _Identification_identificationDocType(ctx context.Context, field graphql.CollectedField, obj *profile.Identification) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4596,7 +4723,7 @@ func (ec *executionContext) _IndividualRider_identificationDocType(ctx context.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "IndividualRider",
+		Object:     "Identification",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -4613,14 +4740,17 @@ func (ec *executionContext) _IndividualRider_identificationDocType(ctx context.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(profile.IdentificationDocType)
 	fc.Result = res
-	return ec.marshalOIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx, field.Selections, res)
+	return ec.marshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualRider_identificationDocNumber(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+func (ec *executionContext) _Identification_identificationDocNumber(ctx context.Context, field graphql.CollectedField, obj *profile.Identification) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4628,7 +4758,7 @@ func (ec *executionContext) _IndividualRider_identificationDocNumber(ctx context
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "IndividualRider",
+		Object:     "Identification",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -4655,7 +4785,7 @@ func (ec *executionContext) _IndividualRider_identificationDocNumber(ctx context
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualRider_identificationDocNumberUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+func (ec *executionContext) _Identification_identificationDocNumberUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.Identification) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4663,7 +4793,7 @@ func (ec *executionContext) _IndividualRider_identificationDocNumberUploadID(ctx
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "IndividualRider",
+		Object:     "Identification",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -4688,6 +4818,41 @@ func (ec *executionContext) _IndividualRider_identificationDocNumberUploadID(ctx
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualRider_identificationDoc(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IdentificationDoc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.Identification)
+	fc.Result = res
+	return ec.marshalNIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualRider_kraPIN(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
@@ -4795,38 +4960,6 @@ func (ec *executionContext) _IndividualRider_drivingLicenseUploadID(ctx context.
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualRider_supportingDocumentsUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "IndividualRider",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.SupportingDocumentsUploadID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _IndividualRider_certificateGoodConductUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4860,6 +4993,38 @@ func (ec *executionContext) _IndividualRider_certificateGoodConductUploadID(ctx 
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualRider_supportingDocumentsUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupportingDocumentsUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _KMPDUPractitioner_name(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitioner) (ret graphql.Marshaler) {
@@ -6455,6 +6620,271 @@ func (ec *executionContext) _Mutation_addIndividualRiderKYC(ctx context.Context,
 	res := resTmp.(*profile.IndividualRider)
 	fc.Result = res
 	return ec.marshalNIndividualRider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRider(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationRider_organizationTypeName(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationTypeName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.OrganizationType)
+	fc.Result = res
+	return ec.marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationRider_certificateOfIncorporation(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CertificateOfIncorporation, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationRider_certificateOfInCorporationUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CertificateOfInCorporationUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationRider_directorIdentifications(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DirectorIdentifications, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]profile.Identification)
+	fc.Result = res
+	return ec.marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationRider_organizationCertificate(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationCertificate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationRider_kraPIN(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPIN, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationRider_kraPINUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPINUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationRider_supportingDocumentsUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupportingDocumentsUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
@@ -11337,8 +11767,8 @@ func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj i
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Context, obj interface{}) (profile.IndividualRiderInput, error) {
-	var it profile.IndividualRiderInput
+func (ec *executionContext) unmarshalInputIdentificationInput(ctx context.Context, obj interface{}) (profile.IdentificationInput, error) {
+	var it profile.IdentificationInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -11347,7 +11777,7 @@ func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDocType"))
-			it.IdentificationDocType, err = ec.unmarshalOIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx, v)
+			it.IdentificationDocType, err = ec.unmarshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11367,27 +11797,39 @@ func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
-		case "kraPIN":
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Context, obj interface{}) (profile.IndividualRiderInput, error) {
+	var it profile.IndividualRiderInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "identificationDoc":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kraPIN"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPIN":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPIN"))
 			it.KRAPIN, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "kraPINUploadID":
+		case "KRAPINUploadID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kraPINUploadID"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPINUploadID"))
 			it.KRAPINUploadID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "drivingLicenseUploadID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("drivingLicenseUploadID"))
-			it.DrivingLicenseUploadID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11396,6 +11838,14 @@ func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocumentsUploadID"))
 			it.SupportingDocumentsUploadID, err = ec.unmarshalOString2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "drivingLicenseUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("drivingLicenseUploadID"))
+			it.DrivingLicenseUploadID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11440,6 +11890,82 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("branchSladeCode"))
 			it.BranchSladeCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputOrganizationRiderInput(ctx context.Context, obj interface{}) (profile.OrganizationRiderInput, error) {
+	var it profile.OrganizationRiderInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "organizationTypeName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
+			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPIN":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPIN"))
+			it.KRAPIN, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPINUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPINUploadID"))
+			it.KRAPINUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "supportingDocumentsUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocumentsUploadID"))
+			it.SupportingDocumentsUploadID, err = ec.unmarshalOString2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "certificateOfIncorporation":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfIncorporation"))
+			it.CertificateOfIncorporation, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "certificateOfInCorporationUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfInCorporationUploadID"))
+			it.CertificateOfInCorporationUploadID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "directorIdentifications":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "organizationCertificate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationCertificate"))
+			it.OrganizationCertificate, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12266,6 +12792,43 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 	return out
 }
 
+var identificationImplementors = []string{"Identification"}
+
+func (ec *executionContext) _Identification(ctx context.Context, sel ast.SelectionSet, obj *profile.Identification) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, identificationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Identification")
+		case "identificationDocType":
+			out.Values[i] = ec._Identification_identificationDocType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "identificationDocNumber":
+			out.Values[i] = ec._Identification_identificationDocNumber(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "identificationDocNumberUploadID":
+			out.Values[i] = ec._Identification_identificationDocNumberUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var individualRiderImplementors = []string{"IndividualRider"}
 
 func (ec *executionContext) _IndividualRider(ctx context.Context, sel ast.SelectionSet, obj *profile.IndividualRider) graphql.Marshaler {
@@ -12277,15 +12840,8 @@ func (ec *executionContext) _IndividualRider(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("IndividualRider")
-		case "identificationDocType":
-			out.Values[i] = ec._IndividualRider_identificationDocType(ctx, field, obj)
-		case "identificationDocNumber":
-			out.Values[i] = ec._IndividualRider_identificationDocNumber(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "identificationDocNumberUploadID":
-			out.Values[i] = ec._IndividualRider_identificationDocNumberUploadID(ctx, field, obj)
+		case "identificationDoc":
+			out.Values[i] = ec._IndividualRider_identificationDoc(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -12304,13 +12860,13 @@ func (ec *executionContext) _IndividualRider(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "supportingDocumentsUploadID":
-			out.Values[i] = ec._IndividualRider_supportingDocumentsUploadID(ctx, field, obj)
 		case "certificateGoodConductUploadID":
 			out.Values[i] = ec._IndividualRider_certificateGoodConductUploadID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "supportingDocumentsUploadID":
+			out.Values[i] = ec._IndividualRider_supportingDocumentsUploadID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12615,6 +13171,53 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var organizationRiderImplementors = []string{"OrganizationRider"}
+
+func (ec *executionContext) _OrganizationRider(ctx context.Context, sel ast.SelectionSet, obj *profile.OrganizationRider) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, organizationRiderImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OrganizationRider")
+		case "organizationTypeName":
+			out.Values[i] = ec._OrganizationRider_organizationTypeName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "certificateOfIncorporation":
+			out.Values[i] = ec._OrganizationRider_certificateOfIncorporation(ctx, field, obj)
+		case "certificateOfInCorporationUploadID":
+			out.Values[i] = ec._OrganizationRider_certificateOfInCorporationUploadID(ctx, field, obj)
+		case "directorIdentifications":
+			out.Values[i] = ec._OrganizationRider_directorIdentifications(ctx, field, obj)
+		case "organizationCertificate":
+			out.Values[i] = ec._OrganizationRider_organizationCertificate(ctx, field, obj)
+		case "kraPIN":
+			out.Values[i] = ec._OrganizationRider_kraPIN(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "kraPINUploadID":
+			out.Values[i] = ec._OrganizationRider_kraPINUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supportingDocumentsUploadID":
+			out.Values[i] = ec._OrganizationRider_supportingDocumentsUploadID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -14017,6 +14620,25 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) marshalNIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx context.Context, sel ast.SelectionSet, v profile.Identification) graphql.Marshaler {
+	return ec._Identification(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx context.Context, v interface{}) (profile.IdentificationDocType, error) {
+	var res profile.IdentificationDocType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx context.Context, sel ast.SelectionSet, v profile.IdentificationDocType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx context.Context, v interface{}) (profile.IdentificationInput, error) {
+	res, err := ec.unmarshalInputIdentificationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNIndividualRider2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRider(ctx context.Context, sel ast.SelectionSet, v profile.IndividualRider) graphql.Marshaler {
 	return ec._IndividualRider(ctx, sel, &v)
 }
@@ -14127,6 +14749,16 @@ func (ec *executionContext) unmarshalNOperation2gitlabᚗslade360emrᚗcomᚋgo�
 }
 
 func (ec *executionContext) marshalNOperation2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐOperation(ctx context.Context, sel ast.SelectionSet, v base.Operation) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx context.Context, v interface{}) (profile.OrganizationType, error) {
+	var res profile.OrganizationType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx context.Context, sel ast.SelectionSet, v profile.OrganizationType) graphql.Marshaler {
 	return v
 }
 
@@ -15120,14 +15752,77 @@ func (ec *executionContext) marshalOGender2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋ
 	return v
 }
 
-func (ec *executionContext) unmarshalOIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx context.Context, v interface{}) (profile.IdentificationDocType, error) {
-	var res profile.IdentificationDocType
-	err := res.UnmarshalGQL(v)
+func (ec *executionContext) marshalOIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx context.Context, sel ast.SelectionSet, v profile.Identification) graphql.Marshaler {
+	return ec._Identification(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx context.Context, sel ast.SelectionSet, v []profile.Identification) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalOIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx context.Context, v interface{}) (profile.IdentificationInput, error) {
+	res, err := ec.unmarshalInputIdentificationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx context.Context, sel ast.SelectionSet, v profile.IdentificationDocType) graphql.Marshaler {
-	return v
+func (ec *executionContext) unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx context.Context, v interface{}) ([]profile.IdentificationInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]profile.IdentificationInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
