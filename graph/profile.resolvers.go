@@ -131,12 +131,6 @@ func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, part
 	return r.profileService.AddPartnerType(ctx, &name, &partnerType)
 }
 
-func (r *mutationResolver) AddSupplierKyc(ctx context.Context, input profile.SupplierKYCInput) (*profile.SupplierKYC, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.AddSupplierKyc(ctx, input)
-}
-
 func (r *mutationResolver) SuspendCustomer(ctx context.Context, uid string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
@@ -165,6 +159,12 @@ func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locat
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.SupplierSetDefaultLocation(ctx, locatonID)
+}
+
+func (r *mutationResolver) AddIndividualRiderKyc(ctx context.Context, input profile.IndividualRiderInput) (*profile.IndividualRider, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.AddIndividualRiderKyc(ctx, input)
 }
 
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {

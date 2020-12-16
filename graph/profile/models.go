@@ -242,20 +242,20 @@ type PayablesAccount struct {
 
 // Supplier used to create a supplier request payload
 type Supplier struct {
-	UserProfile            *base.UserProfile    `json:"userProfile" firestore:"userprofile"`
-	SupplierID             string               `json:"id" firestore:"supplierid"`
-	PayablesAccount        *PayablesAccount     `json:"payablesAccount"`
-	SupplierKYC            SupplierKYC          `json:"supplierKYC"`
-	Active                 bool                 `json:"active" firestore:"active"`
-	AccountType            AccountType          `json:"accountType"`
-	UnderOrganization      bool                 `json:"underOrganization"`
-	IsOrganizationVerified bool                 `json:"isOrganizationVerified"`
-	SladeCode              string               `json:"sladeCode"`
-	ParentOrganizationID   string               `json:"parentOrganizationID"`
-	HasBranches            bool                 `json:"hasBranches,omitempty"`
-	Location               *Location            `json:"location,omitempty"`
-	PartnerType            PartnerType          `json:"partnerType"`
-	EDIUserProfile         *base.EDIUserProfile `json:"ediuserprofile" firestore:"ediuserprofile"`
+	UserProfile            *base.UserProfile      `json:"userProfile" firestore:"userprofile"`
+	SupplierID             string                 `json:"id" firestore:"supplierid"`
+	PayablesAccount        *PayablesAccount       `json:"payablesAccount"`
+	SupplierKYC            map[string]interface{} `json:"supplierKYC"`
+	Active                 bool                   `json:"active" firestore:"active"`
+	AccountType            AccountType            `json:"accountType"`
+	UnderOrganization      bool                   `json:"underOrganization"`
+	IsOrganizationVerified bool                   `json:"isOrganizationVerified"`
+	SladeCode              string                 `json:"sladeCode"`
+	ParentOrganizationID   string                 `json:"parentOrganizationID"`
+	HasBranches            bool                   `json:"hasBranches,omitempty"`
+	Location               *Location              `json:"location,omitempty"`
+	PartnerType            PartnerType            `json:"partnerType"`
+	EDIUserProfile         *base.EDIUserProfile   `json:"ediuserprofile" firestore:"ediuserprofile"`
 }
 
 // Location is used to store a user's branch or organisation
@@ -311,40 +311,6 @@ type SupplierResponse struct {
 // UserUIDs is an input of a list of user uids for isc requests
 type UserUIDs struct {
 	UIDs []string `json:"uids"`
-}
-
-// SupplierKYC stores details about a supplier's KYC
-type SupplierKYC struct {
-	AccountType                       AccountType            `json:"accountType"`
-	IdentificationDocType             *IdentificationDocType `json:"identificationDocType"`
-	IdentificationDocNumber           *string                `json:"identificationDocNumber"`
-	IdentificationDocPhotoBase64      *string                `json:"identificationDocPhotoBase64"`
-	IdentificationDocPhotoContentType *base.ContentType      `json:"identificationDocPhotoContentType"`
-	License                           *string                `json:"license"`
-	Cadre                             *PractitionerCadre     `json:"cadre"`
-	Profession                        *string                `json:"profession"`
-	KraPin                            *string                `json:"kraPIN"`
-	KraPINDocPhoto                    *string                `json:"kraPINDocPhoto"`
-	BusinessNumber                    *string                `json:"businessNumber"`
-	BusinessNumberDocPhotoBase64      *string                `json:"businessNumberDocPhotoBase64"`
-	BusinessNumberDocPhotoContentType *base.ContentType      `json:"businessNumberDocPhotoContentType"`
-}
-
-// SupplierKYCInput defines a supplier's KYC input
-type SupplierKYCInput struct {
-	AccountType                       AccountType            `json:"accountType"`
-	IdentificationDocType             *IdentificationDocType `json:"identificationDocType"`
-	IdentificationDocNumber           *string                `json:"identificationDocNumber"`
-	IdentificationDocPhotoBase64      *string                `json:"identificationDocPhotoBase64"`
-	IdentificationDocPhotoContentType *base.ContentType      `json:"identificationDocPhotoContentType"`
-	License                           *string                `json:"license"`
-	Cadre                             *PractitionerCadre     `json:"cadre"`
-	Profession                        *string                `json:"profession"`
-	KraPin                            *string                `json:"kraPIN"`
-	KraPINDocPhoto                    *string                `json:"kraPINDocPhoto"`
-	BusinessNumber                    *string                `json:"businessNumber"`
-	BusinessNumberDocPhotoBase64      *string                `json:"businessNumberDocPhotoBase64"`
-	BusinessNumberDocPhotoContentType *base.ContentType      `json:"businessNumberDocPhotoContentType"`
 }
 
 // CreatedUserResponse represents payload returned after creating a user
@@ -567,4 +533,28 @@ type LocationInput struct {
 	ID              string  `json:"id"`
 	Name            string  `json:"name"`
 	BranchSladeCode *string `json:"branchSladeCode"`
+}
+
+// IndividualRider holds the KYC for an individual rider
+type IndividualRider struct {
+	IdentificationDocType           IdentificationDocType `json:"identificationDocType" mapstructure:"identificationDocType"`
+	IdentificationDocNumber         string                `json:"identificationDocNumber" mapstructure:"identificationDocNumber"`
+	IdentificationDocNumberUploadID string                `json:"identificationDocNumberUploadID" mapstructure:"identificationDocNumberUploadID"`
+	KRAPIN                          string                `json:"kraPIN" mapstructure:"kraPIN"`
+	KRAPINUploadID                  string                `json:"kraPINUploadID" mapstructure:"kraPINUploadID"`
+	DrivingLicenseUploadID          string                `json:"drivingLicenseUploadID" mapstructure:"drivingLicenseUploadID"`
+	CertificateGoodConductUploadID  string                `json:"certificateGoodConductUploadID" mapstructure:"certificateGoodConductUploadID"`
+	SupportingDocumentsUploadID     []string              `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
+}
+
+// IndividualRiderInput is used to record the KYC for an individual rider
+type IndividualRiderInput struct {
+	IdentificationDocType           IdentificationDocType `json:"identificationDocType"`
+	IdentificationDocNumber         string                `json:"identificationDocNumber"`
+	IdentificationDocNumberUploadID string                `json:"identificationDocNumberUploadID"`
+	KRAPIN                          string                `json:"kraPIN"`
+	KRAPINUploadID                  string                `json:"kraPINUploadID"`
+	DrivingLicenseUploadID          string                `json:"drivingLicenseUploadID"`
+	CertificateGoodConductUploadID  string                `json:"certificateGoodConductUploadID"`
+	SupportingDocumentsUploadID     []string              `json:"supportingDocumentsUploadID"`
 }

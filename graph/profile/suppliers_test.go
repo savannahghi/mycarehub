@@ -2,6 +2,7 @@ package profile
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
@@ -275,79 +276,6 @@ func TestService_FindSupplier(t *testing.T) {
 	}
 }
 
-func TestService_AddSupplierKyc(t *testing.T) {
-	srv := NewService()
-	idDocType := IdentificationDocTypeNationalid
-	idNo := "234567"
-	license := "UL15KIAWAP!"
-	cadre := PractitionerCadreDoctor
-	profession := "Wa Mifupa"
-	orgAccType := AccountTypeOrganisation
-	type args struct {
-		ctx   context.Context
-		input SupplierKYCInput
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "good case: add account type",
-			args: args{
-				ctx: base.GetAuthenticatedContext(t),
-				input: SupplierKYCInput{
-					AccountType: orgAccType,
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "good case: add identification docs",
-			args: args{
-				ctx: base.GetAuthenticatedContext(t),
-				input: SupplierKYCInput{
-					IdentificationDocType:   &idDocType,
-					IdentificationDocNumber: &idNo,
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "good case: add practice details",
-			args: args{
-				ctx: base.GetAuthenticatedContext(t),
-				input: SupplierKYCInput{
-					License:    &license,
-					Cadre:      &cadre,
-					Profession: &profession,
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "bad case: nonexistent supplier",
-			args: args{
-				ctx: context.Background(),
-				input: SupplierKYCInput{
-					AccountType: AccountTypeIndividual,
-				},
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := srv
-			_, err := s.AddSupplierKyc(tt.args.ctx, tt.args.input)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.AddSupplierKyc() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
 func TestService_SuspendSupplier(t *testing.T) {
 	service := NewService()
 	ctx, token := createNewUser(context.Background(), t)
@@ -554,6 +482,78 @@ func TestService_PublishKYCNudge(t *testing.T) {
 			assert.NotNil(t, err)
 			assert.Contains(t, tt.expectedErr, err.Error())
 
+		})
+	}
+}
+
+func TestService_AddIndividualRiderKyc(t *testing.T) {
+	service := NewService()
+	ctx, _ := base.GetAuthenticatedContextAndToken(t)
+
+	name := gofakeit.Name()
+	partnerRider := PartnerTypeRider
+	_, err := service.AddPartnerType(ctx, &name, &partnerRider)
+	if err != nil {
+		t.Errorf("can't create a supplier")
+		return
+	}
+
+	_, err = service.SetUpSupplier(ctx, AccountTypeIndividual)
+	if err != nil {
+		t.Errorf("can't set up a supplier")
+		return
+	}
+
+	riderInput := IndividualRiderInput{
+		IdentificationDocType:           IdentificationDocTypeNationalid,
+		IdentificationDocNumber:         "12345678",
+		IdentificationDocNumberUploadID: "12345678",
+		KRAPIN:                          "12345678",
+		KRAPINUploadID:                  "12345678",
+		DrivingLicenseUploadID:          "12345678",
+		CertificateGoodConductUploadID:  "12345678",
+	}
+	riderKYC := &IndividualRider{
+		IdentificationDocType:           IdentificationDocTypeNationalid,
+		IdentificationDocNumber:         "12345678",
+		IdentificationDocNumberUploadID: "12345678",
+		KRAPIN:                          "12345678",
+		KRAPINUploadID:                  "12345678",
+		DrivingLicenseUploadID:          "12345678",
+		CertificateGoodConductUploadID:  "12345678",
+	}
+
+	type args struct {
+		ctx   context.Context
+		input IndividualRiderInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *IndividualRider
+		wantErr bool
+	}{
+		{
+			name: "Successful Add individual rider KYC",
+			args: args{
+				ctx:   ctx,
+				input: riderInput,
+			},
+			wantErr: false,
+			want:    riderKYC,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			got, err := s.AddIndividualRiderKyc(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.AddIndividualRiderKyc() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Service.AddIndividualRiderKyc() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

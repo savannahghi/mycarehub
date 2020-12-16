@@ -55,7 +55,6 @@ extend type Mutation {
     otherServices: OtherPractitionerServiceInput
   ): Boolean!
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
-  addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
   suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
   setUpSupplier(accountType: AccountType!): Supplier
@@ -65,4 +64,5 @@ extend type Mutation {
     sladeCode: String!
   ): BranchConnection!
   supplierSetDefaultLocation(locatonID: String!): Boolean!
+  addIndividualRiderKYC(input:IndividualRiderInput! ): IndividualRider!
 }

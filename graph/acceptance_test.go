@@ -2802,21 +2802,6 @@ func TestSupplierProfileQuery(t *testing.T) {
 				tag
 				description
 			  }
-			  supplierKYC {
-				accountType
-				identificationDocType
-				identificationDocNumber
-				identificationDocPhotoBase64
-				identificationDocPhotoContentType
-				license
-				cadre
-				profession
-				kraPIN
-				kraPINDocPhoto
-				businessNumber
-				businessNumberDocPhotoBase64
-				businessNumberDocPhotoContentType
-			  }
 			  active
 
 		}

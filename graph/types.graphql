@@ -2,6 +2,7 @@ scalar Date
 scalar Markdown
 scalar Any
 scalar Decimal
+scalar Map
 
 type Practitioner {
   profile: UserProfile!
@@ -155,7 +156,7 @@ type Supplier {
   userProfile: UserProfile!
   supplierId: String!
   payablesAccount: PayablesAccount!
-  supplierKYC: SupplierKYC!
+  supplierKYC: Map!
   active: Boolean!
 
   accountType: AccountType!
@@ -173,22 +174,6 @@ type Location {
     id: ID!
     name: String!
     branchSladeCode: String
-}
-
-type SupplierKYC {
-  accountType: AccountType!
-  identificationDocType: IdentificationDocType
-  identificationDocNumber: String
-  identificationDocPhotoBase64: String
-  identificationDocPhotoContentType: ContentType
-  license: String
-  cadre: PractitionerCadre
-  profession: String
-  kraPIN: String
-  kraPINDocPhoto: String
-  businessNumber: String
-  businessNumberDocPhotoBase64: String
-  businessNumberDocPhotoContentType: ContentType
 }
 
 type BusinessPartner {
@@ -226,4 +211,16 @@ type BranchConnection {
 }
 
 
+type IndividualRider {
+  identificationDocType: IdentificationDocType
+  identificationDocNumber: String!
+  identificationDocNumberUploadID: String!
+
+  kraPIN: String!
+  kraPINUploadID: String!
+
+  drivingLicenseUploadID: String!
+  supportingDocumentsUploadID: [String]
+  certificateGoodConductUploadID: String!
+}
 

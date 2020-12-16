@@ -117,6 +117,17 @@ type ComplexityRoot struct {
 		FindUserProfileByID       func(childComplexity int, id string) int
 	}
 
+	IndividualRider struct {
+		CertificateGoodConductUploadID  func(childComplexity int) int
+		DrivingLicenseUploadID          func(childComplexity int) int
+		IdentificationDocNumber         func(childComplexity int) int
+		IdentificationDocNumberUploadID func(childComplexity int) int
+		IdentificationDocType           func(childComplexity int) int
+		KRAPIN                          func(childComplexity int) int
+		KRAPINUploadID                  func(childComplexity int) int
+		SupportingDocumentsUploadID     func(childComplexity int) int
+	}
+
 	KMPDUPractitioner struct {
 		Active         func(childComplexity int) int
 		Address        func(childComplexity int) int
@@ -148,9 +159,9 @@ type ComplexityRoot struct {
 		AcceptTermsAndConditions   func(childComplexity int, accept bool) int
 		AddCustomer                func(childComplexity int, name string) int
 		AddCustomerKyc             func(childComplexity int, input profile.CustomerKYCInput) int
+		AddIndividualRiderKyc      func(childComplexity int, input profile.IndividualRiderInput) int
 		AddPartnerType             func(childComplexity int, name string, partnerType profile.PartnerType) int
 		AddPractitionerServices    func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
-		AddSupplierKyc             func(childComplexity int, input profile.SupplierKYCInput) int
 		AddTester                  func(childComplexity int, email string) int
 		CompleteSignup             func(childComplexity int) int
 		ConfirmEmail               func(childComplexity int, email string) int
@@ -261,22 +272,6 @@ type ComplexityRoot struct {
 		UserProfile            func(childComplexity int) int
 	}
 
-	SupplierKyc struct {
-		AccountType                       func(childComplexity int) int
-		BusinessNumber                    func(childComplexity int) int
-		BusinessNumberDocPhotoBase64      func(childComplexity int) int
-		BusinessNumberDocPhotoContentType func(childComplexity int) int
-		Cadre                             func(childComplexity int) int
-		IdentificationDocNumber           func(childComplexity int) int
-		IdentificationDocPhotoBase64      func(childComplexity int) int
-		IdentificationDocPhotoContentType func(childComplexity int) int
-		IdentificationDocType             func(childComplexity int) int
-		KraPINDocPhoto                    func(childComplexity int) int
-		KraPin                            func(childComplexity int) int
-		License                           func(childComplexity int) int
-		Profession                        func(childComplexity int) int
-	}
-
 	TesterWhitelist struct {
 		Email func(childComplexity int) int
 	}
@@ -353,12 +348,12 @@ type MutationResolver interface {
 	UpdateCustomer(ctx context.Context, input profile.CustomerKYCInput) (*profile.Customer, error)
 	AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error)
 	AddPartnerType(ctx context.Context, name string, partnerType profile.PartnerType) (bool, error)
-	AddSupplierKyc(ctx context.Context, input profile.SupplierKYCInput) (*profile.SupplierKYC, error)
 	SuspendCustomer(ctx context.Context, uid string) (bool, error)
 	SuspendSupplier(ctx context.Context, uid string) (bool, error)
 	SetUpSupplier(ctx context.Context, accountType profile.AccountType) (*profile.Supplier, error)
 	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*profile.BranchConnection, error)
 	SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error)
+	AddIndividualRiderKyc(ctx context.Context, input profile.IndividualRiderInput) (*profile.IndividualRider, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -665,6 +660,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Entity.FindUserProfileByID(childComplexity, args["id"].(string)), true
 
+	case "IndividualRider.certificateGoodConductUploadID":
+		if e.complexity.IndividualRider.CertificateGoodConductUploadID == nil {
+			break
+		}
+
+		return e.complexity.IndividualRider.CertificateGoodConductUploadID(childComplexity), true
+
+	case "IndividualRider.drivingLicenseUploadID":
+		if e.complexity.IndividualRider.DrivingLicenseUploadID == nil {
+			break
+		}
+
+		return e.complexity.IndividualRider.DrivingLicenseUploadID(childComplexity), true
+
+	case "IndividualRider.identificationDocNumber":
+		if e.complexity.IndividualRider.IdentificationDocNumber == nil {
+			break
+		}
+
+		return e.complexity.IndividualRider.IdentificationDocNumber(childComplexity), true
+
+	case "IndividualRider.identificationDocNumberUploadID":
+		if e.complexity.IndividualRider.IdentificationDocNumberUploadID == nil {
+			break
+		}
+
+		return e.complexity.IndividualRider.IdentificationDocNumberUploadID(childComplexity), true
+
+	case "IndividualRider.identificationDocType":
+		if e.complexity.IndividualRider.IdentificationDocType == nil {
+			break
+		}
+
+		return e.complexity.IndividualRider.IdentificationDocType(childComplexity), true
+
+	case "IndividualRider.kraPIN":
+		if e.complexity.IndividualRider.KRAPIN == nil {
+			break
+		}
+
+		return e.complexity.IndividualRider.KRAPIN(childComplexity), true
+
+	case "IndividualRider.kraPINUploadID":
+		if e.complexity.IndividualRider.KRAPINUploadID == nil {
+			break
+		}
+
+		return e.complexity.IndividualRider.KRAPINUploadID(childComplexity), true
+
+	case "IndividualRider.supportingDocumentsUploadID":
+		if e.complexity.IndividualRider.SupportingDocumentsUploadID == nil {
+			break
+		}
+
+		return e.complexity.IndividualRider.SupportingDocumentsUploadID(childComplexity), true
+
 	case "KMPDUPractitioner.active":
 		if e.complexity.KMPDUPractitioner.Active == nil {
 			break
@@ -806,6 +857,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddCustomerKyc(childComplexity, args["input"].(profile.CustomerKYCInput)), true
 
+	case "Mutation.addIndividualRiderKYC":
+		if e.complexity.Mutation.AddIndividualRiderKyc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addIndividualRiderKYC_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddIndividualRiderKyc(childComplexity, args["input"].(profile.IndividualRiderInput)), true
+
 	case "Mutation.addPartnerType":
 		if e.complexity.Mutation.AddPartnerType == nil {
 			break
@@ -829,18 +892,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddPractitionerServices(childComplexity, args["services"].(profile.PractitionerServiceInput), args["otherServices"].(*profile.OtherPractitionerServiceInput)), true
-
-	case "Mutation.addSupplierKYC":
-		if e.complexity.Mutation.AddSupplierKyc == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addSupplierKYC_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddSupplierKyc(childComplexity, args["input"].(profile.SupplierKYCInput)), true
 
 	case "Mutation.addTester":
 		if e.complexity.Mutation.AddTester == nil {
@@ -1564,97 +1615,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Supplier.UserProfile(childComplexity), true
 
-	case "SupplierKYC.accountType":
-		if e.complexity.SupplierKyc.AccountType == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.AccountType(childComplexity), true
-
-	case "SupplierKYC.businessNumber":
-		if e.complexity.SupplierKyc.BusinessNumber == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.BusinessNumber(childComplexity), true
-
-	case "SupplierKYC.businessNumberDocPhotoBase64":
-		if e.complexity.SupplierKyc.BusinessNumberDocPhotoBase64 == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.BusinessNumberDocPhotoBase64(childComplexity), true
-
-	case "SupplierKYC.businessNumberDocPhotoContentType":
-		if e.complexity.SupplierKyc.BusinessNumberDocPhotoContentType == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.BusinessNumberDocPhotoContentType(childComplexity), true
-
-	case "SupplierKYC.cadre":
-		if e.complexity.SupplierKyc.Cadre == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.Cadre(childComplexity), true
-
-	case "SupplierKYC.identificationDocNumber":
-		if e.complexity.SupplierKyc.IdentificationDocNumber == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.IdentificationDocNumber(childComplexity), true
-
-	case "SupplierKYC.identificationDocPhotoBase64":
-		if e.complexity.SupplierKyc.IdentificationDocPhotoBase64 == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.IdentificationDocPhotoBase64(childComplexity), true
-
-	case "SupplierKYC.identificationDocPhotoContentType":
-		if e.complexity.SupplierKyc.IdentificationDocPhotoContentType == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.IdentificationDocPhotoContentType(childComplexity), true
-
-	case "SupplierKYC.identificationDocType":
-		if e.complexity.SupplierKyc.IdentificationDocType == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.IdentificationDocType(childComplexity), true
-
-	case "SupplierKYC.kraPINDocPhoto":
-		if e.complexity.SupplierKyc.KraPINDocPhoto == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.KraPINDocPhoto(childComplexity), true
-
-	case "SupplierKYC.kraPIN":
-		if e.complexity.SupplierKyc.KraPin == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.KraPin(childComplexity), true
-
-	case "SupplierKYC.license":
-		if e.complexity.SupplierKyc.License == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.License(childComplexity), true
-
-	case "SupplierKYC.profession":
-		if e.complexity.SupplierKyc.Profession == nil {
-			break
-		}
-
-		return e.complexity.SupplierKyc.Profession(childComplexity), true
-
 	case "TesterWhitelist.email":
 		if e.complexity.TesterWhitelist.Email == nil {
 			break
@@ -2207,22 +2167,6 @@ input OtherPractitionerServiceInput {
   otherServices: [String!]!
 }
 
-input SupplierKYCInput {
-  accountType: AccountType!
-  identificationDocType: IdentificationDocType
-  identificationDocNumber: String
-  identificationDocPhotoBase64: String
-  identificationDocPhotoContentType: ContentType
-  license: String
-  cadre: PractitionerCadre
-  profession: String
-  kraPIN: String
-  kraPINDocPhoto: String
-  businessNumber: String
-  businessNumberDocPhotoBase64: String
-  businessNumberDocPhotoContentType: ContentType
-}
-
 input BusinessPartnerFilterInput {
   search: String
   name: String
@@ -2252,7 +2196,19 @@ input LocationInput {
     branchSladeCode: String
 }
 
-`, BuiltIn: false},
+
+input IndividualRiderInput {
+  identificationDocType: IdentificationDocType
+  identificationDocNumber: String!
+  identificationDocNumberUploadID: String!
+
+  kraPIN: String!
+  kraPINUploadID: String!
+
+  drivingLicenseUploadID: String!
+  supportingDocumentsUploadID: [String]
+  certificateGoodConductUploadID: String!
+}`, BuiltIn: false},
 	{Name: "graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
   getOrCreateUserProfile(phone: String!): UserProfile!
@@ -2310,7 +2266,6 @@ extend type Mutation {
     otherServices: OtherPractitionerServiceInput
   ): Boolean!
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
-  addSupplierKYC(input: SupplierKYCInput!): SupplierKYC!
   suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
   setUpSupplier(accountType: AccountType!): Supplier
@@ -2320,12 +2275,14 @@ extend type Mutation {
     sladeCode: String!
   ): BranchConnection!
   supplierSetDefaultLocation(locatonID: String!): Boolean!
+  addIndividualRiderKYC(input:IndividualRiderInput! ): IndividualRider!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `scalar Date
 scalar Markdown
 scalar Any
 scalar Decimal
+scalar Map
 
 type Practitioner {
   profile: UserProfile!
@@ -2479,7 +2436,7 @@ type Supplier {
   userProfile: UserProfile!
   supplierId: String!
   payablesAccount: PayablesAccount!
-  supplierKYC: SupplierKYC!
+  supplierKYC: Map!
   active: Boolean!
 
   accountType: AccountType!
@@ -2497,22 +2454,6 @@ type Location {
     id: ID!
     name: String!
     branchSladeCode: String
-}
-
-type SupplierKYC {
-  accountType: AccountType!
-  identificationDocType: IdentificationDocType
-  identificationDocNumber: String
-  identificationDocPhotoBase64: String
-  identificationDocPhotoContentType: ContentType
-  license: String
-  cadre: PractitionerCadre
-  profession: String
-  kraPIN: String
-  kraPINDocPhoto: String
-  businessNumber: String
-  businessNumberDocPhotoBase64: String
-  businessNumberDocPhotoContentType: ContentType
 }
 
 type BusinessPartner {
@@ -2550,6 +2491,18 @@ type BranchConnection {
 }
 
 
+type IndividualRider {
+  identificationDocType: IdentificationDocType
+  identificationDocNumber: String!
+  identificationDocNumberUploadID: String!
+
+  kraPIN: String!
+  kraPINUploadID: String!
+
+  drivingLicenseUploadID: String!
+  supportingDocumentsUploadID: [String]
+  certificateGoodConductUploadID: String!
+}
 
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -2664,6 +2617,21 @@ func (ec *executionContext) field_Mutation_addCustomer_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addIndividualRiderKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.IndividualRiderInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNIndividualRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRiderInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addPartnerType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2709,21 +2677,6 @@ func (ec *executionContext) field_Mutation_addPractitionerServices_args(ctx cont
 		}
 	}
 	args["otherServices"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_addSupplierKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 profile.SupplierKYCInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNSupplierKYCInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYCInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
 	return args, nil
 }
 
@@ -4635,6 +4588,280 @@ func (ec *executionContext) _Entity_findUserProfileByID(ctx context.Context, fie
 	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _IndividualRider_identificationDocType(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IdentificationDocType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(profile.IdentificationDocType)
+	fc.Result = res
+	return ec.marshalOIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualRider_identificationDocNumber(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IdentificationDocNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualRider_identificationDocNumberUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IdentificationDocNumberUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualRider_kraPIN(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPIN, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualRider_kraPINUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KRAPINUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualRider_drivingLicenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DrivingLicenseUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualRider_supportingDocumentsUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupportingDocumentsUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualRider_certificateGoodConductUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CertificateGoodConductUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _KMPDUPractitioner_name(ctx context.Context, field graphql.CollectedField, obj *profile.KMPDUPractitioner) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5981,48 +6208,6 @@ func (ec *executionContext) _Mutation_addPartnerType(ctx context.Context, field 
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addSupplierKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addSupplierKYC_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddSupplierKyc(rctx, args["input"].(profile.SupplierKYCInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*profile.SupplierKYC)
-	fc.Result = res
-	return ec.marshalNSupplierKYC2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYC(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_suspendCustomer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6228,6 +6413,48 @@ func (ec *executionContext) _Mutation_supplierSetDefaultLocation(ctx context.Con
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addIndividualRiderKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addIndividualRiderKYC_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddIndividualRiderKyc(rctx, args["input"].(profile.IndividualRiderInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.IndividualRider)
+	fc.Result = res
+	return ec.marshalNIndividualRider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRider(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
@@ -8220,9 +8447,9 @@ func (ec *executionContext) _Supplier_supplierKYC(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(profile.SupplierKYC)
+	res := resTmp.(map[string]interface{})
 	fc.Result = res
-	return ec.marshalNSupplierKYC2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYC(ctx, field.Selections, res)
+	return ec.marshalNMap2map(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Supplier_active(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
@@ -8494,425 +8721,6 @@ func (ec *executionContext) _Supplier_location(ctx context.Context, field graphq
 	res := resTmp.(*profile.Location)
 	fc.Result = res
 	return ec.marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐLocation(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_accountType(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AccountType, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(profile.AccountType)
-	fc.Result = res
-	return ec.marshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐAccountType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_identificationDocType(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IdentificationDocType, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*profile.IdentificationDocType)
-	fc.Result = res
-	return ec.marshalOIdentificationDocType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_identificationDocNumber(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IdentificationDocNumber, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_identificationDocPhotoBase64(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IdentificationDocPhotoBase64, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_identificationDocPhotoContentType(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IdentificationDocPhotoContentType, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*base.ContentType)
-	fc.Result = res
-	return ec.marshalOContentType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_license(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.License, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_cadre(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Cadre, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*profile.PractitionerCadre)
-	fc.Result = res
-	return ec.marshalOPractitionerCadre2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerCadre(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_profession(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Profession, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_kraPIN(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.KraPin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_kraPINDocPhoto(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.KraPINDocPhoto, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_businessNumber(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.BusinessNumber, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_businessNumberDocPhotoBase64(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.BusinessNumberDocPhotoBase64, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SupplierKYC_businessNumberDocPhotoContentType(ctx context.Context, field graphql.CollectedField, obj *profile.SupplierKYC) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "SupplierKYC",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.BusinessNumberDocPhotoContentType, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*base.ContentType)
-	fc.Result = res
-	return ec.marshalOContentType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TesterWhitelist_email(ctx context.Context, field graphql.CollectedField, obj *profile.TesterWhitelist) (ret graphql.Marshaler) {
@@ -11529,6 +11337,82 @@ func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj i
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Context, obj interface{}) (profile.IndividualRiderInput, error) {
+	var it profile.IndividualRiderInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "identificationDocType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDocType"))
+			it.IdentificationDocType, err = ec.unmarshalOIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "identificationDocNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDocNumber"))
+			it.IdentificationDocNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "identificationDocNumberUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDocNumberUploadID"))
+			it.IdentificationDocNumberUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "kraPIN":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kraPIN"))
+			it.KRAPIN, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "kraPINUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kraPINUploadID"))
+			it.KRAPINUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "drivingLicenseUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("drivingLicenseUploadID"))
+			it.DrivingLicenseUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "supportingDocumentsUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocumentsUploadID"))
+			it.SupportingDocumentsUploadID, err = ec.unmarshalOString2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "certificateGoodConductUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateGoodConductUploadID"))
+			it.CertificateGoodConductUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj interface{}) (profile.LocationInput, error) {
 	var it profile.LocationInput
 	var asMap = obj.(map[string]interface{})
@@ -11768,122 +11652,6 @@ func (ec *executionContext) unmarshalInputSortParam(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortOrder"))
 			it.SortOrder, err = ec.unmarshalNSortOrder2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputSupplierKYCInput(ctx context.Context, obj interface{}) (profile.SupplierKYCInput, error) {
-	var it profile.SupplierKYCInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "accountType":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountType"))
-			it.AccountType, err = ec.unmarshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐAccountType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "identificationDocType":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDocType"))
-			it.IdentificationDocType, err = ec.unmarshalOIdentificationDocType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "identificationDocNumber":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDocNumber"))
-			it.IdentificationDocNumber, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "identificationDocPhotoBase64":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDocPhotoBase64"))
-			it.IdentificationDocPhotoBase64, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "identificationDocPhotoContentType":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDocPhotoContentType"))
-			it.IdentificationDocPhotoContentType, err = ec.unmarshalOContentType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "license":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("license"))
-			it.License, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "cadre":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cadre"))
-			it.Cadre, err = ec.unmarshalOPractitionerCadre2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerCadre(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "profession":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profession"))
-			it.Profession, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "kraPIN":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kraPIN"))
-			it.KraPin, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "kraPINDocPhoto":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kraPINDocPhoto"))
-			it.KraPINDocPhoto, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "businessNumber":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("businessNumber"))
-			it.BusinessNumber, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "businessNumberDocPhotoBase64":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("businessNumberDocPhotoBase64"))
-			it.BusinessNumberDocPhotoBase64, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "businessNumberDocPhotoContentType":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("businessNumberDocPhotoContentType"))
-			it.BusinessNumberDocPhotoContentType, err = ec.unmarshalOContentType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12498,6 +12266,62 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 	return out
 }
 
+var individualRiderImplementors = []string{"IndividualRider"}
+
+func (ec *executionContext) _IndividualRider(ctx context.Context, sel ast.SelectionSet, obj *profile.IndividualRider) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, individualRiderImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IndividualRider")
+		case "identificationDocType":
+			out.Values[i] = ec._IndividualRider_identificationDocType(ctx, field, obj)
+		case "identificationDocNumber":
+			out.Values[i] = ec._IndividualRider_identificationDocNumber(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "identificationDocNumberUploadID":
+			out.Values[i] = ec._IndividualRider_identificationDocNumberUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "kraPIN":
+			out.Values[i] = ec._IndividualRider_kraPIN(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "kraPINUploadID":
+			out.Values[i] = ec._IndividualRider_kraPINUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "drivingLicenseUploadID":
+			out.Values[i] = ec._IndividualRider_drivingLicenseUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supportingDocumentsUploadID":
+			out.Values[i] = ec._IndividualRider_supportingDocumentsUploadID(ctx, field, obj)
+		case "certificateGoodConductUploadID":
+			out.Values[i] = ec._IndividualRider_certificateGoodConductUploadID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var kMPDUPractitionerImplementors = []string{"KMPDUPractitioner"}
 
 func (ec *executionContext) _KMPDUPractitioner(ctx context.Context, sel ast.SelectionSet, obj *profile.KMPDUPractitioner) graphql.Marshaler {
@@ -12764,11 +12588,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "addSupplierKYC":
-			out.Values[i] = ec._Mutation_addSupplierKYC(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "suspendCustomer":
 			out.Values[i] = ec._Mutation_suspendCustomer(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -12788,6 +12607,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "supplierSetDefaultLocation":
 			out.Values[i] = ec._Mutation_supplierSetDefaultLocation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addIndividualRiderKYC":
+			out.Values[i] = ec._Mutation_addIndividualRiderKYC(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -13458,57 +13282,6 @@ func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._Supplier_parentOrganizationID(ctx, field, obj)
 		case "location":
 			out.Values[i] = ec._Supplier_location(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var supplierKYCImplementors = []string{"SupplierKYC"}
-
-func (ec *executionContext) _SupplierKYC(ctx context.Context, sel ast.SelectionSet, obj *profile.SupplierKYC) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, supplierKYCImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("SupplierKYC")
-		case "accountType":
-			out.Values[i] = ec._SupplierKYC_accountType(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "identificationDocType":
-			out.Values[i] = ec._SupplierKYC_identificationDocType(ctx, field, obj)
-		case "identificationDocNumber":
-			out.Values[i] = ec._SupplierKYC_identificationDocNumber(ctx, field, obj)
-		case "identificationDocPhotoBase64":
-			out.Values[i] = ec._SupplierKYC_identificationDocPhotoBase64(ctx, field, obj)
-		case "identificationDocPhotoContentType":
-			out.Values[i] = ec._SupplierKYC_identificationDocPhotoContentType(ctx, field, obj)
-		case "license":
-			out.Values[i] = ec._SupplierKYC_license(ctx, field, obj)
-		case "cadre":
-			out.Values[i] = ec._SupplierKYC_cadre(ctx, field, obj)
-		case "profession":
-			out.Values[i] = ec._SupplierKYC_profession(ctx, field, obj)
-		case "kraPIN":
-			out.Values[i] = ec._SupplierKYC_kraPIN(ctx, field, obj)
-		case "kraPINDocPhoto":
-			out.Values[i] = ec._SupplierKYC_kraPINDocPhoto(ctx, field, obj)
-		case "businessNumber":
-			out.Values[i] = ec._SupplierKYC_businessNumber(ctx, field, obj)
-		case "businessNumberDocPhotoBase64":
-			out.Values[i] = ec._SupplierKYC_businessNumberDocPhotoBase64(ctx, field, obj)
-		case "businessNumberDocPhotoContentType":
-			out.Values[i] = ec._SupplierKYC_businessNumberDocPhotoContentType(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -14244,6 +14017,25 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) marshalNIndividualRider2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRider(ctx context.Context, sel ast.SelectionSet, v profile.IndividualRider) graphql.Marshaler {
+	return ec._IndividualRider(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIndividualRider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRider(ctx context.Context, sel ast.SelectionSet, v *profile.IndividualRider) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._IndividualRider(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNIndividualRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRiderInput(ctx context.Context, v interface{}) (profile.IndividualRiderInput, error) {
+	res, err := ec.unmarshalInputIndividualRiderInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -14295,6 +14087,27 @@ func (ec *executionContext) unmarshalNLanguage2gitlabᚗslade360emrᚗcomᚋgo�
 
 func (ec *executionContext) marshalNLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx context.Context, sel ast.SelectionSet, v base.Language) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+	res, err := graphql.UnmarshalMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalMap(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNMarkdown2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐMarkdown(ctx context.Context, v interface{}) (base.Markdown, error) {
@@ -14539,25 +14352,6 @@ func (ec *executionContext) marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 		return graphql.Null
 	}
 	return ec._Supplier(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNSupplierKYC2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYC(ctx context.Context, sel ast.SelectionSet, v profile.SupplierKYC) graphql.Marshaler {
-	return ec._SupplierKYC(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNSupplierKYC2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYC(ctx context.Context, sel ast.SelectionSet, v *profile.SupplierKYC) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._SupplierKYC(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNSupplierKYCInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplierKYCInput(ctx context.Context, v interface{}) (profile.SupplierKYCInput, error) {
-	res, err := ec.unmarshalInputSupplierKYCInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v base.UserProfile) graphql.Marshaler {
@@ -15254,22 +15048,6 @@ func (ec *executionContext) marshalOContentType2gitlabᚗslade360emrᚗcomᚋgo�
 	return v
 }
 
-func (ec *executionContext) unmarshalOContentType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx context.Context, v interface{}) (*base.ContentType, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(base.ContentType)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOContentType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐContentType(ctx context.Context, sel ast.SelectionSet, v *base.ContentType) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
-}
-
 func (ec *executionContext) unmarshalODate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, v interface{}) (*base.Date, error) {
 	if v == nil {
 		return nil, nil
@@ -15342,19 +15120,13 @@ func (ec *executionContext) marshalOGender2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋ
 	return v
 }
 
-func (ec *executionContext) unmarshalOIdentificationDocType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx context.Context, v interface{}) (*profile.IdentificationDocType, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(profile.IdentificationDocType)
+func (ec *executionContext) unmarshalOIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx context.Context, v interface{}) (profile.IdentificationDocType, error) {
+	var res profile.IdentificationDocType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOIdentificationDocType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx context.Context, sel ast.SelectionSet, v *profile.IdentificationDocType) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
+func (ec *executionContext) marshalOIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationDocType(ctx context.Context, sel ast.SelectionSet, v profile.IdentificationDocType) graphql.Marshaler {
 	return v
 }
 
@@ -15459,22 +15231,6 @@ func (ec *executionContext) marshalOPractitioner2ᚖgitlabᚗslade360emrᚗcom�
 		return graphql.Null
 	}
 	return ec._Practitioner(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOPractitionerCadre2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerCadre(ctx context.Context, v interface{}) (*profile.PractitionerCadre, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(profile.PractitionerCadre)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOPractitionerCadre2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerCadre(ctx context.Context, sel ast.SelectionSet, v *profile.PractitionerCadre) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) marshalOPractitionerEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerEdge(ctx context.Context, sel ast.SelectionSet, v []*profile.PractitionerEdge) graphql.Marshaler {
@@ -15587,6 +15343,42 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalString(v)
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstring(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstring(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOString2string(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
