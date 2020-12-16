@@ -167,6 +167,36 @@ func (r *mutationResolver) AddIndividualRiderKyc(ctx context.Context, input prof
 	return r.profileService.AddIndividualRiderKyc(ctx, input)
 }
 
+func (r *mutationResolver) AddOrganizationRiderKyc(ctx context.Context, input profile.OrganizationRiderInput) (*profile.OrganizationRider, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.AddOrganizationRiderKyc(ctx, input)
+}
+
+func (r *mutationResolver) AddIndividualPractitionerKyc(ctx context.Context, input profile.IndividualPractitionerInput) (*profile.IndividualPractitioner, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.AddIndividualPractitionerKyc(ctx, input)
+}
+
+func (r *mutationResolver) AddOrganizationPractitionerKyc(ctx context.Context, input profile.OrganizationPractitionerInput) (*profile.OrganizationPractitioner, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.AddOrganizationPractitionerKyc(ctx, input)
+}
+
+func (r *mutationResolver) AddOrganizationProviderKyc(ctx context.Context, input profile.OrganizationProviderInput) (*profile.OrganizationProvider, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.AddOrganizationProviderKyc(ctx, input)
+}
+
+func (r *mutationResolver) AddIndividualPharmaceuticalKyc(ctx context.Context, input profile.IndividualPharmaceuticalInput) (*profile.IndividualPharmaceutical, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.AddIndividualPharmaceuticalKyc(ctx, input)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()

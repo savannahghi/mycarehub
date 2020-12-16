@@ -180,32 +180,37 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcceptTermsAndConditions   func(childComplexity int, accept bool) int
-		AddCustomer                func(childComplexity int, name string) int
-		AddCustomerKyc             func(childComplexity int, input profile.CustomerKYCInput) int
-		AddIndividualRiderKyc      func(childComplexity int, input profile.IndividualRiderInput) int
-		AddPartnerType             func(childComplexity int, name string, partnerType profile.PartnerType) int
-		AddPractitionerServices    func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
-		AddTester                  func(childComplexity int, email string) int
-		CompleteSignup             func(childComplexity int) int
-		ConfirmEmail               func(childComplexity int, email string) int
-		CreateSignUpMethod         func(childComplexity int, signUpMethod profile.SignUpMethod) int
-		PractitionerSignUp         func(childComplexity int, input profile.PractitionerSignupInput) int
-		RecordPostVisitSurvey      func(childComplexity int, input profile.PostVisitSurveyInput) int
-		RegisterPushToken          func(childComplexity int, token string) int
-		RemoveTester               func(childComplexity int, email string) int
-		SetLanguagePreference      func(childComplexity int, language base.Language) int
-		SetUpSupplier              func(childComplexity int, accountType profile.AccountType) int
-		SetUserPin                 func(childComplexity int, msisdn string, pin string) int
-		SupplierEDILogin           func(childComplexity int, username string, password string, sladeCode string) int
-		SupplierSetDefaultLocation func(childComplexity int, locatonID string) int
-		SuspendCustomer            func(childComplexity int, uid string) int
-		SuspendSupplier            func(childComplexity int, uid string) int
-		UpdateBiodata              func(childComplexity int, input profile.BiodataInput) int
-		UpdateCustomer             func(childComplexity int, input profile.CustomerKYCInput) int
-		UpdateUserPin              func(childComplexity int, msisdn string, pin string) int
-		UpdateUserProfile          func(childComplexity int, input profile.UserProfileInput) int
-		VerifyEmailOtp             func(childComplexity int, email string, otp string) int
+		AcceptTermsAndConditions       func(childComplexity int, accept bool) int
+		AddCustomer                    func(childComplexity int, name string) int
+		AddCustomerKyc                 func(childComplexity int, input profile.CustomerKYCInput) int
+		AddIndividualPharmaceuticalKyc func(childComplexity int, input profile.IndividualPharmaceuticalInput) int
+		AddIndividualPractitionerKyc   func(childComplexity int, input profile.IndividualPractitionerInput) int
+		AddIndividualRiderKyc          func(childComplexity int, input profile.IndividualRiderInput) int
+		AddOrganizationPractitionerKyc func(childComplexity int, input profile.OrganizationPractitionerInput) int
+		AddOrganizationProviderKyc     func(childComplexity int, input profile.OrganizationProviderInput) int
+		AddOrganizationRiderKyc        func(childComplexity int, input profile.OrganizationRiderInput) int
+		AddPartnerType                 func(childComplexity int, name string, partnerType profile.PartnerType) int
+		AddPractitionerServices        func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
+		AddTester                      func(childComplexity int, email string) int
+		CompleteSignup                 func(childComplexity int) int
+		ConfirmEmail                   func(childComplexity int, email string) int
+		CreateSignUpMethod             func(childComplexity int, signUpMethod profile.SignUpMethod) int
+		PractitionerSignUp             func(childComplexity int, input profile.PractitionerSignupInput) int
+		RecordPostVisitSurvey          func(childComplexity int, input profile.PostVisitSurveyInput) int
+		RegisterPushToken              func(childComplexity int, token string) int
+		RemoveTester                   func(childComplexity int, email string) int
+		SetLanguagePreference          func(childComplexity int, language base.Language) int
+		SetUpSupplier                  func(childComplexity int, accountType profile.AccountType) int
+		SetUserPin                     func(childComplexity int, msisdn string, pin string) int
+		SupplierEDILogin               func(childComplexity int, username string, password string, sladeCode string) int
+		SupplierSetDefaultLocation     func(childComplexity int, locatonID string) int
+		SuspendCustomer                func(childComplexity int, uid string) int
+		SuspendSupplier                func(childComplexity int, uid string) int
+		UpdateBiodata                  func(childComplexity int, input profile.BiodataInput) int
+		UpdateCustomer                 func(childComplexity int, input profile.CustomerKYCInput) int
+		UpdateUserPin                  func(childComplexity int, msisdn string, pin string) int
+		UpdateUserProfile              func(childComplexity int, input profile.UserProfileInput) int
+		VerifyEmailOtp                 func(childComplexity int, email string, otp string) int
 	}
 
 	OrganizationPractitioner struct {
@@ -419,6 +424,11 @@ type MutationResolver interface {
 	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*profile.BranchConnection, error)
 	SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error)
 	AddIndividualRiderKyc(ctx context.Context, input profile.IndividualRiderInput) (*profile.IndividualRider, error)
+	AddOrganizationRiderKyc(ctx context.Context, input profile.OrganizationRiderInput) (*profile.OrganizationRider, error)
+	AddIndividualPractitionerKyc(ctx context.Context, input profile.IndividualPractitionerInput) (*profile.IndividualPractitioner, error)
+	AddOrganizationPractitionerKyc(ctx context.Context, input profile.OrganizationPractitionerInput) (*profile.OrganizationPractitioner, error)
+	AddOrganizationProviderKyc(ctx context.Context, input profile.OrganizationProviderInput) (*profile.OrganizationProvider, error)
+	AddIndividualPharmaceuticalKyc(ctx context.Context, input profile.IndividualPharmaceuticalInput) (*profile.IndividualPharmaceutical, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -1027,6 +1037,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddCustomerKyc(childComplexity, args["input"].(profile.CustomerKYCInput)), true
 
+	case "Mutation.addIndividualPharmaceuticalKYC":
+		if e.complexity.Mutation.AddIndividualPharmaceuticalKyc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addIndividualPharmaceuticalKYC_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddIndividualPharmaceuticalKyc(childComplexity, args["input"].(profile.IndividualPharmaceuticalInput)), true
+
+	case "Mutation.addIndividualPractitionerKYC":
+		if e.complexity.Mutation.AddIndividualPractitionerKyc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addIndividualPractitionerKYC_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddIndividualPractitionerKyc(childComplexity, args["input"].(profile.IndividualPractitionerInput)), true
+
 	case "Mutation.addIndividualRiderKYC":
 		if e.complexity.Mutation.AddIndividualRiderKyc == nil {
 			break
@@ -1038,6 +1072,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddIndividualRiderKyc(childComplexity, args["input"].(profile.IndividualRiderInput)), true
+
+	case "Mutation.addOrganizationPractitionerKYC":
+		if e.complexity.Mutation.AddOrganizationPractitionerKyc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addOrganizationPractitionerKYC_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddOrganizationPractitionerKyc(childComplexity, args["input"].(profile.OrganizationPractitionerInput)), true
+
+	case "Mutation.addOrganizationProviderKYC":
+		if e.complexity.Mutation.AddOrganizationProviderKyc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addOrganizationProviderKYC_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddOrganizationProviderKyc(childComplexity, args["input"].(profile.OrganizationProviderInput)), true
+
+	case "Mutation.addOrganizationRiderKYC":
+		if e.complexity.Mutation.AddOrganizationRiderKyc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addOrganizationRiderKYC_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddOrganizationRiderKyc(childComplexity, args["input"].(profile.OrganizationRiderInput)), true
 
 	case "Mutation.addPartnerType":
 		if e.complexity.Mutation.AddPartnerType == nil {
@@ -2745,7 +2815,7 @@ input IndividualPharmaceuticalInput {
   ): BranchConnection!
   fetchSupplierAllowedLocations: BranchConnection!
   approvePractitionerSignup: Boolean!
-   rejectPractitionerSignup: Boolean!
+  rejectPractitionerSignup: Boolean!
 }
 
 extend type Mutation {
@@ -2781,7 +2851,20 @@ extend type Mutation {
     sladeCode: String!
   ): BranchConnection!
   supplierSetDefaultLocation(locatonID: String!): Boolean!
-  addIndividualRiderKYC(input:IndividualRiderInput! ): IndividualRider!
+  addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
+  addOrganizationRiderKYC(input: OrganizationRiderInput!): OrganizationRider!
+  addIndividualPractitionerKYC(
+    input: IndividualPractitionerInput!
+  ): IndividualPractitioner!
+  addOrganizationPractitionerKYC(
+    input: OrganizationPractitionerInput!
+  ): OrganizationPractitioner!
+  addOrganizationProviderKYC(
+    input: OrganizationProviderInput!
+  ): OrganizationProvider!
+  addIndividualPharmaceuticalKYC(
+    input: IndividualPharmaceuticalInput!
+  ): IndividualPharmaceutical!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `scalar Date
@@ -3217,6 +3300,36 @@ func (ec *executionContext) field_Mutation_addCustomer_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addIndividualPharmaceuticalKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.IndividualPharmaceuticalInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNIndividualPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPharmaceuticalInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addIndividualPractitionerKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.IndividualPractitionerInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNIndividualPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPractitionerInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addIndividualRiderKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3224,6 +3337,51 @@ func (ec *executionContext) field_Mutation_addIndividualRiderKYC_args(ctx contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNIndividualRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRiderInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addOrganizationPractitionerKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.OrganizationPractitionerInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOrganizationPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPractitionerInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addOrganizationProviderKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.OrganizationProviderInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOrganizationProviderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationProviderInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addOrganizationRiderKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 profile.OrganizationRiderInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOrganizationRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationRiderInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7577,6 +7735,216 @@ func (ec *executionContext) _Mutation_addIndividualRiderKYC(ctx context.Context,
 	res := resTmp.(*profile.IndividualRider)
 	fc.Result = res
 	return ec.marshalNIndividualRider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRider(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addOrganizationRiderKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addOrganizationRiderKYC_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddOrganizationRiderKyc(rctx, args["input"].(profile.OrganizationRiderInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.OrganizationRider)
+	fc.Result = res
+	return ec.marshalNOrganizationRider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationRider(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addIndividualPractitionerKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addIndividualPractitionerKYC_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddIndividualPractitionerKyc(rctx, args["input"].(profile.IndividualPractitionerInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.IndividualPractitioner)
+	fc.Result = res
+	return ec.marshalNIndividualPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPractitioner(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addOrganizationPractitionerKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addOrganizationPractitionerKYC_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddOrganizationPractitionerKyc(rctx, args["input"].(profile.OrganizationPractitionerInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.OrganizationPractitioner)
+	fc.Result = res
+	return ec.marshalNOrganizationPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPractitioner(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addOrganizationProviderKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addOrganizationProviderKYC_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddOrganizationProviderKyc(rctx, args["input"].(profile.OrganizationProviderInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.OrganizationProvider)
+	fc.Result = res
+	return ec.marshalNOrganizationProvider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationProvider(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addIndividualPharmaceuticalKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addIndividualPharmaceuticalKYC_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddIndividualPharmaceuticalKyc(rctx, args["input"].(profile.IndividualPharmaceuticalInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.IndividualPharmaceutical)
+	fc.Result = res
+	return ec.marshalNIndividualPharmaceutical2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPharmaceutical(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationPractitioner_organizationTypeName(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationPractitioner) (ret graphql.Marshaler) {
@@ -15398,6 +15766,31 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "addOrganizationRiderKYC":
+			out.Values[i] = ec._Mutation_addOrganizationRiderKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addIndividualPractitionerKYC":
+			out.Values[i] = ec._Mutation_addIndividualPractitionerKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addOrganizationPractitionerKYC":
+			out.Values[i] = ec._Mutation_addOrganizationPractitionerKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addOrganizationProviderKYC":
+			out.Values[i] = ec._Mutation_addOrganizationProviderKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addIndividualPharmaceuticalKYC":
+			out.Values[i] = ec._Mutation_addIndividualPharmaceuticalKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17000,6 +17393,44 @@ func (ec *executionContext) unmarshalNIdentificationInput2gitlabᚗslade360emr�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNIndividualPharmaceutical2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPharmaceutical(ctx context.Context, sel ast.SelectionSet, v profile.IndividualPharmaceutical) graphql.Marshaler {
+	return ec._IndividualPharmaceutical(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIndividualPharmaceutical2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPharmaceutical(ctx context.Context, sel ast.SelectionSet, v *profile.IndividualPharmaceutical) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._IndividualPharmaceutical(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNIndividualPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPharmaceuticalInput(ctx context.Context, v interface{}) (profile.IndividualPharmaceuticalInput, error) {
+	res, err := ec.unmarshalInputIndividualPharmaceuticalInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNIndividualPractitioner2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPractitioner(ctx context.Context, sel ast.SelectionSet, v profile.IndividualPractitioner) graphql.Marshaler {
+	return ec._IndividualPractitioner(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIndividualPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPractitioner(ctx context.Context, sel ast.SelectionSet, v *profile.IndividualPractitioner) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._IndividualPractitioner(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNIndividualPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPractitionerInput(ctx context.Context, v interface{}) (profile.IndividualPractitionerInput, error) {
+	res, err := ec.unmarshalInputIndividualPractitionerInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNIndividualRider2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRider(ctx context.Context, sel ast.SelectionSet, v profile.IndividualRider) graphql.Marshaler {
 	return ec._IndividualRider(ctx, sel, &v)
 }
@@ -17111,6 +17542,63 @@ func (ec *executionContext) unmarshalNOperation2gitlabᚗslade360emrᚗcomᚋgo�
 
 func (ec *executionContext) marshalNOperation2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐOperation(ctx context.Context, sel ast.SelectionSet, v base.Operation) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNOrganizationPractitioner2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPractitioner(ctx context.Context, sel ast.SelectionSet, v profile.OrganizationPractitioner) graphql.Marshaler {
+	return ec._OrganizationPractitioner(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOrganizationPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPractitioner(ctx context.Context, sel ast.SelectionSet, v *profile.OrganizationPractitioner) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._OrganizationPractitioner(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOrganizationPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPractitionerInput(ctx context.Context, v interface{}) (profile.OrganizationPractitionerInput, error) {
+	res, err := ec.unmarshalInputOrganizationPractitionerInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOrganizationProvider2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationProvider(ctx context.Context, sel ast.SelectionSet, v profile.OrganizationProvider) graphql.Marshaler {
+	return ec._OrganizationProvider(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOrganizationProvider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationProvider(ctx context.Context, sel ast.SelectionSet, v *profile.OrganizationProvider) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._OrganizationProvider(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOrganizationProviderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationProviderInput(ctx context.Context, v interface{}) (profile.OrganizationProviderInput, error) {
+	res, err := ec.unmarshalInputOrganizationProviderInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOrganizationRider2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationRider(ctx context.Context, sel ast.SelectionSet, v profile.OrganizationRider) graphql.Marshaler {
+	return ec._OrganizationRider(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOrganizationRider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationRider(ctx context.Context, sel ast.SelectionSet, v *profile.OrganizationRider) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._OrganizationRider(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOrganizationRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationRiderInput(ctx context.Context, v interface{}) (profile.OrganizationRiderInput, error) {
+	res, err := ec.unmarshalInputOrganizationRiderInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx context.Context, v interface{}) (profile.OrganizationType, error) {

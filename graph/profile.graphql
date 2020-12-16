@@ -28,7 +28,7 @@ extend type Query {
   ): BranchConnection!
   fetchSupplierAllowedLocations: BranchConnection!
   approvePractitionerSignup: Boolean!
-   rejectPractitionerSignup: Boolean!
+  rejectPractitionerSignup: Boolean!
 }
 
 extend type Mutation {
@@ -64,5 +64,18 @@ extend type Mutation {
     sladeCode: String!
   ): BranchConnection!
   supplierSetDefaultLocation(locatonID: String!): Boolean!
-  addIndividualRiderKYC(input:IndividualRiderInput! ): IndividualRider!
+  addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
+  addOrganizationRiderKYC(input: OrganizationRiderInput!): OrganizationRider!
+  addIndividualPractitionerKYC(
+    input: IndividualPractitionerInput!
+  ): IndividualPractitioner!
+  addOrganizationPractitionerKYC(
+    input: OrganizationPractitionerInput!
+  ): OrganizationPractitioner!
+  addOrganizationProviderKYC(
+    input: OrganizationProviderInput!
+  ): OrganizationProvider!
+  addIndividualPharmaceuticalKYC(
+    input: IndividualPharmaceuticalInput!
+  ): IndividualPharmaceutical!
 }
