@@ -396,9 +396,17 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 		return nil, fmt.Errorf("edi user profile not found")
 	}
 
-	// verify slade code. The slade code comes in the form 'PRO-1234' hence
+	// The slade code comes in the form 'PRO-1234' or 'BRA-PRO-1234-1'
 	// we split it to get the interger part of the slade code.
-	if ediUserProfile.BusinessPartner != strings.Split(sladeCode, "-")[1] {
+	var orgSladeCode string
+	if strings.HasPrefix(sladeCode, "BRA-") {
+		orgSladeCode = strings.Split(sladeCode, "-")[2]
+	} else {
+		orgSladeCode = strings.Split(sladeCode, "-")[1]
+	}
+
+	// verify slade code.
+	if ediUserProfile.BusinessPartner != orgSladeCode {
 		supplier.IsOrganizationVerified = false
 		return nil, fmt.Errorf("invalid slade code for selected provider: %v, got: %v", sladeCode, ediUserProfile.BusinessPartner)
 	}
