@@ -17,8 +17,8 @@ type IdentificationInput struct {
 // IndividualRider holds the KYC for an individual rider
 type IndividualRider struct {
 	IdentificationDoc              Identification `json:"identificationDoc" mapstructure:"identificationDoc"`
-	KRAPIN                         string         `json:"KRAPIN" mapstructure:"kraPIN"`
-	KRAPINUploadID                 string         `json:"KRAPINUploadID" mapstructure:"kraPINUploadID"`
+	KRAPIN                         string         `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID                 string         `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
 	DrivingLicenseUploadID         string         `json:"drivingLicenseUploadID" mapstructure:"drivingLicenseUploadID"`
 	CertificateGoodConductUploadID string         `json:"certificateGoodConductUploadID" mapstructure:"certificateGoodConductUploadID"`
 	SupportingDocumentsUploadID    []string       `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
@@ -27,8 +27,8 @@ type IndividualRider struct {
 // IndividualRiderInput is used to record the KYC for an individual rider
 type IndividualRiderInput struct {
 	IdentificationDoc              IdentificationInput `json:"identificationDoc" mapstructure:"identificationDoc"`
-	KRAPIN                         string              `json:"KRAPIN" mapstructure:"kraPIN"`
-	KRAPINUploadID                 string              `json:"KRAPINUploadID" mapstructure:"kraPINUploadID"`
+	KRAPIN                         string              `json:"KRAPIN" mapstructure:"KRAPIN"`
+	KRAPINUploadID                 string              `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
 	DrivingLicenseUploadID         string              `json:"drivingLicenseUploadID" mapstructure:"drivingLicenseUploadID"`
 	CertificateGoodConductUploadID string              `json:"certificateGoodConductUploadID" mapstructure:"certificateGoodConductUploadID"`
 	SupportingDocumentsUploadID    []string            `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`

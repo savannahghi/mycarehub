@@ -218,8 +218,8 @@ type Identification {
 type IndividualRider {
   identificationDoc: Identification!
 
-  kraPIN: String!
-  kraPINUploadID: String!
+  KRAPIN: String!
+  KRAPINUploadID: String!
 
   drivingLicenseUploadID: String!
   certificateGoodConductUploadID: String!
@@ -296,8 +296,8 @@ type OrganizationRider {
   organizationCertificate: String
 
   # common for all
-  kraPIN: String!
-  kraPINUploadID: String!
+  KRAPIN: String!
+  KRAPINUploadID: String!
   supportingDocumentsUploadID: [String]
 }
 

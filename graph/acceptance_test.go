@@ -5083,7 +5083,7 @@ func TestAddCustomerKYCMutation(t *testing.T) {
 					"query": graphQLQueryPayload,
 					"variables": map[string]interface{}{
 						"customerKYCInput": map[string]interface{}{
-							"KRAPin":     "a valid kra pin",
+							"KRAPin":     "a valid KRA pin",
 							"occupation": "hustler",
 							"idNumber":   "totally an id number",
 							"address":    "we still use this",
@@ -6736,8 +6736,8 @@ func TestAddIndividualRiderKYCMutation(t *testing.T) {
 			identificationDocNumber
 			identificationDocNumberUploadID
 	  }
-		  kraPIN
-		  kraPINUploadID
+		  KRAPIN
+		  KRAPINUploadID
 		  drivingLicenseUploadID
 		  certificateGoodConductUploadID
 		}
@@ -6906,8 +6906,8 @@ func TestAddOrganizationRiderKYCMutation(t *testing.T) {
 			identificationDocNumberUploadID
 		  }
 		  organizationCertificate
-		  kraPIN
-		  kraPINUploadID
+		  KRAPIN
+		  KRAPINUploadID
 		  supportingDocumentsUploadID
 		}
 	}`
@@ -6971,6 +6971,875 @@ func TestAddOrganizationRiderKYCMutation(t *testing.T) {
 							"KRAPIN":                             "12345",
 							"KRAPINUploadID":                     "12345",
 							"supportingDocumentsUploadID":        []string{"123456"},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected got error: %w", err)
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status reponse returned")
+				return
+			}
+
+		})
+	}
+}
+
+func TestAddOrganizationPharmaceuticalKYCMutation(t *testing.T) {
+	ctx := base.GetAuthenticatedContext(t)
+
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLMutationPayload := `
+	mutation addOrganizationPharmaceuticalKYC($input:OrganizationPharmaceuticalInput!){
+		addOrganizationPharmaceuticalKYC(input:$input) {
+		  organizationTypeName
+		  certificateOfIncorporation
+		  certificateOfInCorporationUploadID
+		  directorIdentifications{
+			identificationDocType
+			identificationDocNumber
+			identificationDocNumberUploadID
+		  }
+		  organizationCertificate
+		  KRAPIN
+		  KRAPINUploadID
+		}
+	}
+	`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"directorIdentifications": []map[string]interface{}{
+								{
+									"identificationDocType":           "NATIONALID",
+									"identificationDocNumber":         "12345678",
+									"identificationDocNumberUploadID": "12345678",
+								},
+							},
+							"organizationTypeName":               "LIMITED_COMPANY",
+							"certificateOfIncorporation":         "12345",
+							"certificateOfInCorporationUploadID": "12345",
+							"organizationCertificate":            "12345",
+							"KRAPIN":                             "12345",
+							"KRAPINUploadID":                     "12345",
+							"registrationNumber":                 "12345678",
+							"practiceLicenseID":                  "12345678",
+							"practiceLicenseUploadID":            "12345678",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid mutation request - wrong input type",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"directorIdentifications": []map[string]interface{}{
+								{
+									"identificationDocType":           "NATIONALID",
+									"identificationDocNumber":         "12345678",
+									"identificationDocNumberUploadID": "12345678",
+								},
+							},
+							"organizationTypeName":               "LIMITED_COMPANY",
+							"certificateOfIncorporation":         12345,
+							"certificateOfInCorporationUploadID": 12345,
+							"organizationCertificate":            12345,
+							"KRAPIN":                             "12345",
+							"KRAPINUploadID":                     "12345",
+							"registrationNumber":                 "12345678",
+							"practiceLicenseID":                  "12345678",
+							"practiceLicenseUploadID":            "12345678",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected got error: %w", err)
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status reponse returned")
+				return
+			}
+
+		})
+	}
+}
+
+func TestAddIndividualCoachKYCMutationMutation(t *testing.T) {
+	ctx := base.GetAuthenticatedContext(t)
+
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLMutationPayload := `
+	mutation addIndividualCoachKYC($input:IndividualCoachInput!){
+		addIndividualCoachKYC(input:$input) {
+		  identificationDoc {
+			identificationDocType
+			identificationDocNumber
+			identificationDocNumberUploadID
+	  }
+		  KRAPIN
+		  KRAPINUploadID
+		}
+	}
+	`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"identificationDoc": map[string]interface{}{
+								"identificationDocType":           "NATIONALID",
+								"identificationDocNumber":         "12345678",
+								"identificationDocNumberUploadID": "12345678",
+							},
+							"KRAPIN":         "12345678",
+							"KRAPINUploadID": "12345678",
+							"licenseID":      "12345678",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid mutation request - wrong input type",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"identificationDoc": map[string]interface{}{
+								"identificationDocType":           "NATIONALID",
+								"identificationDocNumber":         "12345678",
+								"identificationDocNumberUploadID": "12345678",
+							},
+							"KRAPIN":         12345678,
+							"KRAPINUploadID": 12345678,
+							"licenseID":      "12345678",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected got error: %w", err)
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status reponse returned")
+				return
+			}
+
+		})
+	}
+}
+
+func TestAddOrganizationCoachKYCMutation(t *testing.T) {
+	ctx := base.GetAuthenticatedContext(t)
+
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLMutationPayload := `
+	mutation addOrganizationCoachKYC($input:OrganizationCoachInput!){
+		addOrganizationCoachKYC(input:$input) {
+		  organizationTypeName
+		  certificateOfIncorporation
+		  certificateOfInCorporationUploadID
+		  directorIdentifications{
+			identificationDocType
+			identificationDocNumber
+			identificationDocNumberUploadID
+		  }
+		  organizationCertificate
+		  KRAPIN
+		  KRAPINUploadID
+		}
+	}
+	`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"directorIdentifications": []map[string]interface{}{
+								{
+									"identificationDocType":           "NATIONALID",
+									"identificationDocNumber":         "12345678",
+									"identificationDocNumberUploadID": "12345678",
+								},
+							},
+							"organizationTypeName":               "LIMITED_COMPANY",
+							"certificateOfIncorporation":         "12345",
+							"certificateOfInCorporationUploadID": "12345",
+							"organizationCertificate":            "12345",
+							"KRAPIN":                             "12345",
+							"KRAPINUploadID":                     "12345",
+							"registrationNumber":                 "12345678",
+							"practiceLicenseID":                  "12345678",
+							"practiceLicenseUploadID":            "12345678",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid mutation request - wrong input type",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"directorIdentifications": []map[string]interface{}{
+								{
+									"identificationDocType":           "NATIONALID",
+									"identificationDocNumber":         "12345678",
+									"identificationDocNumberUploadID": "12345678",
+								},
+							},
+							"organizationTypeName":               "LIMITED_COMPANY",
+							"certificateOfIncorporation":         12345,
+							"certificateOfInCorporationUploadID": 12345,
+							"organizationCertificate":            12345,
+							"KRAPIN":                             "12345",
+							"KRAPINUploadID":                     "12345",
+							"registrationNumber":                 "12345678",
+							"practiceLicenseID":                  "12345678",
+							"practiceLicenseUploadID":            "12345678",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected got error: %w", err)
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status reponse returned")
+				return
+			}
+
+		})
+	}
+}
+func TestAddIndividualNutritionKYCMutation(t *testing.T) {
+	ctx := base.GetAuthenticatedContext(t)
+
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLMutationPayload := `
+	mutation addIndividualNutritionKYC($input:IndividualNutritionInput!){
+		addIndividualNutritionKYC(input:$input) {
+		  identificationDoc {
+			identificationDocType
+			identificationDocNumber
+			identificationDocNumberUploadID
+	  }
+		  KRAPIN
+		  KRAPINUploadID
+		}
+	}
+	`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"identificationDoc": map[string]interface{}{
+								"identificationDocType":           "NATIONALID",
+								"identificationDocNumber":         "12345678",
+								"identificationDocNumberUploadID": "12345678",
+							},
+							"KRAPIN":         "12345678",
+							"KRAPINUploadID": "12345678",
+							"licenseID":      "12345678",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid mutation request - wrong input type",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"identificationDoc": map[string]interface{}{
+								"identificationDocType":           "NATIONALID",
+								"identificationDocNumber":         "12345678",
+								"identificationDocNumberUploadID": "12345678",
+							},
+							"KRAPIN":         12345678,
+							"KRAPINUploadID": 12345678,
+							"licenseID":      "12345678",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected got error: %w", err)
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status reponse returned")
+				return
+			}
+
+		})
+	}
+}
+
+func TestAddOrganizationNutritionKYCMutation(t *testing.T) {
+	ctx := base.GetAuthenticatedContext(t)
+
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLMutationPayload := `
+	mutation addOrganizationNutritionKYC($input:OrganizationNutritionInput!){
+		addOrganizationNutritionKYC(input:$input) {
+		  organizationTypeName
+		  certificateOfIncorporation
+		  certificateOfInCorporationUploadID
+		  directorIdentifications{
+			identificationDocType
+			identificationDocNumber
+			identificationDocNumberUploadID
+		  }
+		  organizationCertificate
+		  KRAPIN
+		  KRAPINUploadID
+		}
+	}
+	`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"directorIdentifications": []map[string]interface{}{
+								{
+									"identificationDocType":           "NATIONALID",
+									"identificationDocNumber":         "12345678",
+									"identificationDocNumberUploadID": "12345678",
+								},
+							},
+							"organizationTypeName":               "LIMITED_COMPANY",
+							"certificateOfIncorporation":         "12345",
+							"certificateOfInCorporationUploadID": "12345",
+							"organizationCertificate":            "12345",
+							"KRAPIN":                             "12345",
+							"KRAPINUploadID":                     "12345",
+							"registrationNumber":                 "12345678",
+							"practiceLicenseID":                  "12345678",
+							"practiceLicenseUploadID":            "12345678",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid mutation request - wrong input type",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"directorIdentifications": []map[string]interface{}{
+								{
+									"identificationDocType":           "NATIONALID",
+									"identificationDocNumber":         "12345678",
+									"identificationDocNumberUploadID": "12345678",
+								},
+							},
+							"organizationTypeName":               "LIMITED_COMPANY",
+							"certificateOfIncorporation":         12345,
+							"certificateOfInCorporationUploadID": 12345,
+							"organizationCertificate":            12345,
+							"KRAPIN":                             "12345",
+							"KRAPINUploadID":                     "12345",
+							"registrationNumber":                 "12345678",
+							"practiceLicenseID":                  "12345678",
+							"practiceLicenseUploadID":            "12345678",
 						},
 					},
 				},

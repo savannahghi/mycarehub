@@ -1060,14 +1060,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.IndividualRider.IdentificationDoc(childComplexity), true
 
-	case "IndividualRider.kraPIN":
+	case "IndividualRider.KRAPIN":
 		if e.complexity.IndividualRider.KRAPIN == nil {
 			break
 		}
 
 		return e.complexity.IndividualRider.KRAPIN(childComplexity), true
 
-	case "IndividualRider.kraPINUploadID":
+	case "IndividualRider.KRAPINUploadID":
 		if e.complexity.IndividualRider.KRAPINUploadID == nil {
 			break
 		}
@@ -2101,14 +2101,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OrganizationRider.DirectorIdentifications(childComplexity), true
 
-	case "OrganizationRider.kraPIN":
+	case "OrganizationRider.KRAPIN":
 		if e.complexity.OrganizationRider.KRAPIN == nil {
 			break
 		}
 
 		return e.complexity.OrganizationRider.KRAPIN(childComplexity), true
 
-	case "OrganizationRider.kraPINUploadID":
+	case "OrganizationRider.KRAPINUploadID":
 		if e.complexity.OrganizationRider.KRAPINUploadID == nil {
 			break
 		}
@@ -3767,8 +3767,8 @@ type Identification {
 type IndividualRider {
   identificationDoc: Identification!
 
-  kraPIN: String!
-  kraPINUploadID: String!
+  KRAPIN: String!
+  KRAPINUploadID: String!
 
   drivingLicenseUploadID: String!
   certificateGoodConductUploadID: String!
@@ -3845,8 +3845,8 @@ type OrganizationRider {
   organizationCertificate: String
 
   # common for all
-  kraPIN: String!
-  kraPINUploadID: String!
+  KRAPIN: String!
+  KRAPINUploadID: String!
   supportingDocumentsUploadID: [String]
 }
 
@@ -7331,7 +7331,7 @@ func (ec *executionContext) _IndividualRider_identificationDoc(ctx context.Conte
 	return ec.marshalNIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualRider_kraPIN(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+func (ec *executionContext) _IndividualRider_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7366,7 +7366,7 @@ func (ec *executionContext) _IndividualRider_kraPIN(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualRider_kraPINUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+func (ec *executionContext) _IndividualRider_KRAPINUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11908,7 +11908,7 @@ func (ec *executionContext) _OrganizationRider_organizationCertificate(ctx conte
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _OrganizationRider_kraPIN(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
+func (ec *executionContext) _OrganizationRider_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11943,7 +11943,7 @@ func (ec *executionContext) _OrganizationRider_kraPIN(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _OrganizationRider_kraPINUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
+func (ec *executionContext) _OrganizationRider_KRAPINUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationRider) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -19008,13 +19008,13 @@ func (ec *executionContext) _IndividualRider(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "kraPIN":
-			out.Values[i] = ec._IndividualRider_kraPIN(ctx, field, obj)
+		case "KRAPIN":
+			out.Values[i] = ec._IndividualRider_KRAPIN(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "kraPINUploadID":
-			out.Values[i] = ec._IndividualRider_kraPINUploadID(ctx, field, obj)
+		case "KRAPINUploadID":
+			out.Values[i] = ec._IndividualRider_KRAPINUploadID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19791,13 +19791,13 @@ func (ec *executionContext) _OrganizationRider(ctx context.Context, sel ast.Sele
 			out.Values[i] = ec._OrganizationRider_directorIdentifications(ctx, field, obj)
 		case "organizationCertificate":
 			out.Values[i] = ec._OrganizationRider_organizationCertificate(ctx, field, obj)
-		case "kraPIN":
-			out.Values[i] = ec._OrganizationRider_kraPIN(ctx, field, obj)
+		case "KRAPIN":
+			out.Values[i] = ec._OrganizationRider_KRAPIN(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "kraPINUploadID":
-			out.Values[i] = ec._OrganizationRider_kraPINUploadID(ctx, field, obj)
+		case "KRAPINUploadID":
+			out.Values[i] = ec._OrganizationRider_KRAPINUploadID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
