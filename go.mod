@@ -20,5 +20,6 @@ require (
 	github.com/vektah/gqlparser/v2 v2.1.0
 	gitlab.slade360emr.com/go/base v0.0.85
 	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9
+	google.golang.org/api v0.36.0
 	gopkg.in/yaml.v2 v2.4.0
 )
