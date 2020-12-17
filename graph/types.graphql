@@ -237,7 +237,8 @@ type IndividualPractitioner {
 
   # unique to practitioner
   registrationNumber: String!
-  practiceLicenseUploadID: String!
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
   practiceServices: [PractitionerService!]!
   cadre: PractitionerCadre!
 }
@@ -253,8 +254,8 @@ type IndividualPharmaceutical {
 
   # unique to practitioner
   registrationNumber: String!
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 type IndividualCoach {
@@ -267,8 +268,8 @@ type IndividualCoach {
   supportingDocumentsUploadID: [String]
 
   # unique for coach
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 type IndividualNutrition {
@@ -281,8 +282,8 @@ type IndividualNutrition {
   supportingDocumentsUploadID: [String]
 
   # unique for Nutrition
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 type OrganizationRider {

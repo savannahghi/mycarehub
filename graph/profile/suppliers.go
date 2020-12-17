@@ -1060,7 +1060,8 @@ func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input Indi
 		KRAPINUploadID:              input.KRAPINUploadID,
 		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
 		RegistrationNumber:          input.RegistrationNumber,
-		LicenseUploadID:             input.LicenseUploadID,
+		PracticeLicenseID:           input.PracticeLicenseID,
+		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
 	}
 
 	if len(input.SupportingDocumentsUploadID) != 0 {
@@ -1195,7 +1196,8 @@ func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoa
 		KRAPIN:                      input.KRAPIN,
 		KRAPINUploadID:              input.KRAPINUploadID,
 		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-		LicenseUploadID:             input.LicenseUploadID,
+		PracticeLicenseID:           input.PracticeLicenseID,
+		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
 	}
 
 	if len(input.SupportingDocumentsUploadID) != 0 {
@@ -1330,7 +1332,8 @@ func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input Individua
 		KRAPIN:                      input.KRAPIN,
 		KRAPINUploadID:              input.KRAPINUploadID,
 		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-		LicenseUploadID:             input.LicenseUploadID,
+		PracticeLicenseID:           input.PracticeLicenseID,
+		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
 	}
 
 	if len(input.SupportingDocumentsUploadID) != 0 {

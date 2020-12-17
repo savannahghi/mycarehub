@@ -143,8 +143,8 @@ input IndividualPharmaceuticalInput {
 
   # unique to practitioner
   registrationNumber: String!
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 input IndividualCoachInput {
   # common for individual account types
@@ -156,8 +156,8 @@ input IndividualCoachInput {
   supportingDocumentsUploadID: [String]
 
   # unique for coach
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 input IndividualNutritionInput {
@@ -170,8 +170,8 @@ input IndividualNutritionInput {
   supportingDocumentsUploadID: [String]
 
   # unique for Nutrition
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 input OrganizationRiderInput {

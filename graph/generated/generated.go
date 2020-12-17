@@ -127,8 +127,8 @@ type ComplexityRoot struct {
 		IdentificationDoc           func(childComplexity int) int
 		KRAPIN                      func(childComplexity int) int
 		KRAPINUploadID              func(childComplexity int) int
-		LicenseID                   func(childComplexity int) int
-		LicenseUploadID             func(childComplexity int) int
+		PracticeLicenseID           func(childComplexity int) int
+		PracticeLicenseUploadID     func(childComplexity int) int
 		SupportingDocumentsUploadID func(childComplexity int) int
 	}
 
@@ -136,8 +136,8 @@ type ComplexityRoot struct {
 		IdentificationDoc           func(childComplexity int) int
 		KRAPIN                      func(childComplexity int) int
 		KRAPINUploadID              func(childComplexity int) int
-		LicenseID                   func(childComplexity int) int
-		LicenseUploadID             func(childComplexity int) int
+		PracticeLicenseID           func(childComplexity int) int
+		PracticeLicenseUploadID     func(childComplexity int) int
 		SupportingDocumentsUploadID func(childComplexity int) int
 	}
 
@@ -145,8 +145,8 @@ type ComplexityRoot struct {
 		IdentificationDoc           func(childComplexity int) int
 		KRAPIN                      func(childComplexity int) int
 		KRAPINUploadID              func(childComplexity int) int
-		LicenseID                   func(childComplexity int) int
-		LicenseUploadID             func(childComplexity int) int
+		PracticeLicenseID           func(childComplexity int) int
+		PracticeLicenseUploadID     func(childComplexity int) int
 		RegistrationNumber          func(childComplexity int) int
 		SupportingDocumentsUploadID func(childComplexity int) int
 	}
@@ -156,6 +156,7 @@ type ComplexityRoot struct {
 		IdentificationDoc           func(childComplexity int) int
 		KRAPIN                      func(childComplexity int) int
 		KRAPINUploadID              func(childComplexity int) int
+		PracticeLicenseID           func(childComplexity int) int
 		PracticeLicenseUploadID     func(childComplexity int) int
 		PracticeServices            func(childComplexity int) int
 		RegistrationNumber          func(childComplexity int) int
@@ -849,19 +850,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.IndividualCoach.KRAPINUploadID(childComplexity), true
 
-	case "IndividualCoach.licenseID":
-		if e.complexity.IndividualCoach.LicenseID == nil {
+	case "IndividualCoach.practiceLicenseID":
+		if e.complexity.IndividualCoach.PracticeLicenseID == nil {
 			break
 		}
 
-		return e.complexity.IndividualCoach.LicenseID(childComplexity), true
+		return e.complexity.IndividualCoach.PracticeLicenseID(childComplexity), true
 
-	case "IndividualCoach.licenseUploadID":
-		if e.complexity.IndividualCoach.LicenseUploadID == nil {
+	case "IndividualCoach.practiceLicenseUploadID":
+		if e.complexity.IndividualCoach.PracticeLicenseUploadID == nil {
 			break
 		}
 
-		return e.complexity.IndividualCoach.LicenseUploadID(childComplexity), true
+		return e.complexity.IndividualCoach.PracticeLicenseUploadID(childComplexity), true
 
 	case "IndividualCoach.supportingDocumentsUploadID":
 		if e.complexity.IndividualCoach.SupportingDocumentsUploadID == nil {
@@ -891,19 +892,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.IndividualNutrition.KRAPINUploadID(childComplexity), true
 
-	case "IndividualNutrition.licenseID":
-		if e.complexity.IndividualNutrition.LicenseID == nil {
+	case "IndividualNutrition.practiceLicenseID":
+		if e.complexity.IndividualNutrition.PracticeLicenseID == nil {
 			break
 		}
 
-		return e.complexity.IndividualNutrition.LicenseID(childComplexity), true
+		return e.complexity.IndividualNutrition.PracticeLicenseID(childComplexity), true
 
-	case "IndividualNutrition.licenseUploadID":
-		if e.complexity.IndividualNutrition.LicenseUploadID == nil {
+	case "IndividualNutrition.practiceLicenseUploadID":
+		if e.complexity.IndividualNutrition.PracticeLicenseUploadID == nil {
 			break
 		}
 
-		return e.complexity.IndividualNutrition.LicenseUploadID(childComplexity), true
+		return e.complexity.IndividualNutrition.PracticeLicenseUploadID(childComplexity), true
 
 	case "IndividualNutrition.supportingDocumentsUploadID":
 		if e.complexity.IndividualNutrition.SupportingDocumentsUploadID == nil {
@@ -933,19 +934,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.IndividualPharmaceutical.KRAPINUploadID(childComplexity), true
 
-	case "IndividualPharmaceutical.licenseID":
-		if e.complexity.IndividualPharmaceutical.LicenseID == nil {
+	case "IndividualPharmaceutical.practiceLicenseID":
+		if e.complexity.IndividualPharmaceutical.PracticeLicenseID == nil {
 			break
 		}
 
-		return e.complexity.IndividualPharmaceutical.LicenseID(childComplexity), true
+		return e.complexity.IndividualPharmaceutical.PracticeLicenseID(childComplexity), true
 
-	case "IndividualPharmaceutical.licenseUploadID":
-		if e.complexity.IndividualPharmaceutical.LicenseUploadID == nil {
+	case "IndividualPharmaceutical.practiceLicenseUploadID":
+		if e.complexity.IndividualPharmaceutical.PracticeLicenseUploadID == nil {
 			break
 		}
 
-		return e.complexity.IndividualPharmaceutical.LicenseUploadID(childComplexity), true
+		return e.complexity.IndividualPharmaceutical.PracticeLicenseUploadID(childComplexity), true
 
 	case "IndividualPharmaceutical.registrationNumber":
 		if e.complexity.IndividualPharmaceutical.RegistrationNumber == nil {
@@ -988,6 +989,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.IndividualPractitioner.KRAPINUploadID(childComplexity), true
+
+	case "IndividualPractitioner.practiceLicenseID":
+		if e.complexity.IndividualPractitioner.PracticeLicenseID == nil {
+			break
+		}
+
+		return e.complexity.IndividualPractitioner.PracticeLicenseID(childComplexity), true
 
 	case "IndividualPractitioner.practiceLicenseUploadID":
 		if e.complexity.IndividualPractitioner.PracticeLicenseUploadID == nil {
@@ -3178,8 +3186,8 @@ input IndividualPharmaceuticalInput {
 
   # unique to practitioner
   registrationNumber: String!
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 input IndividualCoachInput {
   # common for individual account types
@@ -3191,8 +3199,8 @@ input IndividualCoachInput {
   supportingDocumentsUploadID: [String]
 
   # unique for coach
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 input IndividualNutritionInput {
@@ -3205,8 +3213,8 @@ input IndividualNutritionInput {
   supportingDocumentsUploadID: [String]
 
   # unique for Nutrition
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 input OrganizationRiderInput {
@@ -3691,7 +3699,8 @@ type IndividualPractitioner {
 
   # unique to practitioner
   registrationNumber: String!
-  practiceLicenseUploadID: String!
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
   practiceServices: [PractitionerService!]!
   cadre: PractitionerCadre!
 }
@@ -3707,8 +3716,8 @@ type IndividualPharmaceutical {
 
   # unique to practitioner
   registrationNumber: String!
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 type IndividualCoach {
@@ -3721,8 +3730,8 @@ type IndividualCoach {
   supportingDocumentsUploadID: [String]
 
   # unique for coach
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 type IndividualNutrition {
@@ -3735,8 +3744,8 @@ type IndividualNutrition {
   supportingDocumentsUploadID: [String]
 
   # unique for Nutrition
-  licenseID: String!
-  licenseUploadID: String
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 type OrganizationRider {
@@ -6347,7 +6356,7 @@ func (ec *executionContext) _IndividualCoach_supportingDocumentsUploadID(ctx con
 	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualCoach_licenseID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualCoach) (ret graphql.Marshaler) {
+func (ec *executionContext) _IndividualCoach_practiceLicenseID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualCoach) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6365,7 +6374,7 @@ func (ec *executionContext) _IndividualCoach_licenseID(ctx context.Context, fiel
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LicenseID, nil
+		return obj.PracticeLicenseID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6382,7 +6391,7 @@ func (ec *executionContext) _IndividualCoach_licenseID(ctx context.Context, fiel
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualCoach_licenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualCoach) (ret graphql.Marshaler) {
+func (ec *executionContext) _IndividualCoach_practiceLicenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualCoach) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6400,7 +6409,7 @@ func (ec *executionContext) _IndividualCoach_licenseUploadID(ctx context.Context
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LicenseUploadID, nil
+		return obj.PracticeLicenseUploadID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6551,7 +6560,7 @@ func (ec *executionContext) _IndividualNutrition_supportingDocumentsUploadID(ctx
 	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualNutrition_licenseID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualNutrition) (ret graphql.Marshaler) {
+func (ec *executionContext) _IndividualNutrition_practiceLicenseID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualNutrition) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6569,7 +6578,7 @@ func (ec *executionContext) _IndividualNutrition_licenseID(ctx context.Context, 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LicenseID, nil
+		return obj.PracticeLicenseID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6586,7 +6595,7 @@ func (ec *executionContext) _IndividualNutrition_licenseID(ctx context.Context, 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualNutrition_licenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualNutrition) (ret graphql.Marshaler) {
+func (ec *executionContext) _IndividualNutrition_practiceLicenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualNutrition) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6604,7 +6613,7 @@ func (ec *executionContext) _IndividualNutrition_licenseUploadID(ctx context.Con
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LicenseUploadID, nil
+		return obj.PracticeLicenseUploadID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6790,7 +6799,7 @@ func (ec *executionContext) _IndividualPharmaceutical_registrationNumber(ctx con
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualPharmaceutical_licenseID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualPharmaceutical) (ret graphql.Marshaler) {
+func (ec *executionContext) _IndividualPharmaceutical_practiceLicenseID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualPharmaceutical) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6808,7 +6817,7 @@ func (ec *executionContext) _IndividualPharmaceutical_licenseID(ctx context.Cont
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LicenseID, nil
+		return obj.PracticeLicenseID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6825,7 +6834,7 @@ func (ec *executionContext) _IndividualPharmaceutical_licenseID(ctx context.Cont
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IndividualPharmaceutical_licenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualPharmaceutical) (ret graphql.Marshaler) {
+func (ec *executionContext) _IndividualPharmaceutical_practiceLicenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualPharmaceutical) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6843,7 +6852,7 @@ func (ec *executionContext) _IndividualPharmaceutical_licenseUploadID(ctx contex
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LicenseUploadID, nil
+		return obj.PracticeLicenseUploadID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7029,6 +7038,41 @@ func (ec *executionContext) _IndividualPractitioner_registrationNumber(ctx conte
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _IndividualPractitioner_practiceLicenseID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualPractitioner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualPractitioner",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PracticeLicenseID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _IndividualPractitioner_practiceLicenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualPractitioner) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7054,14 +7098,11 @@ func (ec *executionContext) _IndividualPractitioner_practiceLicenseUploadID(ctx 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualPractitioner_practiceServices(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualPractitioner) (ret graphql.Marshaler) {
@@ -16518,19 +16559,19 @@ func (ec *executionContext) unmarshalInputIndividualCoachInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
-		case "licenseID":
+		case "practiceLicenseID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("licenseID"))
-			it.LicenseID, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseID"))
+			it.PracticeLicenseID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "licenseUploadID":
+		case "practiceLicenseUploadID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("licenseUploadID"))
-			it.LicenseUploadID, err = ec.unmarshalOString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseUploadID"))
+			it.PracticeLicenseUploadID, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16578,19 +16619,19 @@ func (ec *executionContext) unmarshalInputIndividualNutritionInput(ctx context.C
 			if err != nil {
 				return it, err
 			}
-		case "licenseID":
+		case "practiceLicenseID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("licenseID"))
-			it.LicenseID, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseID"))
+			it.PracticeLicenseID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "licenseUploadID":
+		case "practiceLicenseUploadID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("licenseUploadID"))
-			it.LicenseUploadID, err = ec.unmarshalOString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseUploadID"))
+			it.PracticeLicenseUploadID, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16646,19 +16687,19 @@ func (ec *executionContext) unmarshalInputIndividualPharmaceuticalInput(ctx cont
 			if err != nil {
 				return it, err
 			}
-		case "licenseID":
+		case "practiceLicenseID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("licenseID"))
-			it.LicenseID, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseID"))
+			it.PracticeLicenseID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "licenseUploadID":
+		case "practiceLicenseUploadID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("licenseUploadID"))
-			it.LicenseUploadID, err = ec.unmarshalOString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseUploadID"))
+			it.PracticeLicenseUploadID, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18338,13 +18379,13 @@ func (ec *executionContext) _IndividualCoach(ctx context.Context, sel ast.Select
 			}
 		case "supportingDocumentsUploadID":
 			out.Values[i] = ec._IndividualCoach_supportingDocumentsUploadID(ctx, field, obj)
-		case "licenseID":
-			out.Values[i] = ec._IndividualCoach_licenseID(ctx, field, obj)
+		case "practiceLicenseID":
+			out.Values[i] = ec._IndividualCoach_practiceLicenseID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "licenseUploadID":
-			out.Values[i] = ec._IndividualCoach_licenseUploadID(ctx, field, obj)
+		case "practiceLicenseUploadID":
+			out.Values[i] = ec._IndividualCoach_practiceLicenseUploadID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18384,13 +18425,13 @@ func (ec *executionContext) _IndividualNutrition(ctx context.Context, sel ast.Se
 			}
 		case "supportingDocumentsUploadID":
 			out.Values[i] = ec._IndividualNutrition_supportingDocumentsUploadID(ctx, field, obj)
-		case "licenseID":
-			out.Values[i] = ec._IndividualNutrition_licenseID(ctx, field, obj)
+		case "practiceLicenseID":
+			out.Values[i] = ec._IndividualNutrition_practiceLicenseID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "licenseUploadID":
-			out.Values[i] = ec._IndividualNutrition_licenseUploadID(ctx, field, obj)
+		case "practiceLicenseUploadID":
+			out.Values[i] = ec._IndividualNutrition_practiceLicenseUploadID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18435,13 +18476,13 @@ func (ec *executionContext) _IndividualPharmaceutical(ctx context.Context, sel a
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "licenseID":
-			out.Values[i] = ec._IndividualPharmaceutical_licenseID(ctx, field, obj)
+		case "practiceLicenseID":
+			out.Values[i] = ec._IndividualPharmaceutical_practiceLicenseID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "licenseUploadID":
-			out.Values[i] = ec._IndividualPharmaceutical_licenseUploadID(ctx, field, obj)
+		case "practiceLicenseUploadID":
+			out.Values[i] = ec._IndividualPharmaceutical_practiceLicenseUploadID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18486,11 +18527,13 @@ func (ec *executionContext) _IndividualPractitioner(ctx context.Context, sel ast
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "practiceLicenseUploadID":
-			out.Values[i] = ec._IndividualPractitioner_practiceLicenseUploadID(ctx, field, obj)
+		case "practiceLicenseID":
+			out.Values[i] = ec._IndividualPractitioner_practiceLicenseID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "practiceLicenseUploadID":
+			out.Values[i] = ec._IndividualPractitioner_practiceLicenseUploadID(ctx, field, obj)
 		case "practiceServices":
 			out.Values[i] = ec._IndividualPractitioner_practiceServices(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
