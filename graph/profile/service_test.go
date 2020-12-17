@@ -27,25 +27,30 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 	s := NewService()
 
+	purgeRecords := func() {
+		collections := []string{
+			s.GetPINCollectionName(),
+			s.GetUserProfileCollectionName(),
+			s.GetPractitionerCollectionName(),
+			s.GetCustomerCollectionName(),
+			s.GetSignUpInfoCollectionName(),
+			s.GetSupplierCollectionName(),
+			s.GetSurveyCollectionName(),
+			s.GetProfileNudgesCollectionName(),
+			base.GetCollectionName(&TesterWhitelist{}),
+		}
+		for _, collection := range collections {
+			ref := s.firestoreClient.Collection(collection)
+			base.DeleteCollection(ctx, s.firestoreClient, ref, 10)
+		}
+	}
+	purgeRecords()
+
 	log.Printf("Running tests ...")
 	code := m.Run()
 
 	log.Printf("Tearing tests down ...")
-	collections := []string{
-		s.GetPINCollectionName(),
-		s.GetUserProfileCollectionName(),
-		s.GetPractitionerCollectionName(),
-		s.GetCustomerCollectionName(),
-		s.GetSignUpInfoCollectionName(),
-		s.GetSupplierCollectionName(),
-		s.GetSurveyCollectionName(),
-		s.GetProfileNudgesCollectionName(),
-		base.GetCollectionName(&TesterWhitelist{}),
-	}
-	for _, collection := range collections {
-		ref := s.firestoreClient.Collection(collection)
-		base.DeleteCollection(ctx, s.firestoreClient, ref, 10)
-	}
+	purgeRecords()
 
 	os.Exit(code)
 }

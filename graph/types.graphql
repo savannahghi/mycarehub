@@ -226,21 +226,6 @@ type IndividualRider {
   supportingDocumentsUploadID: [String]
 }
 
-type OrganizationRider {
-  organizationTypeName: OrganizationType!
-
-  certificateOfIncorporation: String
-  certificateOfInCorporationUploadID: String
-  directorIdentifications: [Identification]
-
-  organizationCertificate: String
-
-  # common for all
-  kraPIN: String!
-  kraPINUploadID: String!
-  supportingDocumentsUploadID: [String]
-}
-
 type IndividualPractitioner {
   # common for individual account types
   identificationDoc: Identification!
@@ -255,6 +240,64 @@ type IndividualPractitioner {
   practiceLicenseUploadID: String!
   practiceServices: [PractitionerService!]!
   cadre: PractitionerCadre!
+}
+
+type IndividualPharmaceutical {
+  # common for individual account types
+  identificationDoc: Identification!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique to practitioner
+  registrationNumber: String!
+  licenseID: String!
+  licenseUploadID: String
+}
+
+type IndividualCoach {
+  # common for individual account types
+  identificationDoc: Identification!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique for coach
+  licenseID: String!
+  licenseUploadID: String
+}
+
+type IndividualNutrition {
+  # common for individual account types
+  identificationDoc: Identification!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique for Nutrition
+  licenseID: String!
+  licenseUploadID: String
+}
+
+type OrganizationRider {
+  organizationTypeName: OrganizationType!
+
+  certificateOfIncorporation: String
+  certificateOfInCorporationUploadID: String
+  directorIdentifications: [Identification]
+
+  organizationCertificate: String
+
+  # common for all
+  kraPIN: String!
+  kraPINUploadID: String!
+  supportingDocumentsUploadID: [String]
 }
 
 type OrganizationPractitioner {
@@ -300,51 +343,10 @@ type OrganizationProvider {
 
   # unique to practitioner
   registrationNumber: String!
-  practiceLicenseUploadID: String!
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
   practiceServices: [PractitionerService!]!
   cadre: PractitionerCadre!
-}
-
-type IndividualPharmaceutical {
-  # common for individual account types
-  identificationDoc: Identification!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
-
-  # unique to practitioner
-  registrationNumber: String!
-  licenseUploadID: String!
-}
-
-type IndividualCoach {
-  # common for individual account types
-  identificationDoc: Identification!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
-
-  # unique for coach
-  licenseUploadID: String!
-
-}
-
-type IndividualNutrition {
-  # common for individual account types
-  identificationDoc: Identification!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
-
-  # unique for Nutrition
-  licenseUploadID: String!
-
 }
 
 type OrganizationNutrition {
@@ -366,8 +368,8 @@ type OrganizationNutrition {
 
   # unique for nutrition
   registrationNumber: String!
-  practiceLicenseUploadID: String!
-
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 type OrganizationCoach {
@@ -389,8 +391,8 @@ type OrganizationCoach {
 
   # unique for coach
   registrationNumber: String!
-  practiceLicenseUploadID: String!
-
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 type OrganizationPharmaceutical {
@@ -412,6 +414,6 @@ type OrganizationPharmaceutical {
 
   # unique for pharmaceutical
   registrationNumber: String!
-  practiceLicenseUploadID: String!
-
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }

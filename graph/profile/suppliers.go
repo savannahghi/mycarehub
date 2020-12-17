@@ -717,6 +717,10 @@ func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input Organizatio
 
 	s.checkPreconditions()
 
+	if !input.OrganizationTypeName.IsValid() {
+		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
+	}
+
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
@@ -738,7 +742,6 @@ func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input Organizatio
 	}
 
 	kyc := OrganizationRider{
-
 		OrganizationTypeName:               input.OrganizationTypeName,
 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
@@ -785,8 +788,13 @@ func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input Organizatio
 
 // AddIndividualPractitionerKyc adds KYC for an individual pratitioner
 func (s *Service) AddIndividualPractitionerKyc(ctx context.Context, input IndividualPractitionerInput) (*IndividualPractitioner, error) {
-
 	s.checkPreconditions()
+
+	for _, p := range input.PracticeServices {
+		if !p.IsValid() {
+			return nil, fmt.Errorf("invalid `PracticeService` provided : %v", p.String())
+		}
+	}
 
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
@@ -818,6 +826,7 @@ func (s *Service) AddIndividualPractitionerKyc(ctx context.Context, input Indivi
 		KRAPINUploadID:              input.KRAPINUploadID,
 		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
 		RegistrationNumber:          input.RegistrationNumber,
+		PracticeLicenseID:           input.PracticeLicenseID,
 		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
 		PracticeServices:            input.PracticeServices,
 		Cadre:                       input.Cadre,
@@ -855,6 +864,16 @@ func (s *Service) AddOrganizationPractitionerKyc(ctx context.Context, input Orga
 
 	s.checkPreconditions()
 
+	if !input.OrganizationTypeName.IsValid() {
+		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
+	}
+
+	for _, p := range input.PracticeServices {
+		if !p.IsValid() {
+			return nil, fmt.Errorf("invalid `PracticeService` provided : %v", p.String())
+		}
+	}
+
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
@@ -881,6 +900,7 @@ func (s *Service) AddOrganizationPractitionerKyc(ctx context.Context, input Orga
 		KRAPINUploadID:                     input.KRAPINUploadID,
 		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
 		RegistrationNumber:                 input.RegistrationNumber,
+		PracticeLicenseID:                  input.PracticeLicenseID,
 		PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
 		PracticeServices:                   input.PracticeServices,
 		Cadre:                              input.Cadre,
@@ -928,6 +948,16 @@ func (s *Service) AddOrganizationProviderKyc(ctx context.Context, input Organiza
 
 	s.checkPreconditions()
 
+	if !input.OrganizationTypeName.IsValid() {
+		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
+	}
+
+	for _, p := range input.PracticeServices {
+		if !p.IsValid() {
+			return nil, fmt.Errorf("invalid `PracticeService` provided : %v", p.String())
+		}
+	}
+
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
@@ -954,6 +984,7 @@ func (s *Service) AddOrganizationProviderKyc(ctx context.Context, input Organiza
 		KRAPINUploadID:                     input.KRAPINUploadID,
 		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
 		RegistrationNumber:                 input.RegistrationNumber,
+		PracticeLicenseID:                  input.PracticeLicenseID,
 		PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
 		PracticeServices:                   input.PracticeServices,
 		Cadre:                              input.Cadre,
@@ -1062,6 +1093,10 @@ func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input Indi
 // AddOrganizationPharmaceuticalKyc adds KYC for a pharmacy organization
 func (s *Service) AddOrganizationPharmaceuticalKyc(ctx context.Context, input OrganizationPharmaceuticalInput) (*OrganizationPharmaceutical, error) {
 	s.checkPreconditions()
+
+	if !input.OrganizationTypeName.IsValid() {
+		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
+	}
 
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
@@ -1194,6 +1229,10 @@ func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoa
 func (s *Service) AddOrganizationCoachKyc(ctx context.Context, input OrganizationCoachInput) (*OrganizationCoach, error) {
 	s.checkPreconditions()
 
+	if !input.OrganizationTypeName.IsValid() {
+		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
+	}
+
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
@@ -1324,6 +1363,10 @@ func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input Individua
 // AddOrganizationNutritionKyc adds kyc for a nutritionist organisation
 func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input OrganizationNutritionInput) (*OrganizationNutrition, error) {
 	s.checkPreconditions()
+
+	if !input.OrganizationTypeName.IsValid() {
+		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
+	}
 
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {

@@ -115,6 +115,65 @@ input IndividualRiderInput {
   certificateGoodConductUploadID: String!
 }
 
+input IndividualPractitionerInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique to practitioner
+  registrationNumber: String!
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
+  practiceServices: [PractitionerService!]!
+  cadre: PractitionerCadre!
+}
+
+input IndividualPharmaceuticalInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique to practitioner
+  registrationNumber: String!
+  licenseID: String!
+  licenseUploadID: String
+}
+input IndividualCoachInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique for coach
+  licenseID: String!
+  licenseUploadID: String
+}
+
+input IndividualNutritionInput {
+  # common for individual account types
+  identificationDoc: IdentificationInput!
+
+  # common for all
+  KRAPIN: String!
+  KRAPINUploadID: String!
+  supportingDocumentsUploadID: [String]
+
+  # unique for Nutrition
+  licenseID: String!
+  licenseUploadID: String
+}
+
 input OrganizationRiderInput {
   # common for organization account types
   organizationTypeName: OrganizationType!
@@ -131,22 +190,6 @@ input OrganizationRiderInput {
 
   # common for organization : others
   organizationCertificate: String
-}
-
-input IndividualPractitionerInput {
-  # common for individual account types
-  identificationDoc: IdentificationInput!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
-
-  # unique to practitioner
-  registrationNumber: String!
-  practiceLicenseUploadID: String!
-  practiceServices: [PractitionerService!]!
-  cadre: PractitionerCadre!
 }
 
 input OrganizationPractitionerInput {
@@ -168,7 +211,8 @@ input OrganizationPractitionerInput {
 
   # unique to practitioner
   registrationNumber: String!
-  practiceLicenseUploadID: String!
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
   practiceServices: [PractitionerService!]!
   cadre: PractitionerCadre!
 }
@@ -192,48 +236,10 @@ input OrganizationProviderInput {
 
   # unique to practitioner
   registrationNumber: String!
-  practiceLicenseUploadID: String!
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
   practiceServices: [PractitionerService!]!
   cadre: PractitionerCadre!
-}
-
-input IndividualPharmaceuticalInput {
-  # common for individual account types
-  identificationDoc: IdentificationInput!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
-
-  # unique to practitioner
-  registrationNumber: String!
-  licenseUploadID: String!
-}
-input IndividualCoachInput {
-  # common for individual account types
-  identificationDoc: IdentificationInput!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
-
-  # unique fo coach
-  licenseUploadID: String!
-}
-
-input IndividualNutritionInput {
-  # common for individual account types
-  identificationDoc: IdentificationInput!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
-
-  # unique for Nutrition
-  licenseUploadID: String!
 }
 
 input OrganizationNutritionInput {
@@ -255,8 +261,8 @@ input OrganizationNutritionInput {
 
   # unique for nutrition
   registrationNumber: String!
-  practiceLicenseUploadID: String!
-
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 input OrganizationCoachInput {
@@ -278,8 +284,8 @@ input OrganizationCoachInput {
 
   # unique for coach
   registrationNumber: String!
-  practiceLicenseUploadID: String!
-
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
 
 input OrganizationPharmaceuticalInput {
@@ -301,5 +307,6 @@ input OrganizationPharmaceuticalInput {
 
   # unique for pharmaceutical
   registrationNumber: String!
-  practiceLicenseUploadID: String!
+  practiceLicenseID: String!
+  practiceLicenseUploadID: String
 }
