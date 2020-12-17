@@ -437,5 +437,7 @@ func (s Service) GetUserProfile(
 	}
 	// check whether they are Testers and update accordingly
 	userProfile.IsTester = isTester(ctx, userProfile.Emails)
+	// all userprofiles should have a PIN set for backward compatibility
+	userProfile.HasPin = true
 	return userProfile, nil
 }
