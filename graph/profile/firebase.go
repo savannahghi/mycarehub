@@ -326,7 +326,6 @@ func (s Service) RetrieveAndUpdateOldProfile(
 	return s.AssignNewProfile(ctx, uid)
 }
 
-
 // RetrieveOldProfileByUIDS retrieve old profiles  that used uids as the primary reference
 func (s Service) RetrieveOldProfileByUIDS(
 	ctx context.Context,
@@ -346,12 +345,22 @@ func (s Service) RetrieveOldProfileByUIDS(
 	return s.AssignNewProfile(ctx, uid)
 }
 
-// AssignNewProfile gives user a new profile
+// AssignNewProfile upgrades/refreshes/creates a new profile for the user
+// this will ensure the user has a profile that has fields that reflect
+// new changes that were introduced to the new profile model.
 func (s Service) AssignNewProfile(
 	ctx context.Context,
 	uid string,
 ) (*base.UserProfile, error) {
+	// retrieve the user from firebase auth
 	uids := []string{uid}
+	user, userErr := s.firebaseAuth.GetUser(ctx, uid)
+	if userErr != nil {
+		return nil, fmt.Errorf("unable to get Firebase user with UID %s: %w", uid, userErr)
+	}
+	// update their new profile with firebase verified phone number
+	var msisdns []string
+	msisdns = append(msisdns, user.PhoneNumber)
 	newProfile := &base.UserProfile{
 		ID:                  uuid.New().String(),
 		VerifiedIdentifiers: uids,
@@ -359,9 +368,11 @@ func (s Service) AssignNewProfile(
 		TermsAccepted:       false,
 		CanExperiment:       false,
 		Active:              true,
-		// for backward comaptibility old user profiles  will have to reset thier PIN
+		Msisdns:             msisdns,
+		// for backward compatibility old user profiles  will have to reset thier PIN
 		HasPin: true,
 	}
+	// persist the profile to the datastore
 	docID, err := base.SaveDataToFirestore(
 		s.firestoreClient, s.GetUserProfileCollectionName(), newProfile)
 	if err != nil {
@@ -382,7 +393,6 @@ func (s Service) AssignNewProfile(
 	userProfile.IsTester = isTester(ctx, userProfile.Emails)
 	return userProfile, nil
 }
-
 
 // GetUserProfile retrieves the user profile
 func (s Service) GetUserProfile(
@@ -415,7 +425,7 @@ func (s Service) GetUserProfile(
 	// no profile found check for old ones and link/assign a new one
 	// this ensures we port old profiles to new for backward compatibility
 	if len(docs) == 0 {
-		// check if they user has any old profile and update with new
+		// check if the user has any old profile and update with new
 		return s.RetrieveAndUpdateOldProfile(ctx, uid)
 	}
 	// read and unpack profile
