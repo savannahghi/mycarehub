@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 )
@@ -86,6 +87,7 @@ func (s Service) AddPartnerType(ctx context.Context, name *string,
 		if err := s.SaveSupplierToFireStore(*supplier); err != nil {
 			return false, fmt.Errorf("unable to add supplier to firestore: %v", err)
 		}
+
 		return true, nil
 	}
 
@@ -135,56 +137,9 @@ func (s Service) AddSupplier(
 			log.Printf("uid %s has more than one supplier records (it has %d)", userUID, len(docs))
 		}
 	}
+
 	if len(docs) == 0 {
-		currency, err := base.FetchDefaultCurrency(s.erpClient)
-		if err != nil {
-			return nil, fmt.Errorf("unable to fetch orgs default currency: %v", err)
-		}
-
-		validPartnerType := partnerType.IsValid()
-		if !validPartnerType {
-			return nil, fmt.Errorf("%v is not an allowed partner type choice", partnerType.String())
-		}
-
-		payload := map[string]interface{}{
-			"active":        active,
-			"partner_name":  name,
-			"country":       country,
-			"currency":      *currency.ID,
-			"is_supplier":   isSupplier,
-			"supplier_type": partnerType,
-		}
-
-		content, marshalErr := json.Marshal(payload)
-		if marshalErr != nil {
-			return nil, fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
-		}
-		newSupplier := Supplier{
-			UserProfile: profile,
-			PartnerType: partnerType,
-		}
-
-		if err := base.ReadRequestToTarget(s.erpClient, "POST", supplierAPIPath, "", content, &newSupplier); err != nil {
-			return nil, fmt.Errorf("unable to make request to the ERP: %v", err)
-		}
-
-		if err := s.SaveSupplierToFireStore(newSupplier); err != nil {
-			return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
-		}
-
-		profile.HasSupplierAccount = true
-		profileDsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve firebase user profile: %v", err)
-		}
-
-		if err := base.UpdateRecordOnFirestore(
-			s.firestoreClient, s.GetUserProfileCollectionName(), profileDsnap.Ref.ID, profile,
-		); err != nil {
-			return nil, fmt.Errorf("unable to update user profile: %v", err)
-		}
-
-		return &newSupplier, nil
+		return nil, fmt.Errorf("expected user to have a supplier account : %w", err)
 	}
 
 	dsnap := docs[0]
@@ -192,6 +147,55 @@ func (s Service) AddSupplier(
 	err = dsnap.DataTo(supplier)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read supplier: %w", err)
+	}
+
+	currency, err := base.FetchDefaultCurrency(s.erpClient)
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch orgs default currency: %v", err)
+	}
+
+	validPartnerType := partnerType.IsValid()
+	if !validPartnerType {
+		return nil, fmt.Errorf("%v is not an valid partner type choice", partnerType.String())
+	}
+
+	payload := map[string]interface{}{
+		"active":        active,
+		"partner_name":  name,
+		"country":       country,
+		"currency":      *currency.ID,
+		"is_supplier":   isSupplier,
+		"supplier_type": partnerType,
+	}
+
+	content, marshalErr := json.Marshal(payload)
+	if marshalErr != nil {
+		return nil, fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
+	}
+
+	if err := base.ReadRequestToTarget(s.erpClient, "POST", supplierAPIPath, "", content, &Supplier{
+		UserProfile: profile,
+		PartnerType: partnerType,
+	}); err != nil {
+		return nil, fmt.Errorf("unable to make request to the ERP: %v", err)
+	}
+
+	supplier.Active = true
+
+	if err := s.SaveSupplierToFireStore(*supplier); err != nil {
+		return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
+	}
+
+	profile.HasSupplierAccount = true
+	profileDsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve firebase user profile: %v", err)
+	}
+
+	if err := base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), profileDsnap.Ref.ID, profile,
+	); err != nil {
+		return nil, fmt.Errorf("unable to update user profile: %v", err)
 	}
 
 	return supplier, nil
@@ -656,6 +660,25 @@ func (s *Service) PublishKYCNudge(uid string, partner *PartnerType, account *Acc
 	return nil
 }
 
+// StageKYCProcessingRequest saves kyc processing requests
+func (s *Service) StageKYCProcessingRequest(sup *Supplier) error {
+	r := KYCRequest{
+		ID:                  uuid.New().String(),
+		ReqPartnerType:      sup.PartnerType,
+		ReqOrganizationType: OrganizationType(sup.AccountType),
+		ReqRaw:              sup.SupplierKYC,
+		Proceseed:           false,
+		SupplierRecord:      sup,
+		Status:              KYCProcessStatusPending,
+	}
+
+	_, err := base.SaveDataToFirestore(s.firestoreClient, s.GetKCYProcessCollectionName(), r)
+	if err != nil {
+		return fmt.Errorf("unable to save kyc processing request: %w", err)
+	}
+	return nil
+}
+
 // AddIndividualRiderKyc adds KYC for an individual rider
 func (s *Service) AddIndividualRiderKyc(ctx context.Context, input IndividualRiderInput) (*IndividualRider, error) {
 
@@ -715,6 +738,10 @@ func (s *Service) AddIndividualRiderKyc(ctx context.Context, input IndividualRid
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
 	}
 
 	return &kyc, nil
@@ -791,6 +818,10 @@ func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input Organizatio
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
 	}
 
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
+	}
+
 	return &kyc, nil
 }
 
@@ -862,6 +893,10 @@ func (s *Service) AddIndividualPractitionerKyc(ctx context.Context, input Indivi
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
 	}
 
 	return &kyc, nil
@@ -948,6 +983,10 @@ func (s *Service) AddOrganizationPractitionerKyc(ctx context.Context, input Orga
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
 	}
 
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
+	}
+
 	return &kyc, nil
 }
 
@@ -1032,6 +1071,10 @@ func (s *Service) AddOrganizationProviderKyc(ctx context.Context, input Organiza
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
 	}
 
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
+	}
+
 	return &kyc, nil
 }
 
@@ -1094,6 +1137,10 @@ func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input Indi
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
 	}
 
 	return &kyc, nil
@@ -1170,6 +1217,10 @@ func (s *Service) AddOrganizationPharmaceuticalKyc(ctx context.Context, input Or
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
 	}
 
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
+	}
+
 	return &kyc, nil
 }
 
@@ -1230,6 +1281,10 @@ func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoa
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
 	}
 
 	return &kyc, nil
@@ -1306,6 +1361,10 @@ func (s *Service) AddOrganizationCoachKyc(ctx context.Context, input Organizatio
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
 	}
 
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
+	}
+
 	return &kyc, nil
 }
 
@@ -1366,6 +1425,10 @@ func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input Individua
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
 	}
 
 	return &kyc, nil
@@ -1442,5 +1505,76 @@ func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input Organiz
 		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
 	}
 
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
+	}
+
 	return &kyc, nil
+}
+
+// FetchKYCProcessingRequests fetches a list of all unprocessed kyc approval requests
+func (s *Service) FetchKYCProcessingRequests(ctx context.Context) ([]*KYCRequest, error) {
+	collection := s.firestoreClient.Collection(s.GetKCYProcessCollectionName())
+	query := collection.Where("proceseed", "==", false)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch kyc request documents: %v", err)
+	}
+
+	res := []*KYCRequest{}
+
+	for _, doc := range docs {
+		req := &KYCRequest{}
+		err = doc.DataTo(req)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read supplier: %w", err)
+		}
+		res = append(res, req)
+	}
+	// todo : amend this to include documents/attachments urls. This will be used in the frontend to pull the images for viewing e.g ID, DL
+
+	return res, nil
+}
+
+// ProcessKYCRequest transitions a kyc request to a given state
+func (s *Service) ProcessKYCRequest(ctx context.Context, id string, status KYCProcessStatus) (bool, error) {
+	collection := s.firestoreClient.Collection(s.GetKCYProcessCollectionName())
+	query := collection.Where("id", "==", id)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return false, fmt.Errorf("unable to fetch kyc request documents: %v", err)
+	}
+
+	doc := docs[0]
+	req := &KYCRequest{}
+	err = doc.DataTo(req)
+	if err != nil {
+		return false, fmt.Errorf("unable to read supplier: %w", err)
+	}
+
+	req.Status = status
+	req.Proceseed = true
+
+	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetKCYProcessCollectionName(), doc.Ref.ID, req)
+	if err != nil {
+		return false, fmt.Errorf("unable to update KYC request record: %v", err)
+	}
+
+	switch status {
+	case KYCProcessStatusApproved:
+		// create supplier erp account
+		if _, err := s.AddSupplier(ctx, *req.SupplierRecord.UserProfile.Name, req.ReqPartnerType); err != nil {
+			return false, fmt.Errorf("unable to create erp supplier account: %v", err)
+		}
+
+		// todo : send email to the supplier approval
+		// todo: send text to the supplier on approval
+	case KYCProcessStatusRejected:
+		// todo : send email to the supplier rejection
+		// todo: send text to the supplier on rejection
+
+	}
+
+	return true, nil
+
 }

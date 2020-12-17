@@ -227,6 +227,12 @@ func (r *mutationResolver) AddOrganizationNutritionKyc(ctx context.Context, inpu
 	return r.profileService.AddOrganizationNutritionKyc(ctx, input)
 }
 
+func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, status profile.KYCProcessStatus) (bool, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.ProcessKYCRequest(ctx, id, status)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
@@ -333,6 +339,12 @@ func (r *queryResolver) RejectPractitionerSignup(ctx context.Context) (bool, err
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.RejectPractitionerSignup(ctx)
+}
+
+func (r *queryResolver) FetchKYCProcessingRequests(ctx context.Context) ([]*profile.KYCRequest, error) {
+	r.CheckUserTokenInContext(ctx)
+	r.CheckDependencies()
+	return r.profileService.FetchKYCProcessingRequests(ctx)
 }
 
 // Mutation returns generated.MutationResolver implementation.

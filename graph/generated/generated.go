@@ -193,6 +193,16 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	KYCRequest struct {
+		ID                  func(childComplexity int) int
+		Proceseed           func(childComplexity int) int
+		ReqOrganizationType func(childComplexity int) int
+		ReqPartnerType      func(childComplexity int) int
+		ReqRaw              func(childComplexity int) int
+		Status              func(childComplexity int) int
+		SupplierRecord      func(childComplexity int) int
+	}
+
 	Location struct {
 		BranchSladeCode func(childComplexity int) int
 		ID              func(childComplexity int) int
@@ -221,6 +231,7 @@ type ComplexityRoot struct {
 		ConfirmEmail                     func(childComplexity int, email string) int
 		CreateSignUpMethod               func(childComplexity int, signUpMethod profile.SignUpMethod) int
 		PractitionerSignUp               func(childComplexity int, input profile.PractitionerSignupInput) int
+		ProcessKYCRequest                func(childComplexity int, id string, status profile.KYCProcessStatus) int
 		RecordPostVisitSurvey            func(childComplexity int, input profile.PostVisitSurveyInput) int
 		RegisterPushToken                func(childComplexity int, token string) int
 		RemoveTester                     func(childComplexity int, email string) int
@@ -361,6 +372,7 @@ type ComplexityRoot struct {
 	Query struct {
 		ApprovePractitionerSignup        func(childComplexity int) int
 		CheckUserWithMsisdn              func(childComplexity int, msisdn string) int
+		FetchKYCProcessingRequests       func(childComplexity int) int
 		FetchSupplierAllowedLocations    func(childComplexity int) int
 		FindBranch                       func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) int
 		FindProfile                      func(childComplexity int) int
@@ -502,6 +514,7 @@ type MutationResolver interface {
 	AddOrganizationCoachKyc(ctx context.Context, input profile.OrganizationCoachInput) (*profile.OrganizationCoach, error)
 	AddIndividualNutritionKyc(ctx context.Context, input profile.IndividualNutritionInput) (*profile.IndividualNutrition, error)
 	AddOrganizationNutritionKyc(ctx context.Context, input profile.OrganizationNutritionInput) (*profile.OrganizationNutrition, error)
+	ProcessKYCRequest(ctx context.Context, id string, status profile.KYCProcessStatus) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -522,6 +535,7 @@ type QueryResolver interface {
 	FetchSupplierAllowedLocations(ctx context.Context) (*profile.BranchConnection, error)
 	ApprovePractitionerSignup(ctx context.Context) (bool, error)
 	RejectPractitionerSignup(ctx context.Context) (bool, error)
+	FetchKYCProcessingRequests(ctx context.Context) ([]*profile.KYCRequest, error)
 }
 
 type executableSchema struct {
@@ -1151,6 +1165,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.KMPDUPractitionerEdge.Node(childComplexity), true
 
+	case "KYCRequest.id":
+		if e.complexity.KYCRequest.ID == nil {
+			break
+		}
+
+		return e.complexity.KYCRequest.ID(childComplexity), true
+
+	case "KYCRequest.proceseed":
+		if e.complexity.KYCRequest.Proceseed == nil {
+			break
+		}
+
+		return e.complexity.KYCRequest.Proceseed(childComplexity), true
+
+	case "KYCRequest.reqOrganizationType":
+		if e.complexity.KYCRequest.ReqOrganizationType == nil {
+			break
+		}
+
+		return e.complexity.KYCRequest.ReqOrganizationType(childComplexity), true
+
+	case "KYCRequest.reqPartnerType":
+		if e.complexity.KYCRequest.ReqPartnerType == nil {
+			break
+		}
+
+		return e.complexity.KYCRequest.ReqPartnerType(childComplexity), true
+
+	case "KYCRequest.reqRaw":
+		if e.complexity.KYCRequest.ReqRaw == nil {
+			break
+		}
+
+		return e.complexity.KYCRequest.ReqRaw(childComplexity), true
+
+	case "KYCRequest.status":
+		if e.complexity.KYCRequest.Status == nil {
+			break
+		}
+
+		return e.complexity.KYCRequest.Status(childComplexity), true
+
+	case "KYCRequest.supplierRecord":
+		if e.complexity.KYCRequest.SupplierRecord == nil {
+			break
+		}
+
+		return e.complexity.KYCRequest.SupplierRecord(childComplexity), true
+
 	case "Location.branchSladeCode":
 		if e.complexity.Location.BranchSladeCode == nil {
 			break
@@ -1418,6 +1481,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.PractitionerSignUp(childComplexity, args["input"].(profile.PractitionerSignupInput)), true
+
+	case "Mutation.processKYCRequest":
+		if e.complexity.Mutation.ProcessKYCRequest == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_processKYCRequest_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ProcessKYCRequest(childComplexity, args["id"].(string), args["status"].(profile.KYCProcessStatus)), true
 
 	case "Mutation.recordPostVisitSurvey":
 		if e.complexity.Mutation.RecordPostVisitSurvey == nil {
@@ -2227,6 +2302,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.CheckUserWithMsisdn(childComplexity, args["msisdn"].(string)), true
 
+	case "Query.fetchKYCProcessingRequests":
+		if e.complexity.Query.FetchKYCProcessingRequests == nil {
+			break
+		}
+
+		return e.complexity.Query.FetchKYCProcessingRequests(childComplexity), true
+
 	case "Query.fetchSupplierAllowedLocations":
 		if e.complexity.Query.FetchSupplierAllowedLocations == nil {
 			break
@@ -2929,6 +3011,12 @@ enum OrganizationType {
   TRUST
   UNIVERSITY
 }
+
+enum KYCProcessStatus {
+  APPROVED
+  REJECTED
+  PENDING
+}
 `, BuiltIn: false},
 	{Name: "graph/external.graphql", Input: `
 # supported content types
@@ -3385,6 +3473,7 @@ input OrganizationPharmaceuticalInput {
   fetchSupplierAllowedLocations: BranchConnection!
   approvePractitionerSignup: Boolean!
   rejectPractitionerSignup: Boolean!
+  fetchKYCProcessingRequests: [KYCRequest!]
 }
 
 extend type Mutation {
@@ -3443,13 +3532,9 @@ extend type Mutation {
     input: OrganizationPharmaceuticalInput!
   ): OrganizationPharmaceutical!
 
-  addIndividualCoachKYC(
-    input: IndividualCoachInput!
-  ): IndividualCoach!
+  addIndividualCoachKYC(input: IndividualCoachInput!): IndividualCoach!
 
-  addOrganizationCoachKYC(
-    input: OrganizationCoachInput!
-  ): OrganizationCoach!
+  addOrganizationCoachKYC(input: OrganizationCoachInput!): OrganizationCoach!
 
   addIndividualNutritionKYC(
     input: IndividualNutritionInput!
@@ -3458,6 +3543,8 @@ extend type Mutation {
   addOrganizationNutritionKYC(
     input: OrganizationNutritionInput!
   ): OrganizationNutrition!
+
+  processKYCRequest(id: String!, status: KYCProcessStatus!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `scalar Date
@@ -3880,6 +3967,16 @@ type OrganizationPharmaceutical {
   practiceLicenseID: String!
   practiceLicenseUploadID: String
 }
+
+type KYCRequest {
+  id: String!
+  reqPartnerType: PartnerType!
+  reqOrganizationType: OrganizationType!
+  reqRaw: Map!
+  proceseed: Boolean!
+  supplierRecord: Supplier!
+  status: KYCProcessStatus
+}
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
@@ -4263,6 +4360,30 @@ func (ec *executionContext) field_Mutation_practitionerSignUp_args(ctx context.C
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_processKYCRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 profile.KYCProcessStatus
+	if tmp, ok := rawArgs["status"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+		arg1, err = ec.unmarshalNKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKYCProcessStatus(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["status"] = arg1
 	return args, nil
 }
 
@@ -7793,6 +7914,248 @@ func (ec *executionContext) _KMPDUPractitionerEdge_node(ctx context.Context, fie
 	return ec.marshalOKMPDUPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKMPDUPractitioner(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _KYCRequest_id(ctx context.Context, field graphql.CollectedField, obj *profile.KYCRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "KYCRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KYCRequest_reqPartnerType(ctx context.Context, field graphql.CollectedField, obj *profile.KYCRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "KYCRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReqPartnerType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.PartnerType)
+	fc.Result = res
+	return ec.marshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPartnerType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KYCRequest_reqOrganizationType(ctx context.Context, field graphql.CollectedField, obj *profile.KYCRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "KYCRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReqOrganizationType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profile.OrganizationType)
+	fc.Result = res
+	return ec.marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KYCRequest_reqRaw(ctx context.Context, field graphql.CollectedField, obj *profile.KYCRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "KYCRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReqRaw, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalNMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KYCRequest_proceseed(ctx context.Context, field graphql.CollectedField, obj *profile.KYCRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "KYCRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Proceseed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KYCRequest_supplierRecord(ctx context.Context, field graphql.CollectedField, obj *profile.KYCRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "KYCRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupplierRecord, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profile.Supplier)
+	fc.Result = res
+	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KYCRequest_status(ctx context.Context, field graphql.CollectedField, obj *profile.KYCRequest) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "KYCRequest",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(profile.KYCProcessStatus)
+	fc.Result = res
+	return ec.marshalOKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKYCProcessStatus(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Location_id(ctx context.Context, field graphql.CollectedField, obj *profile.Location) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9395,6 +9758,48 @@ func (ec *executionContext) _Mutation_addOrganizationNutritionKYC(ctx context.Co
 	res := resTmp.(*profile.OrganizationNutrition)
 	fc.Result = res
 	return ec.marshalNOrganizationNutrition2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationNutrition(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_processKYCRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_processKYCRequest_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ProcessKYCRequest(rctx, args["id"].(string), args["status"].(profile.KYCProcessStatus))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationCoach_organizationTypeName(ctx context.Context, field graphql.CollectedField, obj *profile.OrganizationCoach) (ret graphql.Marshaler) {
@@ -13030,6 +13435,38 @@ func (ec *executionContext) _Query_rejectPractitionerSignup(ctx context.Context,
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_fetchKYCProcessingRequests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FetchKYCProcessingRequests(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*profile.KYCRequest)
+	fc.Result = res
+	return ec.marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKYCRequestᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18721,6 +19158,60 @@ func (ec *executionContext) _KMPDUPractitionerEdge(ctx context.Context, sel ast.
 	return out
 }
 
+var kYCRequestImplementors = []string{"KYCRequest"}
+
+func (ec *executionContext) _KYCRequest(ctx context.Context, sel ast.SelectionSet, obj *profile.KYCRequest) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, kYCRequestImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("KYCRequest")
+		case "id":
+			out.Values[i] = ec._KYCRequest_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "reqPartnerType":
+			out.Values[i] = ec._KYCRequest_reqPartnerType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "reqOrganizationType":
+			out.Values[i] = ec._KYCRequest_reqOrganizationType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "reqRaw":
+			out.Values[i] = ec._KYCRequest_reqRaw(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "proceseed":
+			out.Values[i] = ec._KYCRequest_proceseed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supplierRecord":
+			out.Values[i] = ec._KYCRequest_supplierRecord(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+			out.Values[i] = ec._KYCRequest_status(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var locationImplementors = []string{"Location"}
 
 func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet, obj *profile.Location) graphql.Marshaler {
@@ -18944,6 +19435,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addOrganizationNutritionKYC":
 			out.Values[i] = ec._Mutation_addOrganizationNutritionKYC(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "processKYCRequest":
+			out.Values[i] = ec._Mutation_processKYCRequest(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19783,6 +20279,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			})
+		case "fetchKYCProcessingRequests":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_fetchKYCProcessingRequests(ctx, field)
 				return res
 			})
 		case "_entities":
@@ -20864,6 +21371,26 @@ func (ec *executionContext) marshalNKMPDUPractitionerConnection2ᚖgitlabᚗslad
 		return graphql.Null
 	}
 	return ec._KMPDUPractitionerConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKYCProcessStatus(ctx context.Context, v interface{}) (profile.KYCProcessStatus, error) {
+	var res profile.KYCProcessStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKYCProcessStatus(ctx context.Context, sel ast.SelectionSet, v profile.KYCProcessStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKYCRequest(ctx context.Context, sel ast.SelectionSet, v *profile.KYCRequest) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._KYCRequest(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx context.Context, v interface{}) (base.Language, error) {
@@ -22165,6 +22692,56 @@ func (ec *executionContext) marshalOKMPDUPractitionerEdge2ᚖgitlabᚗslade360em
 		return graphql.Null
 	}
 	return ec._KMPDUPractitionerEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKYCProcessStatus(ctx context.Context, v interface{}) (profile.KYCProcessStatus, error) {
+	var res profile.KYCProcessStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKYCProcessStatus(ctx context.Context, sel ast.SelectionSet, v profile.KYCProcessStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKYCRequestᚄ(ctx context.Context, sel ast.SelectionSet, v []*profile.KYCRequest) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐKYCRequest(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) unmarshalOLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx context.Context, v interface{}) (base.Language, error) {

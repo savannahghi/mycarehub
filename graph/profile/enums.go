@@ -471,3 +471,52 @@ func (e *OrganizationType) UnmarshalGQL(v interface{}) error {
 func (e OrganizationType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
+
+// KYCProcessStatus  status for processing KYC for suppliers
+type KYCProcessStatus string
+
+// Valid KYCProcessStatus
+const (
+	KYCProcessStatusApproved KYCProcessStatus = "APPROVED"
+	KYCProcessStatusRejected KYCProcessStatus = "REJECTED"
+	KYCProcessStatusPending  KYCProcessStatus = "PENDING"
+)
+
+// AllKYCProcessStatus ...
+var AllKYCProcessStatus = []KYCProcessStatus{
+	KYCProcessStatusApproved,
+	KYCProcessStatusRejected,
+	KYCProcessStatusPending,
+}
+
+// IsValid checks if the IdentificationDocType is valid
+func (e KYCProcessStatus) IsValid() bool {
+	switch e {
+	case KYCProcessStatusApproved, KYCProcessStatusRejected, KYCProcessStatusPending:
+		return true
+	}
+	return false
+}
+
+func (e KYCProcessStatus) String() string {
+	return string(e)
+}
+
+// UnmarshalGQL converts the input, if valid, into an IdentificationDocType value
+func (e *KYCProcessStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = KYCProcessStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IdentificationDocType", str)
+	}
+	return nil
+}
+
+// MarshalGQL converts IdentificationDocType into a valid JSON string
+func (e KYCProcessStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}

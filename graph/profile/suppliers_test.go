@@ -149,6 +149,14 @@ func TestService_AddSupplier(t *testing.T) {
 	service := NewService()
 	ctx := base.GetAuthenticatedContext(t)
 
+	name := gofakeit.Name()
+	partnerRider := PartnerTypeRider
+	_, err := service.AddPartnerType(ctx, &name, &partnerRider)
+	if err != nil {
+		t.Errorf("can't create a supplier")
+		return
+	}
+
 	type args struct {
 		ctx         context.Context
 		name        string
@@ -215,7 +223,16 @@ func TestService_FindSupplier(t *testing.T) {
 		t.Errorf("nil context")
 		return
 	}
-	supplier, err := service.AddSupplier(ctx, gofakeit.Name(), PartnerTypeProvider)
+
+	name := gofakeit.Name()
+	partnerRider := PartnerTypeRider
+	_, err := service.AddPartnerType(ctx, &name, &partnerRider)
+	if err != nil {
+		t.Errorf("can't create a supplier")
+		return
+	}
+
+	supplier, err := service.AddSupplier(ctx, name, PartnerTypeProvider)
 	if err != nil {
 		t.Errorf("can't add supplier: %v", err)
 		return
@@ -279,8 +296,17 @@ func TestService_FindSupplier(t *testing.T) {
 func TestService_SuspendSupplier(t *testing.T) {
 	service := NewService()
 	ctx, token := createNewUser(context.Background(), t)
-	_, err := service.AddSupplier(ctx, "To Be Deleted", PartnerTypeProvider)
+
+	name := gofakeit.Name()
+	partnerRider := PartnerTypeRider
+	_, err := service.AddPartnerType(ctx, &name, &partnerRider)
 	if err != nil {
+		t.Errorf("can't create a supplier")
+		return
+	}
+
+	_, errS := service.AddSupplier(ctx, name, PartnerTypeProvider)
+	if errS != nil {
 		t.Errorf("can't create a supplier")
 		return
 	}

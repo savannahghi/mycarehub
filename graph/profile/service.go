@@ -31,8 +31,10 @@ const (
 	emailRejectionSubject          = "Your Account was not Approved"
 	appleTesterPractitionerLicense = "A1B4C6"
 	legalAge                       = 18
+	adminLoginPhoneNumber          = "+254700000000"
 	PINCollectionName              = "pins"
 	ProfileNudgesCollectionName    = "profile_nudges"
+	KCYProcessCollectionName       = "kyc_processing"
 	signUpInfoCollectionName       = "sign_up_info"
 )
 
@@ -218,6 +220,12 @@ func (s Service) GetProfileNudgesCollectionName() string {
 	return suffixed
 }
 
+// GetKCYProcessCollectionName fetches location where kyc processing request will be saved
+func (s Service) GetKCYProcessCollectionName() string {
+	suffixed := base.SuffixCollection(KCYProcessCollectionName)
+	return suffixed
+}
+
 // SaveSignUpInfoToFirestore persists the supplied sign up info
 func (s Service) SaveSignUpInfoToFirestore(info SignUpInfo) error {
 	ctx := context.Background()
@@ -264,6 +272,13 @@ func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*bas
 		return nil, err
 	}
 	userProfile := &base.UserProfile{}
+
+	// check if the logged is user is an admin. Admins should log in with a specific phone number.
+	// if true, update thier user profile setting `isAdmin` to true
+	if phoneNumber == adminLoginPhoneNumber {
+		userProfile.IsAdmin = true
+	}
+
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
@@ -1658,6 +1673,27 @@ func (s Service) PhoneSignIn(ctx context.Context, phoneNumber, pin string) (*Pho
 	userTokens, err := base.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
 		return nil, fmt.Errorf("can't authenticate the custom token. Please contact Slade360 for assistance")
+	}
+
+	// check if the logged is user is an admin. Admins should log in with a specific phone number.
+	// if true, update thier user profile setting `isAdmin` to true
+	if phoneNumber == adminLoginPhoneNumber {
+		p, err := s.GetProfile(ctx, u.UID)
+		if err != nil {
+			log.Errorf("unable to fetch admin user profile: %v", err)
+		}
+
+		p.IsAdmin = true
+
+		dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, p)
+		if err != nil {
+			log.Errorf("unable to update user profile: %v", err)
+		}
 	}
 
 	loginResp := PhoneSignInResponse{

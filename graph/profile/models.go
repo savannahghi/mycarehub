@@ -534,3 +534,14 @@ type LocationInput struct {
 	Name            string  `json:"name"`
 	BranchSladeCode *string `json:"branchSladeCode"`
 }
+
+// KYCRequest the payload staged and retrieved later for admins to process
+type KYCRequest struct {
+	ID                  string                 `json:"id" firestore:"id"`
+	ReqPartnerType      PartnerType            `json:"reqPartnerType" firestore:"reqPartnerType"`
+	ReqOrganizationType OrganizationType       `json:"reqOrganizationType" firestore:"reqOrganizationType"`
+	ReqRaw              map[string]interface{} `json:"reqRaw" firestore:"reqRaw"`
+	Proceseed           bool                   `json:"proceseed" firestore:"proceseed"`
+	SupplierRecord      *Supplier              `json:"supplierRecord" firestore:"supplierRecord"`
+	Status              KYCProcessStatus       `json:"status" firestore:"status"`
+}

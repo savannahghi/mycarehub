@@ -418,3 +418,13 @@ type OrganizationPharmaceutical {
   practiceLicenseID: String!
   practiceLicenseUploadID: String
 }
+
+type KYCRequest {
+  id: String!
+  reqPartnerType: PartnerType!
+  reqOrganizationType: OrganizationType!
+  reqRaw: Map!
+  proceseed: Boolean!
+  supplierRecord: Supplier!
+  status: KYCProcessStatus
+}

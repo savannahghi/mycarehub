@@ -70,3 +70,9 @@ enum OrganizationType {
   TRUST
   UNIVERSITY
 }
+
+enum KYCProcessStatus {
+  APPROVED
+  REJECTED
+  PENDING
+}

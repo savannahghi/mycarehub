@@ -382,6 +382,8 @@ gitlab.slade360emr.com/go/base v0.0.84 h1:e0shpXlrCZYpbSZnCZi0n8CAPdbmUh7DBYrv1E
 gitlab.slade360emr.com/go/base v0.0.84/go.mod h1:Almdxwp9o4exVetbPx++ZgiLjUrTkoy5PKPMe/u2JSs=
 gitlab.slade360emr.com/go/base v0.0.85 h1:55yVuT4BDItWCWem0AIiaV2uIhBQURgaKFYkoVd8zbw=
 gitlab.slade360emr.com/go/base v0.0.85/go.mod h1:Almdxwp9o4exVetbPx++ZgiLjUrTkoy5PKPMe/u2JSs=
+gitlab.slade360emr.com/go/base v0.0.88 h1:fbX/dAFsNQSwgGVoA64SOSjVCYYEpmUSQ53fIQHcwRI=
+gitlab.slade360emr.com/go/base v0.0.88/go.mod h1:Almdxwp9o4exVetbPx++ZgiLjUrTkoy5PKPMe/u2JSs=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=

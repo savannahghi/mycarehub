@@ -29,6 +29,7 @@ extend type Query {
   fetchSupplierAllowedLocations: BranchConnection!
   approvePractitionerSignup: Boolean!
   rejectPractitionerSignup: Boolean!
+  fetchKYCProcessingRequests: [KYCRequest!]
 }
 
 extend type Mutation {
@@ -87,13 +88,9 @@ extend type Mutation {
     input: OrganizationPharmaceuticalInput!
   ): OrganizationPharmaceutical!
 
-  addIndividualCoachKYC(
-    input: IndividualCoachInput!
-  ): IndividualCoach!
+  addIndividualCoachKYC(input: IndividualCoachInput!): IndividualCoach!
 
-  addOrganizationCoachKYC(
-    input: OrganizationCoachInput!
-  ): OrganizationCoach!
+  addOrganizationCoachKYC(input: OrganizationCoachInput!): OrganizationCoach!
 
   addIndividualNutritionKYC(
     input: IndividualNutritionInput!
@@ -102,4 +99,6 @@ extend type Mutation {
   addOrganizationNutritionKYC(
     input: OrganizationNutritionInput!
   ): OrganizationNutrition!
+
+  processKYCRequest(id: String!, status: KYCProcessStatus!): Boolean!
 }
