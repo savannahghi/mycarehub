@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	"time"
 
@@ -1156,7 +1155,7 @@ func (s Service) SendRetryOTP(ctx context.Context, msisdn string, retryStep int)
 // that is then used in the process of updating their old PIN to a new one
 func (s Service) RequestPINReset(ctx context.Context, msisdn string) (string, error) {
 	s.checkPreconditions()
-
+	// if they are a firebase user
 	exists, err := s.CheckHasPIN(ctx, msisdn)
 	if err != nil {
 		return "", fmt.Errorf("unable to check if the user has a PIN: %v", err)
@@ -1675,18 +1674,4 @@ func (s Service) PhoneSignIn(ctx context.Context, phoneNumber, pin string) (*Pho
 	}
 
 	return &loginResp, nil
-}
-
-func validatePIN(pin string) error {
-	// make sure pin is of only digits
-	_, err := strconv.ParseUint(pin, 10, 64)
-	if err != nil {
-		return fmt.Errorf("pin should be a valid number: %w", err)
-	}
-
-	// make sure pin length is [4-6]
-	if len(pin) < 4 || len(pin) > 6 {
-		return fmt.Errorf("pin should be of 4,5, or six digits")
-	}
-	return nil
 }

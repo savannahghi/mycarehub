@@ -43,8 +43,8 @@ func ValidateEmail(email, verificationCode string, firestoreClient *firestore.Cl
 	return email, nil
 }
 
-// ValidateResetPinPayload checks that the request payload supplied in the indicated request are valid
-func ValidateResetPinPayload(w http.ResponseWriter, r *http.Request) (*PinRecovery, error) {
+// ValidateUpdatePinPayload checks that the request payload supplied in the indicated request are valid
+func ValidateUpdatePinPayload(w http.ResponseWriter, r *http.Request) (*PinRecovery, error) {
 	payload := &PinRecovery{}
 	base.DecodeJSONToTargetStruct(w, r, payload)
 	if payload.MSISDN == "" || payload.PINNumber == "" || payload.OTP == "" {

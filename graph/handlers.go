@@ -56,6 +56,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost, http.MethodOptions).HandlerFunc(RequestPINResetFunc(ctx))
 	r.Path("/update_pin").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(UpdatePinHandler(ctx))
+	r.Path("/reset_pin").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(ResetPinHandler(ctx))
 	r.Path("/send_retry_otp").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(SendRetryOTPHandler(ctx))
 	r.Path("/verify_phone").Methods(
@@ -203,11 +205,11 @@ func RequestPINResetFunc(ctx context.Context) http.HandlerFunc {
 	}
 }
 
-// UpdatePinHandler used to reset a user's PIN
+// UpdatePinHandler used to change/update a user's PIN
 func UpdatePinHandler(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		s := profile.NewService()
-		payload, validateErr := profile.ValidateResetPinPayload(w, r)
+		payload, validateErr := profile.ValidateUpdatePinPayload(w, r)
 		if validateErr != nil {
 			base.ReportErr(w, validateErr, http.StatusBadRequest)
 			return
@@ -224,6 +226,26 @@ func UpdatePinHandler(ctx context.Context) http.HandlerFunc {
 	}
 }
 
+// ResetPinHandler used to reset a user's PIN
+func ResetPinHandler(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s := profile.NewService()
+		payload, validateErr := profile.ValidateUpdatePinPayload(w, r)
+		if validateErr != nil {
+			base.ReportErr(w, validateErr, http.StatusBadRequest)
+			return
+		}
+
+		_, updateErr := s.ResetPINHelper(ctx, payload.MSISDN, payload.PINNumber)
+		if updateErr != nil {
+			base.ReportErr(w, updateErr, http.StatusInternalServerError)
+			return
+		}
+
+		base.WriteJSONResponse(w, profile.OKResp{Status: "ok"}, http.StatusOK)
+
+	}
+}
 // RetrieveUserProfileHandler process requests for ISC to RetrieveUserProfileFirebaseDocSnapshot
 func RetrieveUserProfileHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
