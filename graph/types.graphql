@@ -164,8 +164,12 @@ type Supplier {
   isOrganizationVerified: Boolean!
   partnerType: PartnerType!
 
+  partnerSetupComplete: Boolean!
+  KYCSubmitted: Boolean!
+
   sladeCode: String
   parentOrganizationID: String
+  hasBranches: Boolean
   location: Location
 }
 

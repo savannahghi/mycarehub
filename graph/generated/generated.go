@@ -410,9 +410,12 @@ type ComplexityRoot struct {
 	Supplier struct {
 		AccountType            func(childComplexity int) int
 		Active                 func(childComplexity int) int
+		HasBranches            func(childComplexity int) int
 		IsOrganizationVerified func(childComplexity int) int
+		KYCSubmitted           func(childComplexity int) int
 		Location               func(childComplexity int) int
 		ParentOrganizationID   func(childComplexity int) int
+		PartnerSetupComplete   func(childComplexity int) int
 		PartnerType            func(childComplexity int) int
 		PayablesAccount        func(childComplexity int) int
 		SladeCode              func(childComplexity int) int
@@ -2560,12 +2563,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Supplier.Active(childComplexity), true
 
+	case "Supplier.hasBranches":
+		if e.complexity.Supplier.HasBranches == nil {
+			break
+		}
+
+		return e.complexity.Supplier.HasBranches(childComplexity), true
+
 	case "Supplier.isOrganizationVerified":
 		if e.complexity.Supplier.IsOrganizationVerified == nil {
 			break
 		}
 
 		return e.complexity.Supplier.IsOrganizationVerified(childComplexity), true
+
+	case "Supplier.KYCSubmitted":
+		if e.complexity.Supplier.KYCSubmitted == nil {
+			break
+		}
+
+		return e.complexity.Supplier.KYCSubmitted(childComplexity), true
 
 	case "Supplier.location":
 		if e.complexity.Supplier.Location == nil {
@@ -2580,6 +2597,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Supplier.ParentOrganizationID(childComplexity), true
+
+	case "Supplier.partnerSetupComplete":
+		if e.complexity.Supplier.PartnerSetupComplete == nil {
+			break
+		}
+
+		return e.complexity.Supplier.PartnerSetupComplete(childComplexity), true
 
 	case "Supplier.partnerType":
 		if e.complexity.Supplier.PartnerType == nil {
@@ -3717,8 +3741,12 @@ type Supplier {
   isOrganizationVerified: Boolean!
   partnerType: PartnerType!
 
+  partnerSetupComplete: Boolean!
+  KYCSubmitted: Boolean!
+
   sladeCode: String
   parentOrganizationID: String
+  hasBranches: Boolean
   location: Location
 }
 
@@ -14225,6 +14253,76 @@ func (ec *executionContext) _Supplier_partnerType(ctx context.Context, field gra
 	return ec.marshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPartnerType(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Supplier_partnerSetupComplete(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PartnerSetupComplete, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_KYCSubmitted(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.KYCSubmitted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Supplier_sladeCode(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14287,6 +14385,38 @@ func (ec *executionContext) _Supplier_parentOrganizationID(ctx context.Context, 
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_hasBranches(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasBranches, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Supplier_location(ctx context.Context, field graphql.CollectedField, obj *profile.Supplier) (ret graphql.Marshaler) {
@@ -20488,10 +20618,22 @@ func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "partnerSetupComplete":
+			out.Values[i] = ec._Supplier_partnerSetupComplete(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "KYCSubmitted":
+			out.Values[i] = ec._Supplier_KYCSubmitted(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "sladeCode":
 			out.Values[i] = ec._Supplier_sladeCode(ctx, field, obj)
 		case "parentOrganizationID":
 			out.Values[i] = ec._Supplier_parentOrganizationID(ctx, field, obj)
+		case "hasBranches":
+			out.Values[i] = ec._Supplier_hasBranches(ctx, field, obj)
 		case "location":
 			out.Values[i] = ec._Supplier_location(ctx, field, obj)
 		default:
