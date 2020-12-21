@@ -116,7 +116,7 @@ func TestService_AddPartnerType(t *testing.T) {
 			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
 		},
 		{
-			name: "invalid : unknown partner type",
+			name: "invalid : unknownn partner type",
 			args: args{
 				ctx:         ctx,
 				name:        "Test Partner",
@@ -441,7 +441,7 @@ func TestService_PublishKYCNudge(t *testing.T) {
 		},
 
 		{
-			name: "invalid : unknow partner type",
+			name: "invalid : unknown partner type",
 			args: args{
 				uid:     token.UID,
 				partner: "alien partner",
@@ -463,7 +463,7 @@ func TestService_PublishKYCNudge(t *testing.T) {
 			expectedErr:    "invalid `partner`. cannot use CONSUMER in this context",
 		},
 		{
-			name: "invalid : unknow account type",
+			name: "invalid : unknown account type",
 			args: args{
 				uid:     token.UID,
 				partner: PartnerTypePractitioner,
@@ -1114,12 +1114,52 @@ func TestService_SendKYCEmail(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Bad case: invalid email address",
+			args: args{
+				ctx:          context.Background(),
+				text:         rejectionEmail,
+				emailaddress: "Not an email address",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewService()
 			if err := s.SendKYCEmail(tt.args.ctx, tt.args.text, tt.args.emailaddress); (err != nil) != tt.wantErr {
 				t.Errorf("Service.SendKYCEmail() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestService_PublishKYCFeedItem(t *testing.T) {
+	service := NewService()
+	ctx, token := base.GetAuthenticatedContextAndToken(t)
+
+	type args struct {
+		ctx  context.Context
+		uids []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Send feed item to user",
+			args: args{
+				ctx:  ctx,
+				uids: []string{token.UID},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service
+			if err := s.PublishKYCFeedItem(tt.args.ctx, tt.args.uids...); (err != nil) != tt.wantErr {
+				t.Errorf("Service.PublishKYCFeedItem() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/firestore"
 	"github.com/asaskevich/govalidator"
 	backoff "github.com/cenkalti/backoff/v4"
 	"github.com/google/uuid"
@@ -28,6 +29,7 @@ const (
 const (
 	// engagement ISC paths
 	publishNudge = "feed/%s/PRO/false/nudges/"
+	publishItem  = "feed/%s/PRO/false/items/"
 )
 
 // SaveSupplierToFireStore persists supplier data to firestore
@@ -786,22 +788,9 @@ func (s *Service) AddIndividualRiderKyc(ctx context.Context, input IndividualRid
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(k, &kycAsMap)
+	err = s.SaveKYCResponse(k, supplier, dsnap)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal kyc from json")
-	}
-
-	supplier.SupplierKYC = kycAsMap
-	supplier.KYCSubmitted = true
-
-	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-	}
-
-	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-		logrus.Errorf("unable to stage kyc processing request: %v", err)
+		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
 	return &kyc, nil
@@ -865,22 +854,9 @@ func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input Organizatio
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(k, &kycAsMap)
+	err = s.SaveKYCResponse(k, supplier, dsnap)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal kyc from json")
-	}
-
-	supplier.SupplierKYC = kycAsMap
-	supplier.KYCSubmitted = true
-
-	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-	}
-
-	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-		logrus.Errorf("unable to stage kyc processing request: %v", err)
+		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
 	return &kyc, nil
@@ -943,22 +919,9 @@ func (s *Service) AddIndividualPractitionerKyc(ctx context.Context, input Indivi
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(k, &kycAsMap)
+	err = s.SaveKYCResponse(k, supplier, dsnap)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal kyc from json")
-	}
-
-	supplier.SupplierKYC = kycAsMap
-	supplier.KYCSubmitted = true
-
-	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-	}
-
-	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-		logrus.Errorf("unable to stage kyc processing request: %v", err)
+		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
 	return &kyc, nil
@@ -1032,22 +995,9 @@ func (s *Service) AddOrganizationPractitionerKyc(ctx context.Context, input Orga
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(k, &kycAsMap)
+	err = s.SaveKYCResponse(k, supplier, dsnap)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal kyc from json")
-	}
-
-	supplier.SupplierKYC = kycAsMap
-	supplier.KYCSubmitted = true
-
-	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-	}
-
-	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-		logrus.Errorf("unable to stage kyc processing request: %v", err)
+		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
 	return &kyc, nil
@@ -1121,22 +1071,9 @@ func (s *Service) AddOrganizationProviderKyc(ctx context.Context, input Organiza
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(k, &kycAsMap)
+	err = s.SaveKYCResponse(k, supplier, dsnap)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal kyc from json")
-	}
-
-	supplier.SupplierKYC = kycAsMap
-	supplier.KYCSubmitted = true
-
-	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-	}
-
-	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-		logrus.Errorf("unable to stage kyc processing request: %v", err)
+		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
 	return &kyc, nil
@@ -1190,22 +1127,9 @@ func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input Indi
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(k, &kycAsMap)
+	err = s.SaveKYCResponse(k, supplier, dsnap)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal kyc from json")
-	}
-
-	supplier.SupplierKYC = kycAsMap
-	supplier.KYCSubmitted = true
-
-	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-	}
-
-	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-		logrus.Errorf("unable to stage kyc processing request: %v", err)
+		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
 	return &kyc, nil
@@ -1269,22 +1193,10 @@ func (s *Service) AddOrganizationPharmaceuticalKyc(ctx context.Context, input Or
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(k, &kycAsMap)
+
+	err = s.SaveKYCResponse(k, supplier, dsnap)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal kyc from json")
-	}
-
-	supplier.SupplierKYC = kycAsMap
-	supplier.KYCSubmitted = true
-
-	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-	}
-
-	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-		logrus.Errorf("unable to stage kyc processing request: %v", err)
+		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
 	return &kyc, nil
@@ -1336,22 +1248,10 @@ func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoa
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(k, &kycAsMap)
+
+	err = s.SaveKYCResponse(k, supplier, dsnap)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal kyc from json")
-	}
-
-	supplier.SupplierKYC = kycAsMap
-	supplier.KYCSubmitted = true
-
-	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-	}
-
-	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-		logrus.Errorf("unable to stage kyc processing request: %v", err)
+		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
 	return &kyc, nil
@@ -1415,22 +1315,10 @@ func (s *Service) AddOrganizationCoachKyc(ctx context.Context, input Organizatio
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(k, &kycAsMap)
+
+	err = s.SaveKYCResponse(k, supplier, dsnap)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal kyc from json")
-	}
-
-	supplier.SupplierKYC = kycAsMap
-	supplier.KYCSubmitted = true
-
-	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-	}
-
-	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-		logrus.Errorf("unable to stage kyc processing request: %v", err)
+		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
 	return &kyc, nil
@@ -1482,22 +1370,10 @@ func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input Individua
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(k, &kycAsMap)
+
+	err = s.SaveKYCResponse(k, supplier, dsnap)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal kyc from json")
-	}
-
-	supplier.SupplierKYC = kycAsMap
-	supplier.KYCSubmitted = true
-
-	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-	}
-
-	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-		logrus.Errorf("unable to stage kyc processing request: %v", err)
+		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
 	return &kyc, nil
@@ -1561,10 +1437,23 @@ func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input Organiz
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(k, &kycAsMap)
+
+	err = s.SaveKYCResponse(k, supplier, dsnap)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal kyc from json")
+		return nil, fmt.Errorf("cannot save KYC request: %v", err)
+	}
+
+	return &kyc, nil
+}
+
+// SaveKYCResponse updates the record of a supplier with the provided KYC, stages the request for
+// approval by Savannah admins and sends a notification of the request to admins
+func (s Service) SaveKYCResponse(kycJSON []byte, supplier *Supplier, dsnap *firestore.DocumentSnapshot) error {
+	var kycAsMap map[string]interface{}
+
+	err := json.Unmarshal(kycJSON, &kycAsMap)
+	if err != nil {
+		return fmt.Errorf("cannot unmarshal kyc from json")
 	}
 
 	supplier.SupplierKYC = kycAsMap
@@ -1572,14 +1461,18 @@ func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input Organiz
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+		return fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
 	}
 
 	if err := s.StageKYCProcessingRequest(supplier); err != nil {
 		logrus.Errorf("unable to stage kyc processing request: %v", err)
 	}
 
-	return &kyc, nil
+	// todo: send notification to admins
+	// - get admin users
+	// - send item to admin users
+
+	return nil
 }
 
 // FetchKYCProcessingRequests fetches a list of all unprocessed kyc approval requests
@@ -1678,6 +1571,70 @@ func (s Service) SendKYCEmail(ctx context.Context, text, emailaddress string) er
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unable to send KYC email : %w, with status code %v", err, resp.StatusCode)
+	}
+
+	return nil
+}
+
+// PublishKYCFeedItem notifies admin users of a KYC approval request
+func (s Service) PublishKYCFeedItem(ctx context.Context, uids ...string) error {
+	s.checkPreconditions()
+
+	for _, uid := range uids {
+		payload := base.Item{
+			ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
+			SequenceNumber: int(time.Now().Unix()) + 20,               // add 20 to make it unique
+			Expiry:         time.Now().Add(time.Hour * futureHours),
+			Persistent:     true,
+			Status:         base.StatusPending,
+			Visibility:     base.VisibilityShow,
+			Author:         "Be.Well Team",
+			Label:          "KYC",
+			Text:           "Review KYC for the partner and either approve or reject",
+			TextType:       base.TextTypeMarkdown,
+			Icon: base.Link{
+				ID:          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique,
+				URL:         base.LogoURL,
+				LinkType:    base.LinkTypePngImage,
+				Title:       "KYC Review",
+				Description: "Review KYC for the partner and either approve or reject",
+				Thumbnail:   base.LogoURL,
+			},
+			Timestamp: time.Now(),
+			Actions: []base.Action{
+				{
+					ID:             strconv.Itoa(int(time.Now().Unix()) + 40), // add 40 to make it unique
+					SequenceNumber: int(time.Now().Unix()) + 50,               // add 50 to make it unique
+					Name:           "Review KYC details",
+					Icon: base.Link{
+						ID:          strconv.Itoa(int(time.Now().Unix()) + 60), // add 60 to make it unique
+						URL:         base.LogoURL,
+						LinkType:    base.LinkTypePngImage,
+						Title:       "Review KYC details",
+						Description: "Review and approve or reject KYC details for the supplier",
+						Thumbnail:   base.LogoURL,
+					},
+					ActionType:     base.ActionTypePrimary,
+					Handling:       base.HandlingFullPage,
+					AllowAnonymous: false,
+				},
+			},
+			Users: uids,
+			NotificationChannels: []base.Channel{
+				base.ChannelFcm,
+				base.ChannelEmail,
+				base.ChannelSms,
+			},
+		}
+
+		resp, err := s.engagement.MakeRequest("POST", fmt.Sprintf(publishItem, uid), payload)
+		if err != nil {
+			return fmt.Errorf("unable to publish kyc admin notification feed item : %v", err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("unable to publish kyc admin notification feed item. unexpected status code  %v", resp.StatusCode)
+		}
 	}
 
 	return nil
