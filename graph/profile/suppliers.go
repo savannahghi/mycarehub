@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator"
+	backoff "github.com/cenkalti/backoff/v4"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
@@ -327,9 +328,15 @@ func (s Service) SetUpSupplier(ctx context.Context, accountType AccountType) (*S
 		return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
 	}
 
-	if err := s.PublishKYCNudge(uid, &supplier.PartnerType, &supplier.AccountType); err != nil {
-		return nil, err
-	}
+	go func() {
+		op := func() error {
+			return s.PublishKYCNudge(uid, &supplier.PartnerType, &supplier.AccountType)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	return supplier, nil
 }
@@ -393,15 +400,33 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 	supplier.AccountType = AccountTypeIndividual
 	supplier.UnderOrganization = true
 
-	//Login to edi
-	ediUserProfile, err := EDIUserLogin(username, password)
-	if err != nil {
-		supplier.IsOrganizationVerified = false
-		return nil, fmt.Errorf("cannot get edi user profile: %w", err)
-	}
+	ediUserProfile, err := func(sladeCode string) (*base.EDIUserProfile, error) {
+		var ediUserProfile *base.EDIUserProfile
+		var err error
 
-	if ediUserProfile == nil {
-		return nil, fmt.Errorf("edi user profile not found")
+		switch sladeCode {
+		case "1":
+			// login to core
+			//TODO(calvine) add login to core
+			//TODO(calvine) if login passes, update userprofile to admin and assign admin permissions
+		default:
+			//Login to portal edi
+			ediUserProfile, err = EDIUserLogin(username, password)
+			if err != nil {
+				supplier.IsOrganizationVerified = false
+				return nil, fmt.Errorf("cannot get edi user profile: %w", err)
+			}
+
+			if ediUserProfile == nil {
+				return nil, fmt.Errorf("edi user profile not found")
+			}
+
+		}
+		return ediUserProfile, nil
+	}(sladeCode)
+
+	if err != nil {
+		return nil, err
 	}
 
 	// The slade code comes in the form 'PRO-1234' or 'BRA-PRO-1234-1'
@@ -443,9 +468,15 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 	businessPartner = *partner.Edges[0].Node
 	var brFilter []*BranchFilterInput
 
-	if err := s.PublishKYCNudge(uid, &supplier.PartnerType, &supplier.AccountType); err != nil {
-		return nil, err
-	}
+	go func() {
+		op := func() error {
+			return s.PublishKYCNudge(uid, &supplier.PartnerType, &supplier.AccountType)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	if businessPartner.Parent != nil {
 		supplier.HasBranches = true
