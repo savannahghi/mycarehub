@@ -5,6 +5,8 @@ staging:
     depRootDomain: https://otp-staging.healthcloud.co.ke
   - depName: engagement
     depRootDomain: https://engagement-staging.healthcloud.co.ke 
+  - depName: sms
+    depRootDomain: https://sms-staging.healthcloud.co.ke   
 testing:
   - depName: mailgun
     depRootDomain: https://mailgun-testing.healthcloud.co.ke
@@ -12,6 +14,8 @@ testing:
     depRootDomain: https://otp-testing.healthcloud.co.ke
   - depName: engagement
     depRootDomain: https://engagement-testing.healthcloud.co.ke
+  - depName: sms
+    depRootDomain: https://sms-staging.healthcloud.co.ke   
 production:
   - depName: mailgun
     depRootDomain: https://mailgun-prod.healthcloud.co.ke
@@ -19,3 +23,5 @@ production:
     depRootDomain: https://otp-prod.healthcloud.co.ke
   - depName: engagement
     depRootDomain: https://engagement-prod.healthcloud.co.ke  
+  - depName: sms
+    depRootDomain: https://sms-staging.healthcloud.co.ke   

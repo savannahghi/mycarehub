@@ -720,6 +720,88 @@ func (s *Service) PublishKYCNudge(uid string, partner *PartnerType, account *Acc
 	return nil
 }
 
+// PublishKYCFeedItem notifies admin users of a KYC approval request
+func (s Service) PublishKYCFeedItem(ctx context.Context, uids ...string) error {
+
+	s.checkPreconditions()
+
+	for _, uid := range uids {
+		payload := base.Item{
+			ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
+			SequenceNumber: int(time.Now().Unix()) + 20,               // add 20 to make it unique
+			Expiry:         time.Now().Add(time.Hour * futureHours),
+			Persistent:     true,
+			Status:         base.StatusPending,
+			Visibility:     base.VisibilityShow,
+			Author:         "Be.Well Team",
+			Label:          "KYC",
+			Tagline:        "Process incoming KYC",
+			Text:           "Review KYC for the partner and either approve or reject",
+			TextType:       base.TextTypeMarkdown,
+			Icon: base.Link{
+				ID:          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique,
+				URL:         base.LogoURL,
+				LinkType:    base.LinkTypePngImage,
+				Title:       "KYC Review",
+				Description: "Review KYC for the partner and either approve or reject",
+				Thumbnail:   base.LogoURL,
+			},
+			Timestamp: time.Now(),
+			Actions: []base.Action{
+				{
+					ID:             strconv.Itoa(int(time.Now().Unix()) + 40), // add 40 to make it unique
+					SequenceNumber: int(time.Now().Unix()) + 50,               // add 50 to make it unique
+					Name:           "Review KYC details",
+					Icon: base.Link{
+						ID:          strconv.Itoa(int(time.Now().Unix()) + 60), // add 60 to make it unique
+						URL:         base.LogoURL,
+						LinkType:    base.LinkTypePngImage,
+						Title:       "Review KYC details",
+						Description: "Review and approve or reject KYC details for the supplier",
+						Thumbnail:   base.LogoURL,
+					},
+					ActionType:     base.ActionTypePrimary,
+					Handling:       base.HandlingFullPage,
+					AllowAnonymous: false,
+				},
+			},
+			Links: []base.Link{
+				{
+					ID:          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique,
+					URL:         base.LogoURL,
+					LinkType:    base.LinkTypePngImage,
+					Title:       "KYC process request",
+					Description: "Process KYC request",
+					Thumbnail:   base.LogoURL,
+				},
+			},
+
+			Summary: "Process incoming KYC",
+			Users:   uids,
+			NotificationChannels: []base.Channel{
+				base.ChannelFcm,
+				base.ChannelEmail,
+				base.ChannelSms,
+			},
+		}
+
+		resp, err := s.engagement.MakeRequest("POST", fmt.Sprintf(publishItem, uid), payload)
+		if err != nil {
+			return fmt.Errorf("unable to publish kyc admin notification feed item : %v", err)
+		}
+
+		//TODO(dexter) to be removed. Just here for debug
+		res, _ := httputil.DumpResponse(resp, true)
+		log.Println(string(res))
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("unable to publish kyc admin notification feed item. unexpected status code  %v", resp.StatusCode)
+		}
+	}
+
+	return nil
+}
+
 // StageKYCProcessingRequest saves kyc processing requests
 func (s *Service) StageKYCProcessingRequest(sup *Supplier) error {
 	r := KYCRequest{
@@ -793,6 +875,25 @@ func (s *Service) AddIndividualRiderKyc(ctx context.Context, input IndividualRid
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
+	go func() {
+		op := func() error {
+			a, err := s.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
 	return &kyc, nil
 }
 
@@ -859,6 +960,25 @@ func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input Organizatio
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
+	go func() {
+		op := func() error {
+			a, err := s.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
 	return &kyc, nil
 }
 
@@ -923,6 +1043,25 @@ func (s *Service) AddIndividualPractitionerKyc(ctx context.Context, input Indivi
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
+
+	go func() {
+		op := func() error {
+			a, err := s.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	return &kyc, nil
 }
@@ -1000,6 +1139,25 @@ func (s *Service) AddOrganizationPractitionerKyc(ctx context.Context, input Orga
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
+	go func() {
+		op := func() error {
+			a, err := s.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
 	return &kyc, nil
 }
 
@@ -1076,6 +1234,25 @@ func (s *Service) AddOrganizationProviderKyc(ctx context.Context, input Organiza
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
+	go func() {
+		op := func() error {
+			a, err := s.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
 	return &kyc, nil
 }
 
@@ -1131,6 +1308,25 @@ func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input Indi
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
+
+	go func() {
+		op := func() error {
+			a, err := s.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	return &kyc, nil
 }
@@ -1199,6 +1395,25 @@ func (s *Service) AddOrganizationPharmaceuticalKyc(ctx context.Context, input Or
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
+	go func() {
+		op := func() error {
+			a, err := s.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
 	return &kyc, nil
 }
 
@@ -1253,6 +1468,25 @@ func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoa
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
+
+	go func() {
+		op := func() error {
+			a, err := s.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	return &kyc, nil
 }
@@ -1321,6 +1555,25 @@ func (s *Service) AddOrganizationCoachKyc(ctx context.Context, input Organizatio
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
 
+	go func() {
+		op := func() error {
+			a, err := s.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
 	return &kyc, nil
 }
 
@@ -1375,6 +1628,25 @@ func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input Individua
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
+
+	go func() {
+		op := func() error {
+			a, err := s.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	return &kyc, nil
 }
@@ -1442,6 +1714,25 @@ func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input Organiz
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
+
+	go func() {
+		op := func() error {
+			a, err := s.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	return &kyc, nil
 }
@@ -1564,77 +1855,13 @@ func (s Service) SendKYCEmail(ctx context.Context, text, emailaddress string) er
 		"subject": emailSignupSubject,
 	}
 
-	resp, err := s.Mailgun.MakeRequest(http.MethodPost, sendEmail, body)
+	resp, err := s.Mailgun.MakeRequest(http.MethodPost, SendEmail, body)
 	if err != nil {
 		return fmt.Errorf("unable to send KYC email: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unable to send KYC email : %w, with status code %v", err, resp.StatusCode)
-	}
-
-	return nil
-}
-
-// PublishKYCFeedItem notifies admin users of a KYC approval request
-func (s Service) PublishKYCFeedItem(ctx context.Context, uids ...string) error {
-	s.checkPreconditions()
-
-	for _, uid := range uids {
-		payload := base.Item{
-			ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
-			SequenceNumber: int(time.Now().Unix()) + 20,               // add 20 to make it unique
-			Expiry:         time.Now().Add(time.Hour * futureHours),
-			Persistent:     true,
-			Status:         base.StatusPending,
-			Visibility:     base.VisibilityShow,
-			Author:         "Be.Well Team",
-			Label:          "KYC",
-			Text:           "Review KYC for the partner and either approve or reject",
-			TextType:       base.TextTypeMarkdown,
-			Icon: base.Link{
-				ID:          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique,
-				URL:         base.LogoURL,
-				LinkType:    base.LinkTypePngImage,
-				Title:       "KYC Review",
-				Description: "Review KYC for the partner and either approve or reject",
-				Thumbnail:   base.LogoURL,
-			},
-			Timestamp: time.Now(),
-			Actions: []base.Action{
-				{
-					ID:             strconv.Itoa(int(time.Now().Unix()) + 40), // add 40 to make it unique
-					SequenceNumber: int(time.Now().Unix()) + 50,               // add 50 to make it unique
-					Name:           "Review KYC details",
-					Icon: base.Link{
-						ID:          strconv.Itoa(int(time.Now().Unix()) + 60), // add 60 to make it unique
-						URL:         base.LogoURL,
-						LinkType:    base.LinkTypePngImage,
-						Title:       "Review KYC details",
-						Description: "Review and approve or reject KYC details for the supplier",
-						Thumbnail:   base.LogoURL,
-					},
-					ActionType:     base.ActionTypePrimary,
-					Handling:       base.HandlingFullPage,
-					AllowAnonymous: false,
-				},
-			},
-			Users: uids,
-			NotificationChannels: []base.Channel{
-				base.ChannelFcm,
-				base.ChannelEmail,
-				base.ChannelSms,
-			},
-		}
-
-		resp, err := s.engagement.MakeRequest("POST", fmt.Sprintf(publishItem, uid), payload)
-		if err != nil {
-			return fmt.Errorf("unable to publish kyc admin notification feed item : %v", err)
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("unable to publish kyc admin notification feed item. unexpected status code  %v", resp.StatusCode)
-		}
 	}
 
 	return nil

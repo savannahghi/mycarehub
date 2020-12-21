@@ -261,6 +261,26 @@ func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
 	return dsnap, nil
 }
 
+// FetchAdminUsers fetches all admins
+func (s Service) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile, error) {
+	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
+	query := collection.Where("permissions", "array-contains", base.SuperAdmin).Where("permissions", "array-contains", base.Admin)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	var admins []*base.UserProfile
+	for _, doc := range docs {
+		u := &base.UserProfile{}
+		err = doc.DataTo(u)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read user profile: %w", err)
+		}
+		admins = append(admins, u)
+	}
+	return admins, nil
+}
+
 // AddPractitionerHelper helper to add a practitioner to use in tests
 func (s Service) AddPractitionerHelper(practitioner *Practitioner) (*string, error) {
 	docID, err := base.SaveDataToFirestore(

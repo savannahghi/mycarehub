@@ -1114,15 +1114,6 @@ func TestService_SendKYCEmail(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "Bad case: invalid email address",
-			args: args{
-				ctx:          context.Background(),
-				text:         rejectionEmail,
-				emailaddress: "Not an email address",
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

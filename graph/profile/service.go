@@ -40,13 +40,14 @@ const (
 	mailgunService    = "mailgun"
 	otpService        = "otp"
 	engagementService = "engagement"
+	smsService        = "sms"
 )
 
+// OTP service endpoints
 const (
-	sendEmail    = "internal/send_email"
-	sendRetryOTP = "internal/send_retry_otp/"
-	// SendOTP is a REST isc end point that facilitates a call to otp service
-	SendOTP = "internal/send_otp/"
+	SendEmail    = "internal/send_email"
+	SendRetryOtp = "internal/send_retry_otp/"
+	SendOtp      = "internal/send_otp/"
 )
 
 // NewService returns a new authentication service
@@ -101,14 +102,12 @@ func NewService() *Service {
 	}
 
 	var mailgunClient *base.InterServiceClient
-
 	mailgunClient, err = base.SetupISCclient(config, mailgunService)
 	if err != nil {
 		log.Panicf("unable to initialize mailgun inter service client: %s", err)
 	}
 
 	var otpClient *base.InterServiceClient
-
 	otpClient, err = base.SetupISCclient(config, otpService)
 	if err != nil {
 		log.Panicf("unable to initialize otp inter service client: %s", err)
@@ -116,10 +115,16 @@ func NewService() *Service {
 	}
 
 	var engagementClient *base.InterServiceClient
-
 	engagementClient, err = base.SetupISCclient(config, engagementService)
 	if err != nil {
 		log.Panicf("unable to initialize engagement inter service client: %s", err)
+
+	}
+
+	var smsClient *base.InterServiceClient
+	smsClient, err = base.SetupISCclient(config, smsService)
+	if err != nil {
+		log.Panicf("unable to initialize sms inter service client: %s", err)
 
 	}
 
@@ -131,6 +136,7 @@ func NewService() *Service {
 		Otp:                otpClient,
 		chargemasterClient: chargemasterClient,
 		engagement:         engagementClient,
+		sms:                smsClient,
 	}
 }
 
@@ -140,6 +146,7 @@ type Service struct {
 	Mailgun    *base.InterServiceClient
 	Otp        *base.InterServiceClient
 	engagement *base.InterServiceClient
+	sms        *base.InterServiceClient
 
 	firestoreClient    *firestore.Client
 	firebaseAuth       *auth.Client
@@ -587,7 +594,7 @@ func (s Service) SendPractitionerSignUpEmail(ctx context.Context, emailaddress s
 		"subject": emailSignupSubject,
 	}
 
-	resp, err := s.Mailgun.MakeRequest(http.MethodPost, sendEmail, body)
+	resp, err := s.Mailgun.MakeRequest(http.MethodPost, SendEmail, body)
 	if err != nil {
 		return fmt.Errorf("unable to send Practitioner signup email: %w", err)
 	}
@@ -748,7 +755,7 @@ func (s Service) SendPractitionerWelcomeEmail(ctx context.Context, emailaddress 
 		"subject": emailWelcomeSubject,
 	}
 
-	resp, err := s.Mailgun.MakeRequest(http.MethodPost, sendEmail, body)
+	resp, err := s.Mailgun.MakeRequest(http.MethodPost, SendEmail, body)
 	if err != nil {
 		return fmt.Errorf("unable to send welcome email: %v", err)
 	}
@@ -774,7 +781,7 @@ func (s Service) SendPractitionerRejectionEmail(ctx context.Context, emailaddres
 		"subject": emailRejectionSubject,
 	}
 
-	resp, err := s.Mailgun.MakeRequest(http.MethodPost, sendEmail, body)
+	resp, err := s.Mailgun.MakeRequest(http.MethodPost, SendEmail, body)
 	if err != nil {
 		return fmt.Errorf("unable to send rejection email: %w", err)
 	}
@@ -1134,7 +1141,7 @@ func (s Service) SendRetryOTP(ctx context.Context, msisdn string, retryStep int)
 		"msisdn":    phoneNumber,
 		"retryStep": retryStep,
 	}
-	resp, err := s.Otp.MakeRequest(http.MethodPost, sendRetryOTP, body)
+	resp, err := s.Otp.MakeRequest(http.MethodPost, SendRetryOtp, body)
 	if err != nil {
 		return "", fmt.Errorf("unable to generate and send fallback otp: %w", err)
 	}
@@ -1575,7 +1582,7 @@ func (s Service) generateAndSendOTP(phone string) (string, error) {
 		"msisdn": phone,
 	}
 	defaultOTP := ""
-	resp, err := s.Otp.MakeRequest(http.MethodPost, SendOTP, body)
+	resp, err := s.Otp.MakeRequest(http.MethodPost, SendOtp, body)
 	if err != nil {
 		return defaultOTP, fmt.Errorf("unable to generate and send otp: %w", err)
 	}

@@ -26,7 +26,7 @@ func getOTPCode(msisdn string, s *profile.Service) (string, error) {
 	}
 	defaultOTP := ""
 
-	resp, err := s.Otp.MakeRequest(http.MethodPost, profile.SendOTP, body)
+	resp, err := s.Otp.MakeRequest(http.MethodPost, profile.SendOtp, body)
 	if err != nil {
 		return defaultOTP, fmt.Errorf("unable to generate and send otp: %w", err)
 	}
