@@ -231,7 +231,7 @@ type ComplexityRoot struct {
 		ConfirmEmail                     func(childComplexity int, email string) int
 		CreateSignUpMethod               func(childComplexity int, signUpMethod profile.SignUpMethod) int
 		PractitionerSignUp               func(childComplexity int, input profile.PractitionerSignupInput) int
-		ProcessKYCRequest                func(childComplexity int, id string, status profile.KYCProcessStatus) int
+		ProcessKYCRequest                func(childComplexity int, id string, status profile.KYCProcessStatus, rejectionReason *string) int
 		RecordPostVisitSurvey            func(childComplexity int, input profile.PostVisitSurveyInput) int
 		RegisterPushToken                func(childComplexity int, token string) int
 		RemoveTester                     func(childComplexity int, email string) int
@@ -514,7 +514,7 @@ type MutationResolver interface {
 	AddOrganizationCoachKyc(ctx context.Context, input profile.OrganizationCoachInput) (*profile.OrganizationCoach, error)
 	AddIndividualNutritionKyc(ctx context.Context, input profile.IndividualNutritionInput) (*profile.IndividualNutrition, error)
 	AddOrganizationNutritionKyc(ctx context.Context, input profile.OrganizationNutritionInput) (*profile.OrganizationNutrition, error)
-	ProcessKYCRequest(ctx context.Context, id string, status profile.KYCProcessStatus) (bool, error)
+	ProcessKYCRequest(ctx context.Context, id string, status profile.KYCProcessStatus, rejectionReason *string) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -1492,7 +1492,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ProcessKYCRequest(childComplexity, args["id"].(string), args["status"].(profile.KYCProcessStatus)), true
+		return e.complexity.Mutation.ProcessKYCRequest(childComplexity, args["id"].(string), args["status"].(profile.KYCProcessStatus), args["rejectionReason"].(*string)), true
 
 	case "Mutation.recordPostVisitSurvey":
 		if e.complexity.Mutation.RecordPostVisitSurvey == nil {
@@ -3544,7 +3544,11 @@ extend type Mutation {
     input: OrganizationNutritionInput!
   ): OrganizationNutrition!
 
-  processKYCRequest(id: String!, status: KYCProcessStatus!): Boolean!
+  processKYCRequest(
+    id: String!
+    status: KYCProcessStatus!
+    rejectionReason: String
+  ): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "graph/types.graphql", Input: `scalar Date
@@ -4384,6 +4388,15 @@ func (ec *executionContext) field_Mutation_processKYCRequest_args(ctx context.Co
 		}
 	}
 	args["status"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["rejectionReason"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rejectionReason"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rejectionReason"] = arg2
 	return args, nil
 }
 
@@ -9785,7 +9798,7 @@ func (ec *executionContext) _Mutation_processKYCRequest(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ProcessKYCRequest(rctx, args["id"].(string), args["status"].(profile.KYCProcessStatus))
+		return ec.resolvers.Mutation().ProcessKYCRequest(rctx, args["id"].(string), args["status"].(profile.KYCProcessStatus), args["rejectionReason"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

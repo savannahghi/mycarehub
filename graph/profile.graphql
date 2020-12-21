@@ -100,5 +100,9 @@ extend type Mutation {
     input: OrganizationNutritionInput!
   ): OrganizationNutrition!
 
-  processKYCRequest(id: String!, status: KYCProcessStatus!): Boolean!
+  processKYCRequest(
+    id: String!
+    status: KYCProcessStatus!
+    rejectionReason: String
+  ): Boolean!
 }

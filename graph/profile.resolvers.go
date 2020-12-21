@@ -227,10 +227,10 @@ func (r *mutationResolver) AddOrganizationNutritionKyc(ctx context.Context, inpu
 	return r.profileService.AddOrganizationNutritionKyc(ctx, input)
 }
 
-func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, status profile.KYCProcessStatus) (bool, error) {
+func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, status profile.KYCProcessStatus, rejectionReason *string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.ProcessKYCRequest(ctx, id, status)
+	return r.profileService.ProcessKYCRequest(ctx, id, status, rejectionReason)
 }
 
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {

@@ -85,6 +85,7 @@ func (s Service) AddPartnerType(ctx context.Context, name *string,
 
 		supplier.UserProfile.Name = name
 		supplier.PartnerType = *partnerType
+		supplier.PartnerSetupComplete = true
 
 		if err := s.SaveSupplierToFireStore(*supplier); err != nil {
 			return false, fmt.Errorf("unable to add supplier to firestore: %v", err)
@@ -96,8 +97,9 @@ func (s Service) AddPartnerType(ctx context.Context, name *string,
 	// create new record
 	profile.Name = name
 	newSupplier := Supplier{
-		UserProfile: profile,
-		PartnerType: *partnerType,
+		UserProfile:          profile,
+		PartnerType:          *partnerType,
+		PartnerSetupComplete: true,
 	}
 
 	if err := s.SaveSupplierToFireStore(newSupplier); err != nil {
@@ -740,6 +742,7 @@ func (s *Service) AddIndividualRiderKyc(ctx context.Context, input IndividualRid
 	}
 
 	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
@@ -818,6 +821,7 @@ func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input Organizatio
 	}
 
 	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
@@ -895,6 +899,7 @@ func (s *Service) AddIndividualPractitionerKyc(ctx context.Context, input Indivi
 	}
 
 	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
@@ -983,6 +988,7 @@ func (s *Service) AddOrganizationPractitionerKyc(ctx context.Context, input Orga
 	}
 
 	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
@@ -1071,6 +1077,7 @@ func (s *Service) AddOrganizationProviderKyc(ctx context.Context, input Organiza
 	}
 
 	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
@@ -1139,6 +1146,7 @@ func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input Indi
 	}
 
 	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
@@ -1217,6 +1225,7 @@ func (s *Service) AddOrganizationPharmaceuticalKyc(ctx context.Context, input Or
 	}
 
 	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
@@ -1283,6 +1292,7 @@ func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoa
 	}
 
 	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
@@ -1361,6 +1371,7 @@ func (s *Service) AddOrganizationCoachKyc(ctx context.Context, input Organizatio
 	}
 
 	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
@@ -1427,6 +1438,7 @@ func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input Individua
 	}
 
 	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
@@ -1505,6 +1517,7 @@ func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input Organiz
 	}
 
 	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
 	if err != nil {
@@ -1543,7 +1556,7 @@ func (s *Service) FetchKYCProcessingRequests(ctx context.Context) ([]*KYCRequest
 }
 
 // ProcessKYCRequest transitions a kyc request to a given state
-func (s *Service) ProcessKYCRequest(ctx context.Context, id string, status KYCProcessStatus) (bool, error) {
+func (s *Service) ProcessKYCRequest(ctx context.Context, id string, status KYCProcessStatus, rejectionReason *string) (bool, error) {
 	collection := s.firestoreClient.Collection(s.GetKCYProcessCollectionName())
 	query := collection.Where("id", "==", id)
 	docs, err := query.Documents(ctx).GetAll()
@@ -1560,6 +1573,7 @@ func (s *Service) ProcessKYCRequest(ctx context.Context, id string, status KYCPr
 
 	req.Status = status
 	req.Proceseed = true
+	req.RejectionReason = rejectionReason
 
 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetKCYProcessCollectionName(), doc.Ref.ID, req)
 	if err != nil {

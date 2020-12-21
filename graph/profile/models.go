@@ -256,6 +256,8 @@ type Supplier struct {
 	Location               *Location              `json:"location,omitempty"`
 	PartnerType            PartnerType            `json:"partnerType"`
 	EDIUserProfile         *base.EDIUserProfile   `json:"ediuserprofile" firestore:"ediuserprofile"`
+	PartnerSetupComplete   bool                   `json:"partnerSetupComplete" firestore:"partnerSetupComplete"`
+	KYCSubmitted           bool                   `json:"kycSubmitted" firestore:"kycSubmitted"`
 }
 
 // Location is used to store a user's branch or organisation
@@ -544,4 +546,5 @@ type KYCRequest struct {
 	Proceseed           bool                   `json:"proceseed" firestore:"proceseed"`
 	SupplierRecord      *Supplier              `json:"supplierRecord" firestore:"supplierRecord"`
 	Status              KYCProcessStatus       `json:"status" firestore:"status"`
+	RejectionReason     *string                `json:"rejectionRejection" firestore:"rejectionRejection"`
 }
