@@ -92,3 +92,23 @@ func generatePractitionerRejectionEmailTemplate() string {
 	}
 	return buf.String()
 }
+
+func generateProcessKYCApprovalEmailTemplate() string {
+	t := template.Must(template.New("approvalKYCEmail").Parse(processKYCApprovalEmail))
+	buf := new(bytes.Buffer)
+	err := t.Execute(buf, "")
+	if err != nil {
+		log.Fatalf("Error while generating KYC approval email template: %s", err)
+	}
+	return buf.String()
+}
+
+func generateProcessKYCRejectionEmailTemplate() string {
+	t := template.Must(template.New("rejectionKYCEmail").Parse(processKYCRejectionEmail))
+	buf := new(bytes.Buffer)
+	err := t.Execute(buf, "")
+	if err != nil {
+		log.Fatalf("Error while generating KYC rejection email template: %s", err)
+	}
+	return buf.String()
+}

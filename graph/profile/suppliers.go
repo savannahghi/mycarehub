@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
@@ -1565,6 +1566,8 @@ func (s *Service) ProcessKYCRequest(ctx context.Context, id string, status KYCPr
 		return false, fmt.Errorf("unable to update KYC request record: %v", err)
 	}
 
+	var email string
+
 	switch status {
 	case KYCProcessStatusApproved:
 		// create supplier erp account
@@ -1572,14 +1575,45 @@ func (s *Service) ProcessKYCRequest(ctx context.Context, id string, status KYCPr
 			return false, fmt.Errorf("unable to create erp supplier account: %v", err)
 		}
 
-		// todo : send email to the supplier approval
+		email = generateProcessKYCApprovalEmailTemplate()
 		// todo: send text to the supplier on approval
 	case KYCProcessStatusRejected:
-		// todo : send email to the supplier rejection
+		email = generateProcessKYCRejectionEmailTemplate()
 		// todo: send text to the supplier on rejection
 
 	}
 
+	for _, supplierEmail := range req.SupplierRecord.UserProfile.Emails {
+		err = s.SendKYCEmail(ctx, email, supplierEmail)
+		if err != nil {
+			return false, fmt.Errorf("unable to send KYC processing email: %w", err)
+		}
+	}
+
 	return true, nil
 
+}
+
+// SendKYCEmail will send a KYC processing request email to the supplier
+func (s Service) SendKYCEmail(ctx context.Context, text, emailaddress string) error {
+	if !govalidator.IsEmail(emailaddress) {
+		return nil
+	}
+
+	body := map[string]interface{}{
+		"to":      []string{emailaddress},
+		"text":    text,
+		"subject": emailSignupSubject,
+	}
+
+	resp, err := s.Mailgun.MakeRequest(http.MethodPost, sendEmail, body)
+	if err != nil {
+		return fmt.Errorf("unable to send KYC email: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send KYC email : %w, with status code %v", err, resp.StatusCode)
+	}
+
+	return nil
 }

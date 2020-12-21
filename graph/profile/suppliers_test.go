@@ -1080,3 +1080,47 @@ func TestService_AddOrganizationProviderKyc(t *testing.T) {
 		})
 	}
 }
+
+func TestService_SendKYCEmail(t *testing.T) {
+	type args struct {
+		ctx          context.Context
+		text         string
+		emailaddress string
+	}
+
+	approvalEmail := generateProcessKYCApprovalEmailTemplate()
+	rejectionEmail := generateProcessKYCRejectionEmailTemplate()
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Good case: approved",
+			args: args{
+				ctx:          context.Background(),
+				text:         approvalEmail,
+				emailaddress: base.GenerateRandomEmail(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Good case: rejected",
+			args: args{
+				ctx:          context.Background(),
+				text:         rejectionEmail,
+				emailaddress: base.GenerateRandomEmail(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewService()
+			if err := s.SendKYCEmail(tt.args.ctx, tt.args.text, tt.args.emailaddress); (err != nil) != tt.wantErr {
+				t.Errorf("Service.SendKYCEmail() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
