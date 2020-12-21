@@ -80,7 +80,7 @@ func (s Service) FindProvider(ctx context.Context, pagination *base.PaginationIn
 	}
 
 	defaultParams := url.Values{}
-	defaultParams.Add("field", "id, name, slade_code, parent")
+	defaultParams.Add("fields", "id,name,slade_code,parent")
 	defaultParams.Add("is_active", "True")
 	defaultParams.Add("bp_type", "PROVIDER")
 
@@ -119,6 +119,7 @@ func (s Service) FindProvider(ctx context.Context, pagination *base.PaginationIn
 				ID:        org.ID,
 				Name:      org.Name,
 				SladeCode: org.SladeCode,
+				Parent:    org.Parent,
 			},
 			Cursor: base.CreateAndEncodeCursor(pos + 1),
 		}

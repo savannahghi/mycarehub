@@ -187,6 +187,7 @@ type BusinessPartner {
   id: ID!
   name: String!
   sladeCode: String!
+  parent: String
 }
 
 type BusinessPartnerEdge {

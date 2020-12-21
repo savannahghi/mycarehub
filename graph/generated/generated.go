@@ -75,6 +75,7 @@ type ComplexityRoot struct {
 	BusinessPartner struct {
 		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
+		Parent    func(childComplexity int) int
 		SladeCode func(childComplexity int) int
 	}
 
@@ -663,6 +664,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BusinessPartner.Name(childComplexity), true
+
+	case "BusinessPartner.parent":
+		if e.complexity.BusinessPartner.Parent == nil {
+			break
+		}
+
+		return e.complexity.BusinessPartner.Parent(childComplexity), true
 
 	case "BusinessPartner.sladeCode":
 		if e.complexity.BusinessPartner.SladeCode == nil {
@@ -3789,6 +3797,7 @@ type BusinessPartner {
   id: ID!
   name: String!
   sladeCode: String!
+  parent: String
 }
 
 type BusinessPartnerEdge {
@@ -5567,6 +5576,38 @@ func (ec *executionContext) _BusinessPartner_sladeCode(ctx context.Context, fiel
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BusinessPartner_parent(ctx context.Context, field graphql.CollectedField, obj *profile.BusinessPartner) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BusinessPartner",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Parent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _BusinessPartnerConnection_edges(ctx context.Context, field graphql.CollectedField, obj *profile.BusinessPartnerConnection) (ret graphql.Marshaler) {
@@ -18773,6 +18814,8 @@ func (ec *executionContext) _BusinessPartner(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "parent":
+			out.Values[i] = ec._BusinessPartner_parent(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

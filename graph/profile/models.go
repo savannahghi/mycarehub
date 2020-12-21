@@ -347,7 +347,7 @@ type BusinessPartner struct {
 	ID        string  `json:"id"`
 	Name      string  `json:"name"`
 	SladeCode string  `json:"slade_code"`
-	Parent    *string `json:"parent,omitempty"`
+	Parent    *string `json:"parent"`
 }
 
 // BusinessPartnerEdge is used to serialize GraphQL Relay edges for organization
