@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"strconv"
 	"strings"
 	"time"
@@ -265,7 +266,7 @@ func (s Service) SuspendSupplier(ctx context.Context, uid string) (bool, error) 
 		return false, fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
 	}
 
-	supplierPath := fmt.Sprintf("%s%s/", customerAPIPath, supplier.SupplierID)
+	supplierPath := fmt.Sprintf("%s%s", customerAPIPath, supplier.SupplierID)
 	if err := base.ReadRequestToTarget(s.erpClient, "PATCH", supplierPath, "", content, &supplier); err != nil {
 		return false, fmt.Errorf("unable to make request to the ERP: %v", err)
 	}
@@ -604,8 +605,8 @@ func (s *Service) PublishKYCNudge(uid string, partner *PartnerType, account *Acc
 	}
 
 	payload := map[string]interface{}{
-		"id":             strconv.Itoa(int(time.Now().Unix())),
-		"sequenceNumber": int(time.Now().Unix()),
+		"id":             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
+		"sequenceNumber": int(time.Now().Unix()) + 20,               // add 20 to make it unique
 		"visibility":     "SHOW",
 		"status":         "PENDING",
 		"expiry":         time.Now().Add(time.Hour * futureHours),
@@ -613,7 +614,7 @@ func (s *Service) PublishKYCNudge(uid string, partner *PartnerType, account *Acc
 		"text":           "Fill in your Be.Well business KYC in order to start transacting",
 		"links": []map[string]interface{}{
 			{
-				"id":          strconv.Itoa(int(time.Now().Unix())),
+				"id":          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique
 				"url":         "https://assets.healthcloud.co.ke/bewell_logo.png",
 				"linkType":    "PNG_IMAGE",
 				"title":       "KYC",
@@ -623,14 +624,14 @@ func (s *Service) PublishKYCNudge(uid string, partner *PartnerType, account *Acc
 		},
 		"actions": []map[string]interface{}{
 			{
-				"id":             strconv.Itoa(int(time.Now().Unix())),
-				"sequenceNumber": int(time.Now().Unix()),
+				"id":             strconv.Itoa(int(time.Now().Unix()) + 40), // add 40 to make it unique
+				"sequenceNumber": int(time.Now().Unix()) + 50,               // add 50 to make it unique
 				"name":           strings.ToUpper(fmt.Sprintf("COMPLETE_%v_%v_KYC", account.String(), partner.String())),
 				"actionType":     "PRIMARY",
 				"handling":       "FULL_PAGE",
 				"allowAnonymous": false,
 				"icon": map[string]interface{}{
-					"id":          strconv.Itoa(int(time.Now().Unix())),
+					"id":          strconv.Itoa(int(time.Now().Unix()) + 60), // add 60 to make it unique
 					"url":         "https://assets.healthcloud.co.ke/1px.png",
 					"linkType":    "PNG_IMAGE",
 					"title":       fmt.Sprintf("Complete your %v KYC", strings.ToLower(partner.String())),
@@ -648,6 +649,10 @@ func (s *Service) PublishKYCNudge(uid string, partner *PartnerType, account *Acc
 	if err != nil {
 		return fmt.Errorf("unable to publish kyc nudge : %v", err)
 	}
+
+	//TODO(dexter) to be removed. Just here for debug
+	res, _ := httputil.DumpResponse(resp, true)
+	log.Println(string(res))
 
 	if resp.StatusCode != http.StatusOK {
 		// stage the nudge
