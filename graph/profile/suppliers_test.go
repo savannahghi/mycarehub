@@ -530,8 +530,8 @@ func TestService_AddIndividualRiderKyc(t *testing.T) {
 		return
 	}
 
-	riderInput := IndividualRiderInput{
-		IdentificationDoc: IdentificationInput{
+	riderInput := IndividualRider{
+		IdentificationDoc: Identification{
 			IdentificationDocType:           IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "12345678",
 			IdentificationDocNumberUploadID: "12345678",
@@ -555,7 +555,7 @@ func TestService_AddIndividualRiderKyc(t *testing.T) {
 
 	type args struct {
 		ctx   context.Context
-		input IndividualRiderInput
+		input IndividualRider
 	}
 	tests := []struct {
 		name    string
@@ -608,7 +608,7 @@ func TestService_AddOrganizationRiderKyc(t *testing.T) {
 
 	type args struct {
 		ctx      context.Context
-		input    OrganizationRiderInput
+		input    OrganizationRider
 		resource OrganizationRider
 	}
 	tests := []struct {
@@ -621,9 +621,9 @@ func TestService_AddOrganizationRiderKyc(t *testing.T) {
 			name: "valid : should pass",
 			args: args{
 				ctx: ctx,
-				input: OrganizationRiderInput{
+				input: OrganizationRider{
 					OrganizationTypeName: OrganizationTypeLimitedCompany,
-					DirectorIdentifications: []IdentificationInput{
+					DirectorIdentifications: []Identification{
 						{
 							IdentificationDocType:           IdentificationDocTypeNationalid,
 							IdentificationDocNumber:         "12345678",
@@ -661,9 +661,9 @@ func TestService_AddOrganizationRiderKyc(t *testing.T) {
 			name: "invalid : organization type name",
 			args: args{
 				ctx: ctx,
-				input: OrganizationRiderInput{
+				input: OrganizationRider{
 					OrganizationTypeName: "AWESOME ORG",
-					DirectorIdentifications: []IdentificationInput{
+					DirectorIdentifications: []Identification{
 						{
 							IdentificationDocType:           IdentificationDocTypeNationalid,
 							IdentificationDocNumber:         "12345678",
@@ -721,7 +721,7 @@ func TestService_AddIndividualPractitionerKyc(t *testing.T) {
 
 	type args struct {
 		ctx      context.Context
-		input    IndividualPractitionerInput
+		input    IndividualPractitioner
 		resource IndividualPractitioner
 	}
 	tests := []struct {
@@ -734,8 +734,8 @@ func TestService_AddIndividualPractitionerKyc(t *testing.T) {
 			name: "valid : should pass",
 			args: args{
 				ctx: ctx,
-				input: IndividualPractitionerInput{
-					IdentificationDoc: IdentificationInput{
+				input: IndividualPractitioner{
+					IdentificationDoc: Identification{
 						IdentificationDocType:           IdentificationDocTypeNationalid,
 						IdentificationDocNumber:         "12345678",
 						IdentificationDocNumberUploadID: "12345678",
@@ -768,8 +768,8 @@ func TestService_AddIndividualPractitionerKyc(t *testing.T) {
 			name: "invalid : practice services",
 			args: args{
 				ctx: ctx,
-				input: IndividualPractitionerInput{
-					IdentificationDoc: IdentificationInput{
+				input: IndividualPractitioner{
+					IdentificationDoc: Identification{
 						IdentificationDocType:           IdentificationDocTypeNationalid,
 						IdentificationDocNumber:         "12345678",
 						IdentificationDocNumberUploadID: "12345678",
@@ -825,7 +825,7 @@ func TestService_AddOrganizationPractitionerKyc(t *testing.T) {
 
 	type args struct {
 		ctx      context.Context
-		input    OrganizationPractitionerInput
+		input    OrganizationPractitioner
 		resource OrganizationPractitioner
 	}
 	tests := []struct {
@@ -838,9 +838,9 @@ func TestService_AddOrganizationPractitionerKyc(t *testing.T) {
 			name: "valid : should pass",
 			args: args{
 				ctx: ctx,
-				input: OrganizationPractitionerInput{
+				input: OrganizationPractitioner{
 					OrganizationTypeName: OrganizationTypeLimitedCompany,
-					DirectorIdentifications: []IdentificationInput{
+					DirectorIdentifications: []Identification{
 						{
 							IdentificationDocType:           IdentificationDocTypeNationalid,
 							IdentificationDocNumber:         "12345678",
@@ -878,9 +878,9 @@ func TestService_AddOrganizationPractitionerKyc(t *testing.T) {
 			name: "invalid : organization type name ",
 			args: args{
 				ctx: ctx,
-				input: OrganizationPractitionerInput{
+				input: OrganizationPractitioner{
 					OrganizationTypeName: "AWESOME ORG",
-					DirectorIdentifications: []IdentificationInput{
+					DirectorIdentifications: []Identification{
 						{
 							IdentificationDocType:           IdentificationDocTypeNationalid,
 							IdentificationDocNumber:         "12345678",
@@ -903,9 +903,9 @@ func TestService_AddOrganizationPractitionerKyc(t *testing.T) {
 			name: "invalid : practice services",
 			args: args{
 				ctx: ctx,
-				input: OrganizationPractitionerInput{
+				input: OrganizationPractitioner{
 					OrganizationTypeName: OrganizationTypeLimitedCompany,
-					DirectorIdentifications: []IdentificationInput{
+					DirectorIdentifications: []Identification{
 						{
 							IdentificationDocType:           IdentificationDocTypeNationalid,
 							IdentificationDocNumber:         "12345678",
@@ -963,7 +963,7 @@ func TestService_AddOrganizationProviderKyc(t *testing.T) {
 
 	type args struct {
 		ctx      context.Context
-		input    OrganizationProviderInput
+		input    OrganizationProvider
 		resource OrganizationProvider
 	}
 	tests := []struct {
@@ -976,9 +976,9 @@ func TestService_AddOrganizationProviderKyc(t *testing.T) {
 			name: "valid : should pass",
 			args: args{
 				ctx: ctx,
-				input: OrganizationProviderInput{
+				input: OrganizationProvider{
 					OrganizationTypeName: OrganizationTypeLimitedCompany,
-					DirectorIdentifications: []IdentificationInput{
+					DirectorIdentifications: []Identification{
 						{
 							IdentificationDocType:           IdentificationDocTypeNationalid,
 							IdentificationDocNumber:         "12345678",
@@ -1016,9 +1016,9 @@ func TestService_AddOrganizationProviderKyc(t *testing.T) {
 			name: "invalid : organization type name ",
 			args: args{
 				ctx: ctx,
-				input: OrganizationProviderInput{
+				input: OrganizationProvider{
 					OrganizationTypeName: "AWESOME ORG",
-					DirectorIdentifications: []IdentificationInput{
+					DirectorIdentifications: []Identification{
 						{
 							IdentificationDocType:           IdentificationDocTypeNationalid,
 							IdentificationDocNumber:         "12345678",
@@ -1041,9 +1041,9 @@ func TestService_AddOrganizationProviderKyc(t *testing.T) {
 			name: "invalid : practice services",
 			args: args{
 				ctx: ctx,
-				input: OrganizationProviderInput{
+				input: OrganizationProvider{
 					OrganizationTypeName: OrganizationTypeLimitedCompany,
-					DirectorIdentifications: []IdentificationInput{
+					DirectorIdentifications: []Identification{
 						{
 							IdentificationDocType:           IdentificationDocTypeNationalid,
 							IdentificationDocNumber:         "12345678",

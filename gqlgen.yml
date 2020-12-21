@@ -62,3 +62,39 @@ models:
   Date:
     model:
       - "gitlab.slade360emr.com/go/base.Date"
+  IdentificationInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.Identification  
+  IndividualRiderInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.IndividualRider    
+  IndividualPractitionerInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.IndividualPractitioner
+  IndividualPharmaceuticalInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.IndividualPharmaceutical 
+  IndividualCoachInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.IndividualCoach
+  IndividualNutritionInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.IndividualNutrition    
+  OrganizationRiderInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.OrganizationRider    
+  OrganizationPractitionerInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.OrganizationPractitioner    
+  OrganizationProviderInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.OrganizationProvider
+  OrganizationNutritionInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.OrganizationNutrition  
+  OrganizationCoachInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.OrganizationCoach 
+  OrganizationPharmaceuticalInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/graph/profile.OrganizationPharmaceutical    

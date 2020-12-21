@@ -161,67 +161,67 @@ func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locat
 	return r.profileService.SupplierSetDefaultLocation(ctx, locatonID)
 }
 
-func (r *mutationResolver) AddIndividualRiderKyc(ctx context.Context, input profile.IndividualRiderInput) (*profile.IndividualRider, error) {
+func (r *mutationResolver) AddIndividualRiderKyc(ctx context.Context, input profile.IndividualRider) (*profile.IndividualRider, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddIndividualRiderKyc(ctx, input)
 }
 
-func (r *mutationResolver) AddOrganizationRiderKyc(ctx context.Context, input profile.OrganizationRiderInput) (*profile.OrganizationRider, error) {
+func (r *mutationResolver) AddOrganizationRiderKyc(ctx context.Context, input profile.OrganizationRider) (*profile.OrganizationRider, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddOrganizationRiderKyc(ctx, input)
 }
 
-func (r *mutationResolver) AddIndividualPractitionerKyc(ctx context.Context, input profile.IndividualPractitionerInput) (*profile.IndividualPractitioner, error) {
+func (r *mutationResolver) AddIndividualPractitionerKyc(ctx context.Context, input profile.IndividualPractitioner) (*profile.IndividualPractitioner, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddIndividualPractitionerKyc(ctx, input)
 }
 
-func (r *mutationResolver) AddOrganizationPractitionerKyc(ctx context.Context, input profile.OrganizationPractitionerInput) (*profile.OrganizationPractitioner, error) {
+func (r *mutationResolver) AddOrganizationPractitionerKyc(ctx context.Context, input profile.OrganizationPractitioner) (*profile.OrganizationPractitioner, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddOrganizationPractitionerKyc(ctx, input)
 }
 
-func (r *mutationResolver) AddOrganizationProviderKyc(ctx context.Context, input profile.OrganizationProviderInput) (*profile.OrganizationProvider, error) {
+func (r *mutationResolver) AddOrganizationProviderKyc(ctx context.Context, input profile.OrganizationProvider) (*profile.OrganizationProvider, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddOrganizationProviderKyc(ctx, input)
 }
 
-func (r *mutationResolver) AddIndividualPharmaceuticalKyc(ctx context.Context, input profile.IndividualPharmaceuticalInput) (*profile.IndividualPharmaceutical, error) {
+func (r *mutationResolver) AddIndividualPharmaceuticalKyc(ctx context.Context, input profile.IndividualPharmaceutical) (*profile.IndividualPharmaceutical, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddIndividualPharmaceuticalKyc(ctx, input)
 }
 
-func (r *mutationResolver) AddOrganizationPharmaceuticalKyc(ctx context.Context, input profile.OrganizationPharmaceuticalInput) (*profile.OrganizationPharmaceutical, error) {
+func (r *mutationResolver) AddOrganizationPharmaceuticalKyc(ctx context.Context, input profile.OrganizationPharmaceutical) (*profile.OrganizationPharmaceutical, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddOrganizationPharmaceuticalKyc(ctx, input)
 }
 
-func (r *mutationResolver) AddIndividualCoachKyc(ctx context.Context, input profile.IndividualCoachInput) (*profile.IndividualCoach, error) {
+func (r *mutationResolver) AddIndividualCoachKyc(ctx context.Context, input profile.IndividualCoach) (*profile.IndividualCoach, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddIndividualCoachKyc(ctx, input)
 }
 
-func (r *mutationResolver) AddOrganizationCoachKyc(ctx context.Context, input profile.OrganizationCoachInput) (*profile.OrganizationCoach, error) {
+func (r *mutationResolver) AddOrganizationCoachKyc(ctx context.Context, input profile.OrganizationCoach) (*profile.OrganizationCoach, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddOrganizationCoachKyc(ctx, input)
 }
 
-func (r *mutationResolver) AddIndividualNutritionKyc(ctx context.Context, input profile.IndividualNutritionInput) (*profile.IndividualNutrition, error) {
+func (r *mutationResolver) AddIndividualNutritionKyc(ctx context.Context, input profile.IndividualNutrition) (*profile.IndividualNutrition, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddIndividualNutritionKyc(ctx, input)
 }
 
-func (r *mutationResolver) AddOrganizationNutritionKyc(ctx context.Context, input profile.OrganizationNutritionInput) (*profile.OrganizationNutrition, error) {
+func (r *mutationResolver) AddOrganizationNutritionKyc(ctx context.Context, input profile.OrganizationNutrition) (*profile.OrganizationNutrition, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddOrganizationNutritionKyc(ctx, input)

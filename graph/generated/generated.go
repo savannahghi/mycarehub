@@ -213,17 +213,17 @@ type ComplexityRoot struct {
 		AcceptTermsAndConditions         func(childComplexity int, accept bool) int
 		AddCustomer                      func(childComplexity int, name string) int
 		AddCustomerKyc                   func(childComplexity int, input profile.CustomerKYCInput) int
-		AddIndividualCoachKyc            func(childComplexity int, input profile.IndividualCoachInput) int
-		AddIndividualNutritionKyc        func(childComplexity int, input profile.IndividualNutritionInput) int
-		AddIndividualPharmaceuticalKyc   func(childComplexity int, input profile.IndividualPharmaceuticalInput) int
-		AddIndividualPractitionerKyc     func(childComplexity int, input profile.IndividualPractitionerInput) int
-		AddIndividualRiderKyc            func(childComplexity int, input profile.IndividualRiderInput) int
-		AddOrganizationCoachKyc          func(childComplexity int, input profile.OrganizationCoachInput) int
-		AddOrganizationNutritionKyc      func(childComplexity int, input profile.OrganizationNutritionInput) int
-		AddOrganizationPharmaceuticalKyc func(childComplexity int, input profile.OrganizationPharmaceuticalInput) int
-		AddOrganizationPractitionerKyc   func(childComplexity int, input profile.OrganizationPractitionerInput) int
-		AddOrganizationProviderKyc       func(childComplexity int, input profile.OrganizationProviderInput) int
-		AddOrganizationRiderKyc          func(childComplexity int, input profile.OrganizationRiderInput) int
+		AddIndividualCoachKyc            func(childComplexity int, input profile.IndividualCoach) int
+		AddIndividualNutritionKyc        func(childComplexity int, input profile.IndividualNutrition) int
+		AddIndividualPharmaceuticalKyc   func(childComplexity int, input profile.IndividualPharmaceutical) int
+		AddIndividualPractitionerKyc     func(childComplexity int, input profile.IndividualPractitioner) int
+		AddIndividualRiderKyc            func(childComplexity int, input profile.IndividualRider) int
+		AddOrganizationCoachKyc          func(childComplexity int, input profile.OrganizationCoach) int
+		AddOrganizationNutritionKyc      func(childComplexity int, input profile.OrganizationNutrition) int
+		AddOrganizationPharmaceuticalKyc func(childComplexity int, input profile.OrganizationPharmaceutical) int
+		AddOrganizationPractitionerKyc   func(childComplexity int, input profile.OrganizationPractitioner) int
+		AddOrganizationProviderKyc       func(childComplexity int, input profile.OrganizationProvider) int
+		AddOrganizationRiderKyc          func(childComplexity int, input profile.OrganizationRider) int
 		AddPartnerType                   func(childComplexity int, name string, partnerType profile.PartnerType) int
 		AddPractitionerServices          func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
 		AddTester                        func(childComplexity int, email string) int
@@ -503,17 +503,17 @@ type MutationResolver interface {
 	SetUpSupplier(ctx context.Context, accountType profile.AccountType) (*profile.Supplier, error)
 	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*profile.BranchConnection, error)
 	SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error)
-	AddIndividualRiderKyc(ctx context.Context, input profile.IndividualRiderInput) (*profile.IndividualRider, error)
-	AddOrganizationRiderKyc(ctx context.Context, input profile.OrganizationRiderInput) (*profile.OrganizationRider, error)
-	AddIndividualPractitionerKyc(ctx context.Context, input profile.IndividualPractitionerInput) (*profile.IndividualPractitioner, error)
-	AddOrganizationPractitionerKyc(ctx context.Context, input profile.OrganizationPractitionerInput) (*profile.OrganizationPractitioner, error)
-	AddOrganizationProviderKyc(ctx context.Context, input profile.OrganizationProviderInput) (*profile.OrganizationProvider, error)
-	AddIndividualPharmaceuticalKyc(ctx context.Context, input profile.IndividualPharmaceuticalInput) (*profile.IndividualPharmaceutical, error)
-	AddOrganizationPharmaceuticalKyc(ctx context.Context, input profile.OrganizationPharmaceuticalInput) (*profile.OrganizationPharmaceutical, error)
-	AddIndividualCoachKyc(ctx context.Context, input profile.IndividualCoachInput) (*profile.IndividualCoach, error)
-	AddOrganizationCoachKyc(ctx context.Context, input profile.OrganizationCoachInput) (*profile.OrganizationCoach, error)
-	AddIndividualNutritionKyc(ctx context.Context, input profile.IndividualNutritionInput) (*profile.IndividualNutrition, error)
-	AddOrganizationNutritionKyc(ctx context.Context, input profile.OrganizationNutritionInput) (*profile.OrganizationNutrition, error)
+	AddIndividualRiderKyc(ctx context.Context, input profile.IndividualRider) (*profile.IndividualRider, error)
+	AddOrganizationRiderKyc(ctx context.Context, input profile.OrganizationRider) (*profile.OrganizationRider, error)
+	AddIndividualPractitionerKyc(ctx context.Context, input profile.IndividualPractitioner) (*profile.IndividualPractitioner, error)
+	AddOrganizationPractitionerKyc(ctx context.Context, input profile.OrganizationPractitioner) (*profile.OrganizationPractitioner, error)
+	AddOrganizationProviderKyc(ctx context.Context, input profile.OrganizationProvider) (*profile.OrganizationProvider, error)
+	AddIndividualPharmaceuticalKyc(ctx context.Context, input profile.IndividualPharmaceutical) (*profile.IndividualPharmaceutical, error)
+	AddOrganizationPharmaceuticalKyc(ctx context.Context, input profile.OrganizationPharmaceutical) (*profile.OrganizationPharmaceutical, error)
+	AddIndividualCoachKyc(ctx context.Context, input profile.IndividualCoach) (*profile.IndividualCoach, error)
+	AddOrganizationCoachKyc(ctx context.Context, input profile.OrganizationCoach) (*profile.OrganizationCoach, error)
+	AddIndividualNutritionKyc(ctx context.Context, input profile.IndividualNutrition) (*profile.IndividualNutrition, error)
+	AddOrganizationNutritionKyc(ctx context.Context, input profile.OrganizationNutrition) (*profile.OrganizationNutrition, error)
 	ProcessKYCRequest(ctx context.Context, id string, status profile.KYCProcessStatus, rejectionReason *string) (bool, error)
 }
 type QueryResolver interface {
@@ -1281,7 +1281,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddIndividualCoachKyc(childComplexity, args["input"].(profile.IndividualCoachInput)), true
+		return e.complexity.Mutation.AddIndividualCoachKyc(childComplexity, args["input"].(profile.IndividualCoach)), true
 
 	case "Mutation.addIndividualNutritionKYC":
 		if e.complexity.Mutation.AddIndividualNutritionKyc == nil {
@@ -1293,7 +1293,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddIndividualNutritionKyc(childComplexity, args["input"].(profile.IndividualNutritionInput)), true
+		return e.complexity.Mutation.AddIndividualNutritionKyc(childComplexity, args["input"].(profile.IndividualNutrition)), true
 
 	case "Mutation.addIndividualPharmaceuticalKYC":
 		if e.complexity.Mutation.AddIndividualPharmaceuticalKyc == nil {
@@ -1305,7 +1305,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddIndividualPharmaceuticalKyc(childComplexity, args["input"].(profile.IndividualPharmaceuticalInput)), true
+		return e.complexity.Mutation.AddIndividualPharmaceuticalKyc(childComplexity, args["input"].(profile.IndividualPharmaceutical)), true
 
 	case "Mutation.addIndividualPractitionerKYC":
 		if e.complexity.Mutation.AddIndividualPractitionerKyc == nil {
@@ -1317,7 +1317,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddIndividualPractitionerKyc(childComplexity, args["input"].(profile.IndividualPractitionerInput)), true
+		return e.complexity.Mutation.AddIndividualPractitionerKyc(childComplexity, args["input"].(profile.IndividualPractitioner)), true
 
 	case "Mutation.addIndividualRiderKYC":
 		if e.complexity.Mutation.AddIndividualRiderKyc == nil {
@@ -1329,7 +1329,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddIndividualRiderKyc(childComplexity, args["input"].(profile.IndividualRiderInput)), true
+		return e.complexity.Mutation.AddIndividualRiderKyc(childComplexity, args["input"].(profile.IndividualRider)), true
 
 	case "Mutation.addOrganizationCoachKYC":
 		if e.complexity.Mutation.AddOrganizationCoachKyc == nil {
@@ -1341,7 +1341,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddOrganizationCoachKyc(childComplexity, args["input"].(profile.OrganizationCoachInput)), true
+		return e.complexity.Mutation.AddOrganizationCoachKyc(childComplexity, args["input"].(profile.OrganizationCoach)), true
 
 	case "Mutation.addOrganizationNutritionKYC":
 		if e.complexity.Mutation.AddOrganizationNutritionKyc == nil {
@@ -1353,7 +1353,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddOrganizationNutritionKyc(childComplexity, args["input"].(profile.OrganizationNutritionInput)), true
+		return e.complexity.Mutation.AddOrganizationNutritionKyc(childComplexity, args["input"].(profile.OrganizationNutrition)), true
 
 	case "Mutation.addOrganizationPharmaceuticalKYC":
 		if e.complexity.Mutation.AddOrganizationPharmaceuticalKyc == nil {
@@ -1365,7 +1365,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddOrganizationPharmaceuticalKyc(childComplexity, args["input"].(profile.OrganizationPharmaceuticalInput)), true
+		return e.complexity.Mutation.AddOrganizationPharmaceuticalKyc(childComplexity, args["input"].(profile.OrganizationPharmaceutical)), true
 
 	case "Mutation.addOrganizationPractitionerKYC":
 		if e.complexity.Mutation.AddOrganizationPractitionerKyc == nil {
@@ -1377,7 +1377,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddOrganizationPractitionerKyc(childComplexity, args["input"].(profile.OrganizationPractitionerInput)), true
+		return e.complexity.Mutation.AddOrganizationPractitionerKyc(childComplexity, args["input"].(profile.OrganizationPractitioner)), true
 
 	case "Mutation.addOrganizationProviderKYC":
 		if e.complexity.Mutation.AddOrganizationProviderKyc == nil {
@@ -1389,7 +1389,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddOrganizationProviderKyc(childComplexity, args["input"].(profile.OrganizationProviderInput)), true
+		return e.complexity.Mutation.AddOrganizationProviderKyc(childComplexity, args["input"].(profile.OrganizationProvider)), true
 
 	case "Mutation.addOrganizationRiderKYC":
 		if e.complexity.Mutation.AddOrganizationRiderKyc == nil {
@@ -1401,7 +1401,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddOrganizationRiderKyc(childComplexity, args["input"].(profile.OrganizationRiderInput)), true
+		return e.complexity.Mutation.AddOrganizationRiderKyc(childComplexity, args["input"].(profile.OrganizationRider)), true
 
 	case "Mutation.addPartnerType":
 		if e.complexity.Mutation.AddPartnerType == nil {
@@ -4097,10 +4097,10 @@ func (ec *executionContext) field_Mutation_addCustomer_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_addIndividualCoachKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.IndividualCoachInput
+	var arg0 profile.IndividualCoach
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIndividualCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualCoachInput(ctx, tmp)
+		arg0, err = ec.unmarshalNIndividualCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualCoach(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4112,10 +4112,10 @@ func (ec *executionContext) field_Mutation_addIndividualCoachKYC_args(ctx contex
 func (ec *executionContext) field_Mutation_addIndividualNutritionKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.IndividualNutritionInput
+	var arg0 profile.IndividualNutrition
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIndividualNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualNutritionInput(ctx, tmp)
+		arg0, err = ec.unmarshalNIndividualNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualNutrition(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4127,10 +4127,10 @@ func (ec *executionContext) field_Mutation_addIndividualNutritionKYC_args(ctx co
 func (ec *executionContext) field_Mutation_addIndividualPharmaceuticalKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.IndividualPharmaceuticalInput
+	var arg0 profile.IndividualPharmaceutical
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIndividualPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPharmaceuticalInput(ctx, tmp)
+		arg0, err = ec.unmarshalNIndividualPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPharmaceutical(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4142,10 +4142,10 @@ func (ec *executionContext) field_Mutation_addIndividualPharmaceuticalKYC_args(c
 func (ec *executionContext) field_Mutation_addIndividualPractitionerKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.IndividualPractitionerInput
+	var arg0 profile.IndividualPractitioner
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIndividualPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPractitionerInput(ctx, tmp)
+		arg0, err = ec.unmarshalNIndividualPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPractitioner(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4157,10 +4157,10 @@ func (ec *executionContext) field_Mutation_addIndividualPractitionerKYC_args(ctx
 func (ec *executionContext) field_Mutation_addIndividualRiderKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.IndividualRiderInput
+	var arg0 profile.IndividualRider
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIndividualRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRiderInput(ctx, tmp)
+		arg0, err = ec.unmarshalNIndividualRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRider(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4172,10 +4172,10 @@ func (ec *executionContext) field_Mutation_addIndividualRiderKYC_args(ctx contex
 func (ec *executionContext) field_Mutation_addOrganizationCoachKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.OrganizationCoachInput
+	var arg0 profile.OrganizationCoach
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationCoachInput(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationCoach(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4187,10 +4187,10 @@ func (ec *executionContext) field_Mutation_addOrganizationCoachKYC_args(ctx cont
 func (ec *executionContext) field_Mutation_addOrganizationNutritionKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.OrganizationNutritionInput
+	var arg0 profile.OrganizationNutrition
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationNutritionInput(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationNutrition(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4202,10 +4202,10 @@ func (ec *executionContext) field_Mutation_addOrganizationNutritionKYC_args(ctx 
 func (ec *executionContext) field_Mutation_addOrganizationPharmaceuticalKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.OrganizationPharmaceuticalInput
+	var arg0 profile.OrganizationPharmaceutical
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPharmaceuticalInput(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPharmaceutical(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4217,10 +4217,10 @@ func (ec *executionContext) field_Mutation_addOrganizationPharmaceuticalKYC_args
 func (ec *executionContext) field_Mutation_addOrganizationPractitionerKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.OrganizationPractitionerInput
+	var arg0 profile.OrganizationPractitioner
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPractitionerInput(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPractitioner(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4232,10 +4232,10 @@ func (ec *executionContext) field_Mutation_addOrganizationPractitionerKYC_args(c
 func (ec *executionContext) field_Mutation_addOrganizationProviderKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.OrganizationProviderInput
+	var arg0 profile.OrganizationProvider
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationProviderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationProviderInput(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationProviderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationProvider(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4247,10 +4247,10 @@ func (ec *executionContext) field_Mutation_addOrganizationProviderKYC_args(ctx c
 func (ec *executionContext) field_Mutation_addOrganizationRiderKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 profile.OrganizationRiderInput
+	var arg0 profile.OrganizationRider
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationRiderInput(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationRider(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9336,7 +9336,7 @@ func (ec *executionContext) _Mutation_addIndividualRiderKYC(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddIndividualRiderKyc(rctx, args["input"].(profile.IndividualRiderInput))
+		return ec.resolvers.Mutation().AddIndividualRiderKyc(rctx, args["input"].(profile.IndividualRider))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9378,7 +9378,7 @@ func (ec *executionContext) _Mutation_addOrganizationRiderKYC(ctx context.Contex
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddOrganizationRiderKyc(rctx, args["input"].(profile.OrganizationRiderInput))
+		return ec.resolvers.Mutation().AddOrganizationRiderKyc(rctx, args["input"].(profile.OrganizationRider))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9420,7 +9420,7 @@ func (ec *executionContext) _Mutation_addIndividualPractitionerKYC(ctx context.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddIndividualPractitionerKyc(rctx, args["input"].(profile.IndividualPractitionerInput))
+		return ec.resolvers.Mutation().AddIndividualPractitionerKyc(rctx, args["input"].(profile.IndividualPractitioner))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9462,7 +9462,7 @@ func (ec *executionContext) _Mutation_addOrganizationPractitionerKYC(ctx context
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddOrganizationPractitionerKyc(rctx, args["input"].(profile.OrganizationPractitionerInput))
+		return ec.resolvers.Mutation().AddOrganizationPractitionerKyc(rctx, args["input"].(profile.OrganizationPractitioner))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9504,7 +9504,7 @@ func (ec *executionContext) _Mutation_addOrganizationProviderKYC(ctx context.Con
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddOrganizationProviderKyc(rctx, args["input"].(profile.OrganizationProviderInput))
+		return ec.resolvers.Mutation().AddOrganizationProviderKyc(rctx, args["input"].(profile.OrganizationProvider))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9546,7 +9546,7 @@ func (ec *executionContext) _Mutation_addIndividualPharmaceuticalKYC(ctx context
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddIndividualPharmaceuticalKyc(rctx, args["input"].(profile.IndividualPharmaceuticalInput))
+		return ec.resolvers.Mutation().AddIndividualPharmaceuticalKyc(rctx, args["input"].(profile.IndividualPharmaceutical))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9588,7 +9588,7 @@ func (ec *executionContext) _Mutation_addOrganizationPharmaceuticalKYC(ctx conte
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddOrganizationPharmaceuticalKyc(rctx, args["input"].(profile.OrganizationPharmaceuticalInput))
+		return ec.resolvers.Mutation().AddOrganizationPharmaceuticalKyc(rctx, args["input"].(profile.OrganizationPharmaceutical))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9630,7 +9630,7 @@ func (ec *executionContext) _Mutation_addIndividualCoachKYC(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddIndividualCoachKyc(rctx, args["input"].(profile.IndividualCoachInput))
+		return ec.resolvers.Mutation().AddIndividualCoachKyc(rctx, args["input"].(profile.IndividualCoach))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9672,7 +9672,7 @@ func (ec *executionContext) _Mutation_addOrganizationCoachKYC(ctx context.Contex
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddOrganizationCoachKyc(rctx, args["input"].(profile.OrganizationCoachInput))
+		return ec.resolvers.Mutation().AddOrganizationCoachKyc(rctx, args["input"].(profile.OrganizationCoach))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9714,7 +9714,7 @@ func (ec *executionContext) _Mutation_addIndividualNutritionKYC(ctx context.Cont
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddIndividualNutritionKyc(rctx, args["input"].(profile.IndividualNutritionInput))
+		return ec.resolvers.Mutation().AddIndividualNutritionKyc(rctx, args["input"].(profile.IndividualNutrition))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9756,7 +9756,7 @@ func (ec *executionContext) _Mutation_addOrganizationNutritionKYC(ctx context.Co
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddOrganizationNutritionKyc(rctx, args["input"].(profile.OrganizationNutritionInput))
+		return ec.resolvers.Mutation().AddOrganizationNutritionKyc(rctx, args["input"].(profile.OrganizationNutrition))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16935,8 +16935,8 @@ func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj i
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputIdentificationInput(ctx context.Context, obj interface{}) (profile.IdentificationInput, error) {
-	var it profile.IdentificationInput
+func (ec *executionContext) unmarshalInputIdentificationInput(ctx context.Context, obj interface{}) (profile.Identification, error) {
+	var it profile.Identification
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -16971,8 +16971,8 @@ func (ec *executionContext) unmarshalInputIdentificationInput(ctx context.Contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputIndividualCoachInput(ctx context.Context, obj interface{}) (profile.IndividualCoachInput, error) {
-	var it profile.IndividualCoachInput
+func (ec *executionContext) unmarshalInputIndividualCoachInput(ctx context.Context, obj interface{}) (profile.IndividualCoach, error) {
+	var it profile.IndividualCoach
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -16981,7 +16981,7 @@ func (ec *executionContext) unmarshalInputIndividualCoachInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
-			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17031,8 +17031,8 @@ func (ec *executionContext) unmarshalInputIndividualCoachInput(ctx context.Conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputIndividualNutritionInput(ctx context.Context, obj interface{}) (profile.IndividualNutritionInput, error) {
-	var it profile.IndividualNutritionInput
+func (ec *executionContext) unmarshalInputIndividualNutritionInput(ctx context.Context, obj interface{}) (profile.IndividualNutrition, error) {
+	var it profile.IndividualNutrition
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17041,7 +17041,7 @@ func (ec *executionContext) unmarshalInputIndividualNutritionInput(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
-			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17091,8 +17091,8 @@ func (ec *executionContext) unmarshalInputIndividualNutritionInput(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputIndividualPharmaceuticalInput(ctx context.Context, obj interface{}) (profile.IndividualPharmaceuticalInput, error) {
-	var it profile.IndividualPharmaceuticalInput
+func (ec *executionContext) unmarshalInputIndividualPharmaceuticalInput(ctx context.Context, obj interface{}) (profile.IndividualPharmaceutical, error) {
+	var it profile.IndividualPharmaceutical
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17101,7 +17101,7 @@ func (ec *executionContext) unmarshalInputIndividualPharmaceuticalInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
-			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17159,8 +17159,8 @@ func (ec *executionContext) unmarshalInputIndividualPharmaceuticalInput(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputIndividualPractitionerInput(ctx context.Context, obj interface{}) (profile.IndividualPractitionerInput, error) {
-	var it profile.IndividualPractitionerInput
+func (ec *executionContext) unmarshalInputIndividualPractitionerInput(ctx context.Context, obj interface{}) (profile.IndividualPractitioner, error) {
+	var it profile.IndividualPractitioner
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17169,7 +17169,7 @@ func (ec *executionContext) unmarshalInputIndividualPractitionerInput(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
-			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17243,8 +17243,8 @@ func (ec *executionContext) unmarshalInputIndividualPractitionerInput(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Context, obj interface{}) (profile.IndividualRiderInput, error) {
-	var it profile.IndividualRiderInput
+func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Context, obj interface{}) (profile.IndividualRider, error) {
+	var it profile.IndividualRider
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17253,7 +17253,7 @@ func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
-			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17339,8 +17339,8 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputOrganizationCoachInput(ctx context.Context, obj interface{}) (profile.OrganizationCoachInput, error) {
-	var it profile.OrganizationCoachInput
+func (ec *executionContext) unmarshalInputOrganizationCoachInput(ctx context.Context, obj interface{}) (profile.OrganizationCoach, error) {
+	var it profile.OrganizationCoach
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17397,7 +17397,7 @@ func (ec *executionContext) unmarshalInputOrganizationCoachInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17439,8 +17439,8 @@ func (ec *executionContext) unmarshalInputOrganizationCoachInput(ctx context.Con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputOrganizationNutritionInput(ctx context.Context, obj interface{}) (profile.OrganizationNutritionInput, error) {
-	var it profile.OrganizationNutritionInput
+func (ec *executionContext) unmarshalInputOrganizationNutritionInput(ctx context.Context, obj interface{}) (profile.OrganizationNutrition, error) {
+	var it profile.OrganizationNutrition
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17497,7 +17497,7 @@ func (ec *executionContext) unmarshalInputOrganizationNutritionInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17539,8 +17539,8 @@ func (ec *executionContext) unmarshalInputOrganizationNutritionInput(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputOrganizationPharmaceuticalInput(ctx context.Context, obj interface{}) (profile.OrganizationPharmaceuticalInput, error) {
-	var it profile.OrganizationPharmaceuticalInput
+func (ec *executionContext) unmarshalInputOrganizationPharmaceuticalInput(ctx context.Context, obj interface{}) (profile.OrganizationPharmaceutical, error) {
+	var it profile.OrganizationPharmaceutical
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17597,7 +17597,7 @@ func (ec *executionContext) unmarshalInputOrganizationPharmaceuticalInput(ctx co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17639,8 +17639,8 @@ func (ec *executionContext) unmarshalInputOrganizationPharmaceuticalInput(ctx co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputOrganizationPractitionerInput(ctx context.Context, obj interface{}) (profile.OrganizationPractitionerInput, error) {
-	var it profile.OrganizationPractitionerInput
+func (ec *executionContext) unmarshalInputOrganizationPractitionerInput(ctx context.Context, obj interface{}) (profile.OrganizationPractitioner, error) {
+	var it profile.OrganizationPractitioner
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17697,123 +17697,7 @@ func (ec *executionContext) unmarshalInputOrganizationPractitionerInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "organizationCertificate":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationCertificate"))
-			it.OrganizationCertificate, err = ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "registrationNumber":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("registrationNumber"))
-			it.RegistrationNumber, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "practiceLicenseID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseID"))
-			it.PracticeLicenseID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "practiceLicenseUploadID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseUploadID"))
-			it.PracticeLicenseUploadID, err = ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "practiceServices":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceServices"))
-			it.PracticeServices, err = ec.unmarshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerServiceᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "cadre":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cadre"))
-			it.Cadre, err = ec.unmarshalNPractitionerCadre2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerCadre(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputOrganizationProviderInput(ctx context.Context, obj interface{}) (profile.OrganizationProviderInput, error) {
-	var it profile.OrganizationProviderInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "organizationTypeName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
-			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "KRAPIN":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPIN"))
-			it.KRAPIN, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "KRAPINUploadID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPINUploadID"))
-			it.KRAPINUploadID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "supportingDocumentsUploadID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocumentsUploadID"))
-			it.SupportingDocumentsUploadID, err = ec.unmarshalOString2ᚕstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "certificateOfIncorporation":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfIncorporation"))
-			it.CertificateOfIncorporation, err = ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "certificateOfInCorporationUploadID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfInCorporationUploadID"))
-			it.CertificateOfInCorporationUploadID, err = ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "directorIdentifications":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17871,8 +17755,8 @@ func (ec *executionContext) unmarshalInputOrganizationProviderInput(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputOrganizationRiderInput(ctx context.Context, obj interface{}) (profile.OrganizationRiderInput, error) {
-	var it profile.OrganizationRiderInput
+func (ec *executionContext) unmarshalInputOrganizationProviderInput(ctx context.Context, obj interface{}) (profile.OrganizationProvider, error) {
+	var it profile.OrganizationProvider
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17929,7 +17813,123 @@ func (ec *executionContext) unmarshalInputOrganizationRiderInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, v)
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "organizationCertificate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationCertificate"))
+			it.OrganizationCertificate, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "registrationNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("registrationNumber"))
+			it.RegistrationNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "practiceLicenseID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseID"))
+			it.PracticeLicenseID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "practiceLicenseUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceLicenseUploadID"))
+			it.PracticeLicenseUploadID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "practiceServices":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceServices"))
+			it.PracticeServices, err = ec.unmarshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerServiceᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "cadre":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cadre"))
+			it.Cadre, err = ec.unmarshalNPractitionerCadre2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerCadre(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputOrganizationRiderInput(ctx context.Context, obj interface{}) (profile.OrganizationRider, error) {
+	var it profile.OrganizationRider
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "organizationTypeName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
+			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPIN":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPIN"))
+			it.KRAPIN, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "KRAPINUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("KRAPINUploadID"))
+			it.KRAPINUploadID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "supportingDocumentsUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocumentsUploadID"))
+			it.SupportingDocumentsUploadID, err = ec.unmarshalOString2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "certificateOfIncorporation":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfIncorporation"))
+			it.CertificateOfIncorporation, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "certificateOfInCorporationUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfInCorporationUploadID"))
+			it.CertificateOfInCorporationUploadID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "directorIdentifications":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -21243,7 +21243,7 @@ func (ec *executionContext) marshalNIdentificationDocType2gitlabᚗslade360emr�
 	return v
 }
 
-func (ec *executionContext) unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx context.Context, v interface{}) (profile.IdentificationInput, error) {
+func (ec *executionContext) unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx context.Context, v interface{}) (profile.Identification, error) {
 	res, err := ec.unmarshalInputIdentificationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21262,7 +21262,7 @@ func (ec *executionContext) marshalNIndividualCoach2ᚖgitlabᚗslade360emrᚗco
 	return ec._IndividualCoach(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNIndividualCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualCoachInput(ctx context.Context, v interface{}) (profile.IndividualCoachInput, error) {
+func (ec *executionContext) unmarshalNIndividualCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualCoach(ctx context.Context, v interface{}) (profile.IndividualCoach, error) {
 	res, err := ec.unmarshalInputIndividualCoachInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21281,7 +21281,7 @@ func (ec *executionContext) marshalNIndividualNutrition2ᚖgitlabᚗslade360emr�
 	return ec._IndividualNutrition(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNIndividualNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualNutritionInput(ctx context.Context, v interface{}) (profile.IndividualNutritionInput, error) {
+func (ec *executionContext) unmarshalNIndividualNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualNutrition(ctx context.Context, v interface{}) (profile.IndividualNutrition, error) {
 	res, err := ec.unmarshalInputIndividualNutritionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21300,7 +21300,7 @@ func (ec *executionContext) marshalNIndividualPharmaceutical2ᚖgitlabᚗslade36
 	return ec._IndividualPharmaceutical(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNIndividualPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPharmaceuticalInput(ctx context.Context, v interface{}) (profile.IndividualPharmaceuticalInput, error) {
+func (ec *executionContext) unmarshalNIndividualPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPharmaceutical(ctx context.Context, v interface{}) (profile.IndividualPharmaceutical, error) {
 	res, err := ec.unmarshalInputIndividualPharmaceuticalInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21319,7 +21319,7 @@ func (ec *executionContext) marshalNIndividualPractitioner2ᚖgitlabᚗslade360e
 	return ec._IndividualPractitioner(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNIndividualPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPractitionerInput(ctx context.Context, v interface{}) (profile.IndividualPractitionerInput, error) {
+func (ec *executionContext) unmarshalNIndividualPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualPractitioner(ctx context.Context, v interface{}) (profile.IndividualPractitioner, error) {
 	res, err := ec.unmarshalInputIndividualPractitionerInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21338,7 +21338,7 @@ func (ec *executionContext) marshalNIndividualRider2ᚖgitlabᚗslade360emrᚗco
 	return ec._IndividualRider(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNIndividualRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRiderInput(ctx context.Context, v interface{}) (profile.IndividualRiderInput, error) {
+func (ec *executionContext) unmarshalNIndividualRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIndividualRider(ctx context.Context, v interface{}) (profile.IndividualRider, error) {
 	res, err := ec.unmarshalInputIndividualRiderInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21471,7 +21471,7 @@ func (ec *executionContext) marshalNOrganizationCoach2ᚖgitlabᚗslade360emrᚗ
 	return ec._OrganizationCoach(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationCoachInput(ctx context.Context, v interface{}) (profile.OrganizationCoachInput, error) {
+func (ec *executionContext) unmarshalNOrganizationCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationCoach(ctx context.Context, v interface{}) (profile.OrganizationCoach, error) {
 	res, err := ec.unmarshalInputOrganizationCoachInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21490,7 +21490,7 @@ func (ec *executionContext) marshalNOrganizationNutrition2ᚖgitlabᚗslade360em
 	return ec._OrganizationNutrition(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationNutritionInput(ctx context.Context, v interface{}) (profile.OrganizationNutritionInput, error) {
+func (ec *executionContext) unmarshalNOrganizationNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationNutrition(ctx context.Context, v interface{}) (profile.OrganizationNutrition, error) {
 	res, err := ec.unmarshalInputOrganizationNutritionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21509,7 +21509,7 @@ func (ec *executionContext) marshalNOrganizationPharmaceutical2ᚖgitlabᚗslade
 	return ec._OrganizationPharmaceutical(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPharmaceuticalInput(ctx context.Context, v interface{}) (profile.OrganizationPharmaceuticalInput, error) {
+func (ec *executionContext) unmarshalNOrganizationPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPharmaceutical(ctx context.Context, v interface{}) (profile.OrganizationPharmaceutical, error) {
 	res, err := ec.unmarshalInputOrganizationPharmaceuticalInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21528,7 +21528,7 @@ func (ec *executionContext) marshalNOrganizationPractitioner2ᚖgitlabᚗslade36
 	return ec._OrganizationPractitioner(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPractitionerInput(ctx context.Context, v interface{}) (profile.OrganizationPractitionerInput, error) {
+func (ec *executionContext) unmarshalNOrganizationPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationPractitioner(ctx context.Context, v interface{}) (profile.OrganizationPractitioner, error) {
 	res, err := ec.unmarshalInputOrganizationPractitionerInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21547,7 +21547,7 @@ func (ec *executionContext) marshalNOrganizationProvider2ᚖgitlabᚗslade360emr
 	return ec._OrganizationProvider(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationProviderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationProviderInput(ctx context.Context, v interface{}) (profile.OrganizationProviderInput, error) {
+func (ec *executionContext) unmarshalNOrganizationProviderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationProvider(ctx context.Context, v interface{}) (profile.OrganizationProvider, error) {
 	res, err := ec.unmarshalInputOrganizationProviderInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21566,7 +21566,7 @@ func (ec *executionContext) marshalNOrganizationRider2ᚖgitlabᚗslade360emrᚗ
 	return ec._OrganizationRider(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationRiderInput(ctx context.Context, v interface{}) (profile.OrganizationRiderInput, error) {
+func (ec *executionContext) unmarshalNOrganizationRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOrganizationRider(ctx context.Context, v interface{}) (profile.OrganizationRider, error) {
 	res, err := ec.unmarshalInputOrganizationRiderInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -22615,12 +22615,12 @@ func (ec *executionContext) marshalOIdentification2ᚕgitlabᚗslade360emrᚗcom
 	return ret
 }
 
-func (ec *executionContext) unmarshalOIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx context.Context, v interface{}) (profile.IdentificationInput, error) {
+func (ec *executionContext) unmarshalOIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx context.Context, v interface{}) (profile.Identification, error) {
 	res, err := ec.unmarshalInputIdentificationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx context.Context, v interface{}) ([]profile.IdentificationInput, error) {
+func (ec *executionContext) unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx context.Context, v interface{}) ([]profile.Identification, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -22633,10 +22633,10 @@ func (ec *executionContext) unmarshalOIdentificationInput2ᚕgitlabᚗslade360em
 		}
 	}
 	var err error
-	res := make([]profile.IdentificationInput, len(vSlice))
+	res := make([]profile.Identification, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentificationInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐIdentification(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}

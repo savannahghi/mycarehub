@@ -537,7 +537,7 @@ type LocationInput struct {
 	BranchSladeCode *string `json:"branchSladeCode"`
 }
 
-// KYCRequest the payload staged and retrieved later for admins to process
+// KYCRequest the to payload stage kyc processing request
 type KYCRequest struct {
 	ID                  string                 `json:"id" firestore:"id"`
 	ReqPartnerType      PartnerType            `json:"reqPartnerType" firestore:"reqPartnerType"`

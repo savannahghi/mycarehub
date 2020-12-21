@@ -607,45 +607,45 @@ func (s *Service) PublishKYCNudge(uid string, partner *PartnerType, account *Acc
 		return fmt.Errorf("provided `account` is not valid")
 	}
 
-	payload := map[string]interface{}{
-		"id":             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
-		"sequenceNumber": int(time.Now().Unix()) + 20,               // add 20 to make it unique
-		"visibility":     "SHOW",
-		"status":         "PENDING",
-		"expiry":         time.Now().Add(time.Hour * futureHours),
-		"title":          fmt.Sprintf("Complete your %v KYC", strings.ToLower(partner.String())),
-		"text":           "Fill in your Be.Well business KYC in order to start transacting",
-		"links": []map[string]interface{}{
+	payload := base.Nudge{
+		ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
+		SequenceNumber: int(time.Now().Unix()) + 20,               // add 20 to make it unique
+		Visibility:     "SHOW",
+		Status:         "PENDING",
+		Expiry:         time.Now().Add(time.Hour * futureHours),
+		Title:          fmt.Sprintf("Complete your %v KYC", strings.ToLower(partner.String())),
+		Text:           "Fill in your Be.Well business KYC in order to start transacting",
+		Links: []base.Link{
 			{
-				"id":          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique
-				"url":         "https://assets.healthcloud.co.ke/bewell_logo.png",
-				"linkType":    "PNG_IMAGE",
-				"title":       "KYC",
-				"description": fmt.Sprintf("KYC for %v", partner.String()),
-				"thumbnail":   "https://assets.healthcloud.co.ke/bewell_logo.png",
+				ID:          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique,
+				URL:         base.LogoURL,
+				LinkType:    base.LinkTypePngImage,
+				Title:       "KYC",
+				Description: fmt.Sprintf("KYC for %v", partner.String()),
+				Thumbnail:   base.LogoURL,
 			},
 		},
-		"actions": []map[string]interface{}{
+		Actions: []base.Action{
 			{
-				"id":             strconv.Itoa(int(time.Now().Unix()) + 40), // add 40 to make it unique
-				"sequenceNumber": int(time.Now().Unix()) + 50,               // add 50 to make it unique
-				"name":           strings.ToUpper(fmt.Sprintf("COMPLETE_%v_%v_KYC", account.String(), partner.String())),
-				"actionType":     "PRIMARY",
-				"handling":       "FULL_PAGE",
-				"allowAnonymous": false,
-				"icon": map[string]interface{}{
-					"id":          strconv.Itoa(int(time.Now().Unix()) + 60), // add 60 to make it unique
-					"url":         "https://assets.healthcloud.co.ke/1px.png",
-					"linkType":    "PNG_IMAGE",
-					"title":       fmt.Sprintf("Complete your %v KYC", strings.ToLower(partner.String())),
-					"description": "Fill in your Be.Well business KYC in order to start transacting",
-					"thumbnail":   "https://assets.healthcloud.co.ke/1px.png",
+				ID:             strconv.Itoa(int(time.Now().Unix()) + 40), // add 40 to make it unique
+				SequenceNumber: int(time.Now().Unix()) + 50,               // add 50 to make it unique
+				Name:           strings.ToUpper(fmt.Sprintf("COMPLETE_%v_%v_KYC", account.String(), partner.String())),
+				ActionType:     base.ActionTypePrimary,
+				Handling:       base.HandlingFullPage,
+				AllowAnonymous: false,
+				Icon: base.Link{
+					ID:          strconv.Itoa(int(time.Now().Unix()) + 60), // add 60 to make it unique
+					URL:         base.LogoURL,
+					LinkType:    base.LinkTypePngImage,
+					Title:       fmt.Sprintf("Complete your %v KYC", strings.ToLower(partner.String())),
+					Description: "Fill in your Be.Well business KYC in order to start transacting",
+					Thumbnail:   base.LogoURL,
 				},
 			},
 		},
-		"users":                []string{uid},
-		"groups":               []string{uid},
-		"notificationChannels": []string{"EMAIL", "FCM"},
+		Users:                []string{uid},
+		Groups:               []string{uid},
+		NotificationChannels: []base.Channel{base.ChannelEmail, base.ChannelFcm},
 	}
 
 	resp, err := s.engagement.MakeRequest("POST", fmt.Sprintf(publishNudge, uid), payload)
@@ -659,7 +659,26 @@ func (s *Service) PublishKYCNudge(uid string, partner *PartnerType, account *Acc
 
 	if resp.StatusCode != http.StatusOK {
 		// stage the nudge
-		if err := s.SaveProfileNudge(payload); err != nil {
+		stage := func(pl base.Nudge) error {
+			k, err := json.Marshal(payload)
+			if err != nil {
+				return fmt.Errorf("cannot marshal payload to json")
+			}
+
+			var kMap map[string]interface{}
+			err = json.Unmarshal(k, &kMap)
+			if err != nil {
+				return fmt.Errorf("cannot unmarshal payload from json")
+			}
+
+			if err := s.SaveProfileNudge(kMap); err != nil {
+				logrus.Errorf("failed to stage nudge : %v", err)
+			}
+			return nil
+
+		}(payload)
+
+		if err := stage; err != nil {
 			logrus.Errorf("failed to stage nudge : %v", err)
 		}
 		return fmt.Errorf("unable to publish kyc nudge. unexpected status code  %v", resp.StatusCode)
@@ -688,7 +707,7 @@ func (s *Service) StageKYCProcessingRequest(sup *Supplier) error {
 }
 
 // AddIndividualRiderKyc adds KYC for an individual rider
-func (s *Service) AddIndividualRiderKyc(ctx context.Context, input IndividualRiderInput) (*IndividualRider, error) {
+func (s *Service) AddIndividualRiderKyc(ctx context.Context, input IndividualRider) (*IndividualRider, error) {
 
 	s.checkPreconditions()
 
@@ -757,7 +776,7 @@ func (s *Service) AddIndividualRiderKyc(ctx context.Context, input IndividualRid
 }
 
 // AddOrganizationRiderKyc adds KYC for an organization rider
-func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input OrganizationRiderInput) (*OrganizationRider, error) {
+func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input OrganizationRider) (*OrganizationRider, error) {
 
 	s.checkPreconditions()
 
@@ -789,7 +808,7 @@ func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input Organizatio
 		OrganizationTypeName:               input.OrganizationTypeName,
 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []IdentificationInput) []Identification {
+		DirectorIdentifications: func(p []Identification) []Identification {
 			pl := []Identification{}
 			for _, i := range p {
 				pl = append(pl, Identification(i))
@@ -836,7 +855,7 @@ func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input Organizatio
 }
 
 // AddIndividualPractitionerKyc adds KYC for an individual pratitioner
-func (s *Service) AddIndividualPractitionerKyc(ctx context.Context, input IndividualPractitionerInput) (*IndividualPractitioner, error) {
+func (s *Service) AddIndividualPractitionerKyc(ctx context.Context, input IndividualPractitioner) (*IndividualPractitioner, error) {
 	s.checkPreconditions()
 
 	for _, p := range input.PracticeServices {
@@ -867,7 +886,7 @@ func (s *Service) AddIndividualPractitionerKyc(ctx context.Context, input Indivi
 
 	kyc := IndividualPractitioner{
 
-		IdentificationDoc: func(p IdentificationInput) Identification {
+		IdentificationDoc: func(p Identification) Identification {
 			return Identification(p)
 		}(input.IdentificationDoc),
 
@@ -914,7 +933,7 @@ func (s *Service) AddIndividualPractitionerKyc(ctx context.Context, input Indivi
 }
 
 // AddOrganizationPractitionerKyc adds KYC for an organization pratitioner
-func (s *Service) AddOrganizationPractitionerKyc(ctx context.Context, input OrganizationPractitionerInput) (*OrganizationPractitioner, error) {
+func (s *Service) AddOrganizationPractitionerKyc(ctx context.Context, input OrganizationPractitioner) (*OrganizationPractitioner, error) {
 
 	s.checkPreconditions()
 
@@ -960,7 +979,7 @@ func (s *Service) AddOrganizationPractitionerKyc(ctx context.Context, input Orga
 		Cadre:                              input.Cadre,
 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []IdentificationInput) []Identification {
+		DirectorIdentifications: func(p []Identification) []Identification {
 			pl := []Identification{}
 			for _, i := range p {
 				pl = append(pl, Identification(i))
@@ -1003,7 +1022,7 @@ func (s *Service) AddOrganizationPractitionerKyc(ctx context.Context, input Orga
 }
 
 // AddOrganizationProviderKyc adds KYC for an organization provider
-func (s *Service) AddOrganizationProviderKyc(ctx context.Context, input OrganizationProviderInput) (*OrganizationProvider, error) {
+func (s *Service) AddOrganizationProviderKyc(ctx context.Context, input OrganizationProvider) (*OrganizationProvider, error) {
 
 	s.checkPreconditions()
 
@@ -1049,7 +1068,7 @@ func (s *Service) AddOrganizationProviderKyc(ctx context.Context, input Organiza
 		Cadre:                              input.Cadre,
 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []IdentificationInput) []Identification {
+		DirectorIdentifications: func(p []Identification) []Identification {
 			pl := []Identification{}
 			for _, i := range p {
 				pl = append(pl, Identification(i))
@@ -1092,7 +1111,7 @@ func (s *Service) AddOrganizationProviderKyc(ctx context.Context, input Organiza
 }
 
 // AddIndividualPharmaceuticalKyc adds KYC for an individual Pharmaceutical kyc
-func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input IndividualPharmaceuticalInput) (*IndividualPharmaceutical, error) {
+func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input IndividualPharmaceutical) (*IndividualPharmaceutical, error) {
 
 	s.checkPreconditions()
 
@@ -1117,7 +1136,7 @@ func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input Indi
 	}
 
 	kyc := IndividualPharmaceutical{
-		IdentificationDoc: func(p IdentificationInput) Identification {
+		IdentificationDoc: func(p Identification) Identification {
 			return Identification(p)
 		}(input.IdentificationDoc),
 		KRAPIN:                      input.KRAPIN,
@@ -1161,7 +1180,7 @@ func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input Indi
 }
 
 // AddOrganizationPharmaceuticalKyc adds KYC for a pharmacy organization
-func (s *Service) AddOrganizationPharmaceuticalKyc(ctx context.Context, input OrganizationPharmaceuticalInput) (*OrganizationPharmaceutical, error) {
+func (s *Service) AddOrganizationPharmaceuticalKyc(ctx context.Context, input OrganizationPharmaceutical) (*OrganizationPharmaceutical, error) {
 	s.checkPreconditions()
 
 	if !input.OrganizationTypeName.IsValid() {
@@ -1195,7 +1214,7 @@ func (s *Service) AddOrganizationPharmaceuticalKyc(ctx context.Context, input Or
 		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []IdentificationInput) []Identification {
+		DirectorIdentifications: func(p []Identification) []Identification {
 			pl := []Identification{}
 			for _, i := range p {
 				pl = append(pl, Identification(i))
@@ -1240,7 +1259,7 @@ func (s *Service) AddOrganizationPharmaceuticalKyc(ctx context.Context, input Or
 }
 
 // AddIndividualCoachKyc adds KYC for an individual coach
-func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoachInput) (*IndividualCoach, error) {
+func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoach) (*IndividualCoach, error) {
 	s.checkPreconditions()
 
 	uid, err := base.GetLoggedInUserUID(ctx)
@@ -1264,7 +1283,7 @@ func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoa
 	}
 
 	kyc := IndividualCoach{
-		IdentificationDoc: func(p IdentificationInput) Identification {
+		IdentificationDoc: func(p Identification) Identification {
 			return Identification(p)
 		}(input.IdentificationDoc),
 		KRAPIN:                      input.KRAPIN,
@@ -1307,7 +1326,7 @@ func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoa
 }
 
 // AddOrganizationCoachKyc adds KYC for an organization coach
-func (s *Service) AddOrganizationCoachKyc(ctx context.Context, input OrganizationCoachInput) (*OrganizationCoach, error) {
+func (s *Service) AddOrganizationCoachKyc(ctx context.Context, input OrganizationCoach) (*OrganizationCoach, error) {
 	s.checkPreconditions()
 
 	if !input.OrganizationTypeName.IsValid() {
@@ -1341,7 +1360,7 @@ func (s *Service) AddOrganizationCoachKyc(ctx context.Context, input Organizatio
 		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []IdentificationInput) []Identification {
+		DirectorIdentifications: func(p []Identification) []Identification {
 			pl := []Identification{}
 			for _, i := range p {
 				pl = append(pl, Identification(i))
@@ -1386,7 +1405,7 @@ func (s *Service) AddOrganizationCoachKyc(ctx context.Context, input Organizatio
 }
 
 // AddIndividualNutritionKyc adds KYC for an individual nutritionist
-func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input IndividualNutritionInput) (*IndividualNutrition, error) {
+func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input IndividualNutrition) (*IndividualNutrition, error) {
 	s.checkPreconditions()
 
 	uid, err := base.GetLoggedInUserUID(ctx)
@@ -1410,7 +1429,7 @@ func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input Individua
 	}
 
 	kyc := IndividualNutrition{
-		IdentificationDoc: func(p IdentificationInput) Identification {
+		IdentificationDoc: func(p Identification) Identification {
 			return Identification(p)
 		}(input.IdentificationDoc),
 		KRAPIN:                      input.KRAPIN,
@@ -1453,7 +1472,7 @@ func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input Individua
 }
 
 // AddOrganizationNutritionKyc adds kyc for a nutritionist organisation
-func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input OrganizationNutritionInput) (*OrganizationNutrition, error) {
+func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input OrganizationNutrition) (*OrganizationNutrition, error) {
 	s.checkPreconditions()
 
 	if !input.OrganizationTypeName.IsValid() {
@@ -1487,7 +1506,7 @@ func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input Organiz
 		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []IdentificationInput) []Identification {
+		DirectorIdentifications: func(p []Identification) []Identification {
 			pl := []Identification{}
 			for _, i := range p {
 				pl = append(pl, Identification(i))
