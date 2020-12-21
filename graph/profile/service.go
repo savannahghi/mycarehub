@@ -1278,19 +1278,27 @@ func (s Service) VerifyEmailOtp(ctx context.Context, email string, otp string) (
 		return false, fmt.Errorf("can't fetch user profile: %v", err)
 	}
 
-	verifyEmail := base.VerifiedEmail{
-		Email:    email,
-		Verified: true,
-	}
 	verifiedEmails := userProfile.VerifiedEmails
-	verifiedEmails = append(verifiedEmails, verifyEmail)
-	userProfile.VerifiedEmails = verifiedEmails
 
-	err = base.UpdateRecordOnFirestore(
-		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
-	)
-	if err != nil {
-		return false, fmt.Errorf("unable to update user profile: %v", err)
+	var foundVerifiedEmails []string
+	for _, verifiedEmail := range verifiedEmails {
+		foundVerifiedEmails = append(foundVerifiedEmails, verifiedEmail.Email)
+	}
+
+	if !base.StringSliceContains(foundVerifiedEmails, email) {
+		verifyEmail := base.VerifiedEmail{
+			Email:    email,
+			Verified: true,
+		}
+		verifiedEmails = append(verifiedEmails, verifyEmail)
+		userProfile.VerifiedEmails = verifiedEmails
+
+		err = base.UpdateRecordOnFirestore(
+			s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
+		)
+		if err != nil {
+			return false, fmt.Errorf("unable to update user profile: %v", err)
+		}
 	}
 
 	return true, nil
