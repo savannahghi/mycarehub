@@ -6738,7 +6738,7 @@ func TestAddIndividualRiderKYCMutation(t *testing.T) {
 	  }
 		  KRAPIN
 		  KRAPINUploadID
-		  drivingLicenseUploadID
+		  drivingLicenseID
 		  certificateGoodConductUploadID
 		}
 	}
@@ -6768,7 +6768,7 @@ func TestAddIndividualRiderKYCMutation(t *testing.T) {
 							},
 							"KRAPIN":                         "12345678",
 							"KRAPINUploadID":                 "12345678",
-							"drivingLicenseUploadID":         "12345678",
+							"drivingLicenseID":               "12345678",
 							"certificateGoodConductUploadID": "123456",
 						},
 					},
@@ -6791,7 +6791,7 @@ func TestAddIndividualRiderKYCMutation(t *testing.T) {
 							},
 							"KRAPIN":                         12345678,
 							"KRAPINUploadID":                 12345678,
-							"drivingLicenseUploadID":         12345678,
+							"drivingLicenseID":               12345678,
 							"certificateGoodConductUploadID": "123456",
 						},
 					},

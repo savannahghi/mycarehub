@@ -111,7 +111,8 @@ input IndividualRiderInput {
   supportingDocumentsUploadID: [String]
 
   # unique to riders
-  drivingLicenseUploadID: String!
+  drivingLicenseID: String!
+  drivingLicenseUploadID: String
   certificateGoodConductUploadID: String!
 }
 
@@ -202,8 +203,8 @@ input OrganizationPractitionerInput {
   supportingDocumentsUploadID: [String]
 
   # common for organization : limited company
-  certificateOfIncorporation: String
-  certificateOfInCorporationUploadID: String
+  certificateOfIncorporation: String!
+  certificateOfInCorporationUploadID: String!
   directorIdentifications: [IdentificationInput]
 
   # common for organization : others

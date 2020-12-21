@@ -165,6 +165,7 @@ type ComplexityRoot struct {
 
 	IndividualRider struct {
 		CertificateGoodConductUploadID func(childComplexity int) int
+		DrivingLicenseID               func(childComplexity int) int
 		DrivingLicenseUploadID         func(childComplexity int) int
 		IdentificationDoc              func(childComplexity int) int
 		KRAPIN                         func(childComplexity int) int
@@ -443,12 +444,14 @@ type ComplexityRoot struct {
 		HasPin                             func(childComplexity int) int
 		HasSupplierAccount                 func(childComplexity int) int
 		ID                                 func(childComplexity int) int
+		IsAdmin                            func(childComplexity int) int
 		IsApproved                         func(childComplexity int) int
 		IsTester                           func(childComplexity int) int
 		Language                           func(childComplexity int) int
 		Msisdns                            func(childComplexity int) int
 		Name                               func(childComplexity int) int
 		PatientID                          func(childComplexity int) int
+		Permissions                        func(childComplexity int) int
 		PhotoBase64                        func(childComplexity int) int
 		PhotoContentType                   func(childComplexity int) int
 		PractitionerApproved               func(childComplexity int) int
@@ -1048,6 +1051,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.IndividualRider.CertificateGoodConductUploadID(childComplexity), true
+
+	case "IndividualRider.drivingLicenseID":
+		if e.complexity.IndividualRider.DrivingLicenseID == nil {
+			break
+		}
+
+		return e.complexity.IndividualRider.DrivingLicenseID(childComplexity), true
 
 	case "IndividualRider.drivingLicenseUploadID":
 		if e.complexity.IndividualRider.DrivingLicenseUploadID == nil {
@@ -2752,6 +2762,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.ID(childComplexity), true
 
+	case "UserProfile.isAdmin":
+		if e.complexity.UserProfile.IsAdmin == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.IsAdmin(childComplexity), true
+
 	case "UserProfile.isApproved":
 		if e.complexity.UserProfile.IsApproved == nil {
 			break
@@ -2793,6 +2810,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserProfile.PatientID(childComplexity), true
+
+	case "UserProfile.permissions":
+		if e.complexity.UserProfile.Permissions == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.Permissions(childComplexity), true
 
 	case "UserProfile.photoBase64":
 		if e.complexity.UserProfile.PhotoBase64 == nil {
@@ -3266,7 +3290,8 @@ input IndividualRiderInput {
   supportingDocumentsUploadID: [String]
 
   # unique to riders
-  drivingLicenseUploadID: String!
+  drivingLicenseID: String!
+  drivingLicenseUploadID: String
   certificateGoodConductUploadID: String!
 }
 
@@ -3643,6 +3668,10 @@ type UserProfile @key(fields: "id") {
   isTester: Boolean!
   active: Boolean!
 
+  # for admins
+  isAdmin: Boolean!
+  permissions: [String]
+
   # optional fields
   dateOfBirth: Date
   gender: Gender
@@ -3802,7 +3831,8 @@ type IndividualRider {
   KRAPIN: String!
   KRAPINUploadID: String!
 
-  drivingLicenseUploadID: String!
+  drivingLicenseID: String!
+  drivingLicenseUploadID: String
   certificateGoodConductUploadID: String!
   supportingDocumentsUploadID: [String]
 }
@@ -7442,6 +7472,41 @@ func (ec *executionContext) _IndividualRider_KRAPINUploadID(ctx context.Context,
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _IndividualRider_drivingLicenseID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualRider",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DrivingLicenseID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _IndividualRider_drivingLicenseUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7467,14 +7532,11 @@ func (ec *executionContext) _IndividualRider_drivingLicenseUploadID(ctx context.
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualRider_certificateGoodConductUploadID(ctx context.Context, field graphql.CollectedField, obj *profile.IndividualRider) (ret graphql.Marshaler) {
@@ -14906,6 +14968,73 @@ func (ec *executionContext) _UserProfile_active(ctx context.Context, field graph
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserProfile_isAdmin(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsAdmin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_permissions(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Permissions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserProfile_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17411,11 +17540,19 @@ func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "drivingLicenseID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("drivingLicenseID"))
+			it.DrivingLicenseID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "drivingLicenseUploadID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("drivingLicenseUploadID"))
-			it.DrivingLicenseUploadID, err = ec.unmarshalNString2string(ctx, v)
+			it.DrivingLicenseUploadID, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19161,11 +19298,13 @@ func (ec *executionContext) _IndividualRider(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "drivingLicenseUploadID":
-			out.Values[i] = ec._IndividualRider_drivingLicenseUploadID(ctx, field, obj)
+		case "drivingLicenseID":
+			out.Values[i] = ec._IndividualRider_drivingLicenseID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "drivingLicenseUploadID":
+			out.Values[i] = ec._IndividualRider_drivingLicenseUploadID(ctx, field, obj)
 		case "certificateGoodConductUploadID":
 			out.Values[i] = ec._IndividualRider_certificateGoodConductUploadID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -20745,6 +20884,13 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "isAdmin":
+			out.Values[i] = ec._UserProfile_isAdmin(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "permissions":
+			out.Values[i] = ec._UserProfile_permissions(ctx, field, obj)
 		case "dateOfBirth":
 			out.Values[i] = ec._UserProfile_dateOfBirth(ctx, field, obj)
 		case "gender":

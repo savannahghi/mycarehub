@@ -66,6 +66,10 @@ type UserProfile @key(fields: "id") {
   isTester: Boolean!
   active: Boolean!
 
+  # for admins
+  isAdmin: Boolean!
+  permissions: [String]
+
   # optional fields
   dateOfBirth: Date
   gender: Gender
@@ -225,7 +229,8 @@ type IndividualRider {
   KRAPIN: String!
   KRAPINUploadID: String!
 
-  drivingLicenseUploadID: String!
+  drivingLicenseID: String!
+  drivingLicenseUploadID: String
   certificateGoodConductUploadID: String!
   supportingDocumentsUploadID: [String]
 }

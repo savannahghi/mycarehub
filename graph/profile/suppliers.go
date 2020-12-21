@@ -770,6 +770,7 @@ func (s *Service) AddIndividualRiderKyc(ctx context.Context, input IndividualRid
 		},
 		KRAPIN:                         input.KRAPIN,
 		KRAPINUploadID:                 input.KRAPINUploadID,
+		DrivingLicenseID:               input.DrivingLicenseID,
 		DrivingLicenseUploadID:         input.DrivingLicenseUploadID,
 		CertificateGoodConductUploadID: input.CertificateGoodConductUploadID,
 	}

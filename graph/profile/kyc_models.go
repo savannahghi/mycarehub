@@ -12,6 +12,7 @@ type IndividualRider struct {
 	IdentificationDoc              Identification `json:"identificationDoc" mapstructure:"identificationDoc"`
 	KRAPIN                         string         `json:"KRAPIN" mapstructure:"KRAPIN"`
 	KRAPINUploadID                 string         `json:"KRAPINUploadID" mapstructure:"KRAPINUploadID"`
+	DrivingLicenseID               string         `json:"drivingLicenseID" mapstructure:"drivingLicenseID"`
 	DrivingLicenseUploadID         string         `json:"drivingLicenseUploadID" mapstructure:"drivingLicenseUploadID"`
 	CertificateGoodConductUploadID string         `json:"certificateGoodConductUploadID" mapstructure:"certificateGoodConductUploadID"`
 	SupportingDocumentsUploadID    []string       `json:"supportingDocumentsUploadID" mapstructure:"supportingDocumentsUploadID"`
