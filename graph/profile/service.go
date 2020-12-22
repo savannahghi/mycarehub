@@ -34,6 +34,7 @@ const (
 	ProfileNudgesCollectionName    = "profile_nudges"
 	KCYProcessCollectionName       = "kyc_processing"
 	signUpInfoCollectionName       = "sign_up_info"
+	savannahSladeCode              = "1"
 )
 
 const (

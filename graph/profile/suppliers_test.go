@@ -1155,3 +1155,108 @@ func TestService_PublishKYCFeedItem(t *testing.T) {
 		})
 	}
 }
+
+func TestCoreEDIUserLogin(t *testing.T) {
+	type args struct {
+		username string
+		password string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.EDIUserProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: valid credentials",
+			args: args{
+				username: "bewell@slade360.co.ke",
+				password: "please change me",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: Wrong userame and password",
+			args: args{
+				username: "username",
+				password: "password",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: empty username and password",
+			args: args{
+				username: "",
+				password: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := CoreEDIUserLogin(tt.args.username, tt.args.password)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
+				assert.Nil(t, got)
+				return
+			}
+			if (err == nil) == tt.wantErr {
+				t.Errorf("CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
+				assert.NotNil(t, got)
+				return
+			}
+		})
+	}
+}
+
+func TestEDIUserLogin(t *testing.T) {
+	type args struct {
+		username string
+		password string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: valid credentials",
+			args: args{
+				username: "avenue-4190@healthcloud.co.ke",
+				password: "test provider",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: Wrong userame and password",
+			args: args{
+				username: "username",
+				password: "password",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: empty username and password",
+			args: args{
+				username: "",
+				password: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := EDIUserLogin(tt.args.username, tt.args.password)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
+				assert.Nil(t, got)
+				return
+			}
+			if (err == nil) == tt.wantErr {
+				t.Errorf("EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
+				assert.NotNil(t, got)
+				return
+			}
+		})
+	}
+}

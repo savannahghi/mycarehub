@@ -343,7 +343,8 @@ func (s Service) SetUpSupplier(ctx context.Context, accountType AccountType) (*S
 	return supplier, nil
 }
 
-// EDIUserLogin used to login a user to EDI and return their EDI profile
+// EDIUserLogin used to login a user to EDI (Portal Authserver) and return their
+// EDI (Portal Authserver) profile
 func EDIUserLogin(username, password string) (*base.EDIUserProfile, error) {
 
 	if username == "" || password == "" {
@@ -351,6 +352,28 @@ func EDIUserLogin(username, password string) (*base.EDIUserProfile, error) {
 	}
 
 	ediClient, err := base.LoginClient(username, password)
+	if err != nil {
+		return nil, fmt.Errorf("cannot initialize edi client with supplied credentials: %w", err)
+	}
+
+	userProfile, err := base.FetchUserProfile(ediClient)
+	if err != nil {
+		return nil, fmt.Errorf("cannot retrieve EDI user profile: %w", err)
+	}
+
+	return userProfile, nil
+
+}
+
+// CoreEDIUserLogin used to login a user to EDI (Core Authserver) and return their EDI
+// EDI (Core Authserver) profile
+func CoreEDIUserLogin(username, password string) (*base.EDIUserProfile, error) {
+
+	if username == "" || password == "" {
+		return nil, fmt.Errorf("invalid credentials, expected a username AND password")
+	}
+
+	ediClient, err := LoginClient(username, password)
 	if err != nil {
 		return nil, fmt.Errorf("cannot initialize edi client with supplied credentials: %w", err)
 	}
@@ -393,7 +416,14 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 		return nil, fmt.Errorf("unable to read supplier: %v", err)
 	}
 
-	profile, err := s.ParseUserProfileFromContextOrUID(ctx, &uid)
+	profiledsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// return the newly created user profile
+	profile := &base.UserProfile{}
+	err = profiledsnap.DataTo(profile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
@@ -407,10 +437,19 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 		var err error
 
 		switch sladeCode {
-		case "1":
+		case savannahSladeCode:
 			// login to core
 			//TODO(calvine) add login to core
-			//TODO(calvine) if login passes, update userprofile to admin and assign admin permissions
+			ediUserProfile, err = CoreEDIUserLogin(username, password)
+			if err != nil {
+				supplier.IsOrganizationVerified = false
+				return nil, fmt.Errorf("cannot get edi user profile: %w", err)
+			}
+
+			if ediUserProfile == nil {
+				return nil, fmt.Errorf("edi user profile not found")
+			}
+
 		default:
 			//Login to portal edi
 			ediUserProfile, err = EDIUserLogin(username, password)
@@ -431,13 +470,46 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 		return nil, err
 	}
 
+	pageInfo := &base.PageInfo{
+		HasNextPage:     false,
+		HasPreviousPage: false,
+		StartCursor:     nil,
+		EndCursor:       nil,
+	}
+
 	// The slade code comes in the form 'PRO-1234' or 'BRA-PRO-1234-1'
+	// or a single code '1234'
 	// we split it to get the interger part of the slade code.
 	var orgSladeCode string
 	if strings.HasPrefix(sladeCode, "BRA-") {
 		orgSladeCode = strings.Split(sladeCode, "-")[2]
-	} else {
+	} else if strings.HasPrefix(sladeCode, "PRO-") {
 		orgSladeCode = strings.Split(sladeCode, "-")[1]
+	} else {
+		orgSladeCode = sladeCode
+	}
+
+	if orgSladeCode == savannahSladeCode {
+		profile.Permissions = base.DefaultAdminPermissions
+
+		supplier.EDIUserProfile = ediUserProfile
+		supplier.IsOrganizationVerified = true
+		supplier.SladeCode = sladeCode
+		supplier.Active = true
+		supplier.KYCSubmitted = true
+		supplier.PartnerSetupComplete = true
+
+		if err := s.SaveSupplierToFireStore(*supplier); err != nil {
+			return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
+		}
+		err = base.UpdateRecordOnFirestore(
+			s.firestoreClient, s.GetUserProfileCollectionName(), profiledsnap.Ref.ID, profile,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("unable to update user profile: %v", err)
+		}
+
+		return &BranchConnection{PageInfo: pageInfo}, nil
 	}
 
 	// verify slade code.
@@ -502,12 +574,6 @@ func (s Service) SupplierEDILogin(ctx context.Context, username string, password
 
 	if err := s.SaveSupplierToFireStore(*supplier); err != nil {
 		return nil, fmt.Errorf("unable to add supplier to firestore: %v", err)
-	}
-	pageInfo := &base.PageInfo{
-		HasNextPage:     false,
-		HasPreviousPage: false,
-		StartCursor:     nil,
-		EndCursor:       nil,
 	}
 
 	return &BranchConnection{PageInfo: pageInfo}, nil
