@@ -6,7 +6,9 @@ staging:
   - depName: engagement
     depRootDomain: https://engagement-staging.healthcloud.co.ke 
   - depName: sms
-    depRootDomain: https://sms-staging.healthcloud.co.ke   
+    depRootDomain: https://sms-staging.healthcloud.co.ke
+  - depName: twilio
+    depRootDomain: https://twilio-staging.healthcloud.co.ke
 testing:
   - depName: mailgun
     depRootDomain: https://mailgun-testing.healthcloud.co.ke
@@ -15,13 +17,17 @@ testing:
   - depName: engagement
     depRootDomain: https://engagement-testing.healthcloud.co.ke
   - depName: sms
-    depRootDomain: https://sms-staging.healthcloud.co.ke   
+    depRootDomain: https://sms-staging.healthcloud.co.ke
+  - depName: twilio
+    depRootDomain: https://twilio-testing.healthcloud.co.ke
 production:
   - depName: mailgun
     depRootDomain: https://mailgun-prod.healthcloud.co.ke
   - depName: otp
     depRootDomain: https://otp-prod.healthcloud.co.ke
   - depName: engagement
-    depRootDomain: https://engagement-prod.healthcloud.co.ke  
+    depRootDomain: https://engagement-prod.healthcloud.co.ke
   - depName: sms
-    depRootDomain: https://sms-staging.healthcloud.co.ke   
+    depRootDomain: https://sms-staging.healthcloud.co.ke
+  - depName: twilio
+    depRootDomain: https://twilio-prod.healthcloud.co.ke

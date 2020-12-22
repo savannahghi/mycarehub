@@ -41,6 +41,7 @@ const (
 	otpService        = "otp"
 	engagementService = "engagement"
 	smsService        = "sms"
+	twilioService     = "twilio"
 )
 
 // OTP service endpoints
@@ -48,6 +49,16 @@ const (
 	SendEmail    = "internal/send_email"
 	SendRetryOtp = "internal/send_retry_otp/"
 	SendOtp      = "internal/send_otp/"
+)
+
+// twilio isc paths
+const (
+	sendTwilioSMS = "internal/send_sms"
+)
+
+// sms isc paths
+const (
+	sendSMS = "internal/send_sms"
 )
 
 // NewService returns a new authentication service
@@ -128,6 +139,13 @@ func NewService() *Service {
 
 	}
 
+	var twilioClient *base.InterServiceClient
+	twilioClient, err = base.SetupISCclient(config, twilioService)
+	if err != nil {
+		log.Panicf("unable to initialize twilio inter service client: %s", err)
+
+	}
+
 	return &Service{
 		firestoreClient:    firestore,
 		firebaseAuth:       auth,
@@ -137,6 +155,7 @@ func NewService() *Service {
 		chargemasterClient: chargemasterClient,
 		engagement:         engagementClient,
 		sms:                smsClient,
+		twilio:             twilioClient,
 	}
 }
 
@@ -147,6 +166,7 @@ type Service struct {
 	Otp        *base.InterServiceClient
 	engagement *base.InterServiceClient
 	sms        *base.InterServiceClient
+	twilio     *base.InterServiceClient
 
 	firestoreClient    *firestore.Client
 	firebaseAuth       *auth.Client
@@ -177,6 +197,14 @@ func (s Service) checkPreconditions() {
 
 	if s.engagement == nil {
 		log.Panicf("profile service does not have an initialized engagement ISC Client")
+	}
+
+	if s.sms == nil {
+		log.Panicf("profile service does not have an initialized sms ISC Client")
+	}
+
+	if s.twilio == nil {
+		log.Panicf("profile service does not have an initialized twilio ISC Client")
 	}
 }
 

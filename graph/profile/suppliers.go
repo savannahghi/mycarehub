@@ -870,29 +870,10 @@ func (s *Service) AddIndividualRiderKyc(ctx context.Context, input IndividualRid
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	err = s.SaveKYCResponse(k, supplier, dsnap)
+	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
-
-	go func() {
-		op := func() error {
-			a, err := s.FetchAdminUsers(ctx)
-			if err != nil {
-				return err
-			}
-			var uids []string
-			for _, u := range a {
-				uids = append(uids, u.ID)
-			}
-
-			return s.PublishKYCFeedItem(ctx, uids...)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
 
 	return &kyc, nil
 }
@@ -955,29 +936,10 @@ func (s *Service) AddOrganizationRiderKyc(ctx context.Context, input Organizatio
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	err = s.SaveKYCResponse(k, supplier, dsnap)
+	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
-
-	go func() {
-		op := func() error {
-			a, err := s.FetchAdminUsers(ctx)
-			if err != nil {
-				return err
-			}
-			var uids []string
-			for _, u := range a {
-				uids = append(uids, u.ID)
-			}
-
-			return s.PublishKYCFeedItem(ctx, uids...)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
 
 	return &kyc, nil
 }
@@ -1039,29 +1001,10 @@ func (s *Service) AddIndividualPractitionerKyc(ctx context.Context, input Indivi
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	err = s.SaveKYCResponse(k, supplier, dsnap)
+	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
-
-	go func() {
-		op := func() error {
-			a, err := s.FetchAdminUsers(ctx)
-			if err != nil {
-				return err
-			}
-			var uids []string
-			for _, u := range a {
-				uids = append(uids, u.ID)
-			}
-
-			return s.PublishKYCFeedItem(ctx, uids...)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
 
 	return &kyc, nil
 }
@@ -1134,29 +1077,10 @@ func (s *Service) AddOrganizationPractitionerKyc(ctx context.Context, input Orga
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	err = s.SaveKYCResponse(k, supplier, dsnap)
+	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
-
-	go func() {
-		op := func() error {
-			a, err := s.FetchAdminUsers(ctx)
-			if err != nil {
-				return err
-			}
-			var uids []string
-			for _, u := range a {
-				uids = append(uids, u.ID)
-			}
-
-			return s.PublishKYCFeedItem(ctx, uids...)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
 
 	return &kyc, nil
 }
@@ -1229,29 +1153,10 @@ func (s *Service) AddOrganizationProviderKyc(ctx context.Context, input Organiza
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	err = s.SaveKYCResponse(k, supplier, dsnap)
+	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
-
-	go func() {
-		op := func() error {
-			a, err := s.FetchAdminUsers(ctx)
-			if err != nil {
-				return err
-			}
-			var uids []string
-			for _, u := range a {
-				uids = append(uids, u.ID)
-			}
-
-			return s.PublishKYCFeedItem(ctx, uids...)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
 
 	return &kyc, nil
 }
@@ -1304,29 +1209,10 @@ func (s *Service) AddIndividualPharmaceuticalKyc(ctx context.Context, input Indi
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
-	err = s.SaveKYCResponse(k, supplier, dsnap)
+	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
-
-	go func() {
-		op := func() error {
-			a, err := s.FetchAdminUsers(ctx)
-			if err != nil {
-				return err
-			}
-			var uids []string
-			for _, u := range a {
-				uids = append(uids, u.ID)
-			}
-
-			return s.PublishKYCFeedItem(ctx, uids...)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
 
 	return &kyc, nil
 }
@@ -1390,29 +1276,10 @@ func (s *Service) AddOrganizationPharmaceuticalKyc(ctx context.Context, input Or
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
 
-	err = s.SaveKYCResponse(k, supplier, dsnap)
+	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
-
-	go func() {
-		op := func() error {
-			a, err := s.FetchAdminUsers(ctx)
-			if err != nil {
-				return err
-			}
-			var uids []string
-			for _, u := range a {
-				uids = append(uids, u.ID)
-			}
-
-			return s.PublishKYCFeedItem(ctx, uids...)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
 
 	return &kyc, nil
 }
@@ -1464,29 +1331,10 @@ func (s *Service) AddIndividualCoachKyc(ctx context.Context, input IndividualCoa
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
 
-	err = s.SaveKYCResponse(k, supplier, dsnap)
+	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
-
-	go func() {
-		op := func() error {
-			a, err := s.FetchAdminUsers(ctx)
-			if err != nil {
-				return err
-			}
-			var uids []string
-			for _, u := range a {
-				uids = append(uids, u.ID)
-			}
-
-			return s.PublishKYCFeedItem(ctx, uids...)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
 
 	return &kyc, nil
 }
@@ -1550,29 +1398,10 @@ func (s *Service) AddOrganizationCoachKyc(ctx context.Context, input Organizatio
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
 
-	err = s.SaveKYCResponse(k, supplier, dsnap)
+	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
-
-	go func() {
-		op := func() error {
-			a, err := s.FetchAdminUsers(ctx)
-			if err != nil {
-				return err
-			}
-			var uids []string
-			for _, u := range a {
-				uids = append(uids, u.ID)
-			}
-
-			return s.PublishKYCFeedItem(ctx, uids...)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
 
 	return &kyc, nil
 }
@@ -1624,29 +1453,10 @@ func (s *Service) AddIndividualNutritionKyc(ctx context.Context, input Individua
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
 
-	err = s.SaveKYCResponse(k, supplier, dsnap)
+	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
 	}
-
-	go func() {
-		op := func() error {
-			a, err := s.FetchAdminUsers(ctx)
-			if err != nil {
-				return err
-			}
-			var uids []string
-			for _, u := range a {
-				uids = append(uids, u.ID)
-			}
-
-			return s.PublishKYCFeedItem(ctx, uids...)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
 
 	return &kyc, nil
 }
@@ -1710,9 +1520,34 @@ func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input Organiz
 		return nil, fmt.Errorf("cannot marshal kyc to json")
 	}
 
-	err = s.SaveKYCResponse(k, supplier, dsnap)
+	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
 	if err != nil {
 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
+	}
+
+	return &kyc, nil
+}
+
+// SaveKYCResponse updates the record of a supplier with the provided KYC, stages the request for
+// approval by Savannah admins and sends a notification of the request to admins
+func (s Service) SaveKYCResponse(ctx context.Context, kycJSON []byte, supplier *Supplier, dsnap *firestore.DocumentSnapshot) error {
+	var kycAsMap map[string]interface{}
+
+	err := json.Unmarshal(kycJSON, &kycAsMap)
+	if err != nil {
+		return fmt.Errorf("cannot unmarshal kyc from json")
+	}
+
+	supplier.SupplierKYC = kycAsMap
+	supplier.KYCSubmitted = true
+
+	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
+	if err != nil {
+		return fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
+	}
+
+	if err := s.StageKYCProcessingRequest(supplier); err != nil {
+		logrus.Errorf("unable to stage kyc processing request: %v", err)
 	}
 
 	go func() {
@@ -1733,35 +1568,6 @@ func (s *Service) AddOrganizationNutritionKyc(ctx context.Context, input Organiz
 			logrus.Error(err)
 		}
 	}()
-
-	return &kyc, nil
-}
-
-// SaveKYCResponse updates the record of a supplier with the provided KYC, stages the request for
-// approval by Savannah admins and sends a notification of the request to admins
-func (s Service) SaveKYCResponse(kycJSON []byte, supplier *Supplier, dsnap *firestore.DocumentSnapshot) error {
-	var kycAsMap map[string]interface{}
-
-	err := json.Unmarshal(kycJSON, &kycAsMap)
-	if err != nil {
-		return fmt.Errorf("cannot unmarshal kyc from json")
-	}
-
-	supplier.SupplierKYC = kycAsMap
-	supplier.KYCSubmitted = true
-
-	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-	if err != nil {
-		return fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-	}
-
-	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-		logrus.Errorf("unable to stage kyc processing request: %v", err)
-	}
-
-	// todo: send notification to admins
-	// - get admin users
-	// - send item to admin users
 
 	return nil
 }
@@ -1785,8 +1591,6 @@ func (s *Service) FetchKYCProcessingRequests(ctx context.Context) ([]*KYCRequest
 		}
 		res = append(res, req)
 	}
-	// todo : amend this to include documents/attachments urls. This will be used in the frontend to pull the images for viewing e.g ID, DL
-
 	return res, nil
 }
 
@@ -1816,6 +1620,7 @@ func (s *Service) ProcessKYCRequest(ctx context.Context, id string, status KYCPr
 	}
 
 	var email string
+	var message string
 
 	switch status {
 	case KYCProcessStatusApproved:
@@ -1825,10 +1630,11 @@ func (s *Service) ProcessKYCRequest(ctx context.Context, id string, status KYCPr
 		}
 
 		email = generateProcessKYCApprovalEmailTemplate()
-		// todo: send text to the supplier on approval
+		message = "Your KYC details have been reviewed and approved. We look forward to working with you."
+
 	case KYCProcessStatusRejected:
 		email = generateProcessKYCRejectionEmailTemplate()
-		// todo: send text to the supplier on rejection
+		message = "Your KYC details have been reviewed and not verified. Incase of any queries, please contact us via +254 790 360 360"
 
 	}
 
@@ -1837,6 +1643,21 @@ func (s *Service) ProcessKYCRequest(ctx context.Context, id string, status KYCPr
 		if err != nil {
 			return false, fmt.Errorf("unable to send KYC processing email: %w", err)
 		}
+	}
+
+	smsISC := base.SmsISC{
+		Isc:      s.sms,
+		EndPoint: sendSMS,
+	}
+
+	twilioISC := base.SmsISC{
+		Isc:      s.twilio,
+		EndPoint: sendTwilioSMS,
+	}
+
+	err = base.SendSMS(req.SupplierRecord.UserProfile.Msisdns, message, smsISC, twilioISC)
+	if err != nil {
+		return false, fmt.Errorf("unable to send KYC processing message: %w", err)
 	}
 
 	return true, nil
