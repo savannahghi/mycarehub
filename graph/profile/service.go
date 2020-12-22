@@ -62,6 +62,12 @@ const (
 	sendSMS = "internal/send_sms"
 )
 
+// engagement isc paths
+const (
+	resolveDefaultNudge   = "feed/%s/%s/false/defaultnudges/%s/resolve/"
+	verifyEmailNudgeTitle = "Email Verification"
+)
+
 // NewService returns a new authentication service
 func NewService() *Service {
 
@@ -1289,8 +1295,14 @@ func (s Service) SetLanguagePreference(ctx context.Context, language base.Langua
 }
 
 // VerifyEmailOtp checks for the validity of the supplied OTP but does not invalidate it
-func (s Service) VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error) {
+func (s Service) VerifyEmailOtp(ctx context.Context, email string, otp string, flavour base.Flavour) (bool, error) {
 	s.checkPreconditions()
+
+	UID, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, fmt.Errorf(
+			"VerifyEmailOTP: can't get the logged in user with UID %s: %v", UID, err)
+	}
 
 	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
 	if err != nil {
@@ -1328,6 +1340,28 @@ func (s Service) VerifyEmailOtp(ctx context.Context, email string, otp string) (
 		if err != nil {
 			return false, fmt.Errorf("unable to update user profile: %v", err)
 		}
+	}
+
+	resp, err := s.engagement.MakeRequest(
+		"PATCH",
+		fmt.Sprintf(
+			resolveDefaultNudge,
+			UID,
+			flavour,
+			verifyEmailNudgeTitle,
+		),
+		nil,
+	)
+
+	if err != nil {
+		return true, fmt.Errorf("unable to resolve verify email nudge: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return true, fmt.Errorf(
+			"unable to resolve verify email nudge with status code %v",
+			resp.StatusCode,
+		)
 	}
 
 	return true, nil

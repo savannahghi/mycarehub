@@ -76,3 +76,8 @@ enum KYCProcessStatus {
   REJECTED
   PENDING
 }
+
+enum Flavour {
+  PRO
+  CONSUMER
+}

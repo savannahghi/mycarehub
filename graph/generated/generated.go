@@ -248,7 +248,7 @@ type ComplexityRoot struct {
 		UpdateCustomer                   func(childComplexity int, input profile.CustomerKYCInput) int
 		UpdateUserPin                    func(childComplexity int, msisdn string, pin string) int
 		UpdateUserProfile                func(childComplexity int, input profile.UserProfileInput) int
-		VerifyEmailOtp                   func(childComplexity int, email string, otp string) int
+		VerifyEmailOtp                   func(childComplexity int, email string, otp string, flavour base.Flavour) int
 	}
 
 	OrganizationCoach struct {
@@ -498,7 +498,7 @@ type MutationResolver interface {
 	SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
 	UpdateUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
 	SetLanguagePreference(ctx context.Context, language base.Language) (bool, error)
-	VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error)
+	VerifyEmailOtp(ctx context.Context, email string, otp string, flavour base.Flavour) (bool, error)
 	CreateSignUpMethod(ctx context.Context, signUpMethod profile.SignUpMethod) (bool, error)
 	AddCustomer(ctx context.Context, name string) (*profile.Customer, error)
 	AddCustomerKyc(ctx context.Context, input profile.CustomerKYCInput) (*profile.CustomerKYC, error)
@@ -1693,7 +1693,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.VerifyEmailOtp(childComplexity, args["email"].(string), args["otp"].(string)), true
+		return e.complexity.Mutation.VerifyEmailOtp(childComplexity, args["email"].(string), args["otp"].(string), args["flavour"].(base.Flavour)), true
 
 	case "OrganizationCoach.certificateOfInCorporationUploadID":
 		if e.complexity.OrganizationCoach.CertificateOfInCorporationUploadID == nil {
@@ -3073,7 +3073,11 @@ enum KYCProcessStatus {
   REJECTED
   PENDING
 }
-`, BuiltIn: false},
+
+enum Flavour {
+  PRO
+  CONSUMER
+}`, BuiltIn: false},
 	{Name: "graph/external.graphql", Input: `
 # supported content types
 enum ContentType {
@@ -3390,8 +3394,8 @@ input OrganizationPractitionerInput {
   supportingDocumentsUploadID: [String]
 
   # common for organization : limited company
-  certificateOfIncorporation: String
-  certificateOfInCorporationUploadID: String
+  certificateOfIncorporation: String!
+  certificateOfInCorporationUploadID: String!
   directorIdentifications: [IdentificationInput]
 
   # common for organization : others
@@ -3547,7 +3551,7 @@ extend type Mutation {
   setUserPin(msisdn: String!, pin: String!): Boolean!
   updateUserPIN(msisdn: String!, pin: String!): Boolean!
   setLanguagePreference(language: Language!): Boolean!
-  verifyEmailOTP(email: String!, otp: String!): Boolean!
+  verifyEmailOTP(email: String!, otp: String!, flavour: Flavour!): Boolean!
   createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
   addCustomer(name: String!): Customer!
   addCustomerKYC(input: CustomerKYCInput!): CustomerKYC!
@@ -4734,6 +4738,15 @@ func (ec *executionContext) field_Mutation_verifyEmailOTP_args(ctx context.Conte
 		}
 	}
 	args["otp"] = arg1
+	var arg2 base.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg2, err = ec.unmarshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg2
 	return args, nil
 }
 
@@ -8966,7 +8979,7 @@ func (ec *executionContext) _Mutation_verifyEmailOTP(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().VerifyEmailOtp(rctx, args["email"].(string), args["otp"].(string))
+		return ec.resolvers.Mutation().VerifyEmailOtp(rctx, args["email"].(string), args["otp"].(string), args["flavour"].(base.Flavour))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17989,7 +18002,7 @@ func (ec *executionContext) unmarshalInputOrganizationPractitionerInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfIncorporation"))
-			it.CertificateOfIncorporation, err = ec.unmarshalOString2string(ctx, v)
+			it.CertificateOfIncorporation, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17997,7 +18010,7 @@ func (ec *executionContext) unmarshalInputOrganizationPractitionerInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("certificateOfInCorporationUploadID"))
-			it.CertificateOfInCorporationUploadID, err = ec.unmarshalOString2string(ctx, v)
+			it.CertificateOfInCorporationUploadID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -21517,6 +21530,16 @@ func (ec *executionContext) unmarshalNFieldType2gitlabᚗslade360emrᚗcomᚋgo�
 }
 
 func (ec *executionContext) marshalNFieldType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFieldType(ctx context.Context, sel ast.SelectionSet, v base.FieldType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx context.Context, v interface{}) (base.Flavour, error) {
+	var res base.Flavour
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx context.Context, sel ast.SelectionSet, v base.Flavour) graphql.Marshaler {
 	return v
 }
 

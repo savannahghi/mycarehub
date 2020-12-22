@@ -16,6 +16,8 @@ func ValidateEmail(email, verificationCode string, firestoreClient *firestore.Cl
 		return "", fmt.Errorf("invalid email format")
 	}
 
+	// !Onboarding service should not read OTP service database
+	// TODO: Ref: add isc to remove this dependancy @mathenge
 	query := firestoreClient.Collection(base.SuffixCollection(base.OTPCollectionName)).Where(
 		"isValid", "==", true,
 	).Where(

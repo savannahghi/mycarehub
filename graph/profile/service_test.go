@@ -1212,60 +1212,75 @@ func TestService_VerifyEmailOtp(t *testing.T) {
 	firestoreClient, err := firebaseApp.Firestore(ctx)
 	assert.Nil(t, err)
 
+	email := base.GenerateRandomEmail()
 	validOtpCode := rand.Int()
 	validOtpData := map[string]interface{}{
 		"authorizationCode": strconv.Itoa(validOtpCode),
 		"isValid":           true,
 		"message":           "Testing email OTP message",
 		"timestamp":         time.Now(),
-		"email":             base.GenerateRandomEmail(),
+		"email":             email,
 	}
 	_, err = base.SaveDataToFirestore(firestoreClient,
 		base.SuffixCollection(base.OTPCollectionName), validOtpData)
 
 	assert.Nil(t, err)
+
+	flavour := base.FlavourConsumer
 	type args struct {
-		ctx   context.Context
-		email string
-		otp   string
+		ctx     context.Context
+		email   string
+		otp     string
+		flavour base.Flavour
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
+		name        string
+		args        args
+		want        bool
+		wantErr     bool
+		expectedErr string
 	}{
 		{
 			name: "Happy case - sent otp code",
 			args: args{
-				ctx:   ctx,
-				email: base.GenerateRandomEmail(),
-				otp:   strconv.Itoa(validOtpCode),
+				ctx:     ctx,
+				email:   email,
+				otp:     strconv.Itoa(validOtpCode),
+				flavour: flavour,
 			},
-			want:    true,
-			wantErr: false,
+			want:        true,
+			wantErr:     true,
+			expectedErr: "unable to resolve verify email nudge with status code 404",
+			// We expect an error since our test user does not have default nudges
+			// TODO @mathenge Create default nudges for our test users that can be used in tests
 		},
 		{
 			name: "Sad case - non existent otp code",
 			args: args{
-				ctx:   ctx,
-				email: base.GenerateRandomEmail(),
-				otp:   "029837",
+				ctx:     ctx,
+				email:   email,
+				otp:     "029837",
+				flavour: flavour,
 			},
-			want:    false,
-			wantErr: true,
+			want:        false,
+			wantErr:     true,
+			expectedErr: "email failed verification: no matching verification codes found",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := service
-			got, err := s.VerifyEmailOtp(tt.args.ctx, tt.args.email, tt.args.otp)
+			got, err := s.VerifyEmailOtp(tt.args.ctx, tt.args.email, tt.args.otp, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.VerifyEmailOtp() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
 				t.Errorf("Service.VerifyEmailOtp() = %v, want %v", got, tt.want)
+			}
+			if tt.wantErr && err.Error() != tt.expectedErr {
+				t.Errorf("expected: %v, but we got: %v", tt.expectedErr, err.Error())
+				return
 			}
 		})
 	}

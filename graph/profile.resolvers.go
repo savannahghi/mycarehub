@@ -89,10 +89,10 @@ func (r *mutationResolver) SetLanguagePreference(ctx context.Context, language b
 	return r.profileService.SetLanguagePreference(ctx, language)
 }
 
-func (r *mutationResolver) VerifyEmailOtp(ctx context.Context, email string, otp string) (bool, error) {
+func (r *mutationResolver) VerifyEmailOtp(ctx context.Context, email string, otp string, flavour base.Flavour) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
-	return r.profileService.VerifyEmailOtp(ctx, email, otp)
+	return r.profileService.VerifyEmailOtp(ctx, email, otp, flavour)
 }
 
 func (r *mutationResolver) CreateSignUpMethod(ctx context.Context, signUpMethod profile.SignUpMethod) (bool, error) {

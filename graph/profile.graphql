@@ -46,7 +46,7 @@ extend type Mutation {
   setUserPin(msisdn: String!, pin: String!): Boolean!
   updateUserPIN(msisdn: String!, pin: String!): Boolean!
   setLanguagePreference(language: Language!): Boolean!
-  verifyEmailOTP(email: String!, otp: String!): Boolean!
+  verifyEmailOTP(email: String!, otp: String!, flavour: Flavour!): Boolean!
   createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
   addCustomer(name: String!): Customer!
   addCustomerKYC(input: CustomerKYCInput!): CustomerKYC!

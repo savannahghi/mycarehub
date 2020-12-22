@@ -1264,7 +1264,7 @@ func TestFindBranch(t *testing.T) {
 	}
 }
 
-func TestVerifyEmailOTPMutation(t *testing.T) {
+func TestGraphQLVerifyEmailOTP(t *testing.T) {
 	fc := &base.FirebaseClient{}
 	firebaseApp, err := fc.InitFirebase()
 
@@ -1305,6 +1305,8 @@ func TestVerifyEmailOTPMutation(t *testing.T) {
 		return
 	}
 
+	flavour := base.FlavourPro
+
 	type args struct {
 		query map[string]interface{}
 	}
@@ -1319,28 +1321,30 @@ func TestVerifyEmailOTPMutation(t *testing.T) {
 			name: "Valid mutation request",
 			args: args{
 				query: map[string]interface{}{
-					"query": `mutation verifyEmailOTP($email: String!, $otp: String!){
-						verifyEmailOTP(email: $email, otp: $otp)
+					"query": `mutation verifyEmailOTP($email: String!, $otp: String!, $flavour: Flavour!){
+						verifyEmailOTP(email: $email, otp: $otp, flavour:$flavour)
 					}`,
 					"variables": map[string]interface{}{
-						"email": base.TestUserEmail,
-						"otp":   strconv.Itoa(otpCode),
+						"email":   base.TestUserEmail,
+						"otp":     strconv.Itoa(otpCode),
+						"flavour": flavour,
 					},
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    false,
+			wantErr:    true, // 404 code returned (nudges not found)
 		},
 		{
 			name: "invalid mutation request with a wrong otp",
 			args: args{
 				query: map[string]interface{}{
-					"query": `mutation verifyEmailOTP($email: String!, $otp: String!){
-						verifyEmailOTP(email: $email, otp: $otp)
+					"query": `mutation verifyEmailOTP($email: String!, $otp: String!, $flavour: Flavour!){
+						verifyEmailOTP(email: $email, otp: $otp, flavour:$flavour)
 					}`,
 					"variables": map[string]interface{}{
-						"email": base.TestUserEmail,
-						"otp":   "1234",
+						"email":   base.TestUserEmail,
+						"otp":     "1234",
+						"flavour": flavour,
 					},
 				},
 			},
