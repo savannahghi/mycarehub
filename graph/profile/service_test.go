@@ -1037,54 +1037,6 @@ func TestService_SetUserPin(t *testing.T) {
 	}
 }
 
-func TestService_RetrievePINFirebaseDocSnapshotByMSISDN(t *testing.T) {
-	service := NewService()
-	ctx := base.GetPhoneNumberAuthenticatedContext(t)
-	set, err := service.SetUserPIN(ctx, "+254703754685", "1234")
-	if !set {
-		t.Errorf("setting a pin for test user failed. It returned false")
-	}
-	if err != nil {
-		t.Errorf("setting a pin for test user failed: %v", err)
-	}
-	type args struct {
-		ctx    context.Context
-		msisdn string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case: retreive a pin dsnap that exists",
-			args: args{
-				ctx:    ctx,
-				msisdn: base.TestUserPhoneNumber,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case: retreive a pin that does not exist",
-			args: args{
-				ctx:    ctx,
-				msisdn: "ain't no such a number",
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := service
-			_, err := s.RetrievePINFirebaseDocSnapshotByMSISDN(tt.args.ctx, tt.args.msisdn)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.RetrievePINFirebaseDocSnapshotByMSISDN() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
 func TestService_VerifyMSISDNandPin(t *testing.T) {
 	service := NewService()
 	type args struct {

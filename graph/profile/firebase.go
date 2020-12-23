@@ -232,6 +232,11 @@ func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
 	msisdn string,
 ) (*firestore.DocumentSnapshot, error) {
 
+	msisdn, err := base.NormalizeMSISDN(msisdn)
+	if err != nil {
+		return nil, fmt.Errorf("invalid msisdn supplied: %v", err)
+	}
+
 	collection := s.firestoreClient.Collection(s.GetPINCollectionName())
 	query := collection.Where("msisdn", "==", msisdn).Where("isValid", "==", true)
 	docs, err := query.Documents(ctx).GetAll()
@@ -291,6 +296,11 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshotByMSISDN(
 	ctx context.Context,
 	msisdn string,
 ) (*firestore.DocumentSnapshot, error) {
+
+	msisdn, err := base.NormalizeMSISDN(msisdn)
+	if err != nil {
+		return nil, fmt.Errorf("invalid msisdn supplied: %v", err)
+	}
 
 	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
 	query := collection.Where("msisdns", "array-contains", msisdn)
