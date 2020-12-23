@@ -224,6 +224,21 @@ func (s Service) FindSupplier(ctx context.Context, uid string) (*Supplier, error
 	}
 
 	if dsnap == nil {
+		// create a default supplier account instead of throwing an error
+		// this is for backwards compatibility for dev accounts that don't have supplier account.
+		// there is no harm in doing this since the same supplier will be updated
+		// We default to PartnerTypeProvider since we expect majority of our suppliers to be providers.
+		// In any case, this can always be changed.
+
+		pr, err := s.UserProfile(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("unable to retreive userprofile of logged in user: %v", err)
+		}
+		pty := PartnerTypeProvider
+		if _, err := s.AddPartnerType(ctx, pr.Name, &pty); err != nil {
+			return nil, fmt.Errorf("unable to create default supplier account : %v", err)
+		}
+
 		return nil, fmt.Errorf("a user with the UID %s does not have a supplier's account", uid)
 	}
 

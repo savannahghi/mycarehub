@@ -49,9 +49,15 @@ func getOTPCode(msisdn string, s *profile.Service) (string, error) {
 }
 
 func TestMSISDNLogin(t *testing.T) {
+	s := profile.NewService()
+
 	ctx := base.GetAuthenticatedContext(t)
 
-	var s *profile.Service = profile.NewService()
+	_, err := s.CreateUserByPhone(ctx, base.TestUserPhoneNumberWithPin)
+	if err != nil {
+		t.Errorf("failed to create user: %v", err)
+		return
+	}
 
 	if ctx == nil {
 		t.Errorf("nil context")

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 
 	"cloud.google.com/go/firestore"
 	"github.com/google/uuid"
@@ -224,8 +225,8 @@ func (s Service) RetrieveUserProfileFirebaseDocSnapshot(
 	return s.RetrieveUserProfileFirebaseDocSnapshotByUID(ctx, uid)
 }
 
-// RetrievePINFirebaseDocSnapshotByMSISDN retrieves the user profile of a
-// specified user
+// RetrievePINFirebaseDocSnapshotByMSISDN retrieves the user pin information filtered
+// by their phone number.
 func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
 	ctx context.Context,
 	msisdn string,
@@ -259,6 +260,94 @@ func (s Service) RetrievePINFirebaseDocSnapshotByMSISDN(
 	}
 	dsnap := docs[0]
 	return dsnap, nil
+}
+
+type byLength []*firestore.DocumentSnapshot
+
+func (s byLength) Len() int {
+	return len(s)
+}
+func (s byLength) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byLength) Less(i, j int) bool {
+	iNth := func(r *firestore.DocumentSnapshot) *base.UserProfile {
+		u := &base.UserProfile{}
+		_ = r.DataTo(u)
+		return u
+	}(s[i])
+
+	jNth := func(r *firestore.DocumentSnapshot) *base.UserProfile {
+		u := &base.UserProfile{}
+		_ = r.DataTo(u)
+		return u
+	}(s[j])
+
+	return len(iNth.PushTokens) < len(jNth.PushTokens)
+}
+
+// RetrieveUserProfileFirebaseDocSnapshotByMSISDN fetches user profile snapshot using msisdn
+func (s Service) RetrieveUserProfileFirebaseDocSnapshotByMSISDN(
+	ctx context.Context,
+	msisdn string,
+) (*firestore.DocumentSnapshot, error) {
+
+	collection := s.firestoreClient.Collection(s.GetUserProfileCollectionName())
+	query := collection.Where("msisdns", "array-contains", msisdn)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) < 1 && base.IsDebug() {
+		log.Printf("msisdn %s has more than one PIN (it has %d)", msisdn, len(docs))
+	}
+
+	// cleanup procedure. We remove records that don't have any pushtokens. After that, we cherry-pick userprofiles that have the most
+	// number of push tokens. This high number signifies that the user profile is active and constantly been updated
+	if len(docs) > 1 {
+		return s.cherryPickActiveUserProfile(ctx, docs)
+	}
+
+	if len(docs) == 0 {
+		return nil, nil
+	}
+	dsnap := docs[0]
+	return dsnap, nil
+}
+
+func (s Service) cherryPickActiveUserProfile(ctx context.Context, docs []*firestore.DocumentSnapshot) (*firestore.DocumentSnapshot, error) {
+	var activeProfiles []*firestore.DocumentSnapshot
+	for _, doc := range docs {
+		u := &base.UserProfile{}
+		if err := doc.DataTo(u); err != nil {
+			return nil, fmt.Errorf("unable to read user profile: %w", err)
+		}
+		if u.PushTokens == nil {
+			if len(u.PushTokens) == 0 {
+				// purge these
+				_, err := doc.Ref.Delete(ctx)
+				if err != nil {
+					return nil, fmt.Errorf("failed to delete unuser user profile: %w", err)
+				}
+			}
+		}
+
+		activeProfiles = append(activeProfiles, doc)
+	}
+
+	// sort in ascending order. The one with the most, will be retained
+	sort.Sort(byLength(activeProfiles))
+
+	var p *firestore.DocumentSnapshot
+	p, activeProfiles = activeProfiles[len(activeProfiles)-1], activeProfiles[:len(activeProfiles)-1]
+
+	// purge the rest of the profiles
+	for _, doc := range activeProfiles {
+		// purge the recored. The returned error should not result in a nil response. If the fails to be removed here
+		// it will be removed by https://gitlab.slade360emr.com/go/profile/-/merge_requests/307
+		_, _ = doc.Ref.Delete(ctx)
+	}
+	return p, nil
 }
 
 // FetchAdminUsers fetches all admins
