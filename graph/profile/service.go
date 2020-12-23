@@ -1710,28 +1710,13 @@ func (s Service) PhoneSignIn(ctx context.Context, phoneNumber, pin string) (*Pho
 	if err != nil {
 		return nil, fmt.Errorf("can't authenticate the custom token. Please contact Slade360 for assistance")
 	}
-
-	// fetch the user profile then update its verifiedIdentifiers
-	pr, err := s.RetrieveUserProfileFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
+	_, err = s.UpdateProfileWithUID(ctx, phoneNumber, u.UID)
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch user profile Please contact Slade360 for assistance")
+		// TODO uncomment this
+		// return nil, fmt.Errorf("can't to generate a custo")
+		log.Printf("an error occured")
+
 	}
-
-	up := &base.UserProfile{}
-	err = dsnap.DataTo(pr)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read user profile: %w", err)
-	}
-
-	up.VerifiedIdentifiers = append(up.VerifiedIdentifiers, u.UID)
-
-	err = base.UpdateRecordOnFirestore(
-		s.firestoreClient, s.GetUserProfileCollectionName(), pr.Ref.ID, up,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("unable to update user profile: %v", err)
-	}
-
 	loginResp := PhoneSignInResponse{
 		CustomToken:  customToken,
 		IDToken:      userTokens.IDToken,

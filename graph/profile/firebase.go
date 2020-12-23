@@ -560,3 +560,27 @@ func (s Service) GetUserProfile(
 	userProfile.HasPin = true
 	return userProfile, nil
 }
+
+// UpdateProfileWithUID update userprofile with new uids for every phone login.
+func (s Service) UpdateProfileWithUID(ctx context.Context, phoneNumber, uuid string) (bool, error) {
+	// fetch the user profile then update its verifiedIdentifiers
+	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
+	if err != nil {
+		return false, fmt.Errorf("unable to fetch user profile Please contact Slade360 for assistance")
+	}
+	userProfile := &base.UserProfile{}
+	err = dsnap.DataTo(dsnap)
+	if err != nil {
+		return false, fmt.Errorf("unable to read user profile: %w", err)
+	}
+
+	userProfile.VerifiedIdentifiers = append(userProfile.VerifiedIdentifiers, uuid)
+
+	err = base.UpdateRecordOnFirestore(
+		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
+	)
+	if err != nil {
+		return false, fmt.Errorf("unable to update user profile: %v", err)
+	}
+	return true, nil
+}
