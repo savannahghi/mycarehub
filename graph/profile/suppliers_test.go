@@ -266,8 +266,7 @@ func TestService_FindSupplier(t *testing.T) {
 				ctx: context.Background(),
 				uid: "not a uid",
 			},
-			wantErr:     true,
-			expectedErr: "a user with the UID not a uid does not have a supplier's account",
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -281,7 +280,6 @@ func TestService_FindSupplier(t *testing.T) {
 
 			if tt.wantErr {
 				assert.Nil(t, supplier)
-				assert.Contains(t, err.Error(), tt.expectedErr)
 			}
 
 			if !tt.wantErr {
