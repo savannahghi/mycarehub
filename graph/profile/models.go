@@ -454,12 +454,6 @@ func (i *BranchSortInput) ToURLValues() (values url.Values) {
 	return vals
 }
 
-// UnderageResponsePayload is used to respond to requests made to the
-// inter-service is_underage endpoint
-type UnderageResponsePayload struct {
-	IsUnderAge bool `json:"isUnderAge"`
-}
-
 // OKResp is used to return OK responses in inter-service calls
 type OKResp struct {
 	Status string `json:"status"`

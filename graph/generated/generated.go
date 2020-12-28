@@ -192,8 +192,6 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AcceptTermsAndConditions         func(childComplexity int, accept bool) int
-		AddCustomer                      func(childComplexity int, name string) int
-		AddCustomerKyc                   func(childComplexity int, input profile.CustomerKYCInput) int
 		AddIndividualCoachKyc            func(childComplexity int, input profile.IndividualCoach) int
 		AddIndividualNutritionKyc        func(childComplexity int, input profile.IndividualNutrition) int
 		AddIndividualPharmaceuticalKyc   func(childComplexity int, input profile.IndividualPharmaceutical) int
@@ -221,10 +219,8 @@ type ComplexityRoot struct {
 		SetUserPin                       func(childComplexity int, msisdn string, pin string) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
 		SupplierSetDefaultLocation       func(childComplexity int, locatonID string) int
-		SuspendCustomer                  func(childComplexity int, uid string) int
 		SuspendSupplier                  func(childComplexity int, uid string) int
 		UpdateBiodata                    func(childComplexity int, input profile.BiodataInput) int
-		UpdateCustomer                   func(childComplexity int, input profile.CustomerKYCInput) int
 		UpdateUserPin                    func(childComplexity int, msisdn string, pin string) int
 		UpdateUserProfile                func(childComplexity int, input profile.UserProfileInput) int
 		VerifyEmailOtp                   func(childComplexity int, email string, otp string, flavour base.Flavour) int
@@ -351,6 +347,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+<<<<<<< HEAD
 		ApprovePractitionerSignup     func(childComplexity int) int
 		CheckUserWithMsisdn           func(childComplexity int, msisdn string) int
 		FetchKYCProcessingRequests    func(childComplexity int) int
@@ -370,6 +367,26 @@ type ComplexityRoot struct {
 		VerifyMSISDNandPin            func(childComplexity int, msisdn string, pin string) int
 		__resolve__service            func(childComplexity int) int
 		__resolve_entities            func(childComplexity int, representations []map[string]interface{}) int
+=======
+		ApprovePractitionerSignup        func(childComplexity int) int
+		FetchKYCProcessingRequests       func(childComplexity int) int
+		FetchSupplierAllowedLocations    func(childComplexity int) int
+		FindBranch                       func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) int
+		FindProfile                      func(childComplexity int) int
+		FindProvider                     func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) int
+		GetKMPDURegisteredPractitioner   func(childComplexity int, regno string) int
+		GetOrCreateUserProfile           func(childComplexity int, phone string) int
+		GetProfile                       func(childComplexity int, uid string) int
+		GetSignUpMethod                  func(childComplexity int, id string) int
+		ListKMPDURegisteredPractitioners func(childComplexity int, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) int
+		ListTesters                      func(childComplexity int) int
+		RejectPractitionerSignup         func(childComplexity int) int
+		RequestPinReset                  func(childComplexity int, msisdn string) int
+		SupplierProfile                  func(childComplexity int, uid string) int
+		UserProfile                      func(childComplexity int) int
+		__resolve__service               func(childComplexity int) int
+		__resolve_entities               func(childComplexity int, representations []map[string]interface{}) int
+>>>>>>> remove: cleanup remove customers
 	}
 
 	ReceivablesAccount struct {
@@ -477,12 +494,8 @@ type MutationResolver interface {
 	SetLanguagePreference(ctx context.Context, language base.Language) (bool, error)
 	VerifyEmailOtp(ctx context.Context, email string, otp string, flavour base.Flavour) (bool, error)
 	CreateSignUpMethod(ctx context.Context, signUpMethod profile.SignUpMethod) (bool, error)
-	AddCustomer(ctx context.Context, name string) (*profile.Customer, error)
-	AddCustomerKyc(ctx context.Context, input profile.CustomerKYCInput) (*profile.CustomerKYC, error)
-	UpdateCustomer(ctx context.Context, input profile.CustomerKYCInput) (*profile.Customer, error)
 	AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error)
 	AddPartnerType(ctx context.Context, name string, partnerType profile.PartnerType) (bool, error)
-	SuspendCustomer(ctx context.Context, uid string) (bool, error)
 	SuspendSupplier(ctx context.Context, uid string) (bool, error)
 	SetUpSupplier(ctx context.Context, accountType profile.AccountType) (*profile.Supplier, error)
 	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*profile.BranchConnection, error)
@@ -506,10 +519,14 @@ type QueryResolver interface {
 	FindProfile(ctx context.Context) (*base.UserProfile, error)
 	GetProfile(ctx context.Context, uid string) (*base.UserProfile, error)
 	ListTesters(ctx context.Context) ([]string, error)
+<<<<<<< HEAD
 	IsUnderAge(ctx context.Context) (bool, error)
 	VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error)
+=======
+	ListKMPDURegisteredPractitioners(ctx context.Context, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) (*profile.KMPDUPractitionerConnection, error)
+	GetKMPDURegisteredPractitioner(ctx context.Context, regno string) (*profile.KMPDUPractitioner, error)
+>>>>>>> remove: cleanup remove customers
 	RequestPinReset(ctx context.Context, msisdn string) (string, error)
-	CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, error)
 	GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error)
 	SupplierProfile(ctx context.Context, uid string) (*profile.Supplier, error)
 	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) (*profile.BusinessPartnerConnection, error)
@@ -1159,30 +1176,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AcceptTermsAndConditions(childComplexity, args["accept"].(bool)), true
 
-	case "Mutation.addCustomer":
-		if e.complexity.Mutation.AddCustomer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addCustomer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddCustomer(childComplexity, args["name"].(string)), true
-
-	case "Mutation.addCustomerKYC":
-		if e.complexity.Mutation.AddCustomerKyc == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addCustomerKYC_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddCustomerKyc(childComplexity, args["input"].(profile.CustomerKYCInput)), true
-
 	case "Mutation.addIndividualCoachKYC":
 		if e.complexity.Mutation.AddIndividualCoachKyc == nil {
 			break
@@ -1502,18 +1495,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SupplierSetDefaultLocation(childComplexity, args["locatonID"].(string)), true
 
-	case "Mutation.suspendCustomer":
-		if e.complexity.Mutation.SuspendCustomer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_suspendCustomer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SuspendCustomer(childComplexity, args["uid"].(string)), true
-
 	case "Mutation.suspendSupplier":
 		if e.complexity.Mutation.SuspendSupplier == nil {
 			break
@@ -1537,18 +1518,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateBiodata(childComplexity, args["input"].(profile.BiodataInput)), true
-
-	case "Mutation.updateCustomer":
-		if e.complexity.Mutation.UpdateCustomer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateCustomer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateCustomer(childComplexity, args["input"].(profile.CustomerKYCInput)), true
 
 	case "Mutation.updateUserPIN":
 		if e.complexity.Mutation.UpdateUserPin == nil {
@@ -2202,18 +2171,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ApprovePractitionerSignup(childComplexity), true
 
-	case "Query.checkUserWithMsisdn":
-		if e.complexity.Query.CheckUserWithMsisdn == nil {
-			break
-		}
-
-		args, err := ec.field_Query_checkUserWithMsisdn_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.CheckUserWithMsisdn(childComplexity, args["msisdn"].(string)), true
-
 	case "Query.fetchKYCProcessingRequests":
 		if e.complexity.Query.FetchKYCProcessingRequests == nil {
 			break
@@ -2295,12 +2252,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetSignUpMethod(childComplexity, args["id"].(string)), true
 
+<<<<<<< HEAD
 	case "Query.isUnderAge":
 		if e.complexity.Query.IsUnderAge == nil {
 			break
 		}
 
 		return e.complexity.Query.IsUnderAge(childComplexity), true
+=======
+	case "Query.listKMPDURegisteredPractitioners":
+		if e.complexity.Query.ListKMPDURegisteredPractitioners == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listKMPDURegisteredPractitioners_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListKMPDURegisteredPractitioners(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].(*base.FilterInput), args["sort"].(*base.SortInput)), true
+>>>>>>> remove: cleanup remove customers
 
 	case "Query.listTesters":
 		if e.complexity.Query.ListTesters == nil {
@@ -2346,18 +2317,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.UserProfile(childComplexity), true
-
-	case "Query.verifyMSISDNandPIN":
-		if e.complexity.Query.VerifyMSISDNandPin == nil {
-			break
-		}
-
-		args, err := ec.field_Query_verifyMSISDNandPIN_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.VerifyMSISDNandPin(childComplexity, args["msisdn"].(string), args["pin"].(string)), true
 
 	case "Query._service":
 		if e.complexity.Query.__resolve__service == nil {
@@ -3376,10 +3335,18 @@ input OrganizationPharmaceuticalInput {
   findProfile: UserProfile!
   getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
+<<<<<<< HEAD
   isUnderAge: Boolean!
   verifyMSISDNandPIN(msisdn: String!, pin: String!): Boolean!
+=======
+  listKMPDURegisteredPractitioners(
+    pagination: PaginationInput
+    filter: FilterInput
+    sort: SortInput
+  ): KMPDUPractitionerConnection!
+  getKMPDURegisteredPractitioner(regno: String!): KMPDUPractitioner!
+>>>>>>> remove: cleanup remove customers
   requestPinReset(msisdn: String!): String!
-  checkUserWithMsisdn(msisdn: String!): Boolean!
   getSignUpMethod(id: String!): SignUpMethod!
   supplierProfile(uid: String!): Supplier!
   findProvider(
@@ -3414,15 +3381,11 @@ extend type Mutation {
   setLanguagePreference(language: Language!): Boolean!
   verifyEmailOTP(email: String!, otp: String!, flavour: Flavour!): Boolean!
   createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
-  addCustomer(name: String!): Customer!
-  addCustomerKYC(input: CustomerKYCInput!): CustomerKYC!
-  updateCustomer(input: CustomerKYCInput!): Customer!
   addPractitionerServices(
     services: PractitionerServiceInput!
     otherServices: OtherPractitionerServiceInput
   ): Boolean!
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
-  suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
   setUpSupplier(accountType: AccountType!): Supplier
   supplierEDILogin(
@@ -3975,36 +3938,6 @@ func (ec *executionContext) field_Mutation_acceptTermsAndConditions_args(ctx con
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_addCustomerKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 profile.CustomerKYCInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCustomerKYCInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomerKYCInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_addCustomer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_addIndividualCoachKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4458,21 +4391,6 @@ func (ec *executionContext) field_Mutation_supplierSetDefaultLocation_args(ctx c
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_suspendCustomer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["uid"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uid"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["uid"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_suspendSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4495,21 +4413,6 @@ func (ec *executionContext) field_Mutation_updateBiodata_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNBiodataInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBiodataInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_updateCustomer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 profile.CustomerKYCInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCustomerKYCInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomerKYCInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4617,21 +4520,6 @@ func (ec *executionContext) field_Query__entities_args(ctx context.Context, rawA
 		}
 	}
 	args["representations"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_checkUserWithMsisdn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["msisdn"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("msisdn"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["msisdn"] = arg0
 	return args, nil
 }
 
@@ -4773,30 +4661,6 @@ func (ec *executionContext) field_Query_supplierProfile_args(ctx context.Context
 		}
 	}
 	args["uid"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_verifyMSISDNandPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["msisdn"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("msisdn"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["msisdn"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["pin"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["pin"] = arg1
 	return args, nil
 }
 
@@ -8419,132 +8283,6 @@ func (ec *executionContext) _Mutation_createSignUpMethod(ctx context.Context, fi
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addCustomer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addCustomer_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddCustomer(rctx, args["name"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*profile.Customer)
-	fc.Result = res
-	return ec.marshalNCustomer2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomer(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_addCustomerKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addCustomerKYC_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddCustomerKyc(rctx, args["input"].(profile.CustomerKYCInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*profile.CustomerKYC)
-	fc.Result = res
-	return ec.marshalNCustomerKYC2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomerKYC(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_updateCustomer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateCustomer_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateCustomer(rctx, args["input"].(profile.CustomerKYCInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*profile.Customer)
-	fc.Result = res
-	return ec.marshalNCustomer2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomer(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_addPractitionerServices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8613,48 +8351,6 @@ func (ec *executionContext) _Mutation_addPartnerType(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().AddPartnerType(rctx, args["name"].(string), args["partnerType"].(profile.PartnerType))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_suspendCustomer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_suspendCustomer_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SuspendCustomer(rctx, args["uid"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12457,83 +12153,6 @@ func (ec *executionContext) _Query_listTesters(ctx context.Context, field graphq
 	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_isUnderAge(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().IsUnderAge(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_verifyMSISDNandPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_verifyMSISDNandPIN_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().VerifyMSISDNandPin(rctx, args["msisdn"].(string), args["pin"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_requestPinReset(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12574,48 +12193,6 @@ func (ec *executionContext) _Query_requestPinReset(ctx context.Context, field gr
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_checkUserWithMsisdn(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_checkUserWithMsisdn_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().CheckUserWithMsisdn(rctx, args["msisdn"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getSignUpMethod(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18854,21 +18431,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "addCustomer":
-			out.Values[i] = ec._Mutation_addCustomer(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "addCustomerKYC":
-			out.Values[i] = ec._Mutation_addCustomerKYC(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updateCustomer":
-			out.Values[i] = ec._Mutation_updateCustomer(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "addPractitionerServices":
 			out.Values[i] = ec._Mutation_addPractitionerServices(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -18876,11 +18438,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addPartnerType":
 			out.Values[i] = ec._Mutation_addPartnerType(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "suspendCustomer":
-			out.Values[i] = ec._Mutation_suspendCustomer(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19617,7 +19174,11 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+<<<<<<< HEAD
 		case "isUnderAge":
+=======
+		case "listKMPDURegisteredPractitioners":
+>>>>>>> remove: cleanup remove customers
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -19625,13 +19186,21 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
+<<<<<<< HEAD
 				res = ec._Query_isUnderAge(ctx, field)
+=======
+				res = ec._Query_listKMPDURegisteredPractitioners(ctx, field)
+>>>>>>> remove: cleanup remove customers
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			})
+<<<<<<< HEAD
 		case "verifyMSISDNandPIN":
+=======
+		case "getKMPDURegisteredPractitioner":
+>>>>>>> remove: cleanup remove customers
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -19639,7 +19208,11 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
+<<<<<<< HEAD
 				res = ec._Query_verifyMSISDNandPIN(ctx, field)
+=======
+				res = ec._Query_getKMPDURegisteredPractitioner(ctx, field)
+>>>>>>> remove: cleanup remove customers
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -19654,20 +19227,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_requestPinReset(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "checkUserWithMsisdn":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_checkUserWithMsisdn(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -20632,37 +20191,8 @@ func (ec *executionContext) marshalNCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋb
 	return ret
 }
 
-func (ec *executionContext) marshalNCustomer2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomer(ctx context.Context, sel ast.SelectionSet, v profile.Customer) graphql.Marshaler {
-	return ec._Customer(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNCustomer2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomer(ctx context.Context, sel ast.SelectionSet, v *profile.Customer) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Customer(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNCustomerKYC2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomerKYC(ctx context.Context, sel ast.SelectionSet, v profile.CustomerKYC) graphql.Marshaler {
 	return ec._CustomerKYC(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNCustomerKYC2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomerKYC(ctx context.Context, sel ast.SelectionSet, v *profile.CustomerKYC) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._CustomerKYC(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNCustomerKYCInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐCustomerKYCInput(ctx context.Context, v interface{}) (profile.CustomerKYCInput, error) {
-	res, err := ec.unmarshalInputCustomerKYCInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, v interface{}) (base.Date, error) {

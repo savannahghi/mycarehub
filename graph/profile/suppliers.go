@@ -21,6 +21,9 @@ import (
 
 const (
 	supplierAPIPath        = "/api/business_partners/suppliers/"
+	customerAPIPath        = "/api/business_partners/customers/"
+	active                 = true
+	country                = "KEN" // Anticipate worldwide expansion
 	supplierCollectionName = "suppliers"
 	isSupplier             = true
 	futureHours            = 878400

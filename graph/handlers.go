@@ -86,9 +86,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()
 	isc.Use(base.InterServiceAuthenticationMiddleware())
-	isc.Path("/customer").Methods(
-		http.MethodPost, http.MethodOptions,
-	).HandlerFunc(FindCustomerByUIDHandler(ctx, srv))
 	isc.Path("/supplier").Methods(
 		http.MethodPost, http.MethodOptions,
 	).HandlerFunc(FindSupplierByUIDHandler(ctx, srv))
@@ -103,9 +100,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	isc.Path("/save_cover").Methods(
 		http.MethodPost,
 	).HandlerFunc(SaveMemberCoverHandler(ctx, srv))
-	isc.Path("/is_underage").Methods(
-		http.MethodPost,
-	).HandlerFunc(IsUnderAgeHandler(ctx, srv))
 
 	// Authenticated routes
 	gqlR := r.Path("/graphql").Subrouter()
@@ -246,6 +240,7 @@ func ResetPinHandler(ctx context.Context) http.HandlerFunc {
 
 	}
 }
+
 // RetrieveUserProfileHandler process requests for ISC to RetrieveUserProfileFirebaseDocSnapshot
 func RetrieveUserProfileHandler(ctx context.Context, srv *profile.Service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
@@ -320,42 +315,6 @@ func SaveMemberCoverHandler(
 			profile.SaveResponsePayload{SuccessfullySaved: true},
 			http.StatusOK,
 		)
-	}
-}
-
-// IsUnderAgeHandler process ISC requests to IsUnderAge
-func IsUnderAgeHandler(
-	ctx context.Context,
-	srv *profile.Service,
-) http.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request) {
-		var userContext profile.BusinessPartnerUID
-		base.DecodeJSONToTargetStruct(rw, r, &userContext)
-		if userContext.UID == "" {
-			base.RespondWithError(
-				rw,
-				http.StatusBadRequest,
-				fmt.Errorf("blank UID"),
-			)
-			return
-		}
-
-		token := &auth.Token{UID: userContext.UID}
-		authenticatedContext := context.WithValue(
-			ctx,
-			base.AuthTokenContextKey,
-			token,
-		)
-		isUnderAge, err := srv.IsUnderAge(authenticatedContext)
-		if err != nil {
-			base.RespondWithError(rw, http.StatusInternalServerError, err)
-			return
-		}
-
-		payload := profile.UnderageResponsePayload{
-			IsUnderAge: isUnderAge,
-		}
-		base.WriteJSONResponse(rw, payload, http.StatusOK)
 	}
 }
 
@@ -450,44 +409,6 @@ func PhoneSignIn(ctx context.Context, s *profile.Service) http.HandlerFunc {
 		}
 
 		base.WriteJSONResponse(w, response, http.StatusOK)
-	}
-}
-
-// FindCustomerByUIDHandler is a used for inter service communication
-// to return details about a customer
-func FindCustomerByUIDHandler(
-	ctx context.Context,
-	service *profile.Service,
-) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		bpUID, err := profile.ValidateUID(w, r)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		token := &auth.Token{UID: bpUID.UID}
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, token)
-		customer, err := service.FindCustomer(newContext, bpUID.UID)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusNotFound)
-			return
-		}
-		customerResponse := profile.CustomerResponse{
-			CustomerID:         customer.CustomerID,
-			ReceivablesAccount: customer.ReceivablesAccount,
-			Profile: profile.BioData{
-				Name:       customer.UserProfile.Name,
-				Gender:     customer.UserProfile.Gender,
-				Msisdns:    customer.UserProfile.Msisdns,
-				Emails:     customer.UserProfile.Emails,
-				PushTokens: customer.UserProfile.PushTokens,
-				Bio:        customer.UserProfile.Bio,
-			},
-			CustomerKYC: customer.CustomerKYC,
-		}
-
-		base.WriteJSONResponse(w, customerResponse, http.StatusOK)
 	}
 }
 

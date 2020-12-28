@@ -32,7 +32,6 @@ func TestMain(m *testing.M) {
 			s.GetPINCollectionName(),
 			s.GetUserProfileCollectionName(),
 			s.GetPractitionerCollectionName(),
-			s.GetCustomerCollectionName(),
 			s.GetSignUpInfoCollectionName(),
 			s.GetSupplierCollectionName(),
 			s.GetSurveyCollectionName(),
@@ -852,64 +851,6 @@ func TestService_RejectPractitionerSignup(t *testing.T) {
 	}
 }
 
-func TestService_IsUnderAge(t *testing.T) {
-	service := NewService()
-	ctx := base.GetAuthenticatedContext(t)
-	profile, err := service.UserProfile(ctx)
-	if err != nil {
-		t.Errorf("got %v, want %v", err, nil)
-	}
-	date := &base.Date{
-		Year:  1997,
-		Month: 12,
-		Day:   13,
-	}
-	profile.DateOfBirth = date
-	dsnap, err := service.RetrieveUserProfileFirebaseDocSnapshot(ctx)
-	if err != nil {
-		t.Errorf("got %v, want %v", err, nil)
-	}
-	err = base.UpdateRecordOnFirestore(
-		service.firestoreClient, service.GetUserProfileCollectionName(),
-		dsnap.Ref.ID, profile,
-	)
-	if err != nil {
-		t.Errorf("got %v, want %v", err, nil)
-	}
-
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "good case",
-			args: args{
-				ctx: ctx,
-			},
-			want:    false,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := service
-			got, err := s.IsUnderAge(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.IsUnderAge() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("Service.IsUnderAge() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestService_SetUserPin(t *testing.T) {
 	service := NewService()
 	ctx := base.GetPhoneNumberAuthenticatedContext(t)
@@ -964,55 +905,6 @@ func TestService_SetUserPin(t *testing.T) {
 			profile, err := s.UserProfile(ctx)
 			if err == nil {
 				assert.True(t, profile.HasPin)
-			}
-		})
-	}
-}
-
-func TestService_VerifyMSISDNandPin(t *testing.T) {
-	service := NewService()
-	type args struct {
-		ctx    context.Context
-		msisdn string
-		pin    string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "happy case",
-			args: args{
-				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: base.TestUserPhoneNumber,
-				pin:    "1234",
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "sad case",
-			args: args{
-				ctx:    base.GetPhoneNumberAuthenticatedContext(t),
-				msisdn: "not even close to an msisdn",
-				pin:    "1256",
-			},
-			want:    false,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := service
-			got, err := s.VerifyMSISDNandPIN(tt.args.ctx, tt.args.msisdn, tt.args.pin)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.VerifyMSISDNandPIN() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("Service.VerifyMSISDNandPIN() = %v, want %v", got, tt.want)
 			}
 		})
 	}

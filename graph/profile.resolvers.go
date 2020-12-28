@@ -101,24 +101,6 @@ func (r *mutationResolver) CreateSignUpMethod(ctx context.Context, signUpMethod 
 	return r.profileService.CreateSignUpMethod(ctx, signUpMethod)
 }
 
-func (r *mutationResolver) AddCustomer(ctx context.Context, name string) (*profile.Customer, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.AddCustomer(ctx, nil, name)
-}
-
-func (r *mutationResolver) AddCustomerKyc(ctx context.Context, input profile.CustomerKYCInput) (*profile.CustomerKYC, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.AddCustomerKYC(ctx, input)
-}
-
-func (r *mutationResolver) UpdateCustomer(ctx context.Context, input profile.CustomerKYCInput) (*profile.Customer, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.UpdateCustomer(ctx, input)
-}
-
 func (r *mutationResolver) AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
@@ -129,12 +111,6 @@ func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, part
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.AddPartnerType(ctx, &name, &partnerType)
-}
-
-func (r *mutationResolver) SuspendCustomer(ctx context.Context, uid string) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.SuspendCustomer(ctx, uid)
 }
 
 func (r *mutationResolver) SuspendSupplier(ctx context.Context, uid string) (bool, error) {
@@ -263,28 +239,10 @@ func (r *queryResolver) ListTesters(ctx context.Context) ([]string, error) {
 	return r.profileService.ListTesters(ctx)
 }
 
-func (r *queryResolver) IsUnderAge(ctx context.Context) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.IsUnderAge(ctx)
-}
-
-func (r *queryResolver) VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.VerifyMSISDNandPIN(ctx, msisdn, pin)
-}
-
 func (r *queryResolver) RequestPinReset(ctx context.Context, msisdn string) (string, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.RequestPINReset(ctx, msisdn)
-}
-
-func (r *queryResolver) CheckUserWithMsisdn(ctx context.Context, msisdn string) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.CheckHasPIN(ctx, msisdn)
 }
 
 func (r *queryResolver) GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error) {

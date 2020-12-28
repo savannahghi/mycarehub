@@ -85,23 +85,6 @@ should also be set on Google Cloud Run.
 }
 ```
 
-### `/is_underage`  
-
-Process post request with a payload with a context
-
-```golang
-    type UserContext struct {
-        Token *auth.Token `json:"token"`
-    }
-```
-
-returns a response with json
-
-```golang
-    type Payload struct {
-        IsUnderAge bool `json:"isUnderAge"`
-    }
-```
 
 ### `customer`
 

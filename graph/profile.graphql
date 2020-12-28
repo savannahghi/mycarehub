@@ -4,10 +4,7 @@ extend type Query {
   findProfile: UserProfile!
   getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
-  isUnderAge: Boolean!
-  verifyMSISDNandPIN(msisdn: String!, pin: String!): Boolean!
   requestPinReset(msisdn: String!): String!
-  checkUserWithMsisdn(msisdn: String!): Boolean!
   getSignUpMethod(id: String!): SignUpMethod!
   supplierProfile(uid: String!): Supplier!
   findProvider(
@@ -42,15 +39,11 @@ extend type Mutation {
   setLanguagePreference(language: Language!): Boolean!
   verifyEmailOTP(email: String!, otp: String!, flavour: Flavour!): Boolean!
   createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
-  addCustomer(name: String!): Customer!
-  addCustomerKYC(input: CustomerKYCInput!): CustomerKYC!
-  updateCustomer(input: CustomerKYCInput!): Customer!
   addPractitionerServices(
     services: PractitionerServiceInput!
     otherServices: OtherPractitionerServiceInput
   ): Boolean!
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
-  suspendCustomer(uid: String!): Boolean!
   suspendSupplier(uid: String!): Boolean!
   setUpSupplier(accountType: AccountType!): Supplier
   supplierEDILogin(

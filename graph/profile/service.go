@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -968,27 +967,6 @@ func (s Service) ListTesters(ctx context.Context) ([]string, error) {
 	return emails, nil
 }
 
-// IsUnderAge checks if the user in context is an underage or not
-func (s Service) IsUnderAge(ctx context.Context) (bool, error) {
-	userProfile, err := s.UserProfile(ctx)
-	if err != nil {
-		return false, fmt.Errorf("can't retrieve user profile when getting the age: %w", err)
-	}
-	dob := userProfile.DateOfBirth
-	if dob == nil {
-		log.Printf("user %s does not have a date of birth", userProfile.ID)
-		return true, nil
-	}
-	dateOfBirth := dob.AsTime()
-	today := time.Now()
-	age := math.Floor(today.Sub(dateOfBirth).Hours() / 24 / 365)
-	if age >= legalAge {
-		return false, nil
-	}
-
-	return true, nil
-}
-
 //SetUserPIN receives phone number and pin from phonenumber sign up
 // and save them to Firestore
 func (s Service) SetUserPIN(ctx context.Context, msisdn string, pin string) (bool, error) {
@@ -1051,44 +1029,6 @@ func (s Service) SetUserPIN(ctx context.Context, msisdn string, pin string) (boo
 	)
 	if err != nil {
 		return false, fmt.Errorf("unable to update user profile: %v", err)
-	}
-
-	return true, nil
-}
-
-// VerifyMSISDNandPIN verifies a given msisdn and pin match.
-func (s Service) VerifyMSISDNandPIN(ctx context.Context, msisdn string, pinNumber string) (bool, error) {
-	s.checkPreconditions()
-	phoneNumber, err := base.NormalizeMSISDN(msisdn)
-	if err != nil {
-		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
-	}
-	dsnap, err := s.RetrievePINFirebaseDocSnapshotByMSISDN(ctx, phoneNumber)
-	if err != nil {
-		return false, fmt.Errorf("unable to retrieve pin given the msisdn: %v", err)
-	}
-	if dsnap == nil {
-		return false, fmt.Errorf("VerifyMSISDNandPIN: unable to retrieve user PIN")
-	}
-
-	msisdnPin := &PIN{}
-	err = dsnap.DataTo(msisdnPin)
-	if err != nil {
-		return false, fmt.Errorf("unable to read PIN: %w", err)
-	}
-
-	err = s.encryptExistingPin(msisdnPin, dsnap)
-	if err != nil {
-		return false, err
-	}
-
-	// compare if the two PINS match
-	isMatch, err := ComparePIN(msisdnPin.PINNumber, pinNumber)
-	if err != nil {
-		return false, fmt.Errorf("unable to match PIN Number provided: %w", err)
-	}
-	if !isMatch {
-		return false, nil
 	}
 
 	return true, nil
