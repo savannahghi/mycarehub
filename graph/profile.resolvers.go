@@ -216,18 +216,6 @@ func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, err
 	return r.profileService.UserProfile(ctx)
 }
 
-func (r *queryResolver) FindProfile(ctx context.Context) (*base.UserProfile, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.FindProfile(ctx)
-}
-
-func (r *queryResolver) GetProfile(ctx context.Context, uid string) (*base.UserProfile, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.GetProfile(ctx, uid)
-}
-
 func (r *queryResolver) ListTesters(ctx context.Context) ([]string, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
@@ -238,12 +226,6 @@ func (r *queryResolver) RequestPinReset(ctx context.Context, msisdn string) (str
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.RequestPINReset(ctx, msisdn)
-}
-
-func (r *queryResolver) GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.GetSignUpMethod(ctx, id)
 }
 
 func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) (*profile.BusinessPartnerConnection, error) {

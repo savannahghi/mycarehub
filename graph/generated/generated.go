@@ -350,10 +350,7 @@ type ComplexityRoot struct {
 		FetchKYCProcessingRequests    func(childComplexity int) int
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) int
-		FindProfile                   func(childComplexity int) int
 		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) int
-		GetProfile                    func(childComplexity int, uid string) int
-		GetSignUpMethod               func(childComplexity int, id string) int
 		ListTesters                   func(childComplexity int) int
 		RequestPinReset               func(childComplexity int, msisdn string) int
 		UserProfile                   func(childComplexity int) int
@@ -487,11 +484,8 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
-	FindProfile(ctx context.Context) (*base.UserProfile, error)
-	GetProfile(ctx context.Context, uid string) (*base.UserProfile, error)
 	ListTesters(ctx context.Context) ([]string, error)
 	RequestPinReset(ctx context.Context, msisdn string) (string, error)
-	GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error)
 	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) (*profile.BusinessPartnerConnection, error)
 	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) (*profile.BranchConnection, error)
 	FetchSupplierAllowedLocations(ctx context.Context) (*profile.BranchConnection, error)
@@ -2151,13 +2145,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FindBranch(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*profile.BranchFilterInput), args["sort"].([]*profile.BranchSortInput)), true
 
-	case "Query.findProfile":
-		if e.complexity.Query.FindProfile == nil {
-			break
-		}
-
-		return e.complexity.Query.FindProfile(childComplexity), true
-
 	case "Query.findProvider":
 		if e.complexity.Query.FindProvider == nil {
 			break
@@ -2169,30 +2156,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindProvider(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*profile.BusinessPartnerFilterInput), args["sort"].([]*profile.BusinessPartnerSortInput)), true
-
-	case "Query.getProfile":
-		if e.complexity.Query.GetProfile == nil {
-			break
-		}
-
-		args, err := ec.field_Query_getProfile_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetProfile(childComplexity, args["uid"].(string)), true
-
-	case "Query.getSignUpMethod":
-		if e.complexity.Query.GetSignUpMethod == nil {
-			break
-		}
-
-		args, err := ec.field_Query_getSignUpMethod_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetSignUpMethod(childComplexity, args["id"].(string)), true
 
 	case "Query.listTesters":
 		if e.complexity.Query.ListTesters == nil {
@@ -3233,11 +3196,8 @@ input OrganizationPharmaceuticalInput {
 `, BuiltIn: false},
 	{Name: "graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
-  findProfile: UserProfile!
-  getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
   requestPinReset(msisdn: String!): String!
-  getSignUpMethod(id: String!): SignUpMethod!
   findProvider(
     pagination: PaginationInput
     filter: [BusinessPartnerFilterInput]
@@ -4473,36 +4433,6 @@ func (ec *executionContext) field_Query_findProvider_args(ctx context.Context, r
 		}
 	}
 	args["sort"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_getProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["uid"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uid"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["uid"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_getSignUpMethod_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -11856,83 +11786,6 @@ func (ec *executionContext) _Query_userProfile(ctx context.Context, field graphq
 	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_findProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindProfile(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*base.UserProfile)
-	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_getProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_getProfile_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetProfile(rctx, args["uid"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*base.UserProfile)
-	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_listTesters(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12008,48 +11861,6 @@ func (ec *executionContext) _Query_requestPinReset(ctx context.Context, field gr
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_getSignUpMethod(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_getSignUpMethod_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetSignUpMethod(rctx, args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(profile.SignUpMethod)
-	fc.Result = res
-	return ec.marshalNSignUpMethod2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSignUpMethod(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_findProvider(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18821,34 +18632,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "findProfile":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_findProfile(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "getProfile":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getProfile(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "listTesters":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -18872,20 +18655,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_requestPinReset(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "getSignUpMethod":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getSignUpMethod(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

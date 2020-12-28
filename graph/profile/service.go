@@ -324,37 +324,6 @@ func (s Service) GetProfileByID(ctx context.Context, id string) (*base.UserProfi
 	return userProfile, nil
 }
 
-// FindProfile returns a user profile if it exists and returns a nil if the
-// profile does not exist instead of creating a new default profile
-// This purely handles the issue of backwards compatibility and should be depreciated
-// once the side effects are handled.
-func (s Service) FindProfile(ctx context.Context) (*base.UserProfile, error) {
-	s.checkPreconditions()
-
-	uid, err := base.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-	}
-
-	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx, uid, s.GetUserProfileCollectionName(), "verifiedIdentifiers")
-	if err != nil {
-		return nil, fmt.Errorf("unable to get a profile dsnap for this user: %v", err)
-	}
-
-	if dsnap == nil {
-		return nil, fmt.Errorf("the user's profile has not been found")
-	}
-
-	userProfile := &base.UserProfile{}
-	err = dsnap.DataTo(userProfile)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read user profile: %w", err)
-	}
-
-	return userProfile, nil
-}
-
 // AcceptTermsAndConditions updates the profile of the logged in user to indicate that they
 // have accepted the terms and conditions
 func (s Service) AcceptTermsAndConditions(
@@ -1220,37 +1189,6 @@ func (s Service) CreateSignUpMethod(ctx context.Context, signUpMethod SignUpMeth
 	}
 
 	return true, nil
-}
-
-// GetSignUpMethod returns a user's sign up method
-func (s Service) GetSignUpMethod(ctx context.Context, id string) (SignUpMethod, error) {
-	s.checkPreconditions()
-
-	collection := s.firestoreClient.Collection(s.GetSignUpInfoCollectionName())
-	query := collection.Where("uid", "==", id)
-	docs, err := query.Documents(ctx).GetAll()
-	if err != nil {
-		return "", fmt.Errorf("unable to fetch sign up info: %w", err)
-	}
-	if len(docs) > 1 {
-		if base.IsDebug() {
-			log.Printf("more than one snapshot found (they have %d)", len(docs))
-		}
-	}
-	if len(docs) == 0 {
-		return "", nil
-	}
-	dsnap := docs[0]
-
-	info := &SignUpInfo{}
-	err = dsnap.DataTo(info)
-	if err != nil {
-		return "", fmt.Errorf("unable to read sign up info: %w", err)
-	}
-
-	signUpMethod := info.SignUpMethod
-
-	return signUpMethod, nil
 }
 
 // AddPractitionerServices persists a practitioner services to firestore

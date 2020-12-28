@@ -1,10 +1,7 @@
 extend type Query {
   userProfile: UserProfile!
-  findProfile: UserProfile!
-  getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
   requestPinReset(msisdn: String!): String!
-  getSignUpMethod(id: String!): SignUpMethod!
   findProvider(
     pagination: PaginationInput
     filter: [BusinessPartnerFilterInput]
