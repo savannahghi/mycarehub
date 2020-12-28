@@ -4,12 +4,6 @@ extend type Query {
   findProfile: UserProfile!
   getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
-  listKMPDURegisteredPractitioners(
-    pagination: PaginationInput
-    filter: FilterInput
-    sort: SortInput
-  ): KMPDUPractitionerConnection!
-  getKMPDURegisteredPractitioner(regno: String!): KMPDUPractitioner!
   isUnderAge: Boolean!
   verifyMSISDNandPIN(msisdn: String!, pin: String!): Boolean!
   requestPinReset(msisdn: String!): String!

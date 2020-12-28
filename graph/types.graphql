@@ -24,27 +24,6 @@ type PractitionerConnection {
   pageInfo: PageInfo!
 }
 
-type KMPDUPractitioner {
-  name: String!
-  regno: String!
-  address: String!
-  qualifications: String!
-  speciality: String!
-  subspeciality: String!
-  licensetype: String!
-  active: String!
-}
-
-type KMPDUPractitionerEdge {
-  cursor: String
-  node: KMPDUPractitioner
-}
-
-type KMPDUPractitionerConnection {
-  edges: [KMPDUPractitionerEdge]
-  pageInfo: PageInfo!
-}
-
 type Cover {
   payerName: String!
   payerSladeCode: Int!
