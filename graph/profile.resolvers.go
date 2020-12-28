@@ -12,46 +12,16 @@ import (
 	"gitlab.slade360emr.com/go/profile/graph/profile"
 )
 
-func (r *mutationResolver) ConfirmEmail(ctx context.Context, email string) (*base.UserProfile, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.ConfirmEmail(ctx, email)
-}
-
-func (r *mutationResolver) AcceptTermsAndConditions(ctx context.Context, accept bool) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.AcceptTermsAndConditions(ctx, accept)
-}
-
 func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input profile.UserProfileInput) (*base.UserProfile, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.UpdateUserProfile(ctx, input)
 }
 
-func (r *mutationResolver) PractitionerSignUp(ctx context.Context, input profile.PractitionerSignupInput) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.PractitionerSignUp(ctx, input)
-}
-
-func (r *mutationResolver) UpdateBiodata(ctx context.Context, input profile.BiodataInput) (*base.UserProfile, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.UpdateBiodata(ctx, input)
-}
-
 func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.RegisterPushToken(ctx, token)
-}
-
-func (r *mutationResolver) CompleteSignup(ctx context.Context) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.CompleteSignup(ctx)
 }
 
 func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input profile.PostVisitSurveyInput) (bool, error) {
@@ -72,40 +42,10 @@ func (r *mutationResolver) RemoveTester(ctx context.Context, email string) (bool
 	return r.profileService.RemoveTester(ctx, email)
 }
 
-func (r *mutationResolver) SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.SetUserPIN(ctx, msisdn, pin)
-}
-
 func (r *mutationResolver) UpdateUserPin(ctx context.Context, msisdn string, pin string) (bool, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()
 	return r.profileService.UpdateUserPIN(ctx, msisdn, pin)
-}
-
-func (r *mutationResolver) SetLanguagePreference(ctx context.Context, language base.Language) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.SetLanguagePreference(ctx, language)
-}
-
-func (r *mutationResolver) VerifyEmailOtp(ctx context.Context, email string, otp string, flavour base.Flavour) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.VerifyEmailOtp(ctx, email, otp, flavour)
-}
-
-func (r *mutationResolver) CreateSignUpMethod(ctx context.Context, signUpMethod profile.SignUpMethod) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.CreateSignUpMethod(ctx, signUpMethod)
-}
-
-func (r *mutationResolver) AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.AddPractitionerServices(ctx, services, otherServices)
 }
 
 func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, partnerType profile.PartnerType) (bool, error) {

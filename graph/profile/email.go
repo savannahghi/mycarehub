@@ -60,39 +60,6 @@ func isTester(ctx context.Context, emails []string) bool {
 	return isTester
 }
 
-// generatePractitionerWelcomeEmailTemplate generates a welcome email
-func generatePractitionerWelcomeEmailTemplate() string {
-	t := template.Must(template.New("welcomeEmail").Parse(practitionerWelcomeEmail))
-	buf := new(bytes.Buffer)
-	err := t.Execute(buf, "")
-	if err != nil {
-		log.Fatalf("Error while generating practitioner welcome email template: %s", err)
-	}
-	return buf.String()
-}
-
-// generatePractitionerSignupEmailTemplate generates an signup email
-func generatePractitionerSignupEmailTemplate() string {
-	t := template.Must(template.New("signupemail").Parse(practitionerSignupEmail))
-	buf := new(bytes.Buffer)
-	err := t.Execute(buf, "")
-	if err != nil {
-		log.Fatalf("Error while generating practitioner sign up email template: %s", err)
-	}
-	return buf.String()
-}
-
-//generatePractitionerRejectionEmailTemplate generates the rejection email
-func generatePractitionerRejectionEmailTemplate() string {
-	t := template.Must(template.New("rejectionEmail").Parse(practitionerSignupRejectionEmail))
-	buf := new(bytes.Buffer)
-	err := t.Execute(buf, "")
-	if err != nil {
-		log.Fatalf("Error while generating practitioner rejection email template: %s", err)
-	}
-	return buf.String()
-}
-
 func generateProcessKYCApprovalEmailTemplate() string {
 	t := template.Must(template.New("approvalKYCEmail").Parse(processKYCApprovalEmail))
 	buf := new(bytes.Buffer)

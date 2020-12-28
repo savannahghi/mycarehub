@@ -31,16 +31,6 @@ type PractitionerEdge struct {
 	Node   *Practitioner `json:"node"`
 }
 
-// PractitionerSignupInput is used to sign up practitioners.
-//
-// The `uid` is obtained from the logged in user.
-type PractitionerSignupInput struct {
-	License   string                     `json:"license"`
-	Cadre     PractitionerCadre          `json:"cadre"`
-	Specialty base.PractitionerSpecialty `json:"specialty"`
-	Emails    []*string                  `json:"emails"`
-}
-
 // TesterWhitelist is used to maintain
 type TesterWhitelist struct {
 	base.Model

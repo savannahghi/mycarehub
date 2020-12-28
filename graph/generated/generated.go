@@ -191,7 +191,6 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcceptTermsAndConditions         func(childComplexity int, accept bool) int
 		AddIndividualCoachKyc            func(childComplexity int, input profile.IndividualCoach) int
 		AddIndividualNutritionKyc        func(childComplexity int, input profile.IndividualNutrition) int
 		AddIndividualPharmaceuticalKyc   func(childComplexity int, input profile.IndividualPharmaceutical) int
@@ -204,26 +203,17 @@ type ComplexityRoot struct {
 		AddOrganizationProviderKyc       func(childComplexity int, input profile.OrganizationProvider) int
 		AddOrganizationRiderKyc          func(childComplexity int, input profile.OrganizationRider) int
 		AddPartnerType                   func(childComplexity int, name string, partnerType profile.PartnerType) int
-		AddPractitionerServices          func(childComplexity int, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) int
 		AddTester                        func(childComplexity int, email string) int
-		CompleteSignup                   func(childComplexity int) int
-		ConfirmEmail                     func(childComplexity int, email string) int
-		CreateSignUpMethod               func(childComplexity int, signUpMethod profile.SignUpMethod) int
-		PractitionerSignUp               func(childComplexity int, input profile.PractitionerSignupInput) int
 		ProcessKYCRequest                func(childComplexity int, id string, status profile.KYCProcessStatus, rejectionReason *string) int
 		RecordPostVisitSurvey            func(childComplexity int, input profile.PostVisitSurveyInput) int
 		RegisterPushToken                func(childComplexity int, token string) int
 		RemoveTester                     func(childComplexity int, email string) int
-		SetLanguagePreference            func(childComplexity int, language base.Language) int
 		SetUpSupplier                    func(childComplexity int, accountType profile.AccountType) int
-		SetUserPin                       func(childComplexity int, msisdn string, pin string) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
 		SupplierSetDefaultLocation       func(childComplexity int, locatonID string) int
 		SuspendSupplier                  func(childComplexity int, uid string) int
-		UpdateBiodata                    func(childComplexity int, input profile.BiodataInput) int
 		UpdateUserPin                    func(childComplexity int, msisdn string, pin string) int
 		UpdateUserProfile                func(childComplexity int, input profile.UserProfileInput) int
-		VerifyEmailOtp                   func(childComplexity int, email string, otp string, flavour base.Flavour) int
 	}
 
 	OrganizationCoach struct {
@@ -448,22 +438,12 @@ type EntityResolver interface {
 	FindUserProfileByID(ctx context.Context, id string) (*base.UserProfile, error)
 }
 type MutationResolver interface {
-	ConfirmEmail(ctx context.Context, email string) (*base.UserProfile, error)
-	AcceptTermsAndConditions(ctx context.Context, accept bool) (bool, error)
 	UpdateUserProfile(ctx context.Context, input profile.UserProfileInput) (*base.UserProfile, error)
-	PractitionerSignUp(ctx context.Context, input profile.PractitionerSignupInput) (bool, error)
-	UpdateBiodata(ctx context.Context, input profile.BiodataInput) (*base.UserProfile, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
-	CompleteSignup(ctx context.Context) (bool, error)
 	RecordPostVisitSurvey(ctx context.Context, input profile.PostVisitSurveyInput) (bool, error)
 	AddTester(ctx context.Context, email string) (bool, error)
 	RemoveTester(ctx context.Context, email string) (bool, error)
-	SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
 	UpdateUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
-	SetLanguagePreference(ctx context.Context, language base.Language) (bool, error)
-	VerifyEmailOtp(ctx context.Context, email string, otp string, flavour base.Flavour) (bool, error)
-	CreateSignUpMethod(ctx context.Context, signUpMethod profile.SignUpMethod) (bool, error)
-	AddPractitionerServices(ctx context.Context, services profile.PractitionerServiceInput, otherServices *profile.OtherPractitionerServiceInput) (bool, error)
 	AddPartnerType(ctx context.Context, name string, partnerType profile.PartnerType) (bool, error)
 	SuspendSupplier(ctx context.Context, uid string) (bool, error)
 	SetUpSupplier(ctx context.Context, accountType profile.AccountType) (*profile.Supplier, error)
@@ -1119,18 +1099,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Location.Name(childComplexity), true
 
-	case "Mutation.acceptTermsAndConditions":
-		if e.complexity.Mutation.AcceptTermsAndConditions == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_acceptTermsAndConditions_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AcceptTermsAndConditions(childComplexity, args["accept"].(bool)), true
-
 	case "Mutation.addIndividualCoachKYC":
 		if e.complexity.Mutation.AddIndividualCoachKyc == nil {
 			break
@@ -1275,18 +1243,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddPartnerType(childComplexity, args["name"].(string), args["partnerType"].(profile.PartnerType)), true
 
-	case "Mutation.addPractitionerServices":
-		if e.complexity.Mutation.AddPractitionerServices == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addPractitionerServices_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddPractitionerServices(childComplexity, args["services"].(profile.PractitionerServiceInput), args["otherServices"].(*profile.OtherPractitionerServiceInput)), true
-
 	case "Mutation.addTester":
 		if e.complexity.Mutation.AddTester == nil {
 			break
@@ -1298,49 +1254,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddTester(childComplexity, args["email"].(string)), true
-
-	case "Mutation.completeSignup":
-		if e.complexity.Mutation.CompleteSignup == nil {
-			break
-		}
-
-		return e.complexity.Mutation.CompleteSignup(childComplexity), true
-
-	case "Mutation.confirmEmail":
-		if e.complexity.Mutation.ConfirmEmail == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_confirmEmail_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.ConfirmEmail(childComplexity, args["email"].(string)), true
-
-	case "Mutation.createSignUpMethod":
-		if e.complexity.Mutation.CreateSignUpMethod == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createSignUpMethod_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateSignUpMethod(childComplexity, args["signUpMethod"].(profile.SignUpMethod)), true
-
-	case "Mutation.practitionerSignUp":
-		if e.complexity.Mutation.PractitionerSignUp == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_practitionerSignUp_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.PractitionerSignUp(childComplexity, args["input"].(profile.PractitionerSignupInput)), true
 
 	case "Mutation.processKYCRequest":
 		if e.complexity.Mutation.ProcessKYCRequest == nil {
@@ -1390,18 +1303,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RemoveTester(childComplexity, args["email"].(string)), true
 
-	case "Mutation.setLanguagePreference":
-		if e.complexity.Mutation.SetLanguagePreference == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_setLanguagePreference_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SetLanguagePreference(childComplexity, args["language"].(base.Language)), true
-
 	case "Mutation.setUpSupplier":
 		if e.complexity.Mutation.SetUpSupplier == nil {
 			break
@@ -1413,18 +1314,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetUpSupplier(childComplexity, args["accountType"].(profile.AccountType)), true
-
-	case "Mutation.setUserPin":
-		if e.complexity.Mutation.SetUserPin == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_setUserPin_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SetUserPin(childComplexity, args["msisdn"].(string), args["pin"].(string)), true
 
 	case "Mutation.supplierEDILogin":
 		if e.complexity.Mutation.SupplierEDILogin == nil {
@@ -1462,18 +1351,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SuspendSupplier(childComplexity, args["uid"].(string)), true
 
-	case "Mutation.updateBiodata":
-		if e.complexity.Mutation.UpdateBiodata == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateBiodata_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateBiodata(childComplexity, args["input"].(profile.BiodataInput)), true
-
 	case "Mutation.updateUserPIN":
 		if e.complexity.Mutation.UpdateUserPin == nil {
 			break
@@ -1497,18 +1374,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateUserProfile(childComplexity, args["input"].(profile.UserProfileInput)), true
-
-	case "Mutation.verifyEmailOTP":
-		if e.complexity.Mutation.VerifyEmailOtp == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_verifyEmailOTP_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.VerifyEmailOtp(childComplexity, args["email"].(string), args["otp"].(string), args["flavour"].(base.Flavour)), true
 
 	case "OrganizationCoach.certificateOfInCorporationUploadID":
 		if e.complexity.OrganizationCoach.CertificateOfInCorporationUploadID == nil {
@@ -2880,14 +2745,7 @@ enum Operation {
   CONTAINS
 }
 `, BuiltIn: false},
-	{Name: "graph/inputs.graphql", Input: `input PractitionerSignupInput {
-  license: String!
-  cadre: PractitionerCadre!
-  specialty: PractitionerSpecialty!
-  emails: [String] # optional
-}
-
-input UserProfileInput {
+	{Name: "graph/inputs.graphql", Input: `input UserProfileInput {
   photoBase64: String
   photoContentType: ContentType
   msisdns: [UserProfilePhone!]
@@ -3213,25 +3071,12 @@ input OrganizationPharmaceuticalInput {
 }
 
 extend type Mutation {
-  confirmEmail(email: String!): UserProfile!
-  acceptTermsAndConditions(accept: Boolean!): Boolean!
   updateUserProfile(input: UserProfileInput!): UserProfile!
-  practitionerSignUp(input: PractitionerSignupInput!): Boolean!
-  updateBiodata(input: BiodataInput!): UserProfile!
   registerPushToken(token: String!): Boolean!
-  completeSignup: Boolean!
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
   addTester(email: String!): Boolean!
   removeTester(email: String!): Boolean!
-  setUserPin(msisdn: String!, pin: String!): Boolean!
   updateUserPIN(msisdn: String!, pin: String!): Boolean!
-  setLanguagePreference(language: Language!): Boolean!
-  verifyEmailOTP(email: String!, otp: String!, flavour: Flavour!): Boolean!
-  createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
-  addPractitionerServices(
-    services: PractitionerServiceInput!
-    otherServices: OtherPractitionerServiceInput
-  ): Boolean!
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
   suspendSupplier(uid: String!): Boolean!
   setUpSupplier(accountType: AccountType!): Supplier
@@ -3770,21 +3615,6 @@ func (ec *executionContext) field_Entity_findUserProfileByID_args(ctx context.Co
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_acceptTermsAndConditions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 bool
-	if tmp, ok := rawArgs["accept"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accept"))
-		arg0, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["accept"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_addIndividualCoachKYC_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3974,30 +3804,6 @@ func (ec *executionContext) field_Mutation_addPartnerType_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_addPractitionerServices_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 profile.PractitionerServiceInput
-	if tmp, ok := rawArgs["services"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("services"))
-		arg0, err = ec.unmarshalNPractitionerServiceInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerServiceInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["services"] = arg0
-	var arg1 *profile.OtherPractitionerServiceInput
-	if tmp, ok := rawArgs["otherServices"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otherServices"))
-		arg1, err = ec.unmarshalOOtherPractitionerServiceInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOtherPractitionerServiceInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["otherServices"] = arg1
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_addTester_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4010,51 +3816,6 @@ func (ec *executionContext) field_Mutation_addTester_args(ctx context.Context, r
 		}
 	}
 	args["email"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_confirmEmail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["email"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["email"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createSignUpMethod_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 profile.SignUpMethod
-	if tmp, ok := rawArgs["signUpMethod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("signUpMethod"))
-		arg0, err = ec.unmarshalNSignUpMethod2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSignUpMethod(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["signUpMethod"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_practitionerSignUp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 profile.PractitionerSignupInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNPractitionerSignupInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerSignupInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
 	return args, nil
 }
 
@@ -4136,21 +3897,6 @@ func (ec *executionContext) field_Mutation_removeTester_args(ctx context.Context
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_setLanguagePreference_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 base.Language
-	if tmp, ok := rawArgs["language"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("language"))
-		arg0, err = ec.unmarshalNLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["language"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_setUpSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4163,30 +3909,6 @@ func (ec *executionContext) field_Mutation_setUpSupplier_args(ctx context.Contex
 		}
 	}
 	args["accountType"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_setUserPin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["msisdn"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("msisdn"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["msisdn"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["pin"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["pin"] = arg1
 	return args, nil
 }
 
@@ -4253,21 +3975,6 @@ func (ec *executionContext) field_Mutation_suspendSupplier_args(ctx context.Cont
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateBiodata_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 profile.BiodataInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNBiodataInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBiodataInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_updateUserPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4304,39 +4011,6 @@ func (ec *executionContext) field_Mutation_updateUserProfile_args(ctx context.Co
 		}
 	}
 	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_verifyEmailOTP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["email"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["email"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["otp"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["otp"] = arg1
-	var arg2 base.Flavour
-	if tmp, ok := rawArgs["flavour"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
-		arg2, err = ec.unmarshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["flavour"] = arg2
 	return args, nil
 }
 
@@ -7447,90 +7121,6 @@ func (ec *executionContext) _Location_branchSladeCode(ctx context.Context, field
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_confirmEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_confirmEmail_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ConfirmEmail(rctx, args["email"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*base.UserProfile)
-	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_acceptTermsAndConditions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_acceptTermsAndConditions_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AcceptTermsAndConditions(rctx, args["accept"].(bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_updateUserProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7573,90 +7163,6 @@ func (ec *executionContext) _Mutation_updateUserProfile(ctx context.Context, fie
 	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_practitionerSignUp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_practitionerSignUp_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().PractitionerSignUp(rctx, args["input"].(profile.PractitionerSignupInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_updateBiodata(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateBiodata_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateBiodata(rctx, args["input"].(profile.BiodataInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*base.UserProfile)
-	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_registerPushToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7683,41 +7189,6 @@ func (ec *executionContext) _Mutation_registerPushToken(ctx context.Context, fie
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().RegisterPushToken(rctx, args["token"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_completeSignup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CompleteSignup(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7860,48 +7331,6 @@ func (ec *executionContext) _Mutation_removeTester(ctx context.Context, field gr
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_setUserPin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_setUserPin_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetUserPin(rctx, args["msisdn"].(string), args["pin"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_updateUserPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7928,174 +7357,6 @@ func (ec *executionContext) _Mutation_updateUserPIN(ctx context.Context, field g
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UpdateUserPin(rctx, args["msisdn"].(string), args["pin"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_setLanguagePreference(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_setLanguagePreference_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetLanguagePreference(rctx, args["language"].(base.Language))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_verifyEmailOTP(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_verifyEmailOTP_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().VerifyEmailOtp(rctx, args["email"].(string), args["otp"].(string), args["flavour"].(base.Flavour))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_createSignUpMethod(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createSignUpMethod_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSignUpMethod(rctx, args["signUpMethod"].(profile.SignUpMethod))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_addPractitionerServices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addPractitionerServices_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddPractitionerServices(rctx, args["services"].(profile.PractitionerServiceInput), args["otherServices"].(*profile.OtherPractitionerServiceInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16776,50 +16037,6 @@ func (ec *executionContext) unmarshalInputPractitionerServiceInput(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputPractitionerSignupInput(ctx context.Context, obj interface{}) (profile.PractitionerSignupInput, error) {
-	var it profile.PractitionerSignupInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "license":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("license"))
-			it.License, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "cadre":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cadre"))
-			it.Cadre, err = ec.unmarshalNPractitionerCadre2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerCadre(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "specialty":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("specialty"))
-			it.Specialty, err = ec.unmarshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPractitionerSpecialty(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "emails":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
-			it.Emails, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputSortInput(ctx context.Context, obj interface{}) (base.SortInput, error) {
 	var it base.SortInput
 	var asMap = obj.(map[string]interface{})
@@ -17870,38 +17087,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "confirmEmail":
-			out.Values[i] = ec._Mutation_confirmEmail(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "acceptTermsAndConditions":
-			out.Values[i] = ec._Mutation_acceptTermsAndConditions(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "updateUserProfile":
 			out.Values[i] = ec._Mutation_updateUserProfile(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "practitionerSignUp":
-			out.Values[i] = ec._Mutation_practitionerSignUp(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updateBiodata":
-			out.Values[i] = ec._Mutation_updateBiodata(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "registerPushToken":
 			out.Values[i] = ec._Mutation_registerPushToken(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "completeSignup":
-			out.Values[i] = ec._Mutation_completeSignup(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -17920,33 +17112,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "setUserPin":
-			out.Values[i] = ec._Mutation_setUserPin(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "updateUserPIN":
 			out.Values[i] = ec._Mutation_updateUserPIN(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "setLanguagePreference":
-			out.Values[i] = ec._Mutation_setLanguagePreference(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "verifyEmailOTP":
-			out.Values[i] = ec._Mutation_verifyEmailOTP(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "createSignUpMethod":
-			out.Values[i] = ec._Mutation_createSignUpMethod(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "addPractitionerServices":
-			out.Values[i] = ec._Mutation_addPractitionerServices(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19464,11 +18631,6 @@ func (ec *executionContext) marshalNBeneficiaryRelationship2gitlabᚗslade360emr
 	return v
 }
 
-func (ec *executionContext) unmarshalNBiodataInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBiodataInput(ctx context.Context, v interface{}) (profile.BiodataInput, error) {
-	res, err := ec.unmarshalInputBiodataInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -19584,16 +18746,6 @@ func (ec *executionContext) unmarshalNFieldType2gitlabᚗslade360emrᚗcomᚋgo�
 }
 
 func (ec *executionContext) marshalNFieldType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFieldType(ctx context.Context, sel ast.SelectionSet, v base.FieldType) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) unmarshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx context.Context, v interface{}) (base.Flavour, error) {
-	var res base.Flavour
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx context.Context, sel ast.SelectionSet, v base.Flavour) graphql.Marshaler {
 	return v
 }
 
@@ -19784,16 +18936,6 @@ func (ec *executionContext) marshalNKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋg
 		return graphql.Null
 	}
 	return ec._KYCRequest(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx context.Context, v interface{}) (base.Language, error) {
-	var res base.Language
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNLanguage2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLanguage(ctx context.Context, sel ast.SelectionSet, v base.Language) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
@@ -20078,16 +19220,6 @@ func (ec *executionContext) marshalNPractitionerService2ᚕgitlabᚗslade360emr�
 	return ret
 }
 
-func (ec *executionContext) unmarshalNPractitionerServiceInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerServiceInput(ctx context.Context, v interface{}) (profile.PractitionerServiceInput, error) {
-	res, err := ec.unmarshalInputPractitionerServiceInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNPractitionerSignupInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐPractitionerSignupInput(ctx context.Context, v interface{}) (profile.PractitionerSignupInput, error) {
-	res, err := ec.unmarshalInputPractitionerSignupInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNPractitionerSpecialty2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPractitionerSpecialty(ctx context.Context, v interface{}) (base.PractitionerSpecialty, error) {
 	var res base.PractitionerSpecialty
 	err := res.UnmarshalGQL(v)
@@ -20104,16 +19236,6 @@ func (ec *executionContext) marshalNReceivablesAccount2gitlabᚗslade360emrᚗco
 
 func (ec *executionContext) marshalNServicesOffered2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐServicesOffered(ctx context.Context, sel ast.SelectionSet, v profile.ServicesOffered) graphql.Marshaler {
 	return ec._ServicesOffered(ctx, sel, &v)
-}
-
-func (ec *executionContext) unmarshalNSignUpMethod2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSignUpMethod(ctx context.Context, v interface{}) (profile.SignUpMethod, error) {
-	var res profile.SignUpMethod
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNSignUpMethod2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSignUpMethod(ctx context.Context, sel ast.SelectionSet, v profile.SignUpMethod) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNSortOrder2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx context.Context, v interface{}) (base.SortOrder, error) {
@@ -21086,14 +20208,6 @@ func (ec *executionContext) marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 		return graphql.Null
 	}
 	return ec._Location(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOOtherPractitionerServiceInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐOtherPractitionerServiceInput(ctx context.Context, v interface{}) (*profile.OtherPractitionerServiceInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputOtherPractitionerServiceInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOPaginationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPaginationInput(ctx context.Context, v interface{}) (*base.PaginationInput, error) {

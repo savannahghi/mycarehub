@@ -17,25 +17,12 @@ extend type Query {
 }
 
 extend type Mutation {
-  confirmEmail(email: String!): UserProfile!
-  acceptTermsAndConditions(accept: Boolean!): Boolean!
   updateUserProfile(input: UserProfileInput!): UserProfile!
-  practitionerSignUp(input: PractitionerSignupInput!): Boolean!
-  updateBiodata(input: BiodataInput!): UserProfile!
   registerPushToken(token: String!): Boolean!
-  completeSignup: Boolean!
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
   addTester(email: String!): Boolean!
   removeTester(email: String!): Boolean!
-  setUserPin(msisdn: String!, pin: String!): Boolean!
   updateUserPIN(msisdn: String!, pin: String!): Boolean!
-  setLanguagePreference(language: Language!): Boolean!
-  verifyEmailOTP(email: String!, otp: String!, flavour: Flavour!): Boolean!
-  createSignUpMethod(signUpMethod: SignUpMethod!): Boolean!
-  addPractitionerServices(
-    services: PractitionerServiceInput!
-    otherServices: OtherPractitionerServiceInput
-  ): Boolean!
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
   suspendSupplier(uid: String!): Boolean!
   setUpSupplier(accountType: AccountType!): Supplier
