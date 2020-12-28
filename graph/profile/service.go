@@ -751,29 +751,6 @@ func (s Service) ApprovePractitionerSignup(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-//RejectPractitionerSignup is used to reject the practitioner signup
-func (s Service) RejectPractitionerSignup(ctx context.Context) (bool, error) {
-	s.checkPreconditions()
-
-	profile, err := s.UserProfile(ctx)
-	if err != nil {
-		return false, fmt.Errorf("unable to retrieve user profile: %w", err)
-	}
-
-	if !profile.IsApproved {
-		return false, nil
-	}
-
-	profile.IsApproved = false
-	for _, practitionerEmail := range profile.Emails {
-		err = s.SendPractitionerRejectionEmail(ctx, practitionerEmail)
-		if err != nil {
-			return false, fmt.Errorf("unable to send rejection email: %w", err)
-		}
-	}
-	return false, nil
-}
-
 // SendPractitionerWelcomeEmail will send a welcome email to the practitioner
 func (s Service) SendPractitionerWelcomeEmail(ctx context.Context, emailaddress string) error {
 	s.checkPreconditions()

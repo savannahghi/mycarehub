@@ -275,18 +275,6 @@ func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*pro
 	return r.profileService.FetchSupplierAllowedLocations(ctx)
 }
 
-func (r *queryResolver) ApprovePractitionerSignup(ctx context.Context) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.ApprovePractitionerSignup(ctx)
-}
-
-func (r *queryResolver) RejectPractitionerSignup(ctx context.Context) (bool, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.RejectPractitionerSignup(ctx)
-}
-
 func (r *queryResolver) FetchKYCProcessingRequests(ctx context.Context) ([]*profile.KYCRequest, error) {
 	r.CheckUserTokenInContext(ctx)
 	r.CheckDependencies()

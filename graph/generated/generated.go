@@ -347,7 +347,6 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		ApprovePractitionerSignup     func(childComplexity int) int
 		FetchKYCProcessingRequests    func(childComplexity int) int
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) int
@@ -357,7 +356,6 @@ type ComplexityRoot struct {
 		GetProfile                    func(childComplexity int, uid string) int
 		GetSignUpMethod               func(childComplexity int, id string) int
 		ListTesters                   func(childComplexity int) int
-		RejectPractitionerSignup      func(childComplexity int) int
 		RequestPinReset               func(childComplexity int, msisdn string) int
 		SupplierProfile               func(childComplexity int, uid string) int
 		UserProfile                   func(childComplexity int) int
@@ -501,8 +499,6 @@ type QueryResolver interface {
 	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) (*profile.BusinessPartnerConnection, error)
 	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) (*profile.BranchConnection, error)
 	FetchSupplierAllowedLocations(ctx context.Context) (*profile.BranchConnection, error)
-	ApprovePractitionerSignup(ctx context.Context) (bool, error)
-	RejectPractitionerSignup(ctx context.Context) (bool, error)
 	FetchKYCProcessingRequests(ctx context.Context) ([]*profile.KYCRequest, error)
 }
 
@@ -2133,13 +2129,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PractitionerEdge.Node(childComplexity), true
 
-	case "Query.approvePractitionerSignup":
-		if e.complexity.Query.ApprovePractitionerSignup == nil {
-			break
-		}
-
-		return e.complexity.Query.ApprovePractitionerSignup(childComplexity), true
-
 	case "Query.fetchKYCProcessingRequests":
 		if e.complexity.Query.FetchKYCProcessingRequests == nil {
 			break
@@ -2227,13 +2216,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ListTesters(childComplexity), true
-
-	case "Query.rejectPractitionerSignup":
-		if e.complexity.Query.RejectPractitionerSignup == nil {
-			break
-		}
-
-		return e.complexity.Query.RejectPractitionerSignup(childComplexity), true
 
 	case "Query.requestPinReset":
 		if e.complexity.Query.RequestPinReset == nil {
@@ -3297,8 +3279,6 @@ input OrganizationPharmaceuticalInput {
     sort: [BranchSortInput]
   ): BranchConnection!
   fetchSupplierAllowedLocations: BranchConnection!
-  approvePractitionerSignup: Boolean!
-  rejectPractitionerSignup: Boolean!
   fetchKYCProcessingRequests: [KYCRequest!]
 }
 
@@ -12335,76 +12315,6 @@ func (ec *executionContext) _Query_fetchSupplierAllowedLocations(ctx context.Con
 	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐBranchConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_approvePractitionerSignup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ApprovePractitionerSignup(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_rejectPractitionerSignup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RejectPractitionerSignup(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_fetchKYCProcessingRequests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -19190,34 +19100,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_fetchSupplierAllowedLocations(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "approvePractitionerSignup":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_approvePractitionerSignup(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "rejectPractitionerSignup":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_rejectPractitionerSignup(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
