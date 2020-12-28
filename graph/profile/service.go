@@ -291,46 +291,6 @@ func (s Service) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	return s.GetUserProfile(ctx, uid)
 }
 
-// GetOrCreateUserProfile retrieves the user profile of a
-// specified user using either their uid or phone number.
-// If the user perofile does not exist then a new one is created
-func (s Service) GetOrCreateUserProfile(ctx context.Context, phone string) (*base.UserProfile, error) {
-	s.checkPreconditions()
-
-	phoneNumber, err := base.NormalizeMSISDN(phone)
-	if err != nil {
-		return nil, fmt.Errorf("unable to normalize the msisdn: %v", err)
-	}
-
-	uid, err := base.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, err
-	}
-	dsnap, err := s.RetrieveOrCreateUserProfileFirebaseDocSnapshot(ctx, uid, phoneNumber)
-	if err != nil {
-		return nil, err
-	}
-	userProfile := &base.UserProfile{}
-
-	err = dsnap.DataTo(userProfile)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read user profile: %w", err)
-	}
-
-	if !base.StringSliceContains(userProfile.VerifiedIdentifiers, uid) {
-		userProfile.VerifiedIdentifiers = append(userProfile.VerifiedIdentifiers, uid)
-		err = base.UpdateRecordOnFirestore(
-			s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, userProfile,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("unable to update user profile: %v", err)
-		}
-	}
-
-	userProfile.IsTester = isTester(ctx, userProfile.Emails)
-	return userProfile, nil
-}
-
 // GetProfile returns the profile of the user with the supplied uid
 func (s Service) GetProfile(ctx context.Context, uid string) (*base.UserProfile, error) {
 	s.checkPreconditions()

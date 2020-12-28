@@ -352,12 +352,10 @@ type ComplexityRoot struct {
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) int
 		FindProfile                   func(childComplexity int) int
 		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) int
-		GetOrCreateUserProfile        func(childComplexity int, phone string) int
 		GetProfile                    func(childComplexity int, uid string) int
 		GetSignUpMethod               func(childComplexity int, id string) int
 		ListTesters                   func(childComplexity int) int
 		RequestPinReset               func(childComplexity int, msisdn string) int
-		SupplierProfile               func(childComplexity int, uid string) int
 		UserProfile                   func(childComplexity int) int
 		__resolve__service            func(childComplexity int) int
 		__resolve_entities            func(childComplexity int, representations []map[string]interface{}) int
@@ -489,13 +487,11 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
-	GetOrCreateUserProfile(ctx context.Context, phone string) (*base.UserProfile, error)
 	FindProfile(ctx context.Context) (*base.UserProfile, error)
 	GetProfile(ctx context.Context, uid string) (*base.UserProfile, error)
 	ListTesters(ctx context.Context) ([]string, error)
 	RequestPinReset(ctx context.Context, msisdn string) (string, error)
 	GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error)
-	SupplierProfile(ctx context.Context, uid string) (*profile.Supplier, error)
 	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) (*profile.BusinessPartnerConnection, error)
 	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) (*profile.BranchConnection, error)
 	FetchSupplierAllowedLocations(ctx context.Context) (*profile.BranchConnection, error)
@@ -2174,18 +2170,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FindProvider(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*profile.BusinessPartnerFilterInput), args["sort"].([]*profile.BusinessPartnerSortInput)), true
 
-	case "Query.getOrCreateUserProfile":
-		if e.complexity.Query.GetOrCreateUserProfile == nil {
-			break
-		}
-
-		args, err := ec.field_Query_getOrCreateUserProfile_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetOrCreateUserProfile(childComplexity, args["phone"].(string)), true
-
 	case "Query.getProfile":
 		if e.complexity.Query.GetProfile == nil {
 			break
@@ -2228,18 +2212,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.RequestPinReset(childComplexity, args["msisdn"].(string)), true
-
-	case "Query.supplierProfile":
-		if e.complexity.Query.SupplierProfile == nil {
-			break
-		}
-
-		args, err := ec.field_Query_supplierProfile_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SupplierProfile(childComplexity, args["uid"].(string)), true
 
 	case "Query.userProfile":
 		if e.complexity.Query.UserProfile == nil {
@@ -3261,13 +3233,11 @@ input OrganizationPharmaceuticalInput {
 `, BuiltIn: false},
 	{Name: "graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
-  getOrCreateUserProfile(phone: String!): UserProfile!
   findProfile: UserProfile!
   getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
   requestPinReset(msisdn: String!): String!
   getSignUpMethod(id: String!): SignUpMethod!
-  supplierProfile(uid: String!): Supplier!
   findProvider(
     pagination: PaginationInput
     filter: [BusinessPartnerFilterInput]
@@ -4506,21 +4476,6 @@ func (ec *executionContext) field_Query_findProvider_args(ctx context.Context, r
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_getOrCreateUserProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["phone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["phone"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_getProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4563,21 +4518,6 @@ func (ec *executionContext) field_Query_requestPinReset_args(ctx context.Context
 		}
 	}
 	args["msisdn"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_supplierProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["uid"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uid"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["uid"] = arg0
 	return args, nil
 }
 
@@ -11916,48 +11856,6 @@ func (ec *executionContext) _Query_userProfile(ctx context.Context, field graphq
 	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_getOrCreateUserProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_getOrCreateUserProfile_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetOrCreateUserProfile(rctx, args["phone"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*base.UserProfile)
-	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_findProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12152,48 +12050,6 @@ func (ec *executionContext) _Query_getSignUpMethod(ctx context.Context, field gr
 	res := resTmp.(profile.SignUpMethod)
 	fc.Result = res
 	return ec.marshalNSignUpMethod2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSignUpMethod(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_supplierProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_supplierProfile_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SupplierProfile(rctx, args["uid"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*profile.Supplier)
-	fc.Result = res
-	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_findProvider(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18965,20 +18821,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "getOrCreateUserProfile":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getOrCreateUserProfile(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "findProfile":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -19044,20 +18886,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getSignUpMethod(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "supplierProfile":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_supplierProfile(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -20572,10 +20400,6 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalNSupplier2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx context.Context, sel ast.SelectionSet, v profile.Supplier) graphql.Marshaler {
-	return ec._Supplier(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋgraphᚋprofileᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *profile.Supplier) graphql.Marshaler {
