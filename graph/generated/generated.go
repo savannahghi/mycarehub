@@ -347,9 +347,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-<<<<<<< HEAD
 		ApprovePractitionerSignup     func(childComplexity int) int
-		CheckUserWithMsisdn           func(childComplexity int, msisdn string) int
 		FetchKYCProcessingRequests    func(childComplexity int) int
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) int
@@ -358,35 +356,13 @@ type ComplexityRoot struct {
 		GetOrCreateUserProfile        func(childComplexity int, phone string) int
 		GetProfile                    func(childComplexity int, uid string) int
 		GetSignUpMethod               func(childComplexity int, id string) int
-		IsUnderAge                    func(childComplexity int) int
 		ListTesters                   func(childComplexity int) int
 		RejectPractitionerSignup      func(childComplexity int) int
 		RequestPinReset               func(childComplexity int, msisdn string) int
 		SupplierProfile               func(childComplexity int, uid string) int
 		UserProfile                   func(childComplexity int) int
-		VerifyMSISDNandPin            func(childComplexity int, msisdn string, pin string) int
 		__resolve__service            func(childComplexity int) int
 		__resolve_entities            func(childComplexity int, representations []map[string]interface{}) int
-=======
-		ApprovePractitionerSignup        func(childComplexity int) int
-		FetchKYCProcessingRequests       func(childComplexity int) int
-		FetchSupplierAllowedLocations    func(childComplexity int) int
-		FindBranch                       func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BranchFilterInput, sort []*profile.BranchSortInput) int
-		FindProfile                      func(childComplexity int) int
-		FindProvider                     func(childComplexity int, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) int
-		GetKMPDURegisteredPractitioner   func(childComplexity int, regno string) int
-		GetOrCreateUserProfile           func(childComplexity int, phone string) int
-		GetProfile                       func(childComplexity int, uid string) int
-		GetSignUpMethod                  func(childComplexity int, id string) int
-		ListKMPDURegisteredPractitioners func(childComplexity int, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) int
-		ListTesters                      func(childComplexity int) int
-		RejectPractitionerSignup         func(childComplexity int) int
-		RequestPinReset                  func(childComplexity int, msisdn string) int
-		SupplierProfile                  func(childComplexity int, uid string) int
-		UserProfile                      func(childComplexity int) int
-		__resolve__service               func(childComplexity int) int
-		__resolve_entities               func(childComplexity int, representations []map[string]interface{}) int
->>>>>>> remove: cleanup remove customers
 	}
 
 	ReceivablesAccount struct {
@@ -519,13 +495,6 @@ type QueryResolver interface {
 	FindProfile(ctx context.Context) (*base.UserProfile, error)
 	GetProfile(ctx context.Context, uid string) (*base.UserProfile, error)
 	ListTesters(ctx context.Context) ([]string, error)
-<<<<<<< HEAD
-	IsUnderAge(ctx context.Context) (bool, error)
-	VerifyMSISDNandPin(ctx context.Context, msisdn string, pin string) (bool, error)
-=======
-	ListKMPDURegisteredPractitioners(ctx context.Context, pagination *base.PaginationInput, filter *base.FilterInput, sort *base.SortInput) (*profile.KMPDUPractitionerConnection, error)
-	GetKMPDURegisteredPractitioner(ctx context.Context, regno string) (*profile.KMPDUPractitioner, error)
->>>>>>> remove: cleanup remove customers
 	RequestPinReset(ctx context.Context, msisdn string) (string, error)
 	GetSignUpMethod(ctx context.Context, id string) (profile.SignUpMethod, error)
 	SupplierProfile(ctx context.Context, uid string) (*profile.Supplier, error)
@@ -2252,27 +2221,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetSignUpMethod(childComplexity, args["id"].(string)), true
 
-<<<<<<< HEAD
-	case "Query.isUnderAge":
-		if e.complexity.Query.IsUnderAge == nil {
-			break
-		}
-
-		return e.complexity.Query.IsUnderAge(childComplexity), true
-=======
-	case "Query.listKMPDURegisteredPractitioners":
-		if e.complexity.Query.ListKMPDURegisteredPractitioners == nil {
-			break
-		}
-
-		args, err := ec.field_Query_listKMPDURegisteredPractitioners_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ListKMPDURegisteredPractitioners(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].(*base.FilterInput), args["sort"].(*base.SortInput)), true
->>>>>>> remove: cleanup remove customers
-
 	case "Query.listTesters":
 		if e.complexity.Query.ListTesters == nil {
 			break
@@ -3335,17 +3283,6 @@ input OrganizationPharmaceuticalInput {
   findProfile: UserProfile!
   getProfile(uid: String!): UserProfile!
   listTesters: [String!]!
-<<<<<<< HEAD
-  isUnderAge: Boolean!
-  verifyMSISDNandPIN(msisdn: String!, pin: String!): Boolean!
-=======
-  listKMPDURegisteredPractitioners(
-    pagination: PaginationInput
-    filter: FilterInput
-    sort: SortInput
-  ): KMPDUPractitionerConnection!
-  getKMPDURegisteredPractitioner(regno: String!): KMPDUPractitioner!
->>>>>>> remove: cleanup remove customers
   requestPinReset(msisdn: String!): String!
   getSignUpMethod(id: String!): SignUpMethod!
   supplierProfile(uid: String!): Supplier!
@@ -19169,50 +19106,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listTesters(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-<<<<<<< HEAD
-		case "isUnderAge":
-=======
-		case "listKMPDURegisteredPractitioners":
->>>>>>> remove: cleanup remove customers
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-<<<<<<< HEAD
-				res = ec._Query_isUnderAge(ctx, field)
-=======
-				res = ec._Query_listKMPDURegisteredPractitioners(ctx, field)
->>>>>>> remove: cleanup remove customers
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-<<<<<<< HEAD
-		case "verifyMSISDNandPIN":
-=======
-		case "getKMPDURegisteredPractitioner":
->>>>>>> remove: cleanup remove customers
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-<<<<<<< HEAD
-				res = ec._Query_verifyMSISDNandPIN(ctx, field)
-=======
-				res = ec._Query_getKMPDURegisteredPractitioner(ctx, field)
->>>>>>> remove: cleanup remove customers
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
