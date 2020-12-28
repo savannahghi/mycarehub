@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/graph/generated"
@@ -252,9 +253,7 @@ func (r *queryResolver) GetSignUpMethod(ctx context.Context, id string) (profile
 }
 
 func (r *queryResolver) SupplierProfile(ctx context.Context, uid string) (*profile.Supplier, error) {
-	r.CheckUserTokenInContext(ctx)
-	r.CheckDependencies()
-	return r.profileService.FindSupplier(ctx, uid)
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*profile.BusinessPartnerFilterInput, sort []*profile.BusinessPartnerSortInput) (*profile.BusinessPartnerConnection, error) {

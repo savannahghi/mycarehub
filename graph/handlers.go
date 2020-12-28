@@ -86,9 +86,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()
 	isc.Use(base.InterServiceAuthenticationMiddleware())
-	isc.Path("/supplier").Methods(
-		http.MethodPost, http.MethodOptions,
-	).HandlerFunc(FindSupplierByUIDHandler(ctx, srv))
 	isc.Path("/contactdetails/{attribute}/").Methods(
 		http.MethodPost,
 	).HandlerFunc(
@@ -409,53 +406,5 @@ func PhoneSignIn(ctx context.Context, s *profile.Service) http.HandlerFunc {
 		}
 
 		base.WriteJSONResponse(w, response, http.StatusOK)
-	}
-}
-
-// FindSupplierByUIDHandler is a used for inter service communication to return details about a supplier
-func FindSupplierByUIDHandler(
-	ctx context.Context,
-	service *profile.Service,
-) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		bpUID, err := profile.ValidateUID(w, r)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-		if bpUID == nil {
-			err := fmt.Errorf("nil business partner UID struct")
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-		token := &auth.Token{UID: bpUID.UID}
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, token)
-		supplier, err := service.FindSupplier(newContext, bpUID.UID)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusNotFound)
-			return
-		}
-		if supplier == nil {
-			err := fmt.Errorf("nil supplier for UID %s", bpUID.UID)
-			base.ReportErr(w, err, http.StatusNotFound)
-			return
-		}
-
-		supplierResponse := profile.SupplierResponse{
-			SupplierID: supplier.SupplierID,
-			Profile: profile.BioData{
-				UID:        bpUID.UID,
-				Name:       supplier.UserProfile.Name,
-				Gender:     supplier.UserProfile.Gender,
-				Msisdns:    supplier.UserProfile.Msisdns,
-				Emails:     supplier.UserProfile.Emails,
-				PushTokens: supplier.UserProfile.PushTokens,
-				Bio:        supplier.UserProfile.Bio,
-			},
-		}
-		if supplier.PayablesAccount != nil {
-			supplierResponse.PayablesAccount = *supplier.PayablesAccount
-		}
-		base.WriteJSONResponse(w, supplierResponse, http.StatusOK)
 	}
 }

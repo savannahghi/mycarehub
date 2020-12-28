@@ -211,49 +211,6 @@ func (s Service) AddSupplier(
 	return supplier, nil
 }
 
-// FindSupplier fetches a supplier by their UID
-func (s Service) FindSupplier(ctx context.Context, uid string) (*Supplier, error) {
-	s.checkPreconditions()
-
-	dsnap, err := s.RetrieveFireStoreSnapshotByUID(
-		ctx,
-		uid,
-		s.GetSupplierCollectionName(),
-		"userprofile.verifiedIdentifiers",
-	)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"unable to retreive doc snapshot by uid: %v", err)
-	}
-
-	if dsnap == nil {
-		// create a default supplier account instead of throwing an error
-		// this is for backwards compatibility for dev accounts that don't have supplier account.
-		// there is no harm in doing this since the same supplier will be updated
-		// We default to PartnerTypeProvider since we expect majority of our suppliers to be providers.
-		// In any case, this can always be changed.
-
-		pr, err := s.UserProfile(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("unable to retreive userprofile of logged in user: %v", err)
-		}
-		pty := PartnerTypeProvider
-		if _, err := s.AddPartnerType(ctx, pr.Name, &pty); err != nil {
-			return nil, fmt.Errorf("unable to create default supplier account : %v", err)
-		}
-
-		return nil, fmt.Errorf("a user with the UID %s does not have a supplier's account", uid)
-	}
-
-	supplier := &Supplier{}
-	err = dsnap.DataTo(supplier)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read supplier: %v", err)
-	}
-
-	return supplier, nil
-}
-
 // SuspendSupplier flips the active boolean on the erp partner from true to false
 // consequently logically deleting the account
 func (s Service) SuspendSupplier(ctx context.Context, uid string) (bool, error) {
