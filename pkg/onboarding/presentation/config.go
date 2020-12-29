@@ -5,23 +5,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
-
-	"gitlab.slade360emr.com/go/profile/pkg/profile/infrastructure/database"
-	"gitlab.slade360emr.com/go/profile/pkg/profile/usecases"
-
-	"net/http"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/profile/presentation/graph"
-	"gitlab.slade360emr.com/go/profile/pkg/profile/presentation/graph/generated"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
 const (
@@ -31,7 +28,7 @@ const (
 
 // AllowedOrigins is list of CORS origins allowed to interact with
 // this service
-var AllowedOrigins = []string{
+var allowedOrigins = []string{
 	"https://healthcloud.co.ke",
 	"https://bewell.healthcloud.co.ke",
 	"http://localhost:5000",
@@ -91,7 +88,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 }
 
 // PrepareServer starts up a server
-func PrepareServer(ctx context.Context, port int, allowedOrigins []string) *http.Server {
+func PrepareServer(ctx context.Context, port int) *http.Server {
 	// start up the router
 	r, err := Router(ctx)
 	if err != nil {

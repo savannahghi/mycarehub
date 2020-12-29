@@ -17,6 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/vektah/gqlparser/v2 v2.1.0
 	gitlab.slade360emr.com/go/base v0.0.91
+	gitlab.slade360emr.com/go/edi v0.0.18
 	golang.org/x/sys v0.0.0-20201223074533-0d417f636930 // indirect
 	golang.org/x/tools v0.0.0-20201223010750-3fa0e8f87c1a // indirect
 	gopkg.in/yaml.v2 v2.4.0

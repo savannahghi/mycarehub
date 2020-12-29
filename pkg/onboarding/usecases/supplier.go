@@ -3,10 +3,9 @@ package usecases
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/profile/pkg/profile/domain"
-
 	"cloud.google.com/go/firestore"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 // SupplierUseCases represent the business logic required for management of suppliers

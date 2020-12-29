@@ -7,7 +7,7 @@ import (
 	"context"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/profile/presentation/graph/generated"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
 )
 
 func (r *entityResolver) FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*base.PageInfo, error) {

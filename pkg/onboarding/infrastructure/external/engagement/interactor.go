@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/profile/infrastructure/external"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/external"
 )
 
 // specific endpoint paths for ISC

@@ -6,7 +6,7 @@ import (
 
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/profile/usecases"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
 // This file will not be regenerated automatically.
@@ -17,6 +17,8 @@ import (
 type Resolver struct {
 	usecases *usecases.OnboardingUseCaseImpl
 }
+
+//go:generate go run github.com/99designs/gqlgen
 
 // NewResolver sets up the dependencies needed for query and mutation resolvers to work
 func NewResolver(

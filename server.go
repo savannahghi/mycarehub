@@ -10,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/profile/presentation"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation"
 )
 
 const waitSeconds = 30
@@ -26,7 +26,7 @@ func main() {
 	if err != nil {
 		base.LogStartupError(ctx, err)
 	}
-	srv := presentation.PrepareServer(ctx, port, presentation.AllowedOrigins)
+	srv := presentation.PrepareServer(ctx, port)
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			base.LogStartupError(ctx, err)

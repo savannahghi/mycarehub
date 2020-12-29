@@ -1,27 +1,27 @@
 # Where are all the schema files located? globs are supported eg  src/**/*.graphqls
 schema:
-  - pkg/profile/presentation/graph/*.graphql
+  - pkg/onboarding/presentation/graph/*.graphql
 
 # Where should the generated server code go?
 exec:
-  filename: pkg/profile/presentation/graph/generated/generated.go
+  filename: pkg/onboarding/presentation/graph/generated/generated.go
   package: generated
 
 # Uncomment to enable federation
 federation:
-  filename: pkg/profile/presentation/graph/generated/federation.go
+  filename: pkg/onboarding/presentation/graph/generated/federation.go
   package: generated
 
 # Where should any generated models go?
 model:
-  filename: pkg/profile/domain/model/models_gen.go
+  filename: pkg/onboarding/domain/model/models_gen.go
   package: model
 
 # Where should the resolver implementations go?
 resolver:
   layout: follow-schema
   package: graph
-  dir: pkg/profile/presentation/graph
+  dir: pkg/onboarding/presentation/graph
 
 # Optional: turn on use `gqlgen:"fieldName"` tags in your models
 # struct_tag: json
@@ -35,7 +35,7 @@ resolver:
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "gitlab.slade360emr.com/go/profile/pkg/profile/domain"
+  - "gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
   - "gitlab.slade360emr.com/go/base"
 
 # This section declares type mapping between the GraphQL and go type systems
@@ -63,37 +63,37 @@ models:
       - "gitlab.slade360emr.com/go/base.Date"
   IdentificationInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.Identification
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.Identification
   IndividualRiderInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.IndividualRider
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.IndividualRider
   IndividualPractitionerInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.IndividualPractitioner
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.IndividualPractitioner
   IndividualPharmaceuticalInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.IndividualPharmaceutical
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.IndividualPharmaceutical
   IndividualCoachInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.IndividualCoach
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.IndividualCoach
   IndividualNutritionInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.IndividualNutrition
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.IndividualNutrition
   OrganizationRiderInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.OrganizationRider
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationRider
   OrganizationPractitionerInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.OrganizationPractitioner
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationPractitioner
   OrganizationProviderInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.OrganizationProvider
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationProvider
   OrganizationNutritionInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.OrganizationNutrition
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationNutrition
   OrganizationCoachInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.OrganizationCoach
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationCoach
   OrganizationPharmaceuticalInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/profile/domain.OrganizationPharmaceutical
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationPharmaceutical

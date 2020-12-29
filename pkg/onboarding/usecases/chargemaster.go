@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/profile/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 // ChargeMasterUseCases represents logic required to communicate with chargemaster

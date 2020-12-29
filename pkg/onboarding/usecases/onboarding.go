@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/profile/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/profile/repository"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 // OnboardingUseCase represents all the profile business logic
@@ -23,7 +23,7 @@ type OnboardingUseCaseImpl struct {
 	onboardingRepository repository.OnboardingRepository
 }
 
-// NewOnboardingUseCase returns a new authentication service
+// NewOnboardingUseCase returns a new a onboarding usecase
 func NewOnboardingUseCase(r repository.OnboardingRepository) *OnboardingUseCaseImpl {
 	return &OnboardingUseCaseImpl{r}
 }

@@ -3,7 +3,7 @@ package usecases
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/profile/pkg/profile/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 // SignUPUseCases represents all the business logic involved in setting up a user
