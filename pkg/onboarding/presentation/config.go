@@ -51,9 +51,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, fmt.Errorf("can't instantiate firebase repository in resolver: %w", err)
 	}
 
-	uc := usecases.NewOnboardingUseCase(
-		fr,
-	)
+	uc := usecases.NewOnboardingUseCase(fr)
 	if uc == nil {
 		return nil, fmt.Errorf("can't instantiate usecases in: %w", err)
 	}
@@ -79,11 +77,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodGet,
 	).HandlerFunc(GQLHandler(ctx, uc))
 
-	// REST routes
-	// Interservice Authenticated routes
-	// isc := r.PathPrefix("/discovery/").Subrouter()
-	// isc.Use(base.InterServiceAuthenticationMiddleware())
-	// return the combined router
 	return r, nil
 }
 

@@ -29,7 +29,7 @@ func NewOnboardingUseCase(r repository.OnboardingRepository) *OnboardingUseCaseI
 }
 
 // UserProfile retrieves the profile of the logged in user, if they have one
-func (o OnboardingUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile, error) {
+func (o *OnboardingUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, err
@@ -38,6 +38,19 @@ func (o OnboardingUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfi
 }
 
 // GetProfileByID returns the profile identified by the indicated ID
-func (o OnboardingUseCaseImpl) GetProfileByID(ctx context.Context, id string) (*base.UserProfile, error) {
+func (o *OnboardingUseCaseImpl) GetProfileByID(ctx context.Context, id string) (*base.UserProfile, error) {
 	return o.onboardingRepository.GetUserProfileByID(ctx, id)
+}
+
+// UpdatePrimaryPhoneNumber updates the primary phone number of a specific user profile
+func (o *OnboardingUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phoneNumber string) error {
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return err
+	}
+	profile, err := o.onboardingRepository.GetUserProfile(ctx, uid)
+	if err != nil {
+		return err
+	}
+	return profile.UpdateProfilePrimaryPhoneNumber(ctx, o.onboardingRepository, phoneNumber)
 }

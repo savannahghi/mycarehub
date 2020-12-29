@@ -7,7 +7,6 @@ exec:
   filename: pkg/onboarding/presentation/graph/generated/generated.go
   package: generated
 
-# Uncomment to enable federation
 federation:
   filename: pkg/onboarding/presentation/graph/generated/federation.go
   package: generated

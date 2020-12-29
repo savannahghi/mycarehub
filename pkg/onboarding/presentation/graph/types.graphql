@@ -4,26 +4,6 @@ scalar Any
 scalar Decimal
 scalar Map
 
-type Practitioner {
-  profile: UserProfile!
-  license: String!
-  cadre: PractitionerCadre!
-  specialty: PractitionerSpecialty!
-  professionalProfile: Markdown!
-  averageConsultationPrice: Float!
-  services: ServicesOffered!
-}
-
-type PractitionerEdge {
-  cursor: String
-  node: Practitioner
-}
-
-type PractitionerConnection {
-  edges: [PractitionerEdge]
-  pageInfo: PageInfo!
-}
-
 type Cover {
   payerName: String!
   payerSladeCode: Int!
@@ -31,68 +11,34 @@ type Cover {
   memberName: String!
 }
 
-type UserProfile @key(fields: "id") {
-  id: String!
-  verifiedIdentifiers: [String!]!
-  isApproved: Boolean!
-  termsAccepted: Boolean!
-  msisdns: [String!]!
-  emails: [String!]!
-  photoBase64: String!
-  photoContentType: ContentType!
-  pushTokens: [String!]!
-  covers: [Cover!]!
-  isTester: Boolean!
-  active: Boolean!
+type VerifiedIdentifier {
+  uid: String!
+  timestamp: Date!
+  loginProvider: LoginProviderType!
+}
 
-  # for admins
-  isAdmin: Boolean!
-  permissions: [String]
-
-  # optional fields
+type BioData {
+  firstName: String
+  lastName: String
   dateOfBirth: Date
   gender: Gender
-  patientID: String
-  name: String
-  bio: String
-  language: Language
-  practitionerApproved: Boolean
-  practitionerTermsOfServiceAccepted: Boolean
-  canExperiment: Boolean
-  askAgainToSetIsTester: Boolean
-  askAgainToSetCanExperiment: Boolean
-  VerifiedEmails: [VerifiedEmail]
-  VerifiedPhones: [VerifiedMsisdn]
-
-  # These flags are used to distinguish previously exisiting user and
-  # new users signing up. They help us create accounts for the existing
-  # users in the backgroud and ask the user to set up a pin.
-  hasPin: Boolean
-  hasSupplierAccount: Boolean
-  hasCustomerAccount: Boolean
-  practitionerHasServices: Boolean
 }
 
-type VerifiedMsisdn {
-  msisdn: String!
-  verified: Boolean!
-}
-
-type VerifiedEmail {
-  email: String!
-  verified: Boolean!
-}
-
-type TesterWhitelist {
-  email: String!
-}
-
-type Customer {
-  userProfile: UserProfile!
-  customerId: String!
-  receivablesAccount: ReceivablesAccount!
-  customerKYC: CustomerKYC!
-  active: Boolean!
+type UserProfile @key(fields: "id") {
+  id: String!
+  userName: String!
+  verifiedIdentifiers: [VerifiedIdentifier]
+  PrimaryPhone: String!
+  PrimaryEmailAddress: String
+  SecondaryPhoneNumbers: [String]
+  SecondaryEmailAddresses: [String]
+  pushTokens: [String!]
+  permissions: [PermissionType!]
+  termsAccepted: Boolean
+  suspended: Boolean
+  photoUploadID: String
+  covers: [Cover]
+  userBioData: BioData
 }
 
 type ReceivablesAccount {
@@ -102,15 +48,6 @@ type ReceivablesAccount {
   number: String!
   tag: String!
   description: String!
-}
-
-type CustomerKYC {
-  KRAPin: String!
-  occupation: String!
-  idNumber: String!
-  address: String!
-  city: String!
-  beneficiary: [Beneficiary!]
 }
 
 type ServicesOffered {
@@ -136,7 +73,7 @@ type Beneficiary {
 }
 
 type Supplier {
-  userProfile: UserProfile!
+  profileID: String!
   supplierId: String!
   payablesAccount: PayablesAccount!
   supplierKYC: Map!

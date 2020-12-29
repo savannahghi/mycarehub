@@ -5,13 +5,14 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
 )
 
 func (r *entityResolver) FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*base.PageInfo, error) {
-	return nil, nil
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *entityResolver) FindUserProfileByID(ctx context.Context, id string) (*base.UserProfile, error) {

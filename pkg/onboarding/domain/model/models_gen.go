@@ -3,30 +3,101 @@
 package model
 
 import (
+	"fmt"
+	"io"
+	"strconv"
+
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
-type Practitioner struct {
-	Profile                  *base.UserProfile          `json:"profile"`
-	License                  string                     `json:"license"`
-	Cadre                    domain.PractitionerCadre   `json:"cadre"`
-	Specialty                base.PractitionerSpecialty `json:"specialty"`
-	ProfessionalProfile      base.Markdown              `json:"professionalProfile"`
-	AverageConsultationPrice float64                    `json:"averageConsultationPrice"`
-	Services                 *domain.ServicesOffered    `json:"services"`
+type Beneficiary struct {
+	Name         string                         `json:"name"`
+	Msisdns      []string                       `json:"msisdns"`
+	Emails       []string                       `json:"emails"`
+	Relationship domain.BeneficiaryRelationship `json:"relationship"`
+	DateOfBirth  base.Date                      `json:"dateOfBirth"`
 }
 
-type PractitionerConnection struct {
-	Edges    []*PractitionerEdge `json:"edges"`
-	PageInfo *base.PageInfo      `json:"pageInfo"`
+type BeneficiaryInput struct {
+	Name         string                         `json:"name"`
+	Msisdns      []string                       `json:"msisdns"`
+	Emails       []string                       `json:"emails"`
+	Relationship domain.BeneficiaryRelationship `json:"relationship"`
+	DateOfBirth  base.Date                      `json:"dateOfBirth"`
 }
 
-type PractitionerEdge struct {
-	Cursor *string       `json:"cursor"`
-	Node   *Practitioner `json:"node"`
+type LocationInput struct {
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	BranchSladeCode *string `json:"branchSladeCode"`
 }
 
-type TesterWhitelist struct {
-	Email string `json:"email"`
+type OtherPractitionerServiceInput struct {
+	OtherServices []string `json:"otherServices"`
+}
+
+type PractitionerServiceInput struct {
+	Services []domain.PractitionerService `json:"services"`
+}
+
+type ReceivablesAccount struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	IsActive    bool   `json:"isActive"`
+	Number      string `json:"number"`
+	Tag         string `json:"tag"`
+	Description string `json:"description"`
+}
+
+type ServicesOffered struct {
+	Services      []domain.PractitionerService `json:"services"`
+	OtherServices []string                     `json:"otherServices"`
+}
+
+type SignUpMethod string
+
+const (
+	SignUpMethodAnonymous SignUpMethod = "anonymous"
+	SignUpMethodApple     SignUpMethod = "apple"
+	SignUpMethodFacebook  SignUpMethod = "facebook"
+	SignUpMethodGoogle    SignUpMethod = "google"
+	SignUpMethodPhone     SignUpMethod = "phone"
+)
+
+var AllSignUpMethod = []SignUpMethod{
+	SignUpMethodAnonymous,
+	SignUpMethodApple,
+	SignUpMethodFacebook,
+	SignUpMethodGoogle,
+	SignUpMethodPhone,
+}
+
+func (e SignUpMethod) IsValid() bool {
+	switch e {
+	case SignUpMethodAnonymous, SignUpMethodApple, SignUpMethodFacebook, SignUpMethodGoogle, SignUpMethodPhone:
+		return true
+	}
+	return false
+}
+
+func (e SignUpMethod) String() string {
+	return string(e)
+}
+
+func (e *SignUpMethod) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SignUpMethod(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SignUpMethod", str)
+	}
+	return nil
+}
+
+func (e SignUpMethod) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

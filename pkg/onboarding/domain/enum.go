@@ -115,59 +115,6 @@ func (e FivePointRating) MarshalGQL(w io.Writer) {
 	}
 }
 
-// SignUpMethod defines the various frontend sign up options
-type SignUpMethod string
-
-// SignUpMethodAnonymous is a constant of all known sign up methods
-const (
-	SignUpMethodAnonymous SignUpMethod = "anonymous"
-	SignUpMethodApple     SignUpMethod = "apple"
-	SignUpMethodFacebook  SignUpMethod = "facebook"
-	SignUpMethodGoogle    SignUpMethod = "google"
-	SignUpMethodPhone     SignUpMethod = "phone"
-)
-
-// AllSignUpMethod is a list of all known sign up methods
-var AllSignUpMethod = []SignUpMethod{
-	SignUpMethodAnonymous,
-	SignUpMethodApple,
-	SignUpMethodFacebook,
-	SignUpMethodGoogle,
-	SignUpMethodPhone,
-}
-
-// IsValid returns true for valid sign up method
-func (e SignUpMethod) IsValid() bool {
-	switch e {
-	case SignUpMethodAnonymous, SignUpMethodApple, SignUpMethodFacebook, SignUpMethodGoogle, SignUpMethodPhone:
-		return true
-	}
-	return false
-}
-
-func (e SignUpMethod) String() string {
-	return string(e)
-}
-
-// UnmarshalGQL converts the input, if valid, into a signup method value
-func (e *SignUpMethod) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = SignUpMethod(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid SignUpMethod", str)
-	}
-	return nil
-}
-
-// MarshalGQL converts the sign up method into a valid JSON string
-func (e SignUpMethod) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
 // PractitionerService defines the various services practitioners offer
 type PractitionerService string
 

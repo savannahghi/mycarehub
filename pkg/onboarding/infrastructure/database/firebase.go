@@ -7,6 +7,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/profile/repository"
 )
 
 const (
@@ -19,7 +20,7 @@ type Repository struct {
 }
 
 // NewFirebaseRepository initializes a Firebase repository
-func NewFirebaseRepository(ctx context.Context) (*Repository, error) {
+func NewFirebaseRepository(ctx context.Context) (repository.OnboardingRepository, error) {
 	fc := base.FirebaseClient{}
 	fa, err := fc.InitFirebase()
 	if err != nil {
@@ -50,7 +51,7 @@ func (fr Repository) checkPreconditions() error {
 }
 
 // GetUserProfileCollectionName ...
-func GetUserProfileCollectionName() string {
+func (fr Repository) GetUserProfileCollectionName() string {
 	suffixed := base.SuffixCollection(userProfileCollectionName)
 	return suffixed
 }
@@ -62,7 +63,7 @@ func (fr *Repository) GetUserProfile(
 ) (*base.UserProfile, error) {
 	// Retrieve the user profile
 	uids := []string{uid}
-	collection := fr.firestoreClient.Collection(GetUserProfileCollectionName())
+	collection := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName())
 	query := collection.Where("verifiedIdentifiers", "array-contains-any", uids)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
@@ -86,7 +87,7 @@ func (fr *Repository) GetUserProfileByID(
 	ctx context.Context,
 	id string,
 ) (*base.UserProfile, error) {
-	collection := fr.firestoreClient.Collection(GetUserProfileCollectionName())
+	collection := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName())
 	query := collection.Where("id", "==", id)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
@@ -106,4 +107,55 @@ func (fr *Repository) GetUserProfileByID(
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
 	return userProfile, nil
+}
+
+// UpdatePrimaryPhoneNumber ...
+func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, phoneNumber string) error {
+	profile, err := fr.GetUserProfileByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	profile.PrimaryPhone = phoneNumber
+	// todo : save
+	return nil
+}
+
+// UpdatePrimaryEmailAddress ...
+func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, emailAddress string) error {
+	return nil
+}
+
+// UpdateSecondaryPhoneNumbers ...
+func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string, phoneNumbers []string) error {
+	return nil
+}
+
+// UpdateSecondaryEmailAddresses ...
+func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id string, emailAddresses []string) error {
+	return nil
+}
+
+// UpdateSuspended ...
+func (fr *Repository) UpdateSuspended(ctx context.Context, id string) bool {
+	return false
+}
+
+// UpdatePhotoUploadID ...
+func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, uploadID string) error {
+	return nil
+}
+
+// UpdateCovers ...
+func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base.Cover) error {
+	return nil
+}
+
+// UpdatePushTokens ...
+func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken string) error {
+	return nil
+}
+
+// UpdateBioData ...
+func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.BioData) error {
+	return nil
 }
