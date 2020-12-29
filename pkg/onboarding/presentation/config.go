@@ -15,9 +15,10 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/rest"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/service"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
@@ -46,17 +47,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	if err != nil {
 		return nil, err
 	}
-	fr, err := database.NewFirebaseRepository(ctx)
+
+	srv, err := service.NewService()
 	if err != nil {
-		return nil, fmt.Errorf("can't instantiate firebase repository in resolver: %w", err)
+		return nil, fmt.Errorf("can't instantiate service : %w", err)
 	}
-
-	uc := usecases.NewOnboardingUseCase(fr)
-	if uc == nil {
-		return nil, fmt.Errorf("can't instantiate usecases in: %w", err)
-	}
-
-	su := usecases.NewSignUpUseCases(fr)
 
 	r := mux.NewRouter() // gorilla mux
 	r.Use(
@@ -68,8 +63,20 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Use(base.RequestDebugMiddleware())
 
 	// Unauthenticated routes
+
+	// misc routes
 	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))
 	r.Path("/health").HandlerFunc(HealthStatusCheck)
+
+	// signup routes
+	r.Path("/verify_phone").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(rest.VerifySignUpPhoneNumber(ctx, srv))
+	r.Path("/create_user_by_phone").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(rest.CreateUserWithPhoneNumber(ctx, srv))
+	r.Path("/user_recovery_phonenumbers").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(rest.UserRecoveryPhoneNumbers(ctx, srv))
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()
@@ -77,7 +84,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	authR.Methods(
 		http.MethodPost,
 		http.MethodGet,
-	).HandlerFunc(GQLHandler(ctx, uc, su))
+	).HandlerFunc(GQLHandler(ctx, srv.Onboarding, srv.Signup))
 
 	return r, nil
 }

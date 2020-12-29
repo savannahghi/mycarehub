@@ -220,6 +220,18 @@ func (i *BranchSortInput) ToURLValues() (values url.Values) {
 	return vals
 }
 
+// PhoneNumberPayload used when verifying a phone number.
+type PhoneNumberPayload struct {
+	PhoneNumber *string `json:"phoneNumber"`
+}
+
+// SignUpPayload used when calling the REST API to create a new account
+type SignUpPayload struct {
+	PhoneNumber *string `json:"phoneNumber"`
+	OTP         *string `json:"otp"`
+	PIN         *string `json:"pin"`
+}
+
 //TODO: restore commented structs when implementing profile missing methods
 
 // // PostVisitSurvey is used to record and retrieve post visit surveys from Firebase
@@ -377,12 +389,6 @@ func (i *BranchSortInput) ToURLValues() (values url.Values) {
 // // or OTP retry.
 // type OTPResponse struct {
 // 	OTP string `json:"otp"`
-// }
-
-// // PhoneNumberInput is used to deserialize phone numbers sent to
-// // inter-service APIs e.g phone number sign up or verify
-// type PhoneNumberInput struct {
-// 	PhoneNumber string `json:"phoneNumber"`
 // }
 
 // // SupplierAccountInput is used when setting up basic/"key" supplier
