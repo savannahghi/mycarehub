@@ -1,8 +1,8 @@
 package domain
 
 import (
+	"fmt"
 	"net/url"
-	"time"
 
 	"gitlab.slade360emr.com/go/base"
 )
@@ -127,12 +127,12 @@ type UserResponse struct {
 	Auth            AuthCredentialResponse `json:"auth"`
 }
 
-// AuthCredentialResponse ...
+// AuthCredentialResponse represents a user login response
 type AuthCredentialResponse struct {
-	CustomToken  *string   `json:"customToken"`
-	IDToken      *string   `json:"idToken"`
-	Expiry       time.Time `json:"expiry"`
-	RefreshToken string    `json:"refreshToken"`
+	CustomToken  *string `json:"customToken"`
+	IDToken      *string `json:"idToken"`
+	ExpiresIn    string  `json:"expiresIn"`
+	RefreshToken string  `json:"refreshToken"`
 }
 
 // BusinessPartner represents a Slade 360 Charge Master business partner
@@ -267,6 +267,32 @@ type ReceivablesAccount struct {
 	Description string `json:"description" firestore:"description"`
 }
 
+// PIN represents a user's PIN information
+type PIN struct {
+	ProfileID   string `json:"profileID" firestore:"profileID"`
+	PhoneNumber string `json:"phoneNumber" firestore:"phoneNumber"`
+	PINNumber   string `json:"pinNumber" firestore:"pinNumber"`
+}
+
+// LoginPayload used when calling the REST API to log a user in
+type LoginPayload struct {
+	PhoneNumber *string       `json:"phoneNumber"`
+	PIN         *string       `json:"pin"`
+	Flavour     *base.Flavour `json:"flavour"`
+}
+
+// CustomError represents a custom error struct
+// Reference https://blog.golang.org/error-handling-and-go
+type CustomError struct {
+	Err     error
+	Message string
+	Code    int
+}
+
+func (e *CustomError) Error() string {
+	return fmt.Sprintf("%d: %s", e.Code, e.Message)
+}
+
 //TODO: restore commented structs when implementing profile missing methods
 
 // // PostVisitSurvey is used to record and retrieve post visit surveys from Firebase
@@ -277,15 +303,6 @@ type ReceivablesAccount struct {
 
 // 	UID       string    `json:"uid" firestore:"uid"`
 // 	Timestamp time.Time `json:"timestamp" firestore:"timestamp"`
-// }
-
-// // PIN is used to store a PIN (Personal Identifiation Number) associated
-// // to a phone number sign up to Firebase
-// type PIN struct {
-// 	ProfileID string `json:"profile_id" firestore:"profileID"`
-// 	MSISDN    string `json:"msisdn,omitempty" firestore:"msisdn"`
-// 	PINNumber string `json:"pin_number" firestore:"pin"`
-// 	IsValid   bool   `json:"isValid,omitempty" firestore:"isValid"`
 // }
 
 // // PinRecovery stores information required in resetting and updating a forgotten pin

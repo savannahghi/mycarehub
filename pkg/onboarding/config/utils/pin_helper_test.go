@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/utils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/utils"
 )
 
 func TestEncryptPIN(t *testing.T) {

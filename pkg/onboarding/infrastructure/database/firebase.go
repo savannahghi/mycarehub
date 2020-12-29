@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/errors"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -17,11 +19,13 @@ const (
 	userProfileCollectionName     = "user_profiles"
 	supplierProfileCollectionName = "supplier_profiles"
 	customerProfileCollectionName = "customer_profiles"
+	pinsCollectionName            = "pins"
 )
 
 // Repository accesses and updates an item that is stored on Firebase
 type Repository struct {
 	firestoreClient *firestore.Client
+	firebaseClient  *auth.Client
 }
 
 // NewFirebaseRepository initializes a Firebase repository
@@ -37,8 +41,14 @@ func NewFirebaseRepository(ctx context.Context) (repository.OnboardingRepository
 		log.Fatalf("unable to initialize Firestore: %s", err)
 	}
 
+	fbc, err := fa.Auth(ctx)
+	if err != nil {
+		log.Panicf("can't initialize Firebase auth when setting up profile service: %s", err)
+	}
+
 	ff := &Repository{
 		firestoreClient: fsc,
+		firebaseClient:  fbc,
 	}
 	err = ff.checkPreconditions()
 	if err != nil {
@@ -70,6 +80,12 @@ func (fr Repository) GetSupplierProfileCollectionName() string {
 // GetCustomerProfileCollectionName ...
 func (fr Repository) GetCustomerProfileCollectionName() string {
 	suffixed := base.SuffixCollection(customerProfileCollectionName)
+	return suffixed
+}
+
+// GetPINsCollectionName returns a well suffixed PINs collection name
+func (fr Repository) GetPINsCollectionName() string {
+	suffixed := base.SuffixCollection(pinsCollectionName)
 	return suffixed
 }
 
@@ -261,6 +277,191 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 	}
 
 	return false, nil
+}
+
+// GetUserProfileByPrimaryPhoneNumber gets a user profile by its primary phone number
+func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(
+	ctx context.Context,
+	phone string,
+) (*base.UserProfile, error) {
+	dsnap, err := fr.GetUserProfileDsnap(
+		ctx,
+		"primaryPhone",
+		"==",
+		phone,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user profile document snapshot: %w", err)
+	}
+
+	profile := &base.UserProfile{}
+	err = dsnap.DataTo(profile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+	return profile, nil
+}
+
+// GetPINByProfileID gets a user's PIN by their profile ID
+func (fr *Repository) GetPINByProfileID(
+	ctx context.Context,
+	profileID string,
+) (*domain.PIN, error) {
+	collection := fr.firestoreClient.Collection(fr.GetPINsCollectionName())
+	query := collection.Where("profileID", "==", profileID)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(docs) > 1 && base.IsDebug() {
+		log.Printf("> 1 PINs with profile ID %s (count: %d)", profileID, len(docs))
+	}
+
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("user PIN not found")
+	}
+
+	dsnap := docs[0]
+	PIN := &domain.PIN{}
+	err = dsnap.DataTo(PIN)
+	if err != nil {
+		return nil, err
+	}
+
+	return PIN, nil
+}
+
+// GenerateAuthCredentials gets a Firebase user by phone and creates their tokens
+func (fr *Repository) GenerateAuthCredentials(
+	ctx context.Context,
+	phone string,
+) (*domain.AuthCredentialResponse, error) {
+	u, err := fr.firebaseClient.GetUserByPhoneNumber(ctx, phone)
+	if err != nil {
+		if auth.IsUserNotFound(err) {
+			return nil, &domain.CustomError{
+				Err:     err,
+				Message: errors.UserNotFoundErrMsg,
+				Code:    int(base.UserNotFound),
+			}
+		}
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.UserNotFoundErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+
+	customToken, err := base.CreateFirebaseCustomToken(ctx, u.UID)
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.CustomTokenErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+
+	userTokens, err := base.AuthenticateCustomFirebaseToken(customToken)
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.AuthenticateTokenErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+
+	err = fr.UpdateProfileWithUID(ctx, phone, u.UID)
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.UpdateProfileErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+
+	return &domain.AuthCredentialResponse{
+		CustomToken:  &customToken,
+		IDToken:      &userTokens.IDToken,
+		ExpiresIn:    userTokens.ExpiresIn,
+		RefreshToken: userTokens.RefreshToken,
+	}, nil
+}
+
+// UpdateProfileWithUID adds a UID to a user profile during login if it does not exist
+func (fr *Repository) UpdateProfileWithUID(
+	ctx context.Context,
+	phone string,
+	UID string,
+) error {
+	dsnap, err := fr.GetUserProfileDsnap(
+		ctx,
+		"primaryPhone",
+		"==",
+		phone,
+	)
+	if err != nil {
+		return err
+	}
+
+	profile := &base.UserProfile{}
+	err = dsnap.DataTo(profile)
+	if err != nil {
+		return err
+	}
+
+	if !checkIdentifierExists(profile, UID) {
+		err = base.UpdateRecordOnFirestore(
+			fr.firestoreClient,
+			fr.GetUserProfileCollectionName(),
+			dsnap.Ref.ID,
+			profile,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func checkIdentifierExists(profile *base.UserProfile, UID string) bool {
+	foundVerifiedUIDs := []string{}
+	verifiedIDs := profile.VerifiedIdentifiers
+	for _, verifiedID := range verifiedIDs {
+		foundVerifiedUIDs = append(foundVerifiedUIDs, verifiedID.UID)
+	}
+	return base.StringSliceContains(foundVerifiedUIDs, UID)
+}
+
+// GetUserProfileDsnap takes in a Firestore field, query operator
+// e.g "== equal to" and a value and gets a user profile document snapshot
+func (fr *Repository) GetUserProfileDsnap(
+	ctx context.Context,
+	field string,
+	operator string,
+	value string,
+) (*firestore.DocumentSnapshot, error) {
+	collection := fr.firestoreClient.
+		Collection(fr.GetUserProfileCollectionName())
+	query := collection.Where(
+		field,
+		operator,
+		value,
+	)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) > 1 && base.IsDebug() {
+		log.Printf("> 1 profile found (count: %d)", len(docs))
+	}
+
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("%v", base.ProfileNotFound)
+	}
+
+	dsnap := docs[0]
+	return dsnap, nil
 }
 
 // UpdatePrimaryPhoneNumber ...

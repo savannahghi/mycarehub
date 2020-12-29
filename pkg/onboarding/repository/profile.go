@@ -31,4 +31,20 @@ type OnboardingRepository interface {
 	// supplier methods
 	GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, *firestore.DocumentSnapshot, error)
 	AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error)
+
+	GetUserProfileByPrimaryPhoneNumber(
+		ctx context.Context,
+		phone string,
+	) (*base.UserProfile, error)
+
+	GenerateAuthCredentials(
+		ctx context.Context,
+		phone string,
+	) (*domain.AuthCredentialResponse, error)
+
+	// PINs
+	GetPINByProfileID(
+		ctx context.Context,
+		ProfileID string,
+	) (*domain.PIN, error)
 }
