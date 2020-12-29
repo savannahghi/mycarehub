@@ -24,14 +24,25 @@ func VerifySignUpPhoneNumber(ctx context.Context, srv *service.Service) http.Han
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
-
-		response, err := srv.Signup.VerifyPhone(ctx, *p.PhoneNumber)
+		v, err := srv.Signup.VerifyPhone(ctx, *p.PhoneNumber)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
-		base.WriteJSONResponse(w, response, http.StatusOK)
+		if !v {
+			base.ReportErr(w, fmt.Errorf("%v", base.PhoneNumberInUse), http.StatusBadRequest)
+			return
+		}
+
+		// send otp to the phone number
+		o, err := srv.Otp.GenerateAndSendOTP(ctx, *p.PhoneNumber)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, domain.OtpResponse{OTP: o}, http.StatusOK)
 	}
 }
 
@@ -41,13 +52,13 @@ func CreateUserWithPhoneNumber(ctx context.Context, srv *service.Service) http.H
 
 		p := &domain.SignUpPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil || p.PIN == nil || p.OTP == nil {
-			err := fmt.Errorf("expected `phoneNumber`, `otp`, `pin` to be defined")
+		if p.PhoneNumber == nil || p.PIN == nil {
+			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
-		response, err := srv.Signup.CreateUserByPhone(ctx, *p.PhoneNumber, *p.PIN, *p.OTP)
+		response, err := srv.Signup.CreateUserByPhone(ctx, *p.PhoneNumber, *p.PIN)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return

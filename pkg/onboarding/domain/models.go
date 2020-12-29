@@ -2,6 +2,7 @@ package domain
 
 import (
 	"net/url"
+	"time"
 
 	"gitlab.slade360emr.com/go/base"
 )
@@ -118,10 +119,17 @@ type KYCRequest struct {
 
 // UserResponse ...
 type UserResponse struct {
+	Profile         *base.UserProfile      `json:"profile"`
+	SupplierProfile *Supplier              `json:"supplierProfile"`
+	Auth            AuthCredentialResponse `json:"auth"`
 }
 
 // AuthCredentialResponse ...
 type AuthCredentialResponse struct {
+	CustomToken  *string   `json:"customToken"`
+	IDToken      *string   `json:"idToken"`
+	Expiry       time.Time `json:"expiry"`
+	RefreshToken string    `json:"refreshToken"`
 }
 
 // BusinessPartner represents a Slade 360 Charge Master business partner
@@ -228,8 +236,12 @@ type PhoneNumberPayload struct {
 // SignUpPayload used when calling the REST API to create a new account
 type SignUpPayload struct {
 	PhoneNumber *string `json:"phoneNumber"`
-	OTP         *string `json:"otp"`
 	PIN         *string `json:"pin"`
+}
+
+// OtpResponse returns an otp
+type OtpResponse struct {
+	OTP string `json:"otp"`
 }
 
 //TODO: restore commented structs when implementing profile missing methods
@@ -258,11 +270,6 @@ type SignUpPayload struct {
 // 	MSISDN    string `json:"msisdn" firestore:"msisdn"`
 // 	PINNumber string `json:"pin_number" firestore:"PINNumber"`
 // 	OTP       string `json:"otp" firestore:"otp"`
-// }
-
-// // OtpResponse returns an otp
-// type OtpResponse struct {
-// 	OTP string `json:"otp"`
 // }
 
 // // Customer used to create a customer request payload

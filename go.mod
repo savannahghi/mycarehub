@@ -8,6 +8,7 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/aws/aws-sdk-go v1.36.14 // indirect
+	github.com/google/uuid v1.1.2
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
@@ -16,7 +17,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.0 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/vektah/gqlparser/v2 v2.1.0
-	gitlab.slade360emr.com/go/base v0.0.93
+	gitlab.slade360emr.com/go/base v0.0.96
 	golang.org/x/sys v0.0.0-20201223074533-0d417f636930 // indirect
 	golang.org/x/tools v0.0.0-20201223010750-3fa0e8f87c1a // indirect
 	gopkg.in/yaml.v2 v2.4.0

@@ -2,7 +2,9 @@ package usecases
 
 import (
 	"context"
+	"fmt"
 
+	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -17,7 +19,7 @@ type SignUpUseCases interface {
 
 	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
 	// Implemented for unauthenicated REST API
-	CreateUserByPhone(ctx context.Context, phoneNumber, pin, otp string) (*domain.UserResponse, error)
+	CreateUserByPhone(ctx context.Context, phoneNumber, pin string) (*base.UserProfile, error)
 
 	// updates the user profile of the currently logged in user
 	// Implemented for unauthenicated GRAPHQL API
@@ -57,19 +59,70 @@ func NewSignUpUseCases(r repository.OnboardingRepository) *SignUpUseCasesImpl {
 }
 
 // VerifyPhone checks whether a phone number has been registred by another user.
-// Checks both primary and secondary phone numbers. If the the phone number is foreign,
-// it send an OTP to that phone number
-func (o *SignUpUseCasesImpl) VerifyPhone(ctx context.Context, phone string) (*string, error) {
-	return nil, nil
+// Checks both primary and secondary phone numbers.
+func (o *SignUpUseCasesImpl) VerifyPhone(ctx context.Context, phone string) (bool, error) {
+
+	phoneNumber, err := base.NormalizeMSISDN(phone)
+	if err != nil {
+		return false, fmt.Errorf("failed to  normalize the phone number: %v", err)
+	}
+
+	v, err := o.onboardingRepository.CheckIfPhoneNumberExists(ctx, phoneNumber)
+	if err != nil {
+		return false, fmt.Errorf("failed to check the phone number: %v", err)
+	}
+
+	return v, nil
 }
 
 // CreateUserByPhone creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
-func (o *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber, pin, otp string) (*domain.UserResponse, error) {
-	return nil, nil
+func (o *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber, pin string) (*domain.UserResponse, error) {
+
+	// check if phone number is registered to another user
+	v, err := o.VerifyPhone(ctx, phoneNumber)
+	if err != nil {
+		return nil, fmt.Errorf("%v", err)
+	}
+
+	if v {
+		return nil, fmt.Errorf("%v", base.PhoneNumberInUse)
+	}
+
+	// begin creating account
+
+	// get or create user via thier phone number
+	user, err := base.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create firebase user: %w", err)
+	}
+
+	// generate a token for the user
+	ct, err := base.CreateFirebaseCustomToken(ctx, user.UID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get or create custom token: %w", err)
+	}
+
+	pr, err := o.onboardingRepository.CreateUserProfile(ctx, phoneNumber, user.UID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create userProfile: %w", err)
+	}
+
+	//TODO(dexter) : create empty supplier profile
+
+	//TODO(dexter) : create empty customer profile
+
+	//TODO(calvine) : add method to encrpyt and save pin
+
+	return &domain.UserResponse{
+		Profile: pr,
+		Auth: domain.AuthCredentialResponse{
+			CustomToken: &ct,
+		},
+	}, nil
 }
 
 // UpdateUserProfile  updates the user profile of the currently logged in user
-func (o *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *domain.UserProfileInput) (*domain.UserResponse, error) {
+func (o *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *domain.UserProfileInput) (*base.UserProfile, error) {
 	return nil, nil
 }
 

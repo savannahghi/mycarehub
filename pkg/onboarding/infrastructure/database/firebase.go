@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -107,6 +109,67 @@ func (fr *Repository) GetUserProfileByID(
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
 	return userProfile, nil
+}
+
+// CreateUserProfile creates a user profile of using the provided phone number and uid
+func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
+
+	newProfile := &base.UserProfile{
+		ID:           uuid.New().String(),
+		PrimaryPhone: phoneNumber,
+		VerifiedIdentifiers: []base.VerifiedIdentifier{{
+			UID:           uid,
+			LoginProvider: base.LoginProviderTypePhone,
+			Timestamp:     time.Now().In(base.TimeLocation),
+		}},
+		TermsAccepted: true,
+		Suspended:     false,
+	}
+
+	// persist the data to a datastore
+	docID, err := base.SaveDataToFirestore(fr.firestoreClient, fr.GetUserProfileCollectionName(), newProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new user profile: %w", err)
+	}
+	dsnap, err := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName()).Doc(docID).Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve newly created user profile: %w", err)
+	}
+	// return the newly created user profile
+	userProfile := &base.UserProfile{}
+	err = dsnap.DataTo(userProfile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
+	}
+	return userProfile, nil
+
+}
+
+// CheckIfPhoneNumberExists checks both PRIMARY PHONE NUMBERs and SECONDARY PHONE NUMBERs for the
+// existance of the argument phoneNnumber.
+func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber string) (bool, error) {
+	// check first primary phone numbers
+	collection1 := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName())
+	docs1, err := collection1.Where("primaryPhone", "==", phoneNumber).Documents(ctx).GetAll()
+	if err != nil {
+		return false, err
+	}
+	if len(docs1) == 1 {
+		return true, nil
+	}
+
+	// then check in secondary phone numbers
+	collection2 := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName())
+	docs2, err := collection2.Where("secondaryPhoneNumbers", "array-contains", phoneNumber).Documents(ctx).GetAll()
+	if err != nil {
+		return false, err
+	}
+
+	if len(docs2) == 1 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 // UpdatePrimaryPhoneNumber ...

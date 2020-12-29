@@ -13,7 +13,7 @@ import (
 )
 
 func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input domain.UserProfileInput) (*base.UserProfile, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.signup.UpdateUserProfile(ctx, &input)
 }
 
 func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) (bool, error) {
