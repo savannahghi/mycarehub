@@ -37,7 +37,8 @@ type PayablesAccount struct {
 // Supplier used to create a supplier request payload
 type Supplier struct {
 	ProfileID              *string                `json:"profileID" firestore:"profileID"`
-	SupplierID             string                 `json:"id" firestore:"supplierid"`
+	SupplierID             string                 `json:"supplierID" firestore:"supplierID"`
+	SupplierName           string                 `json:"supplierName" firestore:"supplierName"`
 	PayablesAccount        *PayablesAccount       `json:"payablesAccount"`
 	SupplierKYC            map[string]interface{} `json:"supplierKYC"`
 	Active                 bool                   `json:"active" firestore:"active"`

@@ -2,10 +2,12 @@ package usecases
 
 import (
 	"context"
+	"fmt"
 
 	"cloud.google.com/go/firestore"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 // SupplierUseCases represent the business logic required for management of suppliers
@@ -43,72 +45,48 @@ type SupplierUseCases interface {
 	SendKYCEmail(ctx context.Context, text, emailaddress string) error
 }
 
-// // AddPartnerType create the initial supplier record
-// func (s Service) AddPartnerType(ctx context.Context, name *string,
-// 	partnerType *PartnerType) (bool, error) {
+// SupplierUseCasesImpl represents usecase implementation object
+type SupplierUseCasesImpl struct {
+	repo repository.OnboardingRepository
+}
 
-// 	s.checkPreconditions()
+// NewSupplierUseCases returns a new a onboarding usecase
+func NewSupplierUseCases(r repository.OnboardingRepository) *SupplierUseCasesImpl {
+	return &SupplierUseCasesImpl{r}
+}
 
-// 	if name == nil || partnerType == nil || *name == " " || !partnerType.IsValid() {
-// 		return false, fmt.Errorf("expected `name` to be defined and `partnerType` to be valid")
-// 	}
+// AddPartnerType create the initial supplier record
+func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, partnerType *domain.PartnerType) (bool, error) {
 
-// 	if *partnerType == PartnerTypeConsumer {
-// 		return false, fmt.Errorf("invalid `partnerType`. cannot use CONSUMER in this context")
-// 	}
+	if name == nil || partnerType == nil || !partnerType.IsValid() {
+		return false, fmt.Errorf("expected `name` to be defined and `partnerType` to be valid")
+	}
 
-// 	userUID, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return false, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
+	if !partnerType.IsValid() {
+		return false, fmt.Errorf("invalid `partnerType` provided")
+	}
 
-// 	profile, err := s.ParseUserProfileFromContextOrUID(ctx, &userUID)
-// 	if err != nil {
-// 		return false, fmt.Errorf("unable to read user profile: %w", err)
-// 	}
+	if *partnerType == domain.PartnerTypeConsumer {
+		return false, fmt.Errorf("invalid `partnerType`. cannot use CONSUMER in this context")
+	}
 
-// 	collection := s.firestoreClient.Collection(s.GetSupplierCollectionName())
-// 	query := collection.Where("userprofile.verifiedIdentifiers", "array-contains", userUID)
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, fmt.Errorf("unable to get the logged in user: %v", err)
+	}
 
-// 	docs, err := query.Documents(ctx).GetAll()
-// 	if err != nil {
-// 		return false, err
-// 	}
+	profile, err := s.repo.GetUserProfile(ctx, uid)
+	if err != nil {
+		return false, fmt.Errorf("unable to read user profile: %w", err)
+	}
 
-// 	// if record length is equal to on 1, update otherwise create
-// 	if len(docs) == 1 {
-// 		// update
-// 		supplier := &Supplier{}
-// 		err = docs[0].DataTo(supplier)
-// 		if err != nil {
-// 			return false, fmt.Errorf("unable to read supplier: %v", err)
-// 		}
+	v, err := s.repo.AddPartnerType(ctx, profile.ID, name, partnerType)
+	if !v || err != nil {
+		return false, fmt.Errorf("error occured while adding partner type: %w", err)
+	}
 
-// 		supplier.UserProfile.Name = name
-// 		supplier.PartnerType = *partnerType
-// 		supplier.PartnerSetupComplete = true
-
-// 		if err := s.SaveSupplierToFireStore(*supplier); err != nil {
-// 			return false, fmt.Errorf("unable to add supplier to firestore: %v", err)
-// 		}
-
-// 		return true, nil
-// 	}
-
-// 	// create new record
-// 	profile.Name = name
-// 	newSupplier := Supplier{
-// 		UserProfile:          profile,
-// 		PartnerType:          *partnerType,
-// 		PartnerSetupComplete: true,
-// 	}
-
-// 	if err := s.SaveSupplierToFireStore(newSupplier); err != nil {
-// 		return false, fmt.Errorf("unable to add supplier to firestore: %v", err)
-// 	}
-
-// 	return true, nil
-// }
+	return true, nil
+}
 
 // // AddSupplier makes a call to our own ERP and creates a supplier account for the pro users based
 // // on their correct partner types that is used for transacting on Be.Well

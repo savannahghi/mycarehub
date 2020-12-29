@@ -9,11 +9,13 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 const (
-	userProfileCollectionName = "user_profiles"
+	userProfileCollectionName     = "user_profiles"
+	supplierProfileCollectionName = "supplier_profiles"
 )
 
 // Repository accesses and updates an item that is stored on Firebase
@@ -55,6 +57,12 @@ func (fr Repository) checkPreconditions() error {
 // GetUserProfileCollectionName ...
 func (fr Repository) GetUserProfileCollectionName() string {
 	suffixed := base.SuffixCollection(userProfileCollectionName)
+	return suffixed
+}
+
+// GetSupplierProfileCollectionName ...
+func (fr Repository) GetSupplierProfileCollectionName() string {
+	suffixed := base.SuffixCollection(supplierProfileCollectionName)
 	return suffixed
 }
 
@@ -109,6 +117,31 @@ func (fr *Repository) GetUserProfileByID(
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
 	return userProfile, nil
+}
+
+// GetSupplierProfileByProfileID fetch the supplier profile by profile id.
+// since this same supplierProfile can be used for updating, a companion snapshot record is returned as well
+func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, *firestore.DocumentSnapshot, error) {
+	collection := fr.firestoreClient.Collection(fr.GetSupplierProfileCollectionName())
+	query := collection.Where("profileID", "==", profileID)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(docs) > 1 && base.IsDebug() {
+		log.Printf("> 1 profile with id %s (count: %d)", profileID, len(docs))
+	}
+
+	if len(docs) == 0 {
+		return nil, nil, fmt.Errorf("supplier profile not found: %w", err)
+	}
+	dsnap := docs[0]
+	sup := &domain.Supplier{}
+	err = dsnap.DataTo(sup)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to read supplier profile: %w", err)
+	}
+	return sup, dsnap, nil
 }
 
 // CreateUserProfile creates a user profile of using the provided phone number and uid
@@ -221,4 +254,28 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 // UpdateBioData ...
 func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.BioData) error {
 	return nil
+}
+
+// AddPartnerType updates the suppier profile with the provided name and  partner type.
+func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error) {
+
+	// get the suppier profile
+	sup, record, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
+	if err != nil {
+		return false, err
+	}
+
+	sup.SupplierName = *name
+	sup.PartnerType = *partnerType
+	sup.PartnerSetupComplete = true
+
+	err = base.UpdateRecordOnFirestore(
+		fr.firestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
+	)
+	if err != nil {
+		return false, fmt.Errorf("unable to update user profile: %v", err)
+	}
+
+	return true, nil
+
 }
