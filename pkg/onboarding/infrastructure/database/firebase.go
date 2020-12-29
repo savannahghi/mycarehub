@@ -7,7 +7,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/profile/repository"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 const (

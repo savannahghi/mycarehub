@@ -4,19 +4,97 @@ import (
 	"context"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
-// SignUPUseCases represents all the business logic involved in setting up a user
-type SignUPUseCases interface {
-	VerifyPhone(ctx context.Context, phone string) (string, error)
-	LoginByPhone(ctx context.Context, phone, pin, flavour string) (*domain.UserResponse, error)
+// SignUpUseCases represents all the business logic involved in setting up a user
+type SignUpUseCases interface {
+
+	// checks whether a phone number has been registred by another user. Checks both primary and
+	// secondary phone numbers. If the the phone number is foreign, it send an OTP to that phone number
+	// Implemented for unauthenicated REST API
+	VerifyPhone(ctx context.Context, phone string) (*string, error)
+
+	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
+	// Implemented for unauthenicated REST API
 	CreateUserByPhone(ctx context.Context, phoneNumber, pin, otp string) (*domain.UserResponse, error)
-	SetPhoneAsPrimary(ctx context.Context, phone string) (bool, error)
-	GetUserRecoveryPhoneNumbers(ctx context.Context, phoneNumber string) ([]string, error)
+
+	// updates the user profile of the currently logged in user
+	// Implemented for unauthenicated GRAPHQL API
+	UpdateUserProfile(ctx context.Context, input *domain.UserProfileInput) (*domain.UserResponse, error)
+
+	// adds a new push token in the users profile if the push token does not exist
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
-	UpdatePushToken(ctx context.Context, token string) (bool, error)
-	RetirePushToken(ctx context.Context, token string) (bool, error)
-	RefreshToken(ctx context.Context, token string) (*domain.AuthCredentialResponse, error)
-	RecordPostVisitSurvey(ctx context.Context, input domain.PostVisitSurveyInput) (bool, error)
+
+	// called to create a customer account in the ERP. This API is only valid for `BEWELL CONSUMER`
+	// it should be the last call after updating the users bio data. Its should not return an error
+	// when it fails due to unreachable errors, rather it should retry
 	CompleteSignup(ctx context.Context, flavour string) (bool, error)
+
+	// removes a push token from the users profile
+	// Implemented for unauthenicated GRAPHQL API
+	RetirePushToken(ctx context.Context, token string) (bool, error)
+
+	// fetches the phone numbers of a user for the purposes of recoverying an account.
+	// the returned phone numbers should be masked
+	// Implemented for unauthenicated REST API
+	GetUserRecoveryPhoneNumbers(ctx context.Context, phoneNumber string) ([]string, error)
+
+	// called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
+	// where the phone number is associated with.
+	// Implemented for unauthenicated REST API
+	SetPhoneAsPrimary(ctx context.Context, phone string) (bool, error)
+}
+
+// SignUpUseCasesImpl represents usecase implementation object
+type SignUpUseCasesImpl struct {
+	onboardingRepository repository.OnboardingRepository
+}
+
+// NewSignUpUseCases returns a new a onboarding usecase
+func NewSignUpUseCases(r repository.OnboardingRepository) *SignUpUseCasesImpl {
+	return &SignUpUseCasesImpl{r}
+}
+
+// VerifyPhone checks whether a phone number has been registred by another user.
+// Checks both primary and secondary phone numbers. If the the phone number is foreign,
+// it send an OTP to that phone number
+func (o *SignUpUseCasesImpl) VerifyPhone(ctx context.Context, phone string) (*string, error) {
+	return nil, nil
+}
+
+// CreateUserByPhone creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
+func (o *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber, pin, otp string) (*domain.UserResponse, error) {
+	return nil, nil
+}
+
+// UpdateUserProfile  updates the user profile of the currently logged in user
+func (o *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *domain.UserProfileInput) (*domain.UserResponse, error) {
+	return nil, nil
+}
+
+// RegisterPushToken adds a new push token in the users profile if the push token does not exist
+func (o *SignUpUseCasesImpl) RegisterPushToken(ctx context.Context, token string) (bool, error) {
+	return false, nil
+}
+
+// CompleteSignup called to create a customer account in the ERP. This API is only valid for `BEWELL CONSUMER`
+func (o *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour string) (bool, error) {
+	return false, nil
+}
+
+// RetirePushToken removes a push token from the users profile
+func (o *SignUpUseCasesImpl) RetirePushToken(ctx context.Context, token string) (bool, error) {
+	return false, nil
+}
+
+// GetUserRecoveryPhoneNumbers fetches the phone numbers of a user for the purposes of recoverying an account.
+func (o *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, phoneNumber string) ([]string, error) {
+	return []string{}, nil
+}
+
+// SetPhoneAsPrimary called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
+// where the phone number is associated with.
+func (o *SignUpUseCasesImpl) SetPhoneAsPrimary(ctx context.Context, phone string) (bool, error) {
+	return false, nil
 }

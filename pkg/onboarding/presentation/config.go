@@ -56,6 +56,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, fmt.Errorf("can't instantiate usecases in: %w", err)
 	}
 
+	su := usecases.NewSignUpUseCases(fr)
+
 	r := mux.NewRouter() // gorilla mux
 	r.Use(
 		handlers.RecoveryHandler(
@@ -75,7 +77,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	authR.Methods(
 		http.MethodPost,
 		http.MethodGet,
-	).HandlerFunc(GQLHandler(ctx, uc))
+	).HandlerFunc(GQLHandler(ctx, uc, su))
 
 	return r, nil
 }
@@ -120,8 +122,9 @@ func HealthStatusCheck(w http.ResponseWriter, r *http.Request) {
 // GQLHandler sets up a GraphQL resolver
 func GQLHandler(ctx context.Context,
 	uc *usecases.OnboardingUseCaseImpl,
+	su *usecases.SignUpUseCasesImpl,
 ) http.HandlerFunc {
-	resolver, err := graph.NewResolver(ctx, uc)
+	resolver, err := graph.NewResolver(ctx, uc, su)
 	if err != nil {
 		base.LogStartupError(ctx, err)
 	}

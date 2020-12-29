@@ -16,6 +16,8 @@ type OnboardingUseCase interface {
 	GetProfileByID(ctx context.Context, id string) (*base.UserProfile, error)
 	UpdateUserProfile(ctx context.Context, input domain.UserProfileInput) (*base.UserProfile, error)
 	SuspendUserProfile(ctx context.Context, phone string) (bool, error)
+
+	RecordPostVisitSurvey(ctx context.Context, input domain.PostVisitSurveyInput) (bool, error)
 }
 
 // OnboardingUseCaseImpl represents usecase implementation object
