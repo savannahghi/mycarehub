@@ -4,7 +4,7 @@ import "context"
 
 // UserPINUseCases represents all the business logic that touch on user PIN Management
 type UserPINUseCases interface {
-	SetUserPin(ctx context.Context, msisdn string, pin string) (bool, error)
-	ChangeUserPin(ctx context.Context, msisdn string, pin string, otp string) (bool, error)
-	RequestPinReset(ctx context.Context, msisdn string) (string, error)
+	SetUserPIN(ctx context.Context, phone string, pin string) (bool, error)
+	ChangeUserPIN(ctx context.Context, phone string, pin string, otp string) (bool, error)
+	ResetPIN(ctx context.Context, phone string) (string, error)
 }
