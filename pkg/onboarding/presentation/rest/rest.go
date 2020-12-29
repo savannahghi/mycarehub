@@ -127,3 +127,28 @@ func LoginByPhone(ctx context.Context, i *interactor.Interactor) http.HandlerFun
 		base.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
+
+// SetUserPIN is an unauthenticated  endpoint that saves user Pin
+func SetUserPIN(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		pin := &domain.PIN{}
+		base.DecodeJSONToTargetStruct(w, r, pin)
+		if pin.PhoneNumber == "" || pin.PINNumber == "" {
+			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		response, err := i.UserPIN.SetUserPIN(
+			ctx,
+			pin.PINNumber,
+			pin.PhoneNumber,
+		)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}

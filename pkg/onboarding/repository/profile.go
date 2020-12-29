@@ -54,4 +54,7 @@ type OnboardingRepository interface {
 		input *domain.PostVisitSurveyInput,
 		UID string,
 	) (bool, error)
+
+	// User Pin methods
+	SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN, error)
 }

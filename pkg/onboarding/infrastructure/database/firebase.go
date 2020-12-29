@@ -487,6 +487,37 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 	return nil
 }
 
+// SavePIN  persist the data of the newly created PIN to a datastore
+func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN, error) {
+	// persist the data to a datastore
+	docID, err := base.SaveDataToFirestore(fr.firestoreClient, fr.GetPINsCollectionName(), pin)
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.AddRecordErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+	dsnap, err := fr.firestoreClient.Collection(fr.GetPINsCollectionName()).Doc(docID).Get(ctx)
+
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.RetrieveRecordErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+
+	PIN := &domain.PIN{}
+	err = dsnap.DataTo(PIN)
+	if err != nil {
+		return nil, err
+	}
+
+	return PIN, nil
+
+}
+
 // UpdateSecondaryEmailAddresses ...
 func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id string, emailAddresses []string) error {
 	profile, record, err := fr.GetUserProfileByID(ctx, id)

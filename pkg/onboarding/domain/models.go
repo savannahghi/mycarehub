@@ -273,6 +273,7 @@ type PIN struct {
 	ProfileID   string `json:"profileID" firestore:"profileID"`
 	PhoneNumber string `json:"phoneNumber" firestore:"phoneNumber"`
 	PINNumber   string `json:"pinNumber" firestore:"pinNumber"`
+	Salt        string `json:"salt" firestore:"salt"`
 }
 
 // LoginPayload used when calling the REST API to log a user in

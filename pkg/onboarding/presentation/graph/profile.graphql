@@ -25,7 +25,6 @@ extend type Mutation {
 
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
   suspendSupplier(uid: String!): Boolean!
-
   setUpSupplier(accountType: AccountType!): Supplier
   supplierEDILogin(
     username: String!
@@ -73,6 +72,7 @@ extend type Mutation {
     status: KYCProcessStatus!
     rejectionReason: String
   ): Boolean!
+  # setUserPin(msisdn: String!, pin: String!): Boolean!
 
   # recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
   # addTester(email: String!): Boolean!

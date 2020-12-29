@@ -18,6 +18,7 @@ type Interactor struct {
 	Supplier   usecases.SupplierUseCases
 	Login      usecases.LoginUseCases
 	Survey     usecases.SurveyUseCases
+	UserPIN    usecases.UserPINUseCases
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -34,6 +35,7 @@ func NewOnboardingInteractor() (*Interactor, error) {
 	supplier := usecases.NewSupplierUseCases(fr)
 	login := usecases.NewLoginUseCases(fr)
 	survey := usecases.NewSurveyUseCases(fr)
+	userpin := usecases.NewUserPinUseCase(fr)
 
 	return &Interactor{
 		Onboarding: uc,
@@ -42,5 +44,6 @@ func NewOnboardingInteractor() (*Interactor, error) {
 		Supplier:   supplier,
 		Login:      login,
 		Survey:     survey,
+		UserPIN:    userpin,
 	}, nil
 }

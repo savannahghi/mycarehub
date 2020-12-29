@@ -5,7 +5,11 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"hash"
+	"strconv"
 
+	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/errors"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -18,6 +22,10 @@ const (
 	DefaultKeyLen = 512
 	// alphanumeric character used for generation of a `salt`
 	alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	// Default min length of the pin
+	minPinLength = 4
+	// Default max length of the pin
+	maxPinLength = 6
 )
 
 // DefaultHashFunction ...
@@ -67,4 +75,33 @@ func ComparePIN(rawPwd string, salt string, encodedPwd string, options *Options)
 		return encodedPwd == hex.EncodeToString(pbkdf2.Key([]byte(rawPwd), []byte(salt), defaultIterations, DefaultKeyLen, DefaultHashFunction))
 	}
 	return encodedPwd == hex.EncodeToString(pbkdf2.Key([]byte(rawPwd), []byte(salt), options.Iterations, options.KeyLen, options.HashFunction))
+}
+
+// ValidatePINDigits validates user pin to ensure a PIN only contains digits
+func ValidatePINDigits(pin string) error {
+	// ensure pin is only digits
+	_, err := strconv.ParseUint(pin, 10, 64)
+	if err != nil {
+		return &domain.CustomError{
+			Err:     err,
+			Message: errors.ValidatePINDigitsErrMsg,
+			// TODO: a give a correct code
+			Code: int(base.UserNotFound),
+		}
+	}
+	return nil
+}
+
+// ValidatePINLength validates user pin to ensure it is
+// 4,5, or six digits
+func ValidatePINLength(pin string) error {
+	// make sure pin length is [4-6]
+	if len(pin) < minPinLength || len(pin) > maxPinLength {
+		return &domain.CustomError{
+			Message: errors.ValidatePINLengthErrMsg,
+			// TODO: a give a correct code
+			Code: int(base.UserNotFound),
+		}
+	}
+	return nil
 }
