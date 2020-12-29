@@ -1,0 +1,75 @@
+extend type Query {
+  userProfile: UserProfile!
+  # listTesters: [String!]!
+  # requestPinReset(msisdn: String!): String!
+  # findProvider(
+  #   pagination: PaginationInput
+  #   filter: [BusinessPartnerFilterInput]
+  #   sort: [BusinessPartnerSortInput]
+  # ): BusinessPartnerConnection!
+  # findBranch(
+  #   pagination: PaginationInput
+  #   filter: [BranchFilterInput]
+  #   sort: [BranchSortInput]
+  # ): BranchConnection!
+  # fetchSupplierAllowedLocations: BranchConnection!
+  # fetchKYCProcessingRequests: [KYCRequest!]
+}
+
+# extend type Mutation {
+  # updateUserProfile(input: UserProfileInput!): UserProfile!
+  # registerPushToken(token: String!): Boolean!
+  # recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
+  # addTester(email: String!): Boolean!
+  # removeTester(email: String!): Boolean!
+  # updateUserPIN(msisdn: String!, pin: String!): Boolean!
+  # addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
+  # suspendSupplier(uid: String!): Boolean!
+  # setUpSupplier(accountType: AccountType!): Supplier
+  # supplierEDILogin(
+  #   username: String!
+  #   password: String!
+  #   sladeCode: String!
+  # ): BranchConnection!
+  # supplierSetDefaultLocation(locatonID: String!): Boolean!
+  # addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
+  # addOrganizationRiderKYC(input: OrganizationRiderInput!): OrganizationRider!
+
+  # addIndividualPractitionerKYC(
+  #   input: IndividualPractitionerInput!
+  # ): IndividualPractitioner!
+
+  # addOrganizationPractitionerKYC(
+  #   input: OrganizationPractitionerInput!
+  # ): OrganizationPractitioner!
+
+  # addOrganizationProviderKYC(
+  #   input: OrganizationProviderInput!
+  # ): OrganizationProvider!
+
+  # addIndividualPharmaceuticalKYC(
+  #   input: IndividualPharmaceuticalInput!
+  # ): IndividualPharmaceutical!
+
+  # addOrganizationPharmaceuticalKYC(
+  #   input: OrganizationPharmaceuticalInput!
+  # ): OrganizationPharmaceutical!
+
+  # addIndividualCoachKYC(input: IndividualCoachInput!): IndividualCoach!
+
+  # addOrganizationCoachKYC(input: OrganizationCoachInput!): OrganizationCoach!
+
+  # addIndividualNutritionKYC(
+  #   input: IndividualNutritionInput!
+  # ): IndividualNutrition!
+
+  # addOrganizationNutritionKYC(
+  #   input: OrganizationNutritionInput!
+  # ): OrganizationNutrition!
+
+  # processKYCRequest(
+  #   id: String!
+  #   status: KYCProcessStatus!
+  #   rejectionReason: String
+  # ): Boolean!
+# }

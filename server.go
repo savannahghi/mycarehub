@@ -10,20 +10,10 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/graph"
+	"gitlab.slade360emr.com/go/profile/pkg/profile/presentation"
 )
 
 const waitSeconds = 30
-
-var allowedOrigins = []string{
-	"https://healthcloud.co.ke",
-	"https://bewell.healthcloud.co.ke",
-	"http://localhost:5000",
-	"https://api-gateway-test.healthcloud.co.ke",
-	"https://api-gateway-prod.healthcloud.co.ke",
-	"https://profile-testing-uyajqt434q-ew.a.run.app",
-	"https://profile-prod-uyajqt434q-ew.a.run.app",
-}
 
 func main() {
 	ctx := context.Background()
@@ -36,7 +26,7 @@ func main() {
 	if err != nil {
 		base.LogStartupError(ctx, err)
 	}
-	srv := graph.PrepareServer(ctx, port, allowedOrigins)
+	srv := presentation.PrepareServer(ctx, port, presentation.AllowedOrigins)
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			base.LogStartupError(ctx, err)

@@ -1,7 +1,80 @@
-# Profile micro-service
+# Onboarding service
 
-[![pipeline status](https://gitlab.slade360emr.com/go/profile/badges/develop/pipeline.svg)](https://gitlab.slade360emr.com/go/profile/-/commits/develop)
-[![coverage report](https://gitlab.slade360emr.com/go/profile/badges/develop/coverage.svg)](https://gitlab.slade360emr.com/go/profile/-/commits/develop)
+This service manages user onboarding process. 
+
+## Description
+
+The project implements the `Clean Architecture` advocated by 
+Robert Martin ('Uncle Bob').
+
+### Clean Architecture
+
+A cleanly architected project should be:
+
+- *Independent of Frameworks*: The architecture does not depend on the 
+existence of some library of feature laden software. This allows you to use 
+such frameworks as tools, rather than having to cram your system into their 
+limited constraints.
+
+- *Testable*: The business rules can be tested without the UI, Database, 
+Web Server, or any other external element.
+
+- *Independent of UI*: The UI can change easily, without changing the rest of
+the system. A Web UI could be replaced with a console UI, for example,
+without changing the business rules.
+
+- *Independent of Database*: You can swap out Cloud Firestore or SQL Server,
+for Mongo, Postgres, MySQL, or something else. Your business rules are not
+bound to the database.
+
+- *Independent of any external agency*: In fact your business rules simply
+don’t know anything at all about the outside world.
+
+## This project has 5 layers:
+
+### Domain Layer
+
+Here we have `business objects` or `entities` and should represent and 
+encapsulate the fundamental business rules.
+
+### Repository Layer
+
+In the domain layer we should have no idea about any database nor any storage, 
+so the repository is just an interface.
+
+### Infrastructure Layer
+
+These are the `ports` that allow the system to talk to 'outside things' which 
+could be a `database` for persistence or a `web server` for the UI. None of 
+the inner use cases or domain entities should know about the implementation of 
+these layers and they may change over time because ... well, we used to store 
+data in SQL, then document database and changing the storage should not change
+the application or any of the business rules.
+
+### Usecase Layer
+
+The code in this layer contains application specific business rules. It 
+encapsulates and implements all of the use cases of the system. These use cases
+orchestrate the flow of data to and from the entities, and direct those
+entities to use their enterprise wide business rules to achieve the goals of
+the use case.
+
+This represents the pure business logic of the application.
+The rules of the application also shouldn't rely on the UI or the persistence
+frameworks being used.
+
+### Presentation Layer
+
+This represents logic that consume the business logic from the `Usecase Layer`
+and renders to the view. Here you can choose to render the view in e.g 
+`graphql` or `rest`
+
+For more information, see:
+
+- [The Clean Architecture](https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html) advocated by Robert Martin ('Uncle Bob')
+- Ports & Adapters or [Hexagonal Architecture](http://alistair.cockburn.us/Hexagonal+architecture) by Alistair Cockburn
+- [Onion Architecture](http://jeffreypalermo.com/blog/the-onion-architecture-part-1/) by Jeffrey Palermo
+- [Implementing Domain-Driven Design](http://www.amazon.com/Implementing-Domain-Driven-Design-Vaughn-Vernon/dp/0321834577)
 
 ## Environment variables
 
@@ -233,3 +306,7 @@ responsePayload
         "successfullySaved": bool
     }
 ```
+
+step 1 run 
+go run github.com/99designs/gqlgen init
+go generate ./...
