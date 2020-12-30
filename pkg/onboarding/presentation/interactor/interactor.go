@@ -12,13 +12,16 @@ import (
 
 // Interactor represents an assemble of all use cases into a single object that can be instantiated anywhere
 type Interactor struct {
-	Onboarding usecases.ProfileUseCase
-	Signup     usecases.SignUpUseCases
-	Otp        usecases.OTPUseCases
-	Supplier   usecases.SupplierUseCases
-	Login      usecases.LoginUseCases
-	Survey     usecases.SurveyUseCases
-	UserPIN    usecases.UserPINUseCases
+	Onboarding   usecases.ProfileUseCase
+	Signup       usecases.SignUpUseCases
+	Otp          usecases.OTPUseCases
+	Supplier     usecases.SupplierUseCases
+	Login        usecases.LoginUseCases
+	Survey       usecases.SurveyUseCases
+	UserPIN      usecases.UserPINUseCases
+	ERP          usecases.ERPUseCases
+	ChargeMaster usecases.ChargeMasterUseCases
+	Engage       usecases.EngagementUseCases
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -32,18 +35,24 @@ func NewOnboardingInteractor() (*Interactor, error) {
 	uc := usecases.NewProfileUseCase(fr)
 	su := usecases.NewSignUpUseCases(fr, uc)
 	otp := usecases.NewOTPUseCasesImpl(fr)
-	supplier := usecases.NewSupplierUseCases(fr)
+	erp := usecases.NewERPUseCases(fr)
+	chrg := usecases.NewChargeMasterUseCasesImpl(fr)
+	engage := usecases.NewEngagementUseCasesImpl(fr)
+	supplier := usecases.NewSupplierUseCases(fr, uc, erp, chrg, engage)
 	login := usecases.NewLoginUseCases(fr)
 	survey := usecases.NewSurveyUseCases(fr)
 	userpin := usecases.NewUserPinUseCase(fr)
 
 	return &Interactor{
-		Onboarding: uc,
-		Signup:     su,
-		Otp:        otp,
-		Supplier:   supplier,
-		Login:      login,
-		Survey:     survey,
-		UserPIN:    userpin,
+		Onboarding:   uc,
+		Signup:       su,
+		Otp:          otp,
+		Supplier:     supplier,
+		Login:        login,
+		Survey:       survey,
+		UserPIN:      userpin,
+		ERP:          erp,
+		ChargeMaster: chrg,
+		Engage:       engage,
 	}, nil
 }

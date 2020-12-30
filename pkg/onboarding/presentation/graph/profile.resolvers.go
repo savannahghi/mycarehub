@@ -17,11 +17,11 @@ func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input domain.U
 }
 
 func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Signup.RegisterPushToken(ctx, token)
 }
 
 func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, partnerType domain.PartnerType) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddPartnerType(ctx, &name, &partnerType)
 }
 
 func (r *mutationResolver) SuspendSupplier(ctx context.Context, uid string) (bool, error) {
@@ -89,7 +89,11 @@ func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, sta
 }
 
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Onboarding.UserProfile(ctx)
+}
+
+func (r *queryResolver) SupplierProfile(ctx context.Context) (*domain.Supplier, error) {
+	return r.interactor.Supplier.FindSupplierByUID(ctx)
 }
 
 func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*domain.BusinessPartnerFilterInput, sort []*domain.BusinessPartnerSortInput) (*domain.BusinessPartnerConnection, error) {

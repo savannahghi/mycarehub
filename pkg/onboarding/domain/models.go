@@ -329,6 +329,11 @@ type RefreshToken struct {
 	RefreshToken *string `json:"refresh_token"`
 }
 
+// BusinessPartnerUID is the user ID used in some inter-service requests
+type BusinessPartnerUID struct {
+	UID *string `json:"uid"`
+}
+
 //TODO: restore commented structs when implementing profile missing methods
 // // PIN is used to store a PIN (Personal Identifiation Number) associated
 // // to a phone number sign up to Firebase
@@ -383,11 +388,6 @@ type RefreshToken struct {
 // // StatusResponse creates a status response for requests
 // type StatusResponse struct {
 // 	Status string `json:"status"`
-// }
-
-// // BusinessPartnerUID is the user ID used in some inter-service requests
-// type BusinessPartnerUID struct {
-// 	UID string `json:"uid"`
 // }
 
 // // SendRetryOTP is an input struct for generating and

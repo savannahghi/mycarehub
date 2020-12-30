@@ -87,6 +87,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(rest.SendRetryOTPHandler(ctx, i))
 
+	// Interservice Authenticated routes
+	isc := r.PathPrefix("/internal").Subrouter()
+	isc.Use(base.InterServiceAuthenticationMiddleware())
+	isc.Path("/supplier").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(rest.FindSupplierByUIDHandler(ctx, i))
+
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(base.AuthenticationMiddleware(firebaseApp))

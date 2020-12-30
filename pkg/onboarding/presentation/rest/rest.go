@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 
 	"gitlab.slade360emr.com/go/base"
@@ -241,5 +242,35 @@ func ExchangeRefreshTokenForIDToken(ctx context.Context, i *interactor.Interacto
 			},
 			http.StatusOK,
 		)
+	}
+}
+
+// FindSupplierByUIDHandler fetch supplier profile via REST
+func FindSupplierByUIDHandler(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s, err := utils.ValidateUID(w, r)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		if s.UID == nil {
+			err := fmt.Errorf("expected `uid` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		var supplier *domain.Supplier
+
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, s.UID)
+		supplier, err = i.Supplier.FindSupplierByUID(newContext)
+
+		if supplier == nil || err != nil {
+			err := fmt.Errorf("supplier profile not found")
+			base.ReportErr(w, err, http.StatusNotFound)
+			return
+		}
+
+		base.WriteJSONResponse(w, supplier, http.StatusOK)
 	}
 }

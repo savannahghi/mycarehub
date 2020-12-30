@@ -26,6 +26,8 @@ const (
 	customerProfileCollectionName = "customer_profiles"
 	pinsCollectionName            = "pins"
 	surveyCollectionName          = "post_visit_survey"
+	profileNudgesCollectionName   = "profile_nudges"
+	kycProcessCollectionName      = "kyc_processing"
 
 	firebaseExchangeRefreshTokenURL = "https://securetoken.googleapis.com/v1/token?key="
 )
@@ -103,6 +105,18 @@ func (fr Repository) GetPINsCollectionName() string {
 	return suffixed
 }
 
+// GetProfileNudgesCollectionName return the storage location of profile nudges
+func (fr Repository) GetProfileNudgesCollectionName() string {
+	suffixed := base.SuffixCollection(profileNudgesCollectionName)
+	return suffixed
+}
+
+// GetKCYProcessCollectionName fetches location where kyc processing request will be saved
+func (fr Repository) GetKCYProcessCollectionName() string {
+	suffixed := base.SuffixCollection(kycProcessCollectionName)
+	return suffixed
+}
+
 // ParseRecordAsSnapshot parses a record to firebase snapshot
 func (fr Repository) ParseRecordAsSnapshot(ctx context.Context, collection string, id string) (*firestore.DocumentSnapshot, error) {
 	var doc []*firestore.DocumentSnapshot
@@ -172,31 +186,6 @@ func (fr *Repository) GetUserProfileByID(
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
 	return userProfile, nil
-}
-
-// GetSupplierProfileByProfileID fetch the supplier profile by profile id.
-// since this same supplierProfile can be used for updating, a companion snapshot record is returned as well
-func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, error) {
-	collection := fr.firestoreClient.Collection(fr.GetSupplierProfileCollectionName())
-	query := collection.Where("profileID", "==", profileID)
-	docs, err := query.Documents(ctx).GetAll()
-	if err != nil {
-		return nil, err
-	}
-	if len(docs) > 1 && base.IsDebug() {
-		log.Printf("> 1 profile with id %s (count: %d)", profileID, len(docs))
-	}
-
-	if len(docs) == 0 {
-		return nil, fmt.Errorf("supplier profile not found: %w", err)
-	}
-	dsnap := docs[0]
-	sup := &domain.Supplier{}
-	err = dsnap.DataTo(sup)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read supplier profile: %w", err)
-	}
-	return sup, nil
 }
 
 // CreateUserProfile creates a user profile of using the provided phone number and uid
@@ -821,35 +810,6 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN
 
 }
 
-// AddPartnerType updates the suppier profile with the provided name and  partner type.
-func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error) {
-
-	// get the suppier profile
-	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
-	if err != nil {
-		return false, err
-	}
-
-	sup.SupplierName = *name
-	sup.PartnerType = *partnerType
-	sup.PartnerSetupComplete = true
-
-	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
-	if err != nil {
-		return false, fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err)
-	}
-
-	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
-	)
-	if err != nil {
-		return false, fmt.Errorf("unable to update user profile: %v", err)
-	}
-
-	return true, nil
-
-}
-
 // ExchangeRefreshTokenForIDToken takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
@@ -899,4 +859,133 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*domai
 	}
 
 	return &tokenResp, nil
+}
+
+// GetSupplierProfileByProfileID fetch the supplier profile by profile id.
+// since this same supplierProfile can be used for updating, a companion snapshot record is returned as well
+func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, error) {
+	collection := fr.firestoreClient.Collection(fr.GetSupplierProfileCollectionName())
+	query := collection.Where("profileID", "==", profileID)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) > 1 && base.IsDebug() {
+		log.Printf("> 1 profile with id %s (count: %d)", profileID, len(docs))
+	}
+
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("supplier profile not found: %w", err)
+	}
+	dsnap := docs[0]
+	sup := &domain.Supplier{}
+	err = dsnap.DataTo(sup)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier profile: %w", err)
+	}
+	return sup, nil
+}
+
+// GetSupplierProfileByID fetches supplier profile by given ID
+func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*domain.Supplier, error) {
+	collection := fr.firestoreClient.Collection(fr.GetSupplierProfileCollectionName())
+	query := collection.Where("id", "==", id)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("supplier profile not found: %w", err)
+	}
+	dsnap := docs[0]
+	sup := &domain.Supplier{}
+	err = dsnap.DataTo(sup)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier profile: %w", err)
+	}
+	return sup, nil
+}
+
+// AddPartnerType updates the suppier profile with the provided name and  partner type.
+func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error) {
+
+	// get the suppier profile
+	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
+	if err != nil {
+		return false, err
+	}
+
+	sup.SupplierName = *name
+	sup.PartnerType = *partnerType
+	sup.PartnerSetupComplete = true
+
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
+	if err != nil {
+		return false, fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err)
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		fr.firestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
+	)
+	if err != nil {
+		return false, fmt.Errorf("unable to update user profile: %v", err)
+	}
+
+	return true, nil
+
+}
+
+// ActivateSupplierProfile sets the active attribute of supplier profile to true
+func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error) {
+	// get the suppier profile
+	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
+	if err != nil {
+		return nil, err
+	}
+
+	sup.Active = true
+
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err)
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		fr.firestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to update supplier profile: %v", err)
+	}
+
+	return sup, nil
+}
+
+// UpdateSupplierProfile update the supplier profile
+func (fr *Repository) UpdateSupplierProfile(ctx context.Context, data *domain.Supplier) (*domain.Supplier, error) {
+	sup, err := fr.GetSupplierProfileByProfileID(ctx, *data.ProfileID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch supplier profile: %v", err)
+	}
+
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err)
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		fr.firestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to update supplier profile: %v", err)
+	}
+
+	return sup, nil
+
+}
+
+// StageProfileNudge ...
+func (fr *Repository) StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error {
+	_, _, err := fr.firestoreClient.Collection(fr.GetProfileNudgesCollectionName()).Add(ctx, nudge)
+	return err
 }

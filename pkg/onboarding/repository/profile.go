@@ -37,9 +37,18 @@ type OnboardingRepository interface {
 	GenerateAuthCredentials(ctx context.Context, phone string) (*domain.AuthCredentialResponse, error)
 
 	// supplier methods
+	GetSupplierProfileByID(ctx context.Context, id string) (*domain.Supplier, error)
+
 	GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, error)
 
 	AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error)
+
+	UpdateSupplierProfile(ctx context.Context, data *domain.Supplier) (*domain.Supplier, error)
+
+	StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error
+
+	// sets the active attribute of supplier profile to true
+	ActivateSupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error)
 
 	// PINs
 	GetPINByProfileID(

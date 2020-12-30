@@ -317,6 +317,7 @@ type ComplexityRoot struct {
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*domain.BranchFilterInput, sort []*domain.BranchSortInput) int
 		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*domain.BusinessPartnerFilterInput, sort []*domain.BusinessPartnerSortInput) int
+		SupplierProfile               func(childComplexity int) int
 		UserProfile                   func(childComplexity int) int
 		__resolve__service            func(childComplexity int) int
 		__resolve_entities            func(childComplexity int, representations []map[string]interface{}) int
@@ -410,6 +411,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
+	SupplierProfile(ctx context.Context) (*domain.Supplier, error)
 	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*domain.BusinessPartnerFilterInput, sort []*domain.BusinessPartnerSortInput) (*domain.BusinessPartnerConnection, error)
 	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*domain.BranchFilterInput, sort []*domain.BranchSortInput) (*domain.BranchConnection, error)
 	FetchSupplierAllowedLocations(ctx context.Context) (*domain.BranchConnection, error)
@@ -1830,6 +1832,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FindProvider(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*domain.BusinessPartnerFilterInput), args["sort"].([]*domain.BusinessPartnerSortInput)), true
 
+	case "Query.supplierProfile":
+		if e.complexity.Query.SupplierProfile == nil {
+			break
+		}
+
+		return e.complexity.Query.SupplierProfile(childComplexity), true
+
 	case "Query.userProfile":
 		if e.complexity.Query.UserProfile == nil {
 			break
@@ -2707,6 +2716,7 @@ input OrganizationPharmaceuticalInput {
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
+  supplierProfile: Supplier!
   findProvider(
     pagination: PaginationInput
     filter: [BusinessPartnerFilterInput]
@@ -3945,9 +3955,9 @@ func (ec *executionContext) _BioData_dateOfBirth(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(base.Date)
+	res := resTmp.(*base.Date)
 	fc.Result = res
-	return ec.marshalODate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, field.Selections, res)
+	return ec.marshalODate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _BioData_gender(ctx context.Context, field graphql.CollectedField, obj *base.BioData) (ret graphql.Marshaler) {
@@ -9934,6 +9944,41 @@ func (ec *executionContext) _Query_userProfile(ctx context.Context, field graphq
 	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_supplierProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SupplierProfile(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Supplier)
+	fc.Result = res
+	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupplier(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_findProvider(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15633,6 +15678,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "supplierProfile":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_supplierProfile(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "findProvider":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -16936,6 +16995,10 @@ func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
+func (ec *executionContext) marshalNSupplier2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupplier(ctx context.Context, sel ast.SelectionSet, v domain.Supplier) graphql.Marshaler {
+	return ec._Supplier(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *domain.Supplier) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -17607,16 +17670,6 @@ func (ec *executionContext) marshalOCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋb
 	}
 	wg.Wait()
 	return ret
-}
-
-func (ec *executionContext) unmarshalODate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, v interface{}) (base.Date, error) {
-	var res base.Date
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalODate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, sel ast.SelectionSet, v base.Date) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalODate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, v interface{}) (*base.Date, error) {
