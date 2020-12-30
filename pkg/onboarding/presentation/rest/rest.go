@@ -103,7 +103,7 @@ func UserRecoveryPhoneNumbers(ctx context.Context, i *interactor.Interactor) htt
 // Collects a phonenumber and pin from the user and checks if the phonenumber
 // is an existing PRIMARY PHONENUMBER. If it does then it fetches the PIN that
 // belongs to the profile and returns auth credentials to allow the user to login
-func LoginByPhone(ctx context.Context, srv *service.Service) http.HandlerFunc {
+func LoginByPhone(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &domain.LoginPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
@@ -113,7 +113,7 @@ func LoginByPhone(ctx context.Context, srv *service.Service) http.HandlerFunc {
 			return
 		}
 
-		response, err := srv.Login.LoginByPhone(
+		response, err := i.Login.LoginByPhone(
 			ctx,
 			*p.PhoneNumber,
 			*p.PIN,

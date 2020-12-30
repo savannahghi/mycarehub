@@ -18,7 +18,7 @@ import (
 
 // Resolver sets up a GraphQL resolver with all necessary dependencies
 type Resolver struct {
-	srv *interactor.Service
+	interactor *interactor.Interactor
 }
 
 //go:generate go run github.com/99designs/gqlgen
@@ -26,20 +26,20 @@ type Resolver struct {
 // NewResolver sets up the dependencies needed for query and mutation resolvers to work
 func NewResolver(
 	ctx context.Context,
-	service *interactor.Service,
+	interactor *interactor.Interactor,
 
 ) (*Resolver, error) {
 	return &Resolver{
-		srv: service,
+		interactor: interactor,
 	}, nil
 }
 
 func (r Resolver) checkPreconditions() {
-	if r.srv.Onboarding == nil {
+	if r.interactor.Onboarding == nil {
 		log.Panicf("expected onboarding usecases to be defined resolver")
 	}
 
-	if r.srv.Signup == nil {
+	if r.interactor.Signup == nil {
 		log.Panicf("expected signup usecases to be define in resolver ")
 	}
 }

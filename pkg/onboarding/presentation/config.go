@@ -17,8 +17,8 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/rest"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/service"
 )
 
 const (
@@ -127,7 +127,7 @@ func HealthStatusCheck(w http.ResponseWriter, r *http.Request) {
 
 // GQLHandler sets up a GraphQL resolver
 func GQLHandler(ctx context.Context,
-	service *service.Service,
+	service *interactor.Interactor,
 ) http.HandlerFunc {
 	resolver, err := graph.NewResolver(ctx, service)
 	if err != nil {

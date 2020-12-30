@@ -1,3 +1,5 @@
+// Package interactor represent reusable chunks of code that abstract
+// logic from presenters while simplifying your app and making future changes effortless.
 package interactor
 
 import (
@@ -17,7 +19,7 @@ type Interactor struct {
 	Login      *usecases.LoginUseCasesImpl
 }
 
-// NewOnboardingInteractor returns a new service interactor
+// NewOnboardingInteractor returns a new onboarding interactor
 func NewOnboardingInteractor() (*Interactor, error) {
 
 	fr, err := database.NewFirebaseRepository(context.Background())
@@ -50,7 +52,6 @@ func NewOnboardingInteractor() (*Interactor, error) {
 	}
 
 	return &Interactor{
-
 		Onboarding: uc,
 		Signup:     su,
 		Otp:        otp,

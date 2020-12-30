@@ -13,7 +13,7 @@ import (
 )
 
 func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input domain.UserProfileInput) (*base.UserProfile, error) {
-	return r.srv.Signup.UpdateUserProfile(ctx, &input)
+	return r.interactor.Signup.UpdateUserProfile(ctx, &input)
 }
 
 func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) (bool, error) {

@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
+
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
@@ -28,7 +30,7 @@ type Repository struct {
 }
 
 // NewFirebaseRepository initializes a Firebase repository
-func NewFirebaseRepository(ctx context.Context) (*Repository, error) {
+func NewFirebaseRepository(ctx context.Context) (repository.OnboardingRepository, error) {
 	fc := base.FirebaseClient{}
 	fa, err := fc.InitFirebase()
 	if err != nil {
