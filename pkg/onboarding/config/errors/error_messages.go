@@ -49,4 +49,20 @@ const (
 	// RetrieveRecordErrMsg is the error message displayed when a
 	// record fails to be retrieved from database
 	RetrieveRecordErrMsg = "unable to retrieve newly created record"
+
+	// ExistingPINErrMsg is the error message displayed when a
+	// pin record fails to be retrieved from database
+	ExistingPINErrMsg = "request for a PIN reset failed. User does not have an existing PIN"
+
+	// CheckUserPINErrMsg is the error message displayed when
+	// server unable to check if the user has a PIN
+	CheckUserPINErrMsg = "unable to check if the user has a PIN"
+
+	// GenerateAndSendOTPErrMsg is the error message displayed when a
+	// generate and send otp fails
+	GenerateAndSendOTPErrMsg = "failed to generate and send an otp"
+
+	// NormalizeMSISDNErrMsg is the error message displayed when
+	// normalize the msisdn(phone number) fails
+	NormalizeMSISDNErrMsg = "unable to normalize the msisdn"
 )

@@ -16,16 +16,20 @@ type UserPINUseCases interface {
 	SetUserPIN(ctx context.Context, phone string, pin string) (*domain.PIN, error)
 	ChangeUserPIN(ctx context.Context, phone string, pin string, otp string) (bool, error)
 	ResetPIN(ctx context.Context, phone string) (string, error)
+	RequestPINReset(ctx context.Context, phone string) (string, error)
 }
 
 // UserPinUseCaseImpl represents usecase implementation object
 type UserPinUseCaseImpl struct {
 	onboardingRepository repository.OnboardingRepository
+	otpUseCases          OTPUseCases
 }
 
 // NewUserPinUseCase returns a new UserPin usecase
-func NewUserPinUseCase(r repository.OnboardingRepository) *UserPinUseCaseImpl {
-	return &UserPinUseCaseImpl{r}
+func NewUserPinUseCase(r repository.OnboardingRepository, otp OTPUseCases) *UserPinUseCaseImpl {
+	return &UserPinUseCaseImpl{
+		onboardingRepository: r,
+		otpUseCases:          otp}
 }
 
 // SetUserPIN receives phone number and pin from phonenumber sign up
@@ -130,4 +134,46 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 // ResetPIN ...
 func (u *UserPinUseCaseImpl) ResetPIN(ctx context.Context, phone string) (string, error) {
 	return "", nil
+}
+
+// RequestPINReset sends a request given an existing user's phone number,
+// sends an otp to the phone number that is then used in the process of
+// updating their old PIN to a new one
+func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) (string, error) {
+	_, err := base.NormalizeMSISDN(phone)
+	if err != nil {
+		return "", &domain.CustomError{
+			Err:     err,
+			Message: errors.NormalizeMSISDNErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+
+	exists, err := u.CheckHasPIN(ctx, phone)
+	if err != nil {
+		return "", &domain.CustomError{
+			Err:     err,
+			Message: errors.CheckUserPINErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+	if !exists {
+		return "", &domain.CustomError{
+			Err:     err,
+			Message: errors.ExistingPINErrMsg,
+			Code:    int(base.PINNotFound),
+		}
+	}
+
+	// generate and send otp to the phone number
+	code, err := u.otpUseCases.GenerateAndSendOTP(ctx, phone)
+	if err != nil {
+		return "", &domain.CustomError{
+			Err:     err,
+			Message: errors.GenerateAndSendOTPErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+
+	return code, nil
 }

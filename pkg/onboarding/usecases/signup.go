@@ -54,10 +54,11 @@ type SignUpUseCasesImpl struct {
 }
 
 // NewSignUpUseCases returns a new a onboarding usecase
-func NewSignUpUseCases(r repository.OnboardingRepository, ob ProfileUseCase) SignUpUseCases {
+func NewSignUpUseCases(r repository.OnboardingRepository, profile ProfileUseCase, pin UserPINUseCases) SignUpUseCases {
 	return &SignUpUseCasesImpl{
 		onboardingRepository: r,
-		profileUsecase:       ob}
+		profileUsecase:       profile,
+		pinUsecase:           pin}
 }
 
 // CheckPhoneExists checks whether a phone number has been registred by another user.

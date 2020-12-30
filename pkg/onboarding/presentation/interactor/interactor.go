@@ -33,7 +33,6 @@ func NewOnboardingInteractor() (*Interactor, error) {
 	}
 
 	uc := usecases.NewProfileUseCase(fr)
-	su := usecases.NewSignUpUseCases(fr, uc)
 	otp := usecases.NewOTPUseCasesImpl(fr)
 	erp := usecases.NewERPUseCases(fr)
 	chrg := usecases.NewChargeMasterUseCasesImpl(fr)
@@ -41,7 +40,8 @@ func NewOnboardingInteractor() (*Interactor, error) {
 	supplier := usecases.NewSupplierUseCases(fr, uc, erp, chrg, engage)
 	login := usecases.NewLoginUseCases(fr)
 	survey := usecases.NewSurveyUseCases(fr)
-	userpin := usecases.NewUserPinUseCase(fr)
+	userpin := usecases.NewUserPinUseCase(fr, otp)
+	su := usecases.NewSignUpUseCases(fr, uc, userpin)
 
 	return &Interactor{
 		Onboarding:   uc,

@@ -38,13 +38,13 @@ func VerifySignUpPhoneNumber(ctx context.Context, i *interactor.Interactor) http
 		}
 
 		// send otp to the phone number
-		o, err := i.Otp.GenerateAndSendOTP(ctx, *p.PhoneNumber)
+		otp, err := i.Otp.GenerateAndSendOTP(ctx, *p.PhoneNumber)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
-		base.WriteJSONResponse(w, domain.OtpResponse{OTP: o}, http.StatusOK)
+		base.WriteJSONResponse(w, domain.OtpResponse{OTP: otp}, http.StatusOK)
 	}
 }
 
@@ -200,7 +200,7 @@ func GenerateAndSendOTP(ctx context.Context, i *interactor.Interactor) http.Hand
 			return
 		}
 
-		o, err := i.Otp.GenerateAndSendOTP(ctx, *p.PhoneNumber)
+		otp, err := i.Otp.GenerateAndSendOTP(ctx, *p.PhoneNumber)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
@@ -208,7 +208,33 @@ func GenerateAndSendOTP(ctx context.Context, i *interactor.Interactor) http.Hand
 
 		base.WriteJSONResponse(
 			w,
-			domain.OtpResponse{OTP: o},
+			domain.OtpResponse{OTP: otp},
+			http.StatusOK,
+		)
+	}
+}
+
+// RequestPINReset is an unauthenticated request that takes in a phone number
+// sends an otp to an msisdn that requests a PIN reset request during login
+func RequestPINReset(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &domain.PhoneNumberPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.PhoneNumber == nil {
+			err := fmt.Errorf("expected `phoneNumber` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		otp, err := i.UserPIN.RequestPINReset(ctx, *p.PhoneNumber)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(
+			w,
+			domain.OtpResponse{OTP: otp},
 			http.StatusOK,
 		)
 	}
