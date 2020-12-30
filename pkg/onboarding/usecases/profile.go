@@ -16,11 +16,12 @@ type ProfileUseCase interface {
 	UpdatePrimaryEmailAddress(ctx context.Context, emailAddress string) error
 	UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error
 	UpdateSecondaryEmailAddresses(ctx context.Context, emailAddresses []string) error
-	UpdateSuspended(ctx context.Context) bool
+	UpdateSuspended(ctx context.Context, status bool, phoneNumber string, useContext bool) bool
 	UpdatePhotoUploadID(ctx context.Context, uploadID string) error
 	UpdateCovers(ctx context.Context, covers []base.Cover) error
 	UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error
 	UpdateBioData(ctx context.Context, data base.BioData) error
+
 	// masks phone number.
 	MaskPhoneNumbers(phones []string) []string
 }
@@ -91,14 +92,14 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 
 	// removes the new primary phone number from the list of selected primary phones and addes the previus primary phone number
 	// into the list of secondary phone numbers
-	newSecPhones := func(sc []string, pr string, npr string) []string {
+	newSecPhones := func(oldSecondaryPhones []string, oldPrimaryPhone string, newPrimaryPhone string) []string {
 		n := []string{}
-		for _, phone := range sc {
-			if phone != npr {
+		for _, phone := range oldSecondaryPhones {
+			if phone != newPrimaryPhone {
 				n = append(n, phone)
 			}
 		}
-		n = append(n, pr)
+		n = append(n, oldPrimaryPhone)
 
 		return n
 	}(previousSecondaryPhones, previousPrimaryPhone, phoneNumber)
@@ -131,56 +132,134 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emai
 // UpdateSecondaryPhoneNumbers updates secondary phone numberss of a specific user profile
 // this should be called after a prior check of uniqueness is done
 func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error {
-	//todo : update base to have this method
-	return nil
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return err
+	}
+
+	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	return profile.UpdateProfileSecondaryPhoneNumbers(ctx, p.onboardingRepository, phoneNumbers)
 }
 
 // UpdateSecondaryEmailAddresses updates secondary email address of a specific user profile
 // this should be called after a prior check of uniqueness is done
 func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(ctx context.Context, emailAddresses []string) error {
-	//todo : update base to have this method
-	return nil
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return err
+	}
+
+	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	return profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, emailAddresses)
 }
 
 // UpdateSuspended updates primary suspend attribute of a specific user profile
-func (p *ProfileUseCaseImpl) UpdateSuspended(ctx context.Context) bool {
-	//todo : update base to have bool argument
-	return false
+func (p *ProfileUseCaseImpl) UpdateSuspended(ctx context.Context, status bool, phone string, useContext bool) bool {
+	var profile *base.UserProfile
+
+	phoneNumber, err := base.NormalizeMSISDN(phone)
+	if err != nil {
+		return false
+	}
+	// fetch the user profile
+	if useContext {
+		uid, err := base.GetLoggedInUserUID(ctx)
+		if err != nil {
+			return false
+		}
+		profile, _, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+		if err != nil {
+			return false
+		}
+	} else {
+		profile, _, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+		if err != nil {
+			return false
+		}
+
+	}
+	return profile.UpdateProfileSuspended(ctx, p.onboardingRepository, status)
 }
 
 // UpdatePhotoUploadID updates photouploadid attribute of a specific user profile
 func (p *ProfileUseCaseImpl) UpdatePhotoUploadID(ctx context.Context, uploadID string) error {
 
-	// uid, err := base.GetLoggedInUserUID(ctx)
-	// if err != nil {
-	// 	return err
-	// }
-	// profile, _, err := o.onboardingRepository.GetUserProfileByUID(ctx, uid)
-	// if err != nil {
-	// 	return err
-	// }
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return err
+	}
 
-	//todo : update base to have this method
-	return nil
+	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	return profile.UpdateProfilePhotoUploadID(ctx, p.onboardingRepository, uploadID)
 
 }
 
 // UpdateCovers updates primary covers of a specific user profile
 func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cover) error {
-	//todo : update base to have this method
-	return nil
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return err
+	}
+	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return err
+	}
+	return profile.UpdateProfileCovers(ctx, p.onboardingRepository, covers)
+
 }
 
 // UpdatePushTokens updates primary push tokens of a specific user profile
 func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error {
-	//todo : update base to have this method
-	return nil
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return err
+	}
+	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	if retire {
+		// remove the supplied push token then update the profile
+		previousTokens := profile.PushTokens
+		for _, token := range previousTokens {
+			if token != pushToken {
+				// todo:(dexter) refactor base interface to take []string instead of string
+				if err := profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, token); err != nil {
+					return err
+				}
+			}
+		}
+
+	}
+
+	return profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, pushToken)
 }
 
 // UpdateBioData updates primary biodata of a specific user profile
 func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioData) error {
-	//todo : update base to have this method
-	return nil
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return err
+	}
+	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return err
+	}
+	return profile.UpdateProfileBioData(ctx, p.onboardingRepository, data)
 }
 
 // MaskPhoneNumbers masks phone number. the masked phone numbers will be in the form +254700***123

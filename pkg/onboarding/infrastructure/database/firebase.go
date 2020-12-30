@@ -352,6 +352,7 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 		return nil, err
 	}
 
+	// this should never run. If it does, it means we are doing something wrong.
 	if len(docs) > 1 && base.IsDebug() {
 		log.Printf("> 1 PINs with profile ID %s (count: %d)", profileID, len(docs))
 	}
@@ -418,7 +419,7 @@ func (fr *Repository) GenerateAuthCredentials(
 		}
 	}
 
-	err = fr.UpdateProfileUID(ctx, pr.ID, u.UID)
+	err = fr.UpdateVerifiedIdentifiers(ctx, pr.ID, u.UID)
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
@@ -435,7 +436,25 @@ func (fr *Repository) GenerateAuthCredentials(
 	}, nil
 }
 
+// UpdateUserName updates the username of a profile that matches the id
+// this method should be called after asserting the username is unique and not associated with another userProfile
+func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName string) error {
+	profile, record, err := fr.GetUserProfileByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	profile.UserName = userName
+
+	err = base.UpdateRecordOnFirestore(fr.firestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, profile)
+	if err != nil {
+		return fmt.Errorf("unable to update user profile primary phone number: %v", err)
+	}
+
+	return nil
+}
+
 // UpdatePrimaryPhoneNumber append a new primary phone number to the user profile
+// this method should be called after asserting the phone number is unique and not associated with another userProfile
 func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, phoneNumber string) error {
 	profile, record, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
@@ -451,7 +470,8 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 	return nil
 }
 
-// UpdatePrimaryEmailAddress ...
+// UpdatePrimaryEmailAddress the primary email addresse of the profile that matches the id
+// this method should be called after asserting the emailAddress is unique and not associated with another userProfile
 func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, emailAddress string) error {
 	profile, record, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
@@ -469,7 +489,8 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 	return nil
 }
 
-// UpdateSecondaryPhoneNumbers ...
+// UpdateSecondaryPhoneNumbers the secondary phone numbers of the profile that matches the id
+// this method should be called after asserting the phone numbers are unique and not associated with another userProfile
 func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string, phoneNumbers []string) error {
 	profile, record, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
@@ -518,7 +539,8 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN
 
 }
 
-// UpdateSecondaryEmailAddresses ...
+// UpdateSecondaryEmailAddresses the secondary email addresses of the profile that matches the id
+// this method should be called after asserting the emailAddresses  as unique and not associated with another userProfile
 func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id string, emailAddresses []string) error {
 	profile, record, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
@@ -535,13 +557,22 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 	return nil
 }
 
-// UpdateSuspended changes the suspend status of a user profile.
-// todo(dexter) change the interface method in base to take a boolean argument
-func (fr *Repository) UpdateSuspended(ctx context.Context, id string) bool {
-	return false
+// UpdateSuspended updates the suspend attribute of the profile that matches the id
+// todo: (dexter) : amend interface method in base to return error instead of bool
+func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status bool) bool {
+	profile, record, err := fr.GetUserProfileByID(ctx, id)
+	if err != nil {
+		return false
+	}
+	profile.Suspended = status
+
+	err = base.UpdateRecordOnFirestore(
+		fr.firestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, profile,
+	)
+	return err == nil
 }
 
-// UpdatePhotoUploadID ...
+// UpdatePhotoUploadID updates the photoUploadID attribute of the profile that matches the id
 func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, uploadID string) error {
 	profile, record, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
@@ -558,7 +589,7 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 	return nil
 }
 
-// UpdateCovers ...
+// UpdateCovers updates the covers attribute of the profile that matches the id
 func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base.Cover) error {
 	profile, record, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
@@ -575,7 +606,8 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 	return nil
 }
 
-// UpdatePushTokens ...
+// UpdatePushTokens updates the pushTokens attribute of the profile that matches the id
+// todo(dexter) : amend the interface method in base to take pushToken as []string instead of string
 func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken string) error {
 	profile, record, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
@@ -594,7 +626,7 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 	return nil
 }
 
-// UpdateBioData ...
+// UpdateBioData updates the biodate of the profile that matches the id
 func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.BioData) error {
 	profile, record, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
@@ -622,13 +654,12 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 		return pr.UserBioData.Gender
 	}(profile, data)
 
-	// TODO(dexter) change userProfile.DateOfBirth to pointer then uncomment thise
-	// profile.UserBioData.DateOfBirth = func(pr *base.UserProfile, dt base.BioData) base.Date {
-	// 	if dt.DateOfBirth == nil {
-	// 		return dt.DateOfBirth
-	// 	}
-	// 	return pr.UserBioData.DateOfBirth
-	// }(profile, data)
+	profile.UserBioData.DateOfBirth = func(pr *base.UserProfile, dt base.BioData) *base.Date {
+		if dt.DateOfBirth == nil {
+			return dt.DateOfBirth
+		}
+		return pr.UserBioData.DateOfBirth
+	}(profile, data)
 
 	err = base.UpdateRecordOnFirestore(
 		fr.firestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, profile,
@@ -639,9 +670,9 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 	return nil
 }
 
-// UpdateProfileUID adds a UID to a user profile during login if it does not exist
+// UpdateVerifiedIdentifiers adds a UID to a user profile during login if it does not exist
 // todo: (dexter define this in the base interface)
-func (fr *Repository) UpdateProfileUID(ctx context.Context, id string, UID string) error {
+func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, UID string) error {
 	profile, record, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
 		return err

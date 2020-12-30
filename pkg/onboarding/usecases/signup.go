@@ -142,7 +142,7 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *domai
 	if err := s.profileUsecase.UpdateBioData(ctx, base.BioData{
 		FirstName:   *input.FirstName,
 		LastName:    *input.LastName,
-		DateOfBirth: *input.DateOfBirth,
+		DateOfBirth: input.DateOfBirth,
 		Gender:      *input.Gender,
 	}); err != nil {
 		return nil, err
