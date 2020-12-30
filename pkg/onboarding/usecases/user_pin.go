@@ -36,7 +36,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, msisdn, pin string)
 		return nil, fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
 
-	profile, _, err := u.onboardingRepository.
+	profile, err := u.onboardingRepository.
 		GetUserProfileByPrimaryPhoneNumber(ctx, msisdn)
 	if err != nil {
 		return nil, &domain.CustomError{
@@ -99,7 +99,7 @@ func (u *UserPinUseCaseImpl) CheckHasPIN(ctx context.Context, msisdn string) (bo
 		return false, fmt.Errorf("unable to get the logged in user: %v", err)
 	}
 
-	profile, _, err := u.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := u.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}

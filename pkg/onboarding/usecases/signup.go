@@ -184,7 +184,7 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 		return nil, fmt.Errorf("failed to  normalize the phone number: %v", err)
 	}
 
-	pr, _, err := s.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+	pr, err := s.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 	if err != nil {
 		return nil, err
 	}

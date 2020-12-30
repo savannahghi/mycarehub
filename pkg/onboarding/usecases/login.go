@@ -28,7 +28,7 @@ func NewLoginUseCases(r repository.OnboardingRepository) LoginUseCases {
 // LoginByPhone returns credentials that are used to log a user in
 // provided the phone number and pin supplied are correct
 func (o *LoginUseCasesImpl) LoginByPhone(ctx context.Context, phone string, PIN string, flavour base.Flavour) (*domain.AuthCredentialResponse, error) {
-	profile, _, err := o.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phone)
+	profile, err := o.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phone)
 	if err != nil {
 		return nil, err
 	}

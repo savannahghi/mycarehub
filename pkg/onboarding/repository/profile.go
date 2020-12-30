@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	"cloud.google.com/go/firestore"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
@@ -21,16 +20,16 @@ type OnboardingRepository interface {
 	CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*domain.Customer, error)
 
 	// fetches a user profile by uid
-	GetUserProfileByUID(ctx context.Context, uid string) (*base.UserProfile, *firestore.DocumentSnapshot, error)
+	GetUserProfileByUID(ctx context.Context, uid string) (*base.UserProfile, error)
 
 	// fetches a user profile by id
-	GetUserProfileByID(ctx context.Context, id string) (*base.UserProfile, *firestore.DocumentSnapshot, error)
+	GetUserProfileByID(ctx context.Context, id string) (*base.UserProfile, error)
 
 	// fetches a user profile by phone number
-	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, *firestore.DocumentSnapshot, error)
+	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
 
 	// fetches a user profile by primary phone number
-	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, *firestore.DocumentSnapshot, error)
+	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
 
 	// checks if a specific phone number has already been registered to another user
 	CheckIfPhoneNumberExists(ctx context.Context, phone string) (bool, error)
@@ -38,7 +37,7 @@ type OnboardingRepository interface {
 	GenerateAuthCredentials(ctx context.Context, phone string) (*domain.AuthCredentialResponse, error)
 
 	// supplier methods
-	GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, *firestore.DocumentSnapshot, error)
+	GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, error)
 
 	AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error)
 

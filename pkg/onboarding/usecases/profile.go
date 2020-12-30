@@ -42,13 +42,13 @@ func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile
 	if err != nil {
 		return nil, err
 	}
-	pr, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	pr, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	return pr, err
 }
 
 // GetProfileByID returns the profile identified by the indicated ID
 func (p *ProfileUseCaseImpl) GetProfileByID(ctx context.Context, id string) (*base.UserProfile, error) {
-	profile, _, err := p.onboardingRepository.GetUserProfileByID(ctx, id)
+	profile, err := p.onboardingRepository.GetUserProfileByID(ctx, id)
 	return profile, err
 }
 
@@ -71,12 +71,12 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 		if err != nil {
 			return err
 		}
-		profile, _, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+		profile, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 		if err != nil {
 			return err
 		}
 	} else {
-		profile, _, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 		if err != nil {
 			return err
 		}
@@ -121,7 +121,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emai
 		return err
 	}
 
-	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(ctx context.Context, ph
 		return err
 	}
 
-	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(ctx context.Context, 
 		return err
 	}
 
-	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return err
 	}
@@ -175,12 +175,12 @@ func (p *ProfileUseCaseImpl) UpdateSuspended(ctx context.Context, status bool, p
 		if err != nil {
 			return false
 		}
-		profile, _, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+		profile, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 		if err != nil {
 			return false
 		}
 	} else {
-		profile, _, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 		if err != nil {
 			return false
 		}
@@ -197,7 +197,7 @@ func (p *ProfileUseCaseImpl) UpdatePhotoUploadID(ctx context.Context, uploadID s
 		return err
 	}
 
-	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return err
 	}
@@ -212,7 +212,7 @@ func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cov
 	if err != nil {
 		return err
 	}
-	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken str
 	if err != nil {
 		return err
 	}
-	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return err
 	}
@@ -255,7 +255,7 @@ func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioDat
 	if err != nil {
 		return err
 	}
-	profile, _, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return err
 	}
