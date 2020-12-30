@@ -12,11 +12,11 @@ import (
 
 // Interactor represents an assemble of all use cases into a single object that can be instantiated anywhere
 type Interactor struct {
-	Onboarding *usecases.ProfileUseCaseImpl
-	Signup     *usecases.SignUpUseCasesImpl
-	Otp        *usecases.OTPUseCasesImpl
-	Supplier   *usecases.SupplierUseCasesImpl
-	Login      *usecases.LoginUseCasesImpl
+	Onboarding usecases.ProfileUseCase
+	Signup     usecases.SignUpUseCases
+	Otp        usecases.OTPUseCases
+	Supplier   usecases.SupplierUseCases
+	Login      usecases.LoginUseCases
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -28,28 +28,10 @@ func NewOnboardingInteractor() (*Interactor, error) {
 	}
 
 	uc := usecases.NewProfileUseCase(fr)
-	if uc == nil {
-		return nil, fmt.Errorf("can't instantiate onboarding usecases")
-	}
-
-	su := usecases.NewSignUpUseCases(fr)
-	if su == nil {
-		return nil, fmt.Errorf("can't instantiate signup usecases")
-	}
-
+	su := usecases.NewSignUpUseCases(fr, uc)
 	otp := usecases.NewOTPUseCasesImpl(fr)
-	if otp == nil {
-		return nil, fmt.Errorf("can't instantiate otp usecases")
-	}
-
 	supplier := usecases.NewSupplierUseCases(fr)
-	if supplier == nil {
-		return nil, fmt.Errorf("can't instantiate supplier usecases")
-	}
 	login := usecases.NewLoginUseCases(fr)
-	if login == nil {
-		return nil, fmt.Errorf("can't instantiate login usecases")
-	}
 
 	return &Interactor{
 		Onboarding: uc,

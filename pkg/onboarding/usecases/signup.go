@@ -14,13 +14,16 @@ type SignUpUseCases interface {
 
 	// checks whether a phone number has been registred by another user. Checks both primary and
 	// secondary phone numbers. If the the phone number is foreign, it send an OTP to that phone number
+	// Implemented for unauthenicated REST API
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 
 	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
-	CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*base.UserProfile, error)
+	// Implemented for unauthenicated REST API
+	CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*domain.UserResponse, error)
 
 	// updates the user profile of the currently logged in user
-	UpdateUserProfile(ctx context.Context, input *domain.UserProfileInput) (*domain.UserResponse, error)
+	// Implemented for unauthenicated GRAPHQL API
+	UpdateUserProfile(ctx context.Context, input *domain.UserProfileInput) (*base.UserProfile, error)
 
 	// adds a new push token in the users profile if the push token does not exist
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
@@ -28,14 +31,15 @@ type SignUpUseCases interface {
 	// called to create a customer account in the ERP. This API is only valid for `BEWELL CONSUMER`
 	// it should be the last call after updating the users bio data. Its should not return an error
 	// when it fails due to unreachable errors, rather it should retry
-	CompleteSignup(ctx context.Context, flavour string) (bool, error)
+	CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error)
 
 	// removes a push token from the users profile
 	RetirePushToken(ctx context.Context, token string) (bool, error)
 
 	// fetches the phone numbers of a user for the purposes of recoverying an account.
 	// the returned phone numbers should be masked
-	GetUserRecoveryPhoneNumbers(ctx context.Context, phoneNumber string) ([]string, error)
+	// Implemented for unauthenicated REST API
+	GetUserRecoveryPhoneNumbers(ctx context.Context, phoneNumber string) (*domain.AccountRecoveryPhonesResponse, error)
 
 	// called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
 	// where the phone number is associated with.
@@ -45,11 +49,14 @@ type SignUpUseCases interface {
 // SignUpUseCasesImpl represents usecase implementation object
 type SignUpUseCasesImpl struct {
 	onboardingRepository repository.OnboardingRepository
+	profileUsecase       ProfileUseCase
 }
 
 // NewSignUpUseCases returns a new a onboarding usecase
-func NewSignUpUseCases(r repository.OnboardingRepository) *SignUpUseCasesImpl {
-	return &SignUpUseCasesImpl{r}
+func NewSignUpUseCases(r repository.OnboardingRepository, ob ProfileUseCase) SignUpUseCases {
+	return &SignUpUseCasesImpl{
+		onboardingRepository: r,
+		profileUsecase:       ob}
 }
 
 // CheckPhoneExists checks whether a phone number has been registred by another user.
@@ -88,10 +95,9 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 		return nil, fmt.Errorf("failed to create firebase user: %w", err)
 	}
 
-	// generate a customToken for the user
-	customToken, err := base.CreateFirebaseCustomToken(ctx, user.UID)
+	auth, err := s.onboardingRepository.GenerateAuthCredentials(ctx, phoneNumber)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get or create custom token: %w", err)
+		return nil, err
 	}
 
 	profile, err := s.onboardingRepository.CreateUserProfile(ctx, phoneNumber, user.UID)
@@ -122,39 +128,89 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 		Profile:         profile,
 		SupplierProfile: supplier,
 		CustomerProfile: customer,
-		Auth: domain.AuthCredentialResponse{
-			CustomToken: &customToken,
-		},
+		Auth:            *auth,
 	}, nil
 }
 
 // UpdateUserProfile  updates the user profile of the currently logged in user
 func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *domain.UserProfileInput) (*base.UserProfile, error) {
-	return nil, nil
+
+	if err := s.profileUsecase.UpdatePhotoUploadID(ctx, input.PhotoUploadID); err != nil {
+		return nil, err
+	}
+
+	if err := s.profileUsecase.UpdateBioData(ctx, base.BioData{
+		FirstName:   *input.FirstName,
+		LastName:    *input.LastName,
+		DateOfBirth: *input.DateOfBirth,
+		Gender:      *input.Gender,
+	}); err != nil {
+		return nil, err
+	}
+
+	return s.profileUsecase.UserProfile(ctx)
 }
 
 // RegisterPushToken adds a new push token in the users profile if the push token does not exist
 func (s *SignUpUseCasesImpl) RegisterPushToken(ctx context.Context, token string) (bool, error) {
-	return false, nil
+	if err := s.profileUsecase.UpdatePushTokens(ctx, token, false); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // CompleteSignup called to create a customer account in the ERP. This API is only valid for `BEWELL CONSUMER`
-func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour string) (bool, error) {
+func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error) {
+
+	if flavour == base.FlavourConsumer {
+		// TODO : create ERP customer account (wellnesspoints and receivablesAccount)
+		return true, nil
+	}
 	return false, nil
 }
 
 // RetirePushToken removes a push token from the users profile
 func (s *SignUpUseCasesImpl) RetirePushToken(ctx context.Context, token string) (bool, error) {
-	return false, nil
+	if err := s.profileUsecase.UpdatePushTokens(ctx, token, true); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // GetUserRecoveryPhoneNumbers fetches the phone numbers of a user for the purposes of recoverying an account.
-func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, phoneNumber string) ([]string, error) {
-	return []string{}, nil
+func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, phone string) (*domain.AccountRecoveryPhonesResponse, error) {
+	phoneNumber, err := base.NormalizeMSISDN(phone)
+	if err != nil {
+		return nil, fmt.Errorf("failed to  normalize the phone number: %v", err)
+	}
+
+	pr, _, err := s.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	// cherrypick the phone numbers and mask them
+	phones := func(p *base.UserProfile) []string {
+		phs := []string{}
+		phs = append(phs, p.PrimaryPhone)
+		phs = append(phs, p.SecondaryPhoneNumbers...)
+		return phs
+
+	}(pr)
+
+	masked := s.profileUsecase.MaskPhoneNumbers(phones)
+
+	return &domain.AccountRecoveryPhonesResponse{
+		MaskedPhoneNumbers:   masked,
+		UnMaskedPhoneNumbers: phones,
+	}, nil
 }
 
 // SetPhoneAsPrimary called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
 // where the phone number is associated with.
 func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(ctx context.Context, phone string) (bool, error) {
-	return false, nil
+	if err := s.profileUsecase.UpdatePrimaryPhoneNumber(ctx, phone, false); err != nil {
+		return false, err
+	}
+	return true, nil
 }

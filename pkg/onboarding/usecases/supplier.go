@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"cloud.google.com/go/firestore"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -13,36 +12,38 @@ import (
 // SupplierUseCases represent the business logic required for management of suppliers
 type SupplierUseCases interface {
 	AddPartnerType(ctx context.Context, name *string, partnerType *domain.PartnerType) (bool, error)
-	AddSupplier(ctx context.Context, uid *string, name string) (*domain.Supplier, error)
-	FindSupplier(ctx context.Context, uid string) (*domain.Supplier, error)
-	// AddSupplierKyc(ctx context.Context, input domain.SupplierKYCInput) (*domain.SupplierKYC, error)
-	SetUpSupplier(ctx context.Context, accountType domain.AccountType) (*domain.Supplier, error)
-	DeleteUser(ctx context.Context, uid string) error
-	SuspendSupplier(ctx context.Context, uid string) (bool, error)
-	EDIUserLogin(username, password string) (*base.EDIUserProfile, error)
-	CoreEDIUserLogin(username, password string) (*base.EDIUserProfile, error)
-	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*domain.BranchConnection, error)
-	SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error)
-	FetchSupplierAllowedLocations(ctx context.Context) (*domain.BranchConnection, error)
-	SaveProfileNudge(nudge map[string]interface{}) error
-	PublishKYCNudge(uid string, partner *domain.PartnerType, account *domain.AccountType) error
-	PublishKYCFeedItem(ctx context.Context, uids ...string) error
-	StageKYCProcessingRequest(sup *domain.Supplier) error
-	AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
-	AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error)
-	AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error)
-	AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error)
-	AddOrganizationProviderKyc(ctx context.Context, input domain.OrganizationProvider) (*domain.OrganizationProvider, error)
-	AddIndividualPharmaceuticalKyc(ctx context.Context, input domain.IndividualPharmaceutical) (*domain.IndividualPharmaceutical, error)
-	AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error)
-	AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error)
-	AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error)
-	AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error)
-	AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error)
-	SaveKYCResponse(ctx context.Context, kycJSON []byte, supplier *domain.Supplier, dsnap *firestore.DocumentSnapshot) error
-	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
-	ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
-	SendKYCEmail(ctx context.Context, text, emailaddress string) error
+
+	// AddSupplier(ctx context.Context, uid *string, name string) (*domain.Supplier, error)
+	// FindSupplier(ctx context.Context, uid string) (*domain.Supplier, error)
+	// // AddSupplierKyc(ctx context.Context, input domain.SupplierKYCInput) (*domain.SupplierKYC, error)
+	// SetUpSupplier(ctx context.Context, accountType domain.AccountType) (*domain.Supplier, error)
+	// DeleteUser(ctx context.Context, uid string) error
+	// SuspendSupplier(ctx context.Context, uid string) (bool, error)
+	// EDIUserLogin(username, password string) (*base.EDIUserProfile, error)
+	// CoreEDIUserLogin(username, password string) (*base.EDIUserProfile, error)
+	// SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*domain.BranchConnection, error)
+	// SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error)
+	// FetchSupplierAllowedLocations(ctx context.Context) (*domain.BranchConnection, error)
+	// SaveProfileNudge(nudge map[string]interface{}) error
+	// PublishKYCNudge(uid string, partner *domain.PartnerType, account *domain.AccountType) error
+	// PublishKYCFeedItem(ctx context.Context, uids ...string) error
+	// StageKYCProcessingRequest(sup *domain.Supplier) error
+	// AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
+	// AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error)
+	// AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error)
+	// AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error)
+	// AddOrganizationProviderKyc(ctx context.Context, input domain.OrganizationProvider) (*domain.OrganizationProvider, error)
+	// AddIndividualPharmaceuticalKyc(ctx context.Context, input domain.IndividualPharmaceutical) (*domain.IndividualPharmaceutical, error)
+	// AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error)
+	// AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error)
+	// AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error)
+	// AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error)
+	// AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error)
+	// SaveKYCResponse(ctx context.Context, kycJSON []byte, supplier *domain.Supplier, dsnap *firestore.DocumentSnapshot) error
+	// FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
+	// ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
+	// SendKYCEmail(ctx context.Context, text, emailaddress string) error
+
 }
 
 // SupplierUseCasesImpl represents usecase implementation object
@@ -51,7 +52,7 @@ type SupplierUseCasesImpl struct {
 }
 
 // NewSupplierUseCases returns a new a onboarding usecase
-func NewSupplierUseCases(r repository.OnboardingRepository) *SupplierUseCasesImpl {
+func NewSupplierUseCases(r repository.OnboardingRepository) SupplierUseCases {
 	return &SupplierUseCasesImpl{r}
 }
 
@@ -75,7 +76,7 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 		return false, fmt.Errorf("unable to get the logged in user: %v", err)
 	}
 
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	profile, _, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return false, fmt.Errorf("unable to read user profile: %w", err)
 	}

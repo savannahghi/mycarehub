@@ -2727,6 +2727,7 @@ input OrganizationPharmaceuticalInput {
 
 extend type Mutation {
   updateUserProfile(input: UserProfileInput!): UserProfile!
+
   registerPushToken(token: String!): Boolean!
 
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!

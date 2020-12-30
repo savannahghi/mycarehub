@@ -26,10 +26,7 @@ const (
 
 // OTPUseCases represent the business logic required for management of OTP
 type OTPUseCases interface {
-	SendRetryOTP(ctx context.Context, msisdn string, retryStep int) (string, error)
-	GenerateAndSendOTP(phone string) (string, error)
-	// TODO consider moving this to OTP service or making an isc for it
-	VerifyEmailOTP(ctx context.Context, msisdn, otp, flavour string) (bool, error)
+	GenerateAndSendOTP(ctx context.Context, phone string) (string, error)
 }
 
 // OTPUseCasesImpl represents OTP usecases
@@ -38,7 +35,7 @@ type OTPUseCasesImpl struct {
 }
 
 // NewOTPUseCasesImpl returns new instance of OTPUseCasesImpl
-func NewOTPUseCasesImpl(r repository.OnboardingRepository) *OTPUseCasesImpl {
+func NewOTPUseCasesImpl(r repository.OnboardingRepository) OTPUseCases {
 
 	var config base.DepsConfig
 	//os file and parse it to go type

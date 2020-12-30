@@ -11,7 +11,7 @@ import (
 
 // LoginUseCases  represents all the business logic involved in logging in a user and managing their authorization credentials.
 type LoginUseCases interface {
-	LoginByPhone(ctx context.Context, phone, pin, flavour base.Flavour) (*domain.UserResponse, error)
+	LoginByPhone(ctx context.Context, phone string, PIN string, flavour base.Flavour) (*domain.AuthCredentialResponse, error)
 	RefreshToken(ctx context.Context, token string) (*domain.AuthCredentialResponse, error)
 }
 
@@ -21,21 +21,14 @@ type LoginUseCasesImpl struct {
 }
 
 // NewLoginUseCases initializes a new sign up usecase
-func NewLoginUseCases(r repository.OnboardingRepository) *LoginUseCasesImpl {
+func NewLoginUseCases(r repository.OnboardingRepository) LoginUseCases {
 	return &LoginUseCasesImpl{r}
 }
 
 // LoginByPhone returns credentials that are used to log a user in
 // provided the phone number and pin supplied are correct
-func (o *LoginUseCasesImpl) LoginByPhone(
-	ctx context.Context,
-	phone string,
-	PIN string,
-	flavour base.Flavour,
-) (*domain.AuthCredentialResponse, error) {
-	profile, err := o.onboardingRepository.
-		GetUserProfileByPrimaryPhoneNumber(ctx, phone)
-
+func (o *LoginUseCasesImpl) LoginByPhone(ctx context.Context, phone string, PIN string, flavour base.Flavour) (*domain.AuthCredentialResponse, error) {
+	profile, _, err := o.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phone)
 	if err != nil {
 		return nil, err
 	}
@@ -62,4 +55,10 @@ func (o *LoginUseCasesImpl) LoginByPhone(
 	// }
 
 	return o.onboardingRepository.GenerateAuthCredentials(ctx, phone)
+}
+
+// RefreshToken updates authorization token
+func (o *LoginUseCasesImpl) RefreshToken(ctx context.Context, token string) (*domain.AuthCredentialResponse, error) {
+	// TODO: implement this
+	return nil, nil
 }

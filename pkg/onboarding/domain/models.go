@@ -3,6 +3,7 @@ package domain
 import (
 	"fmt"
 	"net/url"
+	"time"
 
 	"gitlab.slade360emr.com/go/base"
 )
@@ -293,16 +294,30 @@ func (e *CustomError) Error() string {
 	return fmt.Sprintf("%d: %s", e.Code, e.Message)
 }
 
+// PostVisitSurvey is used to record and retrieve post visit surveys from Firebase
+type PostVisitSurvey struct {
+	LikelyToRecommend int    `json:"likelyToRecommend" firestore:"likelyToRecommend"`
+	Criticism         string `json:"criticism" firestore:"criticism"`
+	Suggestions       string `json:"suggestions" firestore:"suggestions"`
+
+	UID       string    `json:"uid" firestore:"uid"`
+	Timestamp time.Time `json:"timestamp" firestore:"timestamp"`
+}
+
+// AccountRecoveryPhonesResponse  payload sent back to the frontend when recovery an account
+type AccountRecoveryPhonesResponse struct {
+	MaskedPhoneNumbers   []string `json:"maskedPhoneNumbers"`
+	UnMaskedPhoneNumbers []string `json:"unMaskedPhoneNumbers"`
+}
+
 //TODO: restore commented structs when implementing profile missing methods
-
-// // PostVisitSurvey is used to record and retrieve post visit surveys from Firebase
-// type PostVisitSurvey struct {
-// 	LikelyToRecommend int    `json:"likelyToRecommend" firestore:"likelyToRecommend"`
-// 	Criticism         string `json:"criticism" firestore:"criticism"`
-// 	Suggestions       string `json:"suggestions" firestore:"suggestions"`
-
-// 	UID       string    `json:"uid" firestore:"uid"`
-// 	Timestamp time.Time `json:"timestamp" firestore:"timestamp"`
+// // PIN is used to store a PIN (Personal Identifiation Number) associated
+// // to a phone number sign up to Firebase
+// type PIN struct {
+// 	ProfileID string `json:"profile_id" firestore:"profileID"`
+// 	MSISDN    string `json:"msisdn,omitempty" firestore:"msisdn"`
+// 	PINNumber string `json:"pin_number" firestore:"pin"`
+// 	IsValid   bool   `json:"isValid,omitempty" firestore:"isValid"`
 // }
 
 // // PinRecovery stores information required in resetting and updating a forgotten pin
