@@ -50,6 +50,7 @@ type SignUpUseCases interface {
 type SignUpUseCasesImpl struct {
 	onboardingRepository repository.OnboardingRepository
 	profileUsecase       ProfileUseCase
+	pinUsecase           UserPINUseCases
 }
 
 // NewSignUpUseCases returns a new a onboarding usecase
@@ -105,6 +106,10 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 		return nil, fmt.Errorf("failed to create userProfile: %w", err)
 	}
 
+	if _, err := s.pinUsecase.SetUserPIN(ctx, phoneNumber, pin); err != nil {
+		return nil, err
+	}
+
 	var supplier *domain.Supplier
 	var customer *domain.Customer
 
@@ -121,9 +126,6 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 			return nil, fmt.Errorf("failed to create customerProfile: %w", err)
 		}
 	}
-
-	//TODO(calvine) : add method to encrpyt and save pin
-
 	return &domain.UserResponse{
 		Profile:         profile,
 		SupplierProfile: supplier,
