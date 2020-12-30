@@ -12,7 +12,7 @@ import (
 // LoginUseCases  represents all the business logic involved in logging in a user and managing their authorization credentials.
 type LoginUseCases interface {
 	LoginByPhone(ctx context.Context, phone string, PIN string, flavour base.Flavour) (*domain.AuthCredentialResponse, error)
-	RefreshToken(ctx context.Context, token string) (*domain.AuthCredentialResponse, error)
+	RefreshToken(token string) (*domain.AuthCredentialResponse, error)
 }
 
 // LoginUseCasesImpl represents the usecase implementation object
@@ -27,8 +27,14 @@ func NewLoginUseCases(r repository.OnboardingRepository) LoginUseCases {
 
 // LoginByPhone returns credentials that are used to log a user in
 // provided the phone number and pin supplied are correct
-func (o *LoginUseCasesImpl) LoginByPhone(ctx context.Context, phone string, PIN string, flavour base.Flavour) (*domain.AuthCredentialResponse, error) {
-	profile, err := o.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phone)
+func (l *LoginUseCasesImpl) LoginByPhone(
+	ctx context.Context,
+	phone string,
+	PIN string,
+	flavour base.Flavour,
+) (*domain.AuthCredentialResponse, error) {
+	profile, err := l.onboardingRepository.
+		GetUserProfileByPrimaryPhoneNumber(ctx, phone)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +43,7 @@ func (o *LoginUseCasesImpl) LoginByPhone(ctx context.Context, phone string, PIN 
 		return nil, fmt.Errorf("%v", base.ProfileNotFound)
 	}
 
-	PINData, err := o.onboardingRepository.
+	PINData, err := l.onboardingRepository.
 		GetPINByProfileID(ctx, profile.ID)
 
 	if err != nil {
@@ -45,7 +51,7 @@ func (o *LoginUseCasesImpl) LoginByPhone(ctx context.Context, phone string, PIN 
 	}
 
 	if PINData == nil {
-		return nil, fmt.Errorf("%v", "base.PINNotFound")
+		return nil, fmt.Errorf("%v", base.PINNotFound)
 	}
 
 	// TODO: Save the specific PIN salt and use it during the matching (calvin)
@@ -54,11 +60,12 @@ func (o *LoginUseCasesImpl) LoginByPhone(ctx context.Context, phone string, PIN 
 	// 	return nil, fmt.Errorf("%v", base.PINMismatch)
 	// }
 
-	return o.onboardingRepository.GenerateAuthCredentials(ctx, phone)
+	return l.onboardingRepository.GenerateAuthCredentials(ctx, phone)
 }
 
-// RefreshToken updates authorization token
-func (o *LoginUseCasesImpl) RefreshToken(ctx context.Context, token string) (*domain.AuthCredentialResponse, error) {
-	// TODO: implement this
-	return nil, nil
+// RefreshToken takes a custom Firebase refresh token and tries to fetch
+// an ID token and returns auth credentials if successful
+// Otherwise, an error is returned
+func (l *LoginUseCasesImpl) RefreshToken(token string) (*domain.AuthCredentialResponse, error) {
+	return l.onboardingRepository.ExchangeRefreshTokenForIDToken(token)
 }

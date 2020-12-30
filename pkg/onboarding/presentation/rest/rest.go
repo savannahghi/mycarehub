@@ -212,3 +212,34 @@ func GenerateAndSendOTP(ctx context.Context, i *interactor.Interactor) http.Hand
 		)
 	}
 }
+
+// ExchangeRefreshTokenForIDToken is an unauthenticated endpoint that
+// takes a custom Firebase refresh token and tries to fetch
+// an ID token and returns auth credentials if successful
+// Otherwise, an error is returned
+func ExchangeRefreshTokenForIDToken(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &domain.RefreshToken{}
+		if p.RefreshToken == nil {
+			err := fmt.Errorf("expected `refreshToken` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		response, err := i.Login.RefreshToken(*p.RefreshToken)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(
+			w,
+			domain.AuthCredentialResponse{
+				RefreshToken: response.RefreshToken,
+				ExpiresIn:    response.ExpiresIn,
+				IDToken:      response.IDToken,
+			},
+			http.StatusOK,
+		)
+	}
+}

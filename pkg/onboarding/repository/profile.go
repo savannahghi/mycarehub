@@ -56,4 +56,8 @@ type OnboardingRepository interface {
 
 	// User Pin methods
 	SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN, error)
+
+	ExchangeRefreshTokenForIDToken(
+		token string,
+	) (*domain.AuthCredentialResponse, error)
 }

@@ -1,9 +1,13 @@
 package database
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"time"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -22,6 +26,8 @@ const (
 	customerProfileCollectionName = "customer_profiles"
 	pinsCollectionName            = "pins"
 	surveyCollectionName          = "post_visit_survey"
+
+	firebaseExchangeRefreshTokenURL = "https://securetoken.googleapis.com/v1/token?key="
 )
 
 // Repository accesses and updates an item that is stored on Firebase
@@ -842,4 +848,55 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 
 	return true, nil
 
+}
+
+// ExchangeRefreshTokenForIDToken takes a custom Firebase refresh token and tries to fetch
+// an ID token and returns auth credentials if successful
+// Otherwise, an error is returned
+func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*domain.AuthCredentialResponse, error) {
+	apiKey, err := base.GetEnvVar(base.FirebaseWebAPIKeyEnvVarName)
+	if err != nil {
+		return nil, err
+	}
+
+	payload := domain.RefreshTokenExchangePayload{
+		GrantType:    "refresh_token",
+		RefreshToken: refreshToken,
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	url := firebaseExchangeRefreshTokenURL + apiKey
+	httpClient := http.DefaultClient
+	httpClient.Timeout = time.Second * base.HTTPClientTimeoutSecs
+	resp, err := httpClient.Post(
+		url,
+		"application/json",
+		bytes.NewReader(payloadBytes),
+	)
+
+	defer base.CloseRespBody(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		bs, err := ioutil.ReadAll(resp.Body)
+		return nil, fmt.Errorf(
+			"firebase HTTP error, status code %d\nBody: %s\nBody read error: %s",
+			resp.StatusCode,
+			string(bs),
+			err,
+		)
+	}
+
+	var tokenResp domain.AuthCredentialResponse
+	err = json.NewDecoder(resp.Body).Decode(&tokenResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tokenResp, nil
 }

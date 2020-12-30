@@ -131,9 +131,9 @@ type UserResponse struct {
 // AuthCredentialResponse represents a user login response
 type AuthCredentialResponse struct {
 	CustomToken  *string `json:"customToken"`
-	IDToken      *string `json:"idToken"`
-	ExpiresIn    string  `json:"expiresIn"`
-	RefreshToken string  `json:"refreshToken"`
+	IDToken      *string `json:"id_token"`
+	ExpiresIn    string  `json:"expires_in"`
+	RefreshToken string  `json:"refresh_token"`
 }
 
 // BusinessPartner represents a Slade 360 Charge Master business partner
@@ -314,6 +314,19 @@ type PostVisitSurvey struct {
 type SendRetryOTPPayload struct {
 	Phone     *string `json:"phoneNumber"`
 	RetryStep *int    `json:"retryStep"`
+}
+
+// RefreshTokenExchangePayload is marshalled into JSON
+// and sent to the Firebase Auth REST API when exchanging a
+// refresh token for an ID token that can be used to make API calls
+type RefreshTokenExchangePayload struct {
+	GrantType    string `json:"grant_type"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+// RefreshToken ...
+type RefreshToken struct {
+	RefreshToken *string `json:"refresh_token"`
 }
 
 //TODO: restore commented structs when implementing profile missing methods
