@@ -105,6 +105,14 @@ type ComplexityRoot struct {
 		PayerSladeCode func(childComplexity int) int
 	}
 
+	Customer struct {
+		Active             func(childComplexity int) int
+		CustomerID         func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		ProfileID          func(childComplexity int) int
+		ReceivablesAccount func(childComplexity int) int
+	}
+
 	Entity struct {
 		FindPageInfoByHasNextPage func(childComplexity int, hasNextPage bool) int
 		FindUserProfileByID       func(childComplexity int, id string) int
@@ -332,6 +340,7 @@ type ComplexityRoot struct {
 		AccountType            func(childComplexity int) int
 		Active                 func(childComplexity int) int
 		HasBranches            func(childComplexity int) int
+		ID                     func(childComplexity int) int
 		IsOrganizationVerified func(childComplexity int) int
 		KYCSubmitted           func(childComplexity int) int
 		Location               func(childComplexity int) int
@@ -627,6 +636,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Cover.PayerSladeCode(childComplexity), true
+
+	case "Customer.active":
+		if e.complexity.Customer.Active == nil {
+			break
+		}
+
+		return e.complexity.Customer.Active(childComplexity), true
+
+	case "Customer.customerID":
+		if e.complexity.Customer.CustomerID == nil {
+			break
+		}
+
+		return e.complexity.Customer.CustomerID(childComplexity), true
+
+	case "Customer.id":
+		if e.complexity.Customer.ID == nil {
+			break
+		}
+
+		return e.complexity.Customer.ID(childComplexity), true
+
+	case "Customer.profileID":
+		if e.complexity.Customer.ProfileID == nil {
+			break
+		}
+
+		return e.complexity.Customer.ProfileID(childComplexity), true
+
+	case "Customer.receivablesAccount":
+		if e.complexity.Customer.ReceivablesAccount == nil {
+			break
+		}
+
+		return e.complexity.Customer.ReceivablesAccount(childComplexity), true
 
 	case "Entity.findPageInfoByHasNextPage":
 		if e.complexity.Entity.FindPageInfoByHasNextPage == nil {
@@ -1889,6 +1933,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Supplier.HasBranches(childComplexity), true
 
+	case "Supplier.id":
+		if e.complexity.Supplier.ID == nil {
+			break
+		}
+
+		return e.complexity.Supplier.ID(childComplexity), true
+
 	case "Supplier.isOrganizationVerified":
 		if e.complexity.Supplier.IsOrganizationVerified == nil {
 			break
@@ -2779,6 +2830,14 @@ type UserProfile @key(fields: "id") {
   userBioData: BioData
 }
 
+type Customer {
+  id: String!
+  profileID: String
+  customerID: String
+  receivablesAccount: ReceivablesAccount
+  active: Boolean
+}
+
 type ReceivablesAccount {
   id: String!
   name: String!
@@ -2811,6 +2870,7 @@ type Beneficiary {
 }
 
 type Supplier {
+  id: String!
   profileID: String!
   supplierId: String!
   payablesAccount: PayablesAccount!
@@ -4598,6 +4658,169 @@ func (ec *executionContext) _Cover_memberName(ctx context.Context, field graphql
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Customer_id(ctx context.Context, field graphql.CollectedField, obj *domain.Customer) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Customer",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Customer_profileID(ctx context.Context, field graphql.CollectedField, obj *domain.Customer) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Customer",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Customer_customerID(ctx context.Context, field graphql.CollectedField, obj *domain.Customer) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Customer",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CustomerID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Customer_receivablesAccount(ctx context.Context, field graphql.CollectedField, obj *domain.Customer) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Customer",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReceivablesAccount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(domain.ReceivablesAccount)
+	fc.Result = res
+	return ec.marshalOReceivablesAccount2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐReceivablesAccount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Customer_active(ctx context.Context, field graphql.CollectedField, obj *domain.Customer) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Customer",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Entity_findPageInfoByHasNextPage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10009,7 +10232,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_id(ctx context.Context, field graphql.CollectedField, obj *model.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_id(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10044,7 +10267,7 @@ func (ec *executionContext) _ReceivablesAccount_id(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_name(ctx context.Context, field graphql.CollectedField, obj *model.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_name(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10079,7 +10302,7 @@ func (ec *executionContext) _ReceivablesAccount_name(ctx context.Context, field 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_isActive(ctx context.Context, field graphql.CollectedField, obj *model.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_isActive(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10114,7 +10337,7 @@ func (ec *executionContext) _ReceivablesAccount_isActive(ctx context.Context, fi
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_number(ctx context.Context, field graphql.CollectedField, obj *model.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_number(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10149,7 +10372,7 @@ func (ec *executionContext) _ReceivablesAccount_number(ctx context.Context, fiel
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_tag(ctx context.Context, field graphql.CollectedField, obj *model.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_tag(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10184,7 +10407,7 @@ func (ec *executionContext) _ReceivablesAccount_tag(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_description(ctx context.Context, field graphql.CollectedField, obj *model.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_description(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10287,6 +10510,41 @@ func (ec *executionContext) _ServicesOffered_otherServices(ctx context.Context, 
 	res := resTmp.([]string)
 	fc.Result = res
 	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_id(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Supplier_profileID(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
@@ -14310,6 +14568,41 @@ func (ec *executionContext) _Cover(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var customerImplementors = []string{"Customer"}
+
+func (ec *executionContext) _Customer(ctx context.Context, sel ast.SelectionSet, obj *domain.Customer) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, customerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Customer")
+		case "id":
+			out.Values[i] = ec._Customer_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "profileID":
+			out.Values[i] = ec._Customer_profileID(ctx, field, obj)
+		case "customerID":
+			out.Values[i] = ec._Customer_customerID(ctx, field, obj)
+		case "receivablesAccount":
+			out.Values[i] = ec._Customer_receivablesAccount(ctx, field, obj)
+		case "active":
+			out.Values[i] = ec._Customer_active(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var entityImplementors = []string{"Entity"}
 
 func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -15437,7 +15730,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 var receivablesAccountImplementors = []string{"ReceivablesAccount"}
 
-func (ec *executionContext) _ReceivablesAccount(ctx context.Context, sel ast.SelectionSet, obj *model.ReceivablesAccount) graphql.Marshaler {
+func (ec *executionContext) _ReceivablesAccount(ctx context.Context, sel ast.SelectionSet, obj *domain.ReceivablesAccount) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, receivablesAccountImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -15530,6 +15823,11 @@ func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Supplier")
+		case "id":
+			out.Values[i] = ec._Supplier_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "profileID":
 			out.Values[i] = ec._Supplier_profileID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -17603,6 +17901,10 @@ func (ec *executionContext) marshalOPermissionType2ᚕgitlabᚗslade360emrᚗcom
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalOReceivablesAccount2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐReceivablesAccount(ctx context.Context, sel ast.SelectionSet, v domain.ReceivablesAccount) graphql.Marshaler {
+	return ec._ReceivablesAccount(ctx, sel, &v)
 }
 
 func (ec *executionContext) unmarshalOSortOrder2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx context.Context, v interface{}) (*base.SortOrder, error) {

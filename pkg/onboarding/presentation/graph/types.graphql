@@ -41,6 +41,14 @@ type UserProfile @key(fields: "id") {
   userBioData: BioData
 }
 
+type Customer {
+  id: String!
+  profileID: String
+  customerID: String
+  receivablesAccount: ReceivablesAccount
+  active: Boolean
+}
+
 type ReceivablesAccount {
   id: String!
   name: String!
@@ -73,6 +81,7 @@ type Beneficiary {
 }
 
 type Supplier {
+  id: String!
   profileID: String!
   supplierId: String!
   payablesAccount: PayablesAccount!

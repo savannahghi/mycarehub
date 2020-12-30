@@ -75,7 +75,7 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 		return false, fmt.Errorf("unable to get the logged in user: %v", err)
 	}
 
-	profile, err := s.repo.GetUserProfile(ctx, uid)
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return false, fmt.Errorf("unable to read user profile: %w", err)
 	}

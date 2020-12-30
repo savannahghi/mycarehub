@@ -19,7 +19,7 @@ type SignUpUseCases interface {
 
 	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
 	// Implemented for unauthenicated REST API
-	CreateUserByPhone(ctx context.Context, phoneNumber, pin string) (*base.UserProfile, error)
+	CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*base.UserProfile, error)
 
 	// updates the user profile of the currently logged in user
 	// Implemented for unauthenicated GRAPHQL API
@@ -76,7 +76,7 @@ func (o *SignUpUseCasesImpl) VerifyPhone(ctx context.Context, phone string) (boo
 }
 
 // CreateUserByPhone creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
-func (o *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber, pin string) (*domain.UserResponse, error) {
+func (o *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*domain.UserResponse, error) {
 
 	// check if phone number is registered to another user
 	v, err := o.VerifyPhone(ctx, phoneNumber)
@@ -107,14 +107,29 @@ func (o *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 		return nil, fmt.Errorf("failed to create userProfile: %w", err)
 	}
 
-	//TODO(dexter) : create empty supplier profile
+	var supplier *domain.Supplier
+	var customer *domain.Customer
 
-	//TODO(dexter) : create empty customer profile
+	if flavour == base.FlavourPro {
+		supplier, err = o.onboardingRepository.CreateEmptySupplierProfile(ctx, pr.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create supplierProfile: %w", err)
+		}
+	}
+
+	if flavour == base.FlavourConsumer {
+		customer, err = o.onboardingRepository.CreateEmptyCustomerProfile(ctx, pr.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create customerProfile: %w", err)
+		}
+	}
 
 	//TODO(calvine) : add method to encrpyt and save pin
 
 	return &domain.UserResponse{
-		Profile: pr,
+		Profile:         pr,
+		SupplierProfile: supplier,
+		CustomerProfile: customer,
 		Auth: domain.AuthCredentialResponse{
 			CustomToken: &ct,
 		},

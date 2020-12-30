@@ -36,7 +36,7 @@ func (o *OnboardingUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProf
 	if err != nil {
 		return nil, err
 	}
-	return o.onboardingRepository.GetUserProfile(ctx, uid)
+	return o.onboardingRepository.GetUserProfileByUID(ctx, uid)
 }
 
 // GetProfileByID returns the profile identified by the indicated ID
@@ -50,7 +50,7 @@ func (o *OnboardingUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, ph
 	if err != nil {
 		return err
 	}
-	profile, err := o.onboardingRepository.GetUserProfile(ctx, uid)
+	profile, err := o.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return err
 	}

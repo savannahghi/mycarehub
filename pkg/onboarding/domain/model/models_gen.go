@@ -41,15 +41,6 @@ type PractitionerServiceInput struct {
 	Services []domain.PractitionerService `json:"services"`
 }
 
-type ReceivablesAccount struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	IsActive    bool   `json:"isActive"`
-	Number      string `json:"number"`
-	Tag         string `json:"tag"`
-	Description string `json:"description"`
-}
-
 type ServicesOffered struct {
 	Services      []domain.PractitionerService `json:"services"`
 	OtherServices []string                     `json:"otherServices"`

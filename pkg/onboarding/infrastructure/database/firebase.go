@@ -16,6 +16,7 @@ import (
 const (
 	userProfileCollectionName     = "user_profiles"
 	supplierProfileCollectionName = "supplier_profiles"
+	customerProfileCollectionName = "customer_profiles"
 )
 
 // Repository accesses and updates an item that is stored on Firebase
@@ -66,8 +67,14 @@ func (fr Repository) GetSupplierProfileCollectionName() string {
 	return suffixed
 }
 
-// GetUserProfile retrieves the user profile
-func (fr *Repository) GetUserProfile(
+// GetCustomerProfileCollectionName ...
+func (fr Repository) GetCustomerProfileCollectionName() string {
+	suffixed := base.SuffixCollection(customerProfileCollectionName)
+	return suffixed
+}
+
+// GetUserProfileByUID retrieves the user profile bu UID
+func (fr *Repository) GetUserProfileByUID(
 	ctx context.Context,
 	uid string,
 ) (*base.UserProfile, error) {
@@ -147,7 +154,7 @@ func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profile
 // CreateUserProfile creates a user profile of using the provided phone number and uid
 func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
 
-	newProfile := &base.UserProfile{
+	pr := &base.UserProfile{
 		ID:           uuid.New().String(),
 		PrimaryPhone: phoneNumber,
 		VerifiedIdentifiers: []base.VerifiedIdentifier{{
@@ -160,7 +167,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 	}
 
 	// persist the data to a datastore
-	docID, err := base.SaveDataToFirestore(fr.firestoreClient, fr.GetUserProfileCollectionName(), newProfile)
+	docID, err := base.SaveDataToFirestore(fr.firestoreClient, fr.GetUserProfileCollectionName(), pr)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new user profile: %w", err)
 	}
@@ -176,6 +183,57 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 	}
 	return userProfile, nil
 
+}
+
+// CreateEmptySupplierProfile creates an empty supplier profile
+func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error) {
+	sup := &domain.Supplier{
+		ID:        uuid.New().String(),
+		ProfileID: &profileID,
+	}
+
+	// persist the data to a datastore
+	docID, err := base.SaveDataToFirestore(fr.firestoreClient, fr.GetSupplierProfileCollectionName(), sup)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new supplier empty profile: %w", err)
+	}
+	dsnap, err := fr.firestoreClient.Collection(fr.GetSupplierProfileCollectionName()).Doc(docID).Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve newly created supplier profile: %w", err)
+	}
+	// return the newly created supplier profile
+	supplier := &domain.Supplier{}
+	err = dsnap.DataTo(supplier)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier profile: %w", err)
+	}
+	return supplier, nil
+
+}
+
+// CreateEmptyCustomerProfile creates an empty customer profile
+func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*domain.Customer, error) {
+	cus := &domain.Customer{
+		ID:        uuid.New().String(),
+		ProfileID: &profileID,
+	}
+
+	// persist the data to a datastore
+	docID, err := base.SaveDataToFirestore(fr.firestoreClient, fr.GetCustomerProfileCollectionName(), cus)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new customer empty profile: %w", err)
+	}
+	dsnap, err := fr.firestoreClient.Collection(fr.GetCustomerProfileCollectionName()).Doc(docID).Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve newly created customer profile: %w", err)
+	}
+	// return the newly created customer profile
+	customer := &domain.Customer{}
+	err = dsnap.DataTo(customer)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read customer profile: %w", err)
+	}
+	return customer, nil
 }
 
 // CheckIfPhoneNumberExists checks both PRIMARY PHONE NUMBERs and SECONDARY PHONE NUMBERs for the

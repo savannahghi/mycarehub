@@ -36,6 +36,7 @@ type PayablesAccount struct {
 
 // Supplier used to create a supplier request payload
 type Supplier struct {
+	ID                     string                 `json:"id" firestore:"id"`
 	ProfileID              *string                `json:"profileID" firestore:"profileID"`
 	SupplierID             string                 `json:"supplierID" firestore:"supplierID"`
 	SupplierName           string                 `json:"supplierName" firestore:"supplierName"`
@@ -122,6 +123,7 @@ type KYCRequest struct {
 type UserResponse struct {
 	Profile         *base.UserProfile      `json:"profile"`
 	SupplierProfile *Supplier              `json:"supplierProfile"`
+	CustomerProfile *Customer              `json:"customerProfile"`
 	Auth            AuthCredentialResponse `json:"auth"`
 }
 
@@ -236,13 +238,33 @@ type PhoneNumberPayload struct {
 
 // SignUpPayload used when calling the REST API to create a new account
 type SignUpPayload struct {
-	PhoneNumber *string `json:"phoneNumber"`
-	PIN         *string `json:"pin"`
+	PhoneNumber *string      `json:"phoneNumber"`
+	PIN         *string      `json:"pin"`
+	Flavour     base.Flavour `json:"flavour"`
 }
 
 // OtpResponse returns an otp
 type OtpResponse struct {
 	OTP string `json:"otp"`
+}
+
+// Customer used to create a customer request payload
+type Customer struct {
+	ID                 string             `json:"id" firestore:"id"`
+	ProfileID          *string            `json:"profileID,omitempty" firestore:"profileID"`
+	CustomerID         string             `json:"customerID,omitempty" firestore:"customerID"`
+	ReceivablesAccount ReceivablesAccount `json:"receivablesAccount" firestore:"profileID"`
+	Active             bool               `json:"active" firestore:"active"`
+}
+
+// ReceivablesAccount stores a customer's receivables account info
+type ReceivablesAccount struct {
+	ID          string `json:"id" firestore:"id"`
+	Name        string `json:"name" firestore:"name"`
+	IsActive    bool   `json:"isActive" firestore:"isActive"`
+	Number      string `json:"number" firestore:"number"`
+	Tag         string `json:"tag" firestore:"tag"`
+	Description string `json:"description" firestore:"description"`
 }
 
 //TODO: restore commented structs when implementing profile missing methods
@@ -273,14 +295,6 @@ type OtpResponse struct {
 // 	OTP       string `json:"otp" firestore:"otp"`
 // }
 
-// // Customer used to create a customer request payload
-// type Customer struct {
-// 	UserProfile        base.UserProfile   `json:"userprofile,omitempty" firestore:"userprofile"`
-// 	CustomerID         string             `json:"id,omitempty" firestore:"customerid"`
-// 	ReceivablesAccount ReceivablesAccount `json:"receivables_account,omitempty"`
-// 	Active             bool               `json:"active" firestore:"active"`
-// }
-
 // // Beneficiary stores a customer's beneficiary details
 // type Beneficiary struct {
 // 	Name         string                  `json:"name"`
@@ -288,16 +302,6 @@ type OtpResponse struct {
 // 	Emails       []string                `json:"emails"`
 // 	Relationship BeneficiaryRelationship `json:"relationship"`
 // 	DateOfBirth  base.Date               `json:"dateOfBirth"`
-// }
-
-// // ReceivablesAccount stores a customer's receivables account info
-// type ReceivablesAccount struct {
-// 	ID          string `json:"id,omitempty"`
-// 	Name        string `json:"name,omitempty"`
-// 	IsActive    bool   `json:"is_active,omitempty"`
-// 	Number      string `json:"number,omitempty"`
-// 	Tag         string `json:"tag,omitempty"`
-// 	Description string `json:"description,omitempty"`
 // }
 
 // // BeneficiaryInput stores beneficiary input details

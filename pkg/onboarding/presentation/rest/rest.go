@@ -58,7 +58,13 @@ func CreateUserWithPhoneNumber(ctx context.Context, srv *service.Service) http.H
 			return
 		}
 
-		response, err := srv.Signup.CreateUserByPhone(ctx, *p.PhoneNumber, *p.PIN)
+		if !p.Flavour.IsValid() {
+			err := fmt.Errorf("an invalid `flavour` defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		response, err := srv.Signup.CreateUserByPhone(ctx, *p.PhoneNumber, *p.PIN, p.Flavour)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
