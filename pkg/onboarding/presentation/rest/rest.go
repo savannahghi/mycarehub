@@ -152,3 +152,63 @@ func SetUserPIN(ctx context.Context, i *interactor.Interactor) http.HandlerFunc 
 		base.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
+
+// SendRetryOTPHandler is an unauthenticated request that takes in a phone number
+// and a retry step (1 for sending an OTP via WhatsApp and 2 for Twilio Messages)
+// and generates and sends a valid OTP to the phone number
+func SendRetryOTPHandler(
+	ctx context.Context,
+	i *interactor.Interactor,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		retryPayload := &domain.SendRetryOTPPayload{}
+		base.DecodeJSONToTargetStruct(w, r, retryPayload)
+		if retryPayload.Phone == nil || retryPayload.RetryStep == nil {
+			err := fmt.Errorf("expected `phoneNumber`, `retryStep` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		response, err := i.Otp.SendRetryOTP(
+			ctx,
+			*retryPayload.Phone,
+			*retryPayload.RetryStep,
+		)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(
+			w,
+			domain.OtpResponse{OTP: response},
+			http.StatusOK,
+		)
+	}
+}
+
+// GenerateAndSendOTP is an unauthenticated request that takes in a phone number
+// and generates and sends a valid OTP to the phone number
+func GenerateAndSendOTP(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &domain.PhoneNumberPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.PhoneNumber == nil {
+			err := fmt.Errorf("expected `phoneNumber` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		o, err := i.Otp.GenerateAndSendOTP(ctx, *p.PhoneNumber)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(
+			w,
+			domain.OtpResponse{OTP: o},
+			http.StatusOK,
+		)
+	}
+}

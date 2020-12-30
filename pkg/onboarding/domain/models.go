@@ -310,6 +310,12 @@ type PostVisitSurvey struct {
 	Timestamp         time.Time `json:"timestamp" firestore:"timestamp"`
 }
 
+// SendRetryOTPPayload is used when calling the REST API to resend an otp
+type SendRetryOTPPayload struct {
+	Phone     *string `json:"phoneNumber"`
+	RetryStep *int    `json:"retryStep"`
+}
+
 //TODO: restore commented structs when implementing profile missing methods
 // // PIN is used to store a PIN (Personal Identifiation Number) associated
 // // to a phone number sign up to Firebase

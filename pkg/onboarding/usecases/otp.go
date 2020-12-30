@@ -26,7 +26,15 @@ const (
 
 // OTPUseCases represent the business logic required for management of OTP
 type OTPUseCases interface {
-	GenerateAndSendOTP(ctx context.Context, phone string) (string, error)
+	GenerateAndSendOTP(
+		ctx context.Context,
+		phone string,
+	) (string, error)
+	SendRetryOTP(
+		ctx context.Context,
+		msisdn string,
+		retryStep int,
+	) (string, error)
 }
 
 // OTPUseCasesImpl represents OTP usecases
@@ -61,7 +69,10 @@ func NewOTPUseCasesImpl(r repository.OnboardingRepository) OTPUseCases {
 }
 
 // GenerateAndSendOTP creates a new otp and sends it to the provided phone number.
-func (o *OTPUseCasesImpl) GenerateAndSendOTP(ctx context.Context, phone string) (string, error) {
+func (o *OTPUseCasesImpl) GenerateAndSendOTP(
+	ctx context.Context,
+	phone string,
+) (string, error) {
 	body := map[string]interface{}{
 		"msisdn": phone,
 	}
@@ -76,6 +87,38 @@ func (o *OTPUseCasesImpl) GenerateAndSendOTP(ctx context.Context, phone string) 
 	code, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return defaultOTP, fmt.Errorf("unable to convert response to string: %v", err)
+	}
+
+	return string(code), nil
+}
+
+// SendRetryOTP generates fallback OTPs when Africa is talking sms fails
+func (o *OTPUseCasesImpl) SendRetryOTP(
+	ctx context.Context,
+	msisdn string,
+	retryStep int,
+) (string, error) {
+	phoneNumber, err := base.NormalizeMSISDN(msisdn)
+	if err != nil {
+		return "", fmt.Errorf("unable to normalize the msisdn: %v", err)
+	}
+
+	body := map[string]interface{}{
+		"msisdn":    phoneNumber,
+		"retryStep": retryStep,
+	}
+	resp, err := o.Otp.MakeRequest(http.MethodPost, SendRetryOtp, body)
+	if err != nil {
+		return "", fmt.Errorf("unable to generate and send fallback otp: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unable to generate and send fallback otp, with status code %v", resp.StatusCode)
+	}
+
+	code, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("unable to convert response to string: %v", err)
 	}
 
 	return string(code), nil

@@ -77,6 +77,16 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Path("/user_recovery_phonenumbers").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(rest.UserRecoveryPhoneNumbers(ctx, i))
 
+	//OTP routes
+	r.Path("/send_otp").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(rest.GenerateAndSendOTP(ctx, i))
+	r.Path("/send_retry_otp").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(rest.SendRetryOTPHandler(ctx, i))
+
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(base.AuthenticationMiddleware(firebaseApp))
