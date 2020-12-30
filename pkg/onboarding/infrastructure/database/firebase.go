@@ -810,6 +810,31 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN
 
 }
 
+// UpdatePIN  persist the data of the updated PIN to a datastore
+func (fr *Repository) UpdatePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN, error) {
+	profile, err := fr.GetPINByProfileID(ctx, pin.ProfileID)
+	if err != nil {
+		return nil, err
+	}
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetPINsCollectionName(), profile.ProfileID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse user pin as firebase snapshot: %v", err)
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		fr.firestoreClient, fr.GetPINsCollectionName(), record.Ref.ID, profile,
+	)
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.UpdateProfileErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+	return profile, nil
+
+}
+
 // ExchangeRefreshTokenForIDToken takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned

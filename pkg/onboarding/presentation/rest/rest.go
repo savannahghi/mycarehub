@@ -300,3 +300,28 @@ func FindSupplierByUIDHandler(ctx context.Context, i *interactor.Interactor) htt
 		base.WriteJSONResponse(w, supplier, http.StatusOK)
 	}
 }
+
+// UpdatePin used to change/update a user's PIN
+func UpdatePin(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		pin := &domain.PIN{}
+		base.DecodeJSONToTargetStruct(w, r, pin)
+		if pin.PhoneNumber == "" || pin.PINNumber == "" {
+			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		response, err := i.UserPIN.ChangeUserPIN(
+			ctx,
+			pin.PINNumber,
+			pin.PhoneNumber,
+		)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
