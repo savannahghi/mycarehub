@@ -12,7 +12,6 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/errors"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 const (
@@ -29,7 +28,7 @@ type Repository struct {
 }
 
 // NewFirebaseRepository initializes a Firebase repository
-func NewFirebaseRepository(ctx context.Context) (repository.OnboardingRepository, error) {
+func NewFirebaseRepository(ctx context.Context) (*Repository, error) {
 	fc := base.FirebaseClient{}
 	fa, err := fc.InitFirebase()
 	if err != nil {

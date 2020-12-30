@@ -47,7 +47,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, err
 	}
 
-	srv, err := service.NewService()
+	i, err := interactor.NewOnboardingInteractor()
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
 	}
@@ -71,11 +71,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Path("/verify_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(rest.VerifySignUpPhoneNumber(ctx, srv))
+		HandlerFunc(rest.VerifySignUpPhoneNumber(ctx, i))
 	r.Path("/create_user_by_phone").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(rest.CreateUserWithPhoneNumber(ctx, srv))
+		http.MethodPost, http.MethodOptions).HandlerFunc(rest.CreateUserWithPhoneNumber(ctx, i))
 	r.Path("/user_recovery_phonenumbers").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(rest.UserRecoveryPhoneNumbers(ctx, srv))
+		http.MethodPost, http.MethodOptions).HandlerFunc(rest.UserRecoveryPhoneNumbers(ctx, i))
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()
@@ -83,7 +83,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	authR.Methods(
 		http.MethodPost,
 		http.MethodGet,
-	).HandlerFunc(GQLHandler(ctx, srv))
+	).HandlerFunc(GQLHandler(ctx, i))
 
 	return r, nil
 }

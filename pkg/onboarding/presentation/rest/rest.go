@@ -5,16 +5,17 @@ import (
 	"fmt"
 	"net/http"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
+
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/service"
 )
 
 // VerifySignUpPhoneNumber is an unauthenticated endpoint that does a
 // check on the supplied phone number asserting whether the phone is associated with
 // a user profile. It check both the PRIMARY PHONE and SECONDARY PHONE NUMBER.
 // If the phone number does not exist, it sends the OTP to the phone number
-func VerifySignUpPhoneNumber(ctx context.Context, srv *service.Service) http.HandlerFunc {
+func VerifySignUpPhoneNumber(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		p := &domain.PhoneNumberPayload{}
@@ -24,7 +25,7 @@ func VerifySignUpPhoneNumber(ctx context.Context, srv *service.Service) http.Han
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
-		v, err := srv.Signup.VerifyPhone(ctx, *p.PhoneNumber)
+		v, err := i.Signup.CheckPhoneExists(ctx, *p.PhoneNumber)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
@@ -36,7 +37,7 @@ func VerifySignUpPhoneNumber(ctx context.Context, srv *service.Service) http.Han
 		}
 
 		// send otp to the phone number
-		o, err := srv.Otp.GenerateAndSendOTP(ctx, *p.PhoneNumber)
+		o, err := i.Otp.GenerateAndSendOTP(ctx, *p.PhoneNumber)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
@@ -47,7 +48,7 @@ func VerifySignUpPhoneNumber(ctx context.Context, srv *service.Service) http.Han
 }
 
 // CreateUserWithPhoneNumber is an unauthenticated endpoint that is called to create
-func CreateUserWithPhoneNumber(ctx context.Context, srv *service.Service) http.HandlerFunc {
+func CreateUserWithPhoneNumber(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		p := &domain.SignUpPayload{}
@@ -64,7 +65,7 @@ func CreateUserWithPhoneNumber(ctx context.Context, srv *service.Service) http.H
 			return
 		}
 
-		response, err := srv.Signup.CreateUserByPhone(ctx, *p.PhoneNumber, *p.PIN, p.Flavour)
+		response, err := i.Signup.CreateUserByPhone(ctx, *p.PhoneNumber, *p.PIN, p.Flavour)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
@@ -76,7 +77,7 @@ func CreateUserWithPhoneNumber(ctx context.Context, srv *service.Service) http.H
 
 // UserRecoveryPhoneNumbers fetches the phone numbers associated with a profile for the purpose of account recovery.
 // The returned phone numbers slice should be masked. E.G +254700***123
-func UserRecoveryPhoneNumbers(ctx context.Context, srv *service.Service) http.HandlerFunc {
+func UserRecoveryPhoneNumbers(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		p := &domain.PhoneNumberPayload{}
@@ -87,7 +88,7 @@ func UserRecoveryPhoneNumbers(ctx context.Context, srv *service.Service) http.Ha
 			return
 		}
 
-		response, err := srv.Signup.GetUserRecoveryPhoneNumbers(ctx, *p.PhoneNumber)
+		response, err := i.Signup.GetUserRecoveryPhoneNumbers(ctx, *p.PhoneNumber)
 
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)

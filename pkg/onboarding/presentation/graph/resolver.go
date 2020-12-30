@@ -4,9 +4,10 @@ import (
 	"context"
 	"log"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
+
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/service"
 )
 
 //go:generate go run github.com/99designs/gqlgen
@@ -17,7 +18,7 @@ import (
 
 // Resolver sets up a GraphQL resolver with all necessary dependencies
 type Resolver struct {
-	srv *service.Service
+	srv *interactor.Service
 }
 
 //go:generate go run github.com/99designs/gqlgen
@@ -25,7 +26,7 @@ type Resolver struct {
 // NewResolver sets up the dependencies needed for query and mutation resolvers to work
 func NewResolver(
 	ctx context.Context,
-	service *service.Service,
+	service *interactor.Service,
 
 ) (*Resolver, error) {
 	return &Resolver{
