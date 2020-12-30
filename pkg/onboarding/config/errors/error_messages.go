@@ -2,20 +2,20 @@ package errors
 
 const (
 	// UserNotFoundErrMsg is the error message displayed when a user is not found
-	UserNotFoundErrMsg = "failed to get a Firebase user"
+	UserNotFoundErrMsg = "failed to get a user"
 
 	// ProfileNotFoundErrMsg is the error message displayed when a user is not found
-	ProfileNotFoundErrMsg = "failed to get a Firebase user profile"
+	ProfileNotFoundErrMsg = "failed to get a user profile"
 
 	// PINNotFoundErrMsg is the error message displayed when a pin is not found
-	PINNotFoundErrMsg = "failed to get a Firebase user pin"
+	PINNotFoundErrMsg = "failed to get a user pin"
 
 	// CustomTokenErrMsg is the error message displayed when a
-	// custom firebase token is not created
+	// custom token is not created
 	CustomTokenErrMsg = "failed to create custom token"
 
 	// AuthenticateTokenErrMsg is the error message displayed when a
-	// custom firebase token is not authenticated
+	// custom token is not authenticated
 	AuthenticateTokenErrMsg = "failed to authenticate custom token"
 
 	// UpdateProfileErrMsg is the error message displayed when a

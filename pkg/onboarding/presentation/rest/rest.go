@@ -54,12 +54,11 @@ func CreateUserWithPhoneNumber(ctx context.Context, i *interactor.Interactor) ht
 
 		p := &domain.SignUpPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil || p.PIN == nil {
-			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
+		if p.PhoneNumber == nil && p.PIN == nil {
+			err := fmt.Errorf("expected `phoneNumber` and `pin` to be defined")
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
-
 		if !p.Flavour.IsValid() {
 			err := fmt.Errorf("an invalid `flavour` defined")
 			base.ReportErr(w, err, http.StatusBadRequest)
@@ -72,7 +71,7 @@ func CreateUserWithPhoneNumber(ctx context.Context, i *interactor.Interactor) ht
 			return
 		}
 
-		base.WriteJSONResponse(w, response, http.StatusOK)
+		base.WriteJSONResponse(w, response, http.StatusCreated)
 	}
 }
 

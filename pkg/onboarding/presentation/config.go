@@ -76,6 +76,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost, http.MethodOptions).HandlerFunc(rest.CreateUserWithPhoneNumber(ctx, i))
 	r.Path("/user_recovery_phonenumbers").Methods(
 		http.MethodPost, http.MethodOptions).HandlerFunc(rest.UserRecoveryPhoneNumbers(ctx, i))
+	r.Path("/set_pin").Methods(
+		http.MethodPost, http.MethodOptions).HandlerFunc(rest.SetUserPIN(ctx, i))
 
 	//OTP routes
 	r.Path("/send_otp").Methods(

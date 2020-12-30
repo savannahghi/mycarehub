@@ -80,7 +80,6 @@ func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string)
 
 // CreateUserByPhone creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
 func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*domain.UserResponse, error) {
-
 	// check if phone number is registered to another user
 	exists, err := s.CheckPhoneExists(ctx, phoneNumber)
 	if err != nil {
@@ -101,15 +100,14 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 	if err != nil {
 		return nil, err
 	}
-
 	profile, err := s.onboardingRepository.CreateUserProfile(ctx, phoneNumber, user.UID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create userProfile: %w", err)
 	}
-
-	if _, err := s.pinUsecase.SetUserPIN(ctx, phoneNumber, pin); err != nil {
-		return nil, err
-	}
+	// TODO uncomment after fixing duplicate profiles being created
+	// if _, err := s.pinUsecase.SetUserPIN(ctx, phoneNumber, pin); err != nil {
+	// 	return nil, err
+	// }
 
 	var supplier *domain.Supplier
 	var customer *domain.Customer

@@ -34,12 +34,12 @@ func NewUserPinUseCase(r repository.OnboardingRepository, otp OTPUseCases) *User
 
 // SetUserPIN receives phone number and pin from phonenumber sign up
 func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, msisdn, pin string) (*domain.PIN, error) {
+	// TODO: calvine to stop returning a domain object `domain.PIN` as a response
 	// ensure the phone number is valid
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
 		return nil, fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
-
 	profile, err := u.onboardingRepository.
 		GetUserProfileByPrimaryPhoneNumber(ctx, msisdn)
 	if err != nil {
@@ -53,18 +53,15 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, msisdn, pin string)
 	if err != nil {
 		return nil, err
 	}
-
 	err = utils.ValidatePINDigits(pin)
 	if err != nil {
 		return nil, err
 	}
-
 	// check if user has existing PIN
 	exists, err := u.CheckHasPIN(ctx, msisdn)
 	if err != nil {
 		return nil, fmt.Errorf("unable to check if the user has a PIN: %v", err)
 	}
-
 	// return error if the user already have one
 	if exists {
 		return nil, &domain.CustomError{

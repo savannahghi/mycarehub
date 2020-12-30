@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	cloud.google.com/go/firestore v1.4.0
+	cloud.google.com/go/logging v1.1.2
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
