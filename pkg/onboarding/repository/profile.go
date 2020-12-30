@@ -35,16 +35,23 @@ type OnboardingRepository interface {
 	// checks if a specific phone number has already been registered to another user
 	CheckIfPhoneNumberExists(ctx context.Context, phone string) (bool, error)
 
-	// reccords an end of visit survey
-	RecordPostVisitSurvey(ctx context.Context, uid string, input domain.PostVisitSurveyInput) (bool, error)
-
 	GenerateAuthCredentials(ctx context.Context, phone string) (*domain.AuthCredentialResponse, error)
-
-	// PINs
-	GetPINByProfileID(ctx context.Context, ProfileID string) (*domain.PIN, error)
 
 	// supplier methods
 	GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, *firestore.DocumentSnapshot, error)
 
 	AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error)
+
+	// PINs
+	GetPINByProfileID(
+		ctx context.Context,
+		ProfileID string,
+	) (*domain.PIN, error)
+
+	// Record post visit survey
+	RecordPostVisitSurvey(
+		ctx context.Context,
+		input *domain.PostVisitSurveyInput,
+		UID string,
+	) (bool, error)
 }

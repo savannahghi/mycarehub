@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -22,7 +21,6 @@ type ProfileUseCase interface {
 	UpdateCovers(ctx context.Context, covers []base.Cover) error
 	UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error
 	UpdateBioData(ctx context.Context, data base.BioData) error
-	RecordPostVisitSurvey(ctx context.Context, input domain.PostVisitSurveyInput) (bool, error)
 	// masks phone number.
 	MaskPhoneNumbers(phones []string) []string
 }
@@ -183,17 +181,6 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken str
 func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioData) error {
 	//todo : update base to have this method
 	return nil
-}
-
-// RecordPostVisitSurvey posts a record of after visit survey
-func (p *ProfileUseCaseImpl) RecordPostVisitSurvey(ctx context.Context, input domain.PostVisitSurveyInput) (bool, error) {
-
-	uid, err := base.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	return p.onboardingRepository.RecordPostVisitSurvey(ctx, uid, input)
 }
 
 // MaskPhoneNumbers masks phone number. the masked phone numbers will be in the form +254700***123

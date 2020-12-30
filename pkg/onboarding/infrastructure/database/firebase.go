@@ -85,16 +85,15 @@ func (fr Repository) GetCustomerProfileCollectionName() string {
 	return suffixed
 }
 
-// GetPINsCollectionName returns a well suffixed PINs collection name
-func (fr Repository) GetPINsCollectionName() string {
-	suffixed := base.SuffixCollection(pinsCollectionName)
+// GetSurveyCollectionName returns a well suffixed PINs collection name
+func (fr Repository) GetSurveyCollectionName() string {
+	suffixed := base.SuffixCollection(surveyCollectionName)
 	return suffixed
 }
 
-// GetSurveyCollectionName ..
-func (fr Repository) GetSurveyCollectionName() string {
-	// add env suffix
-	suffixed := base.SuffixCollection(surveyCollectionName)
+// GetPINsCollectionName returns a well suffixed PINs collection name
+func (fr Repository) GetPINsCollectionName() string {
+	suffixed := base.SuffixCollection(pinsCollectionName)
 	return suffixed
 }
 
@@ -270,11 +269,11 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 	}
 	if len(docs) == 1 {
 		dsnap := docs[0]
-		pr := &base.UserProfile{}
-		if err := dsnap.DataTo(pr); err != nil {
+		profile := &base.UserProfile{}
+		if err := dsnap.DataTo(profile); err != nil {
 			return nil, nil, fmt.Errorf("unable to read customer profile: %w", err)
 		}
-		return pr, dsnap, nil
+		return profile, dsnap, nil
 	}
 	return nil, nil, fmt.Errorf("%v", base.ProfileNotFound)
 }
@@ -358,7 +357,7 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 	}
 
 	if len(docs) == 0 {
-		return nil, fmt.Errorf("user PIN not found")
+		return nil, fmt.Errorf("%v", base.PINNotFound)
 	}
 
 	dsnap := docs[0]
@@ -372,7 +371,10 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 }
 
 // GenerateAuthCredentials gets a Firebase user by phone and creates their tokens
-func (fr *Repository) GenerateAuthCredentials(ctx context.Context, phone string) (*domain.AuthCredentialResponse, error) {
+func (fr *Repository) GenerateAuthCredentials(
+	ctx context.Context,
+	phone string,
+) (*domain.AuthCredentialResponse, error) {
 	u, err := fr.firebaseClient.GetUserByPhoneNumber(ctx, phone)
 	if err != nil {
 		if auth.IsUserNotFound(err) {
@@ -645,22 +647,35 @@ func checkIdentifierExists(profile *base.UserProfile, UID string) bool {
 }
 
 // RecordPostVisitSurvey records an end of visit survey
-func (fr *Repository) RecordPostVisitSurvey(ctx context.Context, uid string, input domain.PostVisitSurveyInput) (bool, error) {
+func (fr *Repository) RecordPostVisitSurvey(
+	ctx context.Context,
+	input *domain.PostVisitSurveyInput,
+	UID string,
+) (bool, error) {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
-		return false, fmt.Errorf("the likelihood of recommending should be an int between 0 and 10")
-	}
+		return false, &domain.CustomError{
+			Err:     nil,
+			Message: errors.LikelyToRecommendErrMsg,
+			Code:    0, // TODO: Add a code for this error
+		}
 
+	}
 	feedbackCollection := fr.firestoreClient.Collection(fr.GetSurveyCollectionName())
 	feedback := domain.PostVisitSurvey{
 		LikelyToRecommend: input.LikelyToRecommend,
 		Criticism:         input.Criticism,
 		Suggestions:       input.Suggestions,
-		UID:               uid,
+		UID:               UID,
 		Timestamp:         time.Now(),
 	}
 	_, _, err := feedbackCollection.Add(ctx, feedback)
 	if err != nil {
-		return false, fmt.Errorf("unable to save feedback: %w", err)
+		return false, &domain.CustomError{
+			Err:     err,
+			Message: errors.AddRecordErrMsg,
+			Code:    int(base.Internal),
+		}
+
 	}
 	return true, nil
 }

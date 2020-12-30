@@ -294,20 +294,19 @@ func (e *CustomError) Error() string {
 	return fmt.Sprintf("%d: %s", e.Code, e.Message)
 }
 
-// PostVisitSurvey is used to record and retrieve post visit surveys from Firebase
-type PostVisitSurvey struct {
-	LikelyToRecommend int    `json:"likelyToRecommend" firestore:"likelyToRecommend"`
-	Criticism         string `json:"criticism" firestore:"criticism"`
-	Suggestions       string `json:"suggestions" firestore:"suggestions"`
-
-	UID       string    `json:"uid" firestore:"uid"`
-	Timestamp time.Time `json:"timestamp" firestore:"timestamp"`
-}
-
 // AccountRecoveryPhonesResponse  payload sent back to the frontend when recovery an account
 type AccountRecoveryPhonesResponse struct {
 	MaskedPhoneNumbers   []string `json:"maskedPhoneNumbers"`
 	UnMaskedPhoneNumbers []string `json:"unMaskedPhoneNumbers"`
+}
+
+// PostVisitSurvey is used to record and retrieve post visit surveys from Firebase
+type PostVisitSurvey struct {
+	LikelyToRecommend int       `json:"likelyToRecommend" firestore:"likelyToRecommend"`
+	Criticism         string    `json:"criticism" firestore:"criticism"`
+	Suggestions       string    `json:"suggestions" firestore:"suggestions"`
+	UID               string    `json:"uid" firestore:"uid"`
+	Timestamp         time.Time `json:"timestamp" firestore:"timestamp"`
 }
 
 //TODO: restore commented structs when implementing profile missing methods
