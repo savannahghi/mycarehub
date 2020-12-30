@@ -110,6 +110,9 @@ func (fr *Repository) GetUserProfileByUID(
 	if err != nil {
 		return nil, nil, err
 	}
+	if len(docs) == 0 {
+		return nil, nil, fmt.Errorf("user profile not found: %w", err)
+	}
 	if len(docs) > 1 && base.IsDebug() {
 		log.Printf("user with uids %s has > 1 profile (they have %d)", uids, len(docs))
 	}
@@ -628,10 +631,12 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 
 // UpdateBioData updates the biodate of the profile that matches the id
 func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.BioData) error {
+	fmt.Println("wE ARE GETTING THE PROFILE")
 	profile, record, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
 		return err
 	}
+	fmt.Println("SUCCESS THE PROFILE")
 
 	profile.UserBioData.FirstName = func(pr *base.UserProfile, dt base.BioData) string {
 		if dt.FirstName != "" {
@@ -639,6 +644,7 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 		}
 		return pr.UserBioData.FirstName
 	}(profile, data)
+	fmt.Println("wE ARE UPDATING THE FIRST NAME")
 
 	profile.UserBioData.LastName = func(pr *base.UserProfile, dt base.BioData) string {
 		if dt.LastName != "" {

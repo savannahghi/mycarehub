@@ -138,7 +138,6 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *domai
 	if err := s.profileUsecase.UpdatePhotoUploadID(ctx, input.PhotoUploadID); err != nil {
 		return nil, err
 	}
-
 	if err := s.profileUsecase.UpdateBioData(ctx, base.BioData{
 		FirstName:   *input.FirstName,
 		LastName:    *input.LastName,
@@ -147,7 +146,6 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *domai
 	}); err != nil {
 		return nil, err
 	}
-
 	return s.profileUsecase.UserProfile(ctx)
 }
 

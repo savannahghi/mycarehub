@@ -28,7 +28,7 @@ const (
 
 // AllowedOrigins is list of CORS origins allowed to interact with
 // this service
-var allowedOrigins = []string{
+var AllowedOrigins = []string{
 	"https://healthcloud.co.ke",
 	"https://bewell.healthcloud.co.ke",
 	"http://localhost:5000",
@@ -89,7 +89,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 }
 
 // PrepareServer starts up a server
-func PrepareServer(ctx context.Context, port int) *http.Server {
+func PrepareServer(ctx context.Context, port int, allowedOrigins []string) *http.Server {
 	// start up the router
 	r, err := Router(ctx)
 	if err != nil {

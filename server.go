@@ -26,7 +26,7 @@ func main() {
 	if err != nil {
 		base.LogStartupError(ctx, err)
 	}
-	srv := presentation.PrepareServer(ctx, port)
+	srv := presentation.PrepareServer(ctx, port, presentation.AllowedOrigins)
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			base.LogStartupError(ctx, err)
