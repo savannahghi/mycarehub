@@ -47,6 +47,28 @@ type SupplierUseCases interface {
 
 	CoreEDIUserLogin(username, password string) (*base.EDIUserProfile, error)
 
+	AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
+
+	AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error)
+
+	AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error)
+
+	AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error)
+
+	AddOrganizationProviderKyc(ctx context.Context, input domain.OrganizationProvider) (*domain.OrganizationProvider, error)
+
+	AddIndividualPharmaceuticalKyc(ctx context.Context, input domain.IndividualPharmaceutical) (*domain.IndividualPharmaceutical, error)
+
+	AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error)
+
+	AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error)
+
+	AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error)
+
+	AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error)
+
+	AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error)
+
 	// SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*domain.BranchConnection, error)
 	// SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error)
 	// FetchSupplierAllowedLocations(ctx context.Context) (*domain.BranchConnection, error)
@@ -54,17 +76,7 @@ type SupplierUseCases interface {
 	// PublishKYCNudge(uid string, partner *domain.PartnerType, account *domain.AccountType) error
 	// PublishKYCFeedItem(ctx context.Context, uids ...string) error
 	// StageKYCProcessingRequest(sup *domain.Supplier) error
-	// AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
-	// AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error)
-	// AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error)
-	// AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error)
-	// AddOrganizationProviderKyc(ctx context.Context, input domain.OrganizationProvider) (*domain.OrganizationProvider, error)
-	// AddIndividualPharmaceuticalKyc(ctx context.Context, input domain.IndividualPharmaceutical) (*domain.IndividualPharmaceutical, error)
-	// AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error)
-	// AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error)
-	// AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error)
-	// AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error)
-	// AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error)
+
 	// SaveKYCResponse(ctx context.Context, kycJSON []byte, supplier *domain.Supplier, dsnap *firestore.DocumentSnapshot) error
 	// FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 	// ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
@@ -723,6 +735,550 @@ func (s *SupplierUseCasesImpl) SaveProfileNudge(ctx context.Context, nudge map[s
 	return s.repo.StageProfileNudge(ctx, nudge)
 }
 
+func (s *SupplierUseCasesImpl) parseKYCAsMap(data interface{}) (map[string]interface{}, error) {
+	kycJSON, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	var kycAsMap map[string]interface{}
+
+	if err := json.Unmarshal(kycJSON, &kycAsMap); err != nil {
+		return nil, fmt.Errorf("cannot unmarshal kyc from json")
+	}
+
+	return kycAsMap, nil
+}
+
+// AddIndividualRiderKyc adds KYC for an individual rider
+func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error) {
+
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	kyc := domain.IndividualRider{
+		IdentificationDoc: domain.Identification{
+			IdentificationDocType:           input.IdentificationDoc.IdentificationDocType,
+			IdentificationDocNumber:         input.IdentificationDoc.IdentificationDocNumber,
+			IdentificationDocNumberUploadID: input.IdentificationDoc.IdentificationDocNumberUploadID,
+		},
+		KRAPIN:                         input.KRAPIN,
+		KRAPINUploadID:                 input.KRAPINUploadID,
+		DrivingLicenseID:               input.DrivingLicenseID,
+		DrivingLicenseUploadID:         input.DrivingLicenseUploadID,
+		CertificateGoodConductUploadID: input.CertificateGoodConductUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	kycAsMap, err := s.parseKYCAsMap(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	sup.SupplierKYC = kycAsMap
+	sup.KYCSubmitted = true
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kyc, nil
+}
+
+// AddOrganizationRiderKyc adds KYC for an organization rider
+func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error) {
+
+	if !input.OrganizationTypeName.IsValid() {
+		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
+	}
+
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	kyc := domain.OrganizationRider{
+		OrganizationTypeName:               input.OrganizationTypeName,
+		CertificateOfIncorporation:         input.CertificateOfIncorporation,
+		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+			pl := []domain.Identification{}
+			for _, i := range p {
+				pl = append(pl, domain.Identification(i))
+			}
+			return pl
+		}(input.DirectorIdentifications),
+		OrganizationCertificate: input.OrganizationCertificate,
+
+		KRAPIN:                      input.KRAPIN,
+		KRAPINUploadID:              input.KRAPINUploadID,
+		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	kycAsMap, err := s.parseKYCAsMap(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	sup.SupplierKYC = kycAsMap
+	sup.KYCSubmitted = true
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kyc, nil
+}
+
+// AddIndividualPractitionerKyc adds KYC for an individual pratitioner
+func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error) {
+
+	for _, p := range input.PracticeServices {
+		if !p.IsValid() {
+			return nil, fmt.Errorf("invalid `PracticeService` provided : %v", p.String())
+		}
+	}
+
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	kyc := domain.IndividualPractitioner{
+
+		IdentificationDoc: func(p domain.Identification) domain.Identification {
+			return domain.Identification(p)
+		}(input.IdentificationDoc),
+
+		KRAPIN:                      input.KRAPIN,
+		KRAPINUploadID:              input.KRAPINUploadID,
+		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+		RegistrationNumber:          input.RegistrationNumber,
+		PracticeLicenseID:           input.PracticeLicenseID,
+		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
+		PracticeServices:            input.PracticeServices,
+		Cadre:                       input.Cadre,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	kycAsMap, err := s.parseKYCAsMap(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	sup.SupplierKYC = kycAsMap
+	sup.KYCSubmitted = true
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kyc, nil
+
+}
+
+// AddOrganizationPractitionerKyc adds KYC for an organization pratitioner
+func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error) {
+
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	kyc := domain.OrganizationPractitioner{
+		OrganizationTypeName:               input.OrganizationTypeName,
+		KRAPIN:                             input.KRAPIN,
+		KRAPINUploadID:                     input.KRAPINUploadID,
+		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+		RegistrationNumber:                 input.RegistrationNumber,
+		PracticeLicenseID:                  input.PracticeLicenseID,
+		PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
+		PracticeServices:                   input.PracticeServices,
+		Cadre:                              input.Cadre,
+		CertificateOfIncorporation:         input.CertificateOfIncorporation,
+		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+			pl := []domain.Identification{}
+			for _, i := range p {
+				pl = append(pl, domain.Identification(i))
+			}
+			return pl
+		}(input.DirectorIdentifications),
+		OrganizationCertificate: input.OrganizationCertificate,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	kycAsMap, err := s.parseKYCAsMap(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	sup.SupplierKYC = kycAsMap
+	sup.KYCSubmitted = true
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kyc, nil
+}
+
+// AddOrganizationProviderKyc adds KYC for an organization provider
+func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, input domain.OrganizationProvider) (*domain.OrganizationProvider, error) {
+
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	kyc := domain.OrganizationProvider{
+		OrganizationTypeName:               input.OrganizationTypeName,
+		KRAPIN:                             input.KRAPIN,
+		KRAPINUploadID:                     input.KRAPINUploadID,
+		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+		RegistrationNumber:                 input.RegistrationNumber,
+		PracticeLicenseID:                  input.PracticeLicenseID,
+		PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
+		PracticeServices:                   input.PracticeServices,
+		Cadre:                              input.Cadre,
+		CertificateOfIncorporation:         input.CertificateOfIncorporation,
+		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+			pl := []domain.Identification{}
+			for _, i := range p {
+				pl = append(pl, domain.Identification(i))
+			}
+			return pl
+		}(input.DirectorIdentifications),
+		OrganizationCertificate: input.OrganizationCertificate,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	kycAsMap, err := s.parseKYCAsMap(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	sup.SupplierKYC = kycAsMap
+	sup.KYCSubmitted = true
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kyc, nil
+}
+
+// AddIndividualPharmaceuticalKyc adds KYC for an individual Pharmaceutical kyc
+func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(ctx context.Context, input domain.IndividualPharmaceutical) (*domain.IndividualPharmaceutical, error) {
+
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	kyc := domain.IndividualPharmaceutical{
+		IdentificationDoc: func(p domain.Identification) domain.Identification {
+			return domain.Identification(p)
+		}(input.IdentificationDoc),
+		KRAPIN:                      input.KRAPIN,
+		KRAPINUploadID:              input.KRAPINUploadID,
+		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+		RegistrationNumber:          input.RegistrationNumber,
+		PracticeLicenseID:           input.PracticeLicenseID,
+		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	kycAsMap, err := s.parseKYCAsMap(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	sup.SupplierKYC = kycAsMap
+	sup.KYCSubmitted = true
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kyc, nil
+}
+
+// AddOrganizationPharmaceuticalKyc adds KYC for a pharmacy organization
+func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error) {
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	kyc := domain.OrganizationPharmaceutical{
+		OrganizationTypeName:               input.OrganizationTypeName,
+		KRAPIN:                             input.KRAPIN,
+		KRAPINUploadID:                     input.KRAPINUploadID,
+		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+		CertificateOfIncorporation:         input.CertificateOfIncorporation,
+		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+			pl := []domain.Identification{}
+			for _, i := range p {
+				pl = append(pl, domain.Identification(i))
+			}
+			return pl
+		}(input.DirectorIdentifications),
+		OrganizationCertificate: input.OrganizationCertificate,
+		RegistrationNumber:      input.RegistrationNumber,
+		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	kycAsMap, err := s.parseKYCAsMap(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	sup.SupplierKYC = kycAsMap
+	sup.KYCSubmitted = true
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kyc, nil
+}
+
+// AddIndividualCoachKyc adds KYC for an individual coach
+func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error) {
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	kyc := domain.IndividualCoach{
+		IdentificationDoc: func(p domain.Identification) domain.Identification {
+			return domain.Identification(p)
+		}(input.IdentificationDoc),
+		KRAPIN:                      input.KRAPIN,
+		KRAPINUploadID:              input.KRAPINUploadID,
+		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+		PracticeLicenseID:           input.PracticeLicenseID,
+		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	kycAsMap, err := s.parseKYCAsMap(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	sup.SupplierKYC = kycAsMap
+	sup.KYCSubmitted = true
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kyc, nil
+}
+
+// AddOrganizationCoachKyc adds KYC for an organization coach
+func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error) {
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	kyc := domain.OrganizationCoach{
+		OrganizationTypeName:               input.OrganizationTypeName,
+		KRAPIN:                             input.KRAPIN,
+		KRAPINUploadID:                     input.KRAPINUploadID,
+		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+		CertificateOfIncorporation:         input.CertificateOfIncorporation,
+		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+			pl := []domain.Identification{}
+			for _, i := range p {
+				pl = append(pl, domain.Identification(i))
+			}
+			return pl
+		}(input.DirectorIdentifications),
+		OrganizationCertificate: input.OrganizationCertificate,
+		RegistrationNumber:      input.RegistrationNumber,
+		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	kycAsMap, err := s.parseKYCAsMap(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	sup.SupplierKYC = kycAsMap
+	sup.KYCSubmitted = true
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kyc, nil
+}
+
+// AddIndividualNutritionKyc adds KYC for an individual nutritionist
+func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error) {
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	kyc := domain.IndividualNutrition{
+		IdentificationDoc: func(p domain.Identification) domain.Identification {
+			return domain.Identification(p)
+		}(input.IdentificationDoc),
+		KRAPIN:                      input.KRAPIN,
+		KRAPINUploadID:              input.KRAPINUploadID,
+		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+		PracticeLicenseID:           input.PracticeLicenseID,
+		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	kycAsMap, err := s.parseKYCAsMap(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	sup.SupplierKYC = kycAsMap
+	sup.KYCSubmitted = true
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kyc, nil
+}
+
+// AddOrganizationNutritionKyc adds kyc for a nutritionist organisation
+func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error) {
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	kyc := domain.OrganizationNutrition{
+		OrganizationTypeName:               input.OrganizationTypeName,
+		KRAPIN:                             input.KRAPIN,
+		KRAPINUploadID:                     input.KRAPINUploadID,
+		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+		CertificateOfIncorporation:         input.CertificateOfIncorporation,
+		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+			pl := []domain.Identification{}
+			for _, i := range p {
+				pl = append(pl, domain.Identification(i))
+			}
+			return pl
+		}(input.DirectorIdentifications),
+		OrganizationCertificate: input.OrganizationCertificate,
+		RegistrationNumber:      input.RegistrationNumber,
+		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+	}
+
+	if len(input.SupportingDocumentsUploadID) != 0 {
+		ids := []string{}
+		ids = append(ids, input.SupportingDocumentsUploadID...)
+
+		kyc.SupportingDocumentsUploadID = ids
+	}
+
+	kycAsMap, err := s.parseKYCAsMap(kyc)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshal kyc to json")
+	}
+
+	sup.SupplierKYC = kycAsMap
+	sup.KYCSubmitted = true
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kyc, nil
+}
+
 // // StageKYCProcessingRequest saves kyc processing requests
 // func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(sup *domain.Supplier) error {
 // 	r := domain.KYCRequest{
@@ -739,757 +1295,6 @@ func (s *SupplierUseCasesImpl) SaveProfileNudge(ctx context.Context, nudge map[s
 // 	if err != nil {
 // 		return fmt.Errorf("unable to save kyc processing request: %w", err)
 // 	}
-// 	return nil
-// }
-
-// // AddIndividualRiderKyc adds KYC for an individual rider
-// func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input IndividualRider) (*IndividualRider, error) {
-
-// 	s.checkPreconditions()
-
-// 	uid, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
-
-// 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
-// 	}
-// 	if dsnap == nil {
-// 		return nil, fmt.Errorf("the supplier does not exist in our records")
-// 	}
-
-// 	supplier := &Supplier{}
-
-// 	err = dsnap.DataTo(supplier)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to read supplier data: %v", err)
-// 	}
-
-// 	kyc := IndividualRider{
-// 		IdentificationDoc: Identification{
-// 			IdentificationDocType:           input.IdentificationDoc.IdentificationDocType,
-// 			IdentificationDocNumber:         input.IdentificationDoc.IdentificationDocNumber,
-// 			IdentificationDocNumberUploadID: input.IdentificationDoc.IdentificationDocNumberUploadID,
-// 		},
-// 		KRAPIN:                         input.KRAPIN,
-// 		KRAPINUploadID:                 input.KRAPINUploadID,
-// 		DrivingLicenseID:               input.DrivingLicenseID,
-// 		DrivingLicenseUploadID:         input.DrivingLicenseUploadID,
-// 		CertificateGoodConductUploadID: input.CertificateGoodConductUploadID,
-// 	}
-
-// 	if len(input.SupportingDocumentsUploadID) != 0 {
-// 		ids := []string{}
-// 		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-// 		kyc.SupportingDocumentsUploadID = ids
-// 	}
-
-// 	k, err := json.Marshal(kyc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot marshal kyc to json")
-// 	}
-// 	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
-// 	}
-
-// 	return &kyc, nil
-// }
-
-// // AddOrganizationRiderKyc adds KYC for an organization rider
-// func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(ctx context.Context, input OrganizationRider) (*OrganizationRider, error) {
-
-// 	s.checkPreconditions()
-
-// 	if !input.OrganizationTypeName.IsValid() {
-// 		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
-// 	}
-
-// 	uid, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
-
-// 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
-// 	}
-// 	if dsnap == nil {
-// 		return nil, fmt.Errorf("the supplier does not exist in our records")
-// 	}
-
-// 	supplier := &Supplier{}
-
-// 	err = dsnap.DataTo(supplier)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to read supplier data: %v", err)
-// 	}
-
-// 	kyc := OrganizationRider{
-// 		OrganizationTypeName:               input.OrganizationTypeName,
-// 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-// 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-// 		DirectorIdentifications: func(p []Identification) []Identification {
-// 			pl := []Identification{}
-// 			for _, i := range p {
-// 				pl = append(pl, Identification(i))
-// 			}
-// 			return pl
-// 		}(input.DirectorIdentifications),
-// 		OrganizationCertificate: input.OrganizationCertificate,
-
-// 		KRAPIN:                      input.KRAPIN,
-// 		KRAPINUploadID:              input.KRAPINUploadID,
-// 		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-// 	}
-
-// 	if len(input.SupportingDocumentsUploadID) != 0 {
-// 		ids := []string{}
-// 		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-// 		kyc.SupportingDocumentsUploadID = ids
-// 	}
-
-// 	k, err := json.Marshal(kyc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot marshal kyc to json")
-// 	}
-// 	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
-// 	}
-
-// 	return &kyc, nil
-// }
-
-// // AddIndividualPractitionerKyc adds KYC for an individual pratitioner
-// func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context, input IndividualPractitioner) (*IndividualPractitioner, error) {
-// 	s.checkPreconditions()
-
-// 	for _, p := range input.PracticeServices {
-// 		if !p.IsValid() {
-// 			return nil, fmt.Errorf("invalid `PracticeService` provided : %v", p.String())
-// 		}
-// 	}
-
-// 	uid, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
-
-// 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
-// 	}
-// 	if dsnap == nil {
-// 		return nil, fmt.Errorf("the supplier does not exist in our records")
-// 	}
-
-// 	supplier := &Supplier{}
-
-// 	err = dsnap.DataTo(supplier)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to read supplier data: %v", err)
-// 	}
-
-// 	kyc := IndividualPractitioner{
-
-// 		IdentificationDoc: func(p Identification) Identification {
-// 			return Identification(p)
-// 		}(input.IdentificationDoc),
-
-// 		KRAPIN:                      input.KRAPIN,
-// 		KRAPINUploadID:              input.KRAPINUploadID,
-// 		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-// 		RegistrationNumber:          input.RegistrationNumber,
-// 		PracticeLicenseID:           input.PracticeLicenseID,
-// 		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
-// 		PracticeServices:            input.PracticeServices,
-// 		Cadre:                       input.Cadre,
-// 	}
-
-// 	if len(input.SupportingDocumentsUploadID) != 0 {
-// 		ids := []string{}
-// 		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-// 		kyc.SupportingDocumentsUploadID = ids
-// 	}
-
-// 	k, err := json.Marshal(kyc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot marshal kyc to json")
-// 	}
-// 	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
-// 	}
-
-// 	return &kyc, nil
-// }
-
-// // AddOrganizationPractitionerKyc adds KYC for an organization pratitioner
-// func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Context, input OrganizationPractitioner) (*OrganizationPractitioner, error) {
-
-// 	s.checkPreconditions()
-
-// 	if !input.OrganizationTypeName.IsValid() {
-// 		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
-// 	}
-
-// 	for _, p := range input.PracticeServices {
-// 		if !p.IsValid() {
-// 			return nil, fmt.Errorf("invalid `PracticeService` provided : %v", p.String())
-// 		}
-// 	}
-
-// 	uid, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
-
-// 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
-// 	}
-// 	if dsnap == nil {
-// 		return nil, fmt.Errorf("the supplier does not exist in our records")
-// 	}
-
-// 	supplier := &Supplier{}
-
-// 	err = dsnap.DataTo(supplier)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to read supplier data: %v", err)
-// 	}
-
-// 	kyc := OrganizationPractitioner{
-// 		OrganizationTypeName:               input.OrganizationTypeName,
-// 		KRAPIN:                             input.KRAPIN,
-// 		KRAPINUploadID:                     input.KRAPINUploadID,
-// 		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
-// 		RegistrationNumber:                 input.RegistrationNumber,
-// 		PracticeLicenseID:                  input.PracticeLicenseID,
-// 		PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
-// 		PracticeServices:                   input.PracticeServices,
-// 		Cadre:                              input.Cadre,
-// 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-// 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-// 		DirectorIdentifications: func(p []Identification) []Identification {
-// 			pl := []Identification{}
-// 			for _, i := range p {
-// 				pl = append(pl, Identification(i))
-// 			}
-// 			return pl
-// 		}(input.DirectorIdentifications),
-// 		OrganizationCertificate: input.OrganizationCertificate,
-// 	}
-
-// 	if len(input.SupportingDocumentsUploadID) != 0 {
-// 		ids := []string{}
-// 		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-// 		kyc.SupportingDocumentsUploadID = ids
-// 	}
-
-// 	k, err := json.Marshal(kyc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot marshal kyc to json")
-// 	}
-// 	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
-// 	}
-
-// 	return &kyc, nil
-// }
-
-// // AddOrganizationProviderKyc adds KYC for an organization provider
-// func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, input OrganizationProvider) (*OrganizationProvider, error) {
-
-// 	s.checkPreconditions()
-
-// 	if !input.OrganizationTypeName.IsValid() {
-// 		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
-// 	}
-
-// 	for _, p := range input.PracticeServices {
-// 		if !p.IsValid() {
-// 			return nil, fmt.Errorf("invalid `PracticeService` provided : %v", p.String())
-// 		}
-// 	}
-
-// 	uid, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
-
-// 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
-// 	}
-// 	if dsnap == nil {
-// 		return nil, fmt.Errorf("the supplier does not exist in our records")
-// 	}
-
-// 	supplier := &Supplier{}
-
-// 	err = dsnap.DataTo(supplier)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to read supplier data: %v", err)
-// 	}
-
-// 	kyc := OrganizationProvider{
-// 		OrganizationTypeName:               input.OrganizationTypeName,
-// 		KRAPIN:                             input.KRAPIN,
-// 		KRAPINUploadID:                     input.KRAPINUploadID,
-// 		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
-// 		RegistrationNumber:                 input.RegistrationNumber,
-// 		PracticeLicenseID:                  input.PracticeLicenseID,
-// 		PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
-// 		PracticeServices:                   input.PracticeServices,
-// 		Cadre:                              input.Cadre,
-// 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-// 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-// 		DirectorIdentifications: func(p []Identification) []Identification {
-// 			pl := []Identification{}
-// 			for _, i := range p {
-// 				pl = append(pl, Identification(i))
-// 			}
-// 			return pl
-// 		}(input.DirectorIdentifications),
-// 		OrganizationCertificate: input.OrganizationCertificate,
-// 	}
-
-// 	if len(input.SupportingDocumentsUploadID) != 0 {
-// 		ids := []string{}
-// 		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-// 		kyc.SupportingDocumentsUploadID = ids
-// 	}
-
-// 	k, err := json.Marshal(kyc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot marshal kyc to json")
-// 	}
-// 	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
-// 	}
-
-// 	return &kyc, nil
-// }
-
-// // AddIndividualPharmaceuticalKyc adds KYC for an individual Pharmaceutical kyc
-// func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(ctx context.Context, input IndividualPharmaceutical) (*IndividualPharmaceutical, error) {
-
-// 	s.checkPreconditions()
-
-// 	uid, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
-
-// 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
-// 	}
-// 	if dsnap == nil {
-// 		return nil, fmt.Errorf("the supplier does not exist in our records")
-// 	}
-
-// 	supplier := &Supplier{}
-
-// 	err = dsnap.DataTo(supplier)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to read supplier data: %v", err)
-// 	}
-
-// 	kyc := IndividualPharmaceutical{
-// 		IdentificationDoc: func(p Identification) Identification {
-// 			return Identification(p)
-// 		}(input.IdentificationDoc),
-// 		KRAPIN:                      input.KRAPIN,
-// 		KRAPINUploadID:              input.KRAPINUploadID,
-// 		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-// 		RegistrationNumber:          input.RegistrationNumber,
-// 		PracticeLicenseID:           input.PracticeLicenseID,
-// 		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
-// 	}
-
-// 	if len(input.SupportingDocumentsUploadID) != 0 {
-// 		ids := []string{}
-// 		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-// 		kyc.SupportingDocumentsUploadID = ids
-// 	}
-
-// 	k, err := json.Marshal(kyc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot marshal kyc to json")
-// 	}
-// 	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
-// 	}
-
-// 	return &kyc, nil
-// }
-
-// // AddOrganizationPharmaceuticalKyc adds KYC for a pharmacy organization
-// func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Context, input OrganizationPharmaceutical) (*OrganizationPharmaceutical, error) {
-// 	s.checkPreconditions()
-
-// 	if !input.OrganizationTypeName.IsValid() {
-// 		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
-// 	}
-
-// 	uid, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
-
-// 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
-// 	}
-// 	if dsnap == nil {
-// 		return nil, fmt.Errorf("the supplier does not exist in our records")
-// 	}
-
-// 	supplier := &Supplier{}
-
-// 	err = dsnap.DataTo(supplier)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to read supplier data: %v", err)
-// 	}
-
-// 	kyc := OrganizationPharmaceutical{
-// 		OrganizationTypeName:               input.OrganizationTypeName,
-// 		KRAPIN:                             input.KRAPIN,
-// 		KRAPINUploadID:                     input.KRAPINUploadID,
-// 		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
-// 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-// 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-// 		DirectorIdentifications: func(p []Identification) []Identification {
-// 			pl := []Identification{}
-// 			for _, i := range p {
-// 				pl = append(pl, Identification(i))
-// 			}
-// 			return pl
-// 		}(input.DirectorIdentifications),
-// 		OrganizationCertificate: input.OrganizationCertificate,
-// 		RegistrationNumber:      input.RegistrationNumber,
-// 		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
-// 	}
-
-// 	if len(input.SupportingDocumentsUploadID) != 0 {
-// 		ids := []string{}
-// 		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-// 		kyc.SupportingDocumentsUploadID = ids
-// 	}
-
-// 	k, err := json.Marshal(kyc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot marshal kyc to json")
-// 	}
-
-// 	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
-// 	}
-
-// 	return &kyc, nil
-// }
-
-// // AddIndividualCoachKyc adds KYC for an individual coach
-// func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(ctx context.Context, input IndividualCoach) (*IndividualCoach, error) {
-// 	s.checkPreconditions()
-
-// 	uid, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
-
-// 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
-// 	}
-// 	if dsnap == nil {
-// 		return nil, fmt.Errorf("the supplier does not exist in our records")
-// 	}
-
-// 	supplier := &Supplier{}
-
-// 	err = dsnap.DataTo(supplier)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to read supplier data: %v", err)
-// 	}
-
-// 	kyc := IndividualCoach{
-// 		IdentificationDoc: func(p Identification) Identification {
-// 			return Identification(p)
-// 		}(input.IdentificationDoc),
-// 		KRAPIN:                      input.KRAPIN,
-// 		KRAPINUploadID:              input.KRAPINUploadID,
-// 		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-// 		PracticeLicenseID:           input.PracticeLicenseID,
-// 		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
-// 	}
-
-// 	if len(input.SupportingDocumentsUploadID) != 0 {
-// 		ids := []string{}
-// 		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-// 		kyc.SupportingDocumentsUploadID = ids
-// 	}
-
-// 	k, err := json.Marshal(kyc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot marshal kyc to json")
-// 	}
-
-// 	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
-// 	}
-
-// 	return &kyc, nil
-// }
-
-// // AddOrganizationCoachKyc adds KYC for an organization coach
-// func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(ctx context.Context, input OrganizationCoach) (*OrganizationCoach, error) {
-// 	s.checkPreconditions()
-
-// 	if !input.OrganizationTypeName.IsValid() {
-// 		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
-// 	}
-
-// 	uid, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
-
-// 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
-// 	}
-// 	if dsnap == nil {
-// 		return nil, fmt.Errorf("the supplier does not exist in our records")
-// 	}
-
-// 	supplier := &Supplier{}
-
-// 	err = dsnap.DataTo(supplier)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to read supplier data: %v", err)
-// 	}
-
-// 	kyc := OrganizationCoach{
-// 		OrganizationTypeName:               input.OrganizationTypeName,
-// 		KRAPIN:                             input.KRAPIN,
-// 		KRAPINUploadID:                     input.KRAPINUploadID,
-// 		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
-// 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-// 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-// 		DirectorIdentifications: func(p []Identification) []Identification {
-// 			pl := []Identification{}
-// 			for _, i := range p {
-// 				pl = append(pl, Identification(i))
-// 			}
-// 			return pl
-// 		}(input.DirectorIdentifications),
-// 		OrganizationCertificate: input.OrganizationCertificate,
-// 		RegistrationNumber:      input.RegistrationNumber,
-// 		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
-// 	}
-
-// 	if len(input.SupportingDocumentsUploadID) != 0 {
-// 		ids := []string{}
-// 		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-// 		kyc.SupportingDocumentsUploadID = ids
-// 	}
-
-// 	k, err := json.Marshal(kyc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot marshal kyc to json")
-// 	}
-
-// 	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
-// 	}
-
-// 	return &kyc, nil
-// }
-
-// // AddIndividualNutritionKyc adds KYC for an individual nutritionist
-// func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(ctx context.Context, input IndividualNutrition) (*IndividualNutrition, error) {
-// 	s.checkPreconditions()
-
-// 	uid, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
-
-// 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
-// 	}
-// 	if dsnap == nil {
-// 		return nil, fmt.Errorf("the supplier does not exist in our records")
-// 	}
-
-// 	supplier := &Supplier{}
-
-// 	err = dsnap.DataTo(supplier)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to read supplier data: %v", err)
-// 	}
-
-// 	kyc := IndividualNutrition{
-// 		IdentificationDoc: func(p Identification) Identification {
-// 			return Identification(p)
-// 		}(input.IdentificationDoc),
-// 		KRAPIN:                      input.KRAPIN,
-// 		KRAPINUploadID:              input.KRAPINUploadID,
-// 		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-// 		PracticeLicenseID:           input.PracticeLicenseID,
-// 		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
-// 	}
-
-// 	if len(input.SupportingDocumentsUploadID) != 0 {
-// 		ids := []string{}
-// 		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-// 		kyc.SupportingDocumentsUploadID = ids
-// 	}
-
-// 	k, err := json.Marshal(kyc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot marshal kyc to json")
-// 	}
-
-// 	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
-// 	}
-
-// 	return &kyc, nil
-// }
-
-// // AddOrganizationNutritionKyc adds kyc for a nutritionist organisation
-// func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, input OrganizationNutrition) (*OrganizationNutrition, error) {
-// 	s.checkPreconditions()
-
-// 	if !input.OrganizationTypeName.IsValid() {
-// 		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
-// 	}
-
-// 	uid, err := base.GetLoggedInUserUID(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-// 	}
-
-// 	dsnap, err := s.RetrieveFireStoreSnapshotByUID(ctx, uid, s.GetSupplierCollectionName(), "userprofile.verifiedIdentifiers")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to retrieve supplier from collections: %v", err)
-// 	}
-// 	if dsnap == nil {
-// 		return nil, fmt.Errorf("the supplier does not exist in our records")
-// 	}
-
-// 	supplier := &Supplier{}
-
-// 	err = dsnap.DataTo(supplier)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to read supplier data: %v", err)
-// 	}
-
-// 	kyc := OrganizationNutrition{
-// 		OrganizationTypeName:               input.OrganizationTypeName,
-// 		KRAPIN:                             input.KRAPIN,
-// 		KRAPINUploadID:                     input.KRAPINUploadID,
-// 		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
-// 		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-// 		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-// 		DirectorIdentifications: func(p []Identification) []Identification {
-// 			pl := []Identification{}
-// 			for _, i := range p {
-// 				pl = append(pl, Identification(i))
-// 			}
-// 			return pl
-// 		}(input.DirectorIdentifications),
-// 		OrganizationCertificate: input.OrganizationCertificate,
-// 		RegistrationNumber:      input.RegistrationNumber,
-// 		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
-// 	}
-
-// 	if len(input.SupportingDocumentsUploadID) != 0 {
-// 		ids := []string{}
-// 		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-// 		kyc.SupportingDocumentsUploadID = ids
-// 	}
-
-// 	k, err := json.Marshal(kyc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot marshal kyc to json")
-// 	}
-
-// 	err = s.SaveKYCResponse(ctx, k, supplier, dsnap)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("cannot save KYC request: %v", err)
-// 	}
-
-// 	return &kyc, nil
-// }
-
-// // SaveKYCResponse updates the record of a supplier with the provided KYC, stages the request for
-// // approval by Savannah admins and sends a notification of the request to admins
-// func (s *SupplierUseCasesImpl) SaveKYCResponse(ctx context.Context, kycJSON []byte, supplier *Supplier, dsnap *firestore.DocumentSnapshot) error {
-// 	var kycAsMap map[string]interface{}
-
-// 	err := json.Unmarshal(kycJSON, &kycAsMap)
-// 	if err != nil {
-// 		return fmt.Errorf("cannot unmarshal kyc from json")
-// 	}
-
-// 	supplier.SupplierKYC = kycAsMap
-// 	supplier.KYCSubmitted = true
-
-// 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetSupplierCollectionName(), dsnap.Ref.ID, supplier)
-// 	if err != nil {
-// 		return fmt.Errorf("unable to update supplier with supplier KYC info: %v", err)
-// 	}
-
-// 	if err := s.StageKYCProcessingRequest(supplier); err != nil {
-// 		logrus.Errorf("unable to stage kyc processing request: %v", err)
-// 	}
-
-// 	go func() {
-// 		op := func() error {
-// 			a, err := s.FetchAdminUsers(ctx)
-// 			if err != nil {
-// 				return err
-// 			}
-// 			var uids []string
-// 			for _, u := range a {
-// 				uids = append(uids, u.ID)
-// 			}
-
-// 			return s.PublishKYCFeedItem(ctx, uids...)
-// 		}
-
-// 		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-// 			logrus.Error(err)
-// 		}
-// 	}()
-
 // 	return nil
 // }
 
@@ -1604,40 +1409,6 @@ func (s *SupplierUseCasesImpl) SaveProfileNudge(ctx context.Context, nudge map[s
 
 // 	if resp.StatusCode != http.StatusOK {
 // 		return fmt.Errorf("unable to send KYC email : %w, with status code %v", err, resp.StatusCode)
-// 	}
-
-// 	return nil
-// }
-
-// // DeleteUser deletes a user records given their uid
-// func (s *SupplierUseCasesImpl) DeleteUser(ctx context.Context, uid string) error {
-// 	s.checkPreconditions()
-
-// 	profile, err := s.GetProfile(ctx, uid)
-// 	if err != nil {
-// 		return fmt.Errorf("unable to get user profile: %v", err)
-// 	}
-
-// 	for _, profileUID := range profile.VerifiedIdentifiers {
-// 		params := (&auth.UserToUpdate{}).
-// 			Disabled(true)
-// 		_, err := s.firebaseAuth.UpdateUser(ctx, profileUID, params)
-// 		if err != nil {
-// 			return fmt.Errorf("error updating user: %v", err)
-// 		}
-// 	}
-
-// 	profile.Active = false
-// 	dsnap, err := s.RetrieveUserProfileFirebaseDocSnapshot(ctx)
-// 	if err != nil {
-// 		return fmt.Errorf("unable to retrieve user profile doc snapshot: %v", err)
-// 	}
-
-// 	err = base.UpdateRecordOnFirestore(
-// 		s.firestoreClient, s.GetUserProfileCollectionName(), dsnap.Ref.ID, profile,
-// 	)
-// 	if err != nil {
-// 		return fmt.Errorf("unable to update user profile: %v", err)
 // 	}
 
 // 	return nil
