@@ -13,6 +13,7 @@ type Service struct {
 	Onboarding *usecases.OnboardingUseCaseImpl
 	Signup     *usecases.SignUpUseCasesImpl
 	Otp        *usecases.OTPUseCasesImpl
+	Supplier   *usecases.SupplierUseCasesImpl
 }
 
 // NewService returns a new instance of Service
@@ -34,13 +35,19 @@ func NewService() (*Service, error) {
 	}
 
 	otp := usecases.NewOTPUseCasesImpl(fr)
-	if su == nil {
-		return nil, fmt.Errorf("can't instantiate signup usecases")
+	if otp == nil {
+		return nil, fmt.Errorf("can't instantiate otp usecases")
+	}
+
+	supplier := usecases.NewSupplierUseCases(fr)
+	if supplier == nil {
+		return nil, fmt.Errorf("can't instantiate supplier usecases")
 	}
 
 	return &Service{
 		Onboarding: uc,
 		Signup:     su,
 		Otp:        otp,
+		Supplier:   supplier,
 	}, nil
 }

@@ -6,7 +6,7 @@ import (
 
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/service"
 )
 
 //go:generate go run github.com/99designs/gqlgen
@@ -17,8 +17,7 @@ import (
 
 // Resolver sets up a GraphQL resolver with all necessary dependencies
 type Resolver struct {
-	onboarding *usecases.OnboardingUseCaseImpl
-	signup     *usecases.SignUpUseCasesImpl
+	srv *service.Service
 }
 
 //go:generate go run github.com/99designs/gqlgen
@@ -26,21 +25,20 @@ type Resolver struct {
 // NewResolver sets up the dependencies needed for query and mutation resolvers to work
 func NewResolver(
 	ctx context.Context,
-	ob *usecases.OnboardingUseCaseImpl,
-	su *usecases.SignUpUseCasesImpl,
+	service *service.Service,
 
 ) (*Resolver, error) {
 	return &Resolver{
-		onboarding: ob,
+		srv: service,
 	}, nil
 }
 
 func (r Resolver) checkPreconditions() {
-	if r.onboarding == nil {
+	if r.srv.Onboarding == nil {
 		log.Panicf("expected onboarding usecases to be defined resolver")
 	}
 
-	if r.signup == nil {
+	if r.srv.Signup == nil {
 		log.Panicf("expected signup usecases to be define in resolver ")
 	}
 }

@@ -19,7 +19,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/rest"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/service"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
 const (
@@ -84,7 +83,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	authR.Methods(
 		http.MethodPost,
 		http.MethodGet,
-	).HandlerFunc(GQLHandler(ctx, srv.Onboarding, srv.Signup))
+	).HandlerFunc(GQLHandler(ctx, srv))
 
 	return r, nil
 }
@@ -128,14 +127,13 @@ func HealthStatusCheck(w http.ResponseWriter, r *http.Request) {
 
 // GQLHandler sets up a GraphQL resolver
 func GQLHandler(ctx context.Context,
-	uc *usecases.OnboardingUseCaseImpl,
-	su *usecases.SignUpUseCasesImpl,
+	service *service.Service,
 ) http.HandlerFunc {
-	resolver, err := graph.NewResolver(ctx, uc, su)
+	resolver, err := graph.NewResolver(ctx, service)
 	if err != nil {
 		base.LogStartupError(ctx, err)
 	}
-	srv := handler.NewDefaultServer(
+	server := handler.NewDefaultServer(
 		generated.NewExecutableSchema(
 			generated.Config{
 				Resolvers: resolver,
@@ -143,6 +141,6 @@ func GQLHandler(ctx context.Context,
 		),
 	)
 	return func(w http.ResponseWriter, r *http.Request) {
-		srv.ServeHTTP(w, r)
+		server.ServeHTTP(w, r)
 	}
 }
