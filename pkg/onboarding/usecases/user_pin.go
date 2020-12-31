@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/errors"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/utils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -41,7 +41,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 	if err != nil {
 		return false, &domain.CustomError{
 			Err:     err,
-			Message: errors.NormalizeMSISDNErrMsg,
+			Message: exceptions.NormalizeMSISDNErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
@@ -50,7 +50,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 	if err != nil {
 		return false, &domain.CustomError{
 			Err:     err,
-			Message: errors.ProfileNotFoundErrMsg,
+			Message: exceptions.ProfileNotFoundErrMsg,
 			Code:    int(base.ProfileNotFound),
 		}
 	}
@@ -72,7 +72,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 	if exists {
 		return false, &domain.CustomError{
 			Err:     err,
-			Message: errors.UsePinExistErrMsg,
+			Message: exceptions.UsePinExistErrMsg,
 			// TODO: correct error code
 			Code: int(base.UserNotFound),
 		}
@@ -101,7 +101,7 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 	if err != nil {
 		return "", &domain.CustomError{
 			Err:     err,
-			Message: errors.NormalizeMSISDNErrMsg,
+			Message: exceptions.NormalizeMSISDNErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
@@ -110,7 +110,7 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 	if err != nil {
 		return "", &domain.CustomError{
 			Err:     err,
-			Message: errors.ProfileNotFoundErrMsg,
+			Message: exceptions.ProfileNotFoundErrMsg,
 			Code:    int(base.ProfileNotFound),
 		}
 	}
@@ -119,14 +119,14 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 	if err != nil {
 		return "", &domain.CustomError{
 			Err:     err,
-			Message: errors.CheckUserPINErrMsg,
+			Message: exceptions.CheckUserPINErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
 	if !exists {
 		return "", &domain.CustomError{
 			Err:     err,
-			Message: errors.ExistingPINErrMsg,
+			Message: exceptions.ExistingPINErrMsg,
 			Code:    int(base.PINNotFound),
 		}
 	}
@@ -136,7 +136,7 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 	if err != nil {
 		return "", &domain.CustomError{
 			Err:     err,
-			Message: errors.GenerateAndSendOTPErrMsg,
+			Message: exceptions.GenerateAndSendOTPErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
@@ -150,7 +150,7 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.NormalizeMSISDNErrMsg,
+			Message: exceptions.NormalizeMSISDNErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
@@ -159,7 +159,7 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.ProfileNotFoundErrMsg,
+			Message: exceptions.ProfileNotFoundErrMsg,
 			Code:    int(base.ProfileNotFound),
 		}
 	}
@@ -168,7 +168,7 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 	if !exists {
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.ExistingPINErrMsg,
+			Message: exceptions.ExistingPINErrMsg,
 			Code:    int(base.PINNotFound),
 		}
 	}
@@ -183,7 +183,7 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.EncryptPINErrMsg,
+			Message: exceptions.EncryptPINErrMsg,
 			// TODO: correct error code
 			Code: int(base.UserNotFound),
 		}

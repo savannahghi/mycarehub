@@ -11,13 +11,14 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 
 	"github.com/cenkalti/backoff"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )

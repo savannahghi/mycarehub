@@ -16,7 +16,7 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/errors"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -200,7 +200,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 		// this phone is number is associated with another user profile, hence can not create an profile with the same phone number
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.PhoneNUmberInUseErrMsg,
+			Message: exceptions.PhoneNUmberInUseErrMsg,
 			Code:    int(base.PhoneNumberInUse),
 		}
 	}
@@ -408,13 +408,13 @@ func (fr *Repository) GenerateAuthCredentials(
 		if auth.IsUserNotFound(err) {
 			return nil, &domain.CustomError{
 				Err:     err,
-				Message: errors.UserNotFoundErrMsg,
+				Message: exceptions.UserNotFoundErrMsg,
 				Code:    int(base.UserNotFound),
 			}
 		}
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.UserNotFoundErrMsg,
+			Message: exceptions.UserNotFoundErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
@@ -423,7 +423,7 @@ func (fr *Repository) GenerateAuthCredentials(
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.CustomTokenErrMsg,
+			Message: exceptions.CustomTokenErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
@@ -431,7 +431,7 @@ func (fr *Repository) GenerateAuthCredentials(
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.AuthenticateTokenErrMsg,
+			Message: exceptions.AuthenticateTokenErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
@@ -439,7 +439,7 @@ func (fr *Repository) GenerateAuthCredentials(
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.AuthenticateTokenErrMsg,
+			Message: exceptions.AuthenticateTokenErrMsg,
 			Code:    int(base.ProfileNotFound),
 		}
 	}
@@ -448,7 +448,7 @@ func (fr *Repository) GenerateAuthCredentials(
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.UpdateProfileErrMsg,
+			Message: exceptions.UpdateProfileErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
@@ -766,7 +766,7 @@ func (fr *Repository) RecordPostVisitSurvey(
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
 		return false, &domain.CustomError{
 			Err:     nil,
-			Message: errors.LikelyToRecommendErrMsg,
+			Message: exceptions.LikelyToRecommendErrMsg,
 			Code:    0, // TODO: Add a code for this error
 		}
 
@@ -783,7 +783,7 @@ func (fr *Repository) RecordPostVisitSurvey(
 	if err != nil {
 		return false, &domain.CustomError{
 			Err:     err,
-			Message: errors.AddRecordErrMsg,
+			Message: exceptions.AddRecordErrMsg,
 			Code:    int(base.Internal),
 		}
 
@@ -798,7 +798,7 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.AddRecordErrMsg,
+			Message: exceptions.AddRecordErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
@@ -807,7 +807,7 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.RetrieveRecordErrMsg,
+			Message: exceptions.RetrieveRecordErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
@@ -839,7 +839,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, pin *domain.PIN) (*domain.P
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
-			Message: errors.UpdateProfileErrMsg,
+			Message: exceptions.UpdateProfileErrMsg,
 			Code:    int(base.Internal),
 		}
 	}

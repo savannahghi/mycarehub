@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/utils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 
 	"gitlab.slade360emr.com/go/base"

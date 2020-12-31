@@ -7,8 +7,9 @@ import (
 	"hash"
 	"strconv"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/errors"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"golang.org/x/crypto/pbkdf2"
 )
@@ -84,7 +85,7 @@ func ValidatePINDigits(pin string) error {
 	if err != nil {
 		return &domain.CustomError{
 			Err:     err,
-			Message: errors.ValidatePINDigitsErrMsg,
+			Message: exceptions.ValidatePINDigitsErrMsg,
 			// TODO: a give a correct code
 			Code: int(base.UserNotFound),
 		}
@@ -98,7 +99,7 @@ func ValidatePINLength(pin string) error {
 	// make sure pin length is [4-6]
 	if len(pin) < minPinLength || len(pin) > maxPinLength {
 		return &domain.CustomError{
-			Message: errors.ValidatePINLengthErrMsg,
+			Message: exceptions.ValidatePINLengthErrMsg,
 			// TODO: a give a correct code
 			Code: int(base.UserNotFound),
 		}

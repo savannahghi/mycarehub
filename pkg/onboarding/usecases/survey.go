@@ -3,8 +3,9 @@ package usecases
 import (
 	"context"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/config/errors"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -32,7 +33,7 @@ func (rs *SurveyUseCasesImpl) RecordPostVisitSurvey(
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
 		return false, &domain.CustomError{
 			Err:     nil,
-			Message: errors.LikelyToRecommendErrMsg,
+			Message: exceptions.LikelyToRecommendErrMsg,
 			Code:    0, // TODO: Add a code for this error
 		}
 	}
