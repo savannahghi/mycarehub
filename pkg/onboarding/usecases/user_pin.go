@@ -62,21 +62,6 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 	if err = utils.ValidatePINDigits(pin); err != nil {
 		return false, err
 	}
-	// check if user has existing PIN
-	exists, err := u.CheckHasPIN(ctx, pr.ID)
-	if err != nil {
-		return false, fmt.Errorf("unable to check if the user has a PIN: %v", err)
-	}
-
-	// return error if the user already have one
-	if exists {
-		return false, &domain.CustomError{
-			Err:     err,
-			Message: exceptions.UsePinExistErrMsg,
-			// TODO: correct error code
-			Code: int(base.UserNotFound),
-		}
-	}
 
 	// EncryptPIN the PIN
 	salt, encryptedPin := utils.EncryptPIN(pin, nil)

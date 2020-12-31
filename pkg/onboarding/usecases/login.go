@@ -2,9 +2,10 @@ package usecases
 
 import (
 	"context"
-	"fmt"
 
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -33,34 +34,63 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	PIN string,
 	flavour base.Flavour,
 ) (*domain.AuthCredentialResponse, error) {
-	profile, err := l.onboardingRepository.
-		GetUserProfileByPrimaryPhoneNumber(ctx, phone)
+	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return nil, err
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: exceptions.NormalizeMSISDNErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+
+	profile, err := l.onboardingRepository.
+		GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: exceptions.ProfileNotFoundErrMsg,
+			Code:    int(base.ProfileNotFound),
+		}
 	}
 
 	if profile == nil {
-		return nil, fmt.Errorf("%v", base.ProfileNotFound)
+		return nil, &domain.CustomError{
+			Err:     nil,
+			Message: exceptions.ProfileNotFoundErrMsg,
+			Code:    int(base.ProfileNotFound),
+		}
 	}
 
 	PINData, err := l.onboardingRepository.
 		GetPINByProfileID(ctx, profile.ID)
 
 	if err != nil {
-		return nil, err
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: exceptions.PINNotFoundErrMsg,
+			Code:    int(base.PINNotFound),
+		}
 	}
 
 	if PINData == nil {
-		return nil, fmt.Errorf("%v", base.PINNotFound)
+		return nil, &domain.CustomError{
+			Err:     nil,
+			Message: exceptions.PINNotFoundErrMsg,
+			Code:    int(base.PINNotFound),
+		}
 	}
 
-	// TODO: Save the specific PIN salt and use it during the matching (calvin)
-	// matched := utils.ComparePIN(PIN, PINData.Salt, PINData.PINNumber, nil)
-	// if !matched {
-	// 	return nil, fmt.Errorf("%v", base.PINMismatch)
-	// }
+	matched := utils.ComparePIN(PIN, PINData.Salt, PINData.PINNumber, nil)
+	if !matched {
+		return nil, &domain.CustomError{
+			Err:     nil,
+			Message: exceptions.PINMismatchErrMsg,
+			Code:    int(base.PINMismatch),
+		}
 
-	return l.onboardingRepository.GenerateAuthCredentials(ctx, phone)
+	}
+
+	return l.onboardingRepository.GenerateAuthCredentials(ctx, phoneNumber)
 }
 
 // RefreshToken takes a custom Firebase refresh token and tries to fetch

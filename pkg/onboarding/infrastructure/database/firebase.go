@@ -34,8 +34,8 @@ const (
 
 // Repository accesses and updates an item that is stored on Firebase
 type Repository struct {
-	firestoreClient *firestore.Client
-	firebaseClient  *auth.Client
+	FirestoreClient *firestore.Client
+	FirebaseClient  *auth.Client
 }
 
 // NewFirebaseRepository initializes a Firebase repository
@@ -57,8 +57,8 @@ func NewFirebaseRepository(ctx context.Context) (repository.OnboardingRepository
 	}
 
 	ff := &Repository{
-		firestoreClient: fsc,
-		firebaseClient:  fbc,
+		FirestoreClient: fsc,
+		FirebaseClient:  fbc,
 	}
 	err = ff.checkPreconditions()
 	if err != nil {
@@ -68,7 +68,7 @@ func NewFirebaseRepository(ctx context.Context) (repository.OnboardingRepository
 }
 
 func (fr Repository) checkPreconditions() error {
-	if fr.firestoreClient == nil {
+	if fr.FirestoreClient == nil {
 		return fmt.Errorf("nil firestore client in feed firebase repository")
 	}
 
@@ -123,11 +123,11 @@ func (fr Repository) ParseRecordAsSnapshot(ctx context.Context, collection strin
 	var err error
 	switch collection {
 	case fr.GetUserProfileCollectionName():
-		doc, err = fr.firestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
+		doc, err = fr.FirestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
 	case fr.GetSupplierProfileCollectionName():
-		doc, err = fr.firestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
+		doc, err = fr.FirestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
 	case fr.GetCustomerProfileCollectionName():
-		doc, err = fr.firestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
+		doc, err = fr.FirestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
 	}
 	return doc[0], err
 }
@@ -139,7 +139,7 @@ func (fr *Repository) GetUserProfileByUID(
 ) (*base.UserProfile, error) {
 	// Retrieve the user profile
 	uids := []string{uid}
-	collection := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName())
+	collection := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
 	query := collection.Where("verifiedIdentifiers", "array-contains-any", uids)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
@@ -166,7 +166,7 @@ func (fr *Repository) GetUserProfileByID(
 	ctx context.Context,
 	id string,
 ) (*base.UserProfile, error) {
-	collection := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName())
+	collection := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
 	query := collection.Where("id", "==", id)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
@@ -218,11 +218,11 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 	}
 
 	// persist the data to a datastore
-	docID, err := base.SaveDataToFirestore(fr.firestoreClient, fr.GetUserProfileCollectionName(), pr)
+	docID, err := base.SaveDataToFirestore(fr.FirestoreClient, fr.GetUserProfileCollectionName(), pr)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new user profile: %w", err)
 	}
-	dsnap, err := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName()).Doc(docID).Get(ctx)
+	dsnap, err := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName()).Doc(docID).Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve newly created user profile: %w", err)
 	}
@@ -244,11 +244,11 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 	}
 
 	// persist the data to a datastore
-	docID, err := base.SaveDataToFirestore(fr.firestoreClient, fr.GetSupplierProfileCollectionName(), sup)
+	docID, err := base.SaveDataToFirestore(fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), sup)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new supplier empty profile: %w", err)
 	}
-	dsnap, err := fr.firestoreClient.Collection(fr.GetSupplierProfileCollectionName()).Doc(docID).Get(ctx)
+	dsnap, err := fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName()).Doc(docID).Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve newly created supplier profile: %w", err)
 	}
@@ -270,11 +270,11 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 	}
 
 	// persist the data to a datastore
-	docID, err := base.SaveDataToFirestore(fr.firestoreClient, fr.GetCustomerProfileCollectionName(), cus)
+	docID, err := base.SaveDataToFirestore(fr.FirestoreClient, fr.GetCustomerProfileCollectionName(), cus)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new customer empty profile: %w", err)
 	}
-	dsnap, err := fr.firestoreClient.Collection(fr.GetCustomerProfileCollectionName()).Doc(docID).Get(ctx)
+	dsnap, err := fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName()).Doc(docID).Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve newly created customer profile: %w", err)
 	}
@@ -289,7 +289,7 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 
 //GetUserProfileByPrimaryPhoneNumber fetches a user profile by primary phone number
 func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
-	collection1 := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName())
+	collection1 := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
 	docs, err := collection1.Where("primaryPhone", "==", phoneNumber).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -309,7 +309,7 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 // and SECONDARY PHONE numbers.
 func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
 	// check first primary phone numbers
-	collection1 := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName())
+	collection1 := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
 	docs1, err := collection1.Where("primaryPhone", "==", phoneNumber).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -324,7 +324,7 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 	}
 
 	// then check in secondary phone numbers
-	collection2 := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName())
+	collection2 := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
 	docs2, err := collection2.Where("secondaryPhoneNumbers", "array-contains", phoneNumber).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -347,7 +347,7 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 // existance of the argument phoneNnumber.
 func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber string) (bool, error) {
 	// check first primary phone numbers
-	collection1 := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName())
+	collection1 := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
 	docs1, err := collection1.Where("primaryPhone", "==", phoneNumber).Documents(ctx).GetAll()
 	if err != nil {
 		return false, err
@@ -357,7 +357,7 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 	}
 
 	// then check in secondary phone numbers
-	collection2 := fr.firestoreClient.Collection(fr.GetUserProfileCollectionName())
+	collection2 := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
 	docs2, err := collection2.Where("secondaryPhoneNumbers", "array-contains", phoneNumber).Documents(ctx).GetAll()
 	if err != nil {
 		return false, err
@@ -372,9 +372,8 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 
 // GetPINByProfileID gets a user's PIN by their profile ID
 func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (*domain.PIN, error) {
-	collection := fr.firestoreClient.Collection(fr.GetPINsCollectionName())
-	query := collection.Where("profileID", "==", profileID)
-	docs, err := query.Documents(ctx).GetAll()
+	collection := fr.FirestoreClient.Collection(fr.GetPINsCollectionName())
+	docs, err := collection.Where("profileID", "==", profileID).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}
@@ -385,7 +384,11 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 	}
 
 	if len(docs) == 0 {
-		return nil, fmt.Errorf("%v", base.PINNotFound)
+		return nil, &domain.CustomError{
+			Err:     nil,
+			Message: exceptions.PINNotFoundErrMsg,
+			Code:    int(base.PINNotFound),
+		}
 	}
 
 	dsnap := docs[0]
@@ -403,7 +406,7 @@ func (fr *Repository) GenerateAuthCredentials(
 	ctx context.Context,
 	phone string,
 ) (*domain.AuthCredentialResponse, error) {
-	u, err := fr.firebaseClient.GetUserByPhoneNumber(ctx, phone)
+	u, err := fr.FirebaseClient.GetUserByPhoneNumber(ctx, phone)
 	if err != nil {
 		if auth.IsUserNotFound(err) {
 			return nil, &domain.CustomError{
@@ -475,7 +478,7 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 		return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
 	}
 
-	err = base.UpdateRecordOnFirestore(fr.firestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile)
+	err = base.UpdateRecordOnFirestore(fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile)
 	if err != nil {
 		return fmt.Errorf("unable to update user profile primary phone number: %v", err)
 	}
@@ -497,7 +500,7 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 		return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
 	}
 
-	err = base.UpdateRecordOnFirestore(fr.firestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile)
+	err = base.UpdateRecordOnFirestore(fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile)
 	if err != nil {
 		return fmt.Errorf("unable to update user profile primary phone number: %v", err)
 	}
@@ -520,7 +523,7 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
 		return fmt.Errorf("unable to update user profile primary email address: %v", err)
@@ -544,7 +547,7 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
 		return fmt.Errorf("unable to update user profile secondary phone numbers: %v", err)
@@ -568,7 +571,7 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
 		return fmt.Errorf("unable to update user profile secondary email addresses: %v", err)
@@ -591,7 +594,7 @@ func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status boo
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	return err == nil
 }
@@ -610,7 +613,7 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
 		return fmt.Errorf("unable to update user profile photo upload id: %v", err)
@@ -632,7 +635,7 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
 		return fmt.Errorf("unable to update user profile covers: %v", err)
@@ -657,7 +660,7 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
 		return fmt.Errorf("unable to update user profile push tokens: %v", err)
@@ -706,7 +709,7 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
 		return fmt.Errorf("unable to update user profile push tokens: %v", err)
@@ -737,7 +740,7 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 		}
 
 		err = base.UpdateRecordOnFirestore(
-			fr.firestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+			fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 		)
 		if err != nil {
 			return fmt.Errorf("unable to update user profile push tokens: %v", err)
@@ -771,7 +774,7 @@ func (fr *Repository) RecordPostVisitSurvey(
 		}
 
 	}
-	feedbackCollection := fr.firestoreClient.Collection(fr.GetSurveyCollectionName())
+	feedbackCollection := fr.FirestoreClient.Collection(fr.GetSurveyCollectionName())
 	feedback := domain.PostVisitSurvey{
 		LikelyToRecommend: input.LikelyToRecommend,
 		Criticism:         input.Criticism,
@@ -794,7 +797,7 @@ func (fr *Repository) RecordPostVisitSurvey(
 // SavePIN  persist the data of the newly created PIN to a datastore
 func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN, error) {
 	// persist the data to a datastore
-	docID, err := base.SaveDataToFirestore(fr.firestoreClient, fr.GetPINsCollectionName(), pin)
+	docID, err := base.SaveDataToFirestore(fr.FirestoreClient, fr.GetPINsCollectionName(), pin)
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
@@ -802,7 +805,7 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN
 			Code:    int(base.Internal),
 		}
 	}
-	dsnap, err := fr.firestoreClient.Collection(fr.GetPINsCollectionName()).Doc(docID).Get(ctx)
+	dsnap, err := fr.FirestoreClient.Collection(fr.GetPINsCollectionName()).Doc(docID).Get(ctx)
 
 	if err != nil {
 		return nil, &domain.CustomError{
@@ -834,7 +837,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, pin *domain.PIN) (*domain.P
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetPINsCollectionName(), record.Ref.ID, profile,
+		fr.FirestoreClient, fr.GetPINsCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
 		return nil, &domain.CustomError{
@@ -901,7 +904,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*domai
 // GetSupplierProfileByProfileID fetch the supplier profile by profile id.
 // since this same supplierProfile can be used for updating, a companion snapshot record is returned as well
 func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, error) {
-	collection := fr.firestoreClient.Collection(fr.GetSupplierProfileCollectionName())
+	collection := fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName())
 	query := collection.Where("profileID", "==", profileID)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
@@ -925,7 +928,7 @@ func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profile
 
 // GetSupplierProfileByID fetches supplier profile by given ID
 func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*domain.Supplier, error) {
-	collection := fr.firestoreClient.Collection(fr.GetSupplierProfileCollectionName())
+	collection := fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName())
 	query := collection.Where("id", "==", id)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
@@ -963,7 +966,7 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
+		fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
 	)
 	if err != nil {
 		return false, fmt.Errorf("unable to update user profile: %v", err)
@@ -989,7 +992,7 @@ func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID str
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
+		fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update supplier profile: %v", err)
@@ -1011,7 +1014,7 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, data *domain.Su
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.firestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
+		fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update supplier profile: %v", err)
@@ -1023,13 +1026,13 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, data *domain.Su
 
 // StageProfileNudge ...
 func (fr *Repository) StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error {
-	_, _, err := fr.firestoreClient.Collection(fr.GetProfileNudgesCollectionName()).Add(ctx, nudge)
+	_, _, err := fr.FirestoreClient.Collection(fr.GetProfileNudgesCollectionName()).Add(ctx, nudge)
 	return err
 }
 
 // FetchKYCProcessingRequests retrieves all unprocessed kycs for admins
 func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
-	collection := fr.firestoreClient.Collection(fr.GetKCYProcessCollectionName())
+	collection := fr.FirestoreClient.Collection(fr.GetKCYProcessCollectionName())
 	query := collection.Where("proceseed", "==", false)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {

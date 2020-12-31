@@ -93,7 +93,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 		return nil, fmt.Errorf("%v", base.PhoneNumberInUse)
 	}
 
-	// get or create user via thier phone number
+	// get or create user via their phone number
 	user, err := base.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create firebase user: %w", err)
@@ -107,7 +107,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 		return nil, err
 	}
 
-	if _, err := s.pinUsecase.SetUserPIN(ctx, phoneNumber, pin); err != nil {
+	if _, err := s.pinUsecase.SetUserPIN(ctx, pin, phoneNumber); err != nil {
 		return nil, err
 	}
 
