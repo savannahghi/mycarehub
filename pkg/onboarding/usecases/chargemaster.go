@@ -1,5 +1,6 @@
 package usecases
 
+// TODO calvine to move this file to infra/services.. it is out of place
 import (
 	"context"
 	"fmt"

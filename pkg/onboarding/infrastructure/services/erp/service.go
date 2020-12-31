@@ -1,4 +1,4 @@
-package usecases
+package erp
 
 import (
 	"encoding/json"
@@ -11,19 +11,19 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
-// ERPUseCases represents logic required to communicate with ERP
-type ERPUseCases interface {
+// Service represents logic required to communicate with ERP
+type Service interface {
 	FetchERPClient() *base.ServerClient
 	CreateERPSupplier(method string, path string, payload map[string]interface{}, partner domain.PartnerType) error
 }
 
-// ERPUseCasesImpl represents ERP usecases
-type ERPUseCasesImpl struct {
+// ServiceImpl represents ERP usecases
+type ServiceImpl struct {
 	ERPClient *base.ServerClient
 }
 
-// NewERPUseCases returns new instance of ERPUseCasesImpl
-func NewERPUseCases(r repository.OnboardingRepository) ERPUseCases {
+// NewERPService returns new instance of ServiceImpl
+func NewERPService(r repository.OnboardingRepository) Service {
 
 	erpClient, err := base.NewERPClient()
 	if err != nil {
@@ -35,18 +35,18 @@ func NewERPUseCases(r repository.OnboardingRepository) ERPUseCases {
 		os.Exit(1)
 	}
 
-	return &ERPUseCasesImpl{ERPClient: erpClient}
+	return &ServiceImpl{ERPClient: erpClient}
 }
 
 // CreateERPSupplier makes a call to create erp supplier
-func (e *ERPUseCasesImpl) CreateERPSupplier(method string, path string, payload map[string]interface{}, partner domain.PartnerType) error {
+func (e *ServiceImpl) CreateERPSupplier(method string, path string, payload map[string]interface{}, partner domain.PartnerType) error {
 
 	content, marshalErr := json.Marshal(payload)
 	if marshalErr != nil {
 		return fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
 	}
 
-	if err := base.ReadRequestToTarget(e.ERPClient, "POST", supplierAPIPath, "", content, &domain.Supplier{PartnerType: partner}); err != nil {
+	if err := base.ReadRequestToTarget(e.ERPClient, "POST", path, "", content, &domain.Supplier{PartnerType: partner}); err != nil {
 		return fmt.Errorf("unable to make request to the ERP: %v", err)
 	}
 
@@ -54,6 +54,6 @@ func (e *ERPUseCasesImpl) CreateERPSupplier(method string, path string, payload 
 }
 
 // FetchERPClient retrieves the erp client
-func (e *ERPUseCasesImpl) FetchERPClient() *base.ServerClient {
+func (e *ServiceImpl) FetchERPClient() *base.ServerClient {
 	return e.ERPClient
 }

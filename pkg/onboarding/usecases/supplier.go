@@ -11,6 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+
 	"github.com/cenkalti/backoff"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
@@ -93,15 +96,15 @@ type SupplierUseCases interface {
 type SupplierUseCasesImpl struct {
 	repo         repository.OnboardingRepository
 	profile      ProfileUseCase
-	erp          ERPUseCases
+	erp          erp.Service
 	chargemaster ChargeMasterUseCases
-	engagement   EngagementUseCases
+	engagement   engagement.Service
 }
 
 // NewSupplierUseCases returns a new a onboarding usecase
 func NewSupplierUseCases(r repository.OnboardingRepository, p ProfileUseCase,
-	er ERPUseCases, chrg ChargeMasterUseCases,
-	eng EngagementUseCases) SupplierUseCases {
+	er erp.Service, chrg ChargeMasterUseCases,
+	eng engagement.Service) SupplierUseCases {
 	return &SupplierUseCasesImpl{repo: r, profile: p,
 		erp: er, chargemaster: chrg, engagement: eng}
 }
