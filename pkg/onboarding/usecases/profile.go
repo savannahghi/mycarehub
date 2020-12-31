@@ -16,7 +16,8 @@ type ProfileUseCase interface {
 	UpdatePrimaryEmailAddress(ctx context.Context, emailAddress string) error
 	UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error
 	UpdateSecondaryEmailAddresses(ctx context.Context, emailAddresses []string) error
-	UpdateSuspended(ctx context.Context, status bool, phoneNumber string, useContext bool) bool
+	UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error
+	UpdateSuspended(ctx context.Context, status bool, phoneNumber string, useContext bool) error
 	UpdatePhotoUploadID(ctx context.Context, uploadID string) error
 	UpdateCovers(ctx context.Context, covers []base.Cover) error
 	UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error
@@ -161,28 +162,43 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(ctx context.Context, 
 	return profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, emailAddresses)
 }
 
+// UpdateVerifiedIdentifiers updates the profile's verified identifiers
+func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error {
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return err
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	return profile.UpdateProfileVerifiedIdentifiers(ctx, p.onboardingRepository, identifiers)
+}
+
 // UpdateSuspended updates primary suspend attribute of a specific user profile
-func (p *ProfileUseCaseImpl) UpdateSuspended(ctx context.Context, status bool, phone string, useContext bool) bool {
+func (p *ProfileUseCaseImpl) UpdateSuspended(ctx context.Context, status bool, phone string, useContext bool) error {
 	var profile *base.UserProfile
 
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return false
+		return err
 	}
 	// fetch the user profile
 	if useContext {
 		uid, err := base.GetLoggedInUserUID(ctx)
 		if err != nil {
-			return false
+			return err
 		}
 		profile, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 		if err != nil {
-			return false
+			return err
 		}
 	} else {
 		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 		if err != nil {
-			return false
+			return err
 		}
 
 	}
@@ -234,18 +250,20 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken str
 	if retire {
 		// remove the supplied push token then update the profile
 		previousTokens := profile.PushTokens
+		newTokens := []string{}
 		for _, token := range previousTokens {
 			if token != pushToken {
-				// todo:(dexter) refactor base interface to take []string instead of string
-				if err := profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, token); err != nil {
-					return err
-				}
+				newTokens = append(newTokens, token)
 			}
+		}
+
+		if err := profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, newTokens); err != nil {
+			return err
 		}
 
 	}
 
-	return profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, pushToken)
+	return profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, []string{pushToken})
 }
 
 // UpdateBioData updates primary biodata of a specific user profile

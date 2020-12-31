@@ -447,7 +447,11 @@ func (fr *Repository) GenerateAuthCredentials(
 		}
 	}
 
-	err = fr.UpdateVerifiedIdentifiers(ctx, pr.ID, u.UID)
+	err = fr.UpdateVerifiedIdentifiers(ctx, pr.ID, []base.VerifiedIdentifier{base.VerifiedIdentifier{
+		UID:           u.UID,
+		LoginProvider: base.LoginProviderTypePhone,
+		Timestamp:     time.Now().In(base.TimeLocation),
+	}})
 	if err != nil {
 		return nil, &domain.CustomError{
 			Err:     err,
@@ -580,23 +584,22 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 }
 
 // UpdateSuspended updates the suspend attribute of the profile that matches the id
-// todo: (dexter) : amend interface method in base to return error instead of bool
-func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status bool) bool {
+func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status bool) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return false
+		return err
 	}
 	profile.Suspended = status
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
-		return false
+		return err
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
-	return err == nil
+	return err
 }
 
 // UpdatePhotoUploadID updates the photoUploadID attribute of the profile that matches the id
@@ -644,14 +647,13 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 }
 
 // UpdatePushTokens updates the pushTokens attribute of the profile that matches the id
-// todo(dexter) : amend the interface method in base to take pushToken as []string instead of string
-func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken string) error {
+func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken []string) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
 		return err
 	}
 	tokens := profile.PushTokens
-	tokens = append(tokens, pushToken)
+	tokens = append(tokens, pushToken...)
 	profile.PushTokens = tokens
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
@@ -718,36 +720,37 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 }
 
 // UpdateVerifiedIdentifiers adds a UID to a user profile during login if it does not exist
-// todo: (dexter define this in the base interface)
-func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, UID string) error {
-	profile, err := fr.GetUserProfileByID(ctx, id)
-	if err != nil {
-		return err
-	}
+func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error {
 
-	if !checkIdentifierExists(profile, UID) {
-		uids := profile.VerifiedIdentifiers
-		uids = append(uids, base.VerifiedIdentifier{
-			UID:           UID,
-			LoginProvider: base.LoginProviderTypePhone,
-			Timestamp:     time.Now().In(base.TimeLocation),
-		})
-		profile.VerifiedIdentifiers = uids
-
-		record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
+	for _, identifier := range identifiers {
+		profile, err := fr.GetUserProfileByID(ctx, id)
 		if err != nil {
-			return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+			return err
 		}
 
-		err = base.UpdateRecordOnFirestore(
-			fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
-		)
-		if err != nil {
-			return fmt.Errorf("unable to update user profile push tokens: %v", err)
-		}
-		return nil
+		if !checkIdentifierExists(profile, identifier.UID) {
+			uids := profile.VerifiedIdentifiers
 
+			uids = append(uids, identifier)
+
+			profile.VerifiedIdentifiers = uids
+
+			record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
+			if err != nil {
+				return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+			}
+
+			err = base.UpdateRecordOnFirestore(
+				fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+			)
+			if err != nil {
+				return fmt.Errorf("unable to update user profile push tokens: %v", err)
+			}
+			return nil
+
+		}
 	}
+
 	return nil
 }
 
