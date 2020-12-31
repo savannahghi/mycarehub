@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 
@@ -22,9 +23,9 @@ type Interactor struct {
 	Login        usecases.LoginUseCases
 	Survey       usecases.SurveyUseCases
 	UserPIN      usecases.UserPINUseCases
-	ERP          erp.Service
-	ChargeMaster usecases.ChargeMasterUseCases
-	Engage       engagement.Service
+	ERP          erp.ServiceERP
+	ChargeMaster chargemaster.ServiceChargeMaster
+	Engagement   engagement.ServiceEngagement
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -38,8 +39,8 @@ func NewOnboardingInteractor() (*Interactor, error) {
 	profile := usecases.NewProfileUseCase(fr)
 	otp := usecases.NewOTPUseCasesImpl(fr)
 	erp := erp.NewERPService(fr)
-	chrg := usecases.NewChargeMasterUseCasesImpl(fr)
-	engage := engagement.NewEngagementService(fr)
+	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
+	engage := engagement.NewServiceEngagementImpl(fr)
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage)
 	login := usecases.NewLoginUseCases(fr)
 	survey := usecases.NewSurveyUseCases(fr)
@@ -56,6 +57,6 @@ func NewOnboardingInteractor() (*Interactor, error) {
 		UserPIN:      userpin,
 		ERP:          erp,
 		ChargeMaster: chrg,
-		Engage:       engage,
+		Engagement:   engage,
 	}, nil
 }

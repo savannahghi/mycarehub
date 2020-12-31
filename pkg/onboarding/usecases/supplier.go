@@ -11,15 +11,14 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
-
 	"github.com/cenkalti/backoff"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -95,17 +94,18 @@ type SupplierUseCases interface {
 
 // SupplierUseCasesImpl represents usecase implementation object
 type SupplierUseCasesImpl struct {
-	repo         repository.OnboardingRepository
-	profile      ProfileUseCase
-	erp          erp.Service
-	chargemaster ChargeMasterUseCases
-	engagement   engagement.Service
+	repo    repository.OnboardingRepository
+	profile ProfileUseCase
+
+	erp          erp.ServiceERP
+	chargemaster chargemaster.ServiceChargeMaster
+	engagement   engagement.ServiceEngagement
 }
 
 // NewSupplierUseCases returns a new a onboarding usecase
 func NewSupplierUseCases(r repository.OnboardingRepository, p ProfileUseCase,
-	er erp.Service, chrg ChargeMasterUseCases,
-	eng engagement.Service) SupplierUseCases {
+	er erp.ServiceERP, chrg chargemaster.ServiceChargeMaster,
+	eng engagement.ServiceEngagement) SupplierUseCases {
 	return &SupplierUseCasesImpl{repo: r, profile: p,
 		erp: er, chargemaster: chrg, engagement: eng}
 }

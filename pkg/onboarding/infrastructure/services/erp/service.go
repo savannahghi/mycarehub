@@ -11,19 +11,19 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
-// Service represents logic required to communicate with ERP
-type Service interface {
+// ServiceERP represents logic required to communicate with ERP
+type ServiceERP interface {
 	FetchERPClient() *base.ServerClient
 	CreateERPSupplier(method string, path string, payload map[string]interface{}, partner domain.PartnerType) error
 }
 
-// ServiceImpl represents ERP usecases
-type ServiceImpl struct {
+// ServiceERPImpl represents ERP usecases
+type ServiceERPImpl struct {
 	ERPClient *base.ServerClient
 }
 
 // NewERPService returns new instance of ServiceImpl
-func NewERPService(r repository.OnboardingRepository) Service {
+func NewERPService(r repository.OnboardingRepository) ServiceERP {
 
 	erpClient, err := base.NewERPClient()
 	if err != nil {
@@ -35,11 +35,11 @@ func NewERPService(r repository.OnboardingRepository) Service {
 		os.Exit(1)
 	}
 
-	return &ServiceImpl{ERPClient: erpClient}
+	return &ServiceERPImpl{ERPClient: erpClient}
 }
 
 // CreateERPSupplier makes a call to create erp supplier
-func (e *ServiceImpl) CreateERPSupplier(method string, path string, payload map[string]interface{}, partner domain.PartnerType) error {
+func (e *ServiceERPImpl) CreateERPSupplier(method string, path string, payload map[string]interface{}, partner domain.PartnerType) error {
 
 	content, marshalErr := json.Marshal(payload)
 	if marshalErr != nil {
@@ -54,6 +54,6 @@ func (e *ServiceImpl) CreateERPSupplier(method string, path string, payload map[
 }
 
 // FetchERPClient retrieves the erp client
-func (e *ServiceImpl) FetchERPClient() *base.ServerClient {
+func (e *ServiceERPImpl) FetchERPClient() *base.ServerClient {
 	return e.ERPClient
 }
