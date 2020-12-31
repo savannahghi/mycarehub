@@ -36,7 +36,6 @@ func NewUserPinUseCase(r repository.OnboardingRepository, otp OTPUseCases, p Pro
 
 // SetUserPIN receives phone number and pin from phonenumber sign up
 func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone string) (bool, error) {
-
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
 		return false, &domain.CustomError{
@@ -45,7 +44,6 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 			Code:    int(base.Internal),
 		}
 	}
-
 	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
 	if err != nil {
 		return false, &domain.CustomError{
@@ -62,7 +60,6 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 	if err = utils.ValidatePINDigits(pin); err != nil {
 		return false, err
 	}
-
 	// EncryptPIN the PIN
 	salt, encryptedPin := utils.EncryptPIN(pin, nil)
 

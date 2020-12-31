@@ -294,15 +294,16 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 	if err != nil {
 		return nil, err
 	}
-	if len(docs) == 1 {
-		dsnap := docs[0]
-		profile := &base.UserProfile{}
-		if err := dsnap.DataTo(profile); err != nil {
-			return nil, fmt.Errorf("unable to read customer profile: %w", err)
-		}
-		return profile, nil
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("%v", base.ProfileNotFound)
 	}
-	return nil, fmt.Errorf("%v", base.ProfileNotFound)
+	dsnap := docs[0]
+	profile := &base.UserProfile{}
+	err = dsnap.DataTo(profile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read customer profile: %w", err)
+	}
+	return profile, nil
 }
 
 // GetUserProfileByPhoneNumber fetches a user profile by phone number. This method traverses both PRIMARY PHONE numbers

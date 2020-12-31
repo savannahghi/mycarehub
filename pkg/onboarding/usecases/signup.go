@@ -67,18 +67,17 @@ func NewSignUpUseCases(r repository.OnboardingRepository, profile ProfileUseCase
 // CheckPhoneExists checks whether a phone number has been registred by another user.
 // Checks both primary and secondary phone numbers.
 func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
-
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
 		return false, fmt.Errorf("failed to  normalize the phone number: %v", err)
 	}
 
-	v, err := s.onboardingRepository.CheckIfPhoneNumberExists(ctx, phoneNumber)
+	exists, err := s.onboardingRepository.CheckIfPhoneNumberExists(ctx, phoneNumber)
 	if err != nil {
 		return false, fmt.Errorf("failed to check the phone number: %v", err)
 	}
 
-	return v, nil
+	return exists, nil
 }
 
 // CreateUserByPhone creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
@@ -88,7 +87,6 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 	if err != nil {
 		return nil, fmt.Errorf("%v", err)
 	}
-
 	if exists {
 		return nil, fmt.Errorf("%v", base.PhoneNumberInUse)
 	}
@@ -106,7 +104,6 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 	if err != nil {
 		return nil, err
 	}
-
 	if _, err := s.pinUsecase.SetUserPIN(ctx, pin, phoneNumber); err != nil {
 		return nil, err
 	}

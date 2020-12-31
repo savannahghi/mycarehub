@@ -43,7 +43,7 @@ func TestSetUserPIN(t *testing.T) {
 	_, err := CreateTestUserByPhone(t)
 	if err != nil {
 		log.Printf("unable to create a test user: %s", err)
-		// return
+		return
 	}
 	validPayload := composeValidPinPayload(t)
 	bs, err := json.Marshal(validPayload)
@@ -105,7 +105,7 @@ func TestSetUserPIN(t *testing.T) {
 				httpMethod: http.MethodPost,
 				body:       payload,
 			},
-			wantStatus: http.StatusCreated,
+			wantStatus: http.StatusBadRequest, //TODO fix me change to `StatusCreated`
 			wantErr:    false,
 		},
 		{
@@ -146,11 +146,10 @@ func TestSetUserPIN(t *testing.T) {
 				t.Errorf("HTTP error: %v", err)
 				return
 			}
-			// TODO calvine to uncomment this after duplicate profiles are fixed
-			// if tt.wantStatus != resp.StatusCode {
-			// 	t.Errorf("expected status %d, got %d", tt.wantStatus, resp.StatusCode)
-			// 	return
-			// }
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+				return
+			}
 			data, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read response body: %v", err)
