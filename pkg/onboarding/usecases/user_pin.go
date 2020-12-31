@@ -15,7 +15,7 @@ import (
 type UserPINUseCases interface {
 	SetUserPIN(ctx context.Context, phone string, pin string) (*domain.PIN, error)
 	ChangeUserPIN(ctx context.Context, phone string, pin string) (*domain.PIN, error)
-	ResetPIN(ctx context.Context, phone string) (string, error)
+	ResetPIN(ctx context.Context, phone string, pin string) (*domain.PIN, error)
 	RequestPINReset(ctx context.Context, phone string) (string, error)
 }
 
@@ -38,7 +38,11 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, msisdn, pin string)
 	// ensure the phone number is valid
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
-		return nil, fmt.Errorf("unable to normalize the msisdn: %v", err)
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.NormalizeMSISDNErrMsg,
+			Code:    int(base.Internal),
+		}
 	}
 	profile, err := u.onboardingRepository.
 		GetUserProfileByPrimaryPhoneNumber(ctx, msisdn)
@@ -92,11 +96,6 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, msisdn, pin string)
 	return u.onboardingRepository.SavePIN(ctx, pinPayload)
 }
 
-// ResetPIN ...
-func (u *UserPinUseCaseImpl) ResetPIN(ctx context.Context, phone string) (string, error) {
-	return "", nil
-}
-
 // RequestPINReset sends a request given an existing user's phone number,
 // sends an otp to the phone number that is then used in the process of
 // updating their old PIN to a new one
@@ -143,7 +142,11 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pin string) (*domain.PIN, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return nil, fmt.Errorf("unable to normalize the msisdn: %v", err)
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.NormalizeMSISDNErrMsg,
+			Code:    int(base.Internal),
+		}
 	}
 
 	exists, err := u.CheckHasPIN(ctx, phone)
@@ -165,7 +168,7 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 		}
 	}
 
-	pinData, err := u.onboardingRepository.
+	_, err = u.onboardingRepository.
 		GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read PIN: %w", err)
@@ -181,7 +184,6 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 		}
 	}
 
-	pinData.PINNumber = encryptedPin
 	pinPayload := &domain.PIN{
 		ProfileID:   profile.ID,
 		PhoneNumber: phoneNumber,
@@ -191,21 +193,97 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 	return u.onboardingRepository.UpdatePIN(ctx, pinPayload)
 }
 
+// ResetPIN resets a user PIN to the new one supplied
+func (u *UserPinUseCaseImpl) ResetPIN(ctx context.Context, phone string, pin string) (*domain.PIN, error) {
+	// ensure the phone number is valid
+	phoneNumber, err := base.NormalizeMSISDN(phone)
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.NormalizeMSISDNErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+
+	profile, err := u.onboardingRepository.
+		GetUserProfileByPrimaryPhoneNumber(ctx, phone)
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.ProfileNotFoundErrMsg,
+			Code:    int(base.ProfileNotFound),
+		}
+	}
+	err = utils.ValidatePINLength(pin)
+	if err != nil {
+		return nil, err
+	}
+
+	err = utils.ValidatePINDigits(pin)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if user has existing PIN
+	exists, err := u.CheckHasPIN(ctx, phone)
+	if err != nil {
+		return nil, fmt.Errorf("unable to check if the user has a PIN: %v", err)
+	}
+	// if the user already has an existing PIN update with the new one
+	if exists {
+		return u.ChangeUserPIN(ctx, phone, pin)
+	}
+	// EncryptPIN the PIN
+	salt, encryptedPin := utils.EncryptPIN(pin, nil)
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.EncryptPINErrMsg,
+			// TODO: correct error code
+			Code: int(base.UserNotFound),
+		}
+	}
+
+	pinPayload := &domain.PIN{
+		ProfileID:   profile.ID,
+		PhoneNumber: phoneNumber,
+		PINNumber:   encryptedPin,
+		Salt:        salt,
+	}
+	return u.onboardingRepository.SavePIN(ctx, pinPayload)
+}
+
 // CheckHasPIN given a phone number checks if the phonenumber is present in our collections
 // which essentially means that the number has an already existing PIN
 func (u *UserPinUseCaseImpl) CheckHasPIN(ctx context.Context, msisdn string) (bool, error) {
 	_, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
-		return false, fmt.Errorf("unable to normalize the msisdn: %v", err)
+		return false, &domain.CustomError{
+			Err:     err,
+			Message: errors.NormalizeMSISDNErrMsg,
+			Code:    int(base.Internal),
+		}
 	}
 
 	profile, err := u.onboardingRepository.
 		GetUserProfileByPrimaryPhoneNumber(ctx, msisdn)
 	if err != nil {
-		return false, fmt.Errorf("unable to fetch PINs dsnap: %v", err)
+		return false, err
 	}
+
 	if profile == nil {
-		return false, nil
+		return false, fmt.Errorf("%v", base.ProfileNotFound)
+	}
+
+	pinData, err := u.onboardingRepository.
+		GetPINByProfileID(ctx, profile.ID)
+
+	if err != nil {
+		return false, err
+	}
+
+	if pinData == nil {
+		return false, fmt.Errorf("%v", base.PINNotFound)
 	}
 
 	return true, nil
