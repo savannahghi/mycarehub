@@ -1,9 +1,11 @@
 package usecases
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -12,6 +14,8 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"github.com/google/uuid"
+
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -19,12 +23,15 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 const (
 	supplierAPIPath        = "/api/business_partners/suppliers/"
 	customerAPIPath        = "/api/business_partners/customers/"
+	emailSignupSubject     = "Thank you for signing up"
 	active                 = true
 	country                = "KEN" // Anticipate worldwide expansion
 	supplierCollectionName = "suppliers"
@@ -80,16 +87,13 @@ type SupplierUseCases interface {
 
 	SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error)
 
-	// FetchSupplierAllowedLocations(ctx context.Context) (*domain.BranchConnection, error)
-	// SaveProfileNudge(nudge map[string]interface{}) error
-	// PublishKYCNudge(uid string, partner *domain.PartnerType, account *domain.AccountType) error
-	// PublishKYCFeedItem(ctx context.Context, uids ...string) error
-	// StageKYCProcessingRequest(sup *domain.Supplier) error
+	SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *domain.Supplier) error
 
-	// SaveKYCResponse(ctx context.Context, kycJSON []byte, supplier *domain.Supplier, dsnap *firestore.DocumentSnapshot) error
+	SendKYCEmail(ctx context.Context, text, emailaddress string) error
 
-	// ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
-	// SendKYCEmail(ctx context.Context, text, emailaddress string) error
+	StageKYCProcessingRequest(ctx context.Context, sup *domain.Supplier) error
+
+	ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
 }
 
 // SupplierUseCasesImpl represents usecase implementation object
@@ -100,14 +104,28 @@ type SupplierUseCasesImpl struct {
 	erp          erp.ServiceERP
 	chargemaster chargemaster.ServiceChargeMaster
 	engagement   engagement.ServiceEngagement
+	mg           mailgun.ServiceMailgun
+	messaging    messaging.ServiceMessaging
 }
 
 // NewSupplierUseCases returns a new a onboarding usecase
-func NewSupplierUseCases(r repository.OnboardingRepository, p ProfileUseCase,
-	er erp.ServiceERP, chrg chargemaster.ServiceChargeMaster,
-	eng engagement.ServiceEngagement) SupplierUseCases {
-	return &SupplierUseCasesImpl{repo: r, profile: p,
-		erp: er, chargemaster: chrg, engagement: eng}
+func NewSupplierUseCases(
+	r repository.OnboardingRepository,
+	p ProfileUseCase,
+	er erp.ServiceERP,
+	chrg chargemaster.ServiceChargeMaster,
+	eng engagement.ServiceEngagement,
+	mg mailgun.ServiceMailgun,
+	messaging messaging.ServiceMessaging) SupplierUseCases {
+
+	return &SupplierUseCasesImpl{
+		repo:         r,
+		profile:      p,
+		erp:          er,
+		chargemaster: chrg,
+		engagement:   eng,
+		mg:           mg,
+		messaging:    messaging}
 }
 
 // AddPartnerType create the initial supplier record
@@ -762,6 +780,55 @@ func (s *SupplierUseCasesImpl) parseKYCAsMap(data interface{}) (map[string]inter
 	return kycAsMap, nil
 }
 
+// SaveKYCResponseAndNotifyAdmins save the kyc information provided by the user and sends a notification to all admins for a pending
+// KYC review request
+func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *domain.Supplier) error {
+
+	if _, err := s.repo.UpdateSupplierProfile(ctx, sup); err != nil {
+		return err
+	}
+
+	if err := s.StageKYCProcessingRequest(ctx, sup); err != nil {
+		return err
+	}
+
+	go func() {
+		op := func() error {
+			a, err := s.repo.FetchAdminUsers(ctx)
+			if err != nil {
+				return err
+			}
+			var uids []string
+			for _, u := range a {
+				uids = append(uids, u.ID)
+			}
+
+			return s.PublishKYCFeedItem(ctx, uids...)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
+	return nil
+}
+
+// StageKYCProcessingRequest saves kyc processing requests
+func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(ctx context.Context, sup *domain.Supplier) error {
+	r := &domain.KYCRequest{
+		ID:                  uuid.New().String(),
+		ReqPartnerType:      sup.PartnerType,
+		ReqOrganizationType: domain.OrganizationType(sup.AccountType),
+		ReqRaw:              sup.SupplierKYC,
+		Proceseed:           false,
+		SupplierRecord:      sup,
+		Status:              domain.KYCProcessStatusPending,
+	}
+
+	return s.repo.StageKYCProcessingRequest(ctx, r)
+}
+
 // AddIndividualRiderKyc adds KYC for an individual rider
 func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error) {
 
@@ -798,8 +865,7 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input 
 	sup.SupplierKYC = kycAsMap
 	sup.KYCSubmitted = true
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 		return nil, err
 	}
 
@@ -851,8 +917,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(ctx context.Context, inpu
 	sup.SupplierKYC = kycAsMap
 	sup.KYCSubmitted = true
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 		return nil, err
 	}
 
@@ -904,8 +969,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context,
 	sup.SupplierKYC = kycAsMap
 	sup.KYCSubmitted = true
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 		return nil, err
 	}
 
@@ -958,8 +1022,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Contex
 	sup.SupplierKYC = kycAsMap
 	sup.KYCSubmitted = true
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 		return nil, err
 	}
 
@@ -1011,8 +1074,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, i
 	sup.SupplierKYC = kycAsMap
 	sup.KYCSubmitted = true
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 		return nil, err
 	}
 
@@ -1054,8 +1116,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(ctx context.Contex
 	sup.SupplierKYC = kycAsMap
 	sup.KYCSubmitted = true
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 		return nil, err
 	}
 
@@ -1103,8 +1164,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Cont
 	sup.SupplierKYC = kycAsMap
 	sup.KYCSubmitted = true
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 		return nil, err
 	}
 
@@ -1144,8 +1204,7 @@ func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(ctx context.Context, input 
 	sup.SupplierKYC = kycAsMap
 	sup.KYCSubmitted = true
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 		return nil, err
 	}
 
@@ -1193,8 +1252,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(ctx context.Context, inpu
 	sup.SupplierKYC = kycAsMap
 	sup.KYCSubmitted = true
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 		return nil, err
 	}
 
@@ -1234,8 +1292,7 @@ func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(ctx context.Context, in
 	sup.SupplierKYC = kycAsMap
 	sup.KYCSubmitted = true
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 		return nil, err
 	}
 
@@ -1283,8 +1340,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, 
 	sup.SupplierKYC = kycAsMap
 	sup.KYCSubmitted = true
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 		return nil, err
 	}
 
@@ -1296,115 +1352,97 @@ func (s *SupplierUseCasesImpl) FetchKYCProcessingRequests(ctx context.Context) (
 	return s.repo.FetchKYCProcessingRequests(ctx)
 }
 
-// // StageKYCProcessingRequest saves kyc processing requests
-// func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(sup *domain.Supplier) error {
-// 	r := domain.KYCRequest{
-// 		ID:                  uuid.New().String(),
-// 		ReqPartnerType:      sup.PartnerType,
-// 		ReqOrganizationType: domain.OrganizationType(sup.AccountType),
-// 		ReqRaw:              sup.SupplierKYC,
-// 		Proceseed:           false,
-// 		SupplierRecord:      sup,
-// 		Status:              domain.KYCProcessStatusPending,
-// 	}
+// SendKYCEmail will send a KYC processing request email to the supplier
+func (s *SupplierUseCasesImpl) SendKYCEmail(ctx context.Context, text, emailaddress string) error {
+	return s.mg.SendMail(emailaddress, text, emailSignupSubject)
+}
 
-// 	_, err := base.SaveDataToFirestore(s.firestoreClient, s.GetKCYProcessCollectionName(), r)
-// 	if err != nil {
-// 		return fmt.Errorf("unable to save kyc processing request: %w", err)
-// 	}
-// 	return nil
-// }
+// ProcessKYCRequest transitions a kyc request to a given state
+func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error) {
 
-// // ProcessKYCRequest transitions a kyc request to a given state
-// func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string, status KYCProcessStatus, rejectionReason *string) (bool, error) {
-// 	collection := s.firestoreClient.Collection(s.GetKCYProcessCollectionName())
-// 	query := collection.Where("id", "==", id)
-// 	docs, err := query.Documents(ctx).GetAll()
-// 	if err != nil {
-// 		return false, fmt.Errorf("unable to fetch kyc request documents: %v", err)
-// 	}
+	req, err := s.repo.FetchKYCProcessingRequestByID(ctx, id)
+	if err != nil {
+		return false, err
+	}
 
-// 	doc := docs[0]
-// 	req := &KYCRequest{}
-// 	err = doc.DataTo(req)
-// 	if err != nil {
-// 		return false, fmt.Errorf("unable to read supplier: %w", err)
-// 	}
+	req.Status = status
+	req.Proceseed = true
+	req.RejectionReason = rejectionReason
 
-// 	req.Status = status
-// 	req.Proceseed = true
-// 	req.RejectionReason = rejectionReason
+	if err := s.repo.UpdateKYCProcessingRequest(ctx, req); err != nil {
+		return false, fmt.Errorf("unable to update KYC request record: %v", err)
+	}
 
-// 	err = base.UpdateRecordOnFirestore(s.firestoreClient, s.GetKCYProcessCollectionName(), doc.Ref.ID, req)
-// 	if err != nil {
-// 		return false, fmt.Errorf("unable to update KYC request record: %v", err)
-// 	}
+	var email string
+	var message string
 
-// 	var email string
-// 	var message string
+	switch status {
+	case domain.KYCProcessStatusApproved:
+		// create supplier erp account
+		if _, err := s.AddCustomerSupplierERPAccount(ctx, req.SupplierRecord.SupplierName, req.ReqPartnerType); err != nil {
+			return false, fmt.Errorf("unable to create erp supplier account: %v", err)
+		}
 
-// 	switch status {
-// 	case KYCProcessStatusApproved:
-// 		// create supplier erp account
-// 		if _, err := s.AddSupplier(ctx, *req.SupplierRecord.UserProfile.Name, req.ReqPartnerType); err != nil {
-// 			return false, fmt.Errorf("unable to create erp supplier account: %v", err)
-// 		}
+		email = s.generateProcessKYCApprovalEmailTemplate()
+		message = "Your KYC details have been reviewed and approved. We look forward to working with you."
 
-// 		email = generateProcessKYCApprovalEmailTemplate()
-// 		message = "Your KYC details have been reviewed and approved. We look forward to working with you."
+	case domain.KYCProcessStatusRejected:
+		email = s.generateProcessKYCRejectionEmailTemplate()
+		message = "Your KYC details have been reviewed and not verified. Incase of any queries, please contact us via +254 790 360 360"
 
-// 	case KYCProcessStatusRejected:
-// 		email = generateProcessKYCRejectionEmailTemplate()
-// 		message = "Your KYC details have been reviewed and not verified. Incase of any queries, please contact us via +254 790 360 360"
+	}
 
-// 	}
+	// get user profile
+	pr, err := s.profile.GetProfileByID(ctx, *req.SupplierRecord.ProfileID)
+	if err != nil {
+		return false, fmt.Errorf("unable to fetch supplier user profile: %v", err)
+	}
 
-// 	for _, supplierEmail := range req.SupplierRecord.UserProfile.Emails {
-// 		err = s.SendKYCEmail(ctx, email, supplierEmail)
-// 		if err != nil {
-// 			return false, fmt.Errorf("unable to send KYC processing email: %w", err)
-// 		}
-// 	}
+	supplierEmails := func(profile *base.UserProfile) []string {
+		var emails []string
+		emails = append(emails, profile.PrimaryEmailAddress)
+		emails = append(emails, profile.SecondaryEmailAddresses...)
+		return emails
+	}(pr)
 
-// 	smsISC := base.SmsISC{
-// 		Isc:      s.sms,
-// 		EndPoint: sendSMS,
-// 	}
+	for _, supplierEmail := range supplierEmails {
+		err = s.SendKYCEmail(ctx, email, supplierEmail)
+		if err != nil {
+			return false, fmt.Errorf("unable to send KYC processing email: %w", err)
+		}
+	}
 
-// 	twilioISC := base.SmsISC{
-// 		Isc:      s.twilio,
-// 		EndPoint: sendTwilioSMS,
-// 	}
+	supplierPhones := func(profile *base.UserProfile) []string {
+		var phones []string
+		phones = append(phones, profile.PrimaryPhone)
+		phones = append(phones, profile.SecondaryPhoneNumbers...)
+		return phones
+	}(pr)
 
-// 	err = base.SendSMS(req.SupplierRecord.UserProfile.Msisdns, message, smsISC, twilioISC)
-// 	if err != nil {
-// 		return false, fmt.Errorf("unable to send KYC processing message: %w", err)
-// 	}
+	if err := s.messaging.SendSMS(supplierPhones, message); err != nil {
+		return false, fmt.Errorf("unable to send KYC processing message: %w", err)
+	}
 
-// 	return true, nil
+	return true, nil
 
-// }
+}
 
-// // SendKYCEmail will send a KYC processing request email to the supplier
-// func (s *SupplierUseCasesImpl) SendKYCEmail(ctx context.Context, text, emailaddress string) error {
-// 	if !govalidator.IsEmail(emailaddress) {
-// 		return nil
-// 	}
+func (s *SupplierUseCasesImpl) generateProcessKYCApprovalEmailTemplate() string {
+	t := template.Must(template.New("approvalKYCEmail").Parse(utils.ProcessKYCApprovalEmail))
+	buf := new(bytes.Buffer)
+	err := t.Execute(buf, "")
+	if err != nil {
+		log.Fatalf("Error while generating KYC approval email template: %s", err)
+	}
+	return buf.String()
+}
 
-// 	body := map[string]interface{}{
-// 		"to":      []string{emailaddress},
-// 		"text":    text,
-// 		"subject": emailSignupSubject,
-// 	}
-
-// 	resp, err := s.Mailgun.MakeRequest(http.MethodPost, SendEmail, body)
-// 	if err != nil {
-// 		return fmt.Errorf("unable to send KYC email: %w", err)
-// 	}
-
-// 	if resp.StatusCode != http.StatusOK {
-// 		return fmt.Errorf("unable to send KYC email : %w, with status code %v", err, resp.StatusCode)
-// 	}
-
-// 	return nil
-// }
+func (s *SupplierUseCasesImpl) generateProcessKYCRejectionEmailTemplate() string {
+	t := template.Must(template.New("rejectionKYCEmail").Parse(utils.ProcessKYCRejectionEmail))
+	buf := new(bytes.Buffer)
+	err := t.Execute(buf, "")
+	if err != nil {
+		log.Fatalf("Error while generating KYC rejection email template: %s", err)
+	}
+	return buf.String()
+}

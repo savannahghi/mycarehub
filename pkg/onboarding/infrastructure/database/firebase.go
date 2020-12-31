@@ -448,7 +448,7 @@ func (fr *Repository) GenerateAuthCredentials(
 		}
 	}
 
-	err = fr.UpdateVerifiedIdentifiers(ctx, pr.ID, []base.VerifiedIdentifier{base.VerifiedIdentifier{
+	err = fr.UpdateVerifiedIdentifiers(ctx, pr.ID, []base.VerifiedIdentifier{{
 		UID:           u.UID,
 		LoginProvider: base.LoginProviderTypePhone,
 		Timestamp:     time.Now().In(base.TimeLocation),
@@ -1034,6 +1034,12 @@ func (fr *Repository) StageProfileNudge(ctx context.Context, nudge map[string]in
 	return err
 }
 
+// StageKYCProcessingRequest stages the request which will be retrieved later for admins
+func (fr *Repository) StageKYCProcessingRequest(ctx context.Context, data *domain.KYCRequest) error {
+	_, _, err := fr.FirestoreClient.Collection(fr.GetKCYProcessCollectionName()).Add(ctx, data)
+	return err
+}
+
 // FetchKYCProcessingRequests retrieves all unprocessed kycs for admins
 func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
 	collection := fr.FirestoreClient.Collection(fr.GetKCYProcessCollectionName())
@@ -1054,4 +1060,61 @@ func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain
 		res = append(res, req)
 	}
 	return res, nil
+}
+
+// FetchKYCProcessingRequestByID retrieves a specific kyc processing request
+func (fr *Repository) FetchKYCProcessingRequestByID(ctx context.Context, id string) (*domain.KYCRequest, error) {
+	collection := fr.FirestoreClient.Collection(fr.GetKCYProcessCollectionName())
+	query := collection.Where("id", "==", id)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch kyc request documents: %v", err)
+	}
+
+	req := &domain.KYCRequest{}
+	err = docs[0].DataTo(req)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read supplier: %w", err)
+	}
+
+	return req, nil
+}
+
+// UpdateKYCProcessingRequest update the supplier profile
+func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, sup *domain.KYCRequest) error {
+
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
+	if err != nil {
+		return fmt.Errorf("unable to parse kyc processing request as firebase snapshot: %v", err)
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		fr.FirestoreClient, fr.GetKCYProcessCollectionName(), record.Ref.ID, sup,
+	)
+	if err != nil {
+		return fmt.Errorf("unable to update kyc processing request profile: %v", err)
+	}
+
+	return nil
+
+}
+
+// FetchAdminUsers fetches all admins
+func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile, error) {
+	collection := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
+	query := collection.Where("permissions", "array-contains", base.PermissionTypeSuperAdmin).Where("permissions", "array-contains", base.PermissionTypeAdmin)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	var admins []*base.UserProfile
+	for _, doc := range docs {
+		u := &base.UserProfile{}
+		err = doc.DataTo(u)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read user profile: %w", err)
+		}
+		admins = append(admins, u)
+	}
+	return admins, nil
 }

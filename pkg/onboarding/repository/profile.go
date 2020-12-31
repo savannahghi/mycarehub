@@ -20,10 +20,16 @@ type SupplierRepository interface {
 
 	StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error
 
+	StageKYCProcessingRequest(ctx context.Context, data *domain.KYCRequest) error
+
 	// sets the active attribute of supplier profile to true
 	ActivateSupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error)
 
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
+
+	FetchKYCProcessingRequestByID(ctx context.Context, id string) (*domain.KYCRequest, error)
+
+	UpdateKYCProcessingRequest(ctx context.Context, sup *domain.KYCRequest) error
 }
 
 // OnboardingRepository interface that provide access to all persistent storage operations
@@ -57,6 +63,8 @@ type OnboardingRepository interface {
 	CheckIfPhoneNumberExists(ctx context.Context, phone string) (bool, error)
 
 	GenerateAuthCredentials(ctx context.Context, phone string) (*domain.AuthCredentialResponse, error)
+
+	FetchAdminUsers(ctx context.Context) ([]*base.UserProfile, error)
 
 	// PINs
 	GetPINByProfileID(

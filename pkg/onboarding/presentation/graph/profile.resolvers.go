@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -85,7 +84,7 @@ func (r *mutationResolver) AddOrganizationNutritionKyc(ctx context.Context, inpu
 }
 
 func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.ProcessKYCRequest(ctx, id, status, rejectionReason)
 }
 
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
