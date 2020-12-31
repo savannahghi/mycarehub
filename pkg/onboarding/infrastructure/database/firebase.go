@@ -191,6 +191,20 @@ func (fr *Repository) GetUserProfileByID(
 // CreateUserProfile creates a user profile of using the provided phone number and uid
 func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
 
+	v, err := fr.CheckIfPhoneNumberExists(ctx, phoneNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check the phone number: %v", err)
+	}
+
+	if v {
+		// this phone is number is associated with another user profile, hence can not create an profile with the same phone number
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.PhoneNUmberInUseErrMsg,
+			Code:    int(base.PhoneNumberInUse),
+		}
+	}
+
 	pr := &base.UserProfile{
 		ID:           uuid.New().String(),
 		PrimaryPhone: phoneNumber,

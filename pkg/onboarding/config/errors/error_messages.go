@@ -1,6 +1,10 @@
 package errors
 
 const (
+
+	//PhoneNUmberInUseErrMsg is the error message displayed when a phone number provided is associated with a profile already
+	PhoneNUmberInUseErrMsg = "provided phone number is already in use"
+
 	// UserNotFoundErrMsg is the error message displayed when a user is not found
 	UserNotFoundErrMsg = "failed to get a user"
 
