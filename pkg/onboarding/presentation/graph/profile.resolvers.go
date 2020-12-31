@@ -24,64 +24,64 @@ func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, part
 	return r.interactor.Supplier.AddPartnerType(ctx, &name, &partnerType)
 }
 
-func (r *mutationResolver) SuspendSupplier(ctx context.Context, uid string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) SuspendSupplier(ctx context.Context) (bool, error) {
+	return r.interactor.Supplier.SuspendSupplier(ctx)
 }
 
 func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType domain.AccountType) (*domain.Supplier, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.SetUpSupplier(ctx, accountType)
 }
 
 func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*domain.BranchConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.SupplierEDILogin(ctx, username, password, sladeCode)
 }
 
 func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.SupplierSetDefaultLocation(ctx, locatonID)
 }
 
 func (r *mutationResolver) AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddIndividualRiderKyc(ctx, input)
 }
 
 func (r *mutationResolver) AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddOrganizationRiderKyc(ctx, input)
 }
 
 func (r *mutationResolver) AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddIndividualPractitionerKyc(ctx, input)
 }
 
 func (r *mutationResolver) AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddOrganizationPractitionerKyc(ctx, input)
 }
 
 func (r *mutationResolver) AddOrganizationProviderKyc(ctx context.Context, input domain.OrganizationProvider) (*domain.OrganizationProvider, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddOrganizationProviderKyc(ctx, input)
 }
 
 func (r *mutationResolver) AddIndividualPharmaceuticalKyc(ctx context.Context, input domain.IndividualPharmaceutical) (*domain.IndividualPharmaceutical, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddIndividualPharmaceuticalKyc(ctx, input)
 }
 
 func (r *mutationResolver) AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddOrganizationPharmaceuticalKyc(ctx, input)
 }
 
 func (r *mutationResolver) AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddIndividualCoachKyc(ctx, input)
 }
 
 func (r *mutationResolver) AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddOrganizationCoachKyc(ctx, input)
 }
 
 func (r *mutationResolver) AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddIndividualNutritionKyc(ctx, input)
 }
 
 func (r *mutationResolver) AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.AddOrganizationNutritionKyc(ctx, input)
 }
 
 func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error) {
@@ -97,19 +97,19 @@ func (r *queryResolver) SupplierProfile(ctx context.Context) (*domain.Supplier, 
 }
 
 func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*domain.BusinessPartnerFilterInput, sort []*domain.BusinessPartnerSortInput) (*domain.BusinessPartnerConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.ChargeMaster.FindProvider(ctx, pagination, filter, sort)
 }
 
 func (r *queryResolver) FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*domain.BranchFilterInput, sort []*domain.BranchSortInput) (*domain.BranchConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.ChargeMaster.FindBranch(ctx, pagination, filter, sort)
 }
 
 func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*domain.BranchConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.FetchSupplierAllowedLocations(ctx)
 }
 
 func (r *queryResolver) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.interactor.Supplier.FetchKYCProcessingRequests(ctx)
 }
 
 // Mutation returns generated.MutationResolver implementation.

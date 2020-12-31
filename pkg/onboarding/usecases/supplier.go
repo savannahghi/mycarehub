@@ -41,11 +41,13 @@ type SupplierUseCases interface {
 
 	SetUpSupplier(ctx context.Context, accountType domain.AccountType) (*domain.Supplier, error)
 
-	SuspendSupplier(ctx context.Context, accountType domain.AccountType) (*domain.Supplier, error)
+	SuspendSupplier(ctx context.Context) (bool, error)
 
 	EDIUserLogin(username, password *string) (*base.EDIUserProfile, error)
 
 	CoreEDIUserLogin(username, password string) (*base.EDIUserProfile, error)
+
+	FetchSupplierAllowedLocations(ctx context.Context) (*domain.BranchConnection, error)
 
 	AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
 
@@ -69,8 +71,12 @@ type SupplierUseCases interface {
 
 	AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error)
 
-	// SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*domain.BranchConnection, error)
-	// SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error)
+	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
+
+	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*domain.BranchConnection, error)
+
+	SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error)
+
 	// FetchSupplierAllowedLocations(ctx context.Context) (*domain.BranchConnection, error)
 	// SaveProfileNudge(nudge map[string]interface{}) error
 	// PublishKYCNudge(uid string, partner *domain.PartnerType, account *domain.AccountType) error
@@ -78,7 +84,7 @@ type SupplierUseCases interface {
 	// StageKYCProcessingRequest(sup *domain.Supplier) error
 
 	// SaveKYCResponse(ctx context.Context, kycJSON []byte, supplier *domain.Supplier, dsnap *firestore.DocumentSnapshot) error
-	// FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
+
 	// ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
 	// SendKYCEmail(ctx context.Context, text, emailaddress string) error
 }
@@ -231,42 +237,23 @@ func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType dom
 }
 
 // SuspendSupplier flips the active boolean on the erp partner from true to false
-// consequently logically deleting the account
-func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context, accountType domain.AccountType) (*domain.Supplier, error) {
+func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error) {
 
-	validAccountType := accountType.IsValid()
-	if !validAccountType {
-		return nil, fmt.Errorf("%v is not an allowed AccountType choice", accountType.String())
-	}
-
-	uid, err := base.GetLoggedInUserUID(ctx)
+	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user: %w", err)
+		return false, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
 	}
 
-	supplier, err := s.FindSupplierByUID(ctx)
+	sup.Active = false
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return false, err
 	}
 
-	supplier.Active = true
+	//todo(dexter) notify the supplier of the suspension
 
-	sup, err := s.repo.UpdateSupplierProfile(ctx, supplier)
-	if err != nil {
-		return nil, err
-	}
-
-	go func() {
-		op := func() error {
-			return s.PublishKYCNudge(ctx, uid, &supplier.PartnerType, &supplier.AccountType)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
-
-	return sup, nil
+	return true, nil
 
 }
 
@@ -1279,6 +1266,11 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, 
 	return &kyc, nil
 }
 
+// FetchKYCProcessingRequests fetches a list of all unprocessed kyc approval requests
+func (s *SupplierUseCasesImpl) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
+	return s.repo.FetchKYCProcessingRequests(ctx)
+}
+
 // // StageKYCProcessingRequest saves kyc processing requests
 // func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(sup *domain.Supplier) error {
 // 	r := domain.KYCRequest{
@@ -1296,28 +1288,6 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, 
 // 		return fmt.Errorf("unable to save kyc processing request: %w", err)
 // 	}
 // 	return nil
-// }
-
-// // FetchKYCProcessingRequests fetches a list of all unprocessed kyc approval requests
-// func (s *SupplierUseCasesImpl) FetchKYCProcessingRequests(ctx context.Context) ([]*KYCRequest, error) {
-// 	collection := s.firestoreClient.Collection(s.GetKCYProcessCollectionName())
-// 	query := collection.Where("proceseed", "==", false)
-// 	docs, err := query.Documents(ctx).GetAll()
-// 	if err != nil {
-// 		return nil, fmt.Errorf("unable to fetch kyc request documents: %v", err)
-// 	}
-
-// 	res := []*KYCRequest{}
-
-// 	for _, doc := range docs {
-// 		req := &KYCRequest{}
-// 		err = doc.DataTo(req)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("unable to read supplier: %w", err)
-// 		}
-// 		res = append(res, req)
-// 	}
-// 	return res, nil
 // }
 
 // // ProcessKYCRequest transitions a kyc request to a given state

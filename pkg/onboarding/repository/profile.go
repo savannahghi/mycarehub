@@ -7,9 +7,31 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
+// SupplierRepository  defines signatures that relate to suppliers
+type SupplierRepository interface {
+	// supplier methods
+	GetSupplierProfileByID(ctx context.Context, id string) (*domain.Supplier, error)
+
+	GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, error)
+
+	AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error)
+
+	UpdateSupplierProfile(ctx context.Context, data *domain.Supplier) (*domain.Supplier, error)
+
+	StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error
+
+	// sets the active attribute of supplier profile to true
+	ActivateSupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error)
+
+	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
+}
+
 // OnboardingRepository interface that provide access to all persistent storage operations
 type OnboardingRepository interface {
 	base.UserProfileRepository
+
+	SupplierRepository
+
 	// creates a user profile of using the provided phone number and uid
 	CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error)
 
@@ -35,20 +57,6 @@ type OnboardingRepository interface {
 	CheckIfPhoneNumberExists(ctx context.Context, phone string) (bool, error)
 
 	GenerateAuthCredentials(ctx context.Context, phone string) (*domain.AuthCredentialResponse, error)
-
-	// supplier methods
-	GetSupplierProfileByID(ctx context.Context, id string) (*domain.Supplier, error)
-
-	GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, error)
-
-	AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error)
-
-	UpdateSupplierProfile(ctx context.Context, data *domain.Supplier) (*domain.Supplier, error)
-
-	StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error
-
-	// sets the active attribute of supplier profile to true
-	ActivateSupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error)
 
 	// PINs
 	GetPINByProfileID(

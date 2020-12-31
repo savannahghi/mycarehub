@@ -1014,3 +1014,25 @@ func (fr *Repository) StageProfileNudge(ctx context.Context, nudge map[string]in
 	_, _, err := fr.firestoreClient.Collection(fr.GetProfileNudgesCollectionName()).Add(ctx, nudge)
 	return err
 }
+
+// FetchKYCProcessingRequests retrieves all unprocessed kycs for admins
+func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
+	collection := fr.firestoreClient.Collection(fr.GetKCYProcessCollectionName())
+	query := collection.Where("proceseed", "==", false)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch kyc request documents: %v", err)
+	}
+
+	res := []*domain.KYCRequest{}
+
+	for _, doc := range docs {
+		req := &domain.KYCRequest{}
+		err = doc.DataTo(req)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read supplier: %w", err)
+		}
+		res = append(res, req)
+	}
+	return res, nil
+}

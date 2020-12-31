@@ -1,6 +1,8 @@
 extend type Query {
   userProfile: UserProfile!
+
   supplierProfile: Supplier!
+
   findProvider(
     pagination: PaginationInput
     filter: [BusinessPartnerFilterInput]
@@ -14,6 +16,7 @@ extend type Query {
   ): BranchConnection!
 
   fetchSupplierAllowedLocations: BranchConnection!
+
   fetchKYCProcessingRequests: [KYCRequest!]
 
   # listTesters: [String!]!
@@ -25,15 +28,20 @@ extend type Mutation {
   registerPushToken(token: String!): Boolean!
 
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
-  suspendSupplier(uid: String!): Boolean!
+
+  suspendSupplier: Boolean!
+
   setUpSupplier(accountType: AccountType!): Supplier
   supplierEDILogin(
     username: String!
     password: String!
     sladeCode: String!
   ): BranchConnection!
+
   supplierSetDefaultLocation(locatonID: String!): Boolean!
+
   addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
+
   addOrganizationRiderKYC(input: OrganizationRiderInput!): OrganizationRider!
 
   addIndividualPractitionerKYC(
@@ -73,6 +81,7 @@ extend type Mutation {
     status: KYCProcessStatus!
     rejectionReason: String
   ): Boolean!
+
   # setUserPin(msisdn: String!, pin: String!): Boolean!
 
   # recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!

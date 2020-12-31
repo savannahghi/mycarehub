@@ -208,7 +208,7 @@ type ComplexityRoot struct {
 		SetUpSupplier                    func(childComplexity int, accountType domain.AccountType) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
 		SupplierSetDefaultLocation       func(childComplexity int, locatonID string) int
-		SuspendSupplier                  func(childComplexity int, uid string) int
+		SuspendSupplier                  func(childComplexity int) int
 		UpdateUserProfile                func(childComplexity int, input domain.UserProfileInput) int
 	}
 
@@ -392,7 +392,7 @@ type MutationResolver interface {
 	UpdateUserProfile(ctx context.Context, input domain.UserProfileInput) (*base.UserProfile, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
 	AddPartnerType(ctx context.Context, name string, partnerType domain.PartnerType) (bool, error)
-	SuspendSupplier(ctx context.Context, uid string) (bool, error)
+	SuspendSupplier(ctx context.Context) (bool, error)
 	SetUpSupplier(ctx context.Context, accountType domain.AccountType) (*domain.Supplier, error)
 	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*domain.BranchConnection, error)
 	SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error)
@@ -1243,12 +1243,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_suspendSupplier_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SuspendSupplier(childComplexity, args["uid"].(string)), true
+		return e.complexity.Mutation.SuspendSupplier(childComplexity), true
 
 	case "Mutation.updateUserProfile":
 		if e.complexity.Mutation.UpdateUserProfile == nil {
@@ -2716,7 +2711,9 @@ input OrganizationPharmaceuticalInput {
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
+
   supplierProfile: Supplier!
+
   findProvider(
     pagination: PaginationInput
     filter: [BusinessPartnerFilterInput]
@@ -2730,6 +2727,7 @@ input OrganizationPharmaceuticalInput {
   ): BranchConnection!
 
   fetchSupplierAllowedLocations: BranchConnection!
+
   fetchKYCProcessingRequests: [KYCRequest!]
 
   # listTesters: [String!]!
@@ -2741,15 +2739,20 @@ extend type Mutation {
   registerPushToken(token: String!): Boolean!
 
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
-  suspendSupplier(uid: String!): Boolean!
+
+  suspendSupplier: Boolean!
+
   setUpSupplier(accountType: AccountType!): Supplier
   supplierEDILogin(
     username: String!
     password: String!
     sladeCode: String!
   ): BranchConnection!
+
   supplierSetDefaultLocation(locatonID: String!): Boolean!
+
   addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
+
   addOrganizationRiderKYC(input: OrganizationRiderInput!): OrganizationRider!
 
   addIndividualPractitionerKYC(
@@ -2789,6 +2792,7 @@ extend type Mutation {
     status: KYCProcessStatus!
     rejectionReason: String
   ): Boolean!
+
   # setUserPin(msisdn: String!, pin: String!): Boolean!
 
   # recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
@@ -3528,21 +3532,6 @@ func (ec *executionContext) field_Mutation_supplierSetDefaultLocation_args(ctx c
 		}
 	}
 	args["locatonID"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_suspendSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["uid"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uid"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["uid"] = arg0
 	return args, nil
 }
 
@@ -6704,16 +6693,9 @@ func (ec *executionContext) _Mutation_suspendSupplier(ctx context.Context, field
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_suspendSupplier_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SuspendSupplier(rctx, args["uid"].(string))
+		return ec.resolvers.Mutation().SuspendSupplier(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
