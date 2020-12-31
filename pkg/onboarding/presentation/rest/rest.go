@@ -131,9 +131,9 @@ func LoginByPhone(ctx context.Context, i *interactor.Interactor) http.HandlerFun
 // SetUserPIN is an unauthenticated  endpoint that saves user Pin
 func SetUserPIN(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		pin := &domain.PIN{}
+		pin := &domain.SetPINRequest{}
 		base.DecodeJSONToTargetStruct(w, r, pin)
-		if pin.PhoneNumber == "" || pin.PINNumber == "" {
+		if pin.PhoneNumber == "" || pin.PIN == "" {
 			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
@@ -141,7 +141,58 @@ func SetUserPIN(ctx context.Context, i *interactor.Interactor) http.HandlerFunc 
 
 		response, err := i.UserPIN.SetUserPIN(
 			ctx,
-			pin.PINNumber,
+			pin.PIN,
+			pin.PhoneNumber,
+		)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// RequestPINReset is an unauthenticated request that takes in a phone number
+// sends an otp to an msisdn that requests a PIN reset request during login
+func RequestPINReset(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &domain.PhoneNumberPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.PhoneNumber == nil {
+			err := fmt.Errorf("expected `phoneNumber` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		otp, err := i.UserPIN.RequestPINReset(ctx, *p.PhoneNumber)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(
+			w,
+			domain.OtpResponse{OTP: otp},
+			http.StatusOK,
+		)
+	}
+}
+
+// UpdatePin used to change/update a user's PIN
+func UpdatePin(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		pin := &domain.SetPINRequest{}
+		base.DecodeJSONToTargetStruct(w, r, pin)
+		if pin.PhoneNumber == "" || pin.PIN == "" {
+			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		response, err := i.UserPIN.ChangeUserPIN(
+			ctx,
+			pin.PIN,
 			pin.PhoneNumber,
 		)
 		if err != nil {
@@ -213,32 +264,6 @@ func GenerateAndSendOTP(ctx context.Context, i *interactor.Interactor) http.Hand
 	}
 }
 
-// RequestPINReset is an unauthenticated request that takes in a phone number
-// sends an otp to an msisdn that requests a PIN reset request during login
-func RequestPINReset(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		p := &domain.PhoneNumberPayload{}
-		base.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		otp, err := i.UserPIN.RequestPINReset(ctx, *p.PhoneNumber)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		base.WriteJSONResponse(
-			w,
-			domain.OtpResponse{OTP: otp},
-			http.StatusOK,
-		)
-	}
-}
-
 // ExchangeRefreshTokenForIDToken is an unauthenticated endpoint that
 // takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
@@ -297,30 +322,5 @@ func FindSupplierByUIDHandler(ctx context.Context, i *interactor.Interactor) htt
 		}
 
 		base.WriteJSONResponse(w, supplier, http.StatusOK)
-	}
-}
-
-// UpdatePin used to change/update a user's PIN
-func UpdatePin(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		pin := &domain.PIN{}
-		base.DecodeJSONToTargetStruct(w, r, pin)
-		if pin.PhoneNumber == "" || pin.PINNumber == "" {
-			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		response, err := i.UserPIN.ChangeUserPIN(
-			ctx,
-			pin.PINNumber,
-			pin.PhoneNumber,
-		)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		base.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }

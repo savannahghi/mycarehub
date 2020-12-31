@@ -270,10 +270,15 @@ type ReceivablesAccount struct {
 
 // PIN represents a user's PIN information
 type PIN struct {
-	ProfileID   string `json:"profileID" firestore:"profileID"`
-	PhoneNumber string `json:"phoneNumber" firestore:"phoneNumber"`
-	PINNumber   string `json:"pinNumber" firestore:"pinNumber"`
-	Salt        string `json:"salt" firestore:"salt"`
+	ProfileID string `json:"profileID" firestore:"profileID"`
+	PINNumber string `json:"pinNumber" firestore:"pinNumber"`
+	Salt      string `json:"salt" firestore:"salt"`
+}
+
+// SetPINRequest payload to set or change PIN information
+type SetPINRequest struct {
+	PhoneNumber string `json:"phoneNumber"  `
+	PIN         string `json:"pin" `
 }
 
 // LoginPayload used when calling the REST API to log a user in

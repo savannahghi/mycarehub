@@ -25,7 +25,6 @@ const (
 	active                 = true
 	country                = "KEN" // Anticipate worldwide expansion
 	supplierCollectionName = "suppliers"
-	isSupplier             = true
 	futureHours            = 878400
 	savannahSladeCode      = "1"
 )
@@ -33,7 +32,8 @@ const (
 // SupplierUseCases represent the business logic required for management of suppliers
 type SupplierUseCases interface {
 	AddPartnerType(ctx context.Context, name *string, partnerType *domain.PartnerType) (bool, error)
-	AddSupplier(ctx context.Context, name string, partnerType domain.PartnerType) (*domain.Supplier, error)
+
+	AddCustomerSupplierERPAccount(ctx context.Context, name string, partnerType domain.PartnerType) (*domain.Supplier, error)
 
 	FindSupplierByID(ctx context.Context, id string) (*domain.Supplier, error)
 
@@ -139,9 +139,9 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 	return true, nil
 }
 
-// AddSupplier makes a call to our own ERP and creates a supplier account for the pro users based
-// on their correct partner types that is used for transacting on Be.Well
-func (s SupplierUseCasesImpl) AddSupplier(ctx context.Context, name string, partnerType domain.PartnerType) (*domain.Supplier, error) {
+// AddCustomerSupplierERPAccount makes a call to our own ERP and creates a  customer account or supplier account  based
+// on the provided partnerType
+func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context, name string, partnerType domain.PartnerType) (*domain.Supplier, error) {
 
 	userUID, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
@@ -163,17 +163,38 @@ func (s SupplierUseCasesImpl) AddSupplier(ctx context.Context, name string, part
 		return nil, fmt.Errorf("%v is not an valid partner type choice", partnerType.String())
 	}
 
-	payload := map[string]interface{}{
-		"active":        active,
-		"partner_name":  name,
-		"country":       country,
-		"currency":      *currency.ID,
-		"is_supplier":   isSupplier,
-		"supplier_type": partnerType,
+	var payload map[string]interface{}
+	var endpoint string
+
+	if partnerType == domain.PartnerTypeConsumer {
+		endpoint = customerAPIPath
+		payload = map[string]interface{}{
+			"active":        active,
+			"partner_name":  name,
+			"country":       country,
+			"currency":      *currency.ID,
+			"is_customer":   true,
+			"customer type": partnerType,
+		}
+	} else {
+		endpoint = supplierAPIPath
+		payload = map[string]interface{}{
+			"active":        active,
+			"partner_name":  name,
+			"country":       country,
+			"currency":      *currency.ID,
+			"is_supplier":   true,
+			"supplier_type": partnerType,
+		}
 	}
 
-	if err := s.erp.CreateERPSupplier(string(http.MethodPost), supplierAPIPath, payload, partnerType); err != nil {
+	if err := s.erp.CreateERPSupplier(string(http.MethodPost), endpoint, payload, partnerType); err != nil {
 		return nil, err
+	}
+
+	// for customers, we don't return anything. So long as there is not error, we are good
+	if partnerType == domain.PartnerTypeConsumer {
+		return nil, nil
 	}
 
 	return s.repo.ActivateSupplierProfile(ctx, profile.ID)

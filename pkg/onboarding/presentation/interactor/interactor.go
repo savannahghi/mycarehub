@@ -32,19 +32,19 @@ func NewOnboardingInteractor() (*Interactor, error) {
 		return nil, fmt.Errorf("can't instantiate firebase repository in resolver: %w", err)
 	}
 
-	uc := usecases.NewProfileUseCase(fr)
+	profile := usecases.NewProfileUseCase(fr)
 	otp := usecases.NewOTPUseCasesImpl(fr)
 	erp := usecases.NewERPUseCases(fr)
 	chrg := usecases.NewChargeMasterUseCasesImpl(fr)
 	engage := usecases.NewEngagementUseCasesImpl(fr)
-	supplier := usecases.NewSupplierUseCases(fr, uc, erp, chrg, engage)
+	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage)
 	login := usecases.NewLoginUseCases(fr)
 	survey := usecases.NewSurveyUseCases(fr)
-	userpin := usecases.NewUserPinUseCase(fr, otp)
-	su := usecases.NewSignUpUseCases(fr, uc, userpin)
+	userpin := usecases.NewUserPinUseCase(fr, otp, profile)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier)
 
 	return &Interactor{
-		Onboarding:   uc,
+		Onboarding:   profile,
 		Signup:       su,
 		Otp:          otp,
 		Supplier:     supplier,

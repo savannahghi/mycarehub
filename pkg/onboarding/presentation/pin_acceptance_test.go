@@ -15,28 +15,26 @@ import (
 	"gitlab.slade360emr.com/go/base"
 )
 
-func composeInValidPinPayload(t *testing.T) *domain.PIN {
-	payload := &domain.PIN{
+func composeInValidPinPayload(t *testing.T) *domain.SetPINRequest {
+	return &domain.SetPINRequest{
 		PhoneNumber: "",
-		PINNumber:   "1234",
+		PIN:         "1234",
 	}
-	return payload
+
 }
 
-func composeValidPinPayload(t *testing.T) *domain.PIN {
-	payload := &domain.PIN{
+func composeValidPinPayload(t *testing.T) *domain.SetPINRequest {
+	return &domain.SetPINRequest{
 		PhoneNumber: base.TestUserPhoneNumberWithPin,
-		PINNumber:   "1234",
+		PIN:         "1234",
 	}
-	return payload
 }
 
-func composeUnregisteredPhone(t *testing.T) *domain.PIN {
-	payload := &domain.PIN{
+func composeUnregisteredPhone(t *testing.T) *domain.SetPINRequest {
+	return &domain.SetPINRequest{
 		PhoneNumber: base.TestUserPhoneNumber,
-		PINNumber:   "1234",
+		PIN:         "1234",
 	}
-	return payload
 }
 
 func TestSetUserPIN(t *testing.T) {

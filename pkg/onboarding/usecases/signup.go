@@ -51,14 +51,17 @@ type SignUpUseCasesImpl struct {
 	onboardingRepository repository.OnboardingRepository
 	profileUsecase       ProfileUseCase
 	pinUsecase           UserPINUseCases
+	supplierUsecase      SupplierUseCases
 }
 
 // NewSignUpUseCases returns a new a onboarding usecase
-func NewSignUpUseCases(r repository.OnboardingRepository, profile ProfileUseCase, pin UserPINUseCases) SignUpUseCases {
+func NewSignUpUseCases(r repository.OnboardingRepository, profile ProfileUseCase, pin UserPINUseCases, supplier SupplierUseCases) SignUpUseCases {
 	return &SignUpUseCasesImpl{
 		onboardingRepository: r,
 		profileUsecase:       profile,
-		pinUsecase:           pin}
+		pinUsecase:           pin,
+		supplierUsecase:      supplier,
+	}
 }
 
 // CheckPhoneExists checks whether a phone number has been registred by another user.
@@ -103,10 +106,10 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 	if err != nil {
 		return nil, err
 	}
-	// TODO uncomment after fixing duplicate profiles being created
-	// if _, err := s.pinUsecase.SetUserPIN(ctx, phoneNumber, pin); err != nil {
-	// 	return nil, err
-	// }
+
+	if _, err := s.pinUsecase.SetUserPIN(ctx, phoneNumber, pin); err != nil {
+		return nil, err
+	}
 
 	var supplier *domain.Supplier
 	var customer *domain.Customer
@@ -161,7 +164,12 @@ func (s *SignUpUseCasesImpl) RegisterPushToken(ctx context.Context, token string
 func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error) {
 
 	if flavour == base.FlavourConsumer {
-		// TODO : create ERP customer account (wellnesspoints and receivablesAccount)
+		pr, err := s.profileUsecase.UserProfile(ctx)
+		if err != nil {
+			return false, err
+		}
+		_, _ = s.supplierUsecase.AddCustomerSupplierERPAccount(ctx,
+			fmt.Sprintf("%v %v", pr.UserBioData.FirstName, pr.UserBioData.LastName), domain.PartnerTypeConsumer)
 		return true, nil
 	}
 	return false, nil
