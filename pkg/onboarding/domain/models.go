@@ -283,9 +283,9 @@ type SetPINRequest struct {
 
 // LoginPayload used when calling the REST API to log a user in
 type LoginPayload struct {
-	PhoneNumber *string       `json:"phoneNumber"`
-	PIN         *string       `json:"pin"`
-	Flavour     *base.Flavour `json:"flavour"`
+	PhoneNumber *string      `json:"phoneNumber"`
+	PIN         *string      `json:"pin"`
+	Flavour     base.Flavour `json:"flavour"`
 }
 
 // CustomError represents a custom error struct

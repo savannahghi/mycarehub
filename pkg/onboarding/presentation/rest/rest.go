@@ -107,7 +107,7 @@ func LoginByPhone(ctx context.Context, i *interactor.Interactor) http.HandlerFun
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &domain.LoginPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil || p.PIN == nil || p.Flavour == nil {
+		if p.PhoneNumber == nil || p.PIN == nil {
 			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
@@ -117,7 +117,7 @@ func LoginByPhone(ctx context.Context, i *interactor.Interactor) http.HandlerFun
 			ctx,
 			*p.PhoneNumber,
 			*p.PIN,
-			*p.Flavour,
+			p.Flavour,
 		)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
