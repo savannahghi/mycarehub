@@ -87,6 +87,10 @@ func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, sta
 	return r.interactor.Supplier.ProcessKYCRequest(ctx, id, status, rejectionReason)
 }
 
+func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input domain.PostVisitSurveyInput) (bool, error) {
+	return r.interactor.Survey.RecordPostVisitSurvey(ctx, input)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	return r.interactor.Onboarding.UserProfile(ctx)
 }

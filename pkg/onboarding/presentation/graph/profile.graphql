@@ -82,9 +82,12 @@ extend type Mutation {
     rejectionReason: String
   ): Boolean!
 
+  recordPostVisitSurvey(
+    input: PostVisitSurveyInput!
+  ): Boolean!
+
   # setUserPin(msisdn: String!, pin: String!): Boolean!
 
-  # recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
   # addTester(email: String!): Boolean!
   # removeTester(email: String!): Boolean!
 

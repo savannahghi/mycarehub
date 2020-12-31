@@ -75,7 +75,7 @@ type OnboardingRepository interface {
 	// Record post visit survey
 	RecordPostVisitSurvey(
 		ctx context.Context,
-		input *domain.PostVisitSurveyInput,
+		input domain.PostVisitSurveyInput,
 		UID string,
 	) (bool, error)
 

@@ -12,7 +12,7 @@ import (
 
 // SurveyUseCases represents all the business logic involved in user post visit surveys.
 type SurveyUseCases interface {
-	RecordPostVisitSurvey(ctx context.Context, input *domain.PostVisitSurveyInput) (bool, error)
+	RecordPostVisitSurvey(ctx context.Context, input domain.PostVisitSurveyInput) (bool, error)
 }
 
 // SurveyUseCasesImpl represents the usecase implementation object
@@ -28,7 +28,7 @@ func NewSurveyUseCases(r repository.OnboardingRepository) *SurveyUseCasesImpl {
 // RecordPostVisitSurvey records the survey input supplied by the user
 func (rs *SurveyUseCasesImpl) RecordPostVisitSurvey(
 	ctx context.Context,
-	input *domain.PostVisitSurveyInput,
+	input domain.PostVisitSurveyInput,
 ) (bool, error) {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
 		return false, &domain.CustomError{

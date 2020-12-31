@@ -767,7 +767,7 @@ func checkIdentifierExists(profile *base.UserProfile, UID string) bool {
 // RecordPostVisitSurvey records an end of visit survey
 func (fr *Repository) RecordPostVisitSurvey(
 	ctx context.Context,
-	input *domain.PostVisitSurveyInput,
+	input domain.PostVisitSurveyInput,
 	UID string,
 ) (bool, error) {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {

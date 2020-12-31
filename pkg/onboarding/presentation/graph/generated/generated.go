@@ -204,6 +204,7 @@ type ComplexityRoot struct {
 		AddOrganizationRiderKyc          func(childComplexity int, input domain.OrganizationRider) int
 		AddPartnerType                   func(childComplexity int, name string, partnerType domain.PartnerType) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
+		RecordPostVisitSurvey            func(childComplexity int, input domain.PostVisitSurveyInput) int
 		RegisterPushToken                func(childComplexity int, token string) int
 		SetUpSupplier                    func(childComplexity int, accountType domain.AccountType) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
@@ -408,6 +409,7 @@ type MutationResolver interface {
 	AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error)
 	AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error)
 	ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
+	RecordPostVisitSurvey(ctx context.Context, input domain.PostVisitSurveyInput) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -1189,6 +1191,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ProcessKYCRequest(childComplexity, args["id"].(string), args["status"].(domain.KYCProcessStatus), args["rejectionReason"].(*string)), true
+
+	case "Mutation.recordPostVisitSurvey":
+		if e.complexity.Mutation.RecordPostVisitSurvey == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_recordPostVisitSurvey_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RecordPostVisitSurvey(childComplexity, args["input"].(domain.PostVisitSurveyInput)), true
 
 	case "Mutation.registerPushToken":
 		if e.complexity.Mutation.RegisterPushToken == nil {
@@ -2793,9 +2807,12 @@ extend type Mutation {
     rejectionReason: String
   ): Boolean!
 
+  recordPostVisitSurvey(
+    input: PostVisitSurveyInput!
+  ): Boolean!
+
   # setUserPin(msisdn: String!, pin: String!): Boolean!
 
-  # recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
   # addTester(email: String!): Boolean!
   # removeTester(email: String!): Boolean!
 
@@ -3454,6 +3471,21 @@ func (ec *executionContext) field_Mutation_processKYCRequest_args(ctx context.Co
 		}
 	}
 	args["rejectionReason"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_recordPostVisitSurvey_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 domain.PostVisitSurveyInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNPostVisitSurveyInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPostVisitSurveyInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -7323,6 +7355,48 @@ func (ec *executionContext) _Mutation_processKYCRequest(ctx context.Context, fie
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().ProcessKYCRequest(rctx, args["id"].(string), args["status"].(domain.KYCProcessStatus), args["rejectionReason"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_recordPostVisitSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_recordPostVisitSurvey_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RecordPostVisitSurvey(rctx, args["input"].(domain.PostVisitSurveyInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15172,6 +15246,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "recordPostVisitSurvey":
+			out.Values[i] = ec._Mutation_recordPostVisitSurvey(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16821,6 +16900,11 @@ func (ec *executionContext) marshalNPermissionType2gitlabᚗslade360emrᚗcomᚋ
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNPostVisitSurveyInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPostVisitSurveyInput(ctx context.Context, v interface{}) (domain.PostVisitSurveyInput, error) {
+	res, err := ec.unmarshalInputPostVisitSurveyInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNPractitionerCadre2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx context.Context, v interface{}) (domain.PractitionerCadre, error) {
