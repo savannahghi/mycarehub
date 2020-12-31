@@ -50,9 +50,13 @@ func composeInvalidUserPhonePayload(t *testing.T) *domain.LoginPayload {
 	return payload
 }
 func TestLoginInByPhone(t *testing.T) {
-	_, err := CreateTestUserByPhone(t)
+	user, err := CreateTestUserByPhone(t)
 	if err != nil {
 		t.Errorf("failed to create a user by phone")
+		return
+	}
+	if user == nil {
+		t.Errorf("nil user found")
 		return
 	}
 

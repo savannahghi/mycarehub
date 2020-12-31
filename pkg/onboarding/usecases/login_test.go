@@ -19,6 +19,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 )
 
 func TestMain(m *testing.M) {
@@ -80,7 +81,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}
 
 	profile := usecases.NewProfileUseCase(fr)
-	otp := usecases.NewOTPUseCasesImpl(fr)
+	otp := otp.NewOTPService(fr)
 	erp := erp.NewERPService(fr)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
 	engage := engagement.NewServiceEngagementImpl(fr)

@@ -8,6 +8,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -21,12 +22,12 @@ type UserPINUseCases interface {
 // UserPinUseCaseImpl represents usecase implementation object
 type UserPinUseCaseImpl struct {
 	onboardingRepository repository.OnboardingRepository
-	otpUseCases          OTPUseCases
+	otpUseCases          otp.ServiceOTP
 	profileUseCases      ProfileUseCase
 }
 
 // NewUserPinUseCase returns a new UserPin usecase
-func NewUserPinUseCase(r repository.OnboardingRepository, otp OTPUseCases, p ProfileUseCase) UserPINUseCases {
+func NewUserPinUseCase(r repository.OnboardingRepository, otp otp.ServiceOTP, p ProfileUseCase) UserPINUseCases {
 	return &UserPinUseCaseImpl{
 		onboardingRepository: r,
 		otpUseCases:          otp,

@@ -90,10 +90,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost, http.MethodOptions).HandlerFunc(rest.ChangePin(ctx, i))
 
 	//OTP routes
-	r.Path("/send_otp").Methods(
-		http.MethodPost,
-		http.MethodOptions).
-		HandlerFunc(rest.GenerateAndSendOTP(ctx, i))
 	r.Path("/send_retry_otp").Methods(
 		http.MethodPost,
 		http.MethodOptions).

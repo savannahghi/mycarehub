@@ -1,4 +1,4 @@
-package usecases
+package otp
 
 import (
 	"context"
@@ -19,13 +19,12 @@ const otpService = "otp"
 
 // OTP service endpoints
 const (
-	SendEmail    = "internal/send_email"
 	SendRetryOtp = "internal/send_retry_otp/"
 	SendOtp      = "internal/send_otp/"
 )
 
-// OTPUseCases represent the business logic required for management of OTP
-type OTPUseCases interface {
+// ServiceOTP represent the business logic required for management of OTP
+type ServiceOTP interface {
 	GenerateAndSendOTP(
 		ctx context.Context,
 		phone string,
@@ -37,13 +36,13 @@ type OTPUseCases interface {
 	) (string, error)
 }
 
-// OTPUseCasesImpl represents OTP usecases
-type OTPUseCasesImpl struct {
+// ServiceOTPImpl represents OTP usecases
+type ServiceOTPImpl struct {
 	Otp *base.InterServiceClient
 }
 
-// NewOTPUseCasesImpl returns new instance of OTPUseCasesImpl
-func NewOTPUseCasesImpl(r repository.OnboardingRepository) OTPUseCases {
+// NewOTPService returns new instance of ServiceOTPImpl
+func NewOTPService(r repository.OnboardingRepository) ServiceOTP {
 
 	var config base.DepsConfig
 	//os file and parse it to go type
@@ -65,11 +64,11 @@ func NewOTPUseCasesImpl(r repository.OnboardingRepository) OTPUseCases {
 
 	}
 
-	return &OTPUseCasesImpl{Otp: otpClient}
+	return &ServiceOTPImpl{Otp: otpClient}
 }
 
 // GenerateAndSendOTP creates a new otp and sends it to the provided phone number.
-func (o *OTPUseCasesImpl) GenerateAndSendOTP(
+func (o *ServiceOTPImpl) GenerateAndSendOTP(
 	ctx context.Context,
 	phone string,
 ) (string, error) {
@@ -82,7 +81,9 @@ func (o *OTPUseCasesImpl) GenerateAndSendOTP(
 		return defaultOTP, fmt.Errorf("unable to generate and send otp: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return defaultOTP, fmt.Errorf("unable to generate and send otp, with status code %v", resp.StatusCode)
+		return defaultOTP, fmt.Errorf(
+			"unable to generate and send otp, with status code %v", resp.StatusCode,
+		)
 	}
 	code, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -93,7 +94,7 @@ func (o *OTPUseCasesImpl) GenerateAndSendOTP(
 }
 
 // SendRetryOTP generates fallback OTPs when Africa is talking sms fails
-func (o *OTPUseCasesImpl) SendRetryOTP(
+func (o *ServiceOTPImpl) SendRetryOTP(
 	ctx context.Context,
 	msisdn string,
 	retryStep int,
@@ -113,7 +114,10 @@ func (o *OTPUseCasesImpl) SendRetryOTP(
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unable to generate and send fallback otp, with status code %v", resp.StatusCode)
+		return "", fmt.Errorf(
+			"unable to generate and send fallback otp, with status code %v",
+			resp.StatusCode,
+		)
 	}
 
 	code, err := ioutil.ReadAll(resp.Body)

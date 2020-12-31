@@ -238,32 +238,6 @@ func SendRetryOTPHandler(
 	}
 }
 
-// GenerateAndSendOTP is an unauthenticated request that takes in a phone number
-// and generates and sends a valid OTP to the phone number
-func GenerateAndSendOTP(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		p := &domain.PhoneNumberPayload{}
-		base.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		otp, err := i.Otp.GenerateAndSendOTP(ctx, *p.PhoneNumber)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		base.WriteJSONResponse(
-			w,
-			domain.OtpResponse{OTP: otp},
-			http.StatusOK,
-		)
-	}
-}
-
 // ExchangeRefreshTokenForIDToken is an unauthenticated endpoint that
 // takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
