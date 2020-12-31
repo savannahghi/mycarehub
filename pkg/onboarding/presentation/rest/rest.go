@@ -179,8 +179,8 @@ func RequestPINReset(ctx context.Context, i *interactor.Interactor) http.Handler
 	}
 }
 
-// UpdatePin used to change/update a user's PIN
-func UpdatePin(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
+// ChangePin used to change/update a user's PIN
+func ChangePin(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pin := &domain.SetPINRequest{}
 		base.DecodeJSONToTargetStruct(w, r, pin)
