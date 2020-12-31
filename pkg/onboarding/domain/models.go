@@ -270,6 +270,7 @@ type ReceivablesAccount struct {
 
 // PIN represents a user's PIN information
 type PIN struct {
+	ID        string `json:"id" firestore:"id"`
 	ProfileID string `json:"profileID" firestore:"profileID"`
 	PINNumber string `json:"pinNumber" firestore:"pinNumber"`
 	Salt      string `json:"salt" firestore:"salt"`

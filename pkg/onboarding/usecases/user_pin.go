@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -65,6 +66,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 	salt, encryptedPin := utils.EncryptPIN(pin, nil)
 
 	pinPayload := &domain.PIN{
+		ID:        uuid.New().String(),
 		ProfileID: pr.ID,
 		PINNumber: encryptedPin,
 		Salt:      salt,
@@ -156,11 +158,6 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 		}
 	}
 
-	_, err = u.onboardingRepository.
-		GetPINByProfileID(ctx, profile.ID)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read PIN: %w", err)
-	}
 	// EncryptPIN the PIN
 	salt, encryptedPin := utils.EncryptPIN(pin, nil)
 	if err != nil {
@@ -173,11 +170,12 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 	}
 
 	pinPayload := &domain.PIN{
+		ID:        uuid.New().String(),
 		ProfileID: profile.ID,
 		PINNumber: encryptedPin,
 		Salt:      salt,
 	}
-	return u.onboardingRepository.UpdatePIN(ctx, pinPayload)
+	return u.onboardingRepository.UpdatePIN(ctx, profile.ID, pinPayload)
 }
 
 // CheckHasPIN given a phone number checks if the phonenumber is present in our collections

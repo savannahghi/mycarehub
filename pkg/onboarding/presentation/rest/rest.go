@@ -192,15 +192,15 @@ func ChangePin(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
 
 		response, err := i.UserPIN.ChangeUserPIN(
 			ctx,
-			pin.PIN,
 			pin.PhoneNumber,
+			pin.PIN,
 		)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
-		base.WriteJSONResponse(w, response, http.StatusOK)
+		base.WriteJSONResponse(w, response, http.StatusCreated)
 	}
 }
 

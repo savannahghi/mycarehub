@@ -128,6 +128,8 @@ func (fr Repository) ParseRecordAsSnapshot(ctx context.Context, collection strin
 		doc, err = fr.FirestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
 	case fr.GetCustomerProfileCollectionName():
 		doc, err = fr.FirestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
+	case fr.GetPINsCollectionName():
+		doc, err = fr.FirestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
 	}
 	return doc[0], err
 }
@@ -830,18 +832,18 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN
 }
 
 // UpdatePIN  persist the data of the updated PIN to a datastore
-func (fr *Repository) UpdatePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN, error) {
-	profile, err := fr.GetPINByProfileID(ctx, pin.ProfileID)
+func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN) (*domain.PIN, error) {
+	pinData, err := fr.GetPINByProfileID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetPINsCollectionName(), profile.ProfileID)
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetPINsCollectionName(), pinData.ID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse user pin as firebase snapshot: %v", err)
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.FirestoreClient, fr.GetPINsCollectionName(), record.Ref.ID, profile,
+		fr.FirestoreClient, fr.GetPINsCollectionName(), record.Ref.ID, pinData,
 	)
 	if err != nil {
 		return nil, &domain.CustomError{
@@ -850,7 +852,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, pin *domain.PIN) (*domain.P
 			Code:    int(base.Internal),
 		}
 	}
-	return profile, nil
+	return pinData, nil
 
 }
 
