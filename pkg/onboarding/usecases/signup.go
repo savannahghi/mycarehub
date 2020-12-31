@@ -95,14 +95,13 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 	if err != nil {
 		return nil, fmt.Errorf("failed to create firebase user: %w", err)
 	}
-
-	auth, err := s.onboardingRepository.GenerateAuthCredentials(ctx, phoneNumber)
-	if err != nil {
-		return nil, err
-	}
 	profile, err := s.onboardingRepository.CreateUserProfile(ctx, phoneNumber, user.UID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create userProfile: %w", err)
+	}
+	auth, err := s.onboardingRepository.GenerateAuthCredentials(ctx, phoneNumber)
+	if err != nil {
+		return nil, err
 	}
 	// TODO uncomment after fixing duplicate profiles being created
 	// if _, err := s.pinUsecase.SetUserPIN(ctx, phoneNumber, pin); err != nil {

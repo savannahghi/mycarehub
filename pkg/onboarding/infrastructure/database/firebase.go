@@ -421,6 +421,24 @@ func (fr *Repository) GenerateAuthCredentials(
 			Code:    int(base.Internal),
 		}
 	}
+	pr, err := fr.GetUserProfileByPrimaryPhoneNumber(ctx, phone)
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.AuthenticateTokenErrMsg,
+			Code:    int(base.ProfileNotFound),
+		}
+	}
+
+	err = fr.UpdateVerifiedIdentifiers(ctx, pr.ID, u.UID)
+	if err != nil {
+		return nil, &domain.CustomError{
+			Err:     err,
+			Message: errors.UpdateProfileErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+
 	return &domain.AuthCredentialResponse{
 		CustomToken:  &customToken,
 		IDToken:      &userTokens.IDToken,
