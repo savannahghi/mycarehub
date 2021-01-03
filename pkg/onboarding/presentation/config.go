@@ -84,6 +84,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(rest.LoginByPhone(ctx, i))
+	r.Path("/refresh_token").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(rest.RefreshToken(ctx, i))
 
 	// PIN Routes
 	r.Path("/change_pin").Methods(

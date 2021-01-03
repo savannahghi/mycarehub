@@ -355,6 +355,7 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 	if err != nil {
 		return false, err
 	}
+
 	if len(docs1) == 1 {
 		return true, nil
 	}
@@ -365,7 +366,6 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 	if err != nil {
 		return false, err
 	}
-
 	if len(docs2) == 1 {
 		return true, nil
 	}

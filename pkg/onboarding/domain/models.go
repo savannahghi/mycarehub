@@ -330,9 +330,10 @@ type RefreshTokenExchangePayload struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// RefreshToken ...
-type RefreshToken struct {
-	RefreshToken *string `json:"refresh_token"`
+// RefreshTokenPayload is used when calling the REST API to
+// exchange a Refresh Token for new ID Token
+type RefreshTokenPayload struct {
+	RefreshToken *string `json:"refreshToken"`
 }
 
 // BusinessPartnerUID is the user ID used in some inter-service requests

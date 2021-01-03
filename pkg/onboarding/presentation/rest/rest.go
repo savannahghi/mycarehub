@@ -113,6 +113,12 @@ func LoginByPhone(ctx context.Context, i *interactor.Interactor) http.HandlerFun
 			return
 		}
 
+		if !p.Flavour.IsValid() {
+			err := fmt.Errorf("an invalid `flavour` defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
 		response, err := i.Login.LoginByPhone(
 			ctx,
 			*p.PhoneNumber,
@@ -238,13 +244,17 @@ func SendRetryOTPHandler(
 	}
 }
 
-// ExchangeRefreshTokenForIDToken is an unauthenticated endpoint that
+// RefreshToken is an unauthenticated endpoint that
 // takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func ExchangeRefreshTokenForIDToken(ctx context.Context, i *interactor.Interactor) http.HandlerFunc {
+func RefreshToken(
+	ctx context.Context,
+	i *interactor.Interactor,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &domain.RefreshToken{}
+		p := &domain.RefreshTokenPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.RefreshToken == nil {
 			err := fmt.Errorf("expected `refreshToken` to be defined")
 			base.ReportErr(w, err, http.StatusBadRequest)
