@@ -1,4 +1,4 @@
-package usecases
+package usecases_test
 
 import (
 	"context"
@@ -6,17 +6,15 @@ import (
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 )
 
 func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
 	authenticatedContext := base.GetAuthenticatedContext(t)
-	r, err := database.NewFirebaseRepository(authenticatedContext)
+	s, err := InitializeTestService(authenticatedContext)
 	if err != nil {
-		t.Errorf("can't initialize a new firebase repository")
+		t.Errorf("unable to initialize test service")
 		return
 	}
-	rs := NewSurveyUseCases(r)
 
 	type args struct {
 		ctx   context.Context
@@ -70,8 +68,8 @@ func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rs := rs
-			got, err := rs.RecordPostVisitSurvey(tt.args.ctx, tt.args.input)
+			rs := s
+			got, err := rs.Survey.RecordPostVisitSurvey(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf(
 					"SurveyUseCasesImpl.RecordPostVisitSurvey() error = %v,wantErr %v",

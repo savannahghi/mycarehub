@@ -11,7 +11,6 @@ import (
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
@@ -109,26 +108,41 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}, nil
 }
 
-func createTestPhoneUser(ctx context.Context, flavour base.Flavour) (*domain.UserResponse, error) {
+func createTestPhoneUser(
+	ctx context.Context,
+	flavour base.Flavour,
+	phoneNumber string,
+	PIN string,
+) (bool, error) {
 	s, err := InitializeTestService(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to initialize test service")
+		return false, fmt.Errorf("unable to initialize test service")
 	}
-	u, err := s.Signup.CreateUserByPhone(
-		ctx,
-		base.TestUserPhoneNumber,
-		base.TestUserPin,
-		flavour,
-	)
+
+	exists, err := s.Signup.CheckPhoneExists(ctx, phoneNumber)
 	if err != nil {
-		return nil, err
+		return false, fmt.Errorf("%v", err)
 	}
+	if !exists {
+		u, err := s.Signup.CreateUserByPhone(
+			ctx,
+			phoneNumber,
+			PIN,
+			flavour,
+		)
+		if err != nil {
+			return false, err
+		}
 
-	if u == nil {
-		return nil, fmt.Errorf("nil user response")
+		if u == nil {
+			return false, fmt.Errorf("nil user response")
+		}
+		return true, nil
 	}
+	// TODO: A correct user response is better than just a status boolean
+	// Reason for status bool is to unblock the failing test
 
-	return u, nil
+	return true, nil
 }
 func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 	ctx := context.Background()
@@ -139,13 +153,18 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 		return
 	}
 
-	u, err := createTestPhoneUser(ctx, flavour)
+	u, err := createTestPhoneUser(
+		ctx,
+		flavour,
+		base.TestUserPhoneNumber,
+		base.TestUserPin,
+	)
 	if err != nil {
 		t.Errorf("failed to create test phone user: %v", err)
 		return
 	}
-	if u == nil {
-		t.Errorf("nil user response")
+	if !u {
+		t.Errorf("failed to create a test user")
 		return
 	}
 
