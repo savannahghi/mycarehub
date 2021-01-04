@@ -52,7 +52,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
 	}
 
-	h := rest.NewHandlersUsecases(i)
+	h := rest.NewHandlersInterfaces(i)
 
 	r := mux.NewRouter() // gorilla mux
 	r.Use(

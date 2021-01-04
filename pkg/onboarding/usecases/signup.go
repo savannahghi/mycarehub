@@ -15,15 +15,12 @@ type SignUpUseCases interface {
 
 	// checks whether a phone number has been registred by another user. Checks both primary and
 	// secondary phone numbers. If the the phone number is foreign, it send an OTP to that phone number
-	// Implemented for unauthenicated REST API
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 
 	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
-	// Implemented for unauthenicated REST API
 	CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*domain.UserResponse, error)
 
 	// updates the user profile of the currently logged in user
-	// Implemented for unauthenicated GRAPHQL API
 	UpdateUserProfile(ctx context.Context, input *domain.UserProfileInput) (*base.UserProfile, error)
 
 	// adds a new push token in the users profile if the push token does not exist
@@ -39,7 +36,6 @@ type SignUpUseCases interface {
 
 	// fetches the phone numbers of a user for the purposes of recoverying an account.
 	// the returned phone numbers should be masked
-	// Implemented for unauthenicated REST API
 	GetUserRecoveryPhoneNumbers(ctx context.Context, phoneNumber string) (*domain.AccountRecoveryPhonesResponse, error)
 
 	// called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user

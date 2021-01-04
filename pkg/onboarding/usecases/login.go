@@ -12,7 +12,12 @@ import (
 
 // LoginUseCases represents all the business logic involved in logging in a user and managing their authorization credentials.
 type LoginUseCases interface {
-	LoginByPhone(ctx context.Context, phone string, PIN string, flavour base.Flavour) (*domain.AuthCredentialResponse, error)
+	LoginByPhone(
+		ctx context.Context,
+		phone string,
+		PIN string,
+		flavour base.Flavour,
+	) (*domain.AuthCredentialResponse, error)
 	RefreshToken(token string) (*domain.AuthCredentialResponse, error)
 }
 

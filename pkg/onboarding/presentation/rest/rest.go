@@ -12,8 +12,8 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
-// HandlersUsecases represents all the REST API logic
-type HandlersUsecases interface {
+// HandlersInterfaces represents all the REST API logic
+type HandlersInterfaces interface {
 	VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc
 	CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc
 	UserRecoveryPhoneNumbers(ctx context.Context) http.HandlerFunc
@@ -26,21 +26,21 @@ type HandlersUsecases interface {
 	FindSupplierByUID(ctx context.Context) http.HandlerFunc
 }
 
-// HandlersUsecasesImpl represents the usecase implementation object
-type HandlersUsecasesImpl struct {
+// HandlersInterfacesImpl represents the usecase implementation object
+type HandlersInterfacesImpl struct {
 	interactor *interactor.Interactor
 }
 
-// NewHandlersUsecases initializes a new rest handlers usecase
-func NewHandlersUsecases(i *interactor.Interactor) HandlersUsecases {
-	return &HandlersUsecasesImpl{i}
+// NewHandlersInterfaces initializes a new rest handlers usecase
+func NewHandlersInterfaces(i *interactor.Interactor) HandlersInterfaces {
+	return &HandlersInterfacesImpl{i}
 }
 
 // VerifySignUpPhoneNumber is an unauthenticated endpoint that does a
 // check on the supplied phone number asserting whether the phone is associated with
 // a user profile. It check both the PRIMARY PHONE and SECONDARY PHONE NUMBER.
 // If the phone number does not exist, it sends the OTP to the phone number
-func (h *HandlersUsecasesImpl) VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		p := &domain.PhoneNumberPayload{}
@@ -73,7 +73,7 @@ func (h *HandlersUsecasesImpl) VerifySignUpPhoneNumber(ctx context.Context) http
 }
 
 // CreateUserWithPhoneNumber is an unauthenticated endpoint that is called to create
-func (h *HandlersUsecasesImpl) CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		p := &domain.SignUpPayload{}
@@ -106,7 +106,7 @@ func (h *HandlersUsecasesImpl) CreateUserWithPhoneNumber(ctx context.Context) ht
 
 // UserRecoveryPhoneNumbers fetches the phone numbers associated with a profile for the purpose of account recovery.
 // The returned phone numbers slice should be masked. E.G +254700***123
-func (h *HandlersUsecasesImpl) UserRecoveryPhoneNumbers(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		p := &domain.PhoneNumberPayload{}
@@ -135,7 +135,7 @@ func (h *HandlersUsecasesImpl) UserRecoveryPhoneNumbers(ctx context.Context) htt
 // Collects a phonenumber and pin from the user and checks if the phonenumber
 // is an existing PRIMARY PHONENUMBER. If it does then it fetches the PIN that
 // belongs to the profile and returns auth credentials to allow the user to login
-func (h *HandlersUsecasesImpl) LoginByPhone(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &domain.LoginPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
@@ -167,7 +167,7 @@ func (h *HandlersUsecasesImpl) LoginByPhone(ctx context.Context) http.HandlerFun
 }
 
 // SetUserPIN is an unauthenticated  endpoint that saves user Pin
-func (h *HandlersUsecasesImpl) SetUserPIN(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) SetUserPIN(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pin := &domain.SetPINRequest{}
 		base.DecodeJSONToTargetStruct(w, r, pin)
@@ -193,7 +193,7 @@ func (h *HandlersUsecasesImpl) SetUserPIN(ctx context.Context) http.HandlerFunc 
 
 // RequestPINReset is an unauthenticated request that takes in a phone number
 // sends an otp to an msisdn that requests a PIN reset request during login
-func (h *HandlersUsecasesImpl) RequestPINReset(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &domain.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
@@ -218,7 +218,7 @@ func (h *HandlersUsecasesImpl) RequestPINReset(ctx context.Context) http.Handler
 }
 
 // ChangePin used to change/update a user's PIN
-func (h *HandlersUsecasesImpl) ChangePin(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) ChangePin(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pin := &domain.SetPINRequest{}
 		base.DecodeJSONToTargetStruct(w, r, pin)
@@ -245,7 +245,7 @@ func (h *HandlersUsecasesImpl) ChangePin(ctx context.Context) http.HandlerFunc {
 // SendRetryOTP is an unauthenticated request that takes in a phone number
 // and a retry step (1 for sending an OTP via WhatsApp and 2 for Twilio Messages)
 // and generates and sends a valid OTP to the phone number
-func (h *HandlersUsecasesImpl) SendRetryOTP(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		retryPayload := &domain.SendRetryOTPPayload{}
 		base.DecodeJSONToTargetStruct(w, r, retryPayload)
@@ -277,7 +277,7 @@ func (h *HandlersUsecasesImpl) SendRetryOTP(ctx context.Context) http.HandlerFun
 // takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func (h *HandlersUsecasesImpl) RefreshToken(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) RefreshToken(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &domain.RefreshTokenPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
@@ -306,7 +306,7 @@ func (h *HandlersUsecasesImpl) RefreshToken(ctx context.Context) http.HandlerFun
 }
 
 // FindSupplierByUID fetch supplier profile via REST
-func (h *HandlersUsecasesImpl) FindSupplierByUID(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) FindSupplierByUID(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		s, err := utils.ValidateUID(w, r)
 		if err != nil {
