@@ -36,57 +36,33 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 ) (*domain.AuthCredentialResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return nil, &domain.CustomError{
-			Err:     err,
-			Message: exceptions.NormalizeMSISDNErrMsg,
-			Code:    int(base.Internal),
-		}
+		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
 	profile, err := l.onboardingRepository.
 		GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
 	if err != nil {
-		return nil, &domain.CustomError{
-			Err:     err,
-			Message: exceptions.ProfileNotFoundErrMsg,
-			Code:    int(base.ProfileNotFound),
-		}
+		return nil, exceptions.ProfileNotFoundError(err)
 	}
 
 	if profile == nil {
-		return nil, &domain.CustomError{
-			Err:     nil,
-			Message: exceptions.ProfileNotFoundErrMsg,
-			Code:    int(base.ProfileNotFound),
-		}
+		return nil, exceptions.ProfileNotFoundError(nil)
 	}
 
 	PINData, err := l.onboardingRepository.
 		GetPINByProfileID(ctx, profile.ID)
 
 	if err != nil {
-		return nil, &domain.CustomError{
-			Err:     err,
-			Message: exceptions.PINNotFoundErrMsg,
-			Code:    int(base.PINNotFound),
-		}
+		return nil, exceptions.PinNotFoundError(err)
 	}
 
 	if PINData == nil {
-		return nil, &domain.CustomError{
-			Err:     nil,
-			Message: exceptions.PINNotFoundErrMsg,
-			Code:    int(base.PINNotFound),
-		}
+		return nil, exceptions.PinNotFoundError(nil)
 	}
 
 	matched := utils.ComparePIN(PIN, PINData.Salt, PINData.PINNumber, nil)
 	if !matched {
-		return nil, &domain.CustomError{
-			Err:     nil,
-			Message: exceptions.PINMismatchErrMsg,
-			Code:    int(base.PINMismatch),
-		}
+		return nil, exceptions.PinMismatchError(nil)
 
 	}
 

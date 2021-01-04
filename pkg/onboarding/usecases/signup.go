@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -69,12 +70,12 @@ func NewSignUpUseCases(r repository.OnboardingRepository, profile ProfileUseCase
 func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return false, fmt.Errorf("failed to  normalize the phone number: %v", err)
+		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
 	exists, err := s.onboardingRepository.CheckIfPhoneNumberExists(ctx, phoneNumber)
 	if err != nil {
-		return false, fmt.Errorf("failed to check the phone number: %v", err)
+		return false, exceptions.CheckPhoneNumberExistError(err)
 	}
 
 	return exists, nil
@@ -85,7 +86,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 	// check if phone number is registered to another user
 	exists, err := s.CheckPhoneExists(ctx, phoneNumber)
 	if err != nil {
-		return nil, fmt.Errorf("%v", err)
+		return nil, exceptions.CheckPhoneNumberExistError(err)
 	}
 	if exists {
 		return nil, fmt.Errorf("%v", base.PhoneNumberInUse)
@@ -181,12 +182,12 @@ func (s *SignUpUseCasesImpl) RetirePushToken(ctx context.Context, token string) 
 func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, phone string) (*domain.AccountRecoveryPhonesResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return nil, fmt.Errorf("failed to  normalize the phone number: %v", err)
+		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
 	pr, err := s.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 	if err != nil {
-		return nil, err
+		return nil, exceptions.ProfileNotFoundError(err)
 	}
 
 	// cherrypick the phone numbers and mask them

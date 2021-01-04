@@ -40,7 +40,7 @@ func (rs *SurveyUseCasesImpl) RecordPostVisitSurvey(
 
 	UID, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return false, err
+		return false, exceptions.UserNotFoundError(err)
 	}
 
 	return rs.onboardingRepository.RecordPostVisitSurvey(ctx, input, UID)
