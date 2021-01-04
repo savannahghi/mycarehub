@@ -32,7 +32,7 @@ func VerifySignUpPhoneNumber(ctx context.Context, i *interactor.Interactor) http
 			return
 		}
 
-		if !v {
+		if v {
 			base.ReportErr(w, fmt.Errorf("%v", base.PhoneNumberInUse), http.StatusBadRequest)
 			return
 		}

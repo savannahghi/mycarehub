@@ -52,6 +52,7 @@ deploy_develop_to_staging:
   stage: deploy
   only:
     - develop
+    - refactor
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
@@ -78,6 +79,7 @@ deploy_develop_to_test:
   stage: deploy
   only:
     - develop
+    - refactor
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
