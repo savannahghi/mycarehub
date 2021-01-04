@@ -10,7 +10,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
-// LoginUseCases  represents all the business logic involved in logging in a user and managing their authorization credentials.
+// LoginUseCases represents all the business logic involved in logging in a user and managing their authorization credentials.
 type LoginUseCases interface {
 	LoginByPhone(ctx context.Context, phone string, PIN string, flavour base.Flavour) (*domain.AuthCredentialResponse, error)
 	RefreshToken(token string) (*domain.AuthCredentialResponse, error)

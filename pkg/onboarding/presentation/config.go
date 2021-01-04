@@ -52,6 +52,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
 	}
 
+	h := rest.NewHandlersUsecases(i)
+
 	r := mux.NewRouter() // gorilla mux
 	r.Use(
 		handlers.RecoveryHandler(
@@ -71,38 +73,49 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Path("/verify_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(rest.VerifySignUpPhoneNumber(ctx, i))
+		HandlerFunc(h.VerifySignUpPhoneNumber(ctx))
 	r.Path("/create_user_by_phone").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(rest.CreateUserWithPhoneNumber(ctx, i))
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.CreateUserWithPhoneNumber(ctx))
 	r.Path("/user_recovery_phonenumbers").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(rest.UserRecoveryPhoneNumbers(ctx, i))
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.UserRecoveryPhoneNumbers(ctx))
 	r.Path("/set_pin").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(rest.SetUserPIN(ctx, i))
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.SetUserPIN(ctx))
 
 	// LoginByPhone routes
 	r.Path("/login_by_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(rest.LoginByPhone(ctx, i))
+		HandlerFunc(h.LoginByPhone(ctx))
 	r.Path("/refresh_token").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(rest.RefreshToken(ctx, i))
+		HandlerFunc(h.RefreshToken(ctx))
 
 	// PIN Routes
 	r.Path("/change_pin").Methods(
-		http.MethodPost, http.MethodOptions).HandlerFunc(rest.ChangePin(ctx, i))
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.ChangePin(ctx))
 
 	//OTP routes
 	r.Path("/send_retry_otp").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(rest.SendRetryOTPHandler(ctx, i))
+		HandlerFunc(h.SendRetryOTP(ctx))
 
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()
 	isc.Use(base.InterServiceAuthenticationMiddleware())
-	isc.Path("/supplier").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(rest.FindSupplierByUIDHandler(ctx, i))
+	isc.Path("/supplier").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.FindSupplierByUID(ctx))
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()
