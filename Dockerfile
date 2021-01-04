@@ -29,7 +29,9 @@ RUN cd /app/ && CGO_ENABLED=0 GOOS=linux GOPRIVATE="gitlab.slade360emr.com/go/*"
 # https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
 FROM alpine:3
 RUN apk add --no-cache ca-certificates
-
+# add timezone then test
+RUN apk add tzdata && cp /usr/share/zoneinfo/Africa/Nairobi /etc/localtime
+RUN echo "Africa/Nairobi" >  /etc/timezone && date
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /app/server /server
 COPY --from=builder /app/deps.yaml /deps.yaml

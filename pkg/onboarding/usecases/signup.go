@@ -111,19 +111,16 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 	var supplier *domain.Supplier
 	var customer *domain.Customer
 
-	if flavour == base.FlavourPro {
-		supplier, err = s.onboardingRepository.CreateEmptySupplierProfile(ctx, profile.ID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create supplierProfile: %w", err)
-		}
+	supplier, err = s.onboardingRepository.CreateEmptySupplierProfile(ctx, profile.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create supplierProfile: %w", err)
 	}
 
-	if flavour == base.FlavourConsumer {
-		customer, err = s.onboardingRepository.CreateEmptyCustomerProfile(ctx, profile.ID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create customerProfile: %w", err)
-		}
+	customer, err = s.onboardingRepository.CreateEmptyCustomerProfile(ctx, profile.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create customerProfile: %w", err)
 	}
+
 	return &domain.UserResponse{
 		Profile:         profile,
 		SupplierProfile: supplier,

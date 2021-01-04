@@ -117,7 +117,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 	previousPrimaryPhone := profile.PrimaryPhone
 	previousSecondaryPhones := profile.SecondaryPhoneNumbers
 
-	if err := p.onboardingRepository.UpdatePrimaryPhoneNumber(ctx, profile.ID, phone); err != nil {
+	if err := p.UpdatePrimaryPhoneNumber(ctx, phone, useContext); err != nil {
 		return err
 	}
 
@@ -135,7 +135,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 		return n
 	}(previousSecondaryPhones, previousPrimaryPhone, phoneNumber)
 
-	if err := p.onboardingRepository.UpdateSecondaryPhoneNumbers(ctx, profile.ID, newSecPhones); err != nil {
+	if err := p.UpdateSecondaryPhoneNumbers(ctx, newSecPhones); err != nil {
 		return err
 	}
 
