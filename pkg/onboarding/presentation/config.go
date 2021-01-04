@@ -103,6 +103,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(h.ChangePin(ctx))
 
+	r.Path("/request_pin_reset").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.RequestPINReset(ctx))
+
 	//OTP routes
 	r.Path("/send_retry_otp").Methods(
 		http.MethodPost,
