@@ -108,7 +108,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}, nil
 }
 
-func createTestPhoneUser(
+func createTestUserByPhone(
 	ctx context.Context,
 	flavour base.Flavour,
 	phoneNumber string,
@@ -153,7 +153,7 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 		return
 	}
 
-	u, err := createTestPhoneUser(
+	u, err := createTestUserByPhone(
 		ctx,
 		flavour,
 		base.TestUserPhoneNumber,
