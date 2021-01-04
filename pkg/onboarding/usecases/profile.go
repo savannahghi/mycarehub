@@ -2,6 +2,8 @@ package usecases
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -284,18 +286,18 @@ func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioDat
 
 // MaskPhoneNumbers masks phone number. the masked phone numbers will be in the form +254700***123
 func (p *ProfileUseCaseImpl) MaskPhoneNumbers(phones []string) []string {
-	masked := make([]string, len(phones))
+	masked := make([]string, 0, len(phones))
 	for _, num := range phones {
-		ph := ""
+		var b strings.Builder
 		max := len(num)
 		for i, p := range num {
 			if i+1 == max-3 || i+1 == max-4 || i+1 == max-5 {
-				ph = ph + "*"
+				fmt.Fprintf(&b, "*")
 			} else {
-				ph = ph + string(p)
+				fmt.Fprint(&b, string(p))
 			}
 		}
-		masked = append(masked, ph)
+		masked = append(masked, b.String())
 	}
 	return masked
 }
