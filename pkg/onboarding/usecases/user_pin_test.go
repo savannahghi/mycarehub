@@ -294,7 +294,7 @@ func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 				return
 			}
 			if tt.wantErr && otpResponse != "" {
-				t.Errorf("expected nil auth response but got %v, since the error %v occurred",
+				t.Errorf("expected empty string OTP response but got %v, since the error %v occurred",
 					otpResponse,
 					err,
 				)
@@ -302,7 +302,7 @@ func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 			}
 
 			if !tt.wantErr && otpResponse == "" {
-				t.Errorf("expected an auth response but got nil, since no error occurred")
+				t.Errorf("expected an otp response but got empty string, since no error occurred")
 				return
 			}
 		})
