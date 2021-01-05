@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -209,6 +210,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 
 	pr := &base.UserProfile{
 		ID:           uuid.New().String(),
+		UserName:     *utils.GetRandomName(),
 		PrimaryPhone: phoneNumber,
 		VerifiedIdentifiers: []base.VerifiedIdentifier{{
 			UID:           uid,
@@ -373,6 +375,22 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 	return false, nil
 }
 
+// CheckIfUsernameExists checks if the provided username exists. If true, it means its has already been associated with
+// another user
+func (fr *Repository) CheckIfUsernameExists(ctx context.Context, userName string) (bool, error) {
+	collection := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
+	docs1, err := collection.Where("userName", "==", userName).Documents(ctx).GetAll()
+	if err != nil {
+		return false, err
+	}
+
+	if len(docs1) == 1 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 // GetPINByProfileID gets a user's PIN by their profile ID
 func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (*domain.PIN, error) {
 	collection := fr.FirestoreClient.Collection(fr.GetPINsCollectionName())
@@ -474,6 +492,14 @@ func (fr *Repository) GenerateAuthCredentials(
 // UpdateUserName updates the username of a profile that matches the id
 // this method should be called after asserting the username is unique and not associated with another userProfile
 func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName string) error {
+
+	if v, err := fr.CheckIfUsernameExists(ctx, userName); err != nil {
+		if v {
+			return fmt.Errorf("%v", exceptions.UsernameInUseErrMsg)
+		}
+		return err
+	}
+
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
 		return err

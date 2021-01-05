@@ -2,6 +2,9 @@ package exceptions
 
 const (
 
+	//UsernameInUseErrMsg  is the error message displayed when the provided userName is associated with a profile already
+	UsernameInUseErrMsg = "provided username is already in use"
+
 	//PhoneNUmberInUseErrMsg is the error message displayed when a phone number provided is associated with a profile already
 	PhoneNUmberInUseErrMsg = "provided phone number is already in use"
 

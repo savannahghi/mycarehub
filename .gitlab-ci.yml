@@ -23,7 +23,7 @@ lint_and_test:
     - go vet $(go list ./... | grep -v /vendor/)
     - golint -set_exit_status $(go list ./... | grep -v /vendor/)
     - errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
-    - gosec -exclude=G101 ./...
+    - gosec -exclude=G101,G404 ./...
     - go-acc -o coverage.txt --ignore generated,cmd ./...
     - grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*resolver*go" | grep -v "server.go" > coverage.out
     - go tool cover -html=coverage.out -o coverage.html
@@ -51,8 +51,7 @@ deploy_develop_to_staging:
     - export CLOUDSDK_CORE_PROJECT=bewell-app-testing
   stage: deploy
   only:
-    - develop
-    - refactor
+    - develop    
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
@@ -78,8 +77,7 @@ deploy_develop_to_test:
     - export CLOUDSDK_CORE_PROJECT=bewell-app
   stage: deploy
   only:
-    - develop
-    - refactor    
+    - develop       
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
