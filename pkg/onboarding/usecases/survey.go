@@ -31,11 +31,7 @@ func (rs *SurveyUseCasesImpl) RecordPostVisitSurvey(
 	input resources.PostVisitSurveyInput,
 ) (bool, error) {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
-		return false, &resources.CustomError{
-			Err:     nil,
-			Message: exceptions.LikelyToRecommendErrMsg,
-			Code:    0, // TODO: Add a code for this error
-		}
+		return false, exceptions.LikelyToRecommendError(nil)
 	}
 
 	UID, err := base.GetLoggedInUserUID(ctx)

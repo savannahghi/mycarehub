@@ -51,8 +51,11 @@ func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	pr, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
-	return pr, exceptions.ProfileNotFoundError(err)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return nil, exceptions.ProfileNotFoundError(err)
+	}
+	return profile, nil
 }
 
 // GetProfileByID returns the profile identified by the indicated ID

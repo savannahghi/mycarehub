@@ -104,6 +104,12 @@ type PIN struct {
 	Salt      string `json:"salt" firestore:"salt"`
 }
 
+// SetPINRequest payload to set or change PIN information
+type SetPINRequest struct {
+	PhoneNumber string `json:"phoneNumber"  `
+	PIN         string `json:"pin" `
+}
+
 // PostVisitSurvey is used to record and retrieve post visit surveys from Firebase
 type PostVisitSurvey struct {
 	LikelyToRecommend int       `json:"likelyToRecommend" firestore:"likelyToRecommend"`

@@ -201,11 +201,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 
 	if v {
 		// this phone is number is associated with another user profile, hence can not create an profile with the same phone number
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.PhoneNUmberInUseErrMsg,
-			Code:    int(base.PhoneNumberInUse),
-		}
+		return nil, exceptions.CheckPhoneNumberExistError(err)
 	}
 
 	pr := &base.UserProfile{
@@ -406,11 +402,7 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 	}
 
 	if len(docs) == 0 {
-		return nil, &resources.CustomError{
-			Err:     nil,
-			Message: exceptions.PINNotFoundErrMsg,
-			Code:    int(base.PINNotFound),
-		}
+		return nil, exceptions.PinNotFoundError(nil)
 	}
 
 	dsnap := docs[0]
@@ -431,42 +423,22 @@ func (fr *Repository) GenerateAuthCredentials(
 	u, err := fr.FirebaseClient.GetUserByPhoneNumber(ctx, phone)
 	if err != nil {
 		if auth.IsUserNotFound(err) {
-			return nil, &resources.CustomError{
-				Err:     err,
-				Message: exceptions.UserNotFoundErrMsg,
-				Code:    int(base.UserNotFound),
-			}
+			return nil, exceptions.UserNotFoundError(err)
 		}
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.UserNotFoundErrMsg,
-			Code:    int(base.Internal),
-		}
+		return nil, exceptions.UserNotFoundError(err)
 	}
 
 	customToken, err := base.CreateFirebaseCustomToken(ctx, u.UID)
 	if err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.CustomTokenErrMsg,
-			Code:    int(base.Internal),
-		}
+		return nil, exceptions.CustomTokenError(err)
 	}
 	userTokens, err := base.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.AuthenticateTokenErrMsg,
-			Code:    int(base.Internal),
-		}
+		return nil, exceptions.AuthenticateTokenError(err)
 	}
 	pr, err := fr.GetUserProfileByPrimaryPhoneNumber(ctx, phone)
 	if err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.AuthenticateTokenErrMsg,
-			Code:    int(base.ProfileNotFound),
-		}
+		return nil, exceptions.ProfileNotFoundError(err)
 	}
 
 	if err := fr.UpdateVerifiedIdentifiers(ctx, pr.ID, []base.VerifiedIdentifier{{
@@ -474,11 +446,7 @@ func (fr *Repository) GenerateAuthCredentials(
 		LoginProvider: base.LoginProviderTypePhone,
 		Timestamp:     time.Now().In(base.TimeLocation),
 	}}); err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.UpdateProfileErrMsg,
-			Code:    int(base.Internal),
-		}
+		return nil, exceptions.UpdateProfileError(err)
 	}
 
 	if err := fr.UpdateVerifiedUIDS(ctx, pr.ID, []string{u.UID}); err != nil {
@@ -845,11 +813,7 @@ func (fr *Repository) RecordPostVisitSurvey(
 	UID string,
 ) (bool, error) {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
-		return false, &resources.CustomError{
-			Err:     nil,
-			Message: exceptions.LikelyToRecommendErrMsg,
-			Code:    0, // TODO: Add a code for this error
-		}
+		return false, exceptions.LikelyToRecommendError(nil)
 
 	}
 	feedbackCollection := fr.FirestoreClient.Collection(fr.GetSurveyCollectionName())
@@ -862,11 +826,7 @@ func (fr *Repository) RecordPostVisitSurvey(
 	}
 	_, _, err := feedbackCollection.Add(ctx, feedback)
 	if err != nil {
-		return false, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.AddRecordErrMsg,
-			Code:    int(base.Internal),
-		}
+		return false, exceptions.AddRecordError(err)
 
 	}
 	return true, nil
@@ -877,20 +837,12 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN
 	// persist the data to a datastore
 	docID, err := base.SaveDataToFirestore(fr.FirestoreClient, fr.GetPINsCollectionName(), pin)
 	if err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.AddRecordErrMsg,
-			Code:    int(base.Internal),
-		}
+		return nil, exceptions.AddRecordError(err)
 	}
 	dsnap, err := fr.FirestoreClient.Collection(fr.GetPINsCollectionName()).Doc(docID).Get(ctx)
 
 	if err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.RetrieveRecordErrMsg,
-			Code:    int(base.Internal),
-		}
+		return nil, exceptions.RetrieveRecordError(err)
 	}
 
 	PIN := &domain.PIN{}
@@ -918,11 +870,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 		fr.FirestoreClient, fr.GetPINsCollectionName(), record.Ref.ID, pin,
 	)
 	if err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.UpdateProfileErrMsg,
-			Code:    int(base.Internal),
-		}
+		return nil, exceptions.UpdateProfileError(err)
 	}
 	return pin, nil
 

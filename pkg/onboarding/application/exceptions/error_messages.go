@@ -26,7 +26,7 @@ const (
 	AuthenticateTokenErrMsg = "failed to authenticate custom token"
 
 	// UpdateProfileErrMsg is the error message displayed when a
-	// user profile is not found
+	// user profile cannot be updated
 	UpdateProfileErrMsg = "failed to update a user profile"
 
 	// AddRecordErrMsg is the error message displayed when a
@@ -50,7 +50,7 @@ const (
 	UsePinExistErrMsg = "the user has PIN already"
 
 	// EncryptPINErrMsg  is the error message displayed when
-	// pin encryption failed
+	// pin encryption fails
 	EncryptPINErrMsg = "unable to encrypt PIN"
 
 	// RetrieveRecordErrMsg is the error message displayed when a

@@ -42,19 +42,11 @@ func NewUserPinUseCase(r repository.OnboardingRepository, otp otp.ServiceOTP, p 
 func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone string) (bool, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return false, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.NormalizeMSISDNErrMsg,
-			Code:    int(base.Internal),
-		}
+		return false, exceptions.NormalizeMSISDNError(err)
 	}
 	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
 	if err != nil {
-		return false, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.ProfileNotFoundErrMsg,
-			Code:    int(base.ProfileNotFound),
-		}
+		return false, exceptions.ProfileNotFoundError(err)
 	}
 
 	if err := utils.ValidatePINLength(pin); err != nil {
@@ -86,46 +78,26 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) (string, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return "", &resources.CustomError{
-			Err:     err,
-			Message: exceptions.NormalizeMSISDNErrMsg,
-			Code:    int(base.Internal),
-		}
+		return "", exceptions.NormalizeMSISDNError(err)
 	}
 
 	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
 	if err != nil {
-		return "", &resources.CustomError{
-			Err:     err,
-			Message: exceptions.ProfileNotFoundErrMsg,
-			Code:    int(base.ProfileNotFound),
-		}
+		return "", exceptions.ProfileNotFoundError(err)
 	}
 
 	exists, err := u.CheckHasPIN(ctx, pr.ID)
 	if err != nil {
-		return "", &resources.CustomError{
-			Err:     err,
-			Message: exceptions.CheckUserPINErrMsg,
-			Code:    int(base.Internal),
-		}
+		return "", exceptions.CheckUserPINError(err)
 	}
 	if !exists {
-		return "", &resources.CustomError{
-			Err:     err,
-			Message: exceptions.ExistingPINErrMsg,
-			Code:    int(base.PINNotFound),
-		}
+		return "", exceptions.ExistingPINError(err)
 	}
 
 	// generate and send otp to the phone number
 	code, err := u.otpUseCases.GenerateAndSendOTP(ctx, phone)
 	if err != nil {
-		return "", &resources.CustomError{
-			Err:     err,
-			Message: exceptions.GenerateAndSendOTPErrMsg,
-			Code:    int(base.Internal),
-		}
+		return "", exceptions.GenerateAndSendOTPError(err)
 	}
 
 	return code, nil
@@ -135,40 +107,23 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pin string) (*resources.PINOutput, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.NormalizeMSISDNErrMsg,
-			Code:    int(base.Internal),
-		}
+		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
 	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
 	if err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.ProfileNotFoundErrMsg,
-			Code:    int(base.ProfileNotFound),
-		}
+		return nil, exceptions.ProfileNotFoundError(err)
 	}
 
 	exists, err := u.CheckHasPIN(ctx, profile.ID)
 	if !exists {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.ExistingPINErrMsg,
-			Code:    int(base.PINNotFound),
-		}
+		return nil, exceptions.ExistingPINError(err)
 	}
 
 	// EncryptPIN the PIN
 	salt, encryptedPin := utils.EncryptPIN(pin, nil)
 	if err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.EncryptPINErrMsg,
-			// TODO: correct error code
-			Code: int(base.UserNotFound),
-		}
+		return nil, exceptions.EncryptPINError(err)
 	}
 
 	pinPayload := &domain.PIN{
