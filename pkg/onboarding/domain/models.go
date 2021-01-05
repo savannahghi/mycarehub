@@ -113,11 +113,6 @@ type PostVisitSurvey struct {
 	Timestamp         time.Time `json:"timestamp" firestore:"timestamp"`
 }
 
-// BusinessPartnerUID is the user ID used in some inter-service requests
-type BusinessPartnerUID struct {
-	UID *string `json:"uid"`
-}
-
 //TODO: restore commented structs when implementing profile missing methods
 // // PIN is used to store a PIN (Personal Identifiation Number) associated
 // // to a phone number sign up to Firebase

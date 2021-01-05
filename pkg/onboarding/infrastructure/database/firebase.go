@@ -149,7 +149,7 @@ func (fr *Repository) GetUserProfileByUID(
 		return nil, err
 	}
 	if len(docs) == 0 {
-		return nil, fmt.Errorf("user profile not found: %w", err)
+		return nil, fmt.Errorf("user profile not found")
 	}
 	if len(docs) > 1 && base.IsDebug() {
 		log.Printf("user with uids %s has > 1 profile (they have %d)", uid, len(docs))
@@ -494,6 +494,7 @@ func (fr *Repository) GenerateAuthCredentials(
 		IDToken:      &userTokens.IDToken,
 		ExpiresIn:    userTokens.ExpiresIn,
 		RefreshToken: userTokens.RefreshToken,
+		UID:          u.UID,
 	}, nil
 }
 

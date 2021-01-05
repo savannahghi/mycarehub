@@ -5,12 +5,12 @@ import (
 	"net/http"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
 // ValidateUID checks that the uid supplied in the indicated request is valid
-func ValidateUID(w http.ResponseWriter, r *http.Request) (*domain.BusinessPartnerUID, error) {
-	p := &domain.BusinessPartnerUID{}
+func ValidateUID(w http.ResponseWriter, r *http.Request) (*resources.UIDPayload, error) {
+	p := &resources.UIDPayload{}
 	base.DecodeJSONToTargetStruct(w, r, p)
 	if p.UID == nil {
 		err := fmt.Errorf("invalid credentials, expected a uid")

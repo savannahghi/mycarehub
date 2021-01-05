@@ -176,3 +176,8 @@ type RefreshTokenExchangePayload struct {
 type RefreshTokenPayload struct {
 	RefreshToken *string `json:"refreshToken"`
 }
+
+// UIDPayload is the user ID used in some inter-service requests
+type UIDPayload struct {
+	UID *string `json:"uid"`
+}

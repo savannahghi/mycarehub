@@ -11,6 +11,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
@@ -30,7 +31,13 @@ func TestMain(m *testing.M) {
 	os.Setenv("ROOT_COLLECTION_SUFFIX", fmt.Sprintf("onboarding_ci_%v", time.Now().Unix()))
 	ctx := context.Background()
 	r := database.Repository{} // They are nil
-	fsc, _ := initializeTestFirebaseClient(ctx)
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
 
 	purgeRecords := func() {
 		collections := []string{
@@ -56,11 +63,11 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func initializeTestFirebaseClient(ctx context.Context) (*firestore.Client, *auth.Client) {
+func InitializeTestFirebaseClient(ctx context.Context) (*firestore.Client, *auth.Client) {
 	fc := base.FirebaseClient{}
 	fa, err := fc.InitFirebase()
 	if err != nil {
-		log.Panicf("unable to initialize Firestore for the Feed: %s", err)
+		log.Panicf("unable to initialize Firebase: %s", err)
 	}
 
 	fsc, err := fa.Firestore(ctx)
@@ -70,7 +77,7 @@ func initializeTestFirebaseClient(ctx context.Context) (*firestore.Client, *auth
 
 	fbc, err := fa.Auth(ctx)
 	if err != nil {
-		log.Panicf("can't initialize Firebase auth when setting up profile service: %s", err)
+		log.Panicf("can't initialize Firebase auth when setting up tests: %s", err)
 	}
 	return fsc, fbc
 }
@@ -108,63 +115,80 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}, nil
 }
 
-func createTestUserByPhone(
-	ctx context.Context,
-	flavour base.Flavour,
-	phoneNumber string,
-	PIN string,
-) (bool, error) {
+// CreateTestUserByPhone creates a user that is to be used in
+// running of our test cases.
+// If the test user already exists then they are logged in
+// to get their auth credentials
+func CreateOrLoginTestUserByPhone(t *testing.T) (*resources.AuthCredentialResponse, error) {
+	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {
-		return false, fmt.Errorf("unable to initialize test service")
+		return nil, fmt.Errorf("unable to initialize test service")
 	}
+	phone := base.TestUserPhoneNumber
+	flavour := base.FlavourConsumer
 
-	exists, err := s.Signup.CheckPhoneExists(ctx, phoneNumber)
+	exists, err := s.Signup.CheckPhoneExists(ctx, phone)
 	if err != nil {
-		return false, fmt.Errorf("%v", err)
+		return nil, fmt.Errorf("failed to check if test phone exists: %v", err)
 	}
 	if !exists {
 		u, err := s.Signup.CreateUserByPhone(
 			ctx,
-			phoneNumber,
-			PIN,
+			phone,
+			base.TestUserPin,
 			flavour,
 		)
 		if err != nil {
-			return false, err
+			return nil, fmt.Errorf("failed to create a test user: %v", err)
 		}
 
 		if u == nil {
-			return false, fmt.Errorf("nil user response")
+			return nil, fmt.Errorf("nil test user response")
 		}
-		return true, nil
+		return &u.Auth, nil
 	}
-	// TODO: A correct user response is better than just a status boolean
-	// Reason for status bool is to unblock the failing test
+	logInCreds, err := s.Login.LoginByPhone(
+		ctx,
+		phone,
+		base.TestUserPin,
+		flavour,
+	)
 
-	return true, nil
+	if err != nil {
+		return nil, fmt.Errorf("failed to log in test user: %v", err)
+	}
+	return logInCreds, nil
+}
+
+// TestAuthenticatedContext returns a logged in context, useful for test purposes
+func GetTestAuthenticatedContext(t *testing.T) (
+	context.Context,
+	*resources.AuthCredentialResponse,
+	error,
+) {
+	ctx := context.Background()
+	auth, err := CreateOrLoginTestUserByPhone(t)
+	if err != nil {
+		return nil, nil, err
+	}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		auth,
+	)
+	return authenticatedContext, auth, nil
 }
 func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
-	ctx := context.Background()
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
 	flavour := base.FlavourConsumer
 	s, err := InitializeTestService(ctx)
 	if err != nil {
 		t.Errorf("unable to initialize test service")
-		return
-	}
-
-	u, err := createTestUserByPhone(
-		ctx,
-		flavour,
-		base.TestUserPhoneNumber,
-		base.TestUserPin,
-	)
-	if err != nil {
-		t.Errorf("failed to create test phone user: %v", err)
-		return
-	}
-	if !u {
-		t.Errorf("failed to create a test user")
 		return
 	}
 

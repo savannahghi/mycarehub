@@ -25,6 +25,10 @@ type ProfileUseCase interface {
 	UpdateCovers(ctx context.Context, covers []base.Cover) error
 	UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error
 	UpdateBioData(ctx context.Context, data base.BioData) error
+	GetUserProfileByUID(
+		ctx context.Context,
+		UID string,
+	) (*base.UserProfile, error)
 
 	// masks phone number.
 	MaskPhoneNumbers(phones []string) []string
@@ -316,4 +320,12 @@ func (p *ProfileUseCaseImpl) MaskPhoneNumbers(phones []string) []string {
 		masked = append(masked, b.String())
 	}
 	return masked
+}
+
+// GetUserProfileByUID retrieves the profile of the logged in user, if they have one
+func (p *ProfileUseCaseImpl) GetUserProfileByUID(
+	ctx context.Context,
+	UID string,
+) (*base.UserProfile, error) {
+	return p.onboardingRepository.GetUserProfileByUID(ctx, UID)
 }

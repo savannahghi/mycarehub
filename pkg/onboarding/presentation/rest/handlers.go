@@ -26,6 +26,7 @@ type HandlersInterfaces interface {
 	RefreshToken(ctx context.Context) http.HandlerFunc
 	FindSupplierByUID(ctx context.Context) http.HandlerFunc
 	RemoveUserByPhoneNumber(ctx context.Context) http.HandlerFunc
+	GetUserProfileByUID(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -408,5 +409,26 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) ht
 			Err:     err,
 			Message: err.Error(),
 		}, http.StatusBadRequest)
+	}
+}
+
+// GetUserProfileByUID fetches and returns a user profile via REST ISC
+func (h *HandlersInterfacesImpl) GetUserProfileByUID(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &resources.UIDPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.UID == nil {
+			err := fmt.Errorf("expected `UID` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		profile, err := h.interactor.Onboarding.GetUserProfileByUID(ctx, *p.UID)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, profile, http.StatusOK)
 	}
 }

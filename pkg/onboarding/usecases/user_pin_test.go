@@ -8,26 +8,14 @@ import (
 )
 
 func TestUserPinUseCaseImpl_SetUserPIN(t *testing.T) {
-	ctx := context.Background()
-	flavour := base.FlavourConsumer
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
 	s, err := InitializeTestService(ctx)
 	if err != nil {
 		t.Errorf("unable to initialize test service")
-		return
-	}
-
-	u, err := createTestUserByPhone(
-		ctx,
-		flavour,
-		base.TestUserPhoneNumber,
-		base.TestUserPin,
-	)
-	if err != nil {
-		t.Errorf("failed to create test phone user: %v", err)
-		return
-	}
-	if !u {
-		t.Errorf("failed to create a test user")
 		return
 	}
 
@@ -111,26 +99,14 @@ func TestUserPinUseCaseImpl_SetUserPIN(t *testing.T) {
 }
 
 func TestUserPinUseCaseImpl_ChangeUserPIN(t *testing.T) {
-	ctx := context.Background()
-	flavour := base.FlavourConsumer
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
 	s, err := InitializeTestService(ctx)
 	if err != nil {
 		t.Errorf("unable to initialize test service")
-		return
-	}
-
-	u, err := createTestUserByPhone(
-		ctx,
-		flavour,
-		base.TestUserPhoneNumber,
-		base.TestUserPin,
-	)
-	if err != nil {
-		t.Errorf("failed to create test phone user: %v", err)
-		return
-	}
-	if !u {
-		t.Errorf("failed to create a test user")
 		return
 	}
 
@@ -185,6 +161,16 @@ func TestUserPinUseCaseImpl_ChangeUserPIN(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "happy case: restore the previous pin",
+			args: args{
+				ctx:   ctx,
+				phone: base.TestUserPhoneNumber,
+				pin:   base.TestUserPin,
+			},
+			want:    true,
+			wantErr: false,
+		}, // Revert to original PIN to prevent Test user login breakages
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -214,26 +200,14 @@ func TestUserPinUseCaseImpl_ChangeUserPIN(t *testing.T) {
 }
 
 func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
-	ctx := context.Background()
-	flavour := base.FlavourConsumer
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
 	s, err := InitializeTestService(ctx)
 	if err != nil {
 		t.Errorf("unable to initialize test service")
-		return
-	}
-
-	u, err := createTestUserByPhone(
-		ctx,
-		flavour,
-		base.TestUserPhoneNumber,
-		base.TestUserPin,
-	)
-	if err != nil {
-		t.Errorf("failed to create test phone user: %v", err)
-		return
-	}
-	if !u {
-		t.Errorf("failed to create a test user")
 		return
 	}
 

@@ -125,6 +125,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.FindSupplierByUID(ctx))
+	isc.Path("/user_profile").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.GetUserProfileByUID(ctx))
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()
