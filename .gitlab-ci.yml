@@ -54,7 +54,6 @@ build_docs:
     - healthcloud-multi
   only:
     - develop
-    - app-fixes
   artifacts:
     paths:
       - $CI_PROJECT_DIR/documentation
@@ -105,8 +104,7 @@ deploy_docs:
     - job: build_docs
       artifacts: true
   only:
-    - develop
-    - app-fixes
+    - develop    
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
@@ -131,8 +129,7 @@ deploy_develop_to_test:
     - export CLOUDSDK_CORE_PROJECT=bewell-app
   stage: deploy
   only:
-    - develop  
-    - app-fixes     
+    - develop       
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""

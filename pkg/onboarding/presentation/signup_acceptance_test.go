@@ -96,6 +96,7 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 		t.Errorf("unable to marshal test item to JSON: %s", err)
 	}
 	payload := bytes.NewBuffer(bs)
+
 	// invalid payload
 	badPayload := composeInValidUserPayload(t)
 	bs2, err := json.Marshal(badPayload)
@@ -103,13 +104,6 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 		t.Errorf("unable to marshal test item to JSON: %s", err)
 	}
 	invalidPayload := bytes.NewBuffer(bs2)
-
-	repeatedPayload := composeValidUserPayload(t)
-	bs3, err := json.Marshal(repeatedPayload)
-	if err != nil {
-		t.Errorf("unable to marshal test item to JSON: %s", err)
-	}
-	duplicatePayload := bytes.NewBuffer(bs3)
 
 	type args struct {
 		url        string
@@ -129,7 +123,7 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 				httpMethod: http.MethodPost,
 				body:       payload,
 			},
-			wantStatus: http.StatusBadRequest, // TODO fix me change to StatusCreated
+			wantStatus: http.StatusCreated,
 			wantErr:    false,
 		},
 		{
@@ -137,7 +131,7 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 			args: args{
 				url:        fmt.Sprintf("%s/create_user_by_phone", baseURL),
 				httpMethod: http.MethodPost,
-				body:       duplicatePayload,
+				body:       payload,
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,

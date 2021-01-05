@@ -33,7 +33,8 @@ X-Cloud-Trace-Context: e0f23bcbd33ad69e1a87f66b286cd91e;o=1
 vary: Accept-Encoding
 
 {
-    "error": "4"
+    "code": 4,
+    "message": "provided phone number is already in use"
 }
 ```
 

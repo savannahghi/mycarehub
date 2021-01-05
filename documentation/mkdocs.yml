@@ -1,7 +1,7 @@
 site_name: Profile Service Documentation
 nav:
   - Preface: index.md
-  - Creating an account: index.md
+  - Creating an account: creatin_account.md
   - Login: login.md
   - Error Codes: error_codes.md  
 

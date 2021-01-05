@@ -1,59 +1,65 @@
 # Onboarding service
 
-This service manages user onboarding process. 
+This service manages user onboarding process.
 
 ## Description
 
-The project implements the `Clean Architecture` advocated by 
+The project implements the `Clean Architecture` advocated by
 Robert Martin ('Uncle Bob').
+
+## Documentation
+
+API documentation are available at: https://profile-service-docs-uyajqt434q-ew.a.run.app/
+
+We should strive to always make the documentation reflect the true state of the service
 
 ### Clean Architecture
 
 A cleanly architected project should be:
 
-- *Independent of Frameworks*: The architecture does not depend on the 
-existence of some library of feature laden software. This allows you to use 
-such frameworks as tools, rather than having to cram your system into their 
-limited constraints.
+- _Independent of Frameworks_: The architecture does not depend on the
+  existence of some library of feature laden software. This allows you to use
+  such frameworks as tools, rather than having to cram your system into their
+  limited constraints.
 
-- *Testable*: The business rules can be tested without the UI, Database, 
-Web Server, or any other external element.
+- _Testable_: The business rules can be tested without the UI, Database,
+  Web Server, or any other external element.
 
-- *Independent of UI*: The UI can change easily, without changing the rest of
-the system. A Web UI could be replaced with a console UI, for example,
-without changing the business rules.
+- _Independent of UI_: The UI can change easily, without changing the rest of
+  the system. A Web UI could be replaced with a console UI, for example,
+  without changing the business rules.
 
-- *Independent of Database*: You can swap out Cloud Firestore or SQL Server,
-for Mongo, Postgres, MySQL, or something else. Your business rules are not
-bound to the database.
+- _Independent of Database_: You can swap out Cloud Firestore or SQL Server,
+  for Mongo, Postgres, MySQL, or something else. Your business rules are not
+  bound to the database.
 
-- *Independent of any external agency*: In fact your business rules simply
-don’t know anything at all about the outside world.
+- _Independent of any external agency_: In fact your business rules simply
+  don’t know anything at all about the outside world.
 
 ## This project has 5 layers:
 
 ### Domain Layer
 
-Here we have `business objects` or `entities` and should represent and 
+Here we have `business objects` or `entities` and should represent and
 encapsulate the fundamental business rules.
 
 ### Repository Layer
 
-In the domain layer we should have no idea about any database nor any storage, 
+In the domain layer we should have no idea about any database nor any storage,
 so the repository is just an interface.
 
 ### Infrastructure Layer
 
-These are the `ports` that allow the system to talk to 'outside things' which 
-could be a `database` for persistence or a `web server` for the UI. None of 
-the inner use cases or domain entities should know about the implementation of 
-these layers and they may change over time because ... well, we used to store 
+These are the `ports` that allow the system to talk to 'outside things' which
+could be a `database` for persistence or a `web server` for the UI. None of
+the inner use cases or domain entities should know about the implementation of
+these layers and they may change over time because ... well, we used to store
 data in SQL, then document database and changing the storage should not change
 the application or any of the business rules.
 
 ### Usecase Layer
 
-The code in this layer contains application specific business rules. It 
+The code in this layer contains application specific business rules. It
 encapsulates and implements all of the use cases of the system. These use cases
 orchestrate the flow of data to and from the entities, and direct those
 entities to use their enterprise wide business rules to achieve the goals of
@@ -66,16 +72,14 @@ frameworks being used.
 ### Presentation Layer
 
 This represents logic that consume the business logic from the `Usecase Layer`
-and renders to the view. Here you can choose to render the view in e.g 
+and renders to the view. Here you can choose to render the view in e.g
 `graphql` or `rest`
-
 
 ### Points to note
 
 - Interfaces let Go programmers describe what their package provides–not how it does it. This is all just another way of saying “decoupling”, which is indeed the goal, because software that is loosely coupled is software that is easier to change.
 - Design your public API/ports to keep secrets(Hide implementation details)
-abstract information that you present so that you can change your implementation behind your public API without changing the contract of exchanging information with other services.
-
+  abstract information that you present so that you can change your implementation behind your public API without changing the contract of exchanging information with other services.
 
 For more information, see:
 
@@ -111,207 +115,3 @@ export CHARGE_MASTER_GRANT_TYPE="<an auth server grant type>"
 
 The server deploys to Google Cloud Run. The environment variables defined above
 should also be set on Google Cloud Run.
-
----------------------------------------------------
-
-## ISC EndPoints
-
-### `/user_profile`
-
- Expects a post request with a payload of context with format,
-
- ```golang
- type userContext struct {
-     token *auth.Token `json:"token"`
- }
- ```
-
- token is a firebase auth Token.  
- Returns a json response with the users profile.  
-
-```golang
-    type UserProfile struct {
-        UID              string           `json:"uid" firestore:"uid"`
-        TermsAccepted    bool             `json:"termsAccepted" firestore:"termsAccepted"`
-        IsApproved       bool             `json:"isApproved" firestore:"isApproved"`
-        Msisdns          []string         `json:"msisdns" firestore:"msisdns"`
-        Emails           []string         `json:"emails" firestore:"emails"`
-        PhotoBase64      string           `json:"photoBase64" firestore:"photoBase64"`
-        PhotoContentType base.ContentType `json:"photoContentType" firestore:"photoContentType"`
-        Covers           []Cover          `json:"covers" firestore:"covers"`
-
-        DateOfBirth *base.Date   `json:"dateOfBirth,omitempty" firestore:"dateOfBirth,omitempty"`
-        Gender      *base.Gender `json:"gender,omitempty" firestore:"gender,omitempty"`
-        PatientID   *string      `json:"patientID,omitempty" firestore:"patientID"`
-        PushTokens  []string     `json:"pushTokens" firestore:"pushTokens"`
-
-        Name                               *string `json:"name" firestore:"name"`
-        Bio                                *string `json:"bio" firestore:"bio"`
-        PractitionerApproved               *bool   `json:"practitionerApproved" firestore:"practitionerApproved"`
-        PractitionerTermsOfServiceAccepted *bool   `json:"practitionerTermsOfServiceAccepted" firestore:"practitionerTermsOfServiceAccepted"`
-
-        IsTester      bool          `json:"isTester" firestore:"isTester"`
-        CanExperiment bool          `json:"canExperiment" firestore:"canExperiment"`
-        Language      base.Language `json:"language" firestore:"language"`
-
-        // used to determine whether to persist asking the user on the UI
-        AskAgainToSetIsTester      bool             `json:"askAgainToSetIsTester" firestore:"askAgainToSetIsTester"`
-        AskAgainToSetCanExperiment bool             `json:"askAgainToSetCanExperiment" firestore:"askAgainToSetCanExperiment"`
-        VerifiedEmails             []VerifiedEmail  `json:"verifiedEmails" firestore:"verifiedEmails"`
-        VerifiedPhones             []VerifiedMsisdn `json:"verifiedPhones" firestore:"verifiedPhones"`
-        HasPin                     bool             `json:"hasPin" firestore:"hasPin"`
-        HasSupplierAccount         bool             `json:"hasSupplierAccount" firestore:"hasSupplierAccount"`
-        HasCustomerAccount         bool             `json:"hasCustomerAccount" firestore:"hasCustomerAccount"`
-        PractitionerHasServices    bool             `json:"practitionerHasServices" firestore:"practitionerHasServices"`
-}
-```
-
-
-### `customer`
-
-requestPayload
-
-```json
-    {
-        "uid": string,
-        "token": auth.Token // firebase token
-    }
-```
-
-`profileClient.MakeRequest("internal/customer", "POST", requestPayload)`  
-responsePayload
-
-```json
-    {
-        "customer_id": string,
-        "receivables_account": {
-            "id": string,
-            "name": string,
-            "is_active": bool,
-            "number": string,
-            "tag": string,
-            "description" string
-        },
-        "profile": {
-            "uid": string,
-            "msisdns": [string],
-            "emails": [emails],
-            "gender": "male|female|other|unknown",
-            "pushTokens": [string],
-            "name": string,
-            "bio": string
-        },
-        "customer_kyc": {
-            "kra_pin": string,
-            "occupation": string,
-            "id_number": string,
-            "address": string,
-            "city": string,
-            "beneficiary": [
-                {
-                    "name": string,
-                    "msisdns": [string],
-                    "emails": [string],
-                    "relationship": "SPOUSE|CHILD",
-                    "dateOfBirth": {
-                        "Year": int,
-                        "Month": int,
-                        "Day": int
-                    }
-                }
-            ]
-        }
-    }
-```
-
-### `/supplier`
-
-requestPayload
-
-```json
-    {
-        "uid": string,
-        "token": auth.Token // firebase token
-    }
-```
-
-responsePayload
-
-```json
-    {
-        "supplier_id": string,
-        "payables_account": {
-            "id": string,
-            "name": string,
-            "is_active": bool,
-            "number": string,
-            "tag": string,
-            "description": string
-        },
-        "profile": {
-            "uid": string,
-            "msisdns": [string],
-            "emails": [emails],
-            "gender": "male|female|other|unknown",
-            "pushTokens": [string],
-            "name": string,
-            "bio": string
-        }
-    }
-```
-
-### `/contactdetails/{attribute}/`
-
-`profileClient.MakeRequest("internal/contactdetails/112", "POST", requestPayload)`
-
-requestPayload is
-
-```json
-    {
-        "uids": [string]
-    }
-```
-
-responsePayload is `map[string][]string`
-
-```json
-    {
-
-    }
-```
-
-### `/retrieve_user_profile`
-
-requestPayload
-
-```json
-    {
-        "uid": string
-    }
-```
-
-requestResponse `UserProfile`
-
-### `/save_cover`
-
-requestPayload
-
-```json
-    {
-        "payerName": string,
-        "memberName": string,
-        "memberNumber": string,
-        "payerSladeCode": int,
-        "uid": string,
-        "token": auth.Token
-    }
-```
-
-responsePayload
-
-```json
-    {
-        "successfullySaved": bool
-    }
-```
-

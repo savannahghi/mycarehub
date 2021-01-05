@@ -149,7 +149,7 @@ func (fr *Repository) GetUserProfileByUID(
 		return nil, err
 	}
 	if len(docs) == 0 {
-		return nil, fmt.Errorf("user profile not found")
+		return nil, fmt.Errorf("user profile not found: %w", err)
 	}
 	if len(docs) > 1 && base.IsDebug() {
 		log.Printf("user with uids %s has > 1 profile (they have %d)", uid, len(docs))
@@ -811,9 +811,9 @@ func (fr *Repository) RecordPostVisitSurvey(
 	ctx context.Context,
 	input resources.PostVisitSurveyInput,
 	UID string,
-) (bool, error) {
+) error {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
-		return false, exceptions.LikelyToRecommendError(nil)
+		return exceptions.LikelyToRecommendError(nil)
 
 	}
 	feedbackCollection := fr.FirestoreClient.Collection(fr.GetSurveyCollectionName())
@@ -826,10 +826,10 @@ func (fr *Repository) RecordPostVisitSurvey(
 	}
 	_, _, err := feedbackCollection.Add(ctx, feedback)
 	if err != nil {
-		return false, exceptions.AddRecordError(err)
+		return exceptions.AddRecordError(err)
 
 	}
-	return true, nil
+	return nil
 }
 
 // SavePIN  persist the data of the newly created PIN to a datastore

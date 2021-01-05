@@ -103,10 +103,10 @@ Since there are a finite number of pre-defined MUST have attributes in a `userPr
 
   https://profile-staging.healthcloud.co.ke
 
-- testing
+- Testing
 
   https://profile-testing.healthcloud.co.ke
 
-- Staging
+- Production
 
   https://profile-prod.healthcloud.co.ke

@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -31,7 +32,7 @@ func (rs *SurveyUseCasesImpl) RecordPostVisitSurvey(
 	input resources.PostVisitSurveyInput,
 ) (bool, error) {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
-		return false, exceptions.LikelyToRecommendError(nil)
+		return false, exceptions.LikelyToRecommendError(fmt.Errorf(exceptions.LikelyToRecommendErrMsg))
 	}
 
 	UID, err := base.GetLoggedInUserUID(ctx)
@@ -39,5 +40,9 @@ func (rs *SurveyUseCasesImpl) RecordPostVisitSurvey(
 		return false, exceptions.UserNotFoundError(err)
 	}
 
-	return rs.onboardingRepository.RecordPostVisitSurvey(ctx, input, UID)
+	if err := rs.onboardingRepository.RecordPostVisitSurvey(ctx, input, UID); err != nil {
+		return false, exceptions.InternalServerError(fmt.Errorf(exceptions.InternalServerErrorMsg))
+	}
+
+	return true, nil
 }
