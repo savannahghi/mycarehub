@@ -11,7 +11,6 @@ import (
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
@@ -119,7 +118,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 // running of our test cases.
 // If the test user already exists then they are logged in
 // to get their auth credentials
-func CreateOrLoginTestUserByPhone(t *testing.T) (*resources.AuthCredentialResponse, error) {
+func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {
@@ -127,7 +126,6 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*resources.AuthCredentialRespon
 	}
 	phone := base.TestUserPhoneNumber
 	flavour := base.FlavourConsumer
-
 	exists, err := s.Signup.CheckPhoneExists(ctx, phone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if test phone exists: %v", err)
@@ -142,11 +140,13 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*resources.AuthCredentialRespon
 		if err != nil {
 			return nil, fmt.Errorf("failed to create a test user: %v", err)
 		}
-
 		if u == nil {
 			return nil, fmt.Errorf("nil test user response")
 		}
-		return &u.Auth, nil
+		authCred := &auth.Token{
+			UID: u.Auth.UID,
+		} // We add the test user UID to the expected auth.Token
+		return authCred, nil
 	}
 	logInCreds, err := s.Login.LoginByPhone(
 		ctx,
@@ -154,19 +154,17 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*resources.AuthCredentialRespon
 		base.TestUserPin,
 		flavour,
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to log in test user: %v", err)
 	}
-	return logInCreds, nil
+	authCred := &auth.Token{
+		UID: logInCreds.UID,
+	}
+	return authCred, nil
 }
 
 // TestAuthenticatedContext returns a logged in context, useful for test purposes
-func GetTestAuthenticatedContext(t *testing.T) (
-	context.Context,
-	*resources.AuthCredentialResponse,
-	error,
-) {
+func GetTestAuthenticatedContext(t *testing.T) (context.Context, *auth.Token, error) {
 	ctx := context.Background()
 	auth, err := CreateOrLoginTestUserByPhone(t)
 	if err != nil {

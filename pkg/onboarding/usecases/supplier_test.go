@@ -1,4 +1,11 @@
-package usecases
+package usecases_test
+
+import (
+	"context"
+	"testing"
+
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+)
 
 // import (
 // 	"context"
@@ -8,141 +15,6 @@ package usecases
 // 	"github.com/stretchr/testify/assert"
 // 	"gitlab.slade360emr.com/go/base"
 // )
-
-// func TestService_AddPartnerType(t *testing.T) {
-// 	service := NewService()
-// 	ctx := base.GetAuthenticatedContext(t)
-
-// 	type args struct {
-// 		ctx         context.Context
-// 		name        string
-// 		partnerType PartnerType
-// 	}
-
-// 	tests := []struct {
-// 		name        string
-// 		args        args
-// 		wantErr     bool
-// 		expectedErr string
-// 	}{
-// 		{
-// 			name: "valid: add PartnerTypeRider ",
-// 			args: args{
-// 				ctx:         ctx,
-// 				name:        "Test Rider",
-// 				partnerType: PartnerTypeRider,
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "valid: add PartnerTypePractitioner ",
-// 			args: args{
-// 				ctx:         ctx,
-// 				name:        "Test Rider",
-// 				partnerType: PartnerTypePractitioner,
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "valid: add PartnerTypeProvider ",
-// 			args: args{
-// 				ctx:         ctx,
-// 				name:        "Test Provider",
-// 				partnerType: PartnerTypeProvider,
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "valid: add PartnerTypePharmaceutical",
-// 			args: args{
-// 				ctx:         ctx,
-// 				name:        "Test Pharmaceutical",
-// 				partnerType: PartnerTypePharmaceutical,
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "valid: add PartnerTypeCoach",
-// 			args: args{
-// 				ctx:         ctx,
-// 				name:        "Test coach",
-// 				partnerType: PartnerTypeCoach,
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "valid: add PartnerTypeNutrition",
-// 			args: args{
-// 				ctx:         ctx,
-// 				name:        "Test nutrition",
-// 				partnerType: PartnerTypeNutrition,
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "invalid: add PartnerTypeConsumer",
-// 			args: args{
-// 				ctx:         ctx,
-// 				name:        "Test consumer",
-// 				partnerType: PartnerTypeConsumer,
-// 			},
-// 			wantErr:     true,
-// 			expectedErr: "invalid `partnerType`. cannot use CONSUMER in this context",
-// 		},
-
-// 		{
-// 			name: "invalid : invalid context",
-// 			args: args{
-// 				ctx:         context.Background(),
-// 				name:        "Test Rider",
-// 				partnerType: PartnerTypeRider,
-// 			},
-// 			wantErr:     true,
-// 			expectedErr: `unable to get the logged in user: auth token not found in context: unable to get auth token from context with key "UID" `,
-// 		},
-// 		{
-// 			name: "invalid : missing name arg",
-// 			args: args{
-// 				ctx: ctx,
-// 			},
-// 			wantErr:     true,
-// 			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
-// 		},
-// 		{
-// 			name: "invalid : unknownn partner type",
-// 			args: args{
-// 				ctx:         ctx,
-// 				name:        "Test Partner",
-// 				partnerType: "not a valid partner type",
-// 			},
-// 			wantErr:     true,
-// 			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
-// 		},
-// 	}
-
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			s := service
-// 			resp, err := s.AddPartnerType(tt.args.ctx, &tt.args.name, &tt.args.partnerType)
-// 			if tt.wantErr {
-// 				assert.Equal(t, false, resp)
-// 				assert.NotNil(t, err)
-// 				assert.Contains(t, tt.expectedErr, err.Error())
-// 			}
-// 			if err == nil {
-// 				assert.Nil(t, err)
-// 				assert.Equal(t, true, resp)
-// 			}
-// 		})
-// 	}
-
-// }
 
 // func TestService_AddSupplier(t *testing.T) {
 // 	service := NewService()
@@ -1257,3 +1129,156 @@ package usecases
 // 		})
 // 	}
 // }
+
+func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	testRiderName := "Test Rider"
+	rider := domain.PartnerTypeRider
+	testPractitionerName := "Test Practitioner"
+	practitioner := domain.PartnerTypePractitioner
+	testProviderName := "Test Provider"
+	provider := domain.PartnerTypeProvider
+	testPharmaceuticalName := "Test Pharmaceutical"
+	pharmaceutical := domain.PartnerTypePharmaceutical
+	testCoachName := "Test Coach"
+	coach := domain.PartnerTypeCoach
+	testNutritionName := "Test Nutrition"
+	nutrition := domain.PartnerTypeNutrition
+	testConsumerName := "Test Consumer"
+	consumer := domain.PartnerTypeConsumer
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	type args struct {
+		ctx         context.Context
+		name        *string
+		partnerType *domain.PartnerType
+	}
+	tests := []struct {
+		name        string
+		args        args
+		want        bool
+		wantErr     bool
+		expectedErr string
+	}{
+		{
+			name: "valid: add PartnerTypeRider ",
+			args: args{
+				ctx:         ctx,
+				name:        &testRiderName,
+				partnerType: &rider,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypePractitioner ",
+			args: args{
+				ctx:         ctx,
+				name:        &testPractitionerName,
+				partnerType: &practitioner,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypeProvider ",
+			args: args{
+				ctx:         ctx,
+				name:        &testProviderName,
+				partnerType: &provider,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypePharmaceutical",
+			args: args{
+				ctx:         ctx,
+				name:        &testPharmaceuticalName,
+				partnerType: &pharmaceutical,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypeCoach",
+			args: args{
+				ctx:         ctx,
+				name:        &testCoachName,
+				partnerType: &coach,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypeNutrition",
+			args: args{
+				ctx:         ctx,
+				name:        &testNutritionName,
+				partnerType: &nutrition,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "invalid: add PartnerTypeConsumer",
+			args: args{
+				ctx:         ctx,
+				name:        &testConsumerName,
+				partnerType: &consumer,
+			},
+			want:        false,
+			wantErr:     true,
+			expectedErr: "invalid `partnerType`. cannot use CONSUMER in this context",
+		},
+
+		{
+			name: "invalid : invalid context",
+			args: args{
+				ctx:         context.Background(),
+				name:        &testRiderName,
+				partnerType: &rider,
+			},
+			want:        false,
+			wantErr:     true,
+			expectedErr: `unable to get the logged in user: auth token not found in context: unable to get auth token from context with key "UID" `,
+		},
+		{
+			name: "invalid : missing name arg",
+			args: args{
+				ctx: ctx,
+			},
+			want:        false,
+			wantErr:     true,
+			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			supplier := s
+			got, err := supplier.Supplier.AddPartnerType(tt.args.ctx, tt.args.name, tt.args.partnerType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.AddPartnerType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("SupplierUseCasesImpl.AddPartnerType() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
