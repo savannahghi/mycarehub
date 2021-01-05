@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
@@ -58,7 +59,10 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) ht
 		}
 
 		if v {
-			base.ReportErr(w, fmt.Errorf("%v", base.PhoneNumberInUse), http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Message: exceptions.PhoneNUmberInUseErrMsg,
+				Code:    int(base.PhoneNumberInUse),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -81,12 +85,18 @@ func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) 
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil && p.PIN == nil {
 			err := fmt.Errorf("expected `phoneNumber` and `pin` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 		if !p.Flavour.IsValid() {
 			err := fmt.Errorf("an invalid `flavour` defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -114,7 +124,10 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) h
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -124,7 +137,10 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) h
 		)
 
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -142,13 +158,19 @@ func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerF
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil || p.PIN == nil {
 			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
 		if !p.Flavour.IsValid() {
 			err := fmt.Errorf("an invalid `flavour` defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -159,7 +181,10 @@ func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerF
 			p.Flavour,
 		)
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -175,13 +200,19 @@ func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.Handl
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
 		otp, err := h.interactor.UserPIN.RequestPINReset(ctx, *p.PhoneNumber)
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -200,7 +231,10 @@ func (h *HandlersInterfacesImpl) ChangePin(ctx context.Context) http.HandlerFunc
 		base.DecodeJSONToTargetStruct(w, r, pin)
 		if pin.PhoneNumber == "" || pin.PIN == "" {
 			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -210,7 +244,10 @@ func (h *HandlersInterfacesImpl) ChangePin(ctx context.Context) http.HandlerFunc
 			pin.PIN,
 		)
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -227,7 +264,10 @@ func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerF
 		base.DecodeJSONToTargetStruct(w, r, retryPayload)
 		if retryPayload.Phone == nil || retryPayload.RetryStep == nil {
 			err := fmt.Errorf("expected `phoneNumber`, `retryStep` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -237,7 +277,10 @@ func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerF
 			*retryPayload.RetryStep,
 		)
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -259,13 +302,19 @@ func (h *HandlersInterfacesImpl) RefreshToken(ctx context.Context) http.HandlerF
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.RefreshToken == nil {
 			err := fmt.Errorf("expected `refreshToken` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
 		response, err := h.interactor.Login.RefreshToken(*p.RefreshToken)
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -286,13 +335,19 @@ func (h *HandlersInterfacesImpl) FindSupplierByUID(ctx context.Context) http.Han
 	return func(w http.ResponseWriter, r *http.Request) {
 		s, err := utils.ValidateUID(w, r)
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
 		if s.UID == nil {
 			err := fmt.Errorf("expected `uid` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
@@ -321,18 +376,27 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) ht
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 		v, err := h.interactor.Signup.CheckPhoneExists(ctx, *p.PhoneNumber)
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			base.WriteJSONResponse(w, resources.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
 		if v {
 			if err := h.interactor.Signup.RemoveUserByPhoneNumber(ctx, *p.PhoneNumber); err != nil {
-				base.ReportErr(w, fmt.Errorf("%v", err), http.StatusBadRequest)
+				base.WriteJSONResponse(w, resources.CustomError{
+					Err:     err,
+					Message: err.Error(),
+				}, http.StatusBadRequest)
 				return
 			}
 			base.WriteJSONResponse(w, resources.OKResp{Status: "OK"}, http.StatusOK)
@@ -340,6 +404,9 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) ht
 		}
 
 		err = fmt.Errorf("`phoneNumber` does not exist and not assiciated with any user ")
-		base.ReportErr(w, err, http.StatusBadRequest)
+		base.WriteJSONResponse(w, resources.CustomError{
+			Err:     err,
+			Message: err.Error(),
+		}, http.StatusBadRequest)
 	}
 }

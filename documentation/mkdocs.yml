@@ -1,0 +1,27 @@
+site_name: Profile Service Documentation
+nav:
+  - Preface: index.md
+  - Creating an account: index.md
+  - Login: login.md
+  - Error Codes: error_codes.md  
+
+theme:
+  name: material
+  highlightjs: true
+  hljs_languages:
+    - go
+    - bash
+    - sh
+    - yaml
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - attr_list
+  - def_list
+  - pymdownx.highlight:
+      linenums: true
+      linenums_style: pymdownx.inline
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg

@@ -2,6 +2,7 @@ image: eu.gcr.io/savannah-emr/golang-ci-image:0.0.4
 
 stages:
   - test
+  - docs
   - deploy
 
 variables:
@@ -41,6 +42,24 @@ lint_and_test:
   tags:
     - healthcloud-multi
 
+
+build_docs:
+  stage: docs
+  image: python:3.8.5
+  before_script:
+    - pip install -U mkdocs-material mkdocs-material-extensions
+  script:
+    - cd $CI_PROJECT_DIR/documentation && mkdocs build -c
+  tags:
+    - healthcloud-multi
+  only:
+    - develop
+    - app-fixes
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/documentation
+
+
 deploy_develop_to_staging:
   image: eu.gcr.io/savannah-emr/gcloud-docker-in-docker:0.0.1
   before_script:
@@ -66,6 +85,41 @@ deploy_develop_to_staging:
     - /google-cloud-sdk/bin/gcloud alpha run services update-traffic profile-staging --to-latest --region europe-west1 --platform managed --quiet
   tags:
     - healthcloud-multi
+      
+
+deploy_docs:
+  stage: deploy
+  image: docker:19.03.12-dind
+  before_script:
+    - apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python && python3 -m ensurepip
+    - wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
+    - tar zxf google-cloud-sdk.tar.gz && ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
+    # Instead of writing our GCP service account private key into a file, supply it as env variable
+    - google-cloud-sdk/bin/gcloud auth activate-service-account --key-file $GCLOUD_PRODUCTION_SERVICE_ACCOUNT
+    - google-cloud-sdk/bin/gcloud config set project bewell-app
+    - docker login -u _json_key --password-stdin https://eu.gcr.io < $GCLOUD_PRODUCTION_SERVICE_ACCOUNT
+    - export CLOUDSDK_CORE_PROJECT=bewell-app
+    - alias gcloud=/google-cloud-sdk/bin/gcloud
+    - google-cloud-sdk/bin/gcloud components install alpha --quiet
+  needs:
+    - job: build_docs
+      artifacts: true
+  only:
+    - develop
+    - app-fixes
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  resource_group: staging # control deploy concurrency
+  script:
+    - docker build -q -f $CI_PROJECT_DIR/documentation/Dockerfile $CI_PROJECT_DIR/documentation -t eu.gcr.io/bewell-app/profile-service-docs:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - google-cloud-sdk/bin/gcloud auth configure-docker
+    - docker -- push eu.gcr.io/bewell-app/profile-service-docs:$(echo $CI_COMMIT_SHA | cut -c1-8)
+    - google-cloud-sdk/bin/gcloud run deploy profile-service-docs --image eu.gcr.io/bewell-app/profile-service-docs:$(echo $CI_COMMIT_SHA | cut -c1-8) --region europe-west1 --platform managed --allow-unauthenticated
+    - google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile-service-docs --quiet
+    - google-cloud-sdk/bin/gcloud alpha run services update-traffic profile-service-docs --to-latest --region europe-west1 --platform managed --quiet
+  tags:
+    - healthcloud-multi
 
 deploy_develop_to_test:
   image: eu.gcr.io/savannah-emr/gcloud-docker-in-docker:0.0.1
@@ -77,7 +131,8 @@ deploy_develop_to_test:
     - export CLOUDSDK_CORE_PROJECT=bewell-app
   stage: deploy
   only:
-    - develop       
+    - develop  
+    - app-fixes     
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""

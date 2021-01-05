@@ -50,9 +50,9 @@ type OtpResponse struct {
 // CustomError represents a custom error struct
 // Reference https://blog.golang.org/error-handling-and-go
 type CustomError struct {
-	Err     error
-	Message string
-	Code    int
+	Err     error  `json:"error,omitempty"`
+	Message string `json:"message,omitempty"`
+	Code    int    `json:"code,omitempty"`
 }
 
 func (e *CustomError) Error() string {
