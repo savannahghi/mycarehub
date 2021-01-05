@@ -74,7 +74,7 @@ func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string)
 
 	exists, err := s.onboardingRepository.CheckIfPhoneNumberExists(ctx, phoneNumber)
 	if err != nil {
-		return false, exceptions.CheckPhoneNumberExistError(err)
+		return false, exceptions.InternalServerError(err)
 	}
 
 	return exists, nil
@@ -85,20 +85,20 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 	// check if phone number is registered to another user
 	exists, err := s.CheckPhoneExists(ctx, phoneNumber)
 	if err != nil {
-		return nil, exceptions.CheckPhoneNumberExistError(err)
+		return nil, err
 	}
 	if exists {
-		return nil, fmt.Errorf("%v", base.PhoneNumberInUse)
+		return nil, exceptions.CheckPhoneNumberExistError(err)
 	}
 
 	// get or create user via their phone number
 	user, err := base.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create firebase user: %w", err)
+		return nil, exceptions.InternalServerError(err)
 	}
 	profile, err := s.onboardingRepository.CreateUserProfile(ctx, phoneNumber, user.UID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create userProfile: %w", err)
+		return nil, exceptions.InternalServerError(err)
 	}
 	auth, err := s.onboardingRepository.GenerateAuthCredentials(ctx, phoneNumber)
 	if err != nil {
@@ -113,12 +113,12 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 
 	supplier, err = s.onboardingRepository.CreateEmptySupplierProfile(ctx, profile.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create supplierProfile: %w", err)
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	customer, err = s.onboardingRepository.CreateEmptyCustomerProfile(ctx, profile.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create customerProfile: %w", err)
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	return &resources.UserResponse{

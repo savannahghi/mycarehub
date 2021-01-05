@@ -41,6 +41,15 @@ func CheckPhoneNumberExistError(err error) error {
 	}
 }
 
+// InternalServerError returns an error if something wrong happened in performing the operration
+func InternalServerError(err error) error {
+	return &resources.CustomError{
+		Err:     err,
+		Message: InternalServerErrorMsg,
+		Code:    int(base.Internal),
+	}
+}
+
 // PinNotFoundError displays error message when a pin is not found
 func PinNotFoundError(err error) error {
 	return &resources.CustomError{

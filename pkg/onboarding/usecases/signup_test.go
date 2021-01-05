@@ -67,7 +67,7 @@ func TestCheckPhoneExists(t *testing.T) {
 			name:        "invalid : wrong phone number format",
 			phone:       "71812308",
 			wantErr:     true,
-			expectedErr: "failed to create firebase user: phone number must be a valid",
+			expectedErr: "server error! unable to perform operation",
 		},
 	}
 

@@ -77,4 +77,8 @@ const (
 	// the user supplied PIN number does not match the PIN
 	// record we have stored
 	PINMismatchErrMsg = "wrong PIN credentials supplied"
+
+	// InternalServerErrorMsg is an error message for database CRUD operations that
+	// don't succeed e.g network latency
+	InternalServerErrorMsg = "server error! unable to perform operation"
 )
