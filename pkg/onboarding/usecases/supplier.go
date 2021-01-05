@@ -18,6 +18,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
@@ -57,7 +58,7 @@ type SupplierUseCases interface {
 
 	CoreEDIUserLogin(username, password string) (*base.EDIUserProfile, error)
 
-	FetchSupplierAllowedLocations(ctx context.Context) (*domain.BranchConnection, error)
+	FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error)
 
 	AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
 
@@ -83,7 +84,7 @@ type SupplierUseCases interface {
 
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 
-	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*domain.BranchConnection, error)
+	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.BranchConnection, error)
 
 	SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error)
 
@@ -350,7 +351,7 @@ func (s SupplierUseCasesImpl) CoreEDIUserLogin(username, password string) (*base
 // 2 . fetch the branches of the provider given the slade code which we have
 // 3 . update the user's supplier record
 // 4. return the list of branches to the frontend so that a default location can be set
-func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*domain.BranchConnection, error) {
+func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.BranchConnection, error) {
 
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
@@ -437,7 +438,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 			return nil, err
 		}
 
-		return &domain.BranchConnection{PageInfo: pageInfo}, nil
+		return &resources.BranchConnection{PageInfo: pageInfo}, nil
 	}
 
 	// verify slade code.
@@ -506,7 +507,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		return nil, err
 	}
 
-	return &domain.BranchConnection{PageInfo: pageInfo}, nil
+	return &resources.BranchConnection{PageInfo: pageInfo}, nil
 }
 
 // SupplierSetDefaultLocation updates the default location ot the supplier by the given location id
@@ -530,7 +531,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 		return false, fmt.Errorf("unable to fetch organization branches location: %v", err)
 	}
 
-	branch := func(brs *domain.BranchConnection, location string) *domain.BranchEdge {
+	branch := func(brs *resources.BranchConnection, location string) *domain.BranchEdge {
 		for _, b := range brs.Edges {
 			if b.Node.ID == location {
 				return b
@@ -559,7 +560,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 }
 
 // FetchSupplierAllowedLocations retrieves all the locations that the user in context can work on.
-func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context) (*domain.BranchConnection, error) {
+func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error) {
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {

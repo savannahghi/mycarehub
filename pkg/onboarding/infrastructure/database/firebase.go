@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 
 	"cloud.google.com/go/firestore"
@@ -201,7 +202,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 
 	if v {
 		// this phone is number is associated with another user profile, hence can not create an profile with the same phone number
-		return nil, &domain.CustomError{
+		return nil, &resources.CustomError{
 			Err:     err,
 			Message: exceptions.PhoneNUmberInUseErrMsg,
 			Code:    int(base.PhoneNumberInUse),
@@ -405,7 +406,7 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 	}
 
 	if len(docs) == 0 {
-		return nil, &domain.CustomError{
+		return nil, &resources.CustomError{
 			Err:     nil,
 			Message: exceptions.PINNotFoundErrMsg,
 			Code:    int(base.PINNotFound),
@@ -426,17 +427,17 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 func (fr *Repository) GenerateAuthCredentials(
 	ctx context.Context,
 	phone string,
-) (*domain.AuthCredentialResponse, error) {
+) (*resources.AuthCredentialResponse, error) {
 	u, err := fr.FirebaseClient.GetUserByPhoneNumber(ctx, phone)
 	if err != nil {
 		if auth.IsUserNotFound(err) {
-			return nil, &domain.CustomError{
+			return nil, &resources.CustomError{
 				Err:     err,
 				Message: exceptions.UserNotFoundErrMsg,
 				Code:    int(base.UserNotFound),
 			}
 		}
-		return nil, &domain.CustomError{
+		return nil, &resources.CustomError{
 			Err:     err,
 			Message: exceptions.UserNotFoundErrMsg,
 			Code:    int(base.Internal),
@@ -445,7 +446,7 @@ func (fr *Repository) GenerateAuthCredentials(
 
 	customToken, err := base.CreateFirebaseCustomToken(ctx, u.UID)
 	if err != nil {
-		return nil, &domain.CustomError{
+		return nil, &resources.CustomError{
 			Err:     err,
 			Message: exceptions.CustomTokenErrMsg,
 			Code:    int(base.Internal),
@@ -453,7 +454,7 @@ func (fr *Repository) GenerateAuthCredentials(
 	}
 	userTokens, err := base.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
-		return nil, &domain.CustomError{
+		return nil, &resources.CustomError{
 			Err:     err,
 			Message: exceptions.AuthenticateTokenErrMsg,
 			Code:    int(base.Internal),
@@ -461,7 +462,7 @@ func (fr *Repository) GenerateAuthCredentials(
 	}
 	pr, err := fr.GetUserProfileByPrimaryPhoneNumber(ctx, phone)
 	if err != nil {
-		return nil, &domain.CustomError{
+		return nil, &resources.CustomError{
 			Err:     err,
 			Message: exceptions.AuthenticateTokenErrMsg,
 			Code:    int(base.ProfileNotFound),
@@ -474,14 +475,14 @@ func (fr *Repository) GenerateAuthCredentials(
 		Timestamp:     time.Now().In(base.TimeLocation),
 	}})
 	if err != nil {
-		return nil, &domain.CustomError{
+		return nil, &resources.CustomError{
 			Err:     err,
 			Message: exceptions.UpdateProfileErrMsg,
 			Code:    int(base.Internal),
 		}
 	}
 
-	return &domain.AuthCredentialResponse{
+	return &resources.AuthCredentialResponse{
 		CustomToken:  &customToken,
 		IDToken:      &userTokens.IDToken,
 		ExpiresIn:    userTokens.ExpiresIn,
@@ -795,11 +796,11 @@ func checkIdentifierExists(profile *base.UserProfile, UID string) bool {
 // RecordPostVisitSurvey records an end of visit survey
 func (fr *Repository) RecordPostVisitSurvey(
 	ctx context.Context,
-	input domain.PostVisitSurveyInput,
+	input resources.PostVisitSurveyInput,
 	UID string,
 ) (bool, error) {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
-		return false, &domain.CustomError{
+		return false, &resources.CustomError{
 			Err:     nil,
 			Message: exceptions.LikelyToRecommendErrMsg,
 			Code:    0, // TODO: Add a code for this error
@@ -816,7 +817,7 @@ func (fr *Repository) RecordPostVisitSurvey(
 	}
 	_, _, err := feedbackCollection.Add(ctx, feedback)
 	if err != nil {
-		return false, &domain.CustomError{
+		return false, &resources.CustomError{
 			Err:     err,
 			Message: exceptions.AddRecordErrMsg,
 			Code:    int(base.Internal),
@@ -831,7 +832,7 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN
 	// persist the data to a datastore
 	docID, err := base.SaveDataToFirestore(fr.FirestoreClient, fr.GetPINsCollectionName(), pin)
 	if err != nil {
-		return nil, &domain.CustomError{
+		return nil, &resources.CustomError{
 			Err:     err,
 			Message: exceptions.AddRecordErrMsg,
 			Code:    int(base.Internal),
@@ -840,7 +841,7 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN
 	dsnap, err := fr.FirestoreClient.Collection(fr.GetPINsCollectionName()).Doc(docID).Get(ctx)
 
 	if err != nil {
-		return nil, &domain.CustomError{
+		return nil, &resources.CustomError{
 			Err:     err,
 			Message: exceptions.RetrieveRecordErrMsg,
 			Code:    int(base.Internal),
@@ -872,7 +873,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 		fr.FirestoreClient, fr.GetPINsCollectionName(), record.Ref.ID, pin,
 	)
 	if err != nil {
-		return nil, &domain.CustomError{
+		return nil, &resources.CustomError{
 			Err:     err,
 			Message: exceptions.UpdateProfileErrMsg,
 			Code:    int(base.Internal),
@@ -885,13 +886,13 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 // ExchangeRefreshTokenForIDToken takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*domain.AuthCredentialResponse, error) {
+func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*resources.AuthCredentialResponse, error) {
 	apiKey, err := base.GetEnvVar(base.FirebaseWebAPIKeyEnvVarName)
 	if err != nil {
 		return nil, err
 	}
 
-	payload := domain.RefreshTokenExchangePayload{
+	payload := resources.RefreshTokenExchangePayload{
 		GrantType:    "refresh_token",
 		RefreshToken: refreshToken,
 	}
@@ -924,7 +925,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*domai
 		)
 	}
 
-	var tokenResp domain.AuthCredentialResponse
+	var tokenResp resources.AuthCredentialResponse
 	err = json.NewDecoder(resp.Body).Decode(&tokenResp)
 	if err != nil {
 		return nil, err

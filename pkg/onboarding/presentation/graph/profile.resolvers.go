@@ -7,12 +7,17 @@ import (
 	"context"
 
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
 )
 
-func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input domain.UserProfileInput) (*base.UserProfile, error) {
+func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input resources.UserProfileInput) (*base.UserProfile, error) {
 	return r.interactor.Signup.UpdateUserProfile(ctx, &input)
+}
+
+func (r *mutationResolver) UpdateUserPin(ctx context.Context, phone string, pin string) (*resources.PINOutput, error) {
+	return r.interactor.UserPIN.ChangeUserPIN(ctx, phone, pin)
 }
 
 func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) (bool, error) {
@@ -31,7 +36,7 @@ func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType domain
 	return r.interactor.Supplier.SetUpSupplier(ctx, accountType)
 }
 
-func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*domain.BranchConnection, error) {
+func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.BranchConnection, error) {
 	return r.interactor.Supplier.SupplierEDILogin(ctx, username, password, sladeCode)
 }
 
@@ -87,7 +92,7 @@ func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, sta
 	return r.interactor.Supplier.ProcessKYCRequest(ctx, id, status, rejectionReason)
 }
 
-func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input domain.PostVisitSurveyInput) (bool, error) {
+func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input resources.PostVisitSurveyInput) (bool, error) {
 	return r.interactor.Survey.RecordPostVisitSurvey(ctx, input)
 }
 
@@ -99,15 +104,15 @@ func (r *queryResolver) SupplierProfile(ctx context.Context) (*domain.Supplier, 
 	return r.interactor.Supplier.FindSupplierByUID(ctx)
 }
 
-func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*domain.BusinessPartnerFilterInput, sort []*domain.BusinessPartnerSortInput) (*domain.BusinessPartnerConnection, error) {
+func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
 	return r.interactor.ChargeMaster.FindProvider(ctx, pagination, filter, sort)
 }
 
-func (r *queryResolver) FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*domain.BranchFilterInput, sort []*domain.BranchSortInput) (*domain.BranchConnection, error) {
+func (r *queryResolver) FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
 	return r.interactor.ChargeMaster.FindBranch(ctx, pagination, filter, sort)
 }
 
-func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*domain.BranchConnection, error) {
+func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error) {
 	return r.interactor.Supplier.FetchSupplierAllowedLocations(ctx)
 }
 

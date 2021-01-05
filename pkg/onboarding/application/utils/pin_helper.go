@@ -83,7 +83,7 @@ func ValidatePINDigits(pin string) error {
 	// ensure pin is only digits
 	_, err := strconv.ParseUint(pin, 10, 64)
 	if err != nil {
-		return &domain.CustomError{
+		return &resources.CustomError{
 			Err:     err,
 			Message: exceptions.ValidatePINDigitsErrMsg,
 			// TODO: a give a correct code
@@ -98,7 +98,7 @@ func ValidatePINDigits(pin string) error {
 func ValidatePINLength(pin string) error {
 	// make sure pin length is [4-6]
 	if len(pin) < minPinLength || len(pin) > maxPinLength {
-		return &domain.CustomError{
+		return &resources.CustomError{
 			Message: exceptions.ValidatePINLengthErrMsg,
 			// TODO: a give a correct code
 			Code: int(base.UserNotFound),

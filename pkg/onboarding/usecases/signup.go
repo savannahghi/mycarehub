@@ -6,6 +6,7 @@ import (
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -18,10 +19,10 @@ type SignUpUseCases interface {
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 
 	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
-	CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*domain.UserResponse, error)
+	CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*resources.UserResponse, error)
 
 	// updates the user profile of the currently logged in user
-	UpdateUserProfile(ctx context.Context, input *domain.UserProfileInput) (*base.UserProfile, error)
+	UpdateUserProfile(ctx context.Context, input *resources.UserProfileInput) (*base.UserProfile, error)
 
 	// adds a new push token in the users profile if the push token does not exist
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
@@ -36,7 +37,7 @@ type SignUpUseCases interface {
 
 	// fetches the phone numbers of a user for the purposes of recoverying an account.
 	// the returned phone numbers should be masked
-	GetUserRecoveryPhoneNumbers(ctx context.Context, phoneNumber string) (*domain.AccountRecoveryPhonesResponse, error)
+	GetUserRecoveryPhoneNumbers(ctx context.Context, phoneNumber string) (*resources.AccountRecoveryPhonesResponse, error)
 
 	// called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
 	// where the phone number is associated with.
@@ -78,7 +79,7 @@ func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string)
 }
 
 // CreateUserByPhone creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
-func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*domain.UserResponse, error) {
+func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*resources.UserResponse, error) {
 	// check if phone number is registered to another user
 	exists, err := s.CheckPhoneExists(ctx, phoneNumber)
 	if err != nil {
@@ -118,7 +119,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 		return nil, fmt.Errorf("failed to create customerProfile: %w", err)
 	}
 
-	return &domain.UserResponse{
+	return &resources.UserResponse{
 		Profile:         profile,
 		SupplierProfile: supplier,
 		CustomerProfile: customer,
@@ -127,7 +128,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 }
 
 // UpdateUserProfile  updates the user profile of the currently logged in user
-func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *domain.UserProfileInput) (*base.UserProfile, error) {
+func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *resources.UserProfileInput) (*base.UserProfile, error) {
 
 	if err := s.profileUsecase.UpdatePhotoUploadID(ctx, input.PhotoUploadID); err != nil {
 		return nil, err
@@ -175,7 +176,7 @@ func (s *SignUpUseCasesImpl) RetirePushToken(ctx context.Context, token string) 
 }
 
 // GetUserRecoveryPhoneNumbers fetches the phone numbers of a user for the purposes of recoverying an account.
-func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, phone string) (*domain.AccountRecoveryPhonesResponse, error) {
+func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, phone string) (*resources.AccountRecoveryPhonesResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
@@ -197,7 +198,7 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 
 	masked := s.profileUsecase.MaskPhoneNumbers(phones)
 
-	return &domain.AccountRecoveryPhonesResponse{
+	return &resources.AccountRecoveryPhonesResponse{
 		MaskedPhoneNumbers:   masked,
 		UnMaskedPhoneNumbers: phones,
 	}, nil

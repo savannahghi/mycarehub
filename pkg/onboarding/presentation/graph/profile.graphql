@@ -24,6 +24,7 @@ extend type Query {
 
 extend type Mutation {
   updateUserProfile(input: UserProfileInput!): UserProfile!
+  updateUserPIN(phone: String!, pin: String!): PINOutput!
 
   registerPushToken(token: String!): Boolean!
 
@@ -91,5 +92,4 @@ extend type Mutation {
   # addTester(email: String!): Boolean!
   # removeTester(email: String!): Boolean!
 
-  # updateUserPIN(msisdn: String!, pin: String!): Boolean!
 }

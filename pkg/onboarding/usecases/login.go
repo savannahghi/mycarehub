@@ -5,8 +5,8 @@ import (
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -17,8 +17,8 @@ type LoginUseCases interface {
 		phone string,
 		PIN string,
 		flavour base.Flavour,
-	) (*domain.AuthCredentialResponse, error)
-	RefreshToken(token string) (*domain.AuthCredentialResponse, error)
+	) (*resources.AuthCredentialResponse, error)
+	RefreshToken(token string) (*resources.AuthCredentialResponse, error)
 }
 
 // LoginUseCasesImpl represents the usecase implementation object
@@ -38,7 +38,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	phone string,
 	PIN string,
 	flavour base.Flavour,
-) (*domain.AuthCredentialResponse, error) {
+) (*resources.AuthCredentialResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
@@ -77,6 +77,6 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 // RefreshToken takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func (l *LoginUseCasesImpl) RefreshToken(token string) (*domain.AuthCredentialResponse, error) {
+func (l *LoginUseCasesImpl) RefreshToken(token string) (*resources.AuthCredentialResponse, error) {
 	return l.onboardingRepository.ExchangeRefreshTokenForIDToken(token)
 }

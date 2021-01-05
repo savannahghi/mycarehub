@@ -69,6 +69,14 @@ This represents logic that consume the business logic from the `Usecase Layer`
 and renders to the view. Here you can choose to render the view in e.g 
 `graphql` or `rest`
 
+
+### Points to note
+
+- Interfaces let Go programmers describe what their package provides–not how it does it. This is all just another way of saying “decoupling”, which is indeed the goal, because software that is loosely coupled is software that is easier to change.
+- Design your public API/ports to keep secrets(Hide implementation details)
+abstract information that you present so that you can change your implementation behind your public API without changing the contract of exchanging information with other services.
+
+
 For more information, see:
 
 - [The Clean Architecture](https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html) advocated by Robert Martin ('Uncle Bob')
@@ -307,6 +315,3 @@ responsePayload
     }
 ```
 
-step 1 run 
-go run github.com/99designs/gqlgen init
-go generate ./...

@@ -2,12 +2,12 @@ package exceptions
 
 import (
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
 // UserNotFoundError returns an error message when a user is not found
 func UserNotFoundError(err error) error {
-	return &domain.CustomError{
+	return &resources.CustomError{
 		Err:     err,
 		Message: UserNotFoundErrMsg,
 		Code:    int(base.UserNotFound),
@@ -16,7 +16,7 @@ func UserNotFoundError(err error) error {
 
 // ProfileNotFoundError returns an error message when a profile is not found
 func ProfileNotFoundError(err error) error {
-	return &domain.CustomError{
+	return &resources.CustomError{
 		Err:     err,
 		Message: ProfileNotFoundErrMsg,
 		Code:    int(base.ProfileNotFound),
@@ -25,7 +25,7 @@ func ProfileNotFoundError(err error) error {
 
 // NormalizeMSISDNError returns an error when normalizing the msisdn fails
 func NormalizeMSISDNError(err error) error {
-	return &domain.CustomError{
+	return &resources.CustomError{
 		Err:     err,
 		Message: NormalizeMSISDNErrMsg,
 		Code:    int(base.Internal),
@@ -34,7 +34,7 @@ func NormalizeMSISDNError(err error) error {
 
 // CheckPhoneNumberExistError check if phone number is registered to another user
 func CheckPhoneNumberExistError(err error) error {
-	return &domain.CustomError{
+	return &resources.CustomError{
 		Err:     err,
 		Message: PhoneNUmberInUseErrMsg,
 		Code:    int(base.PhoneNumberInUse),
@@ -43,7 +43,7 @@ func CheckPhoneNumberExistError(err error) error {
 
 // PinNotFoundError displays error message when a pin is not found
 func PinNotFoundError(err error) error {
-	return &domain.CustomError{
+	return &resources.CustomError{
 		Err:     err,
 		Message: PINNotFoundErrMsg,
 		Code:    int(base.PINNotFound),
@@ -53,7 +53,7 @@ func PinNotFoundError(err error) error {
 // PinMismatchError displays an error when the supplied PIN
 // does not match the PIN stored
 func PinMismatchError(err error) error {
-	return &domain.CustomError{
+	return &resources.CustomError{
 		Err:     err,
 		Message: PINMismatchErrMsg,
 		Code:    int(base.PINMismatch),

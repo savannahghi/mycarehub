@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
@@ -65,7 +67,7 @@ type OnboardingRepository interface {
 	// checks if a specific username has already been registered to another user
 	CheckIfUsernameExists(ctx context.Context, phone string) (bool, error)
 
-	GenerateAuthCredentials(ctx context.Context, phone string) (*domain.AuthCredentialResponse, error)
+	GenerateAuthCredentials(ctx context.Context, phone string) (*resources.AuthCredentialResponse, error)
 
 	FetchAdminUsers(ctx context.Context) ([]*base.UserProfile, error)
 
@@ -78,7 +80,7 @@ type OnboardingRepository interface {
 	// Record post visit survey
 	RecordPostVisitSurvey(
 		ctx context.Context,
-		input domain.PostVisitSurveyInput,
+		input resources.PostVisitSurveyInput,
 		UID string,
 	) (bool, error)
 
@@ -88,5 +90,5 @@ type OnboardingRepository interface {
 
 	ExchangeRefreshTokenForIDToken(
 		token string,
-	) (*domain.AuthCredentialResponse, error)
+	) (*resources.AuthCredentialResponse, error)
 }
