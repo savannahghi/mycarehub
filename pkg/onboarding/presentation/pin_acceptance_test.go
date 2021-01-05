@@ -10,44 +10,43 @@ import (
 	"net/http"
 	"testing"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
-func composeInValidPinPayload(t *testing.T) *domain.SetPINRequest {
-	return &domain.SetPINRequest{
+func composeInValidPinPayload(t *testing.T) *resources.SetPINRequest {
+	return &resources.SetPINRequest{
 		PhoneNumber: "",
 		PIN:         "1234",
 	}
 
 }
 
-func composeValidPinPayload(t *testing.T) *domain.SetPINRequest {
-	return &domain.SetPINRequest{
+func composeValidPinPayload(t *testing.T) *resources.SetPINRequest {
+	return &resources.SetPINRequest{
 		PhoneNumber: base.TestUserPhoneNumberWithPin,
 		PIN:         "1234",
 	}
 }
 
-func composeUnregisteredPhone(t *testing.T) *domain.SetPINRequest {
-	return &domain.SetPINRequest{
+func composeUnregisteredPhone(t *testing.T) *resources.SetPINRequest {
+	return &resources.SetPINRequest{
 		PhoneNumber: base.TestUserPhoneNumber,
 		PIN:         "1234",
 	}
 }
 
-func composeInValidPinResetPayload(t *testing.T) *domain.PhoneNumberPayload {
+func composeInValidPinResetPayload(t *testing.T) *resources.PhoneNumberPayload {
 	emptyString := ""
-	return &domain.PhoneNumberPayload{
+	return &resources.PhoneNumberPayload{
 		PhoneNumber: &emptyString,
 	}
 
 }
 
-func composeValidPinResetPayload(t *testing.T) *domain.PhoneNumberPayload {
+func composeValidPinResetPayload(t *testing.T) *resources.PhoneNumberPayload {
 	validNumber := base.TestUserPhoneNumberWithPin
-	return &domain.PhoneNumberPayload{
+	return &resources.PhoneNumberPayload{
 		PhoneNumber: &validNumber,
 	}
 }

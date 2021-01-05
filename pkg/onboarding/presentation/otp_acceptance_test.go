@@ -10,31 +10,31 @@ import (
 	"testing"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
-func composeValidWARetryOTPPayload(t *testing.T) *domain.SendRetryOTPPayload {
+func composeValidWARetryOTPPayload(t *testing.T) *resources.SendRetryOTPPayload {
 	phoneNumber := base.TestUserPhoneNumber
 	step := 1
-	return &domain.SendRetryOTPPayload{
+	return &resources.SendRetryOTPPayload{
 		Phone:     &phoneNumber,
 		RetryStep: &step,
 	}
 }
 
-func composeValidMessageRetryOTPPayload(t *testing.T) *domain.SendRetryOTPPayload {
+func composeValidMessageRetryOTPPayload(t *testing.T) *resources.SendRetryOTPPayload {
 	phoneNumber := base.TestUserPhoneNumber
 	step := 2
-	return &domain.SendRetryOTPPayload{
+	return &resources.SendRetryOTPPayload{
 		Phone:     &phoneNumber,
 		RetryStep: &step,
 	}
 }
 
-func composeInvalidRetryOTPPayload(t *testing.T) *domain.SendRetryOTPPayload {
+func composeInvalidRetryOTPPayload(t *testing.T) *resources.SendRetryOTPPayload {
 	phoneNumber := base.TestUserPhoneNumber
 	step := 3 // There is no retry step > 2
-	return &domain.SendRetryOTPPayload{
+	return &resources.SendRetryOTPPayload{
 		Phone:     &phoneNumber,
 		RetryStep: &step,
 	}

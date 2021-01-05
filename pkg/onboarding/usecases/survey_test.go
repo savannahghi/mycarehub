@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
 func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
@@ -18,7 +18,7 @@ func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
 
 	type args struct {
 		ctx   context.Context
-		input domain.PostVisitSurveyInput
+		input resources.PostVisitSurveyInput
 	}
 	tests := []struct {
 		name    string
@@ -30,7 +30,7 @@ func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
 			name: "good case",
 			args: args{
 				ctx: authenticatedContext,
-				input: domain.PostVisitSurveyInput{
+				input: resources.PostVisitSurveyInput{
 					LikelyToRecommend: 10,
 					Criticism:         "very good developers",
 					Suggestions:       "pay them more",
@@ -43,7 +43,7 @@ func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
 			name: "bad case - invalid input",
 			args: args{
 				ctx: authenticatedContext,
-				input: domain.PostVisitSurveyInput{
+				input: resources.PostVisitSurveyInput{
 					LikelyToRecommend: 11,
 					Criticism:         "piece of crap",
 					Suggestions:       "replace it all",
@@ -56,7 +56,7 @@ func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
 			name: "bad case - user not found",
 			args: args{
 				ctx: context.Background(),
-				input: domain.PostVisitSurveyInput{
+				input: resources.PostVisitSurveyInput{
 					LikelyToRecommend: 0,
 					Criticism:         "piece of crap",
 					Suggestions:       "replace it all",

@@ -8,9 +8,9 @@ import (
 	"strconv"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"golang.org/x/crypto/pbkdf2"
 )
 

@@ -10,15 +10,15 @@ import (
 	"testing"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
-func composeWrongUserPINPayload(t *testing.T) *domain.LoginPayload {
+func composeWrongUserPINPayload(t *testing.T) *resources.LoginPayload {
 	// TODO: Harmonize LoginPayload SignUpPayload
 	phone := base.TestUserPhoneNumberWithPin
 	pin := "qwer"
 	flavour := base.FlavourPro
-	payload := &domain.LoginPayload{
+	payload := &resources.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -26,11 +26,11 @@ func composeWrongUserPINPayload(t *testing.T) *domain.LoginPayload {
 	return payload
 }
 
-func composeWrongUserPhonePayload(t *testing.T) *domain.LoginPayload {
+func composeWrongUserPhonePayload(t *testing.T) *resources.LoginPayload {
 	phone := "+254700000000"
 	pin := base.TestUserPin
 	flavour := base.FlavourPro
-	payload := &domain.LoginPayload{
+	payload := &resources.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -38,11 +38,11 @@ func composeWrongUserPhonePayload(t *testing.T) *domain.LoginPayload {
 	return payload
 }
 
-func composeInvalidUserPhonePayload(t *testing.T) *domain.LoginPayload {
+func composeInvalidUserPhonePayload(t *testing.T) *resources.LoginPayload {
 	phone := "+254-not-a-number"
 	pin := base.TestUserPin
 	flavour := base.FlavourPro
-	payload := &domain.LoginPayload{
+	payload := &resources.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -97,7 +97,7 @@ func TestLoginInByPhone(t *testing.T) {
 	}
 	badInvalidPhonepayload := bytes.NewBuffer(invalidPhoneBs)
 
-	emptyData := &domain.LoginPayload{}
+	emptyData := &resources.LoginPayload{}
 	emptyBs, err := json.Marshal(emptyData)
 	if err != nil {
 		t.Errorf("unable to marshal test item to JSON: %s", err)
@@ -247,7 +247,7 @@ func TestLoginInByPhone(t *testing.T) {
 func TestRefreshToken(t *testing.T) {
 	client := http.DefaultClient
 	validToken := "AOvuKvSiBjrtQ6WRdTbRUFeGm4q6KbKg1kdwACot-zZFSqAwZtePlLKTT4U5Ew7C6UFcQsu6HQPAKD-1Hr_jTrtUtwTJ2mrqTBEW0oxtWImbB7fnPtNnl3mSBMpnVewbj14w_quNw_AkvBaQKu2vIR5tjATqYaPHCRMM1d-W7GMQUneKlJNz-JQ"
-	validPayload := &domain.RefreshTokenPayload{
+	validPayload := &resources.RefreshTokenPayload{
 		RefreshToken: &validToken,
 	}
 	bs, err := json.Marshal(validPayload)
@@ -257,7 +257,7 @@ func TestRefreshToken(t *testing.T) {
 	payload := bytes.NewBuffer(bs)
 
 	inValidToken := "some-token"
-	inValidPayload := &domain.RefreshTokenPayload{
+	inValidPayload := &resources.RefreshTokenPayload{
 		RefreshToken: &inValidToken,
 	}
 	badBs, err := json.Marshal(inValidPayload)
@@ -266,7 +266,7 @@ func TestRefreshToken(t *testing.T) {
 	}
 	badPayload := bytes.NewBuffer(badBs)
 
-	emptyData := &domain.LoginPayload{}
+	emptyData := &resources.LoginPayload{}
 	emptyBs, err := json.Marshal(emptyData)
 	if err != nil {
 		t.Errorf("unable to marshal test item to JSON: %s", err)

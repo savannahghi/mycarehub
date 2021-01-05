@@ -450,7 +450,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 	supplier.IsOrganizationVerified = true
 	supplier.SladeCode = sladeCode
 
-	filter := []*domain.BusinessPartnerFilterInput{
+	filter := []*resources.BusinessPartnerFilterInput{
 		{
 			SladeCode: &sladeCode,
 		},
@@ -468,7 +468,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 	}
 
 	businessPartner = *partner.Edges[0].Node
-	var brFilter []*domain.BranchFilterInput
+	var brFilter []*resources.BranchFilterInput
 
 	go func() {
 		op := func() error {
@@ -483,7 +483,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 	if businessPartner.Parent != nil {
 		supplier.HasBranches = true
 		supplier.ParentOrganizationID = *businessPartner.Parent
-		filter := &domain.BranchFilterInput{
+		filter := &resources.BranchFilterInput{
 			ParentOrganizationID: businessPartner.Parent,
 		}
 
@@ -519,7 +519,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 	}
 
 	// fetch the branches of the provider filtered by sladecode and ParentOrganizationID
-	filter := []*domain.BranchFilterInput{
+	filter := []*resources.BranchFilterInput{
 		{
 			SladeCode:            &sup.SladeCode,
 			ParentOrganizationID: &sup.ParentOrganizationID,
@@ -531,7 +531,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 		return false, fmt.Errorf("unable to fetch organization branches location: %v", err)
 	}
 
-	branch := func(brs *resources.BranchConnection, location string) *domain.BranchEdge {
+	branch := func(brs *resources.BranchConnection, location string) *resources.BranchEdge {
 		for _, b := range brs.Edges {
 			if b.Node.ID == location {
 				return b
@@ -568,7 +568,7 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context
 	}
 
 	// fetch the branches of the provider filtered by sladecode and ParentOrganizationID
-	filter := []*domain.BranchFilterInput{
+	filter := []*resources.BranchFilterInput{
 		{
 			SladeCode:            &sup.SladeCode,
 			ParentOrganizationID: &sup.ParentOrganizationID,

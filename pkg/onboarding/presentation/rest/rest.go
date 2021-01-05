@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 
@@ -42,7 +43,7 @@ func NewHandlersInterfaces(i *interactor.Interactor) HandlersInterfaces {
 func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		p := &domain.PhoneNumberPayload{}
+		p := &resources.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
@@ -67,7 +68,7 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) ht
 			return
 		}
 
-		base.WriteJSONResponse(w, domain.OtpResponse{OTP: otp}, http.StatusOK)
+		base.WriteJSONResponse(w, resources.OtpResponse{OTP: otp}, http.StatusOK)
 	}
 }
 
@@ -75,7 +76,7 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) ht
 func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		p := &domain.SignUpPayload{}
+		p := &resources.SignUpPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil && p.PIN == nil {
 			err := fmt.Errorf("expected `phoneNumber` and `pin` to be defined")
@@ -108,7 +109,7 @@ func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) 
 func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		p := &domain.PhoneNumberPayload{}
+		p := &resources.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
@@ -136,7 +137,7 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) h
 // belongs to the profile and returns auth credentials to allow the user to login
 func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &domain.LoginPayload{}
+		p := &resources.LoginPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil || p.PIN == nil {
 			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
@@ -169,7 +170,7 @@ func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerF
 // sends an otp to an msisdn that requests a PIN reset request during login
 func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &domain.PhoneNumberPayload{}
+		p := &resources.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
@@ -185,7 +186,7 @@ func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.Handl
 
 		base.WriteJSONResponse(
 			w,
-			domain.OtpResponse{OTP: otp},
+			resources.OtpResponse{OTP: otp},
 			http.StatusOK,
 		)
 	}
@@ -194,7 +195,7 @@ func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.Handl
 // ChangePin used to change/update a user's PIN
 func (h *HandlersInterfacesImpl) ChangePin(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		pin := &domain.SetPINRequest{}
+		pin := &resources.SetPINRequest{}
 		base.DecodeJSONToTargetStruct(w, r, pin)
 		if pin.PhoneNumber == "" || pin.PIN == "" {
 			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
@@ -221,7 +222,7 @@ func (h *HandlersInterfacesImpl) ChangePin(ctx context.Context) http.HandlerFunc
 // and generates and sends a valid OTP to the phone number
 func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		retryPayload := &domain.SendRetryOTPPayload{}
+		retryPayload := &resources.SendRetryOTPPayload{}
 		base.DecodeJSONToTargetStruct(w, r, retryPayload)
 		if retryPayload.Phone == nil || retryPayload.RetryStep == nil {
 			err := fmt.Errorf("expected `phoneNumber`, `retryStep` to be defined")
@@ -241,7 +242,7 @@ func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerF
 
 		base.WriteJSONResponse(
 			w,
-			domain.OtpResponse{OTP: response},
+			resources.OtpResponse{OTP: response},
 			http.StatusOK,
 		)
 	}
@@ -253,7 +254,7 @@ func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerF
 // Otherwise, an error is returned
 func (h *HandlersInterfacesImpl) RefreshToken(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &domain.RefreshTokenPayload{}
+		p := &resources.RefreshTokenPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.RefreshToken == nil {
 			err := fmt.Errorf("expected `refreshToken` to be defined")
@@ -269,7 +270,7 @@ func (h *HandlersInterfacesImpl) RefreshToken(ctx context.Context) http.HandlerF
 
 		base.WriteJSONResponse(
 			w,
-			domain.AuthCredentialResponse{
+			resources.AuthCredentialResponse{
 				RefreshToken: response.RefreshToken,
 				ExpiresIn:    response.ExpiresIn,
 				IDToken:      response.IDToken,

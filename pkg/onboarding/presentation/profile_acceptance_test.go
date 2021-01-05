@@ -9,57 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
-
-// func updateTestUserProfile(ctx context.Context, input domain.UserProfileInput) error {
-// 	graphqlMutation := `
-// 	mutation updateUserProfile($input:UserProfileInput!){
-// 		updateUserProfile(input: $input){
-// 			userName
-// 			verifiedIdentifiers{
-// 				uid
-// 				timestamp
-// 				loginProvider
-// 			}
-// 			PrimaryPhone
-// 			PrimaryEmailAddress
-// 			pushTokens
-// 			userBioData{
-// 				firstName
-// 				lastName
-// 				dateOfBirth
-// 				gender
-// 			}
-
-// 		}
-// 	}`
-// 	gql := map[string]interface{}{
-// 		"query": graphqlMutation,
-// 		"variables": map[string]interface{}{
-// 			"input": map[string]interface{}{
-// 				"photoUploadID": input.PhotoUploadID,
-// 				"dateOfBirth":   input.DateOfBirth,
-// 				"firstName":     input.FirstName,
-// 				"lastName":      input.LastName,
-// 			},
-// 		},
-// 	}
-
-// 	dataResp, err := ComposeGraphqlServerRequest(ctx, gql)
-// 	if err != nil {
-// 		return fmt.Errorf("unable to compose a successful graphql server request: %s", err)
-// 	}
-
-// 	data := map[string]interface{}{}
-// 	err = json.Unmarshal(dataResp, &data)
-// 	if err != nil {
-// 		return fmt.Errorf("bad data returned")
-// 	}
-// 	return nil
-// }
 
 func TestUpdateUserProfile(t *testing.T) {
 	// create a user and thier profile
@@ -85,7 +37,7 @@ func TestUpdateUserProfile(t *testing.T) {
 	}
 	firstName := "kamau"
 	lastName := "mwas"
-	up := domain.UserProfileInput{
+	up := resources.UserProfileInput{
 		PhotoUploadID: "12345",
 		DateOfBirth:   &dateOfBirth,
 		FirstName:     &firstName,

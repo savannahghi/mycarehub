@@ -10,16 +10,15 @@ import (
 	"net/http"
 	"testing"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
-func composeInValidUserPayload(t *testing.T) *domain.SignUpPayload {
+func composeInValidUserPayload(t *testing.T) *resources.SignUpPayload {
 	phone := base.TestUserPhoneNumber
 	pin := "" // empty string
 	flavour := base.FlavourPro
-	payload := &domain.SignUpPayload{
+	payload := &resources.SignUpPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -27,11 +26,11 @@ func composeInValidUserPayload(t *testing.T) *domain.SignUpPayload {
 	return payload
 }
 
-func composeValidUserPayload(t *testing.T) *domain.SignUpPayload {
+func composeValidUserPayload(t *testing.T) *resources.SignUpPayload {
 	phone := base.TestUserPhoneNumberWithPin
 	pin := "2030"
 	flavour := base.FlavourPro
-	payload := &domain.SignUpPayload{
+	payload := &resources.SignUpPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -39,7 +38,7 @@ func composeValidUserPayload(t *testing.T) *domain.SignUpPayload {
 	return payload
 }
 
-func CreateTestUserByPhone(t *testing.T) (*domain.UserResponse, error) {
+func CreateTestUserByPhone(t *testing.T) (*resources.UserResponse, error) {
 	client := http.DefaultClient
 	validPayload := composeValidUserPayload(t)
 	bs, err := json.Marshal(validPayload)
@@ -81,7 +80,7 @@ func CreateTestUserByPhone(t *testing.T) (*domain.UserResponse, error) {
 
 	}
 
-	var userResponse domain.UserResponse
+	var userResponse resources.UserResponse
 	err = json.Unmarshal(data, &userResponse)
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshall response: %v", err)

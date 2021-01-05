@@ -140,9 +140,9 @@ func (chr ServiceChargeMasterImpl) FindProvider(ctx context.Context, pagination 
 	hasNextPage := r.Next != ""
 	hasPreviousPage := r.Previous != ""
 
-	edges := []*domain.BusinessPartnerEdge{}
+	edges := []*resources.BusinessPartnerEdge{}
 	for pos, org := range r.Results {
-		edge := &domain.BusinessPartnerEdge{
+		edge := &resources.BusinessPartnerEdge{
 			Node: &domain.BusinessPartner{
 				ID:        org.ID,
 				Name:      org.Name,
@@ -206,14 +206,14 @@ func (chr ServiceChargeMasterImpl) FindBranch(ctx context.Context, pagination *b
 	hasNextPage := r.Next != ""
 	hasPreviousPage := r.Previous != ""
 
-	edges := []*domain.BranchEdge{}
+	edges := []*resources.BranchEdge{}
 	for pos, branch := range r.Results {
 		orgSladeCode, err := parentOrgSladeCodeFromBranch(branch)
 		if err != nil {
 			return nil, err
 		}
 
-		edge := &domain.BranchEdge{
+		edge := &resources.BranchEdge{
 			Node: &domain.Branch{
 				ID:                    branch.ID,
 				Name:                  branch.Name,
