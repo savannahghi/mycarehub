@@ -84,28 +84,17 @@ func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) 
 
 		p := &resources.SignUpPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil && p.PIN == nil {
-			err := fmt.Errorf("expected `phoneNumber` and `pin` to be defined")
-			base.WriteJSONResponse(w, resources.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-		if !p.Flavour.IsValid() {
-			err := fmt.Errorf("an invalid `flavour` defined")
-			base.WriteJSONResponse(w, resources.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
+		validInput, err := ValidateSignUpPayload(p)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
 		response, err := h.interactor.Signup.CreateUserByPhone(
 			ctx,
-			*p.PhoneNumber,
-			*p.PIN,
-			p.Flavour,
+			*validInput.PhoneNumber,
+			*validInput.PIN,
+			validInput.Flavour,
 		)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)
@@ -431,4 +420,46 @@ func (h *HandlersInterfacesImpl) GetUserProfileByUID(ctx context.Context) http.H
 
 		base.WriteJSONResponse(w, profile, http.StatusOK)
 	}
+}
+
+// ValidateSignUpPayload checks if domain.SignUpPayload has valid data
+func ValidateSignUpPayload(
+	inputPayload *resources.SignUpPayload) (*resources.SignUpPayload, error) {
+
+	// validate phone number input
+	ph := *inputPayload.PhoneNumber
+	number, err := base.NormalizeMSISDN(ph)
+	if err != nil {
+		return nil, err
+	}
+	if number == "" {
+		return nil, fmt.Errorf("empty phone number")
+	}
+
+	// validate flavour input
+
+	if !inputPayload.Flavour.IsValid() {
+		err := fmt.Errorf("an invalid `flavour` defined")
+		return nil, err
+	}
+
+	// validate pin input
+	err = utils.ValidatePINLength(*inputPayload.PIN)
+	if err != nil {
+		return nil, err
+	}
+
+	err = utils.ValidatePINDigits(*inputPayload.PIN)
+	if err != nil {
+		return nil, err
+	}
+
+	// return valid input
+	validInput := &resources.SignUpPayload{
+		PhoneNumber: &number,
+		PIN:         inputPayload.PIN,
+		Flavour:     inputPayload.Flavour,
+	}
+
+	return validInput, nil
 }
