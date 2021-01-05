@@ -843,7 +843,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.FirestoreClient, fr.GetPINsCollectionName(), record.Ref.ID, pinData,
+		fr.FirestoreClient, fr.GetPINsCollectionName(), record.Ref.ID, pin,
 	)
 	if err != nil {
 		return nil, &domain.CustomError{
@@ -852,7 +852,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 			Code:    int(base.Internal),
 		}
 	}
-	return pinData, nil
+	return pin, nil
 
 }
 

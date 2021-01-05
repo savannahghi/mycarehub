@@ -18,7 +18,6 @@ type HandlersInterfaces interface {
 	CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc
 	UserRecoveryPhoneNumbers(ctx context.Context) http.HandlerFunc
 	LoginByPhone(ctx context.Context) http.HandlerFunc
-	SetUserPIN(ctx context.Context) http.HandlerFunc
 	RequestPINReset(ctx context.Context) http.HandlerFunc
 	ChangePin(ctx context.Context) http.HandlerFunc
 	SendRetryOTP(ctx context.Context) http.HandlerFunc
@@ -156,31 +155,6 @@ func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerF
 			*p.PhoneNumber,
 			*p.PIN,
 			p.Flavour,
-		)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		base.WriteJSONResponse(w, response, http.StatusOK)
-	}
-}
-
-// SetUserPIN is an unauthenticated  endpoint that saves user Pin
-func (h *HandlersInterfacesImpl) SetUserPIN(ctx context.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		pin := &domain.SetPINRequest{}
-		base.DecodeJSONToTargetStruct(w, r, pin)
-		if pin.PhoneNumber == "" || pin.PIN == "" {
-			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		response, err := h.interactor.UserPIN.SetUserPIN(
-			ctx,
-			pin.PIN,
-			pin.PhoneNumber,
 		)
 		if err != nil {
 			base.ReportErr(w, err, http.StatusBadRequest)

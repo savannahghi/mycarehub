@@ -82,10 +82,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.UserRecoveryPhoneNumbers(ctx))
-	r.Path("/set_pin").Methods(
-		http.MethodPost,
-		http.MethodOptions).
-		HandlerFunc(h.SetUserPIN(ctx))
 
 	// LoginByPhone routes
 	r.Path("/login_by_phone").Methods(

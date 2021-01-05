@@ -2,7 +2,6 @@ package usecases_test
 
 import (
 	"context"
-	"log"
 	"testing"
 
 	"gitlab.slade360emr.com/go/base"
@@ -191,7 +190,6 @@ func TestUserPinUseCaseImpl_ChangeUserPIN(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			pin := s
 			authResponse, err := pin.UserPIN.ChangeUserPIN(tt.args.ctx, tt.args.phone, tt.args.pin)
-			log.Println("Error gani hii:", authResponse)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserPinUseCaseImpl.ChangeUserPIN() error = %v, wantErr %v",
 					err,
