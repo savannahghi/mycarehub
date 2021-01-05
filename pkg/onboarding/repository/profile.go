@@ -34,11 +34,21 @@ type SupplierRepository interface {
 	UpdateKYCProcessingRequest(ctx context.Context, sup *domain.KYCRequest) error
 }
 
+// CustomerRepository  defines signatures that relate to customers
+type CustomerRepository interface {
+	// customer methods
+	GetCustomerProfileByID(ctx context.Context, id string) (*domain.Customer, error)
+
+	GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*domain.Customer, error)
+}
+
 // OnboardingRepository interface that provide access to all persistent storage operations
 type OnboardingRepository interface {
 	base.UserProfileRepository
 
 	SupplierRepository
+
+	CustomerRepository
 
 	// creates a user profile of using the provided phone number and uid
 	CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error)
@@ -70,6 +80,9 @@ type OnboardingRepository interface {
 	GenerateAuthCredentials(ctx context.Context, phone string) (*resources.AuthCredentialResponse, error)
 
 	FetchAdminUsers(ctx context.Context) ([]*base.UserProfile, error)
+
+	// removes user completely. This should be used only under testing environment
+	PurgeUserByPhoneNumber(ctx context.Context, phone string) error
 
 	// PINs
 	GetPINByProfileID(

@@ -142,9 +142,8 @@ func (fr *Repository) GetUserProfileByUID(
 	uid string,
 ) (*base.UserProfile, error) {
 	// Retrieve the user profile
-	uids := []string{uid}
 	collection := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
-	query := collection.Where("verifiedIdentifiers", "array-contains-any", uids)
+	query := collection.Where("verifiedUIDS", "array-contains", uid)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -153,7 +152,7 @@ func (fr *Repository) GetUserProfileByUID(
 		return nil, fmt.Errorf("user profile not found: %w", err)
 	}
 	if len(docs) > 1 && base.IsDebug() {
-		log.Printf("user with uids %s has > 1 profile (they have %d)", uids, len(docs))
+		log.Printf("user with uids %s has > 1 profile (they have %d)", uid, len(docs))
 	}
 	// read and unpack profile
 	dsnap := docs[0]
@@ -218,6 +217,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 			LoginProvider: base.LoginProviderTypePhone,
 			Timestamp:     time.Now().In(base.TimeLocation),
 		}},
+		VerifiedUIDS:  []string{uid},
 		TermsAccepted: true,
 		Suspended:     false,
 	}
@@ -469,12 +469,19 @@ func (fr *Repository) GenerateAuthCredentials(
 		}
 	}
 
-	err = fr.UpdateVerifiedIdentifiers(ctx, pr.ID, []base.VerifiedIdentifier{{
+	if err := fr.UpdateVerifiedIdentifiers(ctx, pr.ID, []base.VerifiedIdentifier{{
 		UID:           u.UID,
 		LoginProvider: base.LoginProviderTypePhone,
 		Timestamp:     time.Now().In(base.TimeLocation),
-	}})
-	if err != nil {
+	}}); err != nil {
+		return nil, &resources.CustomError{
+			Err:     err,
+			Message: exceptions.UpdateProfileErrMsg,
+			Code:    int(base.Internal),
+		}
+	}
+
+	if err := fr.UpdateVerifiedUIDS(ctx, pr.ID, []string{u.UID}); err != nil {
 		return nil, &resources.CustomError{
 			Err:     err,
 			Message: exceptions.UpdateProfileErrMsg,
@@ -753,6 +760,7 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error {
 
 	for _, identifier := range identifiers {
+		// for each run, get the user profile. this will ensure the fetch profile always has the latest data
 		profile, err := fr.GetUserProfileByID(ctx, id)
 		if err != nil {
 			return err
@@ -763,7 +771,7 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 
 			uids = append(uids, identifier)
 
-			profile.VerifiedIdentifiers = uids
+			profile.VerifiedIdentifiers = append(profile.VerifiedIdentifiers, uids...)
 
 			record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 			if err != nil {
@@ -791,6 +799,42 @@ func checkIdentifierExists(profile *base.UserProfile, UID string) bool {
 		foundVerifiedUIDs = append(foundVerifiedUIDs, verifiedID.UID)
 	}
 	return base.StringSliceContains(foundVerifiedUIDs, UID)
+}
+
+// UpdateVerifiedUIDS adds a UID to a user profile during login if it does not exist
+func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []string) error {
+
+	for _, uid := range uids {
+		// for each run, get the user profile. this will ensure the fetch profile always has the latest data
+		profile, err := fr.GetUserProfileByID(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		if !base.StringSliceContains(profile.VerifiedUIDS, uid) {
+			uids := []string{}
+
+			uids = append(uids, uid)
+
+			profile.VerifiedUIDS = append(profile.VerifiedUIDS, uids...)
+
+			record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
+			if err != nil {
+				return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+			}
+
+			err = base.UpdateRecordOnFirestore(
+				fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+			)
+			if err != nil {
+				return fmt.Errorf("unable to update user profile verified UIDs: %v", err)
+			}
+			return nil
+
+		}
+	}
+
+	return nil
 }
 
 // RecordPostVisitSurvey records an end of visit survey
@@ -932,6 +976,51 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*resou
 	}
 
 	return &tokenResp, nil
+}
+
+// GetCustomerProfileByID fetch the customer profile by profile id.
+func (fr *Repository) GetCustomerProfileByID(ctx context.Context, profileID string) (*domain.Customer, error) {
+	collection := fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName())
+	query := collection.Where("profileID", "==", profileID)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) > 1 && base.IsDebug() {
+		log.Printf("> 1 profile with id %s (count: %d)", profileID, len(docs))
+	}
+
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("customer profile not found: %w", err)
+	}
+	dsnap := docs[0]
+	cus := &domain.Customer{}
+	err = dsnap.DataTo(cus)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read customer profile: %w", err)
+	}
+	return cus, nil
+}
+
+// GetCustomerProfileByProfileID fetches customer profile by given ID
+func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, id string) (*domain.Customer, error) {
+	collection := fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName())
+	query := collection.Where("id", "==", id)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("customer profile not found: %w", err)
+	}
+	dsnap := docs[0]
+	cus := &domain.Customer{}
+	err = dsnap.DataTo(cus)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read customer profile: %w", err)
+	}
+	return cus, nil
 }
 
 // GetSupplierProfileByProfileID fetch the supplier profile by profile id.
@@ -1146,4 +1235,60 @@ func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile,
 		admins = append(admins, u)
 	}
 	return admins, nil
+}
+
+// PurgeUserByPhoneNumber removes the record of a user given a phone number.
+func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) error {
+	pr, err := fr.GetUserProfileByPhoneNumber(ctx, phone)
+	if err != nil {
+		return err
+	}
+
+	// delete pin of the user
+	pin, err := fr.GetPINByProfileID(ctx, pr.ID)
+	if err != nil {
+		return err
+	}
+	_, err = fr.FirestoreClient.Collection(fr.GetPINsCollectionName()).Doc(pin.ID).Delete(ctx)
+	if err != nil {
+		return err
+	}
+
+	// delete user supplier profile
+	spr, err := fr.GetSupplierProfileByProfileID(ctx, pr.ID)
+	if err != nil {
+		return err
+	}
+	_, err = fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName()).Doc(spr.ID).Delete(ctx)
+	if err != nil {
+		return err
+	}
+
+	// delete user customer profile
+	cpr, err := fr.GetCustomerProfileByProfileID(ctx, pr.ID)
+	if err != nil {
+		return err
+	}
+	_, err = fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName()).Doc(cpr.ID).Delete(ctx)
+	if err != nil {
+		return err
+	}
+
+	// delete the user profile
+	_, err = fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName()).Doc(pr.ID).Delete(ctx)
+	if err != nil {
+		return err
+	}
+
+	// delete the user from firebase
+	u, err := fr.FirebaseClient.GetUserByPhoneNumber(ctx, phone)
+	if err != nil {
+		return err
+	}
+	if err := fr.FirebaseClient.DeleteUser(ctx, u.UID); err != nil {
+		return err
+	}
+
+	return nil
+
 }

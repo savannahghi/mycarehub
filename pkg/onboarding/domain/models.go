@@ -211,11 +211,6 @@ type BusinessPartnerUID struct {
 // 	RefreshToken string `json:"refresh_token"`
 // }
 
-// // OKResp is used to return OK responses in inter-service calls
-// type OKResp struct {
-// 	Status string `json:"status"`
-// }
-
 // // SaveMemberCoverPayload deserializes inter-service requests to save
 // // member covers
 // type SaveMemberCoverPayload struct {

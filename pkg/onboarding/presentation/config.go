@@ -110,6 +110,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(h.SendRetryOTP(ctx))
 
+	env := os.Getenv(base.Environment)
+	if env == base.TestingEnv {
+		r.Path("/remove_user").Methods(
+			http.MethodPost,
+			http.MethodOptions).
+			HandlerFunc(h.VerifySignUpPhoneNumber(ctx))
+	}
+
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()
 	isc.Use(base.InterServiceAuthenticationMiddleware())

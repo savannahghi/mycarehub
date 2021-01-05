@@ -64,3 +64,8 @@ type AccountRecoveryPhonesResponse struct {
 	MaskedPhoneNumbers   []string `json:"maskedPhoneNumbers"`
 	UnMaskedPhoneNumbers []string `json:"unMaskedPhoneNumbers"`
 }
+
+// OKResp is used to return OK responses in inter-service calls
+type OKResp struct {
+	Status string `json:"status"`
+}

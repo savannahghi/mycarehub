@@ -841,6 +841,6 @@ var (
 // integer between 0 and 10 will be added to the end of the name, e.g `focused_turing3`
 func GetRandomName() *string {
 	rand.Seed(time.Now().UnixNano())
-	name := fmt.Sprintf("@%s_%s%v%v254", left[rand.Intn(len(left))], right[rand.Intn(len(right))], rand.Intn(len(left)), rand.Intn(len(right)))
+	name := fmt.Sprintf("@%s_%s%v%v254", left[rand.Intn(len(left))], right[rand.Intn(len(right))], rand.Intn(len(left)+1), rand.Intn(len(right)+3))
 	return &name
 }

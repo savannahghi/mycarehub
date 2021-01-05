@@ -24,6 +24,7 @@ type HandlersInterfaces interface {
 	SendRetryOTP(ctx context.Context) http.HandlerFunc
 	RefreshToken(ctx context.Context) http.HandlerFunc
 	FindSupplierByUID(ctx context.Context) http.HandlerFunc
+	RemoveUserByPhoneNumber(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -307,5 +308,38 @@ func (h *HandlersInterfacesImpl) FindSupplierByUID(ctx context.Context) http.Han
 		}
 
 		base.WriteJSONResponse(w, supplier, http.StatusOK)
+	}
+}
+
+// RemoveUserByPhoneNumber is an unauthenticated endpoint that removes a user
+// whose phone number, either PRIMARY PHONE NUMBER or SECONDARY PHONE NUMBERS,matches the provided
+// phone number in the request. This endpoint will ONLY be available under testing environment
+func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		p := &resources.PhoneNumberPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.PhoneNumber == nil {
+			err := fmt.Errorf("expected `phoneNumber` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+		v, err := h.interactor.Signup.CheckPhoneExists(ctx, *p.PhoneNumber)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		if v {
+			if err := h.interactor.Signup.RemoveUserByPhoneNumber(ctx, *p.PhoneNumber); err != nil {
+				base.ReportErr(w, fmt.Errorf("%v", err), http.StatusBadRequest)
+				return
+			}
+			base.WriteJSONResponse(w, resources.OKResp{Status: "OK"}, http.StatusOK)
+			return
+		}
+
+		err = fmt.Errorf("`phoneNumber` does not exist and not assiciated with any user ")
+		base.ReportErr(w, err, http.StatusBadRequest)
 	}
 }

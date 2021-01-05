@@ -42,6 +42,8 @@ type SignUpUseCases interface {
 	// called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
 	// where the phone number is associated with.
 	SetPhoneAsPrimary(ctx context.Context, phone string) (bool, error)
+
+	RemoveUserByPhoneNumber(ctx context.Context, phone string) error
 }
 
 // SignUpUseCasesImpl represents usecase implementation object
@@ -211,4 +213,14 @@ func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(ctx context.Context, phone string
 		return false, err
 	}
 	return true, nil
+}
+
+// RemoveUserByPhoneNumber removes the record of a user using the provided phone number. This method will ONLY be called
+// in testing environment.
+func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone string) error {
+	phoneNumber, err := base.NormalizeMSISDN(phone)
+	if err != nil {
+		return exceptions.NormalizeMSISDNError(err)
+	}
+	return s.onboardingRepository.PurgeUserByPhoneNumber(ctx, phoneNumber)
 }

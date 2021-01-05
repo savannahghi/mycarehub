@@ -18,7 +18,8 @@ type ProfileUseCase interface {
 	UpdatePrimaryEmailAddress(ctx context.Context, emailAddress string) error
 	UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error
 	UpdateSecondaryEmailAddresses(ctx context.Context, emailAddresses []string) error
-	UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error
+	UpdateVerifiedIdentifiers(ctx context.Context, identifiers []base.VerifiedIdentifier) error
+	UpdateVerifiedUIDS(ctx context.Context, uids []string) error
 	UpdateSuspended(ctx context.Context, status bool, phoneNumber string, useContext bool) error
 	UpdatePhotoUploadID(ctx context.Context, uploadID string) error
 	UpdateCovers(ctx context.Context, covers []base.Cover) error
@@ -166,8 +167,23 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(ctx context.Context, 
 	return profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, emailAddresses)
 }
 
+// UpdateVerifiedUIDS updates the profile's verified uids
+func (p *ProfileUseCaseImpl) UpdateVerifiedUIDS(ctx context.Context, uids []string) error {
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return exceptions.UserNotFoundError(err)
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return exceptions.ProfileNotFoundError(err)
+	}
+
+	return profile.UpdateProfileVerifiedUIDS(ctx, p.onboardingRepository, uids)
+}
+
 // UpdateVerifiedIdentifiers updates the profile's verified identifiers
-func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error {
+func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(ctx context.Context, identifiers []base.VerifiedIdentifier) error {
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
