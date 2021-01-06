@@ -295,7 +295,7 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error)
 		return false, err
 	}
 
-	//todo(dexter) notify the supplier of the suspension
+	//TODO(dexter) notify the supplier of the suspension
 
 	return true, nil
 

@@ -1282,3 +1282,67 @@ func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 		})
 	}
 }
+
+func TestSetUpSupplier(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	individualPartner := domain.AccountTypeIndividual
+	organizationPartner := domain.AccountTypeOrganisation
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		accountType domain.AccountType
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Successful individual supplier account setup",
+			args: args{
+				ctx:         ctx,
+				accountType: individualPartner,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Successful organization supplier account setup",
+			args: args{
+				ctx:         ctx,
+				accountType: organizationPartner,
+			},
+			wantErr: false,
+		},
+		{
+			name: "SadCase - Invalid supplier setup",
+			args: args{
+				ctx:         ctx,
+				accountType: "non existent type",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			supplier := s
+			_, err := supplier.Supplier.SetUpSupplier(tt.args.ctx, tt.args.accountType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.SetUpSupplier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+
+}
