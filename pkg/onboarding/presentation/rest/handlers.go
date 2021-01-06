@@ -20,6 +20,7 @@ type HandlersInterfaces interface {
 	CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc
 	UserRecoveryPhoneNumbers(ctx context.Context) http.HandlerFunc
 	LoginByPhone(ctx context.Context) http.HandlerFunc
+	LoginAnonymous(ctx context.Context) http.HandlerFunc
 	RequestPINReset(ctx context.Context) http.HandlerFunc
 	ChangePin(ctx context.Context) http.HandlerFunc
 	SendRetryOTP(ctx context.Context) http.HandlerFunc
@@ -170,6 +171,42 @@ func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerF
 			*p.PIN,
 			p.Flavour,
 		)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// LoginAnonymous is an unauthenticated endpoint that returns only auth credentials for anonymous users
+func (h *HandlersInterfacesImpl) LoginAnonymous(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &resources.LoginPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.Flavour.String() == " " {
+			err := fmt.Errorf("expected `flavour` to be defined")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if !p.Flavour.IsValid() || p.Flavour != base.FlavourConsumer {
+			err := fmt.Errorf("an invalid `flavour` defined")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		response, err := h.interactor.Login.LoginAsAnonymous(ctx)
 		if err != nil {
 			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,

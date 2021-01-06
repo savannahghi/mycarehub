@@ -27,6 +27,8 @@ type AuthCredentialResponse struct {
 	ExpiresIn    string  `json:"expires_in"`
 	RefreshToken string  `json:"refresh_token"`
 	UID          string  `json:"uid"`
+	IsAdmin      bool    `json:"is_admin"`
+	IsAnonymous  bool    `json:"is_anonymous"`
 }
 
 // BusinessPartnerEdge is used to serialize GraphQL Relay edges for organization

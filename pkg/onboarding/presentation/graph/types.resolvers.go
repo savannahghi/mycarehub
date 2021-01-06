@@ -5,14 +5,17 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
 )
 
 func (r *verifiedIdentifierResolver) Timestamp(ctx context.Context, obj *base.VerifiedIdentifier) (*base.Date, error) {
-	panic(fmt.Errorf("not implemented"))
+	return &base.Date{
+		Year:  obj.Timestamp.Year(),
+		Day:   obj.Timestamp.Day(),
+		Month: int(obj.Timestamp.Month()),
+	}, nil
 }
 
 // VerifiedIdentifier returns generated.VerifiedIdentifierResolver implementation.

@@ -415,6 +415,38 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 	return PIN, nil
 }
 
+// GenerateAuthCredentialsForAnonymousUser generates auth credentials for the anonymous user. This method is here since we don't
+// want to delegate sign-in of anonymous users to the frontend. This is an effort the over reliance on firebase and lettin us
+// handle all the heavy lifting
+func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*resources.AuthCredentialResponse, error) {
+	// todo(dexter) : move anonymousPhoneNumber to base. AnonymousPhoneNumber should NEVER NEVER have a user profile
+	anonymousPhoneNumber := "+254700000000"
+
+	u, err := base.GetOrCreatePhoneNumberUser(ctx, anonymousPhoneNumber)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	customToken, err := base.CreateFirebaseCustomToken(ctx, u.UID)
+	if err != nil {
+		return nil, exceptions.CustomTokenError(err)
+	}
+	userTokens, err := base.AuthenticateCustomFirebaseToken(customToken)
+	if err != nil {
+		return nil, exceptions.AuthenticateTokenError(err)
+	}
+
+	return &resources.AuthCredentialResponse{
+		CustomToken:  &customToken,
+		IDToken:      &userTokens.IDToken,
+		ExpiresIn:    userTokens.ExpiresIn,
+		RefreshToken: userTokens.RefreshToken,
+		UID:          u.UID,
+		IsAnonymous:  true,
+		IsAdmin:      false,
+	}, nil
+}
+
 // GenerateAuthCredentials gets a Firebase user by phone and creates their tokens
 func (fr *Repository) GenerateAuthCredentials(
 	ctx context.Context,
@@ -459,7 +491,23 @@ func (fr *Repository) GenerateAuthCredentials(
 		ExpiresIn:    userTokens.ExpiresIn,
 		RefreshToken: userTokens.RefreshToken,
 		UID:          u.UID,
+		IsAnonymous:  false,
+		IsAdmin:      fr.checkIfAdmin(pr),
 	}, nil
+}
+
+func (fr *Repository) checkIfAdmin(profile *base.UserProfile) bool {
+	if len(profile.Permissions) == 0 {
+		return false
+	}
+	exists := false
+	for _, p := range profile.Permissions {
+		if p == base.PermissionTypeSuperAdmin || p == base.PermissionTypeAdmin {
+			exists = true
+			break
+		}
+	}
+	return exists
 }
 
 // UpdateUserName updates the username of a profile that matches the id

@@ -28,10 +28,10 @@ type UserProfile @key(fields: "id") {
   id: String!
   userName: String!
   verifiedIdentifiers: [VerifiedIdentifier]
-  PrimaryPhone: String!
-  PrimaryEmailAddress: String
-  SecondaryPhoneNumbers: [String]
-  SecondaryEmailAddresses: [String]
+  primaryPhone: String!
+  primaryEmailAddress: String
+  secondaryPhoneNumbers: [String]
+  secondaryEmailAddresses: [String]
   pushTokens: [String!]
   permissions: [PermissionType!]
   termsAccepted: Boolean
@@ -363,7 +363,6 @@ type KYCRequest {
   supplierRecord: Supplier!
   status: KYCProcessStatus
 }
-
 
 type PINOutput {
   profileID: String!

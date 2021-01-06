@@ -248,6 +248,131 @@ func TestLoginInByPhone(t *testing.T) {
 	}
 }
 
+func TestLoginAsAnonymous(t *testing.T) {
+
+	client := http.DefaultClient
+
+	// p1, err := json.Marshal(&resources.LoginPayload{
+	// 	Flavour: base.FlavourConsumer,
+	// })
+	// if err != nil {
+	// 	t.Errorf("unable to marshal payload to JSON: %s", err)
+	// }
+	// validPayload := bytes.NewBuffer(p1)
+
+	p2, err := json.Marshal(&resources.LoginPayload{
+		Flavour: base.FlavourPro,
+	})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+	}
+	invalidPayload := bytes.NewBuffer(p2)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		//todo(dexter) : restore this after profile deploy
+		// {
+		// 	name: "valid : correct flavour",
+		// 	args: args{
+		// 		url:        fmt.Sprintf("%s/login_anoymous", baseURL),
+		// 		httpMethod: http.MethodPost,
+		// 		body:       validPayload,
+		// 	},
+		// 	wantErr:    false,
+		// 	wantStatus: http.StatusOK,
+		// },
+
+		{
+			name: "valid : incorrect flavour",
+			args: args{
+				url:        fmt.Sprintf("%s/login_anoymous", baseURL),
+				httpMethod: http.MethodPost,
+				body:       invalidPayload,
+			},
+			wantErr:    true,
+			wantStatus: http.StatusBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+				return
+			}
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				errMsg, ok := data["error"]
+				if !ok {
+					t.Errorf("Request error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["error"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+
+		})
+	}
+
+}
+
 func TestRefreshToken(t *testing.T) {
 	client := http.DefaultClient
 	validToken := "AOvuKvSiBjrtQ6WRdTbRUFeGm4q6KbKg1kdwACot-zZFSqAwZtePlLKTT4U5Ew7C6UFcQsu6HQPAKD-1Hr_jTrtUtwTJ2mrqTBEW0oxtWImbB7fnPtNnl3mSBMpnVewbj14w_quNw_AkvBaQKu2vIR5tjATqYaPHCRMM1d-W7GMQUneKlJNz-JQ"

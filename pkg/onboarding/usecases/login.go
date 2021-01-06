@@ -19,6 +19,7 @@ type LoginUseCases interface {
 		flavour base.Flavour,
 	) (*resources.AuthCredentialResponse, error)
 	RefreshToken(token string) (*resources.AuthCredentialResponse, error)
+	LoginAsAnonymous(ctx context.Context) (*resources.AuthCredentialResponse, error)
 }
 
 // LoginUseCasesImpl represents the usecase implementation object
@@ -79,4 +80,10 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 // Otherwise, an error is returned
 func (l *LoginUseCasesImpl) RefreshToken(token string) (*resources.AuthCredentialResponse, error) {
 	return l.onboardingRepository.ExchangeRefreshTokenForIDToken(token)
+}
+
+// LoginAsAnonymous logs in a user as anonymous. This anonymous user will not have a userProfile since we don't have
+// their phone number. All that we return is auth credentials and an error
+func (l *LoginUseCasesImpl) LoginAsAnonymous(ctx context.Context) (*resources.AuthCredentialResponse, error) {
+	return l.onboardingRepository.GenerateAuthCredentialsForAnonymousUser(ctx)
 }

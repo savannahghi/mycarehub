@@ -77,6 +77,8 @@ type OnboardingRepository interface {
 	// checks if a specific username has already been registered to another user
 	CheckIfUsernameExists(ctx context.Context, phone string) (bool, error)
 
+	GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*resources.AuthCredentialResponse, error)
+
 	GenerateAuthCredentials(ctx context.Context, phone string) (*resources.AuthCredentialResponse, error)
 
 	FetchAdminUsers(ctx context.Context) ([]*base.UserProfile, error)

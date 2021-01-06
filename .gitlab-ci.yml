@@ -129,7 +129,7 @@ deploy_develop_to_test:
     - export CLOUDSDK_CORE_PROJECT=bewell-app
   stage: deploy
   only:
-    - develop       
+    - develop    
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
