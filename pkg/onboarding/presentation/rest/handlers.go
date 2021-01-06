@@ -22,7 +22,7 @@ type HandlersInterfaces interface {
 	LoginByPhone(ctx context.Context) http.HandlerFunc
 	LoginAnonymous(ctx context.Context) http.HandlerFunc
 	RequestPINReset(ctx context.Context) http.HandlerFunc
-	ChangePin(ctx context.Context) http.HandlerFunc
+	ResetPin(ctx context.Context) http.HandlerFunc
 	SendRetryOTP(ctx context.Context) http.HandlerFunc
 	RefreshToken(ctx context.Context) http.HandlerFunc
 	FindSupplierByUID(ctx context.Context) http.HandlerFunc
@@ -251,24 +251,30 @@ func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.Handl
 	}
 }
 
-// ChangePin used to change/update a user's PIN
-func (h *HandlersInterfacesImpl) ChangePin(ctx context.Context) http.HandlerFunc {
+// ResetPin used to change/update a user's PIN
+func (h *HandlersInterfacesImpl) ResetPin(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		pin := &resources.SetPINRequest{}
+		pin := &resources.ChangePINRequest{}
 		base.DecodeJSONToTargetStruct(w, r, pin)
-		if pin.PhoneNumber == "" || pin.PIN == "" {
-			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
-			base.WriteJSONResponse(w, base.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
+		if pin.PhoneNumber == "" || pin.PIN == "" || pin.OTP == "" {
+			err := fmt.Errorf(
+				"expected `phoneNumber`, `PIN` to be defined, `OTP` to be defined")
+			base.WriteJSONResponse(
+				w,
+				base.CustomError{
+					Err:     err,
+					Message: err.Error(),
+				},
+				http.StatusBadRequest,
+			)
 			return
 		}
 
-		response, err := h.interactor.UserPIN.ChangeUserPIN(
+		response, err := h.interactor.UserPIN.ResetUserPIN(
 			ctx,
 			pin.PhoneNumber,
 			pin.PIN,
+			pin.OTP,
 		)
 		if err != nil {
 			base.WriteJSONResponse(w, base.CustomError{

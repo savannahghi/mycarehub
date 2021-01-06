@@ -2,6 +2,7 @@ package otp
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -34,6 +35,7 @@ type ServiceOTP interface {
 		msisdn string,
 		retryStep int,
 	) (string, error)
+	VerifyOTP(ctx context.Context, phone, OTP string) (bool, error)
 }
 
 // ServiceOTPImpl represents OTP usecases
@@ -90,7 +92,13 @@ func (o *ServiceOTPImpl) GenerateAndSendOTP(
 		return defaultOTP, fmt.Errorf("unable to convert response to string: %v", err)
 	}
 
-	return string(code), nil
+	var OTP string
+	err = json.Unmarshal(code, &OTP)
+	if err != nil {
+		return defaultOTP, fmt.Errorf("failed to unmarshal OTP: %v", err)
+	}
+
+	return OTP, nil
 }
 
 // SendRetryOTP generates fallback OTPs when Africa is talking sms fails
@@ -125,5 +133,16 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 		return "", fmt.Errorf("unable to convert response to string: %v", err)
 	}
 
-	return string(code), nil
+	var RetryOTP string
+	err = json.Unmarshal(code, &RetryOTP)
+	if err != nil {
+		return "", fmt.Errorf("failed to unmarshal OTP: %v", err)
+	}
+
+	return RetryOTP, nil
+}
+
+// VerifyOTP takes a phone number and an OTP an checks for the vlidity of the OTP code
+func (o *ServiceOTPImpl) VerifyOTP(ctx context.Context, phone, OTP string) (bool, error) {
+	return base.VerifyOTP(phone, OTP, o.Otp)
 }

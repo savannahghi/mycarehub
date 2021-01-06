@@ -13,25 +13,43 @@ import (
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
-func composeInValidPinPayload(t *testing.T) *resources.SetPINRequest {
-	return &resources.SetPINRequest{
+func composeInValidPinPayload(t *testing.T) *domain.SetPINRequest {
+	return &domain.SetPINRequest{
 		PhoneNumber: "",
 		PIN:         "1234",
 	}
 
 }
 
-func composeValidPinPayload(t *testing.T) *resources.SetPINRequest {
-	return &resources.SetPINRequest{
+func composeValidChangePinPayload(t *testing.T, otp string) *domain.ChangePINRequest {
+	return &domain.ChangePINRequest{
+		PhoneNumber: base.TestUserPhoneNumberWithPin,
+		PIN:         "1234",
+		OTP:         otp,
+	}
+}
+
+func composeInValidChangePinPayload(t *testing.T, otp string) *domain.ChangePINRequest {
+	return &domain.ChangePINRequest{
+		PhoneNumber: "",
+		PIN:         "1234",
+		OTP:         otp,
+	}
+
+}
+
+func composeValidPinPayload(t *testing.T) *domain.SetPINRequest {
+	return &domain.SetPINRequest{
 		PhoneNumber: base.TestUserPhoneNumberWithPin,
 		PIN:         "1234",
 	}
 }
 
-func composeUnregisteredPhone(t *testing.T) *resources.SetPINRequest {
-	return &resources.SetPINRequest{
+func composeUnregisteredPhone(t *testing.T) *domain.SetPINRequest {
+	return &domain.SetPINRequest{
 		PhoneNumber: base.TestUserPhoneNumber,
 		PIN:         "1234",
 	}
@@ -179,7 +197,7 @@ func TestSetUserPIN(t *testing.T) {
 	}
 }
 
-func TestChangePin(t *testing.T) {
+func TestResetPin(t *testing.T) {
 	client := http.DefaultClient
 	// create a user and their profile
 	_, err := CreateTestUserByPhone(t)
@@ -188,7 +206,12 @@ func TestChangePin(t *testing.T) {
 		// return
 	}
 	// valid change pin payload
-	validPayload := composeValidPinPayload(t)
+	otp, err := generateTestOTP(t)
+	if err != nil {
+		t.Errorf("failed to generate test OTP: %v", err)
+		return
+	}
+	validPayload := composeValidChangePinPayload(t, otp)
 	bs, err := json.Marshal(validPayload)
 	if err != nil {
 		t.Errorf("unable to marshal test item to JSON: %s", err)
@@ -196,7 +219,13 @@ func TestChangePin(t *testing.T) {
 	payload := bytes.NewBuffer(bs)
 
 	// invalid change payload
-	badPayload := composeInValidPinPayload(t)
+	secondOtp, err := generateTestOTP(t)
+	if err != nil {
+		t.Errorf("failed to generate a second test OTP: %v", err)
+		return
+	}
+
+	badPayload := composeInValidChangePinPayload(t, secondOtp)
 	bs2, err := json.Marshal(badPayload)
 	if err != nil {
 		t.Errorf("unable to marshal test item to JSON: %s", err)
@@ -217,7 +246,7 @@ func TestChangePin(t *testing.T) {
 		{
 			name: "failure: change pin with nil payload supplied",
 			args: args{
-				url:        fmt.Sprintf("%s/change_pin", baseURL),
+				url:        fmt.Sprintf("%s/reset_pin", baseURL),
 				httpMethod: http.MethodPost,
 				body:       nil,
 			},
@@ -227,7 +256,7 @@ func TestChangePin(t *testing.T) {
 		{
 			name: "failure: change pin with invalid payload",
 			args: args{
-				url:        fmt.Sprintf("%s/change_pin", baseURL),
+				url:        fmt.Sprintf("%s/reset_pin", baseURL),
 				httpMethod: http.MethodPost,
 				body:       invalidPayload,
 			},
@@ -237,7 +266,7 @@ func TestChangePin(t *testing.T) {
 		{
 			name: "success: change pin with valid payload",
 			args: args{
-				url:        fmt.Sprintf("%s/change_pin", baseURL),
+				url:        fmt.Sprintf("%s/reset_pin", baseURL),
 				httpMethod: http.MethodPost,
 				body:       payload,
 			},
@@ -418,7 +447,7 @@ func TestUpdateUserPIN(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	mutation updateUserPIN($phone:String!, $pin:String!){
+	mutation updateUserPIN($phone:String!, $pin:String!, $otp:String!){
 		updateUserPIN(phone:$phone, pin:$pin){
 		  profileID
 		  pinNumber

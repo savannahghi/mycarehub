@@ -98,10 +98,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		HandlerFunc(h.RefreshToken(ctx))
 
 	// PIN Routes
-	r.Path("/change_pin").Methods(
+	r.Path("/reset_pin").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.ChangePin(ctx))
+		HandlerFunc(h.ResetPin(ctx))
 
 	r.Path("/request_pin_reset").Methods(
 		http.MethodPost,

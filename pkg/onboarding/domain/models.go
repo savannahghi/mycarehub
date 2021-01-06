@@ -104,10 +104,17 @@ type PIN struct {
 	Salt      string `json:"salt" firestore:"salt"`
 }
 
-// SetPINRequest payload to set or change PIN information
+// SetPINRequest payload to set PIN information
 type SetPINRequest struct {
-	PhoneNumber string `json:"phoneNumber"  `
-	PIN         string `json:"pin" `
+	PhoneNumber string `json:"phoneNumber"`
+	PIN         string `json:"pin"`
+}
+
+// ChangePINRequest payload to set or change PIN information
+type ChangePINRequest struct {
+	PhoneNumber string `json:"phoneNumber"`
+	PIN         string `json:"pin"`
+	OTP         string `json:"otp"`
 }
 
 // PostVisitSurvey is used to record and retrieve post visit surveys from Firebase

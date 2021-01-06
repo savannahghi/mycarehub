@@ -18,6 +18,12 @@ import (
 // UserPINUseCases represents all the business logic that touch on user PIN Management
 type UserPINUseCases interface {
 	SetUserPIN(ctx context.Context, pin string, phone string) (bool, error)
+	ResetUserPIN(
+		ctx context.Context,
+		phone string,
+		PIN string,
+		OTP string,
+	) (*resources.PINOutput, error)
 	ChangeUserPIN(ctx context.Context, phone string, pin string) (*resources.PINOutput, error)
 	RequestPINReset(ctx context.Context, phone string) (string, error)
 }
@@ -104,7 +110,60 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 	return code, nil
 }
 
-// ChangeUserPIN resets a user's pin with the newly supplied pin
+// ResetUserPIN resets a user's PIN with the newly supplied PIN
+func (u *UserPinUseCaseImpl) ResetUserPIN(
+	ctx context.Context,
+	phone string,
+	PIN string,
+	OTP string,
+) (*resources.PINOutput, error) {
+	phoneNumber, err := base.NormalizeMSISDN(phone)
+	if err != nil {
+		return nil, exceptions.NormalizeMSISDNError(err)
+	}
+
+	verified, err := u.otpUseCases.VerifyOTP(ctx, phone, OTP)
+	if err != nil {
+		return nil, exceptions.VerifyOTPError(err)
+	}
+
+	if !verified {
+		return nil, exceptions.VerifyOTPError(nil)
+	}
+
+	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
+	if err != nil {
+		return nil, exceptions.ProfileNotFoundError(err)
+	}
+
+	exists, err := u.CheckHasPIN(ctx, profile.ID)
+	if !exists {
+		return nil, exceptions.ExistingPINError(err)
+	}
+
+	// EncryptPIN the PIN
+	salt, encryptedPin := utils.EncryptPIN(PIN, nil)
+	if err != nil {
+		return nil, exceptions.EncryptPINError(err)
+	}
+
+	pinPayload := &domain.PIN{
+		ID:        uuid.New().String(),
+		ProfileID: profile.ID,
+		PINNumber: encryptedPin,
+		Salt:      salt,
+	}
+	createdPin, err := u.onboardingRepository.UpdatePIN(ctx, profile.ID, pinPayload)
+	if err != nil {
+		return nil, exceptions.EncryptPINError(err)
+	}
+	return &resources.PINOutput{
+		ProfileID: createdPin.ProfileID,
+		PINNumber: createdPin.PINNumber,
+	}, nil
+}
+
+// ChangeUserPIN updates authenticated user's pin with the newly supplied pin
 func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pin string) (*resources.PINOutput, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {

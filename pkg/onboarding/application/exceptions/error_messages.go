@@ -88,4 +88,8 @@ const (
 	// WrongEnumErrMsg is an error message returned when a wrong enum
 	// type is supplied
 	WrongEnumErrMsg = "a wrong enum %s has been provided"
+
+	// OTPVerificationErrMsg is an error message that is returned when
+	// a given OTP code and Phone number fails verifciation
+	OTPVerificationErrMsg = "failed to verify OTP"
 )

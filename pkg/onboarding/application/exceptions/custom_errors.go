@@ -213,4 +213,15 @@ func WrongEnumTypeError(value string, err error) error {
 		// TODO: a give a correct code
 		Code: int(base.Internal),
 	}
+
+}
+
+// VerifyOTPError returns an error when OTP verification fails
+func VerifyOTPError(err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: OTPVerificationErrMsg,
+		// TODO: @salaton OTP verification error code
+		Code: int(base.Internal),
+	}
 }

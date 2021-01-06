@@ -17,6 +17,14 @@ import (
 	"github.com/imroc/req"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation"
 
@@ -60,6 +68,48 @@ func initializeAcceptanceTestFirebaseClient(ctx context.Context) (*firestore.Cli
 		log.Panicf("can't initialize Firebase auth when setting up profile service: %s", err)
 	}
 	return fsc, fbc
+}
+
+func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) {
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	profile := usecases.NewProfileUseCase(fr)
+	otp := otp.NewOTPService(fr)
+	erp := erp.NewERPService(fr)
+	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
+	engage := engagement.NewServiceEngagementImpl(fr)
+	mg := mailgun.NewServiceMailgunImpl()
+	mes := messaging.NewServiceMessagingImpl()
+	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes)
+	login := usecases.NewLoginUseCases(fr)
+	survey := usecases.NewSurveyUseCases(fr)
+	userpin := usecases.NewUserPinUseCase(fr, otp, profile)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier)
+
+	return &interactor.Interactor{
+		Onboarding:   profile,
+		Signup:       su,
+		Otp:          otp,
+		Supplier:     supplier,
+		Login:        login,
+		Survey:       survey,
+		UserPIN:      userpin,
+		ERP:          erp,
+		ChargeMaster: chrg,
+		Engagement:   engage,
+	}, nil
+}
+
+func generateTestOTP(t *testing.T) (string, error) {
+	ctx := context.Background()
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		return "", fmt.Errorf("unable to initialize test service: %v", err)
+	}
+	return s.Otp.GenerateAndSendOTP(ctx, base.TestUserPhoneNumberWithPin)
 }
 
 func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {

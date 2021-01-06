@@ -144,10 +144,11 @@ type SignUpPayload struct {
 	Flavour     base.Flavour `json:"flavour"`
 }
 
-// SetPINRequest payload to set or change PIN information
-type SetPINRequest struct {
-	PhoneNumber string `json:"phoneNumber"  `
-	PIN         string `json:"pin" `
+// ChangePINRequest payload to set or change PIN information
+type ChangePINRequest struct {
+	PhoneNumber string `json:"phoneNumber"`
+	PIN         string `json:"pin"`
+	OTP         string `json:"otp"`
 }
 
 // LoginPayload used when calling the REST API to log a user in
