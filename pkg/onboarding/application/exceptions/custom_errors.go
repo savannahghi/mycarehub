@@ -2,13 +2,12 @@ package exceptions
 
 import (
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
 // UserNotFoundError returns an error message when a user is not found
 func UserNotFoundError(err error) error {
 	if err != nil {
-		return &resources.CustomError{
+		return &base.CustomError{
 			Err:     err,
 			Message: UserNotFoundErrMsg,
 			Code:    int(base.UserNotFound),
@@ -20,7 +19,7 @@ func UserNotFoundError(err error) error {
 // ProfileNotFoundError returns an error message when a profile is not found
 func ProfileNotFoundError(err error) error {
 	if err != nil {
-		return &resources.CustomError{
+		return &base.CustomError{
 			Err:     err,
 			Message: ProfileNotFoundErrMsg,
 			Code:    int(base.ProfileNotFound),
@@ -33,7 +32,7 @@ func ProfileNotFoundError(err error) error {
 // NormalizeMSISDNError returns an error when normalizing the msisdn fails
 func NormalizeMSISDNError(err error) error {
 	if err != nil {
-		return &resources.CustomError{
+		return &base.CustomError{
 			Err:     err,
 			Message: NormalizeMSISDNErrMsg,
 			Code:    int(base.Internal),
@@ -45,7 +44,7 @@ func NormalizeMSISDNError(err error) error {
 // CheckPhoneNumberExistError check if phone number is registered to another user
 func CheckPhoneNumberExistError(err error) error {
 	if err != nil {
-		return &resources.CustomError{
+		return &base.CustomError{
 			Err:     err,
 			Message: PhoneNUmberInUseErrMsg,
 			Code:    int(base.PhoneNumberInUse),
@@ -57,7 +56,7 @@ func CheckPhoneNumberExistError(err error) error {
 // InternalServerError returns an error if something wrong happened in performing the operration
 func InternalServerError(err error) error {
 	if err != nil {
-		return &resources.CustomError{
+		return &base.CustomError{
 			Err:     err,
 			Message: InternalServerErrorMsg,
 			Code:    int(base.Internal),
@@ -69,7 +68,7 @@ func InternalServerError(err error) error {
 // PinNotFoundError displays error message when a pin is not found
 func PinNotFoundError(err error) error {
 	if err != nil {
-		return &resources.CustomError{
+		return &base.CustomError{
 			Err:     err,
 			Message: PINNotFoundErrMsg,
 			Code:    int(base.PINNotFound),
@@ -82,7 +81,7 @@ func PinNotFoundError(err error) error {
 // does not match the PIN stored
 func PinMismatchError(err error) error {
 	if err != nil {
-		return &resources.CustomError{
+		return &base.CustomError{
 			Err:     err,
 			Message: PINMismatchErrMsg,
 			Code:    int(base.PINMismatch),
@@ -210,7 +209,7 @@ func ExistingPINError(err error) error {
 }
 
 // EncryptPINError  is the error message displayed when
-// pin encryption failed
+// pin encryption fails
 func EncryptPINError(err error) error {
 	if err != nil {
 		return &base.CustomError{
@@ -218,6 +217,34 @@ func EncryptPINError(err error) error {
 			Message: EncryptPINErrMsg,
 			// TODO: add correct error code
 			Code: int(base.Internal),
+		}
+	}
+	return nil
+}
+
+// ValidatePINDigitsError  is the error message displayed when
+// invalid  pin digits are given
+func ValidatePINDigitsError(err error) error {
+	if err != nil {
+		return &base.CustomError{
+			Err:     err,
+			Message: ValidatePINDigitsErrMsg,
+			// TODO: a give a correct code
+			Code: int(base.UserNotFound),
+		}
+	}
+	return nil
+}
+
+// ValidatePINLengthError  is the error message displayed when
+// an invalid Pin length is given
+func ValidatePINLengthError(err error) error {
+	if err != nil {
+		return &base.CustomError{
+			Err:     err,
+			Message: ValidatePINLengthErrMsg,
+			// TODO: a give a correct code
+			Code: int(base.UserNotFound),
 		}
 	}
 	return nil

@@ -21,10 +21,11 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/vektah/gqlparser/v2 v2.1.0
-	gitlab.slade360emr.com/go/base v0.0.102
+	gitlab.slade360emr.com/go/base v0.0.103
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
 	golang.org/x/sys v0.0.0-20210104204734-6f8348627aad // indirect
-	golang.org/x/tools v0.0.0-20210104081019-d8d6ddbec6ee // indirect
+	golang.org/x/tools v0.0.0-20210105172516-c658f99295e8 // indirect
 	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.0-20210105161348-2e78108cf5f8 // indirect
 )

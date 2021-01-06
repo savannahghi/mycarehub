@@ -450,11 +450,7 @@ func (fr *Repository) GenerateAuthCredentials(
 	}
 
 	if err := fr.UpdateVerifiedUIDS(ctx, pr.ID, []string{u.UID}); err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.UpdateProfileErrMsg,
-			Code:    int(base.Internal),
-		}
+		return nil, exceptions.UpdateProfileError(err)
 	}
 
 	return &resources.AuthCredentialResponse{

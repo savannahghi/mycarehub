@@ -134,12 +134,7 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 	}
 	createdPin, err := u.onboardingRepository.UpdatePIN(ctx, profile.ID, pinPayload)
 	if err != nil {
-		return nil, &resources.CustomError{
-			Err:     err,
-			Message: exceptions.EncryptPINErrMsg,
-			// TODO: correct error code
-			Code: int(base.UserNotFound),
-		}
+		return nil, exceptions.EncryptPINError(err)
 	}
 	return &resources.PINOutput{
 		ProfileID: createdPin.ProfileID,

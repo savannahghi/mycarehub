@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 
 	"gitlab.slade360emr.com/go/base"
 	"golang.org/x/crypto/pbkdf2"
@@ -83,12 +82,7 @@ func ValidatePINDigits(pin string) error {
 	// ensure pin is only digits
 	_, err := strconv.ParseUint(pin, 10, 64)
 	if err != nil {
-		return &resources.CustomError{
-			Err:     err,
-			Message: exceptions.ValidatePINDigitsErrMsg,
-			// TODO: a give a correct code
-			Code: int(base.UserNotFound),
-		}
+		return exceptions.ValidatePINDigitsError(err)
 	}
 	return nil
 }
@@ -98,7 +92,7 @@ func ValidatePINDigits(pin string) error {
 func ValidatePINLength(pin string) error {
 	// make sure pin length is [4-6]
 	if len(pin) < minPinLength || len(pin) > maxPinLength {
-		return &resources.CustomError{
+		return &base.CustomError{
 			Message: exceptions.ValidatePINLengthErrMsg,
 			// TODO: a give a correct code
 			Code: int(base.UserNotFound),
