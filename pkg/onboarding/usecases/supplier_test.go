@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -1351,14 +1350,9 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ediLogin := s
-			got, err := ediLogin.Supplier.EDIUserLogin(tt.args.username, tt.args.password)
+			_, err := ediLogin.Supplier.EDIUserLogin(tt.args.username, tt.args.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SupplierUseCasesImpl.EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if (err == nil) == tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
-				assert.NotNil(t, got)
 				return
 			}
 		})
@@ -1414,14 +1408,9 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			coreEdiLogin := s
-			got, err := coreEdiLogin.Supplier.CoreEDIUserLogin(tt.args.username, tt.args.password)
+			_, err := coreEdiLogin.Supplier.CoreEDIUserLogin(tt.args.username, tt.args.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SupplierUseCasesImpl.CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if (err == nil) == tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
-				assert.NotNil(t, got)
 				return
 			}
 		})
