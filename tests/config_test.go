@@ -14,6 +14,8 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
+	"github.com/imroc/req"
+	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation"
@@ -58,6 +60,39 @@ func initializeAcceptanceTestFirebaseClient(ctx context.Context) (*firestore.Cli
 		log.Panicf("can't initialize Firebase auth when setting up profile service: %s", err)
 	}
 	return fsc, fbc
+}
+
+func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {
+	// create a user and thier profile
+	resp, err := CreateTestUserByPhone(t)
+	if err != nil {
+		log.Printf("unable to create a test user: %s", err)
+		return nil
+	}
+
+	if resp.Profile.ID == " " {
+		t.Errorf(" user profile id should not be empty")
+		return nil
+	}
+
+	if len(resp.Profile.VerifiedUIDS) == 0 {
+		t.Errorf(" user profile VerifiedUIDS should not be empty")
+		return nil
+	}
+
+	logrus.Infof("profile from create user : %v", resp.Profile)
+
+	logrus.Infof("uid from create user : %v", resp.Auth.UID)
+
+	return getGraphHeaders(*resp.Auth.IDToken)
+}
+
+func getGraphHeaders(idToken string) map[string]string {
+	return req.Header{
+		"Accept":        "application/json",
+		"Content-Type":  "application/json",
+		"Authorization": fmt.Sprintf("Bearer %s", idToken),
+	}
 }
 
 func TestMain(m *testing.M) {

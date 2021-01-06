@@ -119,7 +119,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		r.Path("/remove_user").Methods(
 			http.MethodPost,
 			http.MethodOptions).
-			HandlerFunc(h.VerifySignUpPhoneNumber(ctx))
+			HandlerFunc(h.RemoveUserByPhoneNumber(ctx))
 	}
 
 	// Interservice Authenticated routes

@@ -81,4 +81,7 @@ const (
 	// InternalServerErrorMsg is an error message for database CRUD operations that
 	// don't succeed e.g network latency
 	InternalServerErrorMsg = "server error! unable to perform operation"
+
+	// ValidatePuskTokenLengthErrMsg ...
+	ValidatePuskTokenLengthErrMsg = "invalid push token detected"
 )

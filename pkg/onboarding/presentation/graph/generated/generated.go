@@ -2104,14 +2104,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.PhotoUploadID(childComplexity), true
 
-	case "UserProfile.PrimaryEmailAddress":
+	case "UserProfile.primaryEmailAddress":
 		if e.complexity.UserProfile.PrimaryEmailAddress == nil {
 			break
 		}
 
 		return e.complexity.UserProfile.PrimaryEmailAddress(childComplexity), true
 
-	case "UserProfile.PrimaryPhone":
+	case "UserProfile.primaryPhone":
 		if e.complexity.UserProfile.PrimaryPhone == nil {
 			break
 		}
@@ -2125,14 +2125,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.PushTokens(childComplexity), true
 
-	case "UserProfile.SecondaryEmailAddresses":
+	case "UserProfile.secondaryEmailAddresses":
 		if e.complexity.UserProfile.SecondaryEmailAddresses == nil {
 			break
 		}
 
 		return e.complexity.UserProfile.SecondaryEmailAddresses(childComplexity), true
 
-	case "UserProfile.SecondaryPhoneNumbers":
+	case "UserProfile.secondaryPhoneNumbers":
 		if e.complexity.UserProfile.SecondaryPhoneNumbers == nil {
 			break
 		}
@@ -2883,10 +2883,10 @@ type UserProfile @key(fields: "id") {
   id: String!
   userName: String!
   verifiedIdentifiers: [VerifiedIdentifier]
-  PrimaryPhone: String!
-  PrimaryEmailAddress: String
-  SecondaryPhoneNumbers: [String]
-  SecondaryEmailAddresses: [String]
+  primaryPhone: String!
+  primaryEmailAddress: String
+  secondaryPhoneNumbers: [String]
+  secondaryEmailAddresses: [String]
   pushTokens: [String!]
   permissions: [PermissionType!]
   termsAccepted: Boolean
@@ -3218,7 +3218,6 @@ type KYCRequest {
   supplierRecord: Supplier!
   status: KYCProcessStatus
 }
-
 
 type PINOutput {
   profileID: String!
@@ -11440,7 +11439,7 @@ func (ec *executionContext) _UserProfile_verifiedIdentifiers(ctx context.Context
 	return ec.marshalOVerifiedIdentifier2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedIdentifier(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_PrimaryPhone(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_primaryPhone(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11475,7 +11474,7 @@ func (ec *executionContext) _UserProfile_PrimaryPhone(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_PrimaryEmailAddress(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_primaryEmailAddress(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11507,7 +11506,7 @@ func (ec *executionContext) _UserProfile_PrimaryEmailAddress(ctx context.Context
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_SecondaryPhoneNumbers(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_secondaryPhoneNumbers(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11539,7 +11538,7 @@ func (ec *executionContext) _UserProfile_SecondaryPhoneNumbers(ctx context.Conte
 	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_SecondaryEmailAddresses(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_secondaryEmailAddresses(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14469,7 +14468,7 @@ func (ec *executionContext) unmarshalInputUserProfileInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("photoUploadID"))
-			it.PhotoUploadID, err = ec.unmarshalOString2string(ctx, v)
+			it.PhotoUploadID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16259,17 +16258,17 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			}
 		case "verifiedIdentifiers":
 			out.Values[i] = ec._UserProfile_verifiedIdentifiers(ctx, field, obj)
-		case "PrimaryPhone":
-			out.Values[i] = ec._UserProfile_PrimaryPhone(ctx, field, obj)
+		case "primaryPhone":
+			out.Values[i] = ec._UserProfile_primaryPhone(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "PrimaryEmailAddress":
-			out.Values[i] = ec._UserProfile_PrimaryEmailAddress(ctx, field, obj)
-		case "SecondaryPhoneNumbers":
-			out.Values[i] = ec._UserProfile_SecondaryPhoneNumbers(ctx, field, obj)
-		case "SecondaryEmailAddresses":
-			out.Values[i] = ec._UserProfile_SecondaryEmailAddresses(ctx, field, obj)
+		case "primaryEmailAddress":
+			out.Values[i] = ec._UserProfile_primaryEmailAddress(ctx, field, obj)
+		case "secondaryPhoneNumbers":
+			out.Values[i] = ec._UserProfile_secondaryPhoneNumbers(ctx, field, obj)
+		case "secondaryEmailAddresses":
+			out.Values[i] = ec._UserProfile_secondaryEmailAddresses(ctx, field, obj)
 		case "pushTokens":
 			out.Values[i] = ec._UserProfile_pushTokens(ctx, field, obj)
 		case "permissions":

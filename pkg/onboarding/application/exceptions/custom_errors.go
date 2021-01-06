@@ -1,6 +1,8 @@
 package exceptions
 
 import (
+	"fmt"
+
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -188,5 +190,16 @@ func ValidatePINLengthError(err error) error {
 		Message: ValidatePINLengthErrMsg,
 		// TODO: a give a correct code
 		Code: int(base.UserNotFound),
+	}
+}
+
+// InValidPushTokenLengthError  is the error message displayed when
+// an invalid push token is given
+func InValidPushTokenLengthError() error {
+	return &base.CustomError{
+		Err:     fmt.Errorf("invalid push token length"),
+		Message: ValidatePuskTokenLengthErrMsg,
+		// TODO: a give a correct code
+		Code: int(base.UndefinedArguments),
 	}
 }

@@ -136,14 +136,43 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 // UpdateUserProfile  updates the user profile of the currently logged in user
 func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *resources.UserProfileInput) (*base.UserProfile, error) {
 
-	if err := s.profileUsecase.UpdatePhotoUploadID(ctx, input.PhotoUploadID); err != nil {
+	// get the old user profile
+	pr, err := s.profileUsecase.UserProfile(ctx)
+	if err != nil {
 		return nil, err
 	}
+
+	if input.PhotoUploadID != nil {
+		if err := s.profileUsecase.UpdatePhotoUploadID(ctx, *input.PhotoUploadID); err != nil {
+			return nil, err
+		}
+	}
+
 	if err := s.profileUsecase.UpdateBioData(ctx, base.BioData{
-		FirstName:   *input.FirstName,
-		LastName:    *input.LastName,
-		DateOfBirth: input.DateOfBirth,
-		Gender:      *input.Gender,
+		FirstName: func(n *string) string {
+			if n != nil {
+				return *n
+			}
+			return pr.UserBioData.FirstName
+		}(input.FirstName),
+		LastName: func(n *string) string {
+			if n != nil {
+				return *n
+			}
+			return pr.UserBioData.LastName
+		}(input.LastName),
+		DateOfBirth: func(n *base.Date) *base.Date {
+			if n != nil {
+				return n
+			}
+			return pr.UserBioData.DateOfBirth
+		}(input.DateOfBirth),
+		Gender: func(n *base.Gender) base.Gender {
+			if n != nil {
+				return *n
+			}
+			return pr.UserBioData.Gender
+		}(input.Gender),
 	}); err != nil {
 		return nil, err
 	}
@@ -152,6 +181,9 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *resou
 
 // RegisterPushToken adds a new push token in the users profile if the push token does not exist
 func (s *SignUpUseCasesImpl) RegisterPushToken(ctx context.Context, token string) (bool, error) {
+	if len(token) < 5 {
+		return false, exceptions.InValidPushTokenLengthError()
+	}
 	if err := s.profileUsecase.UpdatePushTokens(ctx, token, false); err != nil {
 		return false, err
 	}
@@ -175,6 +207,9 @@ func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Fl
 
 // RetirePushToken removes a push token from the users profile
 func (s *SignUpUseCasesImpl) RetirePushToken(ctx context.Context, token string) (bool, error) {
+	if len(token) < 5 {
+		return false, exceptions.InValidPushTokenLengthError()
+	}
 	if err := s.profileUsecase.UpdatePushTokens(ctx, token, true); err != nil {
 		return false, err
 	}

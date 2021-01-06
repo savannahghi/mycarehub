@@ -9,7 +9,7 @@ import (
 
 // UserProfileInput is used to create or update a user's profile.
 type UserProfileInput struct {
-	PhotoUploadID string       `json:"photoUploadID"`
+	PhotoUploadID *string      `json:"photoUploadID"`
 	DateOfBirth   *base.Date   `json:"dateOfBirth,omitempty"`
 	Gender        *base.Gender `json:"gender,omitempty"`
 	FirstName     *string      `json:"lastName"`
