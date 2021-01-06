@@ -1,4 +1,4 @@
-package presentation_test
+package tests
 
 import (
 	"encoding/json"
@@ -11,9 +11,8 @@ import (
 	"gitlab.slade360emr.com/go/base"
 )
 
-func TestAddPartnerType(t *testing.T) {
+func TestGraphQLRecordPostVisitSurvey(t *testing.T) {
 	ctx := base.GetAuthenticatedContext(t)
-
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 	headers, err := base.GetGraphQLHeaders(ctx)
 	if err != nil {
@@ -22,10 +21,11 @@ func TestAddPartnerType(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	mutation addPartnerType($name:String!, $partnerType:PartnerType!){
-		addPartnerType(name: $name, partnerType:$partnerType)
-	  }
+	mutation recordPostVisitSurvey($input:PostVisitSurveyInput!){
+		recordPostVisitSurvey(input: $input)
+	}
 	`
+
 	type args struct {
 		query map[string]interface{}
 	}
@@ -37,49 +37,51 @@ func TestAddPartnerType(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "success: add partner type with valid payload",
+			name: "success: record a post visit survey",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"name":        "juha kalulu",
-						"partnerType": "RIDER",
+						"input": map[string]interface{}{
+							"likelyToRecommend": 10,
+							"criticism":         "The devs are very diligent :)",
+							"suggestions":       "Pay them more ;)",
+						},
 					},
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true, // TODO fixme: the logged in user must have a registred profile
+			wantErr:    false,
 		},
 		{
-			name: "failure: add partner type with non existent partner type",
+			name: "failure: failed to record a post visit survey",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"name":        "juha",
-						"partnerType": "NOT FOUND",
+						"input": map[string]interface{}{
+							"likelyToRecommend": 11,
+							"criticism":         "Piece of crap :(",
+							"suggestions":       "Replace it all and go home :/",
+						},
 					},
 				},
 			},
-			wantStatus: http.StatusUnprocessableEntity,
+			wantStatus: http.StatusOK,
 			wantErr:    true,
 		},
 		{
-			name: "failure: add partner type with bogus payload",
+			name: "failure: invalid query",
 			args: args{
 				query: map[string]interface{}{
-					"query": graphqlMutation,
-					"variables": map[string]interface{}{
-						"name":        "*",
-						"partnerType": "*",
-					},
+					"query":     `bad format query`,
+					"variables": map[string]interface{}{},
 				},
 			},
 			wantStatus: http.StatusUnprocessableEntity,
 			wantErr:    true,
 		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			body, err := mapToJSONReader(tt.args.query)
@@ -156,5 +158,4 @@ func TestAddPartnerType(t *testing.T) {
 
 		})
 	}
-
 }
