@@ -45,8 +45,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
-	profile, err := l.onboardingRepository.
-		GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
+	profile, err := l.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
 	if err != nil {
 		return nil, exceptions.ProfileNotFoundError(err)
 	}
@@ -55,8 +54,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, exceptions.ProfileNotFoundError(nil)
 	}
 
-	PINData, err := l.onboardingRepository.
-		GetPINByProfileID(ctx, profile.ID)
+	PINData, err := l.onboardingRepository.GetPINByProfileID(ctx, profile.ID)
 
 	if err != nil {
 		return nil, exceptions.PinNotFoundError(err)

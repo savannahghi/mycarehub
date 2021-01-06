@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"testing"
+	"time"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -334,4 +335,258 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUserRecoveryPhoneNumbers(t *testing.T) {
+	client := http.DefaultClient
+	// create a test user
+	_, err := CreateTestUserByPhone(t)
+	if err != nil {
+		log.Printf("unable to create a test user: %s", err)
+		return
+	}
+	validNumber := base.TestUserPhoneNumberWithPin
+	validPayload := resources.PhoneNumberPayload{
+		PhoneNumber: &validNumber,
+	}
+	bs, err := json.Marshal(validPayload)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	payload := bytes.NewBuffer(bs)
+
+	// phone number not registered
+	inValidNumber := base.TestUserPhoneNumber
+	badPayload := resources.PhoneNumberPayload{
+		PhoneNumber: &inValidNumber,
+	}
+	bs2, err := json.Marshal(badPayload)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	invalidPayload := bytes.NewBuffer(bs2)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "success: user recovery with valid payload",
+			args: args{
+				url:        fmt.Sprintf("%s/user_recovery_phonenumbers", baseURL),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "failure: user recovery with nil payload supplied",
+			args: args{
+				url:        fmt.Sprintf("%s/user_recovery_phonenumbers", baseURL),
+				httpMethod: http.MethodPost,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "failure: user recovery with invalid payload",
+			args: args{
+				url:        fmt.Sprintf("%s/user_recovery_phonenumbers", baseURL),
+				httpMethod: http.MethodPost,
+				body:       invalidPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+				return
+			}
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if data == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+		})
+	}
+}
+
+func TestRegisterPushToken(t *testing.T) {
+	// create a user and thier profile
+	_, err := CreateTestUserByPhone(t)
+	if err != nil {
+		log.Printf("unable to create a test user: %s", err)
+		return
+	}
+	ctx := base.GetAuthenticatedContext(t)
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphqlMutation := `
+	mutation registerPushToken($token:String!){
+		registerPushToken(token: $token)
+	  }
+	`
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "success: register token with valid payload",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"phone": base.TestUserPhoneNumberWithPin,
+						"token": "1234",
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true, // TODO fixme the logged in user must have a registred profile
+		},
+		{
+			name: "failure: register token with bogus payload",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"token": "*",
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := mapToJSONReader(tt.args.query)
+
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+			if tt.wantErr {
+				errMsg, ok := data["errors"]
+				if !ok {
+					t.Errorf("GraphQL error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status reponse returned")
+				return
+			}
+
+		})
+	}
+
 }

@@ -87,24 +87,28 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 	if err != nil {
 		return nil, err
 	}
+	// if phone exists return early
 	if exists {
 		return nil, exceptions.CheckPhoneNumberExistError(err)
 	}
-
 	// get or create user via their phone number
 	user, err := base.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
+	// create a user profile
 	profile, err := s.onboardingRepository.CreateUserProfile(ctx, phoneNumber, user.UID)
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
+	// generate auth credentials
 	auth, err := s.onboardingRepository.GenerateAuthCredentials(ctx, phoneNumber)
 	if err != nil {
 		return nil, err
 	}
-	if _, err := s.pinUsecase.SetUserPIN(ctx, pin, phoneNumber); err != nil {
+	// save the user pin
+	_, err = s.pinUsecase.SetUserPIN(ctx, pin, phoneNumber)
+	if err != nil {
 		return nil, err
 	}
 

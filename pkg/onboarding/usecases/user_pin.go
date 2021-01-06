@@ -44,10 +44,6 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
-	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
-	if err != nil {
-		return false, exceptions.ProfileNotFoundError(err)
-	}
 
 	if err := utils.ValidatePINLength(pin); err != nil {
 		return false, err
@@ -55,6 +51,11 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 
 	if err = utils.ValidatePINDigits(pin); err != nil {
 		return false, err
+	}
+
+	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
+	if err != nil {
+		return false, exceptions.ProfileNotFoundError(err)
 	}
 	// EncryptPIN the PIN
 	salt, encryptedPin := utils.EncryptPIN(pin, nil)
