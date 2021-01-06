@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -1025,111 +1026,6 @@ import (
 // 	}
 // }
 
-// func TestCoreEDIUserLogin(t *testing.T) {
-// 	type args struct {
-// 		username string
-// 		password string
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		want    *base.EDIUserProfile
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "Happy Case: valid credentials",
-// 			args: args{
-// 				username: "bewell@slade360.co.ke",
-// 				password: "please change me",
-// 			},
-// 			wantErr: false,
-// 		},
-// 		{
-// 			name: "Sad Case: Wrong userame and password",
-// 			args: args{
-// 				username: "username",
-// 				password: "password",
-// 			},
-// 			wantErr: true,
-// 		},
-// 		{
-// 			name: "sad case: empty username and password",
-// 			args: args{
-// 				username: "",
-// 				password: "",
-// 			},
-// 			wantErr: true,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			got, err := CoreEDIUserLogin(tt.args.username, tt.args.password)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
-// 				assert.Nil(t, got)
-// 				return
-// 			}
-// 			if (err == nil) == tt.wantErr {
-// 				t.Errorf("CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
-// 				assert.NotNil(t, got)
-// 				return
-// 			}
-// 		})
-// 	}
-// }
-
-// func TestEDIUserLogin(t *testing.T) {
-// 	type args struct {
-// 		username string
-// 		password string
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "Happy Case: valid credentials",
-// 			args: args{
-// 				username: "avenue-4190@healthcloud.co.ke",
-// 				password: "test provider",
-// 			},
-// 			wantErr: false,
-// 		},
-// 		{
-// 			name: "Sad Case: Wrong userame and password",
-// 			args: args{
-// 				username: "username",
-// 				password: "password",
-// 			},
-// 			wantErr: true,
-// 		},
-// 		{
-// 			name: "sad case: empty username and password",
-// 			args: args{
-// 				username: "",
-// 				password: "",
-// 			},
-// 			wantErr: true,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			got, err := EDIUserLogin(tt.args.username, tt.args.password)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
-// 				assert.Nil(t, got)
-// 				return
-// 			}
-// 			if (err == nil) == tt.wantErr {
-// 				t.Errorf("EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
-// 				assert.NotNil(t, got)
-// 				return
-// 			}
-// 		})
-// 	}
-// }
-
 func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
@@ -1344,5 +1240,137 @@ func TestSetUpSupplier(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	validUsername := "avenue-4190@healthcloud.co.ke"
+	validPassword := "test provider"
+
+	invalidUsername := "username"
+	invalidPassword := "password"
+
+	emptyUsername := ""
+	emptyPassword := ""
+	type args struct {
+		username *string
+		password *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: valid credentials",
+			args: args{
+				username: &validUsername,
+				password: &validPassword,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: Wrong userame and password",
+			args: args{
+				username: &invalidUsername,
+				password: &invalidPassword,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: empty username and password",
+			args: args{
+				username: &emptyUsername,
+				password: &emptyPassword,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ediLogin := s
+			got, err := ediLogin.Supplier.EDIUserLogin(tt.args.username, tt.args.password)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if (err == nil) == tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
+				assert.NotNil(t, got)
+				return
+			}
+		})
+	}
+}
+
+func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	type args struct {
+		username string
+		password string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: valid credentials",
+			args: args{
+				username: "bewell@slade360.co.ke",
+				password: "please change me",
+			},
+			wantErr: true, // TODO: switch to true when https://accounts-core.release.slade360.co.ke/
+			// comes back live
+		},
+		{
+			name: "Sad Case: Wrong userame and password",
+			args: args{
+				username: "invalid Username",
+				password: "invalid Password",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: empty username and password",
+			args: args{
+				username: "",
+				password: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			coreEdiLogin := s
+			got, err := coreEdiLogin.Supplier.CoreEDIUserLogin(tt.args.username, tt.args.password)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if (err == nil) == tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
+				assert.NotNil(t, got)
+				return
+			}
+		})
+	}
 }
