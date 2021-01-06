@@ -1235,7 +1235,60 @@ func TestSetUpSupplier(t *testing.T) {
 			supplier := s
 			_, err := supplier.Supplier.SetUpSupplier(tt.args.ctx, tt.args.accountType)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.SetUpSupplier() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("SetUpSupplier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+
+}
+
+func TestSuspendSupplier(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid case - Suspend an existing supplier",
+			args: args{
+				ctx: ctx,
+			},
+			want:    true,
+			wantErr: false,
+		}, {
+			name: "invalid case - Suspend a nonexistent supplier",
+			args: args{
+				ctx: context.Background(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service := s
+			_, err := service.Supplier.SuspendSupplier(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SuspendSupplier() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})
