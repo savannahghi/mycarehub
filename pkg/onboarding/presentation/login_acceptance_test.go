@@ -249,16 +249,15 @@ func TestLoginInByPhone(t *testing.T) {
 }
 
 func TestLoginAsAnonymous(t *testing.T) {
-
 	client := http.DefaultClient
 
-	// p1, err := json.Marshal(&resources.LoginPayload{
-	// 	Flavour: base.FlavourConsumer,
-	// })
-	// if err != nil {
-	// 	t.Errorf("unable to marshal payload to JSON: %s", err)
-	// }
-	// validPayload := bytes.NewBuffer(p1)
+	p1, err := json.Marshal(&resources.LoginPayload{
+		Flavour: base.FlavourConsumer,
+	})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+	}
+	validPayload := bytes.NewBuffer(p1)
 
 	p2, err := json.Marshal(&resources.LoginPayload{
 		Flavour: base.FlavourPro,
@@ -280,18 +279,16 @@ func TestLoginAsAnonymous(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		//todo(dexter) : restore this after profile deploy
-		// {
-		// 	name: "valid : correct flavour",
-		// 	args: args{
-		// 		url:        fmt.Sprintf("%s/login_anoymous", baseURL),
-		// 		httpMethod: http.MethodPost,
-		// 		body:       validPayload,
-		// 	},
-		// 	wantErr:    false,
-		// 	wantStatus: http.StatusOK,
-		// },
-
+		{
+			name: "valid : correct flavour",
+			args: args{
+				url:        fmt.Sprintf("%s/login_anoymous", baseURL),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantErr:    false,
+			wantStatus: http.StatusOK,
+		},
 		{
 			name: "valid : incorrect flavour",
 			args: args{
