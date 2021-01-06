@@ -133,6 +133,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.GetUserProfileByUID(ctx))
+	isc.Path("/update_covers").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.UpdateCovers(ctx))
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()

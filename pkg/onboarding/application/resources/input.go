@@ -183,3 +183,13 @@ type RefreshTokenPayload struct {
 type UIDPayload struct {
 	UID *string `json:"uid"`
 }
+
+// UpdateCoversPayload is used to make a REST
+// request to update a user's covers in their user profile
+type UpdateCoversPayload struct {
+	UID            *string `json:"uid"`
+	PayerName      *string `json:"payerName"`
+	MemberName     *string `json:"memberName"`
+	MemberNumber   *string `json:"memberNumber"`
+	PayerSladeCode *int    `json:"payerSladeCode"`
+}

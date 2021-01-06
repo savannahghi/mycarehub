@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
@@ -27,6 +28,7 @@ type HandlersInterfaces interface {
 	FindSupplierByUID(ctx context.Context) http.HandlerFunc
 	RemoveUserByPhoneNumber(ctx context.Context) http.HandlerFunc
 	GetUserProfileByUID(ctx context.Context) http.HandlerFunc
+	UpdateCovers(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -394,5 +396,43 @@ func (h *HandlersInterfacesImpl) GetUserProfileByUID(ctx context.Context) http.H
 		}
 
 		base.WriteJSONResponse(w, profile, http.StatusOK)
+	}
+}
+
+// UpdateCovers is an unauthenticated ISC endpoint that updates the cover of
+// a given user given their UID and cover details
+func (h *HandlersInterfacesImpl) UpdateCovers(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &resources.UpdateCoversPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.UID == nil {
+			err := fmt.Errorf("expected `UID` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		auth := &auth.Token{UID: *p.UID}
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, auth)
+		cover := base.Cover{
+			PayerName:      *p.PayerName,
+			MemberNumber:   *p.MemberNumber,
+			MemberName:     *p.MemberName,
+			PayerSladeCode: *p.PayerSladeCode,
+		}
+		var covers []base.Cover
+		covers = append(covers, cover)
+		err := h.interactor.Onboarding.UpdateCovers(newContext, covers)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(
+			w,
+			resources.OKResp{
+				Status: "Covers successfully updated",
+			},
+			http.StatusOK,
+		)
 	}
 }
