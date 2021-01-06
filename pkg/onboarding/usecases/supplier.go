@@ -346,7 +346,7 @@ func (s SupplierUseCasesImpl) CoreEDIUserLogin(username, password string) (*base
 }
 
 // SupplierEDILogin it used to instantiate as call when setting up a supplier's account's who
-// has an affliation to a provider with the slade ecosystem. The logic is as follows;
+// has an affiliation to a provider with the slade ecosystem. The logic is as follows;
 // 1 . login to the relevant edi to assert the user has an account
 // 2 . fetch the branches of the provider given the slade code which we have
 // 3 . update the user's supplier record
@@ -781,8 +781,8 @@ func (s *SupplierUseCasesImpl) parseKYCAsMap(data interface{}) (map[string]inter
 	return kycAsMap, nil
 }
 
-// SaveKYCResponseAndNotifyAdmins save the kyc information provided by the user and sends a notification to all admins for a pending
-// KYC review request
+// SaveKYCResponseAndNotifyAdmins saves the kyc information provided by the user
+// and sends a notification to all admins for a pending KYC review request
 func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *domain.Supplier) error {
 
 	if _, err := s.repo.UpdateSupplierProfile(ctx, sup); err != nil {
@@ -1036,6 +1036,20 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, i
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	if !input.OrganizationTypeName.IsValid() {
+		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
+	}
+
+	if !input.Cadre.IsValid() {
+		return nil, fmt.Errorf("invalid `Cadre` provided : %v", input.Cadre.String())
+	}
+
+	for _, practiceService := range input.PracticeServices {
+		if !practiceService.IsValid() {
+			return nil, fmt.Errorf("invalid `PracticeService` provided : %v", practiceService.String())
+		}
 	}
 
 	kyc := domain.OrganizationProvider{

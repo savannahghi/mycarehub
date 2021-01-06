@@ -54,7 +54,7 @@ func composeValidPinResetPayload(t *testing.T) *resources.PhoneNumberPayload {
 
 func TestSetUserPIN(t *testing.T) {
 	client := http.DefaultClient
-	// create a user and thier profile
+	// create a user and their profile
 	_, err := CreateTestUserByPhone(t)
 	if err != nil {
 		log.Printf("unable to create a test user: %s", err)

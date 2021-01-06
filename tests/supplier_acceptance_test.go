@@ -1,9 +1,11 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"testing"
 	"time"
@@ -963,6 +965,217 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 			}
 			if tt.wantStatus != resp.StatusCode {
 				t.Errorf("Bad status reponse returned")
+				return
+			}
+
+		})
+	}
+}
+
+// CreatedUserGraphQLHeaders updates the authorization header with the
+// bearer(ID) token of the created user during test
+// TODO:(muchogo)  create a reusable function in base that accepts a UID
+// 				or modify the base.GetGraphQLHeaders(ctx) extra UID argument
+func CreatedUserGraphQLHeaders(idToken *string) (map[string]string, error) {
+	ctx := context.Background()
+
+	authHeaderBearerToken := fmt.Sprintf("Bearer %v", *idToken)
+
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error in getting headers: %w", err)
+	}
+
+	headers["Authorization"] = authHeaderBearerToken
+
+	return headers, nil
+}
+func TestAddOrganizationProviderKYCMutation(t *testing.T) {
+	// create a user and their profile
+	user, err := CreateTestUserByPhone(t)
+	if err != nil {
+		log.Printf("unable to create a test user: %s", err)
+		return
+	}
+
+	idToken := user.Auth.IDToken
+	headers, err := CreatedUserGraphQLHeaders(idToken)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+
+	graphqlMutation := `
+	mutation   addOrganizationProviderKYC($input:OrganizationProviderInput!){
+		addOrganizationProviderKYC(input:$input) {
+		organizationTypeName
+		certificateOfIncorporation
+		certificateOfInCorporationUploadID
+		registrationNumber
+		KRAPIN
+		KRAPINUploadID
+		practiceServices
+		practiceLicenseUploadID
+		practiceLicenseID
+		supportingDocumentsUploadID
+		directorIdentifications{
+		  identificationDocType
+				identificationDocNumber
+				identificationDocNumberUploadID
+		}
+		cadre
+	}
+	}`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"directorIdentifications": []map[string]interface{}{
+								{
+									"identificationDocType":           "NATIONALID",
+									"identificationDocNumber":         "12345678",
+									"identificationDocNumberUploadID": "12345678",
+								},
+							},
+							"organizationTypeName":               "LIMITED_COMPANY",
+							"certificateOfIncorporation":         "CERT-123456",
+							"certificateOfInCorporationUploadID": "CERT-UPLOAD-123456",
+							"registrationNumber":                 "REG-123456",
+							"KRAPIN":                             "KRA-123456789",
+							"KRAPINUploadID":                     "KRA-UPLOAD-123456789",
+							"practiceServices":                   []string{"OUTPATIENT_SERVICES"},
+							"practiceLicenseID":                  "PRAC-123456",
+							"practiceLicenseUploadID":            "PRAC-UPLOAD-123456",
+							"supportingDocumentsUploadID":        []string{"SUPP-UPLOAD-123456"},
+							"cadre":                              "DOCTOR",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "valid mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"directorIdentifications": []map[string]interface{}{
+								{
+									"identificationDocType":           "NATIONALID",
+									"identificationDocNumber":         "12345678",
+									"identificationDocNumberUploadID": "12345678",
+								},
+							},
+							"organizationTypeName":               "LIMITED_COMPANY",
+							"certificateOfIncorporation":         "CERT-123456",
+							"certificateOfInCorporationUploadID": "CERT-UPLOAD-123456",
+							"registrationNumber":                 "REG-123456",
+							"KRAPIN":                             123456789,
+							"KRAPINUploadID":                     "KRA-UPLOAD-123456789",
+							"practiceServices":                   []string{"OUTPATIENT_SERVICES"},
+							"practiceLicenseID":                  "PRAC-123456",
+							"practiceLicenseUploadID":            "PRAC-123456",
+							"supportingDocumentsUploadID":        []string{"SUPP-UPLOAD-123456"},
+							"cadre":                              "DOCTOR",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected got error: %w", err)
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status response returned")
 				return
 			}
 
