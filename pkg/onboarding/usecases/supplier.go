@@ -986,6 +986,10 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Contex
 		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
 	}
 
+	if !input.OrganizationTypeName.IsValid() {
+		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
+	}
+
 	kyc := domain.OrganizationPractitioner{
 		OrganizationTypeName:               input.OrganizationTypeName,
 		KRAPIN:                             input.KRAPIN,

@@ -13,6 +13,24 @@ import (
 	"gitlab.slade360emr.com/go/base"
 )
 
+// CreatedUserGraphQLHeaders updates the authorization header with the
+// bearer(ID) token of the created user during test
+// TODO:(muchogo)  create a reusable function in base that accepts a UID
+// 				or modify the base.GetGraphQLHeaders(ctx) extra UID argument
+func CreatedUserGraphQLHeaders(idToken *string) (map[string]string, error) {
+	ctx := context.Background()
+
+	authHeaderBearerToken := fmt.Sprintf("Bearer %v", *idToken)
+
+	headers, err := base.GetGraphQLHeaders(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error in getting headers: %w", err)
+	}
+
+	headers["Authorization"] = authHeaderBearerToken
+
+	return headers, nil
+}
 func TestAddPartnerType(t *testing.T) {
 	ctx := base.GetAuthenticatedContext(t)
 
@@ -163,14 +181,21 @@ func TestAddPartnerType(t *testing.T) {
 
 func TestSetUpSupplier_acceptance(t *testing.T) {
 
-	ctx := base.GetAuthenticatedContext(t)
-
-	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
-	headers, err := base.GetGraphQLHeaders(ctx)
+	// create a user and their profile
+	user, err := CreateTestUserByPhone(t)
 	if err != nil {
-		t.Errorf("error getting headers: %w", err)
+		log.Printf("unable to create a test user: %s", err)
 		return
 	}
+
+	idToken := user.Auth.IDToken
+	headers, err := CreatedUserGraphQLHeaders(idToken)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphqlMutation := `
 	mutation setUpSupplier($input: AccountType!) {
@@ -200,7 +225,7 @@ func TestSetUpSupplier_acceptance(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true, // TODO fixme: revert to false the logged in user must have a registered profile
+			wantErr:    false,
 		},
 		{
 			name: "organisation supplier setup with valid payload",
@@ -213,7 +238,7 @@ func TestSetUpSupplier_acceptance(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true, // TODO fixme: revert to false the logged in user must have a registered profile
+			wantErr:    false,
 		},
 		{
 			name: "invalid case - supplier setup with invalid payload",
@@ -309,14 +334,22 @@ func TestSetUpSupplier_acceptance(t *testing.T) {
 }
 
 func TestSuspendSupplier_acceptance(t *testing.T) {
-	ctx := base.GetAuthenticatedContext(t)
 
-	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
-	headers, err := base.GetGraphQLHeaders(ctx)
+	// create a user and their profile
+	user, err := CreateTestUserByPhone(t)
 	if err != nil {
-		t.Errorf("error getting headers: %w", err)
+		log.Printf("unable to create a test user: %s", err)
 		return
 	}
+
+	idToken := user.Auth.IDToken
+	headers, err := CreatedUserGraphQLHeaders(idToken)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphqlMutation := `mutation{
 		suspendSupplier
@@ -341,7 +374,7 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true, // TODO fixme: revert to false the logged in user must have a registered profile
+			wantErr:    false,
 		},
 		{
 			name: "invalid - Suspend supplier using an invalid payload",
@@ -434,11 +467,24 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 }
 
 func TestSupplierEDILogin(t *testing.T) {
+	// create a user and their profile
+	user, err := CreateTestUserByPhone(t)
+	if err != nil {
+		log.Printf("unable to create a test user: %s", err)
+		return
+	}
 
-	ctx := base.GetAuthenticatedContext(t)
-	sladeCode := "1"
+	idToken := user.Auth.IDToken
+	headers, err := CreatedUserGraphQLHeaders(idToken)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
-	headers, err := base.GetGraphQLHeaders(ctx)
+
+	sladeCode := "1"
+
 	if err != nil {
 		t.Errorf("error getting headers: %w", err)
 		return
@@ -488,7 +534,7 @@ func TestSupplierEDILogin(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true, // TODO fixme: revert to false the logged in user must have a registered profile
+			wantErr:    false,
 		},
 		{
 			name: "invalid edi portal login mutation request",
@@ -518,7 +564,7 @@ func TestSupplierEDILogin(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true, // TODO fixme: revert to false the logged in user must have a registered profile
+			wantErr:    false,
 		},
 		{
 			name: "invalid edi core login mutation request",
@@ -617,13 +663,21 @@ func TestSupplierEDILogin(t *testing.T) {
 
 func TestAddIndividualPractitionerKYC(t *testing.T) {
 
-	ctx := base.GetAuthenticatedContext(t)
-	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
-	headers, err := base.GetGraphQLHeaders(ctx)
+	// create a user and their profile
+	user, err := CreateTestUserByPhone(t)
 	if err != nil {
-		t.Errorf("error getting headers: %w", err)
+		log.Printf("unable to create a test user: %s", err)
 		return
 	}
+
+	idToken := user.Auth.IDToken
+	headers, err := CreatedUserGraphQLHeaders(idToken)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphQLMutationPayload := `
 	mutation addIndividualPractitionerKYC($input:IndividualPractitionerInput!){
@@ -677,7 +731,7 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true, // TODO fixme: revert to false the logged in user must have a registered profile
+			wantErr:    false,
 		},
 		{
 			name: "invalid mutation request - wrong input",
@@ -784,25 +838,6 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 
 		})
 	}
-}
-
-// CreatedUserGraphQLHeaders updates the authorization header with the
-// bearer(ID) token of the created user during test
-// TODO:(muchogo)  create a reusable function in base that accepts a UID
-// 				or modify the base.GetGraphQLHeaders(ctx) extra UID argument
-func CreatedUserGraphQLHeaders(idToken *string) (map[string]string, error) {
-	ctx := context.Background()
-
-	authHeaderBearerToken := fmt.Sprintf("Bearer %v", *idToken)
-
-	headers, err := base.GetGraphQLHeaders(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error in getting headers: %w", err)
-	}
-
-	headers["Authorization"] = authHeaderBearerToken
-
-	return headers, nil
 }
 func TestAddOrganizationProviderKYC(t *testing.T) {
 	// create a user and their profile
