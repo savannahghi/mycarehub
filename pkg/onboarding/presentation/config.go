@@ -88,7 +88,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.LoginByPhone(ctx))
-	r.Path("/login_anoymous").Methods(
+	r.Path("/login_anonymous").Methods(
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.LoginAnonymous(ctx))

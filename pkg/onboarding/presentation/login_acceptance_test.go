@@ -282,7 +282,7 @@ func TestLoginAsAnonymous(t *testing.T) {
 		{
 			name: "valid : correct flavour",
 			args: args{
-				url:        fmt.Sprintf("%s/login_anoymous", baseURL),
+				url:        fmt.Sprintf("%s/login_anonymous", baseURL),
 				httpMethod: http.MethodPost,
 				body:       validPayload,
 			},
@@ -292,7 +292,7 @@ func TestLoginAsAnonymous(t *testing.T) {
 		{
 			name: "valid : incorrect flavour",
 			args: args{
-				url:        fmt.Sprintf("%s/login_anoymous", baseURL),
+				url:        fmt.Sprintf("%s/login_anonymous", baseURL),
 				httpMethod: http.MethodPost,
 				body:       invalidPayload,
 			},
