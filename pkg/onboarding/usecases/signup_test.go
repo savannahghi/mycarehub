@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
 func TestCheckPhoneExists(t *testing.T) {
@@ -198,6 +199,115 @@ func TestRegisterPushToken(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("SignUpUseCasesImpl.RegisterPushToken() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUpdateUserProfile(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	dateOfBirth := base.Date{
+		Day:   12,
+		Year:  2000,
+		Month: 2,
+	}
+	firstName := "Jatelo"
+	lastName := "Omera"
+	uploadID := "12345"
+
+	userdetails := &resources.UserProfileInput{
+		PhotoUploadID: &uploadID,
+		DateOfBirth:   &dateOfBirth,
+		FirstName:     &firstName,
+		LastName:      &lastName,
+	}
+
+	updateDOB := &resources.UserProfileInput{
+		DateOfBirth: &dateOfBirth,
+	}
+
+	updateFirstName := &resources.UserProfileInput{
+		FirstName: &firstName,
+	}
+
+	updateLastName := &resources.UserProfileInput{
+		LastName: &lastName,
+	}
+
+	type args struct {
+		ctx   context.Context
+		input *resources.UserProfileInput
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case - Successfully update a user profile",
+			args: args{
+				ctx:   ctx,
+				input: userdetails,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case - Successfully update a user firstname",
+			args: args{
+				ctx:   ctx,
+				input: updateFirstName,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case - Successfully update a user lastname",
+			args: args{
+				ctx:   ctx,
+				input: updateLastName,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case - Successfully update a user date of birth",
+			args: args{
+				ctx:   ctx,
+				input: updateDOB,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - User profile not found",
+			args: args{
+				ctx:   context.Background(),
+				input: userdetails,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.Signup.UpdateUserProfile(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.RegisterPushToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if (got == nil) != tt.wantErr {
+				t.Errorf("profile was not updated")
+				return
 			}
 		})
 	}
