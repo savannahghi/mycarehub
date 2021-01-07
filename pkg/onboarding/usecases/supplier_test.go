@@ -1746,3 +1746,90 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 		})
 	}
 }
+
+func TestAddIndividualRiderKYC(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	name := "Jatelo"
+	partnerRider := domain.PartnerTypeRider
+	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerRider)
+	if err != nil {
+		t.Errorf("can't create a supplier")
+		return
+	}
+
+	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeIndividual)
+	if err != nil {
+		t.Errorf("can't set up a supplier")
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		input domain.IndividualRider
+	}
+
+	riderInputPayload := domain.IndividualRider{
+		IdentificationDoc: domain.Identification{
+			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+			IdentificationDocNumber:         "12345678",
+			IdentificationDocNumberUploadID: "23456789",
+		},
+		KRAPIN:                         "A0123456",
+		KRAPINUploadID:                 "34567890",
+		DrivingLicenseID:               "12345678",
+		CertificateGoodConductUploadID: "34567890",
+	}
+
+	riderKYC := &domain.IndividualRider{
+		IdentificationDoc: domain.Identification{
+			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+			IdentificationDocNumber:         "12345678",
+			IdentificationDocNumberUploadID: "23456789",
+		},
+		KRAPIN:                         "A0123456",
+		KRAPINUploadID:                 "34567890",
+		DrivingLicenseID:               "12345678",
+		CertificateGoodConductUploadID: "34567890",
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.IndividualRider
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully add individual rider KYC",
+			args: args{
+				ctx:   ctx,
+				input: riderInputPayload,
+			},
+			want:    riderKYC,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service := s
+			_, err := service.Supplier.AddIndividualRiderKyc(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddIndividualRiderKyc() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+		})
+	}
+
+}
