@@ -2,10 +2,15 @@ package usecases_test
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"reflect"
 	"testing"
+	"time"
 
+	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 )
 
 // import (
@@ -2164,4 +2169,162 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 
 		})
 	}
+}
+
+func TestAddOrganizationCoachKyc(t *testing.T) {
+
+	/*
+	 * Run tests
+	 */
+	test1 := domain.OrganizationCoach{
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		KRAPIN:               "SOMEKRAPIN",
+	}
+	test2 := domain.OrganizationCoach{
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		KRAPIN:               "someKraPin",
+	}
+	test2Want := domain.OrganizationCoach{
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		KRAPIN:               "someKraPin",
+	}
+	tests := []struct {
+		name    string
+		coach   domain.OrganizationCoach
+		want    domain.OrganizationCoach
+		wantErr bool
+	}{
+		{
+			name:    "valid case",
+			coach:   test1,
+			want:    test1,
+			wantErr: false,
+		},
+		{
+			name:    "valid case2",
+			coach:   test2,
+			want:    test2Want,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			/*
+			 * create a supplier account.
+			 */
+			ctx := context.Background()
+			service, err := InitializeTestService(ctx)
+			if err != nil {
+				t.Errorf("failed to create service")
+				return
+			}
+
+			seed := rand.NewSource(time.Now().UnixNano())
+			unique := fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9))
+			testPhoneNumber := "+25475698" + unique
+			testPhoneNumberPin := "7463"
+
+			// first create a user account
+			newCtx, err := createUserTestAccount(ctx, service, testPhoneNumber, testPhoneNumberPin, base.FlavourPro, t)
+			if err != nil {
+				t.Errorf("%v", err)
+				return
+			}
+
+			coachResponse, err := service.Supplier.AddOrganizationCoachKyc(newCtx, tt.coach)
+			if tt.wantErr && err == nil {
+				clean(newCtx, testPhoneNumber, t, service)
+				t.Errorf("error was expected but got no error")
+				return
+			}
+
+			if err != nil && !tt.wantErr {
+				clean(newCtx, testPhoneNumber, t, service)
+				t.Errorf("error was not expected but got: %v", err)
+				return
+			}
+
+			// check data matches expected
+
+			if coachResponse.OrganizationTypeName != tt.want.OrganizationTypeName {
+				clean(newCtx, testPhoneNumber, t, service)
+				t.Errorf("wanted: %v, got: %v", tt.want.OrganizationTypeName, coachResponse.OrganizationTypeName)
+				return
+			}
+
+			if coachResponse.KRAPIN != tt.want.KRAPIN {
+				clean(newCtx, testPhoneNumber, t, service)
+				t.Errorf("wanted: %v, got: %v", tt.want.KRAPIN, coachResponse.KRAPIN)
+				return
+			}
+
+			if coachResponse.KRAPINUploadID != tt.want.KRAPINUploadID {
+				clean(newCtx, testPhoneNumber, t, service)
+				t.Errorf("wanted: %v, got: %v", tt.want.KRAPINUploadID, coachResponse.KRAPINUploadID)
+				return
+			}
+
+			for index, document := range coachResponse.SupportingDocumentsUploadID {
+				if document != tt.want.SupportingDocumentsUploadID[index] {
+					clean(newCtx, testPhoneNumber, t, service)
+					t.Errorf("wanted: %v, got: %v", tt.want.SupportingDocumentsUploadID[index], document)
+					return
+				}
+			}
+
+			if coachResponse.CertificateOfIncorporation != tt.want.CertificateOfIncorporation {
+				clean(newCtx, testPhoneNumber, t, service)
+				t.Errorf("wanted: %v, got: %v", tt.want.CertificateOfIncorporation, coachResponse.CertificateOfIncorporation)
+				return
+			}
+
+			if coachResponse.CertificateOfInCorporationUploadID != tt.want.CertificateOfInCorporationUploadID {
+				clean(newCtx, testPhoneNumber, t, service)
+				t.Errorf("wanted: %v, got: %v", tt.want.CertificateOfInCorporationUploadID, coachResponse.CertificateOfInCorporationUploadID)
+				return
+			}
+
+			/*
+			 * delete the created account and its data
+			 */
+			clean(newCtx, testPhoneNumber, t, service)
+		})
+	}
+
+}
+
+func clean(newCtx context.Context, testPhoneNumber string, t *testing.T, service *interactor.Interactor) {
+	err := service.Signup.RemoveUserByPhoneNumber(newCtx, testPhoneNumber)
+	if err != nil {
+		t.Errorf("failed to clean data after test error: %v", err)
+		return
+	}
+}
+
+func createUserTestAccount(ctx context.Context, service *interactor.Interactor,
+	testPhoneNumber string, testPhoneNumberPin string, flavour base.Flavour, t *testing.T) (context.Context, error) {
+	// try do clean up first
+	_ = service.Signup.RemoveUserByPhoneNumber(ctx, testPhoneNumber)
+
+	response, err := service.Signup.CreateUserByPhone(ctx, testPhoneNumber, testPhoneNumberPin, flavour)
+	if err != nil {
+		fmt.Print()
+		t.Errorf("failed to create a user error: %v", err)
+		return nil, err
+	}
+
+	// get context of the created account.
+	idTokens, err := base.AuthenticateCustomFirebaseToken(*response.Auth.CustomToken)
+	if err != nil {
+		t.Errorf("%v", err)
+		return nil, err
+	}
+	authToken, err := base.ValidateBearerToken(ctx, idTokens.IDToken)
+	if err != nil {
+		t.Errorf("%v", err)
+		return nil, err
+	}
+	newCtx := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	return newCtx, nil
 }
