@@ -82,7 +82,7 @@ type Customer struct {
 	ID                 string             `json:"id" firestore:"id"`
 	ProfileID          *string            `json:"profileID,omitempty" firestore:"profileID"`
 	CustomerID         string             `json:"customerID,omitempty" firestore:"customerID"`
-	ReceivablesAccount ReceivablesAccount `json:"receivablesAccount" firestore:"profileID"`
+	ReceivablesAccount ReceivablesAccount `json:"receivablesAccount" firestore:"receivablesAccount"`
 	Active             bool               `json:"active" firestore:"active"`
 }
 

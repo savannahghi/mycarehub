@@ -125,3 +125,62 @@ func TestCreateEmptyCustomerProfile(t *testing.T) {
 	}
 
 }
+
+func TestGetCustomerProfileByID(t *testing.T) {
+	ctx := context.Background()
+	firestoreDB, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("%v", err)
+		return
+	}
+	tests := []struct {
+		name      string
+		profileID string
+		wantErr   bool
+	}{
+		{
+			name:      "valid case",
+			profileID: uuid.New().String(),
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			customerTest, err := firestoreDB.CreateEmptyCustomerProfile(ctx, tt.profileID)
+			if err != nil {
+				t.Errorf("failed to create a test Empty Customer profile err: %v", err)
+				return
+			}
+			if customerTest.ProfileID == nil {
+				t.Errorf("nil customer profile ID")
+				return
+			}
+			customerProfile, err := firestoreDB.GetCustomerProfileByID(ctx, tt.profileID)
+			if err != nil && !tt.wantErr {
+				t.Errorf("error not expected but got error: %v", err)
+				return
+			}
+			if tt.wantErr && err == nil {
+				t.Errorf("error expected but got no error")
+				return
+			}
+			if !tt.wantErr && customerProfile == nil {
+				t.Errorf("nil customer profile")
+				return
+			}
+
+			if !tt.wantErr {
+				if customerTest.ProfileID == nil {
+					t.Errorf("nil customer profile ID")
+					return
+				}
+
+				if customerTest.ID == "" {
+					t.Errorf("nil customer ID")
+					return
+				}
+			}
+		})
+	}
+}
