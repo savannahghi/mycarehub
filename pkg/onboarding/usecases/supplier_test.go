@@ -1429,7 +1429,7 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 	}
 }
 
-func TestSupplierUseCasesImpl_AddOrganizationPharmacyKyc(t *testing.T) {
+func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
 		t.Errorf("failed to get test authenticated context: %v", err)
@@ -1558,7 +1558,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmacyKyc(t *testing.T) {
 	}
 }
 
-func TestSupplierUseCasesImpl_AddIndividualPharmacyKyc(t *testing.T) {
+func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
 		t.Errorf("failed to get test authenticated context: %v", err)
@@ -1626,6 +1626,46 @@ func TestSupplierUseCasesImpl_AddIndividualPharmacyKyc(t *testing.T) {
 				PracticeLicenseUploadID: "PRAC-UPLOAD-12345",
 			},
 			wantErr: false,
+		},
+		{
+			name: "invalid : unauthenticated context",
+			args: args{
+				ctx: context.Background(),
+				input: domain.IndividualPharmaceutical{
+					IdentificationDoc: domain.Identification{
+						IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+						IdentificationDocNumber:         "12345678",
+						IdentificationDocNumberUploadID: "12345678",
+					},
+					KRAPIN:                  "KRA-12345678",
+					KRAPINUploadID:          "KRA-UPLOAD-12345678",
+					RegistrationNumber:      "REG-12345",
+					PracticeLicenseID:       "PRAC-12345",
+					PracticeLicenseUploadID: "PRAC-UPLOAD-12345",
+				},
+			},
+			wantErr:     true,
+			expectedErr: "unable to get the logged in user supplier profile: 10: failed to get a user",
+		},
+		{
+			name: "invalid : wrong identification document type",
+			args: args{
+				ctx: ctx,
+				input: domain.IndividualPharmaceutical{
+					IdentificationDoc: domain.Identification{
+						IdentificationDocType:           "SCHOOL ID",
+						IdentificationDocNumber:         "12345678",
+						IdentificationDocNumberUploadID: "12345678",
+					},
+					KRAPIN:                  "KRA-12345678",
+					KRAPINUploadID:          "KRA-UPLOAD-12345678",
+					RegistrationNumber:      "REG-12345",
+					PracticeLicenseID:       "PRAC-12345",
+					PracticeLicenseUploadID: "PRAC-UPLOAD-12345",
+				},
+			},
+			wantErr:     true,
+			expectedErr: "invalid `IdentificationDocType` provided : SCHOOL ID",
 		},
 	}
 	for _, tt := range tests {
@@ -1720,6 +1760,46 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 				SupportingDocumentsUploadID: []string{"SUPP-UPLOAD-ID-1234", "SUPP-UPLOAD-ID-1234"},
 			},
 			wantErr: false,
+		},
+		{
+			name: "invalid: unauthenticated context",
+			args: args{
+				ctx: context.Background(),
+				input: domain.IndividualCoach{
+					IdentificationDoc: domain.Identification{
+						IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+						IdentificationDocNumber:         "12345678",
+						IdentificationDocNumberUploadID: "12345678",
+					},
+					KRAPIN:                      "KRA-12345678",
+					KRAPINUploadID:              "KRA-UPLOAD-12345678",
+					PracticeLicenseID:           "PRAC-12345",
+					PracticeLicenseUploadID:     "PRAC-UPLOAD-12345",
+					SupportingDocumentsUploadID: []string{"SUPP-UPLOAD-ID-1234", "SUPP-UPLOAD-ID-1234"},
+				},
+			},
+			wantErr:     true,
+			expectedErr: "unable to get the logged in user supplier profile: 10: failed to get a user",
+		},
+		{
+			name: "invalid: wrong identification document type",
+			args: args{
+				ctx: ctx,
+				input: domain.IndividualCoach{
+					IdentificationDoc: domain.Identification{
+						IdentificationDocType:           "SCHOOL ID",
+						IdentificationDocNumber:         "12345678",
+						IdentificationDocNumberUploadID: "12345678",
+					},
+					KRAPIN:                      "KRA-12345678",
+					KRAPINUploadID:              "KRA-UPLOAD-12345678",
+					PracticeLicenseID:           "PRAC-12345",
+					PracticeLicenseUploadID:     "PRAC-UPLOAD-12345",
+					SupportingDocumentsUploadID: []string{"SUPP-UPLOAD-ID-1234", "SUPP-UPLOAD-ID-1234"},
+				},
+			},
+			wantErr:     true,
+			expectedErr: "invalid `IdentificationDocType` provided : SCHOOL ID",
 		},
 	}
 	for _, tt := range tests {
