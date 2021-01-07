@@ -1280,7 +1280,7 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 	}
 }
 
-func TestService_AddOrganizationProviderKyc(t *testing.T) {
+func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
 		t.Errorf("failed to get test authenticated context: %v", err)
@@ -1421,7 +1421,324 @@ func TestService_AddOrganizationProviderKyc(t *testing.T) {
 			}
 			if !tt.wantErr {
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("Service.AddOrganizationProviderKyc() = %v, want %v", got, tt.want)
+					t.Errorf("SupplierUseCasesImpl.AddOrganizationProviderKyc() = %v, want %v", got, tt.want)
+				}
+				return
+			}
+
+		})
+	}
+}
+
+func TestSupplierUseCasesImpl_AddOrganizationPharmacyKyc(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	name := "Makmende"
+	partnerPharmaceutical := domain.PartnerTypePharmaceutical
+	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerPharmaceutical)
+	if err != nil {
+		t.Errorf("can't create a supplier")
+		return
+	}
+
+	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeOrganisation)
+	if err != nil {
+		t.Errorf("can't set up a supplier")
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		input domain.OrganizationPharmaceutical
+	}
+	tests := []struct {
+		name        string
+		args        args
+		want        *domain.OrganizationPharmaceutical
+		wantErr     bool
+		expectedErr string
+	}{
+		{
+			name: "valid : should pass",
+			args: args{
+				ctx: ctx,
+				input: domain.OrganizationPharmaceutical{
+					OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+					DirectorIdentifications: []domain.Identification{
+						{
+							IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+							IdentificationDocNumber:         "12345678",
+							IdentificationDocNumberUploadID: "12345678",
+						},
+					},
+					KRAPIN:                             "KRA-12345678",
+					KRAPINUploadID:                     "KRA-UPLOAD-12345678",
+					RegistrationNumber:                 "REG-12345",
+					PracticeLicenseID:                  "PRAC-12345",
+					PracticeLicenseUploadID:            "PRAC-UPLOAD-12345",
+					CertificateOfIncorporation:         "CERT-12345678",
+					CertificateOfInCorporationUploadID: "CERT-UPLOAD-12345",
+				},
+			},
+			want: &domain.OrganizationPharmaceutical{
+				OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+				DirectorIdentifications: []domain.Identification{
+					{
+						IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+						IdentificationDocNumber:         "12345678",
+						IdentificationDocNumberUploadID: "12345678",
+					},
+				},
+				KRAPIN:                             "KRA-12345678",
+				KRAPINUploadID:                     "KRA-UPLOAD-12345678",
+				RegistrationNumber:                 "REG-12345",
+				PracticeLicenseID:                  "PRAC-12345",
+				PracticeLicenseUploadID:            "PRAC-UPLOAD-12345",
+				CertificateOfIncorporation:         "CERT-12345678",
+				CertificateOfInCorporationUploadID: "CERT-UPLOAD-12345",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid : organization type name ",
+			args: args{
+				ctx: ctx,
+				input: domain.OrganizationPharmaceutical{
+					OrganizationTypeName: "AWESOME ORG",
+					DirectorIdentifications: []domain.Identification{
+						{
+							IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+							IdentificationDocNumber:         "12345678",
+							IdentificationDocNumberUploadID: "12345678",
+						},
+					},
+					KRAPIN:                             "KRA-12345678",
+					KRAPINUploadID:                     "KRA-UPLOAD-12345678",
+					RegistrationNumber:                 "REG-12345",
+					PracticeLicenseID:                  "PRAC-12345",
+					PracticeLicenseUploadID:            "PRAC-UPLOAD-12345",
+					CertificateOfIncorporation:         "CERT-12345678",
+					CertificateOfInCorporationUploadID: "CERT-UPLOAD-12345",
+				},
+			},
+			wantErr:     true,
+			expectedErr: "invalid `OrganizationTypeName` provided : AWESOME ORG",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.Supplier.AddOrganizationPharmaceuticalKyc(tt.args.ctx, tt.args.input)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("SupplierUseCasesImpl.AddOrganizationPharmaceuticalKyc() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if err.Error() != tt.expectedErr {
+					t.Errorf("SupplierUseCasesImpl.AddOrganizationPharmaceuticalKyc() error = %v, expectedErr %v", err, tt.expectedErr)
+				}
+				return
+			}
+			if !tt.wantErr {
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("SupplierUseCasesImpl.AddOrganizationPharmaceuticalKyc() = %v, want %v", got, tt.want)
+				}
+				return
+			}
+
+		})
+	}
+}
+
+func TestSupplierUseCasesImpl_AddIndividualPharmacyKyc(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	name := "Makmende"
+	partnerPharmaceutical := domain.PartnerTypePharmaceutical
+	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerPharmaceutical)
+	if err != nil {
+		t.Errorf("can't create a supplier")
+		return
+	}
+
+	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeIndividual)
+	if err != nil {
+		t.Errorf("can't set up a supplier")
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		input domain.IndividualPharmaceutical
+	}
+	tests := []struct {
+		name        string
+		args        args
+		want        *domain.IndividualPharmaceutical
+		wantErr     bool
+		expectedErr string
+	}{
+		{
+			name: "valid : should pass",
+			args: args{
+				ctx: ctx,
+				input: domain.IndividualPharmaceutical{
+					IdentificationDoc: domain.Identification{
+						IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+						IdentificationDocNumber:         "12345678",
+						IdentificationDocNumberUploadID: "12345678",
+					},
+					KRAPIN:                  "KRA-12345678",
+					KRAPINUploadID:          "KRA-UPLOAD-12345678",
+					RegistrationNumber:      "REG-12345",
+					PracticeLicenseID:       "PRAC-12345",
+					PracticeLicenseUploadID: "PRAC-UPLOAD-12345",
+				},
+			},
+			want: &domain.IndividualPharmaceutical{
+				IdentificationDoc: domain.Identification{
+					IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+					IdentificationDocNumber:         "12345678",
+					IdentificationDocNumberUploadID: "12345678",
+				},
+				KRAPIN:                  "KRA-12345678",
+				KRAPINUploadID:          "KRA-UPLOAD-12345678",
+				RegistrationNumber:      "REG-12345",
+				PracticeLicenseID:       "PRAC-12345",
+				PracticeLicenseUploadID: "PRAC-UPLOAD-12345",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.Supplier.AddIndividualPharmaceuticalKyc(tt.args.ctx, tt.args.input)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("SupplierUseCasesImpl.AddIndividualPharmaceuticalKyc() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if err.Error() != tt.expectedErr {
+					t.Errorf("SupplierUseCasesImpl.AddIndividualPharmaceuticalKyc() error = %v, expectedErr %v", err, tt.expectedErr)
+				}
+				return
+			}
+			if !tt.wantErr {
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("SupplierUseCasesImpl.AddIndividualPharmaceuticalKyc() = %v, want %v", got, tt.want)
+				}
+				return
+			}
+
+		})
+	}
+}
+
+func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	name := "Makmende"
+	partnerCoach := domain.PartnerTypeCoach
+	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerCoach)
+	if err != nil {
+		t.Errorf("can't create a supplier")
+		return
+	}
+
+	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeIndividual)
+	if err != nil {
+		t.Errorf("can't set up a supplier")
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		input domain.IndividualCoach
+	}
+	tests := []struct {
+		name        string
+		args        args
+		want        *domain.IndividualCoach
+		wantErr     bool
+		expectedErr string
+	}{
+		{
+			name: "valid : should pass",
+			args: args{
+				ctx: ctx,
+				input: domain.IndividualCoach{
+					IdentificationDoc: domain.Identification{
+						IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+						IdentificationDocNumber:         "12345678",
+						IdentificationDocNumberUploadID: "12345678",
+					},
+					KRAPIN:                      "KRA-12345678",
+					KRAPINUploadID:              "KRA-UPLOAD-12345678",
+					PracticeLicenseID:           "PRAC-12345",
+					PracticeLicenseUploadID:     "PRAC-UPLOAD-12345",
+					SupportingDocumentsUploadID: []string{"SUPP-UPLOAD-ID-1234", "SUPP-UPLOAD-ID-1234"},
+				},
+			},
+			want: &domain.IndividualCoach{
+				IdentificationDoc: domain.Identification{
+					IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+					IdentificationDocNumber:         "12345678",
+					IdentificationDocNumberUploadID: "12345678",
+				},
+				KRAPIN:                      "KRA-12345678",
+				KRAPINUploadID:              "KRA-UPLOAD-12345678",
+				PracticeLicenseID:           "PRAC-12345",
+				PracticeLicenseUploadID:     "PRAC-UPLOAD-12345",
+				SupportingDocumentsUploadID: []string{"SUPP-UPLOAD-ID-1234", "SUPP-UPLOAD-ID-1234"},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.Supplier.AddIndividualCoachKyc(tt.args.ctx, tt.args.input)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("SupplierUseCasesImpl.AddIndividualCoachKyc() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if err.Error() != tt.expectedErr {
+					t.Errorf("SupplierUseCasesImpl.AddIndividualCoachKyc() error = %v, expectedErr %v", err, tt.expectedErr)
+				}
+				return
+			}
+			if !tt.wantErr {
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("SupplierUseCasesImpl.AddIndividualCoachKyc() = %v, want %v", got, tt.want)
 				}
 				return
 			}

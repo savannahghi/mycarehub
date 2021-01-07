@@ -1145,6 +1145,10 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Cont
 		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
 	}
 
+	if !input.OrganizationTypeName.IsValid() {
+		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
+	}
+
 	kyc := domain.OrganizationPharmaceutical{
 		OrganizationTypeName:               input.OrganizationTypeName,
 		KRAPIN:                             input.KRAPIN,
@@ -1161,6 +1165,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Cont
 		}(input.DirectorIdentifications),
 		OrganizationCertificate: input.OrganizationCertificate,
 		RegistrationNumber:      input.RegistrationNumber,
+		PracticeLicenseID:       input.PracticeLicenseID,
 		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
 	}
 
