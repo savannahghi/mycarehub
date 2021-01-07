@@ -312,3 +312,58 @@ func TestUpdateUserProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestSignUpUseCasesImpl_GetUserRecoveryPhoneNumbers(t *testing.T) {
+
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: recovery phone numbers returned",
+			args: args{
+				ctx:   ctx,
+				phone: base.TestUserPhoneNumber,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: invalid phone input supplied",
+			args: args{
+				ctx:   ctx,
+				phone: "not a valid phone number",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := s.Signup.GetUserRecoveryPhoneNumbers(tt.args.ctx, tt.args.phone)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.GetUserRecoveryPhoneNumbers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if (got == nil) != tt.wantErr {
+				t.Errorf("nil AccountRecoveryPhonesResponse returned")
+				return
+			}
+		})
+	}
+}
