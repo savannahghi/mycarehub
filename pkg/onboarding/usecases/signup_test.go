@@ -169,7 +169,7 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 	}
 }
 
-func TestRegisterPushToken(t *testing.T) {
+func SignUpUseCasesImpl_TestRegisterPushToken(t *testing.T) {
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
 		t.Error("failed to setup signup usecase")

@@ -2519,3 +2519,54 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 		})
 	}
 }
+
+func TestSupplierUseCasesImpl_FindSupplierByUID(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: supplier found",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: unauthenticated context provided",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.Supplier.FindSupplierByUID(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.FindSupplierByUID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if (got == nil) != tt.wantErr {
+				t.Errorf("nil supplier returned")
+				return
+			}
+		})
+	}
+}
