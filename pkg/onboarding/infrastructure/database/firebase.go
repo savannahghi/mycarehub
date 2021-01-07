@@ -1251,23 +1251,27 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	}
 
 	// delete user supplier profile
+	// some old profiles may not have a supplier profile since the original implementation created a supplier profile
+	// only for PRO. However the current and correct logic creates a supplier profile regardless of flavour. Hence, the deletion of supplier
+	// profile should only occur if a supplier profile exists and not throw an error.
 	spr, err := fr.GetSupplierProfileByProfileID(ctx, pr.ID)
-	if err != nil {
-		return err
-	}
-	_, err = fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName()).Doc(spr.ID).Delete(ctx)
-	if err != nil {
-		return err
+	if err == nil {
+		_, err = fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName()).Doc(spr.ID).Delete(ctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	// delete user customer profile
+	// some old profiles may not have a custome profile since the original implementation created a customer profile
+	// only for CONSUMER. However the current and correct logic creates a customer profile regardless of flavour. Hence, the deletion of customer
+	// profile should only occur if a customer profile exists and not throw an error.
 	cpr, err := fr.GetCustomerProfileByProfileID(ctx, pr.ID)
-	if err != nil {
-		return err
-	}
-	_, err = fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName()).Doc(cpr.ID).Delete(ctx)
-	if err != nil {
-		return err
+	if err == nil {
+		_, err = fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName()).Doc(cpr.ID).Delete(ctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	// delete the user profile
