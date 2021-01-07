@@ -11,6 +11,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
@@ -126,16 +127,25 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	}
 	phone := base.TestUserPhoneNumber
 	flavour := base.FlavourConsumer
+	pin := base.TestUserPin
 	exists, err := s.Signup.CheckPhoneExists(ctx, phone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if test phone exists: %v", err)
 	}
 	if !exists {
+		otp, err := generateTestOTP(t, phone)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate test OTP: %v", err)
+		}
+
 		u, err := s.Signup.CreateUserByPhone(
 			ctx,
-			phone,
-			base.TestUserPin,
-			flavour,
+			&resources.SignUpInput{
+				PhoneNumber: &phone,
+				PIN:         &pin,
+				Flavour:     flavour,
+				OTP:         &otp.OTP,
+			},
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create a test user: %v", err)

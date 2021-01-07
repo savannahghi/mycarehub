@@ -105,11 +105,11 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}, nil
 }
 
-func composeInValidUserPayload(t *testing.T) *resources.SignUpPayload {
+func composeInValidUserPayload(t *testing.T) *resources.SignUpInput {
 	phone := base.TestUserPhoneNumber
 	pin := "" // empty string
 	flavour := base.FlavourPro
-	payload := &resources.SignUpPayload{
+	payload := &resources.SignUpInput{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -117,20 +117,27 @@ func composeInValidUserPayload(t *testing.T) *resources.SignUpPayload {
 	return payload
 }
 
-func composeValidUserPayload(t *testing.T, phone string) *resources.SignUpPayload {
+func composeValidUserPayload(t *testing.T, phone string) (*resources.SignUpInput, error) {
 	pin := "2030"
 	flavour := base.FlavourPro
-	payload := &resources.SignUpPayload{
+	otp, err := generateTestOTP(t, phone)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate test OTP: %v", err)
+	}
+	return &resources.SignUpInput{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
-	}
-	return payload
+		OTP:         &otp.OTP,
+	}, nil
 }
 
 func CreateTestUserByPhone(t *testing.T, phone string) (*resources.UserResponse, error) {
 	client := http.DefaultClient
-	validPayload := composeValidUserPayload(t, phone)
+	validPayload, err := composeValidUserPayload(t, phone)
+	if err != nil {
+		return nil, fmt.Errorf("failed to compose a valid payload")
+	}
 	bs, err := json.Marshal(validPayload)
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshal test item to JSON: %s", err)
@@ -215,13 +222,13 @@ func RemoveTestUserByPhone(t *testing.T, phone string) (bool, error) {
 	return true, nil
 }
 
-func generateTestOTP(t *testing.T) (*resources.OtpResponse, error) {
+func generateTestOTP(t *testing.T, phone string) (*resources.OtpResponse, error) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize test service: %v", err)
 	}
-	return s.Otp.GenerateAndSendOTP(ctx, base.TestUserPhoneNumberWithPin)
+	return s.Otp.GenerateAndSendOTP(ctx, phone)
 }
 
 func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {

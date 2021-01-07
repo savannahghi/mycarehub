@@ -65,21 +65,10 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) ht
 // CreateUserWithPhoneNumber is an unauthenticated endpoint that is called to create
 func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		p := &resources.SignUpPayload{}
+		p := &resources.SignUpInput{}
 		base.DecodeJSONToTargetStruct(w, r, p)
-		validInput, err := ValidateSignUpPayload(p)
-		if err != nil {
-			base.WriteJSONResponse(w, err, http.StatusBadRequest)
-			return
-		}
 
-		response, err := h.interactor.Signup.CreateUserByPhone(
-			ctx,
-			*validInput.PhoneNumber,
-			*validInput.PIN,
-			validInput.Flavour,
-		)
+		response, err := h.interactor.Signup.CreateUserByPhone(ctx, p)
 		if err != nil {
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
@@ -406,46 +395,4 @@ func (h *HandlersInterfacesImpl) GetUserProfileByUID(ctx context.Context) http.H
 
 		base.WriteJSONResponse(w, profile, http.StatusOK)
 	}
-}
-
-// ValidateSignUpPayload checks if domain.SignUpPayload has valid data
-func ValidateSignUpPayload(
-	inputPayload *resources.SignUpPayload) (*resources.SignUpPayload, error) {
-
-	// validate phone number input
-	ph := *inputPayload.PhoneNumber
-	number, err := base.NormalizeMSISDN(ph)
-	if err != nil {
-		return nil, err
-	}
-	if number == "" {
-		return nil, fmt.Errorf("empty phone number")
-	}
-
-	// validate flavour input
-
-	if !inputPayload.Flavour.IsValid() {
-		err := fmt.Errorf("an invalid `flavour` defined")
-		return nil, err
-	}
-
-	// validate pin input
-	err = utils.ValidatePINLength(*inputPayload.PIN)
-	if err != nil {
-		return nil, err
-	}
-
-	err = utils.ValidatePINDigits(*inputPayload.PIN)
-	if err != nil {
-		return nil, err
-	}
-
-	// return valid input
-	validInput := &resources.SignUpPayload{
-		PhoneNumber: &number,
-		PIN:         inputPayload.PIN,
-		Flavour:     inputPayload.Flavour,
-	}
-
-	return validInput, nil
 }

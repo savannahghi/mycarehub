@@ -7,6 +7,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -21,7 +22,7 @@ type SignUpUseCases interface {
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 
 	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
-	CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*resources.UserResponse, error)
+	CreateUserByPhone(ctx context.Context, input *resources.SignUpInput) (*resources.UserResponse, error)
 
 	// updates the user profile of the currently logged in user
 	UpdateUserProfile(ctx context.Context, input *resources.UserProfileInput) (*base.UserProfile, error)
@@ -59,7 +60,12 @@ type SignUpUseCasesImpl struct {
 
 // NewSignUpUseCases returns a new a onboarding usecase
 func NewSignUpUseCases(
-	r repository.OnboardingRepository, profile ProfileUseCase, pin UserPINUseCases, supplier SupplierUseCases, otp otp.ServiceOTP) SignUpUseCases {
+	r repository.OnboardingRepository,
+	profile ProfileUseCase,
+	pin UserPINUseCases,
+	supplier SupplierUseCases,
+	otp otp.ServiceOTP,
+) SignUpUseCases {
 	return &SignUpUseCasesImpl{
 		onboardingRepository: r,
 		profileUsecase:       profile,
@@ -86,9 +92,30 @@ func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string)
 }
 
 // CreateUserByPhone creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
-func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber, pin string, flavour base.Flavour) (*resources.UserResponse, error) {
+func (s *SignUpUseCasesImpl) CreateUserByPhone(
+	ctx context.Context,
+	input *resources.SignUpInput,
+) (*resources.UserResponse, error) {
+	userData, err := utils.ValidateSignUpInput(input)
+	if err != nil {
+		return nil, fmt.Errorf("%v", err)
+	}
+
+	verified, err := s.otpUseCases.VerifyOTP(
+		ctx,
+		*userData.PhoneNumber,
+		*userData.OTP,
+	)
+	if err != nil {
+		return nil, exceptions.VerifyOTPError(err)
+	}
+
+	if !verified {
+		return nil, exceptions.VerifyOTPError(nil)
+	}
+
 	// check if phone number is registered to another user
-	exists, err := s.CheckPhoneExists(ctx, phoneNumber)
+	exists, err := s.CheckPhoneExists(ctx, *userData.PhoneNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -97,22 +124,33 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(ctx context.Context, phoneNumber,
 		return nil, exceptions.CheckPhoneNumberExistError(err)
 	}
 	// get or create user via their phone number
-	user, err := base.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
+	user, err := base.GetOrCreatePhoneNumberUser(ctx, *userData.PhoneNumber)
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
 	// create a user profile
-	profile, err := s.onboardingRepository.CreateUserProfile(ctx, phoneNumber, user.UID)
+	profile, err := s.onboardingRepository.CreateUserProfile(
+		ctx,
+		*userData.PhoneNumber,
+		user.UID,
+	)
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
 	// generate auth credentials
-	auth, err := s.onboardingRepository.GenerateAuthCredentials(ctx, phoneNumber)
+	auth, err := s.onboardingRepository.GenerateAuthCredentials(
+		ctx,
+		*userData.PhoneNumber,
+	)
 	if err != nil {
 		return nil, err
 	}
 	// save the user pin
-	_, err = s.pinUsecase.SetUserPIN(ctx, pin, phoneNumber)
+	_, err = s.pinUsecase.SetUserPIN(
+		ctx,
+		*userData.PIN,
+		*userData.PhoneNumber,
+	)
 	if err != nil {
 		return nil, err
 	}

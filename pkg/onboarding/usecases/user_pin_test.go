@@ -9,13 +9,13 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
-func generateTestOTP(t *testing.T) (*resources.OtpResponse, error) {
+func generateTestOTP(t *testing.T, phone string) (*resources.OtpResponse, error) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize test service: %v", err)
 	}
-	return s.Otp.GenerateAndSendOTP(ctx, base.TestUserPhoneNumber)
+	return s.Otp.GenerateAndSendOTP(ctx, phone)
 }
 
 func TestUserPinUseCaseImpl_SetUserPIN(t *testing.T) {
@@ -304,13 +304,14 @@ func TestUserPinUseCaseImpl_ResetUserPIN(t *testing.T) {
 		return
 	}
 
-	otp, err := generateTestOTP(t)
+	phone := base.TestUserPhoneNumber
+	otp, err := generateTestOTP(t, phone)
 	if err != nil {
 		t.Errorf("failed to generate test OTP: %v", err)
 		return
 	}
 
-	secondOtp, err := generateTestOTP(t)
+	secondOtp, err := generateTestOTP(t, phone)
 	if err != nil {
 		t.Errorf("failed to generate a second test OTP: %v", err)
 		return
@@ -332,7 +333,7 @@ func TestUserPinUseCaseImpl_ResetUserPIN(t *testing.T) {
 			name: "happy case: valid PIN setup - valid payload",
 			args: args{
 				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				phone: phone,
 				PIN:   "12356",
 				OTP:   otp.OTP,
 			},
@@ -376,7 +377,7 @@ func TestUserPinUseCaseImpl_ResetUserPIN(t *testing.T) {
 			name: "happy case: restore the previous pin",
 			args: args{
 				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				phone: phone,
 				PIN:   base.TestUserPin,
 				OTP:   secondOtp.OTP,
 			},

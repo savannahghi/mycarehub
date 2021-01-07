@@ -42,7 +42,7 @@ func CheckPhoneNumberExistError(err error) error {
 	}
 }
 
-// InternalServerError returns an error if something wrong happened in performing the operration
+// InternalServerError returns an error if something wrong happened in performing the operation
 func InternalServerError(err error) error {
 	return &base.CustomError{
 		Err:     err,
@@ -222,6 +222,16 @@ func VerifyOTPError(err error) error {
 		Err:     err,
 		Message: OTPVerificationErrMsg,
 		// TODO: @salaton OTP verification error code
+		Code: int(base.Internal),
+	}
+}
+
+// MissingInputError returns an error when OTP verification fails
+func MissingInputError(value string) error {
+	return &base.CustomError{
+		Err:     nil,
+		Message: "expected `%s` to be defined",
+		// TODO: @salaton error code
 		Code: int(base.Internal),
 	}
 }

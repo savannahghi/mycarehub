@@ -39,7 +39,7 @@ func TestCheckPhoneExists(t *testing.T) {
 			name:        "invalid : wrong phone number format",
 			phone:       "71812308",
 			wantErr:     true,
-			expectedErr: "server error! unable to perform operation",
+			expectedErr: "2: failed to verify OTP",
 		},
 	}
 
@@ -47,8 +47,22 @@ func TestCheckPhoneExists(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.wantErr {
+				otp, err := generateTestOTP(t, tt.phone)
+				if err != nil {
+					t.Errorf("failed to generate test OTP: %v", err)
+					return
+				}
+				pin := base.TestUserPin
 				// signup user with the phone number then run phone number check
-				resp, err := s.Signup.CreateUserByPhone(context.Background(), tt.phone, "1234", base.FlavourConsumer)
+				resp, err := s.Signup.CreateUserByPhone(
+					context.Background(),
+					&resources.SignUpInput{
+						PhoneNumber: &tt.phone,
+						PIN:         &pin,
+						Flavour:     base.FlavourConsumer,
+						OTP:         &otp.OTP,
+					},
+				)
 				if tt.expectedErr == "" {
 					assert.Nil(t, err)
 					assert.NotNil(t, resp)
@@ -95,6 +109,12 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
+	phone := base.TestUserPhoneNumber
+	otp, err := generateTestOTP(t, phone)
+	if err != nil {
+		t.Errorf("failed to generate test OTP: %v", err)
+		return
+	}
 
 	type testArgs struct {
 		name        string
@@ -103,16 +123,18 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 		flavour     base.Flavour
 		wantErr     bool
 		expectedErr string
+		otp         string
 	}
 
 	testbed := []testArgs{
 		{
 			name:        "valid : should consumer create user",
-			phone:       base.TestUserPhoneNumber,
+			phone:       phone,
 			pin:         "1234",
 			flavour:     base.FlavourConsumer,
 			wantErr:     false,
 			expectedErr: "",
+			otp:         otp.OTP,
 		},
 	}
 
@@ -120,7 +142,15 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 
-			resp, err := s.Signup.CreateUserByPhone(context.Background(), tt.phone, tt.pin, tt.flavour)
+			resp, err := s.Signup.CreateUserByPhone(
+				context.Background(),
+				&resources.SignUpInput{
+					PhoneNumber: &tt.phone,
+					PIN:         &tt.pin,
+					Flavour:     tt.flavour,
+					OTP:         &tt.otp,
+				},
+			)
 			if tt.wantErr {
 				assert.NotNil(t, err)
 				assert.Nil(t, resp)

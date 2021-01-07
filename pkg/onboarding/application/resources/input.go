@@ -98,6 +98,14 @@ func (i *BranchSortInput) ToURLValues() (values url.Values) {
 	return vals
 }
 
+// SignUpInput represents the user information required to create a new account
+type SignUpInput struct {
+	PhoneNumber *string      `json:"phoneNumber"`
+	PIN         *string      `json:"pin"`
+	Flavour     base.Flavour `json:"flavour"`
+	OTP         *string      `json:"otp"`
+}
+
 // BranchEdge is used to serialize GraphQL Relay edges for locations
 type BranchEdge struct {
 	Cursor *string        `json:"cursor"`
@@ -135,13 +143,6 @@ func (i *BranchFilterInput) ToURLValues() url.Values {
 // PhoneNumberPayload used when verifying a phone number.
 type PhoneNumberPayload struct {
 	PhoneNumber *string `json:"phoneNumber"`
-}
-
-// SignUpPayload used when calling the REST API to create a new account
-type SignUpPayload struct {
-	PhoneNumber *string      `json:"phoneNumber"`
-	PIN         *string      `json:"pin"`
-	Flavour     base.Flavour `json:"flavour"`
 }
 
 // ChangePINRequest payload to set or change PIN information

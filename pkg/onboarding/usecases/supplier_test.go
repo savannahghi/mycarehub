@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 )
@@ -2338,8 +2339,20 @@ func createUserTestAccount(ctx context.Context, service *interactor.Interactor,
 	testPhoneNumber string, testPhoneNumberPin string, flavour base.Flavour, t *testing.T) (context.Context, error) {
 	// try do clean up first
 	_ = service.Signup.RemoveUserByPhoneNumber(ctx, testPhoneNumber)
+	otp, err := generateTestOTP(t, testPhoneNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate a test OTP: %v", err)
+	}
 
-	response, err := service.Signup.CreateUserByPhone(ctx, testPhoneNumber, testPhoneNumberPin, flavour)
+	response, err := service.Signup.CreateUserByPhone(
+		ctx,
+		&resources.SignUpInput{
+			PhoneNumber: &testPhoneNumber,
+			PIN:         &testPhoneNumberPin,
+			Flavour:     flavour,
+			OTP:         &otp.OTP,
+		},
+	)
 	if err != nil {
 		fmt.Print()
 		t.Errorf("failed to create a user error: %v", err)

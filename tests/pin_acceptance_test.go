@@ -81,7 +81,7 @@ func TestResetPin(t *testing.T) {
 	}
 
 	// valid change pin payload
-	otpResp, err := generateTestOTP(t)
+	otpResp, err := generateTestOTP(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to generate test OTP: %v", err)
 		return
@@ -95,7 +95,7 @@ func TestResetPin(t *testing.T) {
 	payload := bytes.NewBuffer(bs)
 
 	// invalid change payload
-	secondOtpResp, err := generateTestOTP(t)
+	secondOtpResp, err := generateTestOTP(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to generate a second test OTP: %v", err)
 		return

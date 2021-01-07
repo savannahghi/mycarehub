@@ -18,7 +18,11 @@ import (
 func TestCreateUserWithPhoneNumber(t *testing.T) {
 	client := http.DefaultClient
 	phoneNumber := base.TestUserPhoneNumber
-	validPayload := composeValidUserPayload(t, phoneNumber)
+	validPayload, err := composeValidUserPayload(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to compose a valid payload")
+		return
+	}
 	bs, err := json.Marshal(validPayload)
 	if err != nil {
 		t.Errorf("unable to marshal test item to JSON: %s", err)
