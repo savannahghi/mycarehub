@@ -975,15 +975,15 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*resou
 }
 
 // GetCustomerProfileByID fetch the customer profile by profile id.
-func (fr *Repository) GetCustomerProfileByID(ctx context.Context, profileID string) (*domain.Customer, error) {
+func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*domain.Customer, error) {
 	collection := fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName())
-	query := collection.Where("profileID", "==", profileID)
+	query := collection.Where("id", "==", id)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}
 	if len(docs) > 1 && base.IsDebug() {
-		log.Printf("> 1 profile with id %s (count: %d)", profileID, len(docs))
+		log.Printf("> 1 profile with id %s (count: %d)", id, len(docs))
 	}
 
 	if len(docs) == 0 {
@@ -999,9 +999,9 @@ func (fr *Repository) GetCustomerProfileByID(ctx context.Context, profileID stri
 }
 
 // GetCustomerProfileByProfileID fetches customer profile by given ID
-func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, id string) (*domain.Customer, error) {
+func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*domain.Customer, error) {
 	collection := fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName())
-	query := collection.Where("id", "==", id)
+	query := collection.Where("profileID", "==", profileID)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -1301,4 +1301,38 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 
 	return nil
 
+}
+
+// GetCustomerOrSupplierProfileByProfileID returns either a customer or supplier profile
+// given the flavour and the profile D that has been provided
+func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
+	ctx context.Context,
+	flavour base.Flavour,
+	profileID string,
+) (*domain.Customer, *domain.Supplier, error) {
+	var customer *domain.Customer
+	var supplier *domain.Supplier
+
+	switch flavour {
+	case base.FlavourConsumer:
+		{
+			customerProfile, err := fr.GetCustomerProfileByProfileID(ctx, profileID)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to get customer profile")
+			}
+			customer = customerProfile
+		}
+	case base.FlavourPro:
+		{
+			supplierProfile, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to get customer profile")
+			}
+			supplier = supplierProfile
+		}
+	default:
+		return customer, supplier, exceptions.WrongEnumTypeError(flavour.String(), nil)
+	}
+
+	return customer, supplier, nil
 }

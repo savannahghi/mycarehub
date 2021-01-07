@@ -203,3 +203,14 @@ func InValidPushTokenLengthError() error {
 		Code: int(base.UndefinedArguments),
 	}
 }
+
+// WrongEnumTypeError  is the error message displayed when
+// an invalid enum is given
+func WrongEnumTypeError(value string, err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: fmt.Sprintf(WrongEnumErrMsg, value),
+		// TODO: a give a correct code
+		Code: int(base.Internal),
+	}
+}

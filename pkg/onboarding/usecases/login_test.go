@@ -158,7 +158,7 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 		return nil, fmt.Errorf("failed to log in test user: %v", err)
 	}
 	authCred := &auth.Token{
-		UID: logInCreds.UID,
+		UID: logInCreds.Auth.UID,
 	}
 	return authCred, nil
 }
@@ -211,17 +211,16 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		//todo(dexter) : restore this tomorrow
-		// {
-		// 	name: "sad case: wrong pin number supplied",
-		// 	args: args{
-		// 		ctx:     ctx,
-		// 		phone:   base.TestUserPhoneNumber,
-		// 		PIN:     "4567",
-		// 		flavour: flavour,
-		// 	},
-		// 	wantErr: true,
-		// },
+		{
+			name: "sad case: wrong pin number supplied",
+			args: args{
+				ctx:     ctx,
+				phone:   base.TestUserPhoneNumber,
+				PIN:     "4567",
+				flavour: flavour,
+			},
+			wantErr: true,
+		},
 		{
 			name: "sad case: user profile without a primary phone number",
 			args: args{
@@ -239,6 +238,16 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 				phone:   "+2541234",
 				PIN:     base.TestUserPin,
 				flavour: flavour,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: incorrect flavour",
+			args: args{
+				ctx:     ctx,
+				phone:   base.TestUserPhoneNumber,
+				PIN:     base.TestUserPin,
+				flavour: "not-a-correct-flavour",
 			},
 			wantErr: true,
 		},

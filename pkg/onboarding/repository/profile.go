@@ -106,4 +106,10 @@ type OnboardingRepository interface {
 	ExchangeRefreshTokenForIDToken(
 		token string,
 	) (*resources.AuthCredentialResponse, error)
+
+	GetCustomerOrSupplierProfileByProfileID(
+		ctx context.Context,
+		flavour base.Flavour,
+		profileID string,
+	) (*domain.Customer, *domain.Supplier, error)
 }

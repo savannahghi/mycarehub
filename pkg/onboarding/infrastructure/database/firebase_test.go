@@ -126,7 +126,7 @@ func TestCreateEmptyCustomerProfile(t *testing.T) {
 
 }
 
-func TestGetCustomerProfileByID(t *testing.T) {
+func TestGetCustomerProfileByProfileID(t *testing.T) {
 	ctx := context.Background()
 	firestoreDB, err := database.NewFirebaseRepository(ctx)
 	if err != nil {
@@ -156,7 +156,7 @@ func TestGetCustomerProfileByID(t *testing.T) {
 				t.Errorf("nil customer profile ID")
 				return
 			}
-			customerProfile, err := firestoreDB.GetCustomerProfileByID(ctx, tt.profileID)
+			customerProfile, err := firestoreDB.GetCustomerProfileByProfileID(ctx, tt.profileID)
 			if err != nil && !tt.wantErr {
 				t.Errorf("error not expected but got error: %v", err)
 				return
@@ -180,6 +180,146 @@ func TestGetCustomerProfileByID(t *testing.T) {
 					t.Errorf("nil customer ID")
 					return
 				}
+			}
+		})
+	}
+}
+
+func TestRepository_GetCustomerOrSupplierProfileByProfileID(t *testing.T) {
+	ctx := context.Background()
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+	profileID := uuid.New().String()
+	_, err = fr.CreateEmptySupplierProfile(ctx, profileID)
+	if err != nil {
+		t.Errorf("failed to create an empty supplier: %v", err)
+	}
+
+	_, err = fr.CreateEmptyCustomerProfile(ctx, profileID)
+	if err != nil {
+		t.Errorf("failed to create an empty customer: %v", err)
+	}
+	type args struct {
+		ctx       context.Context
+		flavour   base.Flavour
+		profileID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "success: get the customer profile",
+			args: args{
+				ctx:       ctx,
+				flavour:   base.FlavourConsumer,
+				profileID: profileID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "success: get the supplier profile",
+			args: args{
+				ctx:       ctx,
+				flavour:   base.FlavourPro,
+				profileID: profileID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "failure: bad flavour given",
+			args: args{
+				ctx:       ctx,
+				flavour:   "not-a-flavour-bana",
+				profileID: profileID,
+			},
+			wantErr: true,
+		},
+		{
+			name: "failure: profile ID that does not exist",
+			args: args{
+				ctx:       ctx,
+				flavour:   base.FlavourPro,
+				profileID: "not-a-real-profile-ID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			customer, supplier, err := fr.GetCustomerOrSupplierProfileByProfileID(
+				tt.args.ctx,
+				tt.args.flavour,
+				tt.args.profileID,
+			)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetCustomerOrSupplierProfileByProfileID() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
+				return
+			}
+
+			if base.IsDebug() {
+				log.Printf("Customer....%v", customer)
+				log.Printf("Supplier....%v", supplier)
+			}
+		})
+	}
+}
+
+func TestRepository_GetCustomerProfileByID(t *testing.T) {
+	ctx := context.Background()
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+	profileID := uuid.New().String()
+
+	customer, err := fr.CreateEmptyCustomerProfile(ctx, profileID)
+	if err != nil {
+		t.Errorf("failed to create an empty customer: %v", err)
+	}
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "success: get a customer profile by ID",
+			args: args{
+				ctx: ctx,
+				id:  customer.ID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "failure: failed to get a customer profile",
+			args: args{
+				ctx: ctx,
+				id:  "not-a-customer-ID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			customerProfile, err := fr.GetCustomerProfileByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetCustomerProfileByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if base.IsDebug() {
+				log.Printf("Customer....%v", customerProfile)
 			}
 		})
 	}

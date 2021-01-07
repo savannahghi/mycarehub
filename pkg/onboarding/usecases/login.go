@@ -17,7 +17,7 @@ type LoginUseCases interface {
 		phone string,
 		PIN string,
 		flavour base.Flavour,
-	) (*resources.AuthCredentialResponse, error)
+	) (*resources.UserResponse, error)
 	RefreshToken(token string) (*resources.AuthCredentialResponse, error)
 	LoginAsAnonymous(ctx context.Context) (*resources.AuthCredentialResponse, error)
 }
@@ -39,7 +39,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	phone string,
 	PIN string,
 	flavour base.Flavour,
-) (*resources.AuthCredentialResponse, error) {
+) (*resources.UserResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
@@ -70,7 +70,26 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 
 	}
 
-	return l.onboardingRepository.GenerateAuthCredentials(ctx, phoneNumber)
+	auth, err := l.onboardingRepository.GenerateAuthCredentials(ctx, phoneNumber)
+	if err != nil {
+		return nil, exceptions.AuthenticateTokenError(err)
+	}
+
+	customer, supplier, err := l.onboardingRepository.GetCustomerOrSupplierProfileByProfileID(
+		ctx,
+		flavour,
+		profile.ID,
+	)
+	if err != nil {
+		return nil, exceptions.RetrieveRecordError(err)
+	}
+
+	return &resources.UserResponse{
+		Profile:         profile,
+		CustomerProfile: customer,
+		SupplierProfile: supplier,
+		Auth:            *auth,
+	}, nil
 }
 
 // RefreshToken takes a custom Firebase refresh token and tries to fetch

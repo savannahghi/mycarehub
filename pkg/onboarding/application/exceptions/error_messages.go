@@ -84,4 +84,8 @@ const (
 
 	// ValidatePuskTokenLengthErrMsg ...
 	ValidatePuskTokenLengthErrMsg = "invalid push token detected"
+
+	// WrongEnumErrMsg is an error message returned when a wrong enum
+	// type is supplied
+	WrongEnumErrMsg = "a wrong enum %s has been provided"
 )
