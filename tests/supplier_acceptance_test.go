@@ -1554,14 +1554,20 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 }
 
 func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
-	ctx := base.GetAuthenticatedContext(t)
-
-	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
-	headers, err := base.GetGraphQLHeaders(ctx)
+	user, err := CreateTestUserByPhone(t)
 	if err != nil {
-		t.Errorf("error getting headers: %w", err)
+		log.Printf("unable to create a test user: %s", err)
 		return
 	}
+
+	idToken := user.Auth.IDToken
+	headers, err := CreatedUserGraphQLHeaders(idToken)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphqlMutationPayload := `
 	mutation addIndividualRiderKYC($input: IndividualRiderInput!){
@@ -1611,7 +1617,7 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true, // TODO fixme: revert to false - the logged in user must have a registered profile
+			wantErr:    false,
 		},
 		{
 			name: "Sad Case - Add individual rider kyc using invalid payload",

@@ -18,6 +18,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -836,6 +837,10 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+	}
+
+	if !input.IdentificationDoc.IdentificationDocType.IsValid() {
+		return nil, exceptions.WrongEnumTypeError(input.IdentificationDoc.IdentificationDocType.String(), nil)
 	}
 
 	kyc := domain.IndividualRider{

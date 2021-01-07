@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 )
@@ -1862,53 +1863,82 @@ func TestAddIndividualRiderKYC(t *testing.T) {
 		input domain.IndividualRider
 	}
 
-	riderInputPayload := domain.IndividualRider{
-		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
-			IdentificationDocNumber:         "12345678",
-			IdentificationDocNumberUploadID: "23456789",
-		},
-		KRAPIN:                         "A0123456",
-		KRAPINUploadID:                 "34567890",
-		DrivingLicenseID:               "12345678",
-		CertificateGoodConductUploadID: "34567890",
-	}
-
-	riderKYC := &domain.IndividualRider{
-		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
-			IdentificationDocNumber:         "12345678",
-			IdentificationDocNumberUploadID: "23456789",
-		},
-		KRAPIN:                         "A0123456",
-		KRAPINUploadID:                 "34567890",
-		DrivingLicenseID:               "12345678",
-		CertificateGoodConductUploadID: "34567890",
-	}
-
 	tests := []struct {
-		name    string
-		args    args
-		want    *domain.IndividualRider
-		wantErr bool
+		name        string
+		args        args
+		want        *domain.IndividualRider
+		wantErr     bool
+		expectedErr string
 	}{
 		{
 			name: "Happy Case - Successfully add individual rider KYC",
 			args: args{
-				ctx:   ctx,
-				input: riderInputPayload,
+				ctx: ctx,
+				input: domain.IndividualRider{
+					IdentificationDoc: domain.Identification{
+						IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+						IdentificationDocNumber:         "12345678",
+						IdentificationDocNumberUploadID: "23456789",
+					},
+					KRAPIN:                         "A0123456",
+					KRAPINUploadID:                 "34567890",
+					DrivingLicenseID:               "12345678",
+					CertificateGoodConductUploadID: "34567890",
+				},
 			},
-			want:    riderKYC,
+			want: &domain.IndividualRider{
+				IdentificationDoc: domain.Identification{
+					IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+					IdentificationDocNumber:         "12345678",
+					IdentificationDocNumberUploadID: "23456789",
+				},
+				KRAPIN:                         "A0123456",
+				KRAPINUploadID:                 "34567890",
+				DrivingLicenseID:               "12345678",
+				CertificateGoodConductUploadID: "34567890",
+			},
 			wantErr: false,
+		}, {
+			name: "Sad Case - Attempt adding rider KYC with invalid details",
+			args: args{
+				ctx: ctx,
+				input: domain.IndividualRider{
+					IdentificationDoc: domain.Identification{
+						IdentificationDocType:           "RANDOM STRING",
+						IdentificationDocNumber:         "12345678",
+						IdentificationDocNumberUploadID: "23456789",
+					},
+					KRAPIN:                         "A0123456",
+					KRAPINUploadID:                 "34567890",
+					DrivingLicenseID:               "12345678",
+					CertificateGoodConductUploadID: "34567890",
+				},
+			},
+			wantErr:     true,
+			expectedErr: exceptions.WrongEnumTypeError("RANDOM STRING", nil).Error(),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			service := s
-			_, err := service.Supplier.AddIndividualRiderKyc(tt.args.ctx, tt.args.input)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("AddIndividualRiderKyc() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := service.Supplier.AddIndividualRiderKyc(tt.args.ctx, tt.args.input)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("AddIndividualRiderKYC() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if err.Error() != tt.expectedErr {
+					t.Errorf("AddIndividualRiderKYC() error = %v, expectedErr %v", err, tt.expectedErr)
+					return
+				}
+				return
+			}
+			if !tt.wantErr {
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("AddIndividualRiderKYC() = %v, want %v", got, tt.want)
+				}
 				return
 			}
 
