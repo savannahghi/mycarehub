@@ -1245,9 +1245,12 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	if err != nil {
 		return err
 	}
-	_, err = fr.FirestoreClient.Collection(fr.GetPINsCollectionName()).Doc(pin.ID).Delete(ctx)
-	if err != nil {
-		return err
+
+	if pinRef, err := fr.ParseRecordAsSnapshot(ctx, fr.GetPINsCollectionName(), pin.ID); err == nil {
+		_, err = fr.FirestoreClient.Collection(fr.GetPINsCollectionName()).Doc(pinRef.Ref.ID).Delete(ctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	// delete user supplier profile
@@ -1256,9 +1259,11 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	// profile should only occur if a supplier profile exists and not throw an error.
 	spr, err := fr.GetSupplierProfileByProfileID(ctx, pr.ID)
 	if err == nil {
-		_, err = fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName()).Doc(spr.ID).Delete(ctx)
-		if err != nil {
-			return err
+		if sprRef, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), spr.ID); err == nil {
+			_, err = fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName()).Doc(sprRef.Ref.ID).Delete(ctx)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -1268,16 +1273,21 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	// profile should only occur if a customer profile exists and not throw an error.
 	cpr, err := fr.GetCustomerProfileByProfileID(ctx, pr.ID)
 	if err == nil {
-		_, err = fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName()).Doc(cpr.ID).Delete(ctx)
-		if err != nil {
-			return err
+		if cprRef, err := fr.ParseRecordAsSnapshot(ctx, fr.GetCustomerProfileCollectionName(), cpr.ID); err == nil {
+			_, err = fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName()).Doc(cprRef.Ref.ID).Delete(ctx)
+			if err != nil {
+				return err
+			}
 		}
+
 	}
 
 	// delete the user profile
-	_, err = fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName()).Doc(pr.ID).Delete(ctx)
-	if err != nil {
-		return err
+	if prRef, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), pr.ID); err == nil {
+		_, err = fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName()).Doc(prRef.Ref.ID).Delete(ctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	// delete the user from firebase
