@@ -137,3 +137,68 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 
 	}
 }
+
+func TestRegisterPushToken(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		token string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid: push token should be registered",
+			args: args{
+				ctx:   ctx,
+				token: "123456789",
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "invalid: short push token should not be registered",
+			args: args{
+				ctx:   ctx,
+				token: "124",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: unauthenticated context provided",
+			args: args{
+				ctx:   context.Background(),
+				token: "123456789",
+			},
+			wantErr: true,
+			want:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := s.Signup.RegisterPushToken(tt.args.ctx, tt.args.token)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.RegisterPushToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("SignUpUseCasesImpl.RegisterPushToken() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
