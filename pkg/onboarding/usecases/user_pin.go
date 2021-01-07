@@ -25,7 +25,7 @@ type UserPINUseCases interface {
 		OTP string,
 	) (*resources.PINOutput, error)
 	ChangeUserPIN(ctx context.Context, phone string, pin string) (*resources.PINOutput, error)
-	RequestPINReset(ctx context.Context, phone string) (string, error)
+	RequestPINReset(ctx context.Context, phone string) (*resources.OtpResponse, error)
 }
 
 // UserPinUseCaseImpl represents usecase implementation object
@@ -82,32 +82,32 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 // RequestPINReset sends a request given an existing user's phone number,
 // sends an otp to the phone number that is then used in the process of
 // updating their old PIN to a new one
-func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) (string, error) {
+func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) (*resources.OtpResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return "", exceptions.NormalizeMSISDNError(err)
+		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
 	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
 	if err != nil {
-		return "", exceptions.ProfileNotFoundError(err)
+		return nil, exceptions.ProfileNotFoundError(err)
 	}
 
 	exists, err := u.CheckHasPIN(ctx, pr.ID)
 	if err != nil {
-		return "", exceptions.CheckUserPINError(err)
+		return nil, exceptions.CheckUserPINError(err)
 	}
 	if !exists {
-		return "", exceptions.ExistingPINError(err)
+		return nil, exceptions.ExistingPINError(err)
 	}
-
+	fmt.Println("Tumefika apa")
 	// generate and send otp to the phone number
-	code, err := u.otpUseCases.GenerateAndSendOTP(ctx, phone)
+	otpResp, err := u.otpUseCases.GenerateAndSendOTP(ctx, phone)
 	if err != nil {
-		return "", exceptions.GenerateAndSendOTPError(err)
+		return nil, exceptions.GenerateAndSendOTPError(err)
 	}
 
-	return code, nil
+	return otpResp, nil
 }
 
 // ResetUserPIN resets a user's PIN with the newly supplied PIN

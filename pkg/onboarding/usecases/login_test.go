@@ -98,7 +98,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	login := usecases.NewLoginUseCases(fr)
 	survey := usecases.NewSurveyUseCases(fr)
 	userpin := usecases.NewUserPinUseCase(fr, otp, profile)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,

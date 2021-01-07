@@ -6,13 +6,14 @@ import (
 	"testing"
 
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
-func generateTestOTP(t *testing.T) (string, error) {
+func generateTestOTP(t *testing.T) (*resources.OtpResponse, error) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {
-		return "", fmt.Errorf("unable to initialize test service: %v", err)
+		return nil, fmt.Errorf("unable to initialize test service: %v", err)
 	}
 	return s.Otp.GenerateAndSendOTP(ctx, base.TestUserPhoneNumber)
 }
@@ -174,7 +175,7 @@ func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 				)
 				return
 			}
-			if tt.wantErr && otpResponse != "" {
+			if tt.wantErr && otpResponse != nil {
 				t.Errorf("expected empty string OTP response but got %v, since the error %v occurred",
 					otpResponse,
 					err,
@@ -182,7 +183,7 @@ func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 				return
 			}
 
-			if !tt.wantErr && otpResponse == "" {
+			if !tt.wantErr && otpResponse == nil {
 				t.Errorf("expected an otp response but got empty string, since no error occurred")
 				return
 			}
@@ -333,7 +334,7 @@ func TestUserPinUseCaseImpl_ResetUserPIN(t *testing.T) {
 				ctx:   ctx,
 				phone: base.TestUserPhoneNumber,
 				PIN:   "12356",
-				OTP:   otp,
+				OTP:   otp.OTP,
 			},
 			want:    true,
 			wantErr: false,
@@ -377,7 +378,7 @@ func TestUserPinUseCaseImpl_ResetUserPIN(t *testing.T) {
 				ctx:   ctx,
 				phone: base.TestUserPhoneNumber,
 				PIN:   base.TestUserPin,
-				OTP:   secondOtp,
+				OTP:   secondOtp.OTP,
 			},
 			want:    true,
 			wantErr: false,

@@ -8,12 +8,14 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 // SignUpUseCases represents all the business logic involved in setting up a user
 type SignUpUseCases interface {
-
+	// VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
+	VerifyPhoneNumber(ctx context.Context, phone string) (*resources.OtpResponse, error)
 	// checks whether a phone number has been registred by another user. Checks both primary and
 	// secondary phone numbers. If the the phone number is foreign, it send an OTP to that phone number
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
@@ -52,15 +54,18 @@ type SignUpUseCasesImpl struct {
 	profileUsecase       ProfileUseCase
 	pinUsecase           UserPINUseCases
 	supplierUsecase      SupplierUseCases
+	otpUseCases          otp.ServiceOTP
 }
 
 // NewSignUpUseCases returns a new a onboarding usecase
-func NewSignUpUseCases(r repository.OnboardingRepository, profile ProfileUseCase, pin UserPINUseCases, supplier SupplierUseCases) SignUpUseCases {
+func NewSignUpUseCases(
+	r repository.OnboardingRepository, profile ProfileUseCase, pin UserPINUseCases, supplier SupplierUseCases, otp otp.ServiceOTP) SignUpUseCases {
 	return &SignUpUseCasesImpl{
 		onboardingRepository: r,
 		profileUsecase:       profile,
 		pinUsecase:           pin,
 		supplierUsecase:      supplier,
+		otpUseCases:          otp,
 	}
 }
 
@@ -262,4 +267,24 @@ func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone 
 		return exceptions.NormalizeMSISDNError(err)
 	}
 	return s.onboardingRepository.PurgeUserByPhoneNumber(ctx, phoneNumber)
+}
+
+// VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
+func (s *SignUpUseCasesImpl) VerifyPhoneNumber(ctx context.Context, phone string) (*resources.OtpResponse, error) {
+	// check if phone number exists
+	exists, err := s.CheckPhoneExists(ctx, phone)
+	if err != nil {
+		return nil, err
+	}
+	// if phone exists return early
+	if exists {
+		return nil, exceptions.CheckPhoneNumberExistError(err)
+	}
+	// generate and send otp to the phone number
+	otpResp, err := s.otpUseCases.GenerateAndSendOTP(ctx, phone)
+	if err != nil {
+		return nil, exceptions.GenerateAndSendOTPError(err)
+	}
+	// return the generated otp
+	return otpResp, nil
 }

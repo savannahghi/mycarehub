@@ -115,7 +115,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		HandlerFunc(h.SendRetryOTP(ctx))
 
 	env := os.Getenv(base.Environment)
-	if env == base.TestingEnv {
+	if env == base.TestingEnv || env == base.StagingEnv {
 		r.Path("/remove_user").Methods(
 			http.MethodPost,
 			http.MethodOptions).

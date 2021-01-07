@@ -52,7 +52,7 @@ func NewOnboardingInteractor() (*Interactor, error) {
 	login := usecases.NewLoginUseCases(fr)
 	survey := usecases.NewSurveyUseCases(fr)
 	userpin := usecases.NewUserPinUseCase(fr, otp, profile)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp)
 
 	return &Interactor{
 		Onboarding:   profile,

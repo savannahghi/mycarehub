@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -29,12 +31,12 @@ type ServiceOTP interface {
 	GenerateAndSendOTP(
 		ctx context.Context,
 		phone string,
-	) (string, error)
+	) (*resources.OtpResponse, error)
 	SendRetryOTP(
 		ctx context.Context,
 		msisdn string,
 		retryStep int,
-	) (string, error)
+	) (*resources.OtpResponse, error)
 	VerifyOTP(ctx context.Context, phone, OTP string) (bool, error)
 }
 
@@ -73,32 +75,30 @@ func NewOTPService(r repository.OnboardingRepository) ServiceOTP {
 func (o *ServiceOTPImpl) GenerateAndSendOTP(
 	ctx context.Context,
 	phone string,
-) (string, error) {
+) (*resources.OtpResponse, error) {
 	body := map[string]interface{}{
 		"msisdn": phone,
 	}
-	defaultOTP := ""
 	resp, err := o.Otp.MakeRequest(http.MethodPost, SendOtp, body)
 	if err != nil {
-		return defaultOTP, fmt.Errorf("unable to generate and send otp: %w", err)
+		return nil, fmt.Errorf("unable to generate and send otp: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return defaultOTP, fmt.Errorf(
+		return nil, fmt.Errorf(
 			"unable to generate and send otp, with status code %v", resp.StatusCode,
 		)
 	}
 	code, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return defaultOTP, fmt.Errorf("unable to convert response to string: %v", err)
+		return nil, fmt.Errorf("unable to convert response to string: %v", err)
 	}
 
 	var OTP string
 	err = json.Unmarshal(code, &OTP)
 	if err != nil {
-		return defaultOTP, fmt.Errorf("failed to unmarshal OTP: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal OTP: %v", err)
 	}
-
-	return OTP, nil
+	return &resources.OtpResponse{OTP: OTP}, nil
 }
 
 // SendRetryOTP generates fallback OTPs when Africa is talking sms fails
@@ -106,10 +106,10 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 	ctx context.Context,
 	msisdn string,
 	retryStep int,
-) (string, error) {
+) (*resources.OtpResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
-		return "", fmt.Errorf("unable to normalize the msisdn: %v", err)
+		return nil, fmt.Errorf("unable to normalize the msisdn: %v", err)
 	}
 
 	body := map[string]interface{}{
@@ -118,11 +118,11 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 	}
 	resp, err := o.Otp.MakeRequest(http.MethodPost, SendRetryOtp, body)
 	if err != nil {
-		return "", fmt.Errorf("unable to generate and send fallback otp: %w", err)
+		return nil, fmt.Errorf("unable to generate and send fallback otp: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf(
+		return nil, fmt.Errorf(
 			"unable to generate and send fallback otp, with status code %v",
 			resp.StatusCode,
 		)
@@ -130,16 +130,16 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 
 	code, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("unable to convert response to string: %v", err)
+		return nil, fmt.Errorf("unable to convert response to string: %v", err)
 	}
 
 	var RetryOTP string
 	err = json.Unmarshal(code, &RetryOTP)
 	if err != nil {
-		return "", fmt.Errorf("failed to unmarshal OTP: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal OTP: %v", err)
 	}
 
-	return RetryOTP, nil
+	return &resources.OtpResponse{OTP: RetryOTP}, nil
 }
 
 // VerifyOTP takes a phone number and an OTP an checks for the vlidity of the OTP code

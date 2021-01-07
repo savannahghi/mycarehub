@@ -42,6 +42,16 @@ func composeInvalidRetryOTPPayload(t *testing.T) *resources.SendRetryOTPPayload 
 
 func TestSendRetryOTP(t *testing.T) {
 	client := http.DefaultClient
+	phoneNumber := base.TestUserPhoneNumber
+	user, err := CreateTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to create a user by phone %v", err)
+		return
+	}
+	if user == nil {
+		t.Errorf("nil user found")
+		return
+	}
 	validWAPayload := composeValidWARetryOTPPayload(t)
 	bs, err := json.Marshal(validWAPayload)
 	if err != nil {
@@ -155,7 +165,11 @@ func TestSendRetryOTP(t *testing.T) {
 				t.Errorf("nil response body data")
 				return
 			}
-
 		})
+	}
+	// perform tear down; remove user
+	_, err = RemoveTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user: %s", err)
 	}
 }

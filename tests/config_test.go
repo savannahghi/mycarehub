@@ -12,6 +12,8 @@ import (
 	"os"
 	"testing"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"github.com/imroc/req"
@@ -87,7 +89,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	login := usecases.NewLoginUseCases(fr)
 	survey := usecases.NewSurveyUseCases(fr)
 	userpin := usecases.NewUserPinUseCase(fr, otp, profile)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -103,18 +105,129 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}, nil
 }
 
-func generateTestOTP(t *testing.T) (string, error) {
+func composeInValidUserPayload(t *testing.T) *resources.SignUpPayload {
+	phone := base.TestUserPhoneNumber
+	pin := "" // empty string
+	flavour := base.FlavourPro
+	payload := &resources.SignUpPayload{
+		PhoneNumber: &phone,
+		PIN:         &pin,
+		Flavour:     flavour,
+	}
+	return payload
+}
+
+func composeValidUserPayload(t *testing.T, phone string) *resources.SignUpPayload {
+	pin := "2030"
+	flavour := base.FlavourPro
+	payload := &resources.SignUpPayload{
+		PhoneNumber: &phone,
+		PIN:         &pin,
+		Flavour:     flavour,
+	}
+	return payload
+}
+
+func CreateTestUserByPhone(t *testing.T, phone string) (*resources.UserResponse, error) {
+	client := http.DefaultClient
+	validPayload := composeValidUserPayload(t, phone)
+	bs, err := json.Marshal(validPayload)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	payload := bytes.NewBuffer(bs)
+	url := fmt.Sprintf("%s/create_user_by_phone", baseURL)
+	r, err := http.NewRequest(
+		http.MethodPost,
+		url,
+		payload,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("can't create new request: %v", err)
+
+	}
+
+	if r == nil {
+		return nil, fmt.Errorf("nil request")
+	}
+
+	r.Header.Add("Accept", "application/json")
+	r.Header.Add("Content-Type", "application/json")
+
+	resp, err := client.Do(r)
+	if err != nil {
+		return nil, fmt.Errorf("HTTP error: %v", err)
+
+	}
+	if resp.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("failed to create user: expctede status to be %v got %v ", http.StatusCreated, resp.StatusCode)
+	}
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("HTTP error: %v", err)
+
+	}
+
+	var userResponse resources.UserResponse
+	err = json.Unmarshal(data, &userResponse)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshall response: %v", err)
+	}
+	return &userResponse, nil
+}
+
+func RemoveTestUserByPhone(t *testing.T, phone string) (bool, error) {
+	client := http.DefaultClient
+	validPayload := &resources.PhoneNumberPayload{PhoneNumber: &phone}
+	bs, err := json.Marshal(validPayload)
+	if err != nil {
+		return false, fmt.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	payload := bytes.NewBuffer(bs)
+	url := fmt.Sprintf("%s/remove_user", baseURL)
+	r, err := http.NewRequest(
+		http.MethodPost,
+		url,
+		payload,
+	)
+
+	if err != nil {
+		return false, fmt.Errorf("can't create new request: %v", err)
+
+	}
+
+	if r == nil {
+		return false, fmt.Errorf("nil request")
+	}
+
+	r.Header.Add("Accept", "application/json")
+	r.Header.Add("Content-Type", "application/json")
+
+	resp, err := client.Do(r)
+	if err != nil {
+		return false, fmt.Errorf("HTTP error: %v", err)
+
+	}
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("failed to remove user: expected status to be %v got %v ", http.StatusCreated, resp.StatusCode)
+	}
+	return true, nil
+}
+
+func generateTestOTP(t *testing.T) (*resources.OtpResponse, error) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {
-		return "", fmt.Errorf("unable to initialize test service: %v", err)
+		return nil, fmt.Errorf("unable to initialize test service: %v", err)
 	}
 	return s.Otp.GenerateAndSendOTP(ctx, base.TestUserPhoneNumberWithPin)
 }
 
 func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {
 	// create a user and thier profile
-	resp, err := CreateTestUserByPhone(t)
+	phoneNumber := base.TestUserPhoneNumber
+	resp, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		log.Printf("unable to create a test user: %s", err)
 		return nil
