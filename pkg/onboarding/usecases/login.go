@@ -45,7 +45,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
-	profile, err := l.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
+	profile, err := l.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
 		return nil, exceptions.ProfileNotFoundError(err)
 	}
@@ -70,7 +70,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 
 	}
 
-	auth, err := l.onboardingRepository.GenerateAuthCredentials(ctx, phoneNumber)
+	auth, err := l.onboardingRepository.GenerateAuthCredentials(ctx, *phoneNumber)
 	if err != nil {
 		return nil, exceptions.AuthenticateTokenError(err)
 	}

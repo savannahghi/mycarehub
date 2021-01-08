@@ -59,7 +59,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 		return false, err
 	}
 
-	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
+	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
 		return false, exceptions.ProfileNotFoundError(err)
 	}
@@ -88,7 +88,7 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
-	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
+	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
 		return nil, exceptions.ProfileNotFoundError(err)
 	}
@@ -131,7 +131,7 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 		return nil, exceptions.VerifyOTPError(nil)
 	}
 
-	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
+	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
 		return nil, exceptions.ProfileNotFoundError(err)
 	}
@@ -170,7 +170,7 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
-	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber)
+	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
 		return nil, exceptions.ProfileNotFoundError(err)
 	}

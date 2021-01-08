@@ -207,10 +207,11 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 		return nil, exceptions.CheckPhoneNumberExistError(err)
 	}
 
+	profileID := uuid.New().String()
 	pr := &base.UserProfile{
-		ID:           uuid.New().String(),
-		UserName:     *utils.GetRandomName(),
-		PrimaryPhone: phoneNumber,
+		ID:           profileID,
+		UserName:     utils.GetRandomName(),
+		PrimaryPhone: &phoneNumber,
 		VerifiedIdentifiers: []base.VerifiedIdentifier{{
 			UID:           uid,
 			LoginProvider: base.LoginProviderTypePhone,
@@ -528,7 +529,7 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 	if err != nil {
 		return err
 	}
-	profile.UserName = userName
+	profile.UserName = &userName
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
@@ -550,7 +551,7 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 	if err != nil {
 		return err
 	}
-	profile.PrimaryPhone = phoneNumber
+	profile.PrimaryPhone = &phoneNumber
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
@@ -572,7 +573,7 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 	if err != nil {
 		return err
 	}
-	profile.PrimaryEmailAddress = emailAddress
+	profile.PrimaryEmailAddress = &emailAddress
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
@@ -730,15 +731,15 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 		return err
 	}
 
-	profile.UserBioData.FirstName = func(pr *base.UserProfile, dt base.BioData) string {
-		if dt.FirstName != "" {
+	profile.UserBioData.FirstName = func(pr *base.UserProfile, dt base.BioData) *string {
+		if dt.FirstName != nil {
 			return dt.FirstName
 		}
 		return pr.UserBioData.FirstName
 	}(profile, data)
 
-	profile.UserBioData.LastName = func(pr *base.UserProfile, dt base.BioData) string {
-		if dt.LastName != "" {
+	profile.UserBioData.LastName = func(pr *base.UserProfile, dt base.BioData) *string {
+		if dt.LastName != nil {
 			return dt.LastName
 		}
 		return pr.UserBioData.LastName

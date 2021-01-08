@@ -79,8 +79,9 @@ func TestSendRetryOTP(t *testing.T) {
 				msisdn:    "+254712kjf787",
 				retryStep: 1,
 			},
-			want:    true,
-			wantErr: false, //TODO: revert to true once the msisdn validation fix is made
+			want:        false,
+			wantErr:     true,
+			expectedErr: exceptions.NormalizeMSISDNError(err).Error(),
 		},
 	}
 

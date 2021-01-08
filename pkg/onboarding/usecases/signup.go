@@ -83,7 +83,7 @@ func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string)
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
-	exists, err := s.onboardingRepository.CheckIfPhoneNumberExists(ctx, phoneNumber)
+	exists, err := s.onboardingRepository.CheckIfPhoneNumberExists(ctx, *phoneNumber)
 	if err != nil {
 		return false, exceptions.InternalServerError(err)
 	}
@@ -192,15 +192,15 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *resou
 	}
 
 	if err := s.profileUsecase.UpdateBioData(ctx, base.BioData{
-		FirstName: func(n *string) string {
+		FirstName: func(n *string) *string {
 			if n != nil {
-				return *n
+				return n
 			}
 			return pr.UserBioData.FirstName
 		}(input.FirstName),
-		LastName: func(n *string) string {
+		LastName: func(n *string) *string {
 			if n != nil {
-				return *n
+				return n
 			}
 			return pr.UserBioData.LastName
 		}(input.LastName),
@@ -266,7 +266,7 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
-	pr, err := s.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+	pr, err := s.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
 		return nil, exceptions.ProfileNotFoundError(err)
 	}
@@ -274,7 +274,7 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 	// cherrypick the phone numbers and mask them
 	phones := func(p *base.UserProfile) []string {
 		phs := []string{}
-		phs = append(phs, p.PrimaryPhone)
+		phs = append(phs, *p.PrimaryPhone)
 		phs = append(phs, p.SecondaryPhoneNumbers...)
 		return phs
 
@@ -304,7 +304,7 @@ func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone 
 	if err != nil {
 		return exceptions.NormalizeMSISDNError(err)
 	}
-	return s.onboardingRepository.PurgeUserByPhoneNumber(ctx, phoneNumber)
+	return s.onboardingRepository.PurgeUserByPhoneNumber(ctx, *phoneNumber)
 }
 
 // VerifyPhoneNumber checks validity of a phone number by sending an OTP to it

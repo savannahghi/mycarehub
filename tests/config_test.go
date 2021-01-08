@@ -240,7 +240,7 @@ func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {
 		return nil
 	}
 
-	if resp.Profile.ID == " " {
+	if resp.Profile.ID == "" {
 		t.Errorf(" user profile id should not be empty")
 		return nil
 	}

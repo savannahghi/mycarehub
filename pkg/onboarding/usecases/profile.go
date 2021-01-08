@@ -13,7 +13,7 @@ import (
 // ProfileUseCase represents all the profile business logi
 type ProfileUseCase interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
-	GetProfileByID(ctx context.Context, id string) (*base.UserProfile, error)
+	GetProfileByID(ctx context.Context, id *string) (*base.UserProfile, error)
 	UpdatePrimaryPhoneNumber(ctx context.Context, phoneNumber string, useContext bool) error
 	UpdatePrimaryEmailAddress(ctx context.Context, emailAddress string) error
 	UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error
@@ -59,8 +59,8 @@ func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile
 }
 
 // GetProfileByID returns the profile identified by the indicated ID
-func (p *ProfileUseCaseImpl) GetProfileByID(ctx context.Context, id string) (*base.UserProfile, error) {
-	profile, err := p.onboardingRepository.GetUserProfileByID(ctx, id)
+func (p *ProfileUseCaseImpl) GetProfileByID(ctx context.Context, id *string) (*base.UserProfile, error) {
+	profile, err := p.onboardingRepository.GetUserProfileByID(ctx, *id)
 	return profile, exceptions.ProfileNotFoundError(err)
 }
 
@@ -89,7 +89,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 		}
 
 	} else {
-		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
 		if err != nil {
 			return exceptions.ProfileNotFoundError(err)
 		}
@@ -115,7 +115,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 		n = append(n, oldPrimaryPhone)
 
 		return n
-	}(previousSecondaryPhones, previousPrimaryPhone, phoneNumber)
+	}(previousSecondaryPhones, *previousPrimaryPhone, *phoneNumber)
 
 	if err := p.UpdateSecondaryPhoneNumbers(ctx, newSecPhones); err != nil {
 		return err
@@ -223,7 +223,7 @@ func (p *ProfileUseCaseImpl) UpdateSuspended(ctx context.Context, status bool, p
 			return exceptions.ProfileNotFoundError(err)
 		}
 	} else {
-		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
 		if err != nil {
 			return exceptions.ProfileNotFoundError(err)
 		}

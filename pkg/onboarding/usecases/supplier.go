@@ -167,12 +167,7 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 // on the provided partnerType
 func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context, name string, partnerType domain.PartnerType) (*domain.Supplier, error) {
 
-	userUID, err := base.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user: %v", err)
-	}
-
-	profile, err := s.profile.GetProfileByID(ctx, userUID)
+	profile, err := s.profile.UserProfile(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
@@ -1430,14 +1425,14 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 	}
 
 	// get user profile
-	pr, err := s.profile.GetProfileByID(ctx, *req.SupplierRecord.ProfileID)
+	pr, err := s.profile.GetProfileByID(ctx, req.SupplierRecord.ProfileID)
 	if err != nil {
 		return false, fmt.Errorf("unable to fetch supplier user profile: %v", err)
 	}
 
 	supplierEmails := func(profile *base.UserProfile) []string {
 		var emails []string
-		emails = append(emails, profile.PrimaryEmailAddress)
+		emails = append(emails, *profile.PrimaryEmailAddress)
 		emails = append(emails, profile.SecondaryEmailAddresses...)
 		return emails
 	}(pr)
@@ -1451,7 +1446,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 
 	supplierPhones := func(profile *base.UserProfile) []string {
 		var phones []string
-		phones = append(phones, profile.PrimaryPhone)
+		phones = append(phones, *profile.PrimaryPhone)
 		phones = append(phones, profile.SecondaryPhoneNumbers...)
 		return phones
 	}(pr)

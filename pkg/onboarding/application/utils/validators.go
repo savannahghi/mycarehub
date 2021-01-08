@@ -52,7 +52,7 @@ func ValidateSignUpInput(input *resources.SignUpInput) (*resources.SignUpInput, 
 	}
 
 	return &resources.SignUpInput{
-		PhoneNumber: &phone,
+		PhoneNumber: phone,
 		PIN:         input.PIN,
 		Flavour:     input.Flavour,
 		OTP:         input.OTP,
