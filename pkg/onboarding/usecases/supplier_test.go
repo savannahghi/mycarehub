@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -2357,4 +2359,150 @@ func createUserTestAccount(ctx context.Context, service *interactor.Interactor,
 	}
 	newCtx := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 	return newCtx, nil
+}
+
+func TestAddIndividualNutritionKYC(t *testing.T) {
+	test1ID := uuid.New().String()
+	test1NutritionInput := domain.IndividualNutrition{
+		IdentificationDoc: domain.Identification{
+			IdentificationDocType:           domain.IdentificationDocTypeMilitary,
+			IdentificationDocNumber:         "1111111111",
+			IdentificationDocNumberUploadID: test1ID,
+		},
+		KRAPIN:                      test1ID,
+		KRAPINUploadID:              test1ID,
+		SupportingDocumentsUploadID: []string{test1ID, strings.ToUpper(test1ID)},
+		PracticeLicenseID:           test1ID,
+		PracticeLicenseUploadID:     test1ID,
+	}
+
+	test2NutritionInput := domain.IndividualNutrition{
+		IdentificationDoc: domain.Identification{
+			IdentificationDocType:           domain.IdentificationDocTypeMilitary,
+			IdentificationDocNumber:         "1111111111",
+			IdentificationDocNumberUploadID: test1ID,
+		},
+		KRAPIN:                      test1ID,
+		KRAPINUploadID:              test1ID,
+		SupportingDocumentsUploadID: []string{test1ID, strings.ToUpper(test1ID)},
+		PracticeLicenseID:           test1ID,
+		PracticeLicenseUploadID:     test1ID,
+	}
+
+	test2NutritionOutPut := domain.IndividualNutrition{
+		IdentificationDoc: domain.Identification{
+			IdentificationDocType:           domain.IdentificationDocTypeMilitary,
+			IdentificationDocNumber:         "000000",
+			IdentificationDocNumberUploadID: test1ID,
+		},
+		KRAPIN:                      test1ID,
+		KRAPINUploadID:              test1ID,
+		SupportingDocumentsUploadID: []string{test1ID, strings.ToUpper(test1ID)},
+		PracticeLicenseID:           test1ID,
+		PracticeLicenseUploadID:     test1ID,
+	}
+
+	tests := []struct {
+		name      string
+		nutrition domain.IndividualNutrition
+		want      domain.IndividualNutrition
+		wantErr   bool
+	}{
+		{
+			name:      "valid case",
+			nutrition: test1NutritionInput,
+			want:      test1NutritionInput,
+			wantErr:   false,
+		},
+		{
+			name:      "invalid case: IdentificationDocNumber different from input",
+			nutrition: test2NutritionInput,
+			want:      test2NutritionOutPut,
+			wantErr:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			/*
+			 * create a supplier account.
+			 */
+			ctx := context.Background()
+			service, err := InitializeTestService(ctx)
+			if err != nil {
+				t.Errorf("failed to create service")
+				return
+			}
+
+			seed := rand.NewSource(time.Now().UnixNano())
+			unique := fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9))
+			testPhoneNumber := "+25475698" + unique
+			testPhoneNumberPin := "7463"
+
+			newCtx, err := createUserTestAccount(ctx, service, testPhoneNumber, testPhoneNumberPin, base.FlavourPro, t)
+			if err != nil {
+				t.Errorf("%v", err)
+				return
+			}
+
+			response, err := service.Supplier.AddIndividualNutritionKyc(newCtx, tt.nutrition)
+			if err != nil {
+				clean(newCtx, testPhoneNumber, t, service)
+				t.Errorf("failed to add individual nutritionkyc got error: %v", err)
+				return
+			}
+
+			// check the data returned is the expected
+			if response.IdentificationDoc != tt.want.IdentificationDoc {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", tt.want.IdentificationDoc, response.IdentificationDoc)
+				}
+				return
+			}
+
+			if response.KRAPIN != tt.want.KRAPIN {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", tt.want.KRAPIN, response.KRAPIN)
+				}
+				return
+			}
+
+			if response.KRAPINUploadID != tt.want.KRAPINUploadID {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", tt.want.KRAPINUploadID, response.KRAPINUploadID)
+				}
+				return
+			}
+
+			if len(response.SupportingDocumentsUploadID) != len(tt.want.SupportingDocumentsUploadID) {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", len(response.SupportingDocumentsUploadID), len(tt.want.SupportingDocumentsUploadID))
+				}
+				return
+			}
+
+			if response.PracticeLicenseID != tt.want.PracticeLicenseID {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", tt.want.PracticeLicenseID, response.PracticeLicenseID)
+				}
+				return
+			}
+
+			if response.PracticeLicenseUploadID != tt.want.PracticeLicenseUploadID {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", tt.want.PracticeLicenseUploadID, response.PracticeLicenseUploadID)
+				}
+				return
+			}
+
+			// do clean up
+			clean(newCtx, testPhoneNumber, t, service)
+		})
+	}
 }
