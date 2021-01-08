@@ -291,7 +291,11 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 // SetPhoneAsPrimary called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
 // where the phone number is associated with.
 func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(ctx context.Context, phone string) (bool, error) {
-	if err := s.profileUsecase.UpdatePrimaryPhoneNumber(ctx, phone, false); err != nil {
+	phoneNumber, err := base.NormalizeMSISDN(phone)
+	if err != nil {
+		return false, exceptions.NormalizeMSISDNError(err)
+	}
+	if err := s.profileUsecase.UpdatePrimaryPhoneNumber(ctx, *phoneNumber, false); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -309,8 +313,13 @@ func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone 
 
 // VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
 func (s *SignUpUseCasesImpl) VerifyPhoneNumber(ctx context.Context, phone string) (*resources.OtpResponse, error) {
+	phoneNumber, err := base.NormalizeMSISDN(phone)
+	if err != nil {
+		return nil, exceptions.NormalizeMSISDNError(err)
+	}
+
 	// check if phone number exists
-	exists, err := s.CheckPhoneExists(ctx, phone)
+	exists, err := s.CheckPhoneExists(ctx, *phoneNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +328,7 @@ func (s *SignUpUseCasesImpl) VerifyPhoneNumber(ctx context.Context, phone string
 		return nil, exceptions.CheckPhoneNumberExistError(err)
 	}
 	// generate and send otp to the phone number
-	otpResp, err := s.otpUseCases.GenerateAndSendOTP(ctx, phone)
+	otpResp, err := s.otpUseCases.GenerateAndSendOTP(ctx, *phoneNumber)
 	if err != nil {
 		return nil, exceptions.GenerateAndSendOTPError(err)
 	}
