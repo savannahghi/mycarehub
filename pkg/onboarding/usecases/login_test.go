@@ -26,8 +26,11 @@ import (
 
 func TestMain(m *testing.M) {
 	log.Printf("Setting tests up ...")
+	envOriginalValue := os.Getenv("ENVIRONMENT")
 	os.Setenv("ENVIRONMENT", "staging")
+	debugEnvValue := os.Getenv("DEBUG")
 	os.Setenv("DEBUG", "true")
+	collectionEnvValue := os.Getenv("ROOT_COLLECTION_SUFFIX")
 	os.Setenv("ROOT_COLLECTION_SUFFIX", fmt.Sprintf("onboarding_ci_%v", time.Now().Unix()))
 	ctx := context.Background()
 	r := database.Repository{} // They are nil
@@ -52,13 +55,21 @@ func TestMain(m *testing.M) {
 			base.DeleteCollection(ctx, fsc, ref, 10)
 		}
 	}
+
+	// try clean up first
 	purgeRecords()
 
+	// do clean up
 	log.Printf("Running tests ...")
 	code := m.Run()
 
 	log.Printf("Tearing tests down ...")
 	purgeRecords()
+
+	// restore environment varibles to original values
+	os.Setenv(envOriginalValue, "ENVIRONMENT")
+	os.Setenv("DEBUG", debugEnvValue)
+	os.Setenv("ROOT_COLLECTION_SUFFIX", collectionEnvValue)
 
 	os.Exit(code)
 }

@@ -1354,6 +1354,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, 
 		}(input.DirectorIdentifications),
 		OrganizationCertificate: input.OrganizationCertificate,
 		RegistrationNumber:      input.RegistrationNumber,
+		PracticeLicenseID:       input.PracticeLicenseID,
 		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
 	}
 

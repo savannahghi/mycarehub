@@ -2352,3 +2352,150 @@ func TestSupplierUseCasesImpl_FindSupplierByUID(t *testing.T) {
 		})
 	}
 }
+
+func TestAddOrganizationNutritionKyc(t *testing.T) {
+	ctx := context.Background()
+	service, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("failed to create service")
+		return
+	}
+	/*
+	 * create a supplier account.
+	 */
+
+	seed := rand.NewSource(time.Now().UnixNano())
+	unique := fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9))
+	testPhoneNumber := "+25475698" + unique
+	testPhoneNumberPin := "7463"
+
+	newCtx, err := createUserTestAccount(ctx, service, testPhoneNumber, testPhoneNumberPin, base.FlavourPro, t)
+	if err != nil {
+		t.Errorf("%v", err)
+		return
+	}
+
+	test1Input := domain.OrganizationNutrition{
+		OrganizationTypeName:               domain.OrganizationTypeLimitedCompany,
+		KRAPIN:                             "someKRAPIN",
+		KRAPINUploadID:                     "KRAPINUploadID",
+		SupportingDocumentsUploadID:        []string{"SupportingDocumentsUploadID", "Support"},
+		CertificateOfIncorporation:         "CertificateOfIncorporation",
+		CertificateOfInCorporationUploadID: "CertificateOfInCorporationUploadID",
+		DirectorIdentifications: []domain.Identification{
+			{
+				IdentificationDocType:           domain.IdentificationDocTypeMilitary,
+				IdentificationDocNumber:         "IdentificationDocNumber",
+				IdentificationDocNumberUploadID: "IdentificationDocNumberUploadID",
+			},
+		},
+		OrganizationCertificate: "OrganizationCertificate",
+		RegistrationNumber:      "RegistrationNumber",
+		PracticeLicenseID:       "PracticeLicenseID",
+		PracticeLicenseUploadID: "PracticeLicenseUploadID",
+	}
+	test2Input := test1Input
+	test2OutPut := test2Input
+	test2OutPut.CertificateOfInCorporationUploadID = " some "
+	tests := []struct {
+		name    string
+		input   domain.OrganizationNutrition
+		want    domain.OrganizationNutrition
+		wantErr bool
+	}{
+		{
+			name:  "valid case",
+			input: test1Input,
+			want:  test1Input,
+		},
+		{
+			name:  "invalid case",
+			input: test2Input,
+			want:  test2Input,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// run the function being tested
+			response, err := service.Supplier.AddOrganizationNutritionKyc(newCtx, tt.input)
+			if err != nil {
+				t.Errorf("failed to add organization nutrition kyc, returned error: %v", err)
+				return
+			}
+
+			// validate response
+
+			if response.OrganizationTypeName != tt.want.OrganizationTypeName && tt.wantErr {
+
+				t.Errorf("wanted: %v, got: %v", tt.want.OrganizationTypeName, response.OrganizationTypeName)
+				return
+			}
+
+			if response.KRAPIN != tt.want.KRAPIN && tt.wantErr {
+
+				t.Errorf("wanted: %v, got: %v", tt.want.KRAPIN, response.KRAPIN)
+				return
+			}
+
+			if response.KRAPINUploadID != tt.want.KRAPINUploadID && tt.wantErr {
+
+				t.Errorf("wanted: %v, got: %v", tt.want.KRAPINUploadID, response.KRAPINUploadID)
+				return
+			}
+
+			if len(response.SupportingDocumentsUploadID) != len(tt.want.SupportingDocumentsUploadID) {
+
+				t.Errorf("wanted: %v, got: %v", len(tt.want.SupportingDocumentsUploadID), len(response.SupportingDocumentsUploadID))
+				return
+			}
+
+			if response.CertificateOfIncorporation != tt.want.CertificateOfIncorporation {
+
+				t.Errorf("wanted: %v, got: %v", tt.want.CertificateOfIncorporation, response.CertificateOfIncorporation)
+				return
+			}
+
+			if response.CertificateOfInCorporationUploadID != tt.want.CertificateOfInCorporationUploadID {
+
+				t.Errorf("wanted: %v, got: %v", tt.want.CertificateOfInCorporationUploadID, response.CertificateOfInCorporationUploadID)
+				return
+			}
+
+			if len(response.DirectorIdentifications) != len(tt.want.DirectorIdentifications) {
+
+				t.Errorf("wanted: %v, got: %v", tt.want.KRAPINUploadID, response.KRAPINUploadID)
+				return
+			}
+
+			if response.OrganizationCertificate != tt.want.OrganizationCertificate {
+
+				t.Errorf("wanted: %v, got: %v", tt.want.OrganizationCertificate, response.OrganizationCertificate)
+				return
+			}
+
+			if response.RegistrationNumber != tt.want.RegistrationNumber {
+
+				t.Errorf("wanted: %v, got: %v", tt.want.RegistrationNumber, response.RegistrationNumber)
+				return
+			}
+
+			if response.PracticeLicenseID != tt.want.PracticeLicenseID {
+
+				t.Errorf("wanted: %v, got: %v", tt.want.PracticeLicenseID, response.PracticeLicenseID)
+				return
+			}
+
+			if response.PracticeLicenseUploadID != tt.want.PracticeLicenseUploadID {
+
+				t.Errorf("wanted: %v, got: %v", tt.want.PracticeLicenseUploadID, response.PracticeLicenseUploadID)
+
+				return
+			}
+
+		})
+	}
+	// clean up
+	clean(newCtx, testPhoneNumber, t, service)
+}
