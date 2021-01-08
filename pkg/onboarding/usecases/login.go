@@ -72,7 +72,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 
 	auth, err := l.onboardingRepository.GenerateAuthCredentials(ctx, *phoneNumber)
 	if err != nil {
-		return nil, exceptions.AuthenticateTokenError(err)
+		return nil, err
 	}
 
 	customer, supplier, err := l.onboardingRepository.GetCustomerOrSupplierProfileByProfileID(

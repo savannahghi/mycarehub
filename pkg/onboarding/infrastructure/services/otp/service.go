@@ -142,7 +142,7 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 	return &resources.OtpResponse{OTP: RetryOTP}, nil
 }
 
-// VerifyOTP takes a phone number and an OTP an checks for the vlidity of the OTP code
+// VerifyOTP takes a phone number and an OTP and checks for the vlidity of the OTP code
 func (o *ServiceOTPImpl) VerifyOTP(ctx context.Context, phone, OTP string) (bool, error) {
 	return base.VerifyOTP(phone, OTP, o.Otp)
 }

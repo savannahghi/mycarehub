@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"testing"
 	"time"
@@ -76,8 +75,8 @@ func TestResetPin(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumberWithPin
 	_, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
-		// return
+		t.Errorf("failed to create a user by phone %v", err)
+		return
 	}
 
 	// valid change pin payload
@@ -205,8 +204,8 @@ func TestRequestPINReset(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumberWithPin
 	_, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
-		// return
+		t.Errorf("failed to create a user by phone %v", err)
+		return
 	}
 	// valid change pin payload
 	validPayload := composeValidPinResetPayload(t)
@@ -320,7 +319,7 @@ func TestUpdateUserPIN(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	_, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 	ctx := base.GetAuthenticatedContext(t)

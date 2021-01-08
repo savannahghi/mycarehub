@@ -36,7 +36,7 @@ func TestAddPartnerType(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 
@@ -197,7 +197,7 @@ func TestSetUpSupplier_acceptance(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 
@@ -357,7 +357,7 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 
@@ -494,7 +494,7 @@ func TestSupplierEDILogin(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 
@@ -698,7 +698,7 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 
@@ -881,7 +881,7 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 
@@ -1080,7 +1080,7 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 
@@ -1259,7 +1259,7 @@ func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 
@@ -1448,7 +1448,7 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 
@@ -1805,7 +1805,7 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 
@@ -1979,7 +1979,7 @@ func TestFetchKYCProcessingRequests(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 

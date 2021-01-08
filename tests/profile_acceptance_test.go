@@ -356,7 +356,10 @@ func TestUserProfile(t *testing.T) {
 				t.Errorf("request error: %s", err)
 				return
 			}
-
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status reponse returned")
+				return
+			}
 			dataResponse, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
@@ -388,9 +391,31 @@ func TestUserProfile(t *testing.T) {
 					return
 				}
 			}
-			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("Bad status response returned")
-				return
+			// check/assert the returned data/response
+			for key := range data {
+				nestedMap, ok := data[key].(map[string]interface{})
+				if !ok {
+					t.Errorf("cannot cast key value of %v to type map[string]interface{}", key)
+					return
+				}
+				for nestedKey := range nestedMap {
+					if nestedKey == "userProfile" {
+						output, ok := nestedMap[nestedKey].(map[string]interface{})
+						if !ok {
+							t.Errorf("can't cast nestedKey to map[string]interface{}")
+							return
+						}
+						registeredPhone, present := output["primaryPhone"]
+						if !present {
+							t.Errorf("PrimaryPhone not present in output")
+							return
+						}
+						if registeredPhone != base.TestUserPhoneNumber {
+							t.Errorf("invalid registered phone number expected %v but got %v", base.TestUserPhoneNumber, registeredPhone)
+							return
+						}
+					}
+				}
 			}
 		})
 	}

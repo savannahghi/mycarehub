@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"testing"
 	"time"
@@ -23,6 +22,7 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 		t.Errorf("failed to compose a valid payload")
 		return
 	}
+
 	bs, err := json.Marshal(validPayload)
 	if err != nil {
 		t.Errorf("unable to marshal test item to JSON: %s", err)
@@ -120,12 +120,12 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 				t.Errorf("expected status %d, got %d", tt.wantStatus, resp.StatusCode)
 				return
 			}
-			data, err := ioutil.ReadAll(resp.Body)
+			dataResponse, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read response body: %v", err)
 				return
 			}
-			if data == nil {
+			if dataResponse == nil {
 				t.Errorf("nil response body data")
 				return
 			}
@@ -145,7 +145,7 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	_, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 	registeredPhone := struct {
@@ -285,7 +285,7 @@ func TestUserRecoveryPhoneNumbers(t *testing.T) {
 	phoneNumber := base.TestUserPhoneNumber
 	_, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
 	validNumber := base.TestUserPhoneNumberWithPin

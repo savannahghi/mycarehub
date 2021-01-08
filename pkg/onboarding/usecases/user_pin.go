@@ -100,7 +100,6 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 	if !exists {
 		return nil, exceptions.ExistingPINError(err)
 	}
-	fmt.Println("Tumefika apa")
 	// generate and send otp to the phone number
 	otpResp, err := u.otpUseCases.GenerateAndSendOTP(ctx, phone)
 	if err != nil {

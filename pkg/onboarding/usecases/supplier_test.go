@@ -2136,7 +2136,6 @@ func createUserTestAccount(ctx context.Context, service *interactor.Interactor,
 		},
 	)
 	if err != nil {
-		fmt.Print()
 		t.Errorf("failed to create a user error: %v", err)
 		return nil, err
 	}
