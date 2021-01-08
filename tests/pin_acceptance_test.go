@@ -26,7 +26,7 @@ import (
 
 func composeValidChangePinPayload(t *testing.T, otp string) *domain.ChangePINRequest {
 	return &domain.ChangePINRequest{
-		PhoneNumber: base.TestUserPhoneNumber,
+		PhoneNumber: base.TestUserPhoneNumberWithPin,
 		PIN:         "1234",
 		OTP:         otp,
 	}
@@ -73,18 +73,20 @@ func composeValidPinResetPayload(t *testing.T) *resources.PhoneNumberPayload {
 func TestResetPin(t *testing.T) {
 	client := http.DefaultClient
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := base.TestUserPhoneNumberWithPin
 	_, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		log.Printf("unable to create a test user: %s", err)
 		// return
 	}
+
 	// valid change pin payload
 	otpResp, err := generateTestOTP(t)
 	if err != nil {
 		t.Errorf("failed to generate test OTP: %v", err)
 		return
 	}
+
 	validPayload := composeValidChangePinPayload(t, otpResp.OTP)
 	bs, err := json.Marshal(validPayload)
 	if err != nil {
@@ -144,8 +146,8 @@ func TestResetPin(t *testing.T) {
 				httpMethod: http.MethodPost,
 				body:       payload,
 			},
-			wantStatus: http.StatusBadRequest, // TODO fixme revert to  StatusCreated
-			wantErr:    true,                  // TODO fixme revert to  false
+			wantStatus: http.StatusCreated,
+			wantErr:    false,
 		},
 	}
 	for _, tt := range tests {

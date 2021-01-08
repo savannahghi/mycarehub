@@ -545,22 +545,21 @@ func TestSupplierEDILogin(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		// TODO @Calvine fixme uncomment
-		// {
-		// 	name: "valid edi portal login mutation request",
-		// 	args: args{
-		// 		query: map[string]interface{}{
-		// 			"query": graphQLMutationPayload,
-		// 			"variables": map[string]interface{}{
-		// 				"username":  "avenue-4190@healthcloud.co.ke",
-		// 				"password":  "test provider",
-		// 				"sladeCode": "BRA-PRO-4190-4",
-		// 			},
-		// 		},
-		// 	},
-		// 	wantStatus: http.StatusOK,
-		// 	wantErr:    false, // TODO @Calvine fixme crevert to false
-		// },
+		{
+			name: "valid edi portal login mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"username":  "avenue-4190@healthcloud.co.ke",
+						"password":  "test provider",
+						"sladeCode": "BRA-PRO-4190-4",
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
 		{
 			name: "invalid edi portal login mutation request",
 			args: args{
@@ -589,7 +588,9 @@ func TestSupplierEDILogin(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true, // TODO @Calvine fixme crevert to false
+			wantErr:    true, // TODO: This test is unpredictable, https://accounts-core.release.slade360.co.ke/
+			// authserver is not always up. Usually shut down every weekend and it is not guaranteed weekday it
+			// is up unless turned on manually
 		},
 		{
 			name: "invalid edi core login mutation request",
@@ -676,6 +677,7 @@ func TestSupplierEDILogin(t *testing.T) {
 					return
 				}
 			}
+
 			if tt.wantStatus != resp.StatusCode {
 				t.Errorf("Bad status reponse returned")
 				return
