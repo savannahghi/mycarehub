@@ -61,7 +61,7 @@ type KYCRequest struct {
 	ReqPartnerType      PartnerType            `json:"reqPartnerType" firestore:"reqPartnerType"`
 	ReqOrganizationType OrganizationType       `json:"reqOrganizationType" firestore:"reqOrganizationType"`
 	ReqRaw              map[string]interface{} `json:"reqRaw" firestore:"reqRaw"`
-	Proceseed           bool                   `json:"proceseed" firestore:"proceseed"`
+	Processed           bool                   `json:"processed" firestore:"processed"`
 	SupplierRecord      *Supplier              `json:"supplierRecord" firestore:"supplierRecord"`
 	Status              KYCProcessStatus       `json:"status" firestore:"status"`
 	RejectionReason     *string                `json:"rejectionRejection" firestore:"rejectionRejection"`

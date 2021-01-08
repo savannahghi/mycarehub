@@ -1133,7 +1133,7 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, data *domain.Su
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
+		fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, data,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to update supplier profile: %v", err)
@@ -1158,7 +1158,7 @@ func (fr *Repository) StageKYCProcessingRequest(ctx context.Context, data *domai
 // FetchKYCProcessingRequests retrieves all unprocessed kycs for admins
 func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
 	collection := fr.FirestoreClient.Collection(fr.GetKCYProcessCollectionName())
-	query := collection.Where("proceseed", "==", false)
+	query := collection.Where("processed", "==", false)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("unable to fetch kyc request documents: %v", err)

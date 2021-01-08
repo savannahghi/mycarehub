@@ -359,7 +359,7 @@ type KYCRequest {
   reqPartnerType: PartnerType!
   reqOrganizationType: OrganizationType!
   reqRaw: Map!
-  proceseed: Boolean!
+  processed: Boolean!
   supplierRecord: Supplier!
   status: KYCProcessStatus
 }

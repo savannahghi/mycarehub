@@ -818,7 +818,7 @@ func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(ctx context.Context, su
 		ReqPartnerType:      sup.PartnerType,
 		ReqOrganizationType: domain.OrganizationType(sup.AccountType),
 		ReqRaw:              sup.SupplierKYC,
-		Proceseed:           false,
+		Processed:           false,
 		SupplierRecord:      sup,
 		Status:              domain.KYCProcessStatusPending,
 	}
@@ -1398,7 +1398,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 	}
 
 	req.Status = status
-	req.Proceseed = true
+	req.Processed = true
 	req.RejectionReason = rejectionReason
 
 	if err := s.repo.UpdateKYCProcessingRequest(ctx, req); err != nil {

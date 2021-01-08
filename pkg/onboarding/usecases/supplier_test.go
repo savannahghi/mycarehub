@@ -17,15 +17,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 )
 
-// import (
-// 	"context"
-// 	"testing"
-
-// 	"github.com/brianvoe/gofakeit"
-// 	"github.com/stretchr/testify/assert"
-// 	"gitlab.slade360emr.com/go/base"
-// )
-
 // func TestService_AddSupplier(t *testing.T) {
 // 	service := NewService()
 // 	ctx := base.GetAuthenticatedContext(t)
@@ -387,437 +378,6 @@ import (
 // 			assert.NotNil(t, err)
 // 			assert.Contains(t, tt.expectedErr, err.Error())
 
-// 		})
-// 	}
-// }
-
-// func TestService_AddIndividualRiderKyc(t *testing.T) {
-// 	service := NewService()
-// 	ctx, _ := base.GetAuthenticatedContextAndToken(t)
-
-// 	name := gofakeit.Name()
-// 	partnerRider := PartnerTypeRider
-// 	_, err := service.AddPartnerType(ctx, &name, &partnerRider)
-// 	if err != nil {
-// 		t.Errorf("can't create a supplier")
-// 		return
-// 	}
-
-// 	_, err = service.SetUpSupplier(ctx, AccountTypeIndividual)
-// 	if err != nil {
-// 		t.Errorf("can't set up a supplier")
-// 		return
-// 	}
-
-// 	riderInput := IndividualRider{
-// 		IdentificationDoc: Identification{
-// 			IdentificationDocType:           IdentificationDocTypeNationalid,
-// 			IdentificationDocNumber:         "12345678",
-// 			IdentificationDocNumberUploadID: "12345678",
-// 		},
-// 		KRAPIN:                         "12345678",
-// 		KRAPINUploadID:                 "12345678",
-// 		DrivingLicenseUploadID:         "12345678",
-// 		CertificateGoodConductUploadID: "12345678",
-// 	}
-// 	riderKYC := &IndividualRider{
-// 		IdentificationDoc: Identification{
-// 			IdentificationDocType:           IdentificationDocTypeNationalid,
-// 			IdentificationDocNumber:         "12345678",
-// 			IdentificationDocNumberUploadID: "12345678",
-// 		},
-// 		KRAPIN:                         "12345678",
-// 		KRAPINUploadID:                 "12345678",
-// 		DrivingLicenseUploadID:         "12345678",
-// 		CertificateGoodConductUploadID: "12345678",
-// 	}
-
-// 	type args struct {
-// 		ctx   context.Context
-// 		input IndividualRider
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		want    *IndividualRider
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "Successful Add individual rider KYC",
-// 			args: args{
-// 				ctx:   ctx,
-// 				input: riderInput,
-// 			},
-// 			wantErr: false,
-// 			want:    riderKYC,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			s := service
-// 			got, err := s.AddIndividualRiderKyc(tt.args.ctx, tt.args.input)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("Service.AddIndividualRiderKyc() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
-// 			if !reflect.DeepEqual(got, tt.want) {
-// 				t.Errorf("Service.AddIndividualRiderKyc() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
-
-// func TestService_AddOrganizationRiderKyc(t *testing.T) {
-// 	service := NewService()
-// 	ctx, _ := base.GetAuthenticatedContextAndToken(t)
-
-// 	name := gofakeit.Name()
-// 	partnerRider := PartnerTypeRider
-// 	_, err := service.AddPartnerType(ctx, &name, &partnerRider)
-// 	if err != nil {
-// 		t.Errorf("can't create a supplier")
-// 		return
-// 	}
-
-// 	_, err = service.SetUpSupplier(ctx, AccountTypeOrganisation)
-// 	if err != nil {
-// 		t.Errorf("can't set up a supplier")
-// 		return
-// 	}
-
-// 	type args struct {
-// 		ctx      context.Context
-// 		input    OrganizationRider
-// 		resource OrganizationRider
-// 	}
-// 	tests := []struct {
-// 		name        string
-// 		args        args
-// 		wantErr     bool
-// 		expectedErr string
-// 	}{
-// 		{
-// 			name: "valid : should pass",
-// 			args: args{
-// 				ctx: ctx,
-// 				input: OrganizationRider{
-// 					OrganizationTypeName: OrganizationTypeLimitedCompany,
-// 					DirectorIdentifications: []Identification{
-// 						{
-// 							IdentificationDocType:           IdentificationDocTypeNationalid,
-// 							IdentificationDocNumber:         "12345678",
-// 							IdentificationDocNumberUploadID: "12345678",
-// 						},
-// 					},
-// 					CertificateOfIncorporation:         "CERT-OF-CORP-ID",
-// 					CertificateOfInCorporationUploadID: "CERT-OF-CORP-UPLOAD-ID",
-// 					OrganizationCertificate:            "ORG-CERT",
-// 					KRAPIN:                             "KRA-PIN-12345678",
-// 					KRAPINUploadID:                     "KRA-PIN-UPLOAD-ID12345678",
-// 					SupportingDocumentsUploadID:        []string{"SUPPORTING-UPLOAD-ID12345678"},
-// 				},
-// 				resource: OrganizationRider{
-// 					OrganizationTypeName: OrganizationTypeLimitedCompany,
-// 					DirectorIdentifications: []Identification{
-// 						{
-// 							IdentificationDocType:           IdentificationDocTypeNationalid,
-// 							IdentificationDocNumber:         "12345678",
-// 							IdentificationDocNumberUploadID: "12345678",
-// 						},
-// 					},
-// 					CertificateOfIncorporation:         "CERT-OF-CORP-ID",
-// 					CertificateOfInCorporationUploadID: "CERT-OF-CORP-UPLOAD-ID",
-// 					OrganizationCertificate:            "ORG-CERT",
-// 					KRAPIN:                             "KRA-PIN-12345678",
-// 					KRAPINUploadID:                     "KRA-PIN-UPLOAD-ID12345678",
-// 					SupportingDocumentsUploadID:        []string{"SUPPORTING-UPLOAD-ID12345678"},
-// 				},
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "invalid : organization type name",
-// 			args: args{
-// 				ctx: ctx,
-// 				input: OrganizationRider{
-// 					OrganizationTypeName: "AWESOME ORG",
-// 					DirectorIdentifications: []Identification{
-// 						{
-// 							IdentificationDocType:           IdentificationDocTypeNationalid,
-// 							IdentificationDocNumber:         "12345678",
-// 							IdentificationDocNumberUploadID: "12345678",
-// 						},
-// 					},
-// 					CertificateOfIncorporation:         "CERT-OF-CORP-ID",
-// 					CertificateOfInCorporationUploadID: "CERT-OF-CORP-UPLOAD-ID",
-// 					OrganizationCertificate:            "ORG-CERT",
-// 					KRAPIN:                             "KRA-PIN-12345678",
-// 					KRAPINUploadID:                     "KRA-PIN-UPLOAD-ID12345678",
-// 					SupportingDocumentsUploadID:        []string{"SUPPORTING-UPLOAD-ID12345678"},
-// 				},
-// 			},
-// 			wantErr:     true,
-// 			expectedErr: "invalid `OrganizationTypeName` provided : AWESOME ORG",
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			s := service
-// 			got, err := s.AddOrganizationRiderKyc(tt.args.ctx, tt.args.input)
-// 			if !tt.wantErr {
-// 				assert.Nil(t, err)
-// 				assert.NotNil(t, got)
-// 				if !reflect.DeepEqual(*got, tt.args.resource) {
-// 					t.Errorf("Service.AddOrganizationRiderKyc() = %v, want %v", got, tt.args.resource)
-// 				}
-// 				return
-// 			}
-// 			assert.NotNil(t, err)
-// 			assert.Nil(t, got)
-// 			assert.Contains(t, err.Error(), tt.expectedErr)
-// 		})
-// 	}
-// }
-
-// func TestService_AddIndividualPractitionerKyc(t *testing.T) {
-// 	service := NewService()
-// 	ctx, _ := base.GetAuthenticatedContextAndToken(t)
-
-// 	name := gofakeit.Name()
-// 	partnerRider := PartnerTypeRider
-// 	_, err := service.AddPartnerType(ctx, &name, &partnerRider)
-// 	if err != nil {
-// 		t.Errorf("can't create a supplier")
-// 		return
-// 	}
-
-// 	_, err = service.SetUpSupplier(ctx, AccountTypeOrganisation)
-// 	if err != nil {
-// 		t.Errorf("can't set up a supplier")
-// 		return
-// 	}
-
-// 	type args struct {
-// 		ctx      context.Context
-// 		input    IndividualPractitioner
-// 		resource IndividualPractitioner
-// 	}
-// 	tests := []struct {
-// 		name        string
-// 		args        args
-// 		wantErr     bool
-// 		expectedErr string
-// 	}{
-// 		{
-// 			name: "valid : should pass",
-// 			args: args{
-// 				ctx: ctx,
-// 				input: IndividualPractitioner{
-// 					IdentificationDoc: Identification{
-// 						IdentificationDocType:           IdentificationDocTypeNationalid,
-// 						IdentificationDocNumber:         "12345678",
-// 						IdentificationDocNumberUploadID: "12345678",
-// 					},
-// 					KRAPIN:             "KRA-12345678",
-// 					KRAPINUploadID:     "KRA-UPLOAD-12345678",
-// 					RegistrationNumber: "REG-12345",
-// 					PracticeLicenseID:  "PRAC-12345",
-// 					PracticeServices:   []PractitionerService{PractitionerServiceOutpatientServices, PractitionerServiceInpatientServices, PractitionerServiceOther},
-// 					Cadre:              PractitionerCadreDoctor,
-// 				},
-// 				resource: IndividualPractitioner{
-// 					IdentificationDoc: Identification{
-// 						IdentificationDocType:           IdentificationDocTypeNationalid,
-// 						IdentificationDocNumber:         "12345678",
-// 						IdentificationDocNumberUploadID: "12345678",
-// 					},
-// 					KRAPIN:             "KRA-12345678",
-// 					KRAPINUploadID:     "KRA-UPLOAD-12345678",
-// 					RegistrationNumber: "REG-12345",
-// 					PracticeLicenseID:  "PRAC-12345",
-// 					PracticeServices:   []PractitionerService{PractitionerServiceOutpatientServices, PractitionerServiceInpatientServices, PractitionerServiceOther},
-// 					Cadre:              PractitionerCadreDoctor,
-// 				},
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "invalid : practice services",
-// 			args: args{
-// 				ctx: ctx,
-// 				input: IndividualPractitioner{
-// 					IdentificationDoc: Identification{
-// 						IdentificationDocType:           IdentificationDocTypeNationalid,
-// 						IdentificationDocNumber:         "12345678",
-// 						IdentificationDocNumberUploadID: "12345678",
-// 					},
-// 					KRAPIN:             "KRA-12345678",
-// 					KRAPINUploadID:     "KRA-UPLOAD-12345678",
-// 					RegistrationNumber: "REG-12345",
-// 					PracticeLicenseID:  "PRAC-12345",
-// 					PracticeServices:   []PractitionerService{"SUPPORTING"},
-// 					Cadre:              PractitionerCadreDoctor,
-// 				},
-// 			},
-// 			wantErr:     true,
-// 			expectedErr: "invalid `PracticeService` provided : SUPPORTING",
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			s := service
-// 			got, err := s.AddIndividualPractitionerKyc(tt.args.ctx, tt.args.input)
-// 			if !tt.wantErr {
-// 				assert.Nil(t, err)
-// 				assert.NotNil(t, got)
-// 				if !reflect.DeepEqual(*got, tt.args.resource) {
-// 					t.Errorf("Service.AddIndividualPractitionerKyc() = %v, want %v", got, tt.args.resource)
-// 				}
-// 				return
-// 			}
-// 			assert.NotNil(t, err)
-// 			assert.Nil(t, got)
-// 			assert.Contains(t, err.Error(), tt.expectedErr)
-// 		})
-// 	}
-// }
-
-// func TestService_AddOrganizationPractitionerKyc(t *testing.T) {
-// 	service := NewService()
-// 	ctx, _ := base.GetAuthenticatedContextAndToken(t)
-
-// 	name := gofakeit.Name()
-// 	partnerRider := PartnerTypeRider
-// 	_, err := service.AddPartnerType(ctx, &name, &partnerRider)
-// 	if err != nil {
-// 		t.Errorf("can't create a supplier")
-// 		return
-// 	}
-
-// 	_, err = service.SetUpSupplier(ctx, AccountTypeOrganisation)
-// 	if err != nil {
-// 		t.Errorf("can't set up a supplier")
-// 		return
-// 	}
-
-// 	type args struct {
-// 		ctx      context.Context
-// 		input    OrganizationPractitioner
-// 		resource OrganizationPractitioner
-// 	}
-// 	tests := []struct {
-// 		name        string
-// 		args        args
-// 		wantErr     bool
-// 		expectedErr string
-// 	}{
-// 		{
-// 			name: "valid : should pass",
-// 			args: args{
-// 				ctx: ctx,
-// 				input: OrganizationPractitioner{
-// 					OrganizationTypeName: OrganizationTypeLimitedCompany,
-// 					DirectorIdentifications: []Identification{
-// 						{
-// 							IdentificationDocType:           IdentificationDocTypeNationalid,
-// 							IdentificationDocNumber:         "12345678",
-// 							IdentificationDocNumberUploadID: "12345678",
-// 						},
-// 					},
-// 					KRAPIN:             "KRA-12345678",
-// 					KRAPINUploadID:     "KRA-UPLOAD-12345678",
-// 					RegistrationNumber: "REG-12345",
-// 					PracticeLicenseID:  "PRAC-12345",
-// 					PracticeServices:   []PractitionerService{PractitionerServiceOutpatientServices, PractitionerServiceInpatientServices, PractitionerServiceOther},
-// 					Cadre:              PractitionerCadreDoctor,
-// 				},
-// 				resource: OrganizationPractitioner{
-// 					OrganizationTypeName: OrganizationTypeLimitedCompany,
-// 					DirectorIdentifications: []Identification{
-// 						{
-// 							IdentificationDocType:           IdentificationDocTypeNationalid,
-// 							IdentificationDocNumber:         "12345678",
-// 							IdentificationDocNumberUploadID: "12345678",
-// 						},
-// 					},
-// 					KRAPIN:             "KRA-12345678",
-// 					KRAPINUploadID:     "KRA-UPLOAD-12345678",
-// 					RegistrationNumber: "REG-12345",
-// 					PracticeLicenseID:  "PRAC-12345",
-// 					PracticeServices:   []PractitionerService{PractitionerServiceOutpatientServices, PractitionerServiceInpatientServices, PractitionerServiceOther},
-// 					Cadre:              PractitionerCadreDoctor,
-// 				},
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "invalid : organization type name ",
-// 			args: args{
-// 				ctx: ctx,
-// 				input: OrganizationPractitioner{
-// 					OrganizationTypeName: "AWESOME ORG",
-// 					DirectorIdentifications: []Identification{
-// 						{
-// 							IdentificationDocType:           IdentificationDocTypeNationalid,
-// 							IdentificationDocNumber:         "12345678",
-// 							IdentificationDocNumberUploadID: "12345678",
-// 						},
-// 					},
-// 					KRAPIN:             "KRA-12345678",
-// 					KRAPINUploadID:     "KRA-UPLOAD-12345678",
-// 					RegistrationNumber: "REG-12345",
-// 					PracticeLicenseID:  "PRAC-12345",
-// 					PracticeServices:   []PractitionerService{"SUPPORTING"},
-// 					Cadre:              PractitionerCadreDoctor,
-// 				},
-// 			},
-// 			wantErr:     true,
-// 			expectedErr: "invalid `OrganizationTypeName` provided : AWESOME ORG",
-// 		},
-
-// 		{
-// 			name: "invalid : practice services",
-// 			args: args{
-// 				ctx: ctx,
-// 				input: OrganizationPractitioner{
-// 					OrganizationTypeName: OrganizationTypeLimitedCompany,
-// 					DirectorIdentifications: []Identification{
-// 						{
-// 							IdentificationDocType:           IdentificationDocTypeNationalid,
-// 							IdentificationDocNumber:         "12345678",
-// 							IdentificationDocNumberUploadID: "12345678",
-// 						},
-// 					},
-// 					KRAPIN:             "KRA-12345678",
-// 					KRAPINUploadID:     "KRA-UPLOAD-12345678",
-// 					RegistrationNumber: "REG-12345",
-// 					PracticeLicenseID:  "PRAC-12345",
-// 					PracticeServices:   []PractitionerService{"SUPPORTING"},
-// 					Cadre:              PractitionerCadreDoctor,
-// 				},
-// 			},
-// 			wantErr:     true,
-// 			expectedErr: "invalid `PracticeService` provided : SUPPORTING",
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			s := service
-// 			got, err := s.AddOrganizationPractitionerKyc(tt.args.ctx, tt.args.input)
-// 			if !tt.wantErr {
-// 				assert.Nil(t, err)
-// 				assert.NotNil(t, got)
-// 				if !reflect.DeepEqual(*got, tt.args.resource) {
-// 					t.Errorf("Service.AddOrganizationPractitionerKyc() = %v, want %v", got, tt.args.resource)
-// 				}
-// 				return
-// 			}
-// 			assert.NotNil(t, err)
-// 			assert.Nil(t, got)
-// 			assert.Contains(t, err.Error(), tt.expectedErr)
 // 		})
 // 	}
 // }
@@ -2200,6 +1760,228 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 				return
 			}
 
+		})
+	}
+}
+
+func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	name := "Makmende"
+	partnerRider := domain.PartnerTypeRider
+	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerRider)
+	if err != nil {
+		t.Errorf("can't create a supplier")
+		return
+	}
+
+	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeOrganisation)
+	if err != nil {
+		t.Errorf("can't set up a supplier")
+		return
+	}
+	type args struct {
+		ctx   context.Context
+		input domain.OrganizationRider
+	}
+	tests := []struct {
+		name        string
+		args        args
+		want        *domain.OrganizationRider
+		wantErr     bool
+		expectedErr string
+	}{
+		{
+			name: "valid : should pass",
+			args: args{
+				ctx: ctx,
+				input: domain.OrganizationRider{
+					OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+					DirectorIdentifications: []domain.Identification{
+						{
+							IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+							IdentificationDocNumber:         "12345678",
+							IdentificationDocNumberUploadID: "12345678",
+						},
+					},
+					KRAPIN:                             "KRA-12345678",
+					KRAPINUploadID:                     "KRA-UPLOAD-12345678",
+					CertificateOfIncorporation:         "CERT-12345",
+					CertificateOfInCorporationUploadID: "CERT-UPLOAD-1234",
+					OrganizationCertificate:            "ORG-12345",
+				},
+			},
+			want: &domain.OrganizationRider{
+				OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+				DirectorIdentifications: []domain.Identification{
+					{
+						IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+						IdentificationDocNumber:         "12345678",
+						IdentificationDocNumberUploadID: "12345678",
+					},
+				},
+				KRAPIN:                             "KRA-12345678",
+				KRAPINUploadID:                     "KRA-UPLOAD-12345678",
+				CertificateOfIncorporation:         "CERT-12345",
+				CertificateOfInCorporationUploadID: "CERT-UPLOAD-1234",
+				OrganizationCertificate:            "ORG-12345",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid : organization type name ",
+			args: args{
+				ctx: ctx,
+				input: domain.OrganizationRider{
+					OrganizationTypeName: "AWESOME ORG",
+					DirectorIdentifications: []domain.Identification{
+						{
+							IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+							IdentificationDocNumber:         "12345678",
+							IdentificationDocNumberUploadID: "12345678",
+						},
+					},
+					KRAPIN:                             "KRA-12345678",
+					KRAPINUploadID:                     "KRA-UPLOAD-12345678",
+					CertificateOfIncorporation:         "CERT-12345",
+					CertificateOfInCorporationUploadID: "CERT-UPLOAD-1234",
+					OrganizationCertificate:            "ORG-12345",
+				},
+			},
+			wantErr:     true,
+			expectedErr: "invalid `OrganizationTypeName` provided : AWESOME ORG",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.Supplier.AddOrganizationRiderKyc(tt.args.ctx, tt.args.input)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("SupplierUseCasesImpl.AddOrganizationRiderKyc() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if err.Error() != tt.expectedErr {
+					t.Errorf("SupplierUseCasesImpl.AddOrganizationRiderKyc() error = %v, expectedErr %v", err, tt.expectedErr)
+				}
+				return
+			}
+			if !tt.wantErr {
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("SupplierUseCasesImpl.AddOrganizationRiderKyc() = %v, want %v", got, tt.want)
+				}
+				return
+			}
+
+		})
+	}
+}
+
+func TestSupplierUseCasesImpl_FetchKYCProcessingRequests(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	name := "Makmende"
+	partnerRider := domain.PartnerTypeRider
+
+	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerRider)
+	if err != nil {
+		t.Errorf("can't create a supplier")
+		return
+	}
+
+	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeOrganisation)
+	if err != nil {
+		t.Errorf("can't set up a supplier")
+		return
+	}
+
+	riderKYC := domain.OrganizationRider{
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		DirectorIdentifications: []domain.Identification{
+			{
+				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocNumber:         "12345678",
+				IdentificationDocNumberUploadID: "12345678",
+			},
+		},
+		KRAPIN:                             "KRA-12345678",
+		KRAPINUploadID:                     "KRA-UPLOAD-12345678",
+		CertificateOfIncorporation:         "CERT-12345",
+		CertificateOfInCorporationUploadID: "CERT-UPLOAD-1234",
+		OrganizationCertificate:            "ORG-12345",
+	}
+	_, err = s.Supplier.AddOrganizationRiderKyc(ctx, riderKYC)
+	if err != nil {
+		t.Errorf("can't create KYC for a rider's organisation")
+		return
+	}
+
+	// get supplier after KYC is added above
+	supplier, err := s.Supplier.FindSupplierByUID(ctx)
+	if err != nil {
+		t.Errorf("cannot get supplier")
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name     string
+		args     args
+		want     []*domain.KYCRequest
+		supplier *domain.Supplier
+		wantErr  bool
+	}{
+		{
+			name: "successful fetch single KYC request",
+			args: args{
+				ctx: ctx,
+			},
+			supplier: supplier,
+			wantErr:  false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.Supplier.FetchKYCProcessingRequests(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.FetchKYCProcessingRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				for _, request := range got {
+					if request.ID == "" {
+						t.Errorf("KYC request should have ID")
+						return
+					}
+					if request.Processed != false {
+						t.Errorf("SupplierUseCasesImpl.FetchKYCProcessingRequests() = %v, want %v", request.Processed, false)
+						return
+					}
+					if request.Status != domain.KYCProcessStatusPending {
+						t.Errorf("SupplierUseCasesImpl.FetchKYCProcessingRequests() = %v, want %v", request.Status, domain.KYCProcessStatusPending)
+						return
+					}
+				}
+			}
 		})
 	}
 }

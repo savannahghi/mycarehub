@@ -254,7 +254,7 @@ func TestUpdateUserProfile(t *testing.T) {
 				}
 			}
 			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("Bad status reponse returned. Expected %v, got %v", tt.wantStatus, resp.StatusCode)
+				t.Errorf("Bad status response returned. Expected %v, got %v", tt.wantStatus, resp.StatusCode)
 				return
 			}
 		})
@@ -389,7 +389,7 @@ func TestUserProfile(t *testing.T) {
 				}
 			}
 			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("Bad status reponse returned")
+				t.Errorf("Bad status response returned")
 				return
 			}
 		})
@@ -510,7 +510,7 @@ func TestSupplierProfile(t *testing.T) {
 				}
 			}
 			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("Bad status reponse returned")
+				t.Errorf("Bad status response returned")
 				return
 			}
 		})

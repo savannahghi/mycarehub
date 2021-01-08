@@ -177,7 +177,7 @@ type ComplexityRoot struct {
 
 	KYCRequest struct {
 		ID                  func(childComplexity int) int
-		Proceseed           func(childComplexity int) int
+		Processed           func(childComplexity int) int
 		ReqOrganizationType func(childComplexity int) int
 		ReqPartnerType      func(childComplexity int) int
 		ReqRaw              func(childComplexity int) int
@@ -981,12 +981,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.KYCRequest.ID(childComplexity), true
 
-	case "KYCRequest.proceseed":
-		if e.complexity.KYCRequest.Proceseed == nil {
+	case "KYCRequest.processed":
+		if e.complexity.KYCRequest.Processed == nil {
 			break
 		}
 
-		return e.complexity.KYCRequest.Proceseed(childComplexity), true
+		return e.complexity.KYCRequest.Processed(childComplexity), true
 
 	case "KYCRequest.reqOrganizationType":
 		if e.complexity.KYCRequest.ReqOrganizationType == nil {
@@ -3214,7 +3214,7 @@ type KYCRequest {
   reqPartnerType: PartnerType!
   reqOrganizationType: OrganizationType!
   reqRaw: Map!
-  proceseed: Boolean!
+  processed: Boolean!
   supplierRecord: Supplier!
   status: KYCProcessStatus
 }
@@ -6442,7 +6442,7 @@ func (ec *executionContext) _KYCRequest_reqRaw(ctx context.Context, field graphq
 	return ec.marshalNMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _KYCRequest_proceseed(ctx context.Context, field graphql.CollectedField, obj *domain.KYCRequest) (ret graphql.Marshaler) {
+func (ec *executionContext) _KYCRequest_processed(ctx context.Context, field graphql.CollectedField, obj *domain.KYCRequest) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6460,7 +6460,7 @@ func (ec *executionContext) _KYCRequest_proceseed(ctx context.Context, field gra
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Proceseed, nil
+		return obj.Processed, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15257,8 +15257,8 @@ func (ec *executionContext) _KYCRequest(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "proceseed":
-			out.Values[i] = ec._KYCRequest_proceseed(ctx, field, obj)
+		case "processed":
+			out.Values[i] = ec._KYCRequest_processed(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
