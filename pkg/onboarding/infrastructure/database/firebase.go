@@ -597,7 +597,16 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 	if err != nil {
 		return err
 	}
-	profile.SecondaryPhoneNumbers = phoneNumbers
+	// check the phone number been added are unique, does not currently existing the user's profile and is not the primary phone number
+	newPhones := []string{}
+	for _, current := range profile.SecondaryPhoneNumbers {
+		for _, phone := range phoneNumbers {
+			if phone != current && phone != *profile.PrimaryPhone {
+				newPhones = append(newPhones, phone)
+			}
+		}
+	}
+	profile.SecondaryPhoneNumbers = append(profile.SecondaryPhoneNumbers, newPhones...)
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
@@ -621,7 +630,17 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 	if err != nil {
 		return err
 	}
-	profile.SecondaryEmailAddresses = emailAddresses
+
+	// check the email addresses been added are unique , does not currently existing the user's profile and is not the primary email address
+	newEmails := []string{}
+	for _, current := range profile.SecondaryEmailAddresses {
+		for _, email := range emailAddresses {
+			if email != current && email != *profile.PrimaryEmailAddress {
+				newEmails = append(newEmails, email)
+			}
+		}
+	}
+	profile.SecondaryEmailAddresses = append(profile.SecondaryEmailAddresses, newEmails...)
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
@@ -684,7 +703,18 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 	if err != nil {
 		return err
 	}
-	profile.Covers = covers
+
+	// check that the new cover been added is unique and does not currently exist in the user's profile
+	newCovers := []base.Cover{}
+	for _, current := range profile.Covers {
+		for _, cover := range covers {
+			if current.MemberName != cover.MemberName && current.MemberNumber != cover.MemberNumber &&
+				current.PayerName != cover.PayerName && current.PayerSladeCode != cover.PayerSladeCode {
+				newCovers = append(newCovers, cover)
+			}
+		}
+	}
+	profile.Covers = append(profile.Covers, newCovers...)
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {

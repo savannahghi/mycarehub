@@ -245,7 +245,7 @@ func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Fl
 			fmt.Sprintf("%v %v", pr.UserBioData.FirstName, pr.UserBioData.LastName), domain.PartnerTypeConsumer)
 		return true, nil
 	}
-	return false, nil
+	return false, exceptions.InvalidFlavourDefinedError()
 }
 
 // RetirePushToken removes a push token from the users profile
@@ -254,7 +254,7 @@ func (s *SignUpUseCasesImpl) RetirePushToken(ctx context.Context, token string) 
 		return false, exceptions.InValidPushTokenLengthError()
 	}
 	if err := s.profileUsecase.UpdatePushTokens(ctx, token, true); err != nil {
-		return false, err
+		return false, exceptions.InternalServerError(err)
 	}
 	return true, nil
 }
@@ -295,6 +295,7 @@ func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(ctx context.Context, phone string
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
+
 	if err := s.profileUsecase.UpdatePrimaryPhoneNumber(ctx, *phoneNumber, false); err != nil {
 		return false, err
 	}

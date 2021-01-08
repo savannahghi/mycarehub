@@ -169,7 +169,7 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 	}
 }
 
-func SignUpUseCasesImpl_TestRegisterPushToken(t *testing.T) {
+func TestRegisterPushToken_SignUpUseCasesImpl_(t *testing.T) {
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
 		t.Error("failed to setup signup usecase")
@@ -181,19 +181,19 @@ func SignUpUseCasesImpl_TestRegisterPushToken(t *testing.T) {
 		return
 	}
 
-	type args struct {
+	type arg struct {
 		ctx   context.Context
 		token string
 	}
 	tests := []struct {
 		name    string
-		args    args
+		args    arg
 		want    bool
 		wantErr bool
 	}{
 		{
 			name: "valid: push token should be registered",
-			args: args{
+			args: arg{
 				ctx:   ctx,
 				token: "123456789",
 			},
@@ -202,7 +202,7 @@ func SignUpUseCasesImpl_TestRegisterPushToken(t *testing.T) {
 		},
 		{
 			name: "invalid: short push token should not be registered",
-			args: args{
+			args: arg{
 				ctx:   ctx,
 				token: "124",
 			},
@@ -211,7 +211,7 @@ func SignUpUseCasesImpl_TestRegisterPushToken(t *testing.T) {
 		},
 		{
 			name: "invalid: unauthenticated context provided",
-			args: args{
+			args: arg{
 				ctx:   context.Background(),
 				token: "123456789",
 			},

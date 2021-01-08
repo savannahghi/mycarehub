@@ -92,4 +92,7 @@ const (
 	// OTPVerificationErrMsg is an error message that is returned when
 	// a given OTP code and Phone number fails verifciation
 	OTPVerificationErrMsg = "failed to verify OTP"
+
+	// InvalidFlavourDefinedErrMsg for invalid flavour definitions
+	InvalidFlavourDefinedErrMsg = "invalid flavour defined"
 )

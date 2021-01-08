@@ -235,3 +235,14 @@ func MissingInputError(value string) error {
 		Code: int(base.Internal),
 	}
 }
+
+// InvalidFlavourDefinedError is the error message displayed when
+// an invalid flavour is provided as input.
+func InvalidFlavourDefinedError() error {
+	return &base.CustomError{
+		Err:     fmt.Errorf("invalid flavour defined"),
+		Message: InvalidFlavourDefinedErrMsg,
+		// TODO: a give a correct code
+		Code: int(base.UndefinedArguments),
+	}
+}
