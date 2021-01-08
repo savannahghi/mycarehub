@@ -513,7 +513,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 		return false, exceptions.SupplierNotFoundError(err)
 	}
 
-	// fetch the branches of the provider filtered by sladecode and ParentOrganizationID
+	// fetch the branches of the provider filtered by ParentOrganizationID
 	filter := []*resources.BranchFilterInput{
 		{
 			ParentOrganizationID: &sup.ParentOrganizationID,
@@ -561,7 +561,7 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	// fetch the branches of the provider filtered by sladecode and ParentOrganizationID
+	// fetch the branches of the provider filtered by ParentOrganizationID
 	filter := []*resources.BranchFilterInput{
 		{
 			ParentOrganizationID: &sup.ParentOrganizationID,

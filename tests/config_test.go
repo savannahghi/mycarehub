@@ -168,7 +168,7 @@ func CreateTestUserByPhone(t *testing.T, phone string) (*resources.UserResponse,
 
 	}
 	if resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("failed to create user: expctede status to be %v got %v ", http.StatusCreated, resp.StatusCode)
+		return nil, fmt.Errorf("failed to create user: expected status to be %v got %v ", http.StatusCreated, resp.StatusCode)
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

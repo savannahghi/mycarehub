@@ -22,6 +22,7 @@ const (
 	testEDIPortalUsername       = "avenue-4190@healthcloud.co.ke"
 	testEDIPortalPassword       = "test provider"
 	testChargeMasterParentOrgId = "83d3479d-e902-4aab-a27d-6d5067454daf"
+	testChargeMasterBranchID    = "94294577-6b27-4091-9802-1ce0f2ce4153"
 )
 
 func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
@@ -2228,6 +2229,107 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("SupplierUseCasesImpl.FetchSupplierAllowedLocations() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSupplierSetDefaultLocation(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	name := "Makmende"
+	partnerPractitioner := domain.PartnerTypePractitioner
+	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerPractitioner)
+	if err != nil {
+		t.Errorf("can't create a supplier")
+		return
+	}
+
+	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeOrganisation)
+	if err != nil {
+		t.Errorf("can't set up a supplier")
+		return
+	}
+
+	_, err = s.Supplier.SupplierEDILogin(ctx, testEDIPortalUsername, testEDIPortalPassword, testSladeCode)
+	if err != nil {
+		t.Errorf("unable to login user")
+		return
+	}
+
+	cmParentOrgId := testChargeMasterParentOrgId
+	filter := []*resources.BranchFilterInput{
+		{
+			ParentOrganizationID: &cmParentOrgId,
+		},
+	}
+
+	_, err = s.ChargeMaster.FindBranch(ctx, nil, filter, nil)
+	if err != nil {
+		t.Errorf("can't find branch")
+		return
+	}
+
+	type args struct {
+		ctx        context.Context
+		locationID string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Sad case - Set default location with an invalid locationID",
+			args: args{
+				ctx:        ctx,
+				locationID: "fdd",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - Set default location with an empty locationID",
+			args: args{
+				ctx:        ctx,
+				locationID: "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Happy case - Set default location with a valid locationID",
+			args: args{
+				ctx:        ctx,
+				locationID: testChargeMasterBranchID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service := s
+			got, err := service.Supplier.SupplierSetDefaultLocation(tt.args.ctx, tt.args.locationID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierSetDefaultLocation() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("SupplierUseCasesImpl.SupplierSetDefaultLocation() = %v, want %v", got, tt.want)
 			}
 		})
 	}
