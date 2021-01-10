@@ -85,7 +85,7 @@ func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string)
 
 	exists, err := s.onboardingRepository.CheckIfPhoneNumberExists(ctx, *phoneNumber)
 	if err != nil {
-		return false, exceptions.InternalServerError(err)
+		return false, exceptions.CheckPhoneNumberExistError(err)
 	}
 
 	return exists, nil
@@ -185,7 +185,7 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *resou
 	// get the old user profile
 	pr, err := s.profileUsecase.UserProfile(ctx)
 	if err != nil {
-		return nil, err
+		return nil, exceptions.ProfileNotFoundError(err)
 	}
 
 	if input.PhotoUploadID != nil {
@@ -242,7 +242,7 @@ func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Fl
 	if flavour == base.FlavourConsumer {
 		pr, err := s.profileUsecase.UserProfile(ctx)
 		if err != nil {
-			return false, err
+			return false, exceptions.ProfileNotFoundError(err)
 		}
 		_, _ = s.supplierUsecase.AddCustomerSupplierERPAccount(ctx,
 			fmt.Sprintf("%v %v", pr.UserBioData.FirstName, pr.UserBioData.LastName), domain.PartnerTypeConsumer)

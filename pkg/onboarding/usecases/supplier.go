@@ -138,7 +138,7 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 	}
 
 	if !partnerType.IsValid() {
-		return false, fmt.Errorf("invalid `partnerType` provided")
+		return false, exceptions.InvalidPartnerTypeError()
 	}
 
 	if *partnerType == domain.PartnerTypeConsumer {
@@ -147,17 +147,17 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return false, fmt.Errorf("unable to get the logged in user: %v", err)
+		return false, exceptions.UserNotFoundError(err)
 	}
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
-		return false, fmt.Errorf("unable to read user profile: %w", err)
+		return false, exceptions.ProfileNotFoundError(err)
 	}
 
 	v, err := s.repo.AddPartnerType(ctx, profile.ID, name, partnerType)
 	if !v || err != nil {
-		return false, fmt.Errorf("error occured while adding partner type: %w", err)
+		return false, exceptions.AddPartnerTypeError(err)
 	}
 
 	return true, nil
@@ -169,12 +169,12 @@ func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context,
 
 	profile, err := s.profile.UserProfile(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read user profile: %w", err)
+		return nil, exceptions.ProfileNotFoundError(err)
 	}
 
 	currency, err := base.FetchDefaultCurrency(s.erp.FetchERPClient())
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch orgs default currency: %v", err)
+		return nil, exceptions.FetchDefaultCurrencyError(err)
 	}
 
 	validPartnerType := partnerType.IsValid()
@@ -244,12 +244,12 @@ func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType dom
 
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user: %w", err)
+		return nil, exceptions.UserNotFoundError(err)
 	}
 
 	supplier, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	supplier.AccountType = accountType
@@ -281,7 +281,7 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error)
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return false, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return false, exceptions.SupplierNotFoundError(err)
 	}
 
 	sup.Active = false
@@ -302,7 +302,7 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error)
 func (s SupplierUseCasesImpl) EDIUserLogin(username, password *string) (*base.EDIUserProfile, error) {
 
 	if username == nil || password == nil {
-		return nil, fmt.Errorf("invalid credentials, expected a username AND password")
+		return nil, exceptions.InvalidCredentialsError()
 	}
 
 	ediClient, err := base.LoginClient(*username, *password)
@@ -324,7 +324,7 @@ func (s SupplierUseCasesImpl) EDIUserLogin(username, password *string) (*base.ED
 func (s SupplierUseCasesImpl) CoreEDIUserLogin(username, password string) (*base.EDIUserProfile, error) {
 
 	if username == "" || password == "" {
-		return nil, fmt.Errorf("invalid credentials, expected a username AND password")
+		return nil, exceptions.InvalidCredentialsError()
 	}
 
 	ediClient, err := utils.LoginClient(username, password)
@@ -351,12 +351,12 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user: %w", err)
+		return nil, exceptions.UserNotFoundError(err)
 	}
 
 	supplier, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	supplier.AccountType = domain.AccountTypeIndividual
@@ -454,7 +454,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 
 	partner, err := s.chargemaster.FindProvider(ctx, nil, filter, nil)
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch organization branches location: %v", err)
+		return nil, exceptions.FindProviderError(err)
 	}
 
 	var businessPartner domain.BusinessPartner
@@ -511,7 +511,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return false, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return false, exceptions.SupplierNotFoundError(err)
 	}
 
 	// fetch the branches of the provider filtered by sladecode and ParentOrganizationID
@@ -524,7 +524,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 
 	brs, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
 	if err != nil {
-		return false, fmt.Errorf("unable to fetch organization branches location: %v", err)
+		return false, exceptions.FindProviderError(err)
 	}
 
 	branch := func(brs *resources.BranchConnection, location string) *resources.BranchEdge {
@@ -560,7 +560,7 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	// fetch the branches of the provider filtered by sladecode and ParentOrganizationID
@@ -573,7 +573,7 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context
 
 	brs, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch organization branches location: %v", err)
+		return nil, exceptions.FindProviderError(err)
 	}
 
 	return brs, nil
@@ -637,7 +637,7 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(ctx context.Context, uid string, 
 
 	resp, err := s.engagement.PublishKYCNudge(uid, payload)
 	if err != nil {
-		return fmt.Errorf("unable to publish kyc nudge : %v", err)
+		return exceptions.PublishKYCNudgeError(err)
 	}
 
 	//TODO(dexter) to be removed. Just here for debug
@@ -831,7 +831,7 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input 
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	if !input.IdentificationDoc.IdentificationDocType.IsValid() {
@@ -882,7 +882,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(ctx context.Context, inpu
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	kyc := domain.OrganizationRider{
@@ -936,7 +936,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context,
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	kyc := domain.IndividualPractitioner{
@@ -983,7 +983,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Contex
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	if !input.OrganizationTypeName.IsValid() {
@@ -1039,7 +1039,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, i
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	if !input.OrganizationTypeName.IsValid() {
@@ -1105,7 +1105,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(ctx context.Contex
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	if !input.IdentificationDoc.IdentificationDocType.IsValid() {
@@ -1150,7 +1150,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(ctx context.Contex
 func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	if !input.OrganizationTypeName.IsValid() {
@@ -1203,7 +1203,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Cont
 func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	if !input.IdentificationDoc.IdentificationDocType.IsValid() {
@@ -1247,7 +1247,7 @@ func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(ctx context.Context, input 
 func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	kyc := domain.OrganizationCoach{
@@ -1295,7 +1295,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(ctx context.Context, inpu
 func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	kyc := domain.IndividualNutrition{
@@ -1335,7 +1335,7 @@ func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(ctx context.Context, in
 func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user supplier profile: %w", err)
+		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	kyc := domain.OrganizationNutrition{
@@ -1428,7 +1428,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 	// get user profile
 	pr, err := s.profile.GetProfileByID(ctx, req.SupplierRecord.ProfileID)
 	if err != nil {
-		return false, fmt.Errorf("unable to fetch supplier user profile: %v", err)
+		return false, exceptions.ProfileNotFoundError(err)
 	}
 
 	supplierEmails := func(profile *base.UserProfile) []string {

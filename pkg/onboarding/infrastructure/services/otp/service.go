@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 
 	log "github.com/sirupsen/logrus"
@@ -81,7 +82,7 @@ func (o *ServiceOTPImpl) GenerateAndSendOTP(
 	}
 	resp, err := o.Otp.MakeRequest(http.MethodPost, SendOtp, body)
 	if err != nil {
-		return nil, fmt.Errorf("unable to generate and send otp: %w", err)
+		return nil, exceptions.GenerateAndSendOTPError(err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf(
@@ -109,7 +110,7 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 ) (*resources.OtpResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
-		return nil, fmt.Errorf("unable to normalize the msisdn: %v", err)
+		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
 	body := map[string]interface{}{
@@ -118,7 +119,7 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 	}
 	resp, err := o.Otp.MakeRequest(http.MethodPost, SendRetryOtp, body)
 	if err != nil {
-		return nil, fmt.Errorf("unable to generate and send fallback otp: %w", err)
+		return nil, exceptions.GenerateAndSendOTPError(err)
 	}
 
 	if resp.StatusCode != http.StatusOK {

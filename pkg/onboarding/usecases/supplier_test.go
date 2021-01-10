@@ -1214,7 +1214,7 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			expectedErr: "unable to get the logged in user supplier profile: 10: failed to get a user",
+			expectedErr: exceptions.SupplierNotFoundError(nil).Error(),
 		},
 		{
 			name: "invalid : wrong identification document type",
@@ -1348,7 +1348,7 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			expectedErr: "unable to get the logged in user supplier profile: 10: failed to get a user",
+			expectedErr: exceptions.SupplierNotFoundError(nil).Error(),
 		},
 		{
 			name: "invalid: wrong identification document type",

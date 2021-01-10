@@ -37,7 +37,7 @@ func NormalizeMSISDNError(err error) error {
 func CheckPhoneNumberExistError(err error) error {
 	return &base.CustomError{
 		Err:     err,
-		Message: PhoneNUmberInUseErrMsg,
+		Message: PhoneNumberInUseErrMsg,
 		Code:    int(base.PhoneNumberInUse),
 	}
 }
@@ -244,5 +244,89 @@ func InvalidFlavourDefinedError() error {
 		Message: InvalidFlavourDefinedErrMsg,
 		// TODO: a give a correct code
 		Code: int(base.UndefinedArguments),
+	}
+}
+
+// AddPartnerTypeError is an error message displayed when there is a
+// failure to create a partner type
+func AddPartnerTypeError(err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: AddPartnerTypeErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
+	}
+}
+
+// InvalidPartnerTypeError is an error message displayed when an
+// invalid partner type is provided
+func InvalidPartnerTypeError() error {
+	return &base.CustomError{
+		Err:     fmt.Errorf("invalid `partnerType` provided"),
+		Message: InvalidPartnerTypeErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
+	}
+}
+
+// FetchDefaultCurrencyError is an error message displayed when
+// the default currency is not found
+func FetchDefaultCurrencyError(err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: FetchDefaultCurrencyErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
+	}
+}
+
+// SupplierNotFoundError returns an error message when a supplier is not found
+func SupplierNotFoundError(err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: SupplierNotFoundErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.UserNotFound),
+	}
+}
+
+// FindProviderError returns an error message when a provider is not found
+func FindProviderError(err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: FindProviderErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
+	}
+}
+
+// PublishKYCNudgeError returns an error message when there's a failure in
+// creating a KYC nudge
+func PublishKYCNudgeError(err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: PublishKYCNudgeErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
+	}
+}
+
+// InvalidCredentialsError returns an error message when wrong credentials are provided
+func InvalidCredentialsError() error {
+	return &base.CustomError{
+		Err:     fmt.Errorf("invalid credentials, expected a username AND password"),
+		Message: InvalidCredentialsErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
+	}
+}
+
+// SaveUserPinError returns an error message when we are unable to save a user pin
+func SaveUserPinError(err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: SaveUserPinErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
 	}
 }

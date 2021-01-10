@@ -52,11 +52,11 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 	}
 
 	if err := utils.ValidatePINLength(pin); err != nil {
-		return false, err
+		return false, exceptions.ValidatePINLengthError(err)
 	}
 
 	if err = utils.ValidatePINDigits(pin); err != nil {
-		return false, err
+		return false, exceptions.ValidatePINDigitsError(err)
 	}
 
 	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
@@ -73,7 +73,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 		Salt:      salt,
 	}
 	if _, err := u.onboardingRepository.SavePIN(ctx, pinPayload); err != nil {
-		return false, fmt.Errorf("unable to save user PIN: %v", err)
+		return false, exceptions.SaveUserPinError(err)
 	}
 
 	return true, nil

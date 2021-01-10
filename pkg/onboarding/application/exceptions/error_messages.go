@@ -5,8 +5,8 @@ const (
 	//UsernameInUseErrMsg  is the error message displayed when the provided userName is associated with a profile already
 	UsernameInUseErrMsg = "provided username is already in use"
 
-	//PhoneNUmberInUseErrMsg is the error message displayed when a phone number provided is associated with a profile already
-	PhoneNUmberInUseErrMsg = "provided phone number is already in use"
+	//PhoneNumberInUseErrMsg is the error message displayed when a phone number provided is associated with a profile already
+	PhoneNumberInUseErrMsg = "provided phone number is already in use"
 
 	// UserNotFoundErrMsg is the error message displayed when a user is not found
 	UserNotFoundErrMsg = "failed to get a user"
@@ -95,4 +95,32 @@ const (
 
 	// InvalidFlavourDefinedErrMsg for invalid flavour definitions
 	InvalidFlavourDefinedErrMsg = "invalid flavour defined"
+
+	// AddPartnerTypeErrMsg is an error message displayed when there is a
+	// failure to create a partner type
+	AddPartnerTypeErrMsg = "error occured while adding partner type"
+
+	// InvalidPartnerTypeErrMsg is an error message displayed when an
+	// invalid partner type is provided
+	InvalidPartnerTypeErrMsg = "invalid `partnerType` provided"
+
+	// FetchDefaultCurrencyErrMsg is an error message displayed when
+	// the default currency is not found
+	FetchDefaultCurrencyErrMsg = "unable to fetch orgs default currency"
+
+	// SupplierNotFoundErrMsg is an error message displayed when a supplier
+	// profile is not found
+	SupplierNotFoundErrMsg = "unable to get the user supplier profile"
+
+	// FindProviderErrMsg is displayed if a provider is not found
+	FindProviderErrMsg = "unable to fetch organization branches location"
+
+	// PublishKYCNudgeErrMsg is displayed if we are unable to publish a kyc nudge
+	PublishKYCNudgeErrMsg = "unable to publish kyc nudge"
+
+	// InvalidCredentialsErrMsg is displayed when wrong credentials are provided
+	InvalidCredentialsErrMsg = "invalid credentials, expected a username AND password"
+
+	// SaveUserPinErrMsg is displayed when a user pin is not saved
+	SaveUserPinErrMsg = "unable to save user PIN"
 )
