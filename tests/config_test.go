@@ -37,6 +37,13 @@ const (
 	testHTTPClientTimeout = 180
 )
 
+const (
+	testSladeCode            = "BRA-PRO-4190-4"
+	testEDIPortalUsername    = "avenue-4190@healthcloud.co.ke"
+	testEDIPortalPassword    = "test provider"
+	testChargeMasterBranchID = "94294577-6b27-4091-9802-1ce0f2ce4153"
+)
+
 /// these are set up once in TestMain and used by all the acceptance tests in
 // this package
 var srv *http.Server
