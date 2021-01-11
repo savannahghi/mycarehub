@@ -1279,7 +1279,7 @@ func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile,
 func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) error {
 	pr, err := fr.GetUserProfileByPhoneNumber(ctx, phone)
 	if err != nil {
-		return exceptions.InternalServerError(err)
+		return nil
 	}
 
 	// delete pin of the user
