@@ -84,14 +84,6 @@ func TestLoginInByPhone(t *testing.T) {
 	}
 	payload := bytes.NewBuffer(bs)
 
-	// invalid payload
-	badPayload := composeInValidUserPayload(t)
-	bs2, err := json.Marshal(badPayload)
-	if err != nil {
-		t.Errorf("unable to marshal test item to JSON: %s", err)
-	}
-	invalidPayload := bytes.NewBuffer(bs2)
-
 	wrongPINPayload := composeWrongUserPINPayload(t)
 	wrongPINBs, err := json.Marshal(wrongPINPayload)
 	if err != nil {
@@ -154,16 +146,6 @@ func TestLoginInByPhone(t *testing.T) {
 				url:        fmt.Sprintf("%s/login_by_phone", baseURL),
 				httpMethod: http.MethodPost,
 				body:       emptyPayload,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-		{
-			name: "failure: login user with invalid payload",
-			args: args{
-				url:        fmt.Sprintf("%s/login_by_phone", baseURL),
-				httpMethod: http.MethodPost,
-				body:       invalidPayload,
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,
@@ -256,7 +238,7 @@ func TestLoginInByPhone(t *testing.T) {
 				t.Errorf("bad data returned")
 				return
 			}
-			// TODO ! uncomment/ remove after error message format has been standerdized
+			// TODO ! uncomment/ remove after error message format has been standardized
 			// TODO! assert some data
 			// if tt.wantErr {
 			// 	errMsg, ok := data["error"]
