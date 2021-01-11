@@ -44,15 +44,11 @@ func NormalizeMSISDNError(err error) error {
 }
 
 // CheckPhoneNumberExistError check if phone number is registered to another user
-func CheckPhoneNumberExistError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: PhoneNumberInUseErrMsg,
-			Code:    int(base.PhoneNumberInUse),
-		}
+func CheckPhoneNumberExistError() error {
+	return &base.CustomError{
+		Message: PhoneNumberInUseErrMsg,
+		Code:    int(base.PhoneNumberInUse),
 	}
-	return nil
 }
 
 // InternalServerError returns an error if something wrong happened in performing the operation

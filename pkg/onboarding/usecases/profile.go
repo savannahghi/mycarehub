@@ -61,7 +61,10 @@ func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile
 // GetProfileByID returns the profile identified by the indicated ID
 func (p *ProfileUseCaseImpl) GetProfileByID(ctx context.Context, id *string) (*base.UserProfile, error) {
 	profile, err := p.onboardingRepository.GetUserProfileByID(ctx, *id)
-	return profile, exceptions.ProfileNotFoundError(err)
+	if err != nil {
+		return nil, exceptions.ProfileNotFoundError(err)
+	}
+	return profile, nil
 }
 
 // UpdatePrimaryPhoneNumber updates the primary phone number of a specific user profile

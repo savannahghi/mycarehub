@@ -212,7 +212,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 
 	if v {
 		// this phone is number is associated with another user profile, hence can not create an profile with the same phone number
-		return nil, exceptions.CheckPhoneNumberExistError(err)
+		return nil, exceptions.CheckPhoneNumberExistError()
 	}
 
 	profileID := uuid.New().String()

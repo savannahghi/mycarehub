@@ -151,7 +151,7 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 	registeredPhone := struct {
 		PhoneNumber string
 	}{
-		PhoneNumber: base.TestUserPhoneNumberWithPin,
+		PhoneNumber: base.TestUserPhoneNumber,
 	}
 	bs, err := json.Marshal(registeredPhone)
 	if err != nil {
@@ -190,8 +190,8 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 				httpMethod: http.MethodPost,
 				body:       payload,
 			},
-			wantStatus: http.StatusOK,
-			wantErr:    false,
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
 		},
 		{
 			name: "failure: verify a phone number whose profile does not exist",

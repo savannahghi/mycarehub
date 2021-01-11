@@ -85,7 +85,7 @@ func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string)
 
 	exists, err := s.onboardingRepository.CheckIfPhoneNumberExists(ctx, *phoneNumber)
 	if err != nil {
-		return false, exceptions.CheckPhoneNumberExistError(err)
+		return false, exceptions.CheckPhoneNumberExistError()
 	}
 
 	return exists, nil
@@ -121,7 +121,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	}
 	// if phone exists return early
 	if exists {
-		return nil, exceptions.CheckPhoneNumberExistError(err)
+		return nil, exceptions.CheckPhoneNumberExistError()
 	}
 	// get or create user via their phone number
 	user, err := base.GetOrCreatePhoneNumberUser(ctx, *userData.PhoneNumber)
@@ -329,7 +329,7 @@ func (s *SignUpUseCasesImpl) VerifyPhoneNumber(ctx context.Context, phone string
 	}
 	// if phone exists return early
 	if exists {
-		return nil, exceptions.CheckPhoneNumberExistError(err)
+		return nil, exceptions.CheckPhoneNumberExistError()
 	}
 	// generate and send otp to the phone number
 	otpResp, err := s.otpUseCases.GenerateAndSendOTP(ctx, *phoneNumber)
