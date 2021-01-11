@@ -348,12 +348,6 @@ func (s SupplierUseCasesImpl) CoreEDIUserLogin(username, password string) (*base
 // 3 . update the user's supplier record
 // 4. return the list of branches to the frontend so that a default location can be set
 func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.BranchConnection, error) {
-
-	uid, err := base.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, exceptions.UserNotFoundError(err)
-	}
-
 	supplier, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		return nil, exceptions.SupplierNotFoundError(err)
@@ -466,6 +460,11 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 	businessPartner = *partner.Edges[0].Node
 	var brFilter []*resources.BranchFilterInput
 
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get the logged in user: %w", err)
+	}
+
 	go func() {
 		op := func() error {
 			return s.PublishKYCNudge(ctx, uid, &supplier.PartnerType, &supplier.AccountType)
@@ -517,7 +516,6 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 	// fetch the branches of the provider filtered by sladecode and ParentOrganizationID
 	filter := []*resources.BranchFilterInput{
 		{
-			SladeCode:            &sup.SladeCode,
 			ParentOrganizationID: &sup.ParentOrganizationID,
 		},
 	}
@@ -566,7 +564,6 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context
 	// fetch the branches of the provider filtered by sladecode and ParentOrganizationID
 	filter := []*resources.BranchFilterInput{
 		{
-			SladeCode:            &sup.SladeCode,
 			ParentOrganizationID: &sup.ParentOrganizationID,
 		},
 	}
@@ -928,15 +925,15 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(ctx context.Context, inpu
 // AddIndividualPractitionerKyc adds KYC for an individual pratitioner
 func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error) {
 
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		return nil, exceptions.SupplierNotFoundError(err)
+	}
+
 	for _, p := range input.PracticeServices {
 		if !p.IsValid() {
 			return nil, fmt.Errorf("invalid `PracticeService` provided : %v", p.String())
 		}
-	}
-
-	sup, err := s.FindSupplierByUID(ctx)
-	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
 	kyc := domain.IndividualPractitioner{
