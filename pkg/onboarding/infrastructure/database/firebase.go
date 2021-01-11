@@ -148,7 +148,7 @@ func (fr *Repository) GetUserProfileByUID(
 	query := collection.Where("verifiedUIDS", "array-contains", uid)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	if len(docs) == 0 {
@@ -162,7 +162,7 @@ func (fr *Repository) GetUserProfileByUID(
 	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read user profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
 	}
 	return userProfile, nil
 }
@@ -176,7 +176,7 @@ func (fr *Repository) GetUserProfileByID(
 	query := collection.Where("id", "==", id)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) > 1 && base.IsDebug() {
 		log.Printf("> 1 profile with id %s (count: %d)", id, len(docs))
@@ -189,9 +189,17 @@ func (fr *Repository) GetUserProfileByID(
 	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read user profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
 	}
 	return userProfile, nil
+}
+
+func (fr *Repository) fetchUserRandomName(ctx context.Context) *string {
+	n := utils.GetRandomName()
+	if v, err := fr.CheckIfUsernameExists(ctx, *n); v && (err == nil) {
+		return fr.fetchUserRandomName(ctx)
+	}
+	return n
 }
 
 // CreateUserProfile creates a user profile of using the provided phone number and uid
@@ -199,7 +207,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 
 	v, err := fr.CheckIfPhoneNumberExists(ctx, phoneNumber)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check the phone number: %v", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("failed to check the phone number: %v", err))
 	}
 
 	if v {
@@ -210,7 +218,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 	profileID := uuid.New().String()
 	pr := &base.UserProfile{
 		ID:           profileID,
-		UserName:     utils.GetRandomName(),
+		UserName:     fr.fetchUserRandomName(ctx),
 		PrimaryPhone: &phoneNumber,
 		VerifiedIdentifiers: []base.VerifiedIdentifier{{
 			UID:           uid,
@@ -225,17 +233,17 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 	// persist the data to a datastore
 	docID, err := base.SaveDataToFirestore(fr.FirestoreClient, fr.GetUserProfileCollectionName(), pr)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create new user profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new user profile: %w", err))
 	}
 	dsnap, err := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName()).Doc(docID).Get(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve newly created user profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created user profile: %w", err))
 	}
 	// return the newly created user profile
 	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read user profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
 	}
 	return userProfile, nil
 
@@ -251,17 +259,17 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 	// persist the data to a datastore
 	docID, err := base.SaveDataToFirestore(fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), sup)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create new supplier empty profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new supplier empty profile: %w", err))
 	}
 	dsnap, err := fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName()).Doc(docID).Get(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve newly created supplier profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created supplier profile: %w", err))
 	}
 	// return the newly created supplier profile
 	supplier := &domain.Supplier{}
 	err = dsnap.DataTo(supplier)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read supplier profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier profile: %w", err))
 	}
 	return supplier, nil
 
@@ -277,17 +285,17 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 	// persist the data to a datastore
 	docID, err := base.SaveDataToFirestore(fr.FirestoreClient, fr.GetCustomerProfileCollectionName(), cus)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create new customer empty profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new customer empty profile: %w", err))
 	}
 	dsnap, err := fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName()).Doc(docID).Get(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve newly created customer profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created customer profile: %w", err))
 	}
 	// return the newly created customer profile
 	customer := &domain.Customer{}
 	err = dsnap.DataTo(customer)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read customer profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 	}
 	return customer, nil
 }
@@ -297,16 +305,16 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 	collection1 := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
 	docs, err := collection1.Where("primaryPhone", "==", phoneNumber).Documents(ctx).GetAll()
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) == 0 {
-		return nil, fmt.Errorf("%v", base.ProfileNotFound)
+		return nil, exceptions.InternalServerError(fmt.Errorf("%v", base.ProfileNotFound))
 	}
 	dsnap := docs[0]
 	profile := &base.UserProfile{}
 	err = dsnap.DataTo(profile)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read customer profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 	}
 	return profile, nil
 }
@@ -318,13 +326,13 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 	collection1 := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
 	docs1, err := collection1.Where("primaryPhone", "==", phoneNumber).Documents(ctx).GetAll()
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs1) == 1 {
 		dsnap := docs1[0]
 		pr := &base.UserProfile{}
 		if err := dsnap.DataTo(pr); err != nil {
-			return nil, fmt.Errorf("unable to read customer profile: %w", err)
+			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 		}
 		return pr, nil
 	}
@@ -340,12 +348,12 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 		dsnap := docs2[0]
 		pr := &base.UserProfile{}
 		if err := dsnap.DataTo(pr); err != nil {
-			return nil, fmt.Errorf("unable to read customer profile: %w", err)
+			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 		}
 		return pr, nil
 	}
 
-	return nil, fmt.Errorf("%v", base.ProfileNotFound)
+	return nil, exceptions.InternalServerError(fmt.Errorf("%v", base.ProfileNotFound))
 
 }
 
@@ -356,7 +364,7 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 	collection1 := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
 	docs1, err := collection1.Where("primaryPhone", "==", phoneNumber).Documents(ctx).GetAll()
 	if err != nil {
-		return false, err
+		return false, exceptions.InternalServerError(err)
 	}
 
 	if len(docs1) == 1 {
@@ -382,7 +390,7 @@ func (fr *Repository) CheckIfUsernameExists(ctx context.Context, userName string
 	collection := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
 	docs1, err := collection.Where("userName", "==", userName).Documents(ctx).GetAll()
 	if err != nil {
-		return false, err
+		return false, exceptions.InternalServerError(err)
 	}
 
 	if len(docs1) == 1 {
@@ -397,7 +405,7 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 	collection := fr.FirestoreClient.Collection(fr.GetPINsCollectionName())
 	docs, err := collection.Where("profileID", "==", profileID).Documents(ctx).GetAll()
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	// this should never run. If it does, it means we are doing something wrong.
@@ -520,9 +528,9 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 
 	if v, err := fr.CheckIfUsernameExists(ctx, userName); err != nil {
 		if v {
-			return fmt.Errorf("%v", exceptions.UsernameInUseErrMsg)
+			return exceptions.InternalServerError(fmt.Errorf("%v", exceptions.UsernameInUseErrMsg))
 		}
-		return err
+		return exceptions.InternalServerError(err)
 	}
 
 	profile, err := fr.GetUserProfileByID(ctx, id)
@@ -533,12 +541,12 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
-		return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile)
 	if err != nil {
-		return fmt.Errorf("unable to update user profile primary phone number: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile primary phone number: %v", err))
 	}
 
 	return nil
@@ -555,12 +563,12 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
-		return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile)
 	if err != nil {
-		return fmt.Errorf("unable to update user profile primary phone number: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile primary phone number: %v", err))
 	}
 
 	return nil
@@ -577,14 +585,14 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
-		return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
-		return fmt.Errorf("unable to update user profile primary email address: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile primary email address: %v", err))
 	}
 
 	return nil
@@ -610,14 +618,14 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
-		return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
-		return fmt.Errorf("unable to update user profile secondary phone numbers: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary phone numbers: %v", err))
 	}
 
 	return nil
@@ -644,14 +652,14 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
-		return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
-		return fmt.Errorf("unable to update user profile secondary email addresses: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary email addresses: %v", err))
 	}
 	return nil
 }
@@ -666,13 +674,13 @@ func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status boo
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
-		return err
+		return exceptions.InternalServerError(err)
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
-	return err
+	return exceptions.InternalServerError(err)
 }
 
 // UpdatePhotoUploadID updates the photoUploadID attribute of the profile that matches the id
@@ -685,14 +693,14 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
-		return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
-		return fmt.Errorf("unable to update user profile photo upload id: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile photo upload id: %v", err))
 	}
 	return nil
 }
@@ -718,14 +726,14 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
-		return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
-		return fmt.Errorf("unable to update user profile covers: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile covers: %v", err))
 	}
 	return nil
 }
@@ -742,14 +750,14 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
-		return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
-		return fmt.Errorf("unable to update user profile push tokens: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile push tokens: %v", err))
 	}
 	return nil
 }
@@ -791,14 +799,14 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
-		return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
 	if err != nil {
-		return fmt.Errorf("unable to update user profile push tokens: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile push tokens: %v", err))
 	}
 	return nil
 }
@@ -822,14 +830,14 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 
 			record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 			if err != nil {
-				return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+				return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 			}
 
 			err = base.UpdateRecordOnFirestore(
 				fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 			)
 			if err != nil {
-				return fmt.Errorf("unable to update user profile push tokens: %v", err)
+				return exceptions.InternalServerError(fmt.Errorf("unable to update user profile push tokens: %v", err))
 			}
 			return nil
 
@@ -867,14 +875,14 @@ func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []
 
 			record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 			if err != nil {
-				return fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err)
+				return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 			}
 
 			err = base.UpdateRecordOnFirestore(
 				fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 			)
 			if err != nil {
-				return fmt.Errorf("unable to update user profile verified UIDs: %v", err)
+				return exceptions.InternalServerError(fmt.Errorf("unable to update user profile verified UIDs: %v", err))
 			}
 			return nil
 
@@ -926,7 +934,7 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN
 	PIN := &domain.PIN{}
 	err = dsnap.DataTo(PIN)
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	return PIN, nil
@@ -941,7 +949,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 	}
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetPINsCollectionName(), pinData.ID)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse user pin as firebase snapshot: %v", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse user pin as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
@@ -960,7 +968,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*resources.AuthCredentialResponse, error) {
 	apiKey, err := base.GetEnvVar(base.FirebaseWebAPIKeyEnvVarName)
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	payload := resources.RefreshTokenExchangePayload{
@@ -969,7 +977,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*resou
 	}
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	url := firebaseExchangeRefreshTokenURL + apiKey
@@ -983,23 +991,24 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*resou
 
 	defer base.CloseRespBody(resp)
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		bs, err := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf(
-			"firebase HTTP error, status code %d\nBody: %s\nBody read error: %s",
-			resp.StatusCode,
-			string(bs),
-			err,
-		)
+		return nil,
+			exceptions.InternalServerError(fmt.Errorf(
+				"firebase HTTP error, status code %d\nBody: %s\nBody read error: %s",
+				resp.StatusCode,
+				string(bs),
+				err,
+			))
 	}
 
 	var tokenResp resources.AuthCredentialResponse
 	err = json.NewDecoder(resp.Body).Decode(&tokenResp)
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	return &tokenResp, nil
@@ -1011,20 +1020,20 @@ func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*d
 	query := collection.Where("id", "==", id)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) > 1 && base.IsDebug() {
 		log.Printf("> 1 profile with id %s (count: %d)", id, len(docs))
 	}
 
 	if len(docs) == 0 {
-		return nil, fmt.Errorf("customer profile not found: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("customer profile not found: %w", err))
 	}
 	dsnap := docs[0]
 	cus := &domain.Customer{}
 	err = dsnap.DataTo(cus)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read customer profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 	}
 	return cus, nil
 }
@@ -1035,17 +1044,17 @@ func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profile
 	query := collection.Where("profileID", "==", profileID)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	if len(docs) == 0 {
-		return nil, fmt.Errorf("customer profile not found: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("customer profile not found: %w", err))
 	}
 	dsnap := docs[0]
 	cus := &domain.Customer{}
 	err = dsnap.DataTo(cus)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read customer profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 	}
 	return cus, nil
 }
@@ -1057,20 +1066,20 @@ func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profile
 	query := collection.Where("profileID", "==", profileID)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) > 1 && base.IsDebug() {
 		log.Printf("> 1 profile with id %s (count: %d)", profileID, len(docs))
 	}
 
 	if len(docs) == 0 {
-		return nil, fmt.Errorf("supplier profile not found: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("supplier profile not found: %w", err))
 	}
 	dsnap := docs[0]
 	sup := &domain.Supplier{}
 	err = dsnap.DataTo(sup)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read supplier profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier profile: %w", err))
 	}
 	return sup, nil
 }
@@ -1081,17 +1090,17 @@ func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*d
 	query := collection.Where("id", "==", id)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	if len(docs) == 0 {
-		return nil, fmt.Errorf("supplier profile not found: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("supplier profile not found: %w", err))
 	}
 	dsnap := docs[0]
 	sup := &domain.Supplier{}
 	err = dsnap.DataTo(sup)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read supplier profile: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier profile: %w", err))
 	}
 	return sup, nil
 }
@@ -1102,7 +1111,7 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 	// get the suppier profile
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 	if err != nil {
-		return false, err
+		return false, exceptions.InternalServerError(err)
 	}
 
 	sup.SupplierName = *name
@@ -1111,14 +1120,14 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
 	if err != nil {
-		return false, fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err)
+		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
 	)
 	if err != nil {
-		return false, fmt.Errorf("unable to update user profile: %v", err)
+		return false, exceptions.InternalServerError(fmt.Errorf("unable to update user profile: %v", err))
 	}
 
 	return true, nil
@@ -1130,21 +1139,21 @@ func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID str
 	// get the suppier profile
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	sup.Active = true
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier profile: %v", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to update supplier profile: %v", err))
 	}
 
 	return sup, nil
@@ -1154,19 +1163,19 @@ func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID str
 func (fr *Repository) UpdateSupplierProfile(ctx context.Context, data *domain.Supplier) (*domain.Supplier, error) {
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, *data.ProfileID)
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch supplier profile: %v", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to fetch supplier profile: %v", err))
 	}
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, data,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to update supplier profile: %v", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to update supplier profile: %v", err))
 	}
 
 	return sup, nil
@@ -1176,13 +1185,13 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, data *domain.Su
 // StageProfileNudge ...
 func (fr *Repository) StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error {
 	_, _, err := fr.FirestoreClient.Collection(fr.GetProfileNudgesCollectionName()).Add(ctx, nudge)
-	return err
+	return exceptions.InternalServerError(err)
 }
 
 // StageKYCProcessingRequest stages the request which will be retrieved later for admins
 func (fr *Repository) StageKYCProcessingRequest(ctx context.Context, data *domain.KYCRequest) error {
 	_, _, err := fr.FirestoreClient.Collection(fr.GetKCYProcessCollectionName()).Add(ctx, data)
-	return err
+	return exceptions.InternalServerError(err)
 }
 
 // FetchKYCProcessingRequests retrieves all unprocessed kycs for admins
@@ -1191,7 +1200,7 @@ func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain
 	query := collection.Where("processed", "==", false)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch kyc request documents: %v", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to fetch kyc request documents: %v", err))
 	}
 
 	res := []*domain.KYCRequest{}
@@ -1200,10 +1209,12 @@ func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain
 		req := &domain.KYCRequest{}
 		err = doc.DataTo(req)
 		if err != nil {
-			return nil, fmt.Errorf("unable to read supplier: %w", err)
+			logrus.Panicf("line 1205 %v", err)
+			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier: %w", err))
 		}
 		res = append(res, req)
 	}
+
 	return res, nil
 }
 
@@ -1213,13 +1224,13 @@ func (fr *Repository) FetchKYCProcessingRequestByID(ctx context.Context, id stri
 	query := collection.Where("id", "==", id)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch kyc request documents: %v", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to fetch kyc request documents: %v", err))
 	}
 
 	req := &domain.KYCRequest{}
 	err = docs[0].DataTo(req)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read supplier: %w", err)
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier: %w", err))
 	}
 
 	return req, nil
@@ -1230,14 +1241,14 @@ func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, sup *domai
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
 	if err != nil {
-		return fmt.Errorf("unable to parse kyc processing request as firebase snapshot: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse kyc processing request as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetKCYProcessCollectionName(), record.Ref.ID, sup,
 	)
 	if err != nil {
-		return fmt.Errorf("unable to update kyc processing request profile: %v", err)
+		return exceptions.InternalServerError(fmt.Errorf("unable to update kyc processing request profile: %v", err))
 	}
 
 	return nil
@@ -1250,14 +1261,14 @@ func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile,
 	query := collection.Where("permissions", "array-contains", base.PermissionTypeSuperAdmin).Where("permissions", "array-contains", base.PermissionTypeAdmin)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
-		return nil, err
+		return nil, exceptions.InternalServerError(err)
 	}
 	var admins []*base.UserProfile
 	for _, doc := range docs {
 		u := &base.UserProfile{}
 		err = doc.DataTo(u)
 		if err != nil {
-			return nil, fmt.Errorf("unable to read user profile: %w", err)
+			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
 		}
 		admins = append(admins, u)
 	}
@@ -1268,19 +1279,19 @@ func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile,
 func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) error {
 	pr, err := fr.GetUserProfileByPhoneNumber(ctx, phone)
 	if err != nil {
-		return err
+		return exceptions.InternalServerError(err)
 	}
 
 	// delete pin of the user
 	pin, err := fr.GetPINByProfileID(ctx, pr.ID)
 	if err != nil {
-		return err
+		return exceptions.InternalServerError(err)
 	}
 
 	if pinRef, err := fr.ParseRecordAsSnapshot(ctx, fr.GetPINsCollectionName(), pin.ID); err == nil {
 		_, err = fr.FirestoreClient.Collection(fr.GetPINsCollectionName()).Doc(pinRef.Ref.ID).Delete(ctx)
 		if err != nil {
-			return err
+			return exceptions.InternalServerError(err)
 		}
 	}
 
@@ -1293,7 +1304,7 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 		if sprRef, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), spr.ID); err == nil {
 			_, err = fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName()).Doc(sprRef.Ref.ID).Delete(ctx)
 			if err != nil {
-				return err
+				return exceptions.InternalServerError(err)
 			}
 		}
 	}
@@ -1307,7 +1318,7 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 		if cprRef, err := fr.ParseRecordAsSnapshot(ctx, fr.GetCustomerProfileCollectionName(), cpr.ID); err == nil {
 			_, err = fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName()).Doc(cprRef.Ref.ID).Delete(ctx)
 			if err != nil {
-				return err
+				return exceptions.InternalServerError(err)
 			}
 		}
 
@@ -1317,17 +1328,17 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	if prRef, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), pr.ID); err == nil {
 		_, err = fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName()).Doc(prRef.Ref.ID).Delete(ctx)
 		if err != nil {
-			return err
+			return exceptions.InternalServerError(err)
 		}
 	}
 
 	// delete the user from firebase
 	u, err := fr.FirebaseClient.GetUserByPhoneNumber(ctx, phone)
 	if err != nil {
-		return err
+		return exceptions.InternalServerError(err)
 	}
 	if err := fr.FirebaseClient.DeleteUser(ctx, u.UID); err != nil {
-		return err
+		return exceptions.InternalServerError(err)
 	}
 
 	return nil
@@ -1335,7 +1346,7 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 }
 
 // GetCustomerOrSupplierProfileByProfileID returns either a customer or supplier profile
-// given the flavour and the profile D that has been provided
+// given the flavour and the profile ID that has been provided
 func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
 	ctx context.Context,
 	flavour base.Flavour,
@@ -1362,7 +1373,7 @@ func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
 			supplier = supplierProfile
 		}
 	default:
-		return customer, supplier, exceptions.WrongEnumTypeError(flavour.String(), nil)
+		return customer, supplier, exceptions.WrongEnumTypeError(flavour.String())
 	}
 
 	return customer, supplier, nil

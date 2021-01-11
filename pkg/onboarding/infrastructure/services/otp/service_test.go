@@ -2,6 +2,7 @@ package otp_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"gitlab.slade360emr.com/go/base"
@@ -70,7 +71,7 @@ func TestSendRetryOTP(t *testing.T) {
 			},
 			want:        false,
 			wantErr:     true,
-			expectedErr: exceptions.NormalizeMSISDNError(err).Error(),
+			expectedErr: exceptions.NormalizeMSISDNError(fmt.Errorf("Send Retry OTP using nonexistent credentials")).Error(),
 		},
 		{
 			name: "Sad case - Send Retry OTP using an invalid phonenumber",
@@ -81,7 +82,7 @@ func TestSendRetryOTP(t *testing.T) {
 			},
 			want:        false,
 			wantErr:     true,
-			expectedErr: exceptions.NormalizeMSISDNError(err).Error(),
+			expectedErr: exceptions.NormalizeMSISDNError(fmt.Errorf("Send Retry OTP using an invalid phonenumber")).Error(),
 		},
 	}
 

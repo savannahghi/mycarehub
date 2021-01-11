@@ -1,5 +1,8 @@
 # Onboarding service
 
+[![pipeline status](https://gitlab.slade360emr.com/go/profile/badges/develop/pipeline.svg)](https://gitlab.slade360emr.com/go/profile/-/commits/develop)
+[![coverage report](https://gitlab.slade360emr.com/go/profile/badges/develop/coverage.svg)](https://gitlab.slade360emr.com/go/profile/-/commits/develop)
+
 This service manages user onboarding process.
 
 ## Description

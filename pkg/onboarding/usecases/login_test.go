@@ -275,15 +275,7 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := s
-			authResponse, err := l.Login.LoginByPhone(tt.args.ctx, tt.args.phone, tt.args.PIN, tt.args.flavour)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("LoginUseCasesImpl.LoginByPhone() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
+			authResponse, err := s.Login.LoginByPhone(tt.args.ctx, tt.args.phone, tt.args.PIN, tt.args.flavour)
 			if tt.wantErr && authResponse != nil {
 				t.Errorf("expected nil auth response but got %v, since the error %v occurred",
 					authResponse,

@@ -29,7 +29,7 @@ func ValidateUID(w http.ResponseWriter, r *http.Request) (*resources.UIDPayload,
 // ValidateSignUpInput returns a valid sign up input
 func ValidateSignUpInput(input *resources.SignUpInput) (*resources.SignUpInput, error) {
 	if !input.Flavour.IsValid() {
-		return nil, exceptions.WrongEnumTypeError(input.Flavour.String(), nil)
+		return nil, exceptions.WrongEnumTypeError(input.Flavour.String())
 	}
 
 	phone, err := base.NormalizeMSISDN(*input.PhoneNumber)

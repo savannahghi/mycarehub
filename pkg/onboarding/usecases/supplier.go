@@ -835,7 +835,7 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input 
 	}
 
 	if !input.IdentificationDoc.IdentificationDocType.IsValid() {
-		return nil, exceptions.WrongEnumTypeError(input.IdentificationDoc.IdentificationDocType.String(), nil)
+		return nil, exceptions.WrongEnumTypeError(input.IdentificationDoc.IdentificationDocType.String())
 	}
 
 	kyc := domain.IndividualRider{

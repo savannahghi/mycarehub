@@ -105,10 +105,6 @@ func TestProfileUseCaseImpl_GetUserProfileByUID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			profile, err := s.Onboarding.GetUserProfileByUID(tt.args.ctx, tt.args.UID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.GetUserProfileByUID() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
 			if tt.wantErr && profile != nil {
 				t.Errorf("expected nil but got %v, since the error %v occurred",
 					profile,
@@ -121,6 +117,7 @@ func TestProfileUseCaseImpl_GetUserProfileByUID(t *testing.T) {
 				t.Errorf("expected a profile but got nil, since no error occurred")
 				return
 			}
+
 		})
 	}
 }
