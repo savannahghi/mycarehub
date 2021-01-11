@@ -1632,138 +1632,6 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 
 }
 
-func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-	name := "Makmende"
-	partnerPractitioner := domain.PartnerTypePractitioner
-	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerPractitioner)
-	if err != nil {
-		t.Errorf("can't create a supplier")
-		return
-	}
-
-	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeOrganisation)
-	if err != nil {
-		t.Errorf("can't set up a supplier")
-		return
-	}
-	type args struct {
-		ctx   context.Context
-		input domain.OrganizationPractitioner
-	}
-	tests := []struct {
-		name        string
-		args        args
-		want        *domain.OrganizationPractitioner
-		wantErr     bool
-		expectedErr string
-	}{
-		{
-			name: "valid : should pass",
-			args: args{
-				ctx: ctx,
-				input: domain.OrganizationPractitioner{
-					OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
-					DirectorIdentifications: []domain.Identification{
-						{
-							IdentificationDocType:           domain.IdentificationDocTypeNationalid,
-							IdentificationDocNumber:         "12345678",
-							IdentificationDocNumberUploadID: "12345678",
-						},
-					},
-					KRAPIN:             "KRA-12345678",
-					KRAPINUploadID:     "KRA-UPLOAD-12345678",
-					RegistrationNumber: "REG-12345",
-					PracticeLicenseID:  "PRAC-12345",
-					PracticeServices: []domain.PractitionerService{
-						domain.PractitionerServiceOutpatientServices,
-						domain.PractitionerServiceInpatientServices,
-						domain.PractitionerServiceOther,
-					},
-					Cadre: domain.PractitionerCadreDoctor,
-				},
-			},
-			want: &domain.OrganizationPractitioner{
-				OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
-				DirectorIdentifications: []domain.Identification{
-					{
-						IdentificationDocType:           domain.IdentificationDocTypeNationalid,
-						IdentificationDocNumber:         "12345678",
-						IdentificationDocNumberUploadID: "12345678",
-					},
-				},
-				KRAPIN:             "KRA-12345678",
-				KRAPINUploadID:     "KRA-UPLOAD-12345678",
-				RegistrationNumber: "REG-12345",
-				PracticeLicenseID:  "PRAC-12345",
-				PracticeServices: []domain.PractitionerService{
-					domain.PractitionerServiceOutpatientServices,
-					domain.PractitionerServiceInpatientServices,
-					domain.PractitionerServiceOther,
-				},
-				Cadre: domain.PractitionerCadreDoctor,
-			},
-			wantErr: false,
-		},
-
-		{
-			name: "invalid : organization type name ",
-			args: args{
-				ctx: ctx,
-				input: domain.OrganizationPractitioner{
-					OrganizationTypeName: "AWESOME ORG",
-					DirectorIdentifications: []domain.Identification{
-						{
-							IdentificationDocType:           domain.IdentificationDocTypeNationalid,
-							IdentificationDocNumber:         "12345678",
-							IdentificationDocNumberUploadID: "12345678",
-						},
-					},
-					KRAPIN:             "KRA-12345678",
-					KRAPINUploadID:     "KRA-UPLOAD-12345678",
-					RegistrationNumber: "REG-12345",
-					PracticeLicenseID:  "PRAC-12345",
-					PracticeServices:   []domain.PractitionerService{"SUPPORTING"},
-					Cadre:              domain.PractitionerCadreDoctor,
-				},
-			},
-			wantErr:     true,
-			expectedErr: "invalid `OrganizationTypeName` provided : AWESOME ORG",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.Supplier.AddOrganizationPractitionerKyc(tt.args.ctx, tt.args.input)
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("SupplierUseCasesImpl.AddOrganizationPractitionerKyc() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if err.Error() != tt.expectedErr {
-					t.Errorf("SupplierUseCasesImpl.AddOrganizationPractitionerKyc() error = %v, expectedErr %v", err, tt.expectedErr)
-				}
-				return
-			}
-			if !tt.wantErr {
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("SupplierUseCasesImpl.AddOrganizationPractitionerKyc() = %v, want %v", got, tt.want)
-				}
-				return
-			}
-
-		})
-	}
-}
-
 func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
@@ -2497,4 +2365,177 @@ func TestAddOrganizationNutritionKyc(t *testing.T) {
 	}
 	// clean up
 	clean(newCtx, testPhoneNumber, t, service)
+}
+
+func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
+	test1ID := uuid.New().String()
+	test1PractitionerKYC := domain.OrganizationPractitioner{
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		DirectorIdentifications: []domain.Identification{
+			{
+				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocNumber:         "12345678",
+				IdentificationDocNumberUploadID: test1ID,
+			},
+		},
+		KRAPIN:                      test1ID,
+		KRAPINUploadID:              test1ID,
+		SupportingDocumentsUploadID: []string{test1ID, strings.ToUpper(test1ID)},
+		PracticeLicenseID:           test1ID,
+		PracticeLicenseUploadID:     test1ID,
+		PracticeServices: []domain.PractitionerService{
+			domain.PractitionerServiceOutpatientServices,
+			domain.PractitionerServiceInpatientServices,
+			domain.PractitionerServiceOther,
+		},
+		Cadre: domain.PractitionerCadreDoctor,
+	}
+
+	test2PractitionerKYC := domain.OrganizationPractitioner{
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		DirectorIdentifications: []domain.Identification{
+			{
+				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocNumber:         "12345678",
+				IdentificationDocNumberUploadID: test1ID,
+			},
+		},
+		KRAPIN:                      test1ID,
+		KRAPINUploadID:              test1ID,
+		SupportingDocumentsUploadID: []string{test1ID, strings.ToUpper(test1ID)},
+		PracticeLicenseID:           test1ID,
+		PracticeLicenseUploadID:     test1ID,
+		PracticeServices: []domain.PractitionerService{
+			domain.PractitionerServiceOutpatientServices,
+			domain.PractitionerServiceInpatientServices,
+			domain.PractitionerServiceOther,
+		},
+		Cadre: domain.PractitionerCadreDoctor,
+	}
+
+	test2PractitionerOutPut := domain.OrganizationPractitioner{
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		DirectorIdentifications: []domain.Identification{
+			{
+				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocNumber:         "0000000",
+				IdentificationDocNumberUploadID: test1ID,
+			},
+		},
+		KRAPIN:                      test1ID,
+		KRAPINUploadID:              test1ID,
+		SupportingDocumentsUploadID: []string{test1ID, strings.ToUpper(test1ID)},
+		PracticeLicenseID:           test1ID,
+		PracticeLicenseUploadID:     test1ID,
+		PracticeServices: []domain.PractitionerService{
+			domain.PractitionerServiceOutpatientServices,
+			domain.PractitionerServiceInpatientServices,
+			domain.PractitionerServiceOther,
+		},
+		Cadre: domain.PractitionerCadreDoctor,
+	}
+
+	tests := []struct {
+		name         string
+		practitioner domain.OrganizationPractitioner
+		want         domain.OrganizationPractitioner
+		wantErr      bool
+	}{
+		{
+			name:         "valid case",
+			practitioner: test1PractitionerKYC,
+			want:         test1PractitionerKYC,
+			wantErr:      false,
+		},
+		{
+			name:         "invalid case: IdentificationDocNumber different from input",
+			practitioner: test2PractitionerKYC,
+			want:         test2PractitionerOutPut,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			/*
+			 * create a supplier account.
+			 */
+			ctx := context.Background()
+			service, err := InitializeTestService(ctx)
+			if err != nil {
+				t.Errorf("failed to create service")
+				return
+			}
+
+			seed := rand.NewSource(time.Now().UnixNano())
+			unique := fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9))
+			testPhoneNumber := "+25475698" + unique
+			testPhoneNumberPin := "7463"
+
+			newCtx, err := createUserTestAccount(ctx, service, testPhoneNumber, testPhoneNumberPin, base.FlavourPro, t)
+			if err != nil {
+				t.Errorf("%v", err)
+				return
+			}
+
+			response, err := service.Supplier.AddOrganizationPractitionerKyc(newCtx, tt.practitioner)
+			if err != nil {
+				clean(newCtx, testPhoneNumber, t, service)
+				t.Errorf("failed to add individual nutritionkyc got error: %v", err)
+				return
+			}
+
+			// check the data returned is the expected
+			if len(response.DirectorIdentifications) != len(tt.want.DirectorIdentifications) {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", len(tt.want.DirectorIdentifications), len(response.DirectorIdentifications))
+				}
+				return
+			}
+
+			if response.KRAPIN != tt.want.KRAPIN {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", tt.want.KRAPIN, response.KRAPIN)
+				}
+				return
+			}
+
+			if response.KRAPINUploadID != tt.want.KRAPINUploadID {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", tt.want.KRAPINUploadID, response.KRAPINUploadID)
+				}
+				return
+			}
+
+			if len(response.SupportingDocumentsUploadID) != len(tt.want.SupportingDocumentsUploadID) {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", len(response.SupportingDocumentsUploadID), len(tt.want.SupportingDocumentsUploadID))
+				}
+				return
+			}
+
+			if response.PracticeLicenseID != tt.want.PracticeLicenseID {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", tt.want.PracticeLicenseID, response.PracticeLicenseID)
+				}
+				return
+			}
+
+			if response.PracticeLicenseUploadID != tt.want.PracticeLicenseUploadID {
+				clean(newCtx, testPhoneNumber, t, service)
+				if !tt.wantErr {
+					t.Errorf("wanted: %v, got: %v", tt.want.PracticeLicenseUploadID, response.PracticeLicenseUploadID)
+				}
+				return
+			}
+
+			// do clean up
+			clean(newCtx, testPhoneNumber, t, service)
+		})
+	}
 }
