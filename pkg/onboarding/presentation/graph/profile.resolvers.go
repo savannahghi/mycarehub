@@ -12,6 +12,10 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
 )
 
+func (r *mutationResolver) CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error) {
+	return r.interactor.Signup.CompleteSignup(ctx, flavour)
+}
+
 func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input resources.UserProfileInput) (*base.UserProfile, error) {
 	return r.interactor.Signup.UpdateUserProfile(ctx, &input)
 }

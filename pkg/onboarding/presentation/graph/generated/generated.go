@@ -204,6 +204,7 @@ type ComplexityRoot struct {
 		AddOrganizationProviderKyc       func(childComplexity int, input domain.OrganizationProvider) int
 		AddOrganizationRiderKyc          func(childComplexity int, input domain.OrganizationRider) int
 		AddPartnerType                   func(childComplexity int, name string, partnerType domain.PartnerType) int
+		CompleteSignup                   func(childComplexity int, flavour base.Flavour) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
 		RecordPostVisitSurvey            func(childComplexity int, input resources.PostVisitSurveyInput) int
 		RegisterPushToken                func(childComplexity int, token string) int
@@ -397,6 +398,7 @@ type EntityResolver interface {
 	FindUserProfileByID(ctx context.Context, id string) (*base.UserProfile, error)
 }
 type MutationResolver interface {
+	CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error)
 	UpdateUserProfile(ctx context.Context, input resources.UserProfileInput) (*base.UserProfile, error)
 	UpdateUserPin(ctx context.Context, phone string, pin string) (*resources.PINOutput, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
@@ -1187,6 +1189,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddPartnerType(childComplexity, args["name"].(string), args["partnerType"].(domain.PartnerType)), true
+
+	case "Mutation.completeSignup":
+		if e.complexity.Mutation.CompleteSignup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_completeSignup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CompleteSignup(childComplexity, args["flavour"].(base.Flavour)), true
 
 	case "Mutation.processKYCRequest":
 		if e.complexity.Mutation.ProcessKYCRequest == nil {
@@ -2782,7 +2796,10 @@ input OrganizationPharmaceuticalInput {
 }
 
 extend type Mutation {
+  completeSignup(flavour:Flavour!): Boolean!
+
   updateUserProfile(input: UserProfileInput!): UserProfile!
+  
   updateUserPIN(phone: String!, pin: String!): PINOutput!
 
   registerPushToken(token: String!): Boolean!
@@ -3477,6 +3494,21 @@ func (ec *executionContext) field_Mutation_addPartnerType_args(ctx context.Conte
 		}
 	}
 	args["partnerType"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_completeSignup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 base.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg0, err = ec.unmarshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg0
 	return args, nil
 }
 
@@ -6644,6 +6676,48 @@ func (ec *executionContext) _Location_branchSladeCode(ctx context.Context, field
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_completeSignup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_completeSignup_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CompleteSignup(rctx, args["flavour"].(base.Flavour))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateUserProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15329,6 +15403,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "completeSignup":
+			out.Values[i] = ec._Mutation_completeSignup(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "updateUserProfile":
 			out.Values[i] = ec._Mutation_updateUserProfile(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -16726,6 +16805,16 @@ func (ec *executionContext) unmarshalNFieldType2gitlabᚗslade360emrᚗcomᚋgo�
 }
 
 func (ec *executionContext) marshalNFieldType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFieldType(ctx context.Context, sel ast.SelectionSet, v base.FieldType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx context.Context, v interface{}) (base.Flavour, error) {
+	var res base.Flavour
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx context.Context, sel ast.SelectionSet, v base.Flavour) graphql.Marshaler {
 	return v
 }
 

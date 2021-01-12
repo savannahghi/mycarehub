@@ -23,7 +23,10 @@ extend type Query {
 }
 
 extend type Mutation {
+  completeSignup(flavour:Flavour!): Boolean!
+
   updateUserProfile(input: UserProfileInput!): UserProfile!
+  
   updateUserPIN(phone: String!, pin: String!): PINOutput!
 
   registerPushToken(token: String!): Boolean!
