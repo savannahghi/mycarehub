@@ -791,7 +791,7 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 	}(profile, data)
 
 	profile.UserBioData.DateOfBirth = func(pr *base.UserProfile, dt base.BioData) *base.Date {
-		if dt.DateOfBirth == nil {
+		if dt.DateOfBirth != nil {
 			return dt.DateOfBirth
 		}
 		return pr.UserBioData.DateOfBirth
