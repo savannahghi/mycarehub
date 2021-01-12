@@ -586,3 +586,67 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 		})
 	}
 }
+
+func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		token string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Sad Case - short push token (invalid) should not be retired ",
+			args: args{
+				ctx:   ctx,
+				token: "1234",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unauthenticated context provided",
+			args: args{
+				ctx:   context.Background(),
+				token: "1234",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Happy Case - retire a valid push token",
+			args: args{
+				ctx:   ctx,
+				token: "12345678910",
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.Signup.RetirePushToken(tt.args.ctx, tt.args.token)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.RetirePushToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("SignUpUseCasesImpl.RetirePushToken() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
