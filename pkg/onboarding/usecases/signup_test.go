@@ -535,6 +535,20 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 		return
 	}
 
+	firstName := "Be.Well"
+	lastName := "Consumer"
+	bioData := base.BioData{
+		FirstName: &firstName,
+		LastName:  &lastName,
+	}
+	// Update the BioData
+	err = s.Onboarding.UpdateBioData(ctx, bioData)
+
+	if err != nil {
+		t.Errorf("failed to update userprofile biodata: %v", err)
+		return
+	}
+
 	type args struct {
 		ctx     context.Context
 		flavour base.Flavour

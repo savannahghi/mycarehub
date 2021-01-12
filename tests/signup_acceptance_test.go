@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -526,6 +527,176 @@ func TestRegisterPushToken(t *testing.T) {
 	}
 	// perform tear down; remove user
 	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user: %s", err)
+	}
+}
+
+func TestCompleteSignup(t *testing.T) {
+	ctx := context.Background()
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service: %v", err)
+		return
+	}
+
+	phoneNumber := base.TestUserPhoneNumber
+	user, err := CreateTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to create a user by phone %v", err)
+		return
+	}
+
+	idToken := user.Auth.IDToken
+	headers, err := CreatedUserGraphQLHeaders(idToken)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	firstName := "Be.Well"
+	lastName := "Consumer"
+	bioData := base.BioData{
+		FirstName: &firstName,
+		LastName:  &lastName,
+	}
+	// Update the user BioData
+	err = s.Onboarding.UpdateBioData(authenticatedContext, bioData)
+
+	if err != nil {
+		t.Errorf("failed to update userprofile biodata: %v", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+
+	graphqlMutation := `
+	mutation CompleteSingup($flavour:Flavour!){
+		completeSignup(flavour:$flavour)
+	  }
+	`
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "success: complete signup -  B.Well Consumer ERP account creation.",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"flavour": base.FlavourConsumer,
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "failure: complete signup -  B.Well Consumer ERP account creation.",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"flavour": base.FlavourPro, // invalid flavour
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := mapToJSONReader(tt.args.query)
+
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned %v", data)
+				return
+			}
+			if tt.wantErr {
+				errMsg, ok := data["errors"]
+				if !ok {
+					t.Errorf("GraphQL error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status response returned")
+				return
+			}
+		})
+	}
+	// perform tear down; remove user
+	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}

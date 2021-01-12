@@ -405,3 +405,14 @@ func SaveUserPinError(err error) error {
 	}
 	return nil
 }
+
+// CompleteSignUpError returns an error message when we are unable
+// CompleteSignup
+func CompleteSignUpError() error {
+	return &base.CustomError{
+		Err:     fmt.Errorf("incomplete Bio Data, expected first and last name"),
+		Message: BioDataErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
+	}
+}

@@ -123,4 +123,7 @@ const (
 
 	// SaveUserPinErrMsg is displayed when a user pin is not saved
 	SaveUserPinErrMsg = "unable to save user PIN"
+
+	// BioDataErrMsg is displayed when a user BioData is incomplete
+	BioDataErrMsg = "incomplete Bio Data, expected first and last name"
 )

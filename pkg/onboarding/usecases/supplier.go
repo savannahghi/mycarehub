@@ -193,7 +193,7 @@ func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context,
 			"country":       country,
 			"currency":      *currency.ID,
 			"is_customer":   true,
-			"customer type": partnerType,
+			"customer_type": partnerType,
 		}
 	} else {
 		endpoint = supplierAPIPath
