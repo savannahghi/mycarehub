@@ -522,3 +522,67 @@ func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx     context.Context
+		flavour base.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully complete the signup process",
+			args: args{
+				ctx:     ctx,
+				flavour: base.FlavourConsumer,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Try signup using an unauthenticated context",
+			args: args{
+				ctx:     context.Background(),
+				flavour: base.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Using an invalid flavour",
+			args: args{
+				ctx:     ctx,
+				flavour: base.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.Signup.CompleteSignup(tt.args.ctx, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.CompleteSignup() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("SignUpUseCasesImpl.CompleteSignup() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
