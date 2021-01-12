@@ -29,6 +29,20 @@ extend type Mutation {
   
   updateUserPIN(phone: String!, pin: String!): PINOutput!
 
+  setPrimaryPhoneNumber(phone: String!): Boolean!
+
+  setPrimaryEmailAddress(email: String!): Boolean!
+
+  addPrimaryEmailAddress(email: String!): Boolean!
+
+  addSecondaryPhoneNumber(phone: [String!]): Boolean!
+
+  updateUserName(username: String!): Boolean!
+
+  addSecondaryEmailAddress(email: [String!]): Boolean! 
+
+
+
   registerPushToken(token: String!): Boolean!
 
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!

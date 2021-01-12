@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -316,7 +315,6 @@ func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone 
 	if err != nil {
 		return exceptions.NormalizeMSISDNError(err)
 	}
-	logrus.Errorf("phone %v err %v", *phoneNumber, err)
 	return s.onboardingRepository.PurgeUserByPhoneNumber(ctx, *phoneNumber)
 }
 

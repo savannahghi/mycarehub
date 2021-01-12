@@ -19,6 +19,7 @@ type HandlersInterfaces interface {
 	VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc
 	CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc
 	UserRecoveryPhoneNumbers(ctx context.Context) http.HandlerFunc
+	SetPrimaryPhoneNumber(ctx context.Context) http.HandlerFunc
 	LoginByPhone(ctx context.Context) http.HandlerFunc
 	LoginAnonymous(ctx context.Context) http.HandlerFunc
 	RequestPINReset(ctx context.Context) http.HandlerFunc
@@ -97,6 +98,34 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) h
 		}
 
 		response, err := h.interactor.Signup.GetUserRecoveryPhoneNumbers(
+			ctx,
+			*p.PhoneNumber,
+		)
+
+		if err != nil {
+			base.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+		base.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// SetPrimaryPhoneNumber sets the provided phone number as the primary phone of the profile associated with it
+func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		p := &resources.PhoneNumberPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.PhoneNumber == nil {
+			err := fmt.Errorf("expected `phoneNumber` to be defined")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		response, err := h.interactor.Signup.SetPhoneAsPrimary(
 			ctx,
 			*p.PhoneNumber,
 		)

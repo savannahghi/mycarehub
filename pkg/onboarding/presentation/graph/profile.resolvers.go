@@ -24,6 +24,48 @@ func (r *mutationResolver) UpdateUserPin(ctx context.Context, phone string, pin 
 	return r.interactor.UserPIN.ChangeUserPIN(ctx, phone, pin)
 }
 
+func (r *mutationResolver) SetPrimaryPhoneNumber(ctx context.Context, phone string) (bool, error) {
+	if err := r.interactor.Onboarding.UpdatePrimaryPhoneNumber(ctx, phone, true); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (r *mutationResolver) SetPrimaryEmailAddress(ctx context.Context, email string) (bool, error) {
+	if err := r.interactor.Onboarding.UpdatePrimaryEmailAddress(ctx, email); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (r *mutationResolver) AddPrimaryEmailAddress(ctx context.Context, email string) (bool, error) {
+	if err := r.interactor.Onboarding.UpdatePrimaryEmailAddress(ctx, email); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (r *mutationResolver) AddSecondaryPhoneNumber(ctx context.Context, phone []string) (bool, error) {
+	if err := r.interactor.Onboarding.UpdateSecondaryPhoneNumbers(ctx, phone); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (r *mutationResolver) UpdateUserName(ctx context.Context, username string) (bool, error) {
+	if err := r.interactor.Onboarding.UpdateUserName(ctx, username); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (r *mutationResolver) AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error) {
+	if err := r.interactor.Onboarding.UpdateSecondaryPhoneNumbers(ctx, email); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) (bool, error) {
 	return r.interactor.Signup.RegisterPushToken(ctx, token)
 }

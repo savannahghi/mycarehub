@@ -14,6 +14,7 @@ import (
 type ProfileUseCase interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
 	GetProfileByID(ctx context.Context, id *string) (*base.UserProfile, error)
+	UpdateUserName(ctx context.Context, userName string) error
 	UpdatePrimaryPhoneNumber(ctx context.Context, phoneNumber string, useContext bool) error
 	UpdatePrimaryEmailAddress(ctx context.Context, emailAddress string) error
 	UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error
@@ -67,6 +68,15 @@ func (p *ProfileUseCaseImpl) GetProfileByID(ctx context.Context, id *string) (*b
 	return profile, nil
 }
 
+// UpdateUserName updates the user username.
+func (p *ProfileUseCaseImpl) UpdateUserName(ctx context.Context, userName string) error {
+	profile, err := p.UserProfile(ctx)
+	if err != nil {
+		return exceptions.ProfileNotFoundError(err)
+	}
+	return profile.UpdateProfileUserName(ctx, p.onboardingRepository, userName)
+}
+
 // UpdatePrimaryPhoneNumber updates the primary phone number of a specific user profile
 // this should be called after a prior check of uniqueness is done
 // this call if valid for both unauthenticated  rest and authenticated graphql. We use `useContext` to determine
@@ -102,26 +112,28 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 	previousPrimaryPhone := profile.PrimaryPhone
 	previousSecondaryPhones := profile.SecondaryPhoneNumbers
 
-	if err := p.UpdatePrimaryPhoneNumber(ctx, phone, useContext); err != nil {
+	if err := profile.UpdateProfilePrimaryPhoneNumber(ctx, p.onboardingRepository, phone); err != nil {
 		return err
 	}
 
-	// removes the new primary phone number from the list of selected primary phones and addes the previus primary phone number
-	// into the list of secondary phone numbers
+	// removes the new primary phone number from the list of secondary primary phones and adds the previous primary phone number
+	// into the list of new secondary phone numbers
 	newSecPhones := func(oldSecondaryPhones []string, oldPrimaryPhone string, newPrimaryPhone string) []string {
-		n := []string{}
+		secPhones := []string{}
 		for _, phone := range oldSecondaryPhones {
 			if phone != newPrimaryPhone {
-				n = append(n, phone)
+				secPhones = append(secPhones, phone)
 			}
 		}
-		n = append(n, oldPrimaryPhone)
+		secPhones = append(secPhones, oldPrimaryPhone)
 
-		return n
+		return secPhones
 	}(previousSecondaryPhones, *previousPrimaryPhone, *phoneNumber)
 
-	if err := p.UpdateSecondaryPhoneNumbers(ctx, newSecPhones); err != nil {
-		return err
+	if len(newSecPhones) >= 1 {
+		if err := profile.UpdateProfileSecondaryPhoneNumbers(ctx, p.onboardingRepository, newSecPhones); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -142,7 +154,35 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emai
 		return exceptions.ProfileNotFoundError(err)
 	}
 
-	return profile.UpdateProfilePrimaryEmailAddress(ctx, p.onboardingRepository, emailAddress)
+	previousPrimaryEmail := profile.PrimaryEmailAddress
+	previousSecondaryEmails := profile.SecondaryEmailAddresses
+
+	if err := profile.UpdateProfilePrimaryEmailAddress(ctx, p.onboardingRepository, emailAddress); err != nil {
+		return err
+	}
+
+	// removes the new primary email from the list of secondary emails and adds the previous primary email
+	// into the list of new secondary emails
+	newSecEmails := func(oldSecondaryEmails []string, oldPrimaryEmail string, newPrimaryEmail string) []string {
+		secEmails := []string{}
+		for _, phone := range oldSecondaryEmails {
+			if phone != newPrimaryEmail {
+				secEmails = append(secEmails, phone)
+			}
+		}
+		secEmails = append(secEmails, oldPrimaryEmail)
+
+		return secEmails
+	}(previousSecondaryEmails, *previousPrimaryEmail, emailAddress)
+
+	if len(newSecEmails) >= 1 {
+		if err := profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, newSecEmails); err != nil {
+			return err
+		}
+	}
+
+	return nil
+
 }
 
 // UpdateSecondaryPhoneNumbers updates secondary phone numberss of a specific user profile

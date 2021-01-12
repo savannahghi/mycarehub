@@ -204,14 +204,20 @@ type ComplexityRoot struct {
 		AddOrganizationProviderKyc       func(childComplexity int, input domain.OrganizationProvider) int
 		AddOrganizationRiderKyc          func(childComplexity int, input domain.OrganizationRider) int
 		AddPartnerType                   func(childComplexity int, name string, partnerType domain.PartnerType) int
+		AddPrimaryEmailAddress           func(childComplexity int, email string) int
+		AddSecondaryEmailAddress         func(childComplexity int, email []string) int
+		AddSecondaryPhoneNumber          func(childComplexity int, phone []string) int
 		CompleteSignup                   func(childComplexity int, flavour base.Flavour) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
 		RecordPostVisitSurvey            func(childComplexity int, input resources.PostVisitSurveyInput) int
 		RegisterPushToken                func(childComplexity int, token string) int
+		SetPrimaryEmailAddress           func(childComplexity int, email string) int
+		SetPrimaryPhoneNumber            func(childComplexity int, phone string) int
 		SetUpSupplier                    func(childComplexity int, accountType domain.AccountType) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
 		SupplierSetDefaultLocation       func(childComplexity int, locatonID string) int
 		SuspendSupplier                  func(childComplexity int) int
+		UpdateUserName                   func(childComplexity int, username string) int
 		UpdateUserPin                    func(childComplexity int, phone string, pin string) int
 		UpdateUserProfile                func(childComplexity int, input resources.UserProfileInput) int
 	}
@@ -401,6 +407,12 @@ type MutationResolver interface {
 	CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error)
 	UpdateUserProfile(ctx context.Context, input resources.UserProfileInput) (*base.UserProfile, error)
 	UpdateUserPin(ctx context.Context, phone string, pin string) (*resources.PINOutput, error)
+	SetPrimaryPhoneNumber(ctx context.Context, phone string) (bool, error)
+	SetPrimaryEmailAddress(ctx context.Context, email string) (bool, error)
+	AddPrimaryEmailAddress(ctx context.Context, email string) (bool, error)
+	AddSecondaryPhoneNumber(ctx context.Context, phone []string) (bool, error)
+	UpdateUserName(ctx context.Context, username string) (bool, error)
+	AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
 	AddPartnerType(ctx context.Context, name string, partnerType domain.PartnerType) (bool, error)
 	SuspendSupplier(ctx context.Context) (bool, error)
@@ -1190,6 +1202,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddPartnerType(childComplexity, args["name"].(string), args["partnerType"].(domain.PartnerType)), true
 
+	case "Mutation.addPrimaryEmailAddress":
+		if e.complexity.Mutation.AddPrimaryEmailAddress == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addPrimaryEmailAddress_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddPrimaryEmailAddress(childComplexity, args["email"].(string)), true
+
+	case "Mutation.addSecondaryEmailAddress":
+		if e.complexity.Mutation.AddSecondaryEmailAddress == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addSecondaryEmailAddress_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddSecondaryEmailAddress(childComplexity, args["email"].([]string)), true
+
+	case "Mutation.addSecondaryPhoneNumber":
+		if e.complexity.Mutation.AddSecondaryPhoneNumber == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addSecondaryPhoneNumber_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddSecondaryPhoneNumber(childComplexity, args["phone"].([]string)), true
+
 	case "Mutation.completeSignup":
 		if e.complexity.Mutation.CompleteSignup == nil {
 			break
@@ -1238,6 +1286,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RegisterPushToken(childComplexity, args["token"].(string)), true
 
+	case "Mutation.setPrimaryEmailAddress":
+		if e.complexity.Mutation.SetPrimaryEmailAddress == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setPrimaryEmailAddress_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetPrimaryEmailAddress(childComplexity, args["email"].(string)), true
+
+	case "Mutation.setPrimaryPhoneNumber":
+		if e.complexity.Mutation.SetPrimaryPhoneNumber == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setPrimaryPhoneNumber_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetPrimaryPhoneNumber(childComplexity, args["phone"].(string)), true
+
 	case "Mutation.setUpSupplier":
 		if e.complexity.Mutation.SetUpSupplier == nil {
 			break
@@ -1280,6 +1352,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SuspendSupplier(childComplexity), true
+
+	case "Mutation.updateUserName":
+		if e.complexity.Mutation.UpdateUserName == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUserName_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUserName(childComplexity, args["username"].(string)), true
 
 	case "Mutation.updateUserPIN":
 		if e.complexity.Mutation.UpdateUserPin == nil {
@@ -2802,6 +2886,20 @@ extend type Mutation {
   
   updateUserPIN(phone: String!, pin: String!): PINOutput!
 
+  setPrimaryPhoneNumber(phone: String!): Boolean!
+
+  setPrimaryEmailAddress(email: String!): Boolean!
+
+  addPrimaryEmailAddress(email: String!): Boolean!
+
+  addSecondaryPhoneNumber(phone: [String!]): Boolean!
+
+  updateUserName(username: String!): Boolean!
+
+  addSecondaryEmailAddress(email: [String!]): Boolean! 
+
+
+
   registerPushToken(token: String!): Boolean!
 
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
@@ -3497,6 +3595,51 @@ func (ec *executionContext) field_Mutation_addPartnerType_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addPrimaryEmailAddress_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addSecondaryEmailAddress_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+		arg0, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addSecondaryPhoneNumber_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []string
+	if tmp, ok := rawArgs["phone"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+		arg0, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phone"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_completeSignup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3575,6 +3718,36 @@ func (ec *executionContext) field_Mutation_registerPushToken_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_setPrimaryEmailAddress_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setPrimaryPhoneNumber_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["phone"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phone"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_setUpSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3635,6 +3808,21 @@ func (ec *executionContext) field_Mutation_supplierSetDefaultLocation_args(ctx c
 		}
 	}
 	args["locatonID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUserName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
 	return args, nil
 }
 
@@ -6802,6 +6990,258 @@ func (ec *executionContext) _Mutation_updateUserPIN(ctx context.Context, field g
 	res := resTmp.(*resources.PINOutput)
 	fc.Result = res
 	return ec.marshalNPINOutput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐPINOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setPrimaryPhoneNumber(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setPrimaryPhoneNumber_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetPrimaryPhoneNumber(rctx, args["phone"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setPrimaryEmailAddress(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setPrimaryEmailAddress_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetPrimaryEmailAddress(rctx, args["email"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addPrimaryEmailAddress(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addPrimaryEmailAddress_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddPrimaryEmailAddress(rctx, args["email"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addSecondaryPhoneNumber(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addSecondaryPhoneNumber_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddSecondaryPhoneNumber(rctx, args["phone"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateUserName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateUserName_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUserName(rctx, args["username"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addSecondaryEmailAddress(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addSecondaryEmailAddress_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddSecondaryEmailAddress(rctx, args["email"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_registerPushToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15415,6 +15855,36 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "updateUserPIN":
 			out.Values[i] = ec._Mutation_updateUserPIN(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setPrimaryPhoneNumber":
+			out.Values[i] = ec._Mutation_setPrimaryPhoneNumber(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setPrimaryEmailAddress":
+			out.Values[i] = ec._Mutation_setPrimaryEmailAddress(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addPrimaryEmailAddress":
+			out.Values[i] = ec._Mutation_addPrimaryEmailAddress(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addSecondaryPhoneNumber":
+			out.Values[i] = ec._Mutation_addSecondaryPhoneNumber(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateUserName":
+			out.Values[i] = ec._Mutation_updateUserName(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addSecondaryEmailAddress":
+			out.Values[i] = ec._Mutation_addSecondaryEmailAddress(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
