@@ -48,7 +48,6 @@ func NewHandlersInterfaces(i *interactor.Interactor) HandlersInterfaces {
 // If the phone number does not exist, it sends the OTP to the phone number
 func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		p := &resources.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
@@ -56,6 +55,7 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) ht
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
 		}
+
 		otpResp, err := h.interactor.Signup.VerifyPhoneNumber(ctx, *p.PhoneNumber)
 		if err != nil {
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)

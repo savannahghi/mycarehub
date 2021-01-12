@@ -775,33 +775,29 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 		}
 		return pr.UserBioData.FirstName
 	}(profile, data)
-
 	profile.UserBioData.LastName = func(pr *base.UserProfile, dt base.BioData) *string {
 		if dt.LastName != nil {
 			return dt.LastName
 		}
 		return pr.UserBioData.LastName
 	}(profile, data)
-
 	profile.UserBioData.Gender = func(pr *base.UserProfile, dt base.BioData) base.Gender {
 		if dt.Gender.String() != "" {
 			return dt.Gender
 		}
 		return pr.UserBioData.Gender
 	}(profile, data)
-
 	profile.UserBioData.DateOfBirth = func(pr *base.UserProfile, dt base.BioData) *base.Date {
 		if dt.DateOfBirth != nil {
 			return dt.DateOfBirth
 		}
+
 		return pr.UserBioData.DateOfBirth
 	}(profile, data)
-
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)

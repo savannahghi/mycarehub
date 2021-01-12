@@ -9,6 +9,15 @@ import (
 	"os"
 	"time"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/handlers"
@@ -46,8 +55,27 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	if err != nil {
 		return nil, err
 	}
+	fr, err := database.NewFirebaseRepository(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("can't instantiate firebase repository in resolver: %w", err)
+	}
 
-	i, err := interactor.NewOnboardingInteractor()
+	profile := usecases.NewProfileUseCase(fr)
+	otp := otp.NewOTPService(fr)
+	erp := erp.NewERPService(fr)
+	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
+	engage := engagement.NewServiceEngagementImpl(fr)
+	mg := mailgun.NewServiceMailgunImpl()
+	mes := messaging.NewServiceMessagingImpl()
+	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes)
+	login := usecases.NewLoginUseCases(fr, profile)
+	survey := usecases.NewSurveyUseCases(fr)
+	userpin := usecases.NewUserPinUseCase(fr, otp, profile)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp)
+
+	i, err := interactor.NewOnboardingInteractor(
+		fr, profile, su, otp, supplier, login, survey, userpin, erp, chrg, engage, mg, mes,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
 	}

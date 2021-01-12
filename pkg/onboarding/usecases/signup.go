@@ -82,7 +82,6 @@ func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string)
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
-
 	exists, err := s.onboardingRepository.CheckIfPhoneNumberExists(ctx, *phoneNumber)
 	if err != nil {
 		return false, exceptions.CheckPhoneNumberExistError()
@@ -324,7 +323,6 @@ func (s *SignUpUseCasesImpl) VerifyPhoneNumber(ctx context.Context, phone string
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
-
 	// check if phone number exists
 	exists, err := s.CheckPhoneExists(ctx, *phoneNumber)
 	if err != nil {
@@ -336,6 +334,7 @@ func (s *SignUpUseCasesImpl) VerifyPhoneNumber(ctx context.Context, phone string
 	}
 	// generate and send otp to the phone number
 	otpResp, err := s.otpUseCases.GenerateAndSendOTP(ctx, *phoneNumber)
+
 	if err != nil {
 		return nil, exceptions.GenerateAndSendOTPError(err)
 	}

@@ -3,17 +3,14 @@
 package interactor
 
 import (
-	"context"
-	"fmt"
-
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
@@ -34,25 +31,14 @@ type Interactor struct {
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
-func NewOnboardingInteractor() (*Interactor, error) {
-
-	fr, err := database.NewFirebaseRepository(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("can't instantiate firebase repository in resolver: %w", err)
-	}
-
-	profile := usecases.NewProfileUseCase(fr)
-	otp := otp.NewOTPService(fr)
-	erp := erp.NewERPService(fr)
-	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
-	engage := engagement.NewServiceEngagementImpl(fr)
-	mg := mailgun.NewServiceMailgunImpl()
-	mes := messaging.NewServiceMessagingImpl()
-	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes)
-	login := usecases.NewLoginUseCases(fr, profile)
-	survey := usecases.NewSurveyUseCases(fr)
-	userpin := usecases.NewUserPinUseCase(fr, otp, profile)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp)
+func NewOnboardingInteractor(
+	fr repository.OnboardingRepository, profile usecases.ProfileUseCase,
+	su usecases.SignUpUseCases, otp otp.ServiceOTP,
+	supplier usecases.SupplierUseCases, login usecases.LoginUseCases,
+	survey usecases.SurveyUseCases, userpin usecases.UserPINUseCases,
+	erp erp.ServiceERP, chrg chargemaster.ServiceChargeMaster,
+	engage engagement.ServiceEngagement, mg mailgun.ServiceMailgun,
+	mes messaging.ServiceMessaging) (*Interactor, error) {
 
 	return &Interactor{
 		Onboarding:   profile,

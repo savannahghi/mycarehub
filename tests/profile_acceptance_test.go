@@ -39,7 +39,12 @@ func TestUpdateUserProfile(t *testing.T) {
 	graphqlMutation := `
 	mutation updateUserProfile($input:UserProfileInput!){
 		updateUserProfile(input: $input){
-			id
+			userBioData {
+				firstName
+				lastName
+				gender
+				dateOfBirth
+			  }
 		}
 	}`
 
@@ -219,7 +224,10 @@ func TestUpdateUserProfile(t *testing.T) {
 				t.Errorf("request error: %s", err)
 				return
 			}
-
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status response returned. Expected %v, got %v", tt.wantStatus, resp.StatusCode)
+				return
+			}
 			res, _ := httputil.DumpResponse(resp, true)
 			logrus.Printf("%v", string(res))
 
@@ -239,7 +247,6 @@ func TestUpdateUserProfile(t *testing.T) {
 				t.Errorf("bad data returned")
 				return
 			}
-
 			if tt.wantErr {
 				errMsg, ok := data["errors"]
 				if !ok {
@@ -254,11 +261,30 @@ func TestUpdateUserProfile(t *testing.T) {
 					t.Errorf("error not expected %v", v)
 					return
 				}
+				// check/assert the returned data/response
+				for key := range data {
+					nestedMap, ok := data[key].(map[string]interface{})
+					if !ok {
+						t.Errorf("cannot cast key value of %v to type map[string]interface{}", key)
+						return
+					}
+					for nestedKey := range nestedMap {
+						if nestedKey == "updateUserProfile" {
+							output, ok := nestedMap[nestedKey].(map[string]interface{})
+							if !ok {
+								t.Errorf("can't cast nestedKey to map[string]interface{}")
+								return
+							}
+							_, present := output["userBioData"].(map[string]interface{})
+							if !present {
+								t.Errorf("Biodata not present in output")
+								return
+							}
+						}
+					}
+				}
 			}
-			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("Bad status response returned. Expected %v, got %v", tt.wantStatus, resp.StatusCode)
-				return
-			}
+
 		})
 	}
 	// perform tear down; remove user
