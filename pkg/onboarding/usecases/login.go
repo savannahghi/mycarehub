@@ -20,16 +20,18 @@ type LoginUseCases interface {
 	) (*resources.UserResponse, error)
 	RefreshToken(token string) (*resources.AuthCredentialResponse, error)
 	LoginAsAnonymous(ctx context.Context) (*resources.AuthCredentialResponse, error)
+	ResumeWithPin(ctx context.Context, pin string) error
 }
 
 // LoginUseCasesImpl represents the usecase implementation object
 type LoginUseCasesImpl struct {
 	onboardingRepository repository.OnboardingRepository
+	profile              ProfileUseCase
 }
 
 // NewLoginUseCases initializes a new sign up usecase
-func NewLoginUseCases(r repository.OnboardingRepository) LoginUseCases {
-	return &LoginUseCasesImpl{r}
+func NewLoginUseCases(r repository.OnboardingRepository, p ProfileUseCase) LoginUseCases {
+	return &LoginUseCasesImpl{onboardingRepository: r, profile: p}
 }
 
 // LoginByPhone returns credentials that are used to log a user in
@@ -49,17 +51,16 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	if err != nil {
 		return nil, exceptions.ProfileNotFoundError(err)
 	}
-
+	// defensive programming in action
 	if profile == nil {
 		return nil, exceptions.ProfileNotFoundError(nil)
 	}
 
 	PINData, err := l.onboardingRepository.GetPINByProfileID(ctx, profile.ID)
-
 	if err != nil {
 		return nil, exceptions.PinNotFoundError(err)
 	}
-
+	// defensive programming in action
 	if PINData == nil {
 		return nil, exceptions.PinNotFoundError(nil)
 	}
@@ -103,4 +104,34 @@ func (l *LoginUseCasesImpl) RefreshToken(token string) (*resources.AuthCredentia
 // their phone number. All that we return is auth credentials and an error
 func (l *LoginUseCasesImpl) LoginAsAnonymous(ctx context.Context) (*resources.AuthCredentialResponse, error) {
 	return l.onboardingRepository.GenerateAuthCredentialsForAnonymousUser(ctx)
+}
+
+// ResumeWithPin called by the frontend check whether the currentlt logged in user is the once trying to get
+// access to app
+func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) error {
+	profile, err := l.profile.UserProfile(ctx)
+	if err != nil {
+		return exceptions.ProfileNotFoundError(err)
+	}
+
+	// defensive programming in action
+	if profile == nil {
+		return exceptions.ProfileNotFoundError(nil)
+	}
+
+	PINData, err := l.onboardingRepository.GetPINByProfileID(ctx, profile.ID)
+	if err != nil {
+		return exceptions.PinNotFoundError(err)
+	}
+	// defensive programming in action
+	if PINData == nil {
+		return exceptions.PinNotFoundError(nil)
+	}
+
+	matched := utils.ComparePIN(pin, PINData.Salt, PINData.PINNumber, nil)
+	if !matched {
+		return exceptions.PinMismatchError(nil)
+
+	}
+	return nil
 }

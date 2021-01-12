@@ -49,7 +49,7 @@ func NewOnboardingInteractor() (*Interactor, error) {
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes)
-	login := usecases.NewLoginUseCases(fr)
+	login := usecases.NewLoginUseCases(fr, profile)
 	survey := usecases.NewSurveyUseCases(fr)
 	userpin := usecases.NewUserPinUseCase(fr, otp, profile)
 	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp)

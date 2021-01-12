@@ -332,6 +332,7 @@ type ComplexityRoot struct {
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) int
 		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) int
+		ResumeWithPin                 func(childComplexity int, pin string) int
 		SupplierProfile               func(childComplexity int) int
 		UserProfile                   func(childComplexity int) int
 		__resolve__service            func(childComplexity int) int
@@ -436,6 +437,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
 	SupplierProfile(ctx context.Context) (*domain.Supplier, error)
+	ResumeWithPin(ctx context.Context, pin string) (bool, error)
 	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error)
 	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) (*resources.BranchConnection, error)
 	FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error)
@@ -1973,6 +1975,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FindProvider(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*resources.BusinessPartnerFilterInput), args["sort"].([]*resources.BusinessPartnerSortInput)), true
 
+	case "Query.resumeWithPIN":
+		if e.complexity.Query.ResumeWithPin == nil {
+			break
+		}
+
+		args, err := ec.field_Query_resumeWithPIN_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ResumeWithPin(childComplexity, args["pin"].(string)), true
+
 	case "Query.supplierProfile":
 		if e.complexity.Query.SupplierProfile == nil {
 			break
@@ -2860,6 +2874,8 @@ input OrganizationPharmaceuticalInput {
 
   supplierProfile: Supplier!
 
+  resumeWithPIN(pin: String!): Boolean!
+
   findProvider(
     pagination: PaginationInput
     filter: [BusinessPartnerFilterInput]
@@ -2896,9 +2912,7 @@ extend type Mutation {
 
   updateUserName(username: String!): Boolean!
 
-  addSecondaryEmailAddress(email: [String!]): Boolean! 
-
-
+  addSecondaryEmailAddress(email: [String!]): Boolean!   
 
   registerPushToken(token: String!): Boolean!
 
@@ -3958,6 +3972,21 @@ func (ec *executionContext) field_Query_findProvider_args(ctx context.Context, r
 		}
 	}
 	args["sort"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_resumeWithPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["pin"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pin"] = arg0
 	return args, nil
 }
 
@@ -10724,6 +10753,48 @@ func (ec *executionContext) _Query_supplierProfile(ctx context.Context, field gr
 	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupplier(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_resumeWithPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_resumeWithPIN_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ResumeWithPin(rctx, args["pin"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_findProvider(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16509,6 +16580,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_supplierProfile(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "resumeWithPIN":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_resumeWithPIN(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

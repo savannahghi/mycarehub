@@ -8,7 +8,7 @@ import (
 func TestRandomNamed(t *testing.T) {
 	var names []*string
 
-	for i := 0; i < 10_000; i++ {
+	for i := 0; i < 1000; i++ {
 		n := GetRandomName()
 		names = append(names, n)
 	}

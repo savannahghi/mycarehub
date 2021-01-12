@@ -3,6 +3,8 @@ extend type Query {
 
   supplierProfile: Supplier!
 
+  resumeWithPIN(pin: String!): Boolean!
+
   findProvider(
     pagination: PaginationInput
     filter: [BusinessPartnerFilterInput]
@@ -39,9 +41,7 @@ extend type Mutation {
 
   updateUserName(username: String!): Boolean!
 
-  addSecondaryEmailAddress(email: [String!]): Boolean! 
-
-
+  addSecondaryEmailAddress(email: [String!]): Boolean!   
 
   registerPushToken(token: String!): Boolean!
 

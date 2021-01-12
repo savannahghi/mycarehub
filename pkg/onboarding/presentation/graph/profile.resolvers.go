@@ -150,6 +150,13 @@ func (r *queryResolver) SupplierProfile(ctx context.Context) (*domain.Supplier, 
 	return r.interactor.Supplier.FindSupplierByUID(ctx)
 }
 
+func (r *queryResolver) ResumeWithPin(ctx context.Context, pin string) (bool, error) {
+	if err := r.interactor.Login.ResumeWithPin(ctx, pin); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
 	return r.interactor.ChargeMaster.FindProvider(ctx, pagination, filter, sort)
 }
