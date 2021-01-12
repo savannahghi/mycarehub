@@ -245,7 +245,7 @@ func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Fl
 			return false, exceptions.ProfileNotFoundError(err)
 		}
 		if pr.UserBioData.FirstName == nil || pr.UserBioData.LastName == nil {
-			return false, exceptions.CompleteSignUpError()
+			return false, exceptions.CompleteSignUpError(nil)
 		}
 		fullName := fmt.Sprintf("%v %v", *pr.UserBioData.FirstName, *pr.UserBioData.LastName)
 		_, _ = s.supplierUsecase.AddCustomerSupplierERPAccount(ctx, fullName, domain.PartnerTypeConsumer)

@@ -65,27 +65,21 @@ func InternalServerError(err error) error {
 
 // PinNotFoundError displays error message when a pin is not found
 func PinNotFoundError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: PINNotFoundErrMsg,
-			Code:    int(base.PINNotFound),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: PINNotFoundErrMsg,
+		Code:    int(base.PINNotFound),
 	}
-	return nil
 }
 
 // PinMismatchError displays an error when the supplied PIN
 // does not match the PIN stored
 func PinMismatchError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: PINMismatchErrMsg,
-			Code:    int(base.PINMismatch),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: PINMismatchErrMsg,
+		Code:    int(base.PINMismatch),
 	}
-	return nil
 }
 
 // CustomTokenError is the error message displayed when a
@@ -407,10 +401,10 @@ func SaveUserPinError(err error) error {
 }
 
 // CompleteSignUpError returns an error message when we are unable
-// CompleteSignup
-func CompleteSignUpError() error {
+// to CompleteSignup
+func CompleteSignUpError(err error) error {
 	return &base.CustomError{
-		Err:     fmt.Errorf("incomplete Bio Data, expected first and last name"),
+		Err:     err,
 		Message: BioDataErrMsg,
 		// TODO: provide a correct code
 		Code: int(base.Internal),
