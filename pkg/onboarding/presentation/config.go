@@ -145,6 +145,24 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(h.UpdateCovers(ctx))
 
+	// The reason for the below endpoints to be used for interservice communication
+	// is to allow for the creation of internal `test` users that can be used
+	// to run tests in other services that require an authenticated user.
+	// The creation of the users occurs in `Base` which is a central util accessible by
+	// all the other services
+	isc.Path("/verify_phone").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.VerifySignUpPhoneNumber(ctx))
+	isc.Path("/create_user_by_phone").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.CreateUserWithPhoneNumber(ctx))
+	isc.Path("/login_by_phone").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.LoginByPhone(ctx))
+
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(base.AuthenticationMiddleware(firebaseApp))
