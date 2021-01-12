@@ -442,3 +442,83 @@ func TestSignUpUseCasesImpl_GetUserRecoveryPhoneNumbers(t *testing.T) {
 		})
 	}
 }
+
+func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	phone := base.TestUserPhoneNumber
+
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Sad Case - Using an existing phonenumber",
+			args: args{
+				ctx:   ctx,
+				phone: phone,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Using an invalid phonenumber",
+			args: args{
+				ctx:   ctx,
+				phone: "+254719XYZ245",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Using an invalid phonenumber",
+			args: args{
+				ctx:   ctx,
+				phone: "+2546",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Using an invalid phonenumber",
+			args: args{
+				ctx:   ctx,
+				phone: "+254-not-vlid-123",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Happy Case - Using a valid phonenumber",
+			args: args{
+				ctx:   ctx,
+				phone: "+254733445566",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.Signup.VerifyPhoneNumber(tt.args.ctx, tt.args.phone)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.VerifyPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got nil, since no error occurred")
+				return
+			}
+		})
+	}
+}
