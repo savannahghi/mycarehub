@@ -306,11 +306,6 @@ type ComplexityRoot struct {
 		SupportingDocumentsUploadID        func(childComplexity int) int
 	}
 
-	PINOutput struct {
-		PINNumber func(childComplexity int) int
-		ProfileID func(childComplexity int) int
-	}
-
 	PageInfo struct {
 		EndCursor       func(childComplexity int) int
 		HasNextPage     func(childComplexity int) int
@@ -407,7 +402,7 @@ type EntityResolver interface {
 type MutationResolver interface {
 	CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error)
 	UpdateUserProfile(ctx context.Context, input resources.UserProfileInput) (*base.UserProfile, error)
-	UpdateUserPin(ctx context.Context, phone string, pin string) (*resources.PINOutput, error)
+	UpdateUserPin(ctx context.Context, phone string, pin string) (bool, error)
 	SetPrimaryPhoneNumber(ctx context.Context, phone string) (bool, error)
 	SetPrimaryEmailAddress(ctx context.Context, email string) (bool, error)
 	AddPrimaryEmailAddress(ctx context.Context, email string) (bool, error)
@@ -1853,20 +1848,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OrganizationRider.SupportingDocumentsUploadID(childComplexity), true
 
-	case "PINOutput.pinNumber":
-		if e.complexity.PINOutput.PINNumber == nil {
-			break
-		}
-
-		return e.complexity.PINOutput.PINNumber(childComplexity), true
-
-	case "PINOutput.profileID":
-		if e.complexity.PINOutput.ProfileID == nil {
-			break
-		}
-
-		return e.complexity.PINOutput.ProfileID(childComplexity), true
-
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -2900,7 +2881,7 @@ extend type Mutation {
 
   updateUserProfile(input: UserProfileInput!): UserProfile!
   
-  updateUserPIN(phone: String!, pin: String!): PINOutput!
+  updateUserPIN(phone: String!, pin: String!): Boolean!
 
   setPrimaryPhoneNumber(phone: String!): Boolean!
 
@@ -3346,11 +3327,6 @@ type KYCRequest {
   processed: Boolean!
   supplierRecord: Supplier!
   status: KYCProcessStatus
-}
-
-type PINOutput {
-  profileID: String!
-  pinNumber: String!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -7016,9 +6992,9 @@ func (ec *executionContext) _Mutation_updateUserPIN(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*resources.PINOutput)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNPINOutput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐPINOutput(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_setPrimaryPhoneNumber(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10267,76 +10243,6 @@ func (ec *executionContext) _OrganizationRider_supportingDocumentsUploadID(ctx c
 	res := resTmp.([]string)
 	fc.Result = res
 	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _PINOutput_profileID(ctx context.Context, field graphql.CollectedField, obj *resources.PINOutput) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "PINOutput",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ProfileID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _PINOutput_pinNumber(ctx context.Context, field graphql.CollectedField, obj *resources.PINOutput) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "PINOutput",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PINNumber, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
@@ -16422,38 +16328,6 @@ func (ec *executionContext) _OrganizationRider(ctx context.Context, sel ast.Sele
 	return out
 }
 
-var pINOutputImplementors = []string{"PINOutput"}
-
-func (ec *executionContext) _PINOutput(ctx context.Context, sel ast.SelectionSet, obj *resources.PINOutput) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, pINOutputImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("PINOutput")
-		case "profileID":
-			out.Values[i] = ec._PINOutput_profileID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "pinNumber":
-			out.Values[i] = ec._PINOutput_pinNumber(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var pageInfoImplementors = []string{"PageInfo", "_Entity"}
 
 func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *base.PageInfo) graphql.Marshaler {
@@ -17706,20 +17580,6 @@ func (ec *executionContext) unmarshalNOrganizationType2gitlabᚗslade360emrᚗco
 
 func (ec *executionContext) marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationType) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) marshalNPINOutput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐPINOutput(ctx context.Context, sel ast.SelectionSet, v resources.PINOutput) graphql.Marshaler {
-	return ec._PINOutput(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNPINOutput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐPINOutput(ctx context.Context, sel ast.SelectionSet, v *resources.PINOutput) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._PINOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPageInfo2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v base.PageInfo) graphql.Marshaler {

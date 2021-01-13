@@ -918,46 +918,34 @@ func (fr *Repository) RecordPostVisitSurvey(
 }
 
 // SavePIN  persist the data of the newly created PIN to a datastore
-func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN, error) {
+func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (bool, error) {
 	// persist the data to a datastore
-	docID, err := base.SaveDataToFirestore(fr.FirestoreClient, fr.GetPINsCollectionName(), pin)
+	_, err := base.SaveDataToFirestore(fr.FirestoreClient, fr.GetPINsCollectionName(), pin)
 	if err != nil {
-		return nil, exceptions.AddRecordError(err)
+		return false, exceptions.AddRecordError(err)
 	}
-	dsnap, err := fr.FirestoreClient.Collection(fr.GetPINsCollectionName()).Doc(docID).Get(ctx)
-
-	if err != nil {
-		return nil, exceptions.RetrieveRecordError(err)
-	}
-
-	PIN := &domain.PIN{}
-	err = dsnap.DataTo(PIN)
-	if err != nil {
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	return PIN, nil
+	return true, nil
 
 }
 
 // UpdatePIN  persist the data of the updated PIN to a datastore
-func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN) (*domain.PIN, error) {
+func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN) (bool, error) {
 	pinData, err := fr.GetPINByProfileID(ctx, id)
 	if err != nil {
-		return nil, exceptions.PinNotFoundError(err)
+		return false, exceptions.PinNotFoundError(err)
 	}
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetPINsCollectionName(), pinData.ID)
 	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse user pin as firebase snapshot: %v", err))
+		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user pin as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetPINsCollectionName(), record.Ref.ID, pin,
 	)
 	if err != nil {
-		return nil, exceptions.UpdateProfileError(err)
+		return false, exceptions.UpdateProfileError(err)
 	}
-	return pin, nil
+	return true, nil
 
 }
 
@@ -1383,13 +1371,20 @@ func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
 func (fr *Repository) GetOrCreatePhoneNumberUser(
 	ctx context.Context,
 	phone string,
-) (*auth.UserRecord, error) {
+) (*resources.CreatedUserResponse, error) {
 	user, err := fr.FirebaseClient.GetUserByPhoneNumber(
 		ctx,
 		phone,
 	)
 	if err == nil {
-		return user, nil
+		return &resources.CreatedUserResponse{
+			UID:         user.UID,
+			DisplayName: user.DisplayName,
+			Email:       user.Email,
+			PhoneNumber: user.PhoneNumber,
+			PhotoURL:    user.PhotoURL,
+			ProviderID:  user.ProviderID,
+		}, nil
 	}
 
 	params := (&auth.UserToCreate{}).
@@ -1401,5 +1396,12 @@ func (fr *Repository) GetOrCreatePhoneNumberUser(
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
-	return newUser, nil
+	return &resources.CreatedUserResponse{
+		UID:         newUser.UID,
+		DisplayName: newUser.DisplayName,
+		Email:       newUser.Email,
+		PhoneNumber: newUser.PhoneNumber,
+		PhotoURL:    newUser.PhotoURL,
+		ProviderID:  newUser.ProviderID,
+	}, nil
 }

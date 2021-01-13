@@ -3,7 +3,6 @@ package mock
 import (
 	"context"
 
-	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 
@@ -14,8 +13,7 @@ import (
 type FakeOnboardingRepository struct {
 	GetSupplierProfileByIDFn        func(ctx context.Context, id string) (*base.Supplier, error)
 	GetSupplierProfileByProfileIDFn func(ctx context.Context, profileID string) (*base.Supplier, error)
-
-	AddPartnerTypeFn func(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error)
+	AddPartnerTypeFn                func(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error)
 
 	UpdateSupplierProfileFn func(ctx context.Context, data *base.Supplier) (*base.Supplier, error)
 
@@ -77,8 +75,8 @@ type FakeOnboardingRepository struct {
 	RecordPostVisitSurveyFn func(ctx context.Context, input resources.PostVisitSurveyInput, UID string) error
 
 	// User Pin methods
-	SavePINFn   func(ctx context.Context, pin *domain.PIN) (*domain.PIN, error)
-	UpdatePINFn func(ctx context.Context, id string, pin *domain.PIN) (*domain.PIN, error)
+	SavePINFn   func(ctx context.Context, pin *domain.PIN) (bool, error)
+	UpdatePINFn func(ctx context.Context, id string, pin *domain.PIN) (bool, error)
 
 	ExchangeRefreshTokenForIDTokenFn func(
 		token string,
@@ -93,7 +91,7 @@ type FakeOnboardingRepository struct {
 	GetOrCreatePhoneNumberUserFn func(
 		ctx context.Context,
 		phone string,
-	) (*auth.UserRecord, error)
+	) (*resources.CreatedUserResponse, error)
 
 	// Userprofile
 	UpdateUserNameFn                func(ctx context.Context, id string, phoneNumber string) error
@@ -246,12 +244,12 @@ func (f *FakeOnboardingRepository) RecordPostVisitSurvey(ctx context.Context, in
 }
 
 //SavePIN  User Pin methods
-func (f *FakeOnboardingRepository) SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN, error) {
+func (f *FakeOnboardingRepository) SavePIN(ctx context.Context, pin *domain.PIN) (bool, error) {
 	return f.SavePINFn(ctx, pin)
 }
 
 // UpdatePIN ...
-func (f *FakeOnboardingRepository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN) (*domain.PIN, error) {
+func (f *FakeOnboardingRepository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN) (bool, error) {
 	return f.UpdatePINFn(ctx, id, pin)
 }
 
@@ -328,6 +326,6 @@ func (f *FakeOnboardingRepository) UpdateVerifiedUIDS(ctx context.Context, id st
 // GetOrCreatePhoneNumberUser ...
 func (f *FakeOnboardingRepository) GetOrCreatePhoneNumberUser(ctx context.Context,
 	phone string,
-) (*auth.UserRecord, error) {
+) (*resources.CreatedUserResponse, error) {
 	return f.GetOrCreatePhoneNumberUserFn(ctx, phone)
 }

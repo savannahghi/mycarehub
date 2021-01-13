@@ -333,10 +333,7 @@ func TestUpdateUserPIN(t *testing.T) {
 
 	graphqlMutation := `
 	mutation updateUserPIN($phone:String!, $pin:String!){
-		updateUserPIN(phone:$phone, pin:$pin){
-		  profileID
-		  pinNumber
-		}
+		updateUserPIN(phone:$phone, pin:$pin)
 	  }
 	`
 	type args struct {
@@ -363,34 +360,34 @@ func TestUpdateUserPIN(t *testing.T) {
 			wantStatus: http.StatusOK,
 			wantErr:    false,
 		},
-		// {
-		// 	name: "failure: update pin for unregistred user",
-		// 	args: args{
-		// 		query: map[string]interface{}{
-		// 			"query": graphqlMutation,
-		// 			"variables": map[string]interface{}{
-		// 				"phone": base.TestUserPhoneNumber,
-		// 				"pin":   "1234",
-		// 			},
-		// 		},
-		// 	},
-		// 	wantStatus: 465,
-		// 	wantErr:    true,
-		// },
-		// {
-		// 	name: "failure: update pin with bogus payload",
-		// 	args: args{
-		// 		query: map[string]interface{}{
-		// 			"query": graphqlMutation,
-		// 			"variables": map[string]interface{}{
-		// 				"phone": "*",
-		// 				"pin":   "*",
-		// 			},
-		// 		},
-		// 	},
-		// 	wantStatus: 452,
-		// 	wantErr:    true,
-		// },
+		{
+			name: "failure: update pin for unregistred user",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"phone": base.TestUserPhoneNumberWithPin,
+						"pin":   "1234",
+					},
+				},
+			},
+			wantStatus: 465,
+			wantErr:    true,
+		},
+		{
+			name: "failure: update pin with bogus payload",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"phone": "*",
+						"pin":   "*",
+					},
+				},
+			},
+			wantStatus: 452,
+			wantErr:    true,
+		},
 	}
 
 	for _, tt := range tests {

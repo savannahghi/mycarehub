@@ -266,15 +266,12 @@ func WrongEnumTypeError(value string) error {
 
 // VerifyOTPError returns an error when OTP verification fails
 func VerifyOTPError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: OTPVerificationErrMsg,
-			// TODO: @salaton OTP verification error code
-			Code: int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: OTPVerificationErrMsg,
+		// TODO: @salaton OTP verification error code
+		Code: int(base.Internal),
 	}
-	return nil
 }
 
 // MissingInputError returns an error when OTP verification fails

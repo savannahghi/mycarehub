@@ -98,7 +98,6 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	if err != nil {
 		return nil, err
 	}
-
 	verified, err := s.otpUseCases.VerifyOTP(
 		ctx,
 		*userData.PhoneNumber,
@@ -111,7 +110,6 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	if !verified {
 		return nil, exceptions.VerifyOTPError(nil)
 	}
-
 	// check if phone number is registered to another user
 	exists, err := s.CheckPhoneExists(ctx, *userData.PhoneNumber)
 	if err != nil {
@@ -124,10 +122,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	// get or create user via their phone number
 	user, err := s.onboardingRepository.GetOrCreatePhoneNumberUser(ctx, *userData.PhoneNumber)
 	if err != nil {
-		// Note Here we are returning a custom `InternalServerError`
-		// since the error that comes back from `GetOrCreatePhoneNumberUser` is not well formatted
-		// and exposes the application implementation details
-		return nil, exceptions.InternalServerError(nil)
+		return nil, err
 	}
 	// create a user profile
 	profile, err := s.onboardingRepository.CreateUserProfile(

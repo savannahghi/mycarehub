@@ -20,7 +20,7 @@ func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input resource
 	return r.interactor.Signup.UpdateUserProfile(ctx, &input)
 }
 
-func (r *mutationResolver) UpdateUserPin(ctx context.Context, phone string, pin string) (*resources.PINOutput, error) {
+func (r *mutationResolver) UpdateUserPin(ctx context.Context, phone string, pin string) (bool, error) {
 	return r.interactor.UserPIN.ChangeUserPIN(ctx, phone, pin)
 }
 

@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
-
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -23,8 +21,8 @@ type UserPINUseCases interface {
 		phone string,
 		PIN string,
 		OTP string,
-	) (*resources.PINOutput, error)
-	ChangeUserPIN(ctx context.Context, phone string, pin string) (*resources.PINOutput, error)
+	) (bool, error)
+	ChangeUserPIN(ctx context.Context, phone string, pin string) (bool, error)
 	RequestPINReset(ctx context.Context, phone string) (*base.OtpResponse, error)
 }
 
@@ -115,35 +113,35 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 	phone string,
 	PIN string,
 	OTP string,
-) (*resources.PINOutput, error) {
+) (bool, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return nil, exceptions.NormalizeMSISDNError(err)
+		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
 	verified, err := u.otpUseCases.VerifyOTP(ctx, phone, OTP)
 	if err != nil {
-		return nil, exceptions.VerifyOTPError(err)
+		return false, exceptions.VerifyOTPError(err)
 	}
 
 	if !verified {
-		return nil, exceptions.VerifyOTPError(nil)
+		return false, exceptions.VerifyOTPError(nil)
 	}
 
 	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
-		return nil, exceptions.ProfileNotFoundError(err)
+		return false, exceptions.ProfileNotFoundError(err)
 	}
 
 	exists, err := u.CheckHasPIN(ctx, profile.ID)
 	if !exists {
-		return nil, exceptions.ExistingPINError(err)
+		return false, exceptions.ExistingPINError(err)
 	}
 
 	// EncryptPIN the PIN
 	salt, encryptedPin := utils.EncryptPIN(PIN, nil)
 	if err != nil {
-		return nil, exceptions.EncryptPINError(err)
+		return false, exceptions.EncryptPINError(err)
 	}
 
 	pinPayload := &domain.PIN{
@@ -152,37 +150,34 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 		PINNumber: encryptedPin,
 		Salt:      salt,
 	}
-	createdPin, err := u.onboardingRepository.UpdatePIN(ctx, profile.ID, pinPayload)
+	_, err = u.onboardingRepository.UpdatePIN(ctx, profile.ID, pinPayload)
 	if err != nil {
-		return nil, exceptions.EncryptPINError(err)
+		return false, exceptions.InternalServerError(err)
 	}
-	return &resources.PINOutput{
-		ProfileID: createdPin.ProfileID,
-		PINNumber: createdPin.PINNumber,
-	}, nil
+	return true, nil
 }
 
 // ChangeUserPIN updates authenticated user's pin with the newly supplied pin
-func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pin string) (*resources.PINOutput, error) {
+func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pin string) (bool, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
-		return nil, exceptions.NormalizeMSISDNError(err)
+		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
 	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
-		return nil, exceptions.ProfileNotFoundError(err)
+		return false, exceptions.ProfileNotFoundError(err)
 	}
 
 	exists, err := u.CheckHasPIN(ctx, profile.ID)
 	if !exists {
-		return nil, exceptions.ExistingPINError(err)
+		return false, exceptions.ExistingPINError(err)
 	}
 
 	// EncryptPIN the PIN
 	salt, encryptedPin := utils.EncryptPIN(pin, nil)
 	if err != nil {
-		return nil, exceptions.EncryptPINError(err)
+		return false, exceptions.EncryptPINError(err)
 	}
 
 	pinPayload := &domain.PIN{
@@ -191,14 +186,11 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 		PINNumber: encryptedPin,
 		Salt:      salt,
 	}
-	createdPin, err := u.onboardingRepository.UpdatePIN(ctx, profile.ID, pinPayload)
+	_, err = u.onboardingRepository.UpdatePIN(ctx, profile.ID, pinPayload)
 	if err != nil {
-		return nil, exceptions.EncryptPINError(err)
+		return false, exceptions.InternalServerError(err)
 	}
-	return &resources.PINOutput{
-		ProfileID: createdPin.ProfileID,
-		PINNumber: createdPin.PINNumber,
-	}, nil
+	return true, nil
 }
 
 // CheckHasPIN given a phone number checks if the phonenumber is present in our collections

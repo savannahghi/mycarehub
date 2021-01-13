@@ -84,7 +84,7 @@ func TestUserPinUseCaseImpl_SetUserPIN(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pin := s
-			authResponse, err := pin.UserPIN.SetUserPIN(tt.args.ctx, tt.args.pin, tt.args.phone)
+			resp, err := pin.UserPIN.SetUserPIN(tt.args.ctx, tt.args.pin, tt.args.phone)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserPinUseCaseImpl.SetUserPIN() error = %v, wantErr %v",
 					err,
@@ -92,15 +92,15 @@ func TestUserPinUseCaseImpl_SetUserPIN(t *testing.T) {
 				)
 				return
 			}
-			if tt.wantErr && authResponse != false {
+			if tt.wantErr && resp != false {
 				t.Errorf("expected nil auth response but got %v, since the error %v occurred",
-					authResponse,
+					resp,
 					err,
 				)
 				return
 			}
 
-			if !tt.wantErr && authResponse == false {
+			if !tt.wantErr && resp == false {
 				t.Errorf("expected an auth response but got nil, since no error occurred")
 				return
 			}
@@ -267,7 +267,7 @@ func TestUserPinUseCaseImpl_ChangeUserPIN(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pin := s
-			authResponse, err := pin.UserPIN.ChangeUserPIN(tt.args.ctx, tt.args.phone, tt.args.pin)
+			resp, err := pin.UserPIN.ChangeUserPIN(tt.args.ctx, tt.args.phone, tt.args.pin)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserPinUseCaseImpl.ChangeUserPIN() error = %v, wantErr %v",
 					err,
@@ -275,17 +275,24 @@ func TestUserPinUseCaseImpl_ChangeUserPIN(t *testing.T) {
 				)
 				return
 			}
-			if tt.wantErr && authResponse != nil {
-				t.Errorf("expected nil auth response but got %v, since the error %v occurred",
-					authResponse,
-					err,
-				)
-				return
+			if !tt.wantErr {
+				if tt.want != resp {
+					t.Errorf("expected but got %v, since the error %v occurred",
+						resp,
+						tt.want,
+					)
+					return
+				}
 			}
 
-			if !tt.wantErr && authResponse == nil {
-				t.Errorf("expected an auth response but got nil, since no error occurred")
-				return
+			if tt.wantErr {
+				if tt.want != resp {
+					t.Errorf("expected but got %v, since the error %v occurred",
+						resp,
+						tt.want,
+					)
+					return
+				}
 			}
 		})
 	}
@@ -387,7 +394,7 @@ func TestUserPinUseCaseImpl_ResetUserPIN(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pin := s
-			authResponse, err := pin.UserPIN.ResetUserPIN(
+			resp, err := pin.UserPIN.ResetUserPIN(
 				tt.args.ctx,
 				tt.args.phone,
 				tt.args.PIN,
@@ -400,18 +407,26 @@ func TestUserPinUseCaseImpl_ResetUserPIN(t *testing.T) {
 				)
 				return
 			}
-			if tt.wantErr && authResponse != nil {
-				t.Errorf("expected nil auth response but got %v, since the error %v occurred",
-					authResponse,
-					err,
-				)
-				return
+
+			if !tt.wantErr {
+				if tt.want != resp {
+					t.Errorf("expected but got %v, since the error %v occurred",
+						resp,
+						tt.want,
+					)
+					return
+				}
+			}
+			if tt.wantErr {
+				if tt.want != resp {
+					t.Errorf("expected but got %v, since the error %v occurred",
+						resp,
+						tt.want,
+					)
+					return
+				}
 			}
 
-			if !tt.wantErr && authResponse == nil {
-				t.Errorf("expected an auth response but got nil, since no error occurred")
-				return
-			}
 		})
 	}
 }

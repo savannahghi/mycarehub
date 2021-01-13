@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 
 	"gitlab.slade360emr.com/go/base"
@@ -50,7 +49,6 @@ type OnboardingRepository interface {
 	SupplierRepository
 
 	CustomerRepository
-
 	// creates a user profile of using the provided phone number and uid
 	CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error)
 
@@ -101,8 +99,8 @@ type OnboardingRepository interface {
 	) error
 
 	// User Pin methods
-	SavePIN(ctx context.Context, pin *domain.PIN) (*domain.PIN, error)
-	UpdatePIN(ctx context.Context, id string, pin *domain.PIN) (*domain.PIN, error)
+	SavePIN(ctx context.Context, pin *domain.PIN) (bool, error)
+	UpdatePIN(ctx context.Context, id string, pin *domain.PIN) (bool, error)
 
 	ExchangeRefreshTokenForIDToken(
 		token string,
@@ -117,5 +115,5 @@ type OnboardingRepository interface {
 	GetOrCreatePhoneNumberUser(
 		ctx context.Context,
 		phone string,
-	) (*auth.UserRecord, error)
+	) (*resources.CreatedUserResponse, error)
 }

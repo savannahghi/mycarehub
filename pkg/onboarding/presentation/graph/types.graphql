@@ -363,8 +363,3 @@ type KYCRequest {
   supplierRecord: Supplier!
   status: KYCProcessStatus
 }
-
-type PINOutput {
-  profileID: String!
-  pinNumber: String!
-}
