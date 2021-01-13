@@ -60,8 +60,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, fmt.Errorf("can't instantiate firebase repository in resolver: %w", err)
 	}
 
-	profile := usecases.NewProfileUseCase(fr)
 	otp := otp.NewOTPService(fr)
+	profile := usecases.NewProfileUseCase(fr, otp)
 	erp := erp.NewERPService(fr)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
 	engage := engagement.NewServiceEngagementImpl(fr)
@@ -141,6 +141,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		HandlerFunc(h.RequestPINReset(ctx))
 
 	//OTP routes
+	r.Path("/send_otp").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.SendOTP(ctx))
+
 	r.Path("/send_retry_otp").Methods(
 		http.MethodPost,
 		http.MethodOptions).

@@ -48,7 +48,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var mailgunSvc mailgun.ServiceMailgun = &mailgunMock.FakeServiceMailgun{}
 	var messagingSvc messaging.ServiceMessaging = &messagingMock.FakeServiceMessaging{}
 
-	profile := usecases.NewProfileUseCase(r)
+	profile := usecases.NewProfileUseCase(r, otpSvc)
 	login := usecases.NewLoginUseCases(r, profile)
 	survey := usecases.NewSurveyUseCases(r)
 	supplier := usecases.NewSupplierUseCases(

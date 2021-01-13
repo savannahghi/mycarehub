@@ -1408,10 +1408,12 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 
 	switch status {
 	case domain.KYCProcessStatusApproved:
-		// create supplier erp account
-		if _, err := s.AddCustomerSupplierERPAccount(ctx, req.SupplierRecord.SupplierName, req.ReqPartnerType); err != nil {
-			return false, fmt.Errorf("unable to create erp supplier account: %v", err)
-		}
+		go func() {
+			// create supplier erp account
+			if _, err := s.AddCustomerSupplierERPAccount(ctx, req.SupplierRecord.SupplierName, req.ReqPartnerType); err != nil {
+				logrus.Error(fmt.Errorf("unable to create erp supplier account: %v", err))
+			}
+		}()
 
 		email = s.generateProcessKYCApprovalEmailTemplate()
 		message = "Your KYC details have been reviewed and approved. We look forward to working with you."

@@ -7,11 +7,13 @@ import (
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 // ProfileUseCase represents all the profile business logi
 type ProfileUseCase interface {
+	// profile releted
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
 	GetProfileByID(ctx context.Context, id *string) (*base.UserProfile, error)
 	UpdateUserName(ctx context.Context, userName string) error
@@ -33,16 +35,21 @@ type ProfileUseCase interface {
 
 	// masks phone number.
 	MaskPhoneNumbers(phones []string) []string
+	// called to set the primary phone number of a specific profile. Since this is used under unauthenticate REST and
+	// graphql, useContext is used to mark under which scenario the mehod is been called.
+	SetPrimaryPhoneNumber(ctx context.Context, phoneNumber string, otp string, useContext bool) error
+	SetPrimaryEmailAddress(ctx context.Context, emailAddress string, otp string) error
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
 type ProfileUseCaseImpl struct {
 	onboardingRepository repository.OnboardingRepository
+	otpUseCases          otp.ServiceOTP
 }
 
 // NewProfileUseCase returns a new a onboarding usecase
-func NewProfileUseCase(r repository.OnboardingRepository) ProfileUseCase {
-	return &ProfileUseCaseImpl{r}
+func NewProfileUseCase(r repository.OnboardingRepository, otp otp.ServiceOTP) ProfileUseCase {
+	return &ProfileUseCaseImpl{onboardingRepository: r, otpUseCases: otp}
 }
 
 // UserProfile retrieves the profile of the logged in user, if they have one
@@ -374,4 +381,49 @@ func (p *ProfileUseCaseImpl) GetUserProfileByUID(
 	UID string,
 ) (*base.UserProfile, error) {
 	return p.onboardingRepository.GetUserProfileByUID(ctx, UID)
+}
+
+// SetPrimaryPhoneNumber set the primary phone number of the user after verifying the otp code
+func (p *ProfileUseCaseImpl) SetPrimaryPhoneNumber(ctx context.Context, phoneNumber string, otp string, useContext bool) error {
+	// verify otp code
+	verified, err := p.otpUseCases.VerifyOTP(
+		ctx,
+		phoneNumber,
+		otp,
+	)
+	if err != nil {
+		return exceptions.VerifyOTPError(err)
+	}
+
+	if !verified {
+		return exceptions.VerifyOTPError(nil)
+	}
+
+	// now set the primary phone number
+	if err := p.UpdatePrimaryPhoneNumber(ctx, phoneNumber, useContext); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SetPrimaryEmailAddress set the primary email address of the user after verifying the otp code
+func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(ctx context.Context, emailAddress string, otp string) error {
+	// verify otp code
+	verified, err := p.otpUseCases.VerifyEmailOTP(
+		ctx,
+		emailAddress,
+		otp,
+	)
+	if err != nil {
+		return exceptions.VerifyOTPError(err)
+	}
+
+	if !verified {
+		return exceptions.VerifyOTPError(nil)
+	}
+	if err := p.UpdatePrimaryEmailAddress(ctx, emailAddress); err != nil {
+		return err
+	}
+	return nil
 }

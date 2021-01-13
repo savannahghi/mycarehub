@@ -145,6 +145,12 @@ type PhoneNumberPayload struct {
 	PhoneNumber *string `json:"phoneNumber"`
 }
 
+// SetPrimaryPhoneNumberPayload used when veriying and setting a user's primary phone number via REST
+type SetPrimaryPhoneNumberPayload struct {
+	PhoneNumber *string `json:"phoneNumber"`
+	OTP         *string `json:"otp"`
+}
+
 // ChangePINRequest payload to set or change PIN information
 type ChangePINRequest struct {
 	PhoneNumber string `json:"phoneNumber"`

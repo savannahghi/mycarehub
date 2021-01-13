@@ -23,6 +23,7 @@ type HandlersInterfaces interface {
 	LoginAnonymous(ctx context.Context) http.HandlerFunc
 	RequestPINReset(ctx context.Context) http.HandlerFunc
 	ResetPin(ctx context.Context) http.HandlerFunc
+	SendOTP(ctx context.Context) http.HandlerFunc
 	SendRetryOTP(ctx context.Context) http.HandlerFunc
 	RefreshToken(ctx context.Context) http.HandlerFunc
 	FindSupplierByUID(ctx context.Context) http.HandlerFunc
@@ -113,10 +114,10 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) h
 func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		p := &resources.PhoneNumberPayload{}
+		p := &resources.SetPrimaryPhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
+		if p.PhoneNumber == nil || p.OTP == nil {
+			err := fmt.Errorf("expected `phoneNumber` and `otp` to be defined")
 			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -127,6 +128,7 @@ func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http
 		response, err := h.interactor.Signup.SetPhoneAsPrimary(
 			ctx,
 			*p.PhoneNumber,
+			*p.OTP,
 		)
 
 		if err != nil {
@@ -266,6 +268,35 @@ func (h *HandlersInterfacesImpl) ResetPin(ctx context.Context) http.HandlerFunc 
 		}
 
 		base.WriteJSONResponse(w, response, http.StatusCreated)
+	}
+}
+
+// SendOTP is an unauthenticated request that takes in a phone number
+// and generates an OTP and sends a valid OTP to the phone number. This API will mostly be used
+// during account recovery workflow
+func (h *HandlersInterfacesImpl) SendOTP(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		payload := &resources.PhoneNumberPayload{}
+		base.DecodeJSONToTargetStruct(w, r, payload)
+		if payload.PhoneNumber == nil {
+			err := fmt.Errorf("expected `phoneNumber` to be defined")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		response, err := h.interactor.Otp.GenerateAndSendOTP(
+			ctx,
+			*payload.PhoneNumber,
+		)
+		if err != nil {
+			base.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
 

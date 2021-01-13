@@ -31,8 +31,8 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, err
 	}
 
-	profile := usecases.NewProfileUseCase(fr)
 	otp := otp.NewOTPService(fr)
+	profile := usecases.NewProfileUseCase(fr, otp)
 	erp := erp.NewERPService(fr)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
 	engage := engagement.NewServiceEngagementImpl(fr)

@@ -2414,8 +2414,7 @@ func TestProcessKYCRequest(t *testing.T) {
 				return
 			}
 
-			reason := "some reason"
-			response, err := supplier.ProcessKYCRequest(newCtx, firstKYC.ID, domain.KYCProcessStatusApproved, &reason)
+			response, err := supplier.ProcessKYCRequest(newCtx, firstKYC.ID, domain.KYCProcessStatusApproved, nil)
 			if err != nil {
 				t.Errorf("failed to process kyc requests: %v", err)
 				clean(newCtx, testPhoneNumber, t, service)

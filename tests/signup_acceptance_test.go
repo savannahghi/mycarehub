@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"testing"
 	"time"
 
@@ -283,15 +284,14 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 func TestUserRecoveryPhoneNumbers(t *testing.T) {
 	client := http.DefaultClient
 	// create a test user
-	phoneNumber := base.TestUserPhoneNumber
-	_, err := CreateTestUserByPhone(t, phoneNumber)
+	validPhoneNumber := base.TestUserPhoneNumber
+	_, err := CreateTestUserByPhone(t, validPhoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-	validNumber := base.TestUserPhoneNumberWithPin
 	validPayload := resources.PhoneNumberPayload{
-		PhoneNumber: &validNumber,
+		PhoneNumber: &validPhoneNumber,
 	}
 	bs, err := json.Marshal(validPayload)
 	if err != nil {
@@ -300,7 +300,7 @@ func TestUserRecoveryPhoneNumbers(t *testing.T) {
 	payload := bytes.NewBuffer(bs)
 
 	// phone number not registered
-	inValidNumber := base.TestUserPhoneNumber
+	inValidNumber := base.TestUserPhoneNumberWithPin
 	badPayload := resources.PhoneNumberPayload{
 		PhoneNumber: &inValidNumber,
 	}
@@ -328,7 +328,7 @@ func TestUserRecoveryPhoneNumbers(t *testing.T) {
 				httpMethod: http.MethodPost,
 				body:       payload,
 			},
-			wantStatus: http.StatusBadRequest, //TODO fixme revert to StatusOK
+			wantStatus: http.StatusOK,
 			wantErr:    false,
 		},
 		{
@@ -348,7 +348,7 @@ func TestUserRecoveryPhoneNumbers(t *testing.T) {
 				httpMethod: http.MethodPost,
 				body:       invalidPayload,
 			},
-			wantStatus: http.StatusOK, //TODO fixme revert to StatusBadRequest
+			wantStatus: http.StatusBadRequest,
 			wantErr:    true,
 		},
 	}
@@ -380,7 +380,8 @@ func TestUserRecoveryPhoneNumbers(t *testing.T) {
 				return
 			}
 			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+				dump, _ := httputil.DumpResponse(resp, true)
+				t.Errorf("expected status %d, got %d with response %v", tt.wantStatus, resp.StatusCode, string(dump))
 				return
 			}
 			data, err := ioutil.ReadAll(resp.Body)
@@ -396,7 +397,7 @@ func TestUserRecoveryPhoneNumbers(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, phoneNumber)
+	_, err = RemoveTestUserByPhone(t, validPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}

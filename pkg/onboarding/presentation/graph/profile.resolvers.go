@@ -24,22 +24,22 @@ func (r *mutationResolver) UpdateUserPin(ctx context.Context, phone string, pin 
 	return r.interactor.UserPIN.ChangeUserPIN(ctx, phone, pin)
 }
 
-func (r *mutationResolver) SetPrimaryPhoneNumber(ctx context.Context, phone string) (bool, error) {
-	if err := r.interactor.Onboarding.UpdatePrimaryPhoneNumber(ctx, phone, true); err != nil {
+func (r *mutationResolver) SetPrimaryPhoneNumber(ctx context.Context, phone string, otp string) (bool, error) {
+	if err := r.interactor.Onboarding.SetPrimaryPhoneNumber(ctx, phone, otp, true); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func (r *mutationResolver) SetPrimaryEmailAddress(ctx context.Context, email string) (bool, error) {
-	if err := r.interactor.Onboarding.UpdatePrimaryEmailAddress(ctx, email); err != nil {
+func (r *mutationResolver) SetPrimaryEmailAddress(ctx context.Context, email string, otp string) (bool, error) {
+	if err := r.interactor.Onboarding.SetPrimaryEmailAddress(ctx, email, otp); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func (r *mutationResolver) AddPrimaryEmailAddress(ctx context.Context, email string) (bool, error) {
-	if err := r.interactor.Onboarding.UpdatePrimaryEmailAddress(ctx, email); err != nil {
+func (r *mutationResolver) AddPrimaryEmailAddress(ctx context.Context, email string, otp string) (bool, error) {
+	if err := r.interactor.Onboarding.SetPrimaryEmailAddress(ctx, email, otp); err != nil {
 		return false, err
 	}
 	return true, nil

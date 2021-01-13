@@ -31,11 +31,11 @@ extend type Mutation {
   
   updateUserPIN(phone: String!, pin: String!): Boolean!
 
-  setPrimaryPhoneNumber(phone: String!): Boolean!
+  setPrimaryPhoneNumber(phone: String!,otp:String!): Boolean!
 
-  setPrimaryEmailAddress(email: String!): Boolean!
+  setPrimaryEmailAddress(email: String!, otp:String!): Boolean!
 
-  addPrimaryEmailAddress(email: String!): Boolean!
+  addPrimaryEmailAddress(email: String!, otp:String!): Boolean!
 
   addSecondaryPhoneNumber(phone: [String!]): Boolean!
 

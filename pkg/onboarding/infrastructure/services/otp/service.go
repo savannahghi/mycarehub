@@ -22,8 +22,9 @@ const otpService = "otp"
 
 // OTP service endpoints
 const (
-	SendRetryOtp = "internal/send_retry_otp/"
-	SendOtp      = "internal/send_otp/"
+	SendRetryOtp   = "internal/send_retry_otp/"
+	SendOtp        = "internal/send_otp/"
+	VerifyEmailOtp = "internal/verify_email_otp/"
 )
 
 // ServiceOTP represent the business logic required for management of OTP
@@ -38,6 +39,7 @@ type ServiceOTP interface {
 		retryStep int,
 	) (*base.OtpResponse, error)
 	VerifyOTP(ctx context.Context, phone, OTP string) (bool, error)
+	VerifyEmailOTP(ctx context.Context, email, OTP string) (bool, error)
 }
 
 // ServiceOTPImpl represents OTP usecases
@@ -142,7 +144,50 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 	return &base.OtpResponse{OTP: RetryOTP}, nil
 }
 
-// VerifyOTP takes a phone number and an OTP and checks for the vlidity of the OTP code
-func (o *ServiceOTPImpl) VerifyOTP(ctx context.Context, phone, OTP string) (bool, error) {
-	return base.VerifyOTP(phone, OTP, o.Otp)
+// VerifyOTP takes a phone number and an OTP and checks for the validity of the OTP code
+func (o *ServiceOTPImpl) VerifyOTP(ctx context.Context, phone, otp string) (bool, error) {
+	return base.VerifyOTP(phone, otp, o.Otp)
+}
+
+// VerifyEmailOTP checks the otp provided mathes the one sent to the user via email address
+func (o *ServiceOTPImpl) VerifyEmailOTP(ctx context.Context, email, otp string) (bool, error) {
+
+	type VerifyOTP struct {
+		Email            string `json:"email"`
+		VerificationCode string `json:"verificationCode"`
+	}
+
+	verifyPayload := VerifyOTP{
+		Email:            email,
+		VerificationCode: otp,
+	}
+
+	resp, err := o.Otp.MakeRequest(http.MethodPost, VerifyEmailOtp, verifyPayload)
+	if err != nil {
+		return false, fmt.Errorf(
+			"can't complete OTP verification request: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("unable to verify OTP : %w, with status code %v", err, resp.StatusCode)
+	}
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return false, fmt.Errorf("can't read OTP response data: %w", err)
+	}
+
+	type otpResponse struct {
+		IsVerified bool `json:"IsVerified"`
+	}
+
+	var r otpResponse
+	err = json.Unmarshal(data, &r)
+	if err != nil {
+		return false, fmt.Errorf(
+			"can't unmarshal OTP response data from JSON: %w", err)
+	}
+
+	return r.IsVerified, nil
+
 }

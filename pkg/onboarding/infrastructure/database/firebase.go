@@ -608,15 +608,21 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 	if err != nil {
 		return exceptions.ProfileNotFoundError(err)
 	}
+
 	// check the phone number been added are unique, does not currently existing the user's profile and is not the primary phone number
 	newPhones := []string{}
-	for _, current := range profile.SecondaryPhoneNumbers {
+	if len(profile.SecondaryPhoneNumbers) >= 1 {
 		for _, phone := range phoneNumbers {
-			if phone != current && phone != *profile.PrimaryPhone {
-				newPhones = append(newPhones, phone)
+			for _, current := range profile.SecondaryPhoneNumbers {
+				if phone != current && phone != *profile.PrimaryPhone && !base.StringSliceContains(newPhones, phone) {
+					newPhones = append(newPhones, phone)
+				}
 			}
 		}
+	} else {
+		newPhones = append(newPhones, phoneNumbers...)
 	}
+
 	profile.SecondaryPhoneNumbers = append(profile.SecondaryPhoneNumbers, newPhones...)
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
@@ -644,13 +650,19 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 
 	// check the email addresses been added are unique , does not currently existing the user's profile and is not the primary email address
 	newEmails := []string{}
-	for _, current := range profile.SecondaryEmailAddresses {
+	if len(profile.SecondaryEmailAddresses) >= 1 {
 		for _, email := range emailAddresses {
-			if email != current && email != *profile.PrimaryEmailAddress {
-				newEmails = append(newEmails, email)
+			for _, current := range profile.SecondaryEmailAddresses {
+				if email != current && email != *profile.PrimaryEmailAddress && !base.StringSliceContains(newEmails, email) {
+					newEmails = append(newEmails, email)
+				}
 			}
+
 		}
+	} else {
+		newEmails = append(newEmails, emailAddresses...)
 	}
+
 	profile.SecondaryEmailAddresses = append(profile.SecondaryEmailAddresses, newEmails...)
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
@@ -714,17 +726,21 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 	if err != nil {
 		return exceptions.ProfileNotFoundError(err)
 	}
-
 	// check that the new cover been added is unique and does not currently exist in the user's profile
 	newCovers := []base.Cover{}
-	for _, current := range profile.Covers {
+	if len(profile.Covers) >= 1 {
 		for _, cover := range covers {
-			if current.MemberName != cover.MemberName && current.MemberNumber != cover.MemberNumber &&
-				current.PayerName != cover.PayerName && current.PayerSladeCode != cover.PayerSladeCode {
-				newCovers = append(newCovers, cover)
+			for _, current := range profile.Covers {
+				if current.MemberName != cover.MemberName && current.MemberNumber != cover.MemberNumber &&
+					current.PayerName != cover.PayerName && current.PayerSladeCode != cover.PayerSladeCode {
+					newCovers = append(newCovers, cover)
+				}
 			}
 		}
+	} else {
+		newCovers = append(newCovers, covers...)
 	}
+
 	profile.Covers = append(profile.Covers, newCovers...)
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
@@ -1172,13 +1188,19 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, data *base.Supp
 // StageProfileNudge ...
 func (fr *Repository) StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error {
 	_, _, err := fr.FirestoreClient.Collection(fr.GetProfileNudgesCollectionName()).Add(ctx, nudge)
-	return exceptions.InternalServerError(err)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+	return nil
 }
 
 // StageKYCProcessingRequest stages the request which will be retrieved later for admins
 func (fr *Repository) StageKYCProcessingRequest(ctx context.Context, data *domain.KYCRequest) error {
 	_, _, err := fr.FirestoreClient.Collection(fr.GetKCYProcessCollectionName()).Add(ctx, data)
-	return exceptions.InternalServerError(err)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+	return nil
 }
 
 // FetchKYCProcessingRequests retrieves all unprocessed kycs for admins

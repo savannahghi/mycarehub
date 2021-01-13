@@ -21,7 +21,7 @@ type BusinessPartnerConnection struct {
 // AccountRecoveryPhonesResponse  payload sent back to the frontend when recovery an account
 type AccountRecoveryPhonesResponse struct {
 	MaskedPhoneNumbers   []string `json:"maskedPhoneNumbers"`
-	UnMaskedPhoneNumbers []string `json:"unMaskedPhoneNumbers"`
+	UnMaskedPhoneNumbers []string `json:"unmaskedPhoneNumbers"`
 }
 
 // OKResp is used to return OK responses in inter-service calls

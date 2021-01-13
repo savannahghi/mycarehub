@@ -204,15 +204,15 @@ type ComplexityRoot struct {
 		AddOrganizationProviderKyc       func(childComplexity int, input domain.OrganizationProvider) int
 		AddOrganizationRiderKyc          func(childComplexity int, input domain.OrganizationRider) int
 		AddPartnerType                   func(childComplexity int, name string, partnerType base.PartnerType) int
-		AddPrimaryEmailAddress           func(childComplexity int, email string) int
+		AddPrimaryEmailAddress           func(childComplexity int, email string, otp string) int
 		AddSecondaryEmailAddress         func(childComplexity int, email []string) int
 		AddSecondaryPhoneNumber          func(childComplexity int, phone []string) int
 		CompleteSignup                   func(childComplexity int, flavour base.Flavour) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
 		RecordPostVisitSurvey            func(childComplexity int, input resources.PostVisitSurveyInput) int
 		RegisterPushToken                func(childComplexity int, token string) int
-		SetPrimaryEmailAddress           func(childComplexity int, email string) int
-		SetPrimaryPhoneNumber            func(childComplexity int, phone string) int
+		SetPrimaryEmailAddress           func(childComplexity int, email string, otp string) int
+		SetPrimaryPhoneNumber            func(childComplexity int, phone string, otp string) int
 		SetUpSupplier                    func(childComplexity int, accountType base.AccountType) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
 		SupplierSetDefaultLocation       func(childComplexity int, locatonID string) int
@@ -403,9 +403,9 @@ type MutationResolver interface {
 	CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error)
 	UpdateUserProfile(ctx context.Context, input resources.UserProfileInput) (*base.UserProfile, error)
 	UpdateUserPin(ctx context.Context, phone string, pin string) (bool, error)
-	SetPrimaryPhoneNumber(ctx context.Context, phone string) (bool, error)
-	SetPrimaryEmailAddress(ctx context.Context, email string) (bool, error)
-	AddPrimaryEmailAddress(ctx context.Context, email string) (bool, error)
+	SetPrimaryPhoneNumber(ctx context.Context, phone string, otp string) (bool, error)
+	SetPrimaryEmailAddress(ctx context.Context, email string, otp string) (bool, error)
+	AddPrimaryEmailAddress(ctx context.Context, email string, otp string) (bool, error)
 	AddSecondaryPhoneNumber(ctx context.Context, phone []string) (bool, error)
 	UpdateUserName(ctx context.Context, username string) (bool, error)
 	AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error)
@@ -1209,7 +1209,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddPrimaryEmailAddress(childComplexity, args["email"].(string)), true
+		return e.complexity.Mutation.AddPrimaryEmailAddress(childComplexity, args["email"].(string), args["otp"].(string)), true
 
 	case "Mutation.addSecondaryEmailAddress":
 		if e.complexity.Mutation.AddSecondaryEmailAddress == nil {
@@ -1293,7 +1293,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetPrimaryEmailAddress(childComplexity, args["email"].(string)), true
+		return e.complexity.Mutation.SetPrimaryEmailAddress(childComplexity, args["email"].(string), args["otp"].(string)), true
 
 	case "Mutation.setPrimaryPhoneNumber":
 		if e.complexity.Mutation.SetPrimaryPhoneNumber == nil {
@@ -1305,7 +1305,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetPrimaryPhoneNumber(childComplexity, args["phone"].(string)), true
+		return e.complexity.Mutation.SetPrimaryPhoneNumber(childComplexity, args["phone"].(string), args["otp"].(string)), true
 
 	case "Mutation.setUpSupplier":
 		if e.complexity.Mutation.SetUpSupplier == nil {
@@ -2883,11 +2883,11 @@ extend type Mutation {
   
   updateUserPIN(phone: String!, pin: String!): Boolean!
 
-  setPrimaryPhoneNumber(phone: String!): Boolean!
+  setPrimaryPhoneNumber(phone: String!,otp:String!): Boolean!
 
-  setPrimaryEmailAddress(email: String!): Boolean!
+  setPrimaryEmailAddress(email: String!, otp:String!): Boolean!
 
-  addPrimaryEmailAddress(email: String!): Boolean!
+  addPrimaryEmailAddress(email: String!, otp:String!): Boolean!
 
   addSecondaryPhoneNumber(phone: [String!]): Boolean!
 
@@ -3597,6 +3597,15 @@ func (ec *executionContext) field_Mutation_addPrimaryEmailAddress_args(ctx conte
 		}
 	}
 	args["email"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["otp"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["otp"] = arg1
 	return args, nil
 }
 
@@ -3720,6 +3729,15 @@ func (ec *executionContext) field_Mutation_setPrimaryEmailAddress_args(ctx conte
 		}
 	}
 	args["email"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["otp"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["otp"] = arg1
 	return args, nil
 }
 
@@ -3735,6 +3753,15 @@ func (ec *executionContext) field_Mutation_setPrimaryPhoneNumber_args(ctx contex
 		}
 	}
 	args["phone"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["otp"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["otp"] = arg1
 	return args, nil
 }
 
@@ -7022,7 +7049,7 @@ func (ec *executionContext) _Mutation_setPrimaryPhoneNumber(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetPrimaryPhoneNumber(rctx, args["phone"].(string))
+		return ec.resolvers.Mutation().SetPrimaryPhoneNumber(rctx, args["phone"].(string), args["otp"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7064,7 +7091,7 @@ func (ec *executionContext) _Mutation_setPrimaryEmailAddress(ctx context.Context
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetPrimaryEmailAddress(rctx, args["email"].(string))
+		return ec.resolvers.Mutation().SetPrimaryEmailAddress(rctx, args["email"].(string), args["otp"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7106,7 +7133,7 @@ func (ec *executionContext) _Mutation_addPrimaryEmailAddress(ctx context.Context
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddPrimaryEmailAddress(rctx, args["email"].(string))
+		return ec.resolvers.Mutation().AddPrimaryEmailAddress(rctx, args["email"].(string), args["otp"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

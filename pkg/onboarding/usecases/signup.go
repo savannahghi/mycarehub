@@ -43,7 +43,7 @@ type SignUpUseCases interface {
 
 	// called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
 	// where the phone number is associated with.
-	SetPhoneAsPrimary(ctx context.Context, phone string) (bool, error)
+	SetPhoneAsPrimary(ctx context.Context, phone, otp string) (bool, error)
 
 	RemoveUserByPhoneNumber(ctx context.Context, phone string) error
 }
@@ -289,13 +289,13 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 
 // SetPhoneAsPrimary called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
 // where the phone number is associated with.
-func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(ctx context.Context, phone string) (bool, error) {
+func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(ctx context.Context, phone, otp string) (bool, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
-	if err := s.profileUsecase.UpdatePrimaryPhoneNumber(ctx, *phoneNumber, false); err != nil {
+	if err := s.profileUsecase.SetPrimaryPhoneNumber(ctx, *phoneNumber, otp, false); err != nil {
 		return false, err
 	}
 	return true, nil

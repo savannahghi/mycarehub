@@ -11,6 +11,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 )
 
 func TestParseKYCAsMap(t *testing.T) {
@@ -21,7 +22,8 @@ func TestParseKYCAsMap(t *testing.T) {
 		return
 	}
 
-	profile := NewProfileUseCase(fr)
+	otp := otp.NewOTPService(fr)
+	profile := NewProfileUseCase(fr, otp)
 	erp := erp.NewERPService(fr)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
 	engage := engagement.NewServiceEngagementImpl(fr)
