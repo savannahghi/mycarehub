@@ -12,9 +12,123 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
+func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) {
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	profile := usecases.NewProfileUseCase(fr)
+	otp := otp.NewOTPService(fr)
+	erp := erp.NewERPService(fr)
+	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
+	engage := engagement.NewServiceEngagementImpl(fr)
+	mg := mailgun.NewServiceMailgunImpl()
+	mes := messaging.NewServiceMessagingImpl()
+	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes)
+	login := usecases.NewLoginUseCases(fr, profile)
+	survey := usecases.NewSurveyUseCases(fr)
+	userpin := usecases.NewUserPinUseCase(fr, otp, profile)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp)
+
+	return &interactor.Interactor{
+		Onboarding:   profile,
+		Signup:       su,
+		Otp:          otp,
+		Supplier:     supplier,
+		Login:        login,
+		Survey:       survey,
+		UserPIN:      userpin,
+		ERP:          erp,
+		ChargeMaster: chrg,
+		Engagement:   engage,
+	}, nil
+}
+
+// CreateTestUserByPhone creates a user that is to be used in
+// running of our test cases.
+// If the test user already exists then they are logged in
+// to get their auth credentials
+func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
+	ctx := context.Background()
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize test service")
+	}
+	phone := base.TestUserPhoneNumber
+	flavour := base.FlavourConsumer
+	pin := base.TestUserPin
+	exists, err := s.Signup.CheckPhoneExists(ctx, phone)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if test phone exists: %v", err)
+	}
+	if !exists {
+		otp, err := s.Otp.GenerateAndSendOTP(ctx, phone)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate test OTP: %v", err)
+		}
+
+		u, err := s.Signup.CreateUserByPhone(
+			ctx,
+			&resources.SignUpInput{
+				PhoneNumber: &phone,
+				PIN:         &pin,
+				Flavour:     flavour,
+				OTP:         &otp.OTP,
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create a test user: %v", err)
+		}
+		if u == nil {
+			return nil, fmt.Errorf("nil test user response")
+		}
+		authCred := &auth.Token{
+			UID: u.Auth.UID,
+		} // We add the test user UID to the expected auth.Token
+		return authCred, nil
+	}
+	logInCreds, err := s.Login.LoginByPhone(
+		ctx,
+		phone,
+		base.TestUserPin,
+		flavour,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to log in test user: %v", err)
+	}
+	authCred := &auth.Token{
+		UID: logInCreds.Auth.UID,
+	}
+	return authCred, nil
+}
+
+// TestAuthenticatedContext returns a logged in context, useful for test purposes
+func GetTestAuthenticatedContext(t *testing.T) (context.Context, *auth.Token, error) {
+	ctx := context.Background()
+	auth, err := CreateOrLoginTestUserByPhone(t)
+	if err != nil {
+		return nil, nil, err
+	}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		auth,
+	)
+	return authenticatedContext, auth, nil
+}
 func TestMain(m *testing.M) {
 	log.Printf("Setting tests up ...")
 	originalENV := os.Getenv("ENVIRONMENT")
@@ -108,7 +222,7 @@ func TestCreateEmptyCustomerProfile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			customer, err := firestoreDB.CreateEmptyCustomerProfile(ctx, tt.profileID)
 			if tt.wantErr && err != nil {
-				t.Errorf("error expected but returned no erro")
+				t.Errorf("error expected but returned no error")
 				return
 			}
 
@@ -320,6 +434,80 @@ func TestRepository_GetCustomerProfileByID(t *testing.T) {
 			}
 			if base.IsDebug() {
 				log.Printf("Customer....%v", customerProfile)
+			}
+		})
+	}
+}
+
+func TestRepository_ExchangeRefreshTokenForIDToken(t *testing.T) {
+	ctx, token, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	user, err := fr.GenerateAuthCredentials(ctx, base.TestUserPhoneNumber)
+	if err != nil {
+		t.Errorf("failed to generate auth credentials: %v", err)
+		return
+	}
+
+	type args struct {
+		refreshToken string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *auth.Token
+		wantErr bool
+	}{
+		{
+			name: "valid firebase refresh token",
+			args: args{
+				refreshToken: user.RefreshToken,
+			},
+			want:    token,
+			wantErr: false,
+		},
+		{
+			name: "invalid firebase refresh token",
+			args: args{
+				refreshToken: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid firebase refresh token",
+			args: args{
+				refreshToken: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.ExchangeRefreshTokenForIDToken(tt.args.refreshToken)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.ExchangeRefreshTokenForIDToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr {
+				// obtain auth token details from the id token string
+				auth, err := base.ValidateBearerToken(ctx, *got.IDToken)
+				if err != nil {
+					t.Errorf("invalid token: %w", err)
+					return
+				}
+				if auth.UID != tt.want.UID {
+					t.Errorf("Repository.ExchangeRefreshTokenForIDToken() = %v, want %v", got.UID, tt.want.UID)
+				}
 			}
 		})
 	}

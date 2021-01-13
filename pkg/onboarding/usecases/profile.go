@@ -185,7 +185,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emai
 
 }
 
-// UpdateSecondaryPhoneNumbers updates secondary phone numberss of a specific user profile
+// UpdateSecondaryPhoneNumbers updates secondary phone numbers of a specific user profile
 // this should be called after a prior check of uniqueness is done
 func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error {
 	uid, err := base.GetLoggedInUserUID(ctx)
