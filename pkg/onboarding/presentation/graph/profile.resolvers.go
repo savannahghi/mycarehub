@@ -70,7 +70,7 @@ func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) 
 	return r.interactor.Signup.RegisterPushToken(ctx, token)
 }
 
-func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, partnerType domain.PartnerType) (bool, error) {
+func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, partnerType base.PartnerType) (bool, error) {
 	return r.interactor.Supplier.AddPartnerType(ctx, &name, &partnerType)
 }
 
@@ -78,7 +78,7 @@ func (r *mutationResolver) SuspendSupplier(ctx context.Context) (bool, error) {
 	return r.interactor.Supplier.SuspendSupplier(ctx)
 }
 
-func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType domain.AccountType) (*domain.Supplier, error) {
+func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error) {
 	return r.interactor.Supplier.SetUpSupplier(ctx, accountType)
 }
 
@@ -146,7 +146,7 @@ func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, err
 	return r.interactor.Onboarding.UserProfile(ctx)
 }
 
-func (r *queryResolver) SupplierProfile(ctx context.Context) (*domain.Supplier, error) {
+func (r *queryResolver) SupplierProfile(ctx context.Context) (*base.Supplier, error) {
 	return r.interactor.Supplier.FindSupplierByUID(ctx)
 }
 

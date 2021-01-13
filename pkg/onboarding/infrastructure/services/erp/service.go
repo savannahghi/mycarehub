@@ -7,14 +7,13 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 // ServiceERP represents logic required to communicate with ERP
 type ServiceERP interface {
 	FetchERPClient() *base.ServerClient
-	CreateERPSupplier(method string, path string, payload map[string]interface{}, partner domain.PartnerType) error
+	CreateERPSupplier(method string, path string, payload map[string]interface{}, partner base.PartnerType) error
 }
 
 // ServiceERPImpl represents ERP usecases
@@ -39,14 +38,14 @@ func NewERPService(r repository.OnboardingRepository) ServiceERP {
 }
 
 // CreateERPSupplier makes a call to create erp supplier
-func (e *ServiceERPImpl) CreateERPSupplier(method string, path string, payload map[string]interface{}, partner domain.PartnerType) error {
+func (e *ServiceERPImpl) CreateERPSupplier(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
 
 	content, marshalErr := json.Marshal(payload)
 	if marshalErr != nil {
 		return fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
 	}
 
-	if err := base.ReadRequestToTarget(e.ERPClient, "POST", path, "", content, &domain.Supplier{PartnerType: partner}); err != nil {
+	if err := base.ReadRequestToTarget(e.ERPClient, "POST", path, "", content, &base.Supplier{PartnerType: partner}); err != nil {
 		return fmt.Errorf("unable to make request to the ERP: %v", err)
 	}
 

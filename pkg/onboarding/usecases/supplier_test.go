@@ -33,19 +33,19 @@ func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 	}
 
 	testRiderName := "Test Rider"
-	rider := domain.PartnerTypeRider
+	rider := base.PartnerTypeRider
 	testPractitionerName := "Test Practitioner"
-	practitioner := domain.PartnerTypePractitioner
+	practitioner := base.PartnerTypePractitioner
 	testProviderName := "Test Provider"
-	provider := domain.PartnerTypeProvider
+	provider := base.PartnerTypeProvider
 	testPharmaceuticalName := "Test Pharmaceutical"
-	pharmaceutical := domain.PartnerTypePharmaceutical
+	pharmaceutical := base.PartnerTypePharmaceutical
 	testCoachName := "Test Coach"
-	coach := domain.PartnerTypeCoach
+	coach := base.PartnerTypeCoach
 	testNutritionName := "Test Nutrition"
-	nutrition := domain.PartnerTypeNutrition
+	nutrition := base.PartnerTypeNutrition
 	testConsumerName := "Test Consumer"
-	consumer := domain.PartnerTypeConsumer
+	consumer := base.PartnerTypeConsumer
 
 	s, err := InitializeTestService(ctx)
 	if err != nil {
@@ -55,7 +55,7 @@ func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		name        *string
-		partnerType *domain.PartnerType
+		partnerType *base.PartnerType
 	}
 	tests := []struct {
 		name        string
@@ -185,8 +185,8 @@ func TestSetUpSupplier(t *testing.T) {
 		return
 	}
 
-	individualPartner := domain.AccountTypeIndividual
-	organizationPartner := domain.AccountTypeOrganisation
+	individualPartner := base.AccountTypeIndividual
+	organizationPartner := base.AccountTypeOrganisation
 
 	s, err := InitializeTestService(ctx)
 	if err != nil {
@@ -196,7 +196,7 @@ func TestSetUpSupplier(t *testing.T) {
 
 	type args struct {
 		ctx         context.Context
-		accountType domain.AccountType
+		accountType base.AccountType
 	}
 
 	tests := []struct {
@@ -430,14 +430,14 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 	}
 
 	name := "Makmende"
-	partnerProvider := domain.PartnerTypeProvider
+	partnerProvider := base.PartnerTypeProvider
 	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerProvider)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeOrganisation)
+	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
@@ -580,14 +580,14 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 	}
 
 	name := "Makmende"
-	partnerPharmaceutical := domain.PartnerTypePharmaceutical
+	partnerPharmaceutical := base.PartnerTypePharmaceutical
 	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerPharmaceutical)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeOrganisation)
+	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
@@ -709,14 +709,14 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 	}
 
 	name := "Makmende"
-	partnerPharmaceutical := domain.PartnerTypePharmaceutical
+	partnerPharmaceutical := base.PartnerTypePharmaceutical
 	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerPharmaceutical)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeIndividual)
+	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
@@ -843,14 +843,14 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 	}
 
 	name := "Makmende"
-	partnerCoach := domain.PartnerTypeCoach
+	partnerCoach := base.PartnerTypeCoach
 	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerCoach)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeIndividual)
+	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
@@ -976,14 +976,14 @@ func TestAddIndividualRiderKYC(t *testing.T) {
 	}
 
 	name := "Jatelo"
-	partnerRider := domain.PartnerTypeRider
+	partnerRider := base.PartnerTypeRider
 	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerRider)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeIndividual)
+	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
@@ -1089,14 +1089,14 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 		return
 	}
 	name := "Makmende"
-	partnerRider := domain.PartnerTypeRider
+	partnerRider := base.PartnerTypeRider
 	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerRider)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeOrganisation)
+	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
@@ -1211,7 +1211,7 @@ func TestSupplierUseCasesImpl_FetchKYCProcessingRequests(t *testing.T) {
 	}
 
 	name := "Makmende"
-	partnerRider := domain.PartnerTypeRider
+	partnerRider := base.PartnerTypeRider
 
 	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerRider)
 	if err != nil {
@@ -1219,7 +1219,7 @@ func TestSupplierUseCasesImpl_FetchKYCProcessingRequests(t *testing.T) {
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeOrganisation)
+	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
@@ -1260,7 +1260,7 @@ func TestSupplierUseCasesImpl_FetchKYCProcessingRequests(t *testing.T) {
 		name     string
 		args     args
 		want     []*domain.KYCRequest
-		supplier *domain.Supplier
+		supplier *base.Supplier
 		wantErr  bool
 	}{
 		{
@@ -2160,7 +2160,7 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 	}
 
 	name := "Makmende"
-	partnerRider := domain.PartnerTypeRider
+	partnerRider := base.PartnerTypeRider
 
 	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerRider)
 	if err != nil {
@@ -2168,7 +2168,7 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeOrganisation)
+	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
@@ -2248,14 +2248,14 @@ func TestSupplierSetDefaultLocation(t *testing.T) {
 	}
 
 	name := "Makmende"
-	partnerPractitioner := domain.PartnerTypePractitioner
+	partnerPractitioner := base.PartnerTypePractitioner
 	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerPractitioner)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(ctx, domain.AccountTypeOrganisation)
+	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
@@ -2360,14 +2360,14 @@ func TestProcessKYCRequest(t *testing.T) {
 	}
 
 	partnerName := "jubileeisnotinsurance"
-	partnerType := domain.PartnerTypeNutrition
+	partnerType := base.PartnerTypeNutrition
 
 	_, err = supplier.AddPartnerType(newCtx, &partnerName, &partnerType)
 	if err != nil {
 		t.Errorf("failed to add partner type, error %v", err)
 		return
 	}
-	_, err = supplier.SetUpSupplier(newCtx, domain.AccountTypeIndividual)
+	_, err = supplier.SetUpSupplier(newCtx, base.AccountTypeIndividual)
 
 	if err != nil {
 		t.Errorf("failed to add partner type, error %v", err)

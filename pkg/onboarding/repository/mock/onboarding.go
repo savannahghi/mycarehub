@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 
+	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 
@@ -11,36 +12,36 @@ import (
 
 // FakeOnboardingRepository is a mock onboarding repository.
 type FakeOnboardingRepository struct {
-	GetSupplierProfileByIDFn        func(ctx context.Context, id string) (*domain.Supplier, error)
-	GetSupplierProfileByProfileIDFn func(ctx context.Context, profileID string) (*domain.Supplier, error)
+	GetSupplierProfileByIDFn        func(ctx context.Context, id string) (*base.Supplier, error)
+	GetSupplierProfileByProfileIDFn func(ctx context.Context, profileID string) (*base.Supplier, error)
 
-	AddPartnerTypeFn func(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error)
+	AddPartnerTypeFn func(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error)
 
-	UpdateSupplierProfileFn func(ctx context.Context, data *domain.Supplier) (*domain.Supplier, error)
+	UpdateSupplierProfileFn func(ctx context.Context, data *base.Supplier) (*base.Supplier, error)
 
 	StageProfileNudgeFn func(ctx context.Context, nudge map[string]interface{}) error
 
 	StageKYCProcessingRequestFn func(ctx context.Context, data *domain.KYCRequest) error
 
 	// sets the active attribute of supplier profile to true
-	ActivateSupplierProfileFn func(ctx context.Context, profileID string) (*domain.Supplier, error)
+	ActivateSupplierProfileFn func(ctx context.Context, profileID string) (*base.Supplier, error)
 
 	FetchKYCProcessingRequestsFn func(ctx context.Context) ([]*domain.KYCRequest, error)
 
 	FetchKYCProcessingRequestByIDFn func(ctx context.Context, id string) (*domain.KYCRequest, error)
 
 	UpdateKYCProcessingRequestFn func(ctx context.Context, sup *domain.KYCRequest) error
-	GetCustomerProfileByIDFn     func(ctx context.Context, id string) (*domain.Customer, error)
+	GetCustomerProfileByIDFn     func(ctx context.Context, id string) (*base.Customer, error)
 
-	GetCustomerProfileByProfileIDFn func(ctx context.Context, profileID string) (*domain.Customer, error)
+	GetCustomerProfileByProfileIDFn func(ctx context.Context, profileID string) (*base.Customer, error)
 
 	CreateUserProfileFn func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error)
 
 	// creates an empty supplier profile
-	CreateEmptySupplierProfileFn func(ctx context.Context, profileID string) (*domain.Supplier, error)
+	CreateEmptySupplierProfileFn func(ctx context.Context, profileID string) (*base.Supplier, error)
 
 	// creates an empty customer profile
-	CreateEmptyCustomerProfileFn func(ctx context.Context, profileID string) (*domain.Customer, error)
+	CreateEmptyCustomerProfileFn func(ctx context.Context, profileID string) (*base.Customer, error)
 
 	// fetches a user profile by uid
 	GetUserProfileByUIDFn func(ctx context.Context, uid string) (*base.UserProfile, error)
@@ -60,9 +61,9 @@ type FakeOnboardingRepository struct {
 	// checks if a specific username has already been registered to another user
 	CheckIfUsernameExistsFn func(ctx context.Context, phone string) (bool, error)
 
-	GenerateAuthCredentialsForAnonymousUserFn func(ctx context.Context) (*resources.AuthCredentialResponse, error)
+	GenerateAuthCredentialsForAnonymousUserFn func(ctx context.Context) (*base.AuthCredentialResponse, error)
 
-	GenerateAuthCredentialsFn func(ctx context.Context, phone string) (*resources.AuthCredentialResponse, error)
+	GenerateAuthCredentialsFn func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error)
 
 	FetchAdminUsersFn func(ctx context.Context) ([]*base.UserProfile, error)
 
@@ -81,13 +82,19 @@ type FakeOnboardingRepository struct {
 
 	ExchangeRefreshTokenForIDTokenFn func(
 		token string,
-	) (*resources.AuthCredentialResponse, error)
+	) (*base.AuthCredentialResponse, error)
 
 	GetCustomerOrSupplierProfileByProfileIDFn func(
 		ctx context.Context,
 		flavour base.Flavour,
 		profileID string,
-	) (*domain.Customer, *domain.Supplier, error)
+	) (*base.Customer, *base.Supplier, error)
+
+	GetOrCreatePhoneNumberUserFn func(
+		ctx context.Context,
+		phone string,
+	) (*auth.UserRecord, error)
+
 	// Userprofile
 	UpdateUserNameFn                func(ctx context.Context, id string, phoneNumber string) error
 	UpdatePrimaryPhoneNumberFn      func(ctx context.Context, id string, phoneNumber string) error
@@ -104,22 +111,22 @@ type FakeOnboardingRepository struct {
 }
 
 // GetSupplierProfileByID ...
-func (f *FakeOnboardingRepository) GetSupplierProfileByID(ctx context.Context, id string) (*domain.Supplier, error) {
+func (f *FakeOnboardingRepository) GetSupplierProfileByID(ctx context.Context, id string) (*base.Supplier, error) {
 	return f.GetSupplierProfileByIDFn(ctx, id)
 }
 
 // GetSupplierProfileByProfileID ...
-func (f *FakeOnboardingRepository) GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, error) {
+func (f *FakeOnboardingRepository) GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*base.Supplier, error) {
 	return f.GetSupplierProfileByProfileIDFn(ctx, profileID)
 }
 
 // AddPartnerType ...
-func (f *FakeOnboardingRepository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error) {
+func (f *FakeOnboardingRepository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error) {
 	return f.AddPartnerTypeFn(ctx, profileID, name, partnerType)
 }
 
 // UpdateSupplierProfile ...
-func (f *FakeOnboardingRepository) UpdateSupplierProfile(ctx context.Context, data *domain.Supplier) (*domain.Supplier, error) {
+func (f *FakeOnboardingRepository) UpdateSupplierProfile(ctx context.Context, data *base.Supplier) (*base.Supplier, error) {
 	return f.UpdateSupplierProfileFn(ctx, data)
 }
 
@@ -134,7 +141,7 @@ func (f *FakeOnboardingRepository) StageKYCProcessingRequest(ctx context.Context
 }
 
 // ActivateSupplierProfile ...
-func (f *FakeOnboardingRepository) ActivateSupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error) {
+func (f *FakeOnboardingRepository) ActivateSupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error) {
 	return f.ActivateSupplierProfileFn(ctx, profileID)
 }
 
@@ -154,12 +161,12 @@ func (f *FakeOnboardingRepository) UpdateKYCProcessingRequest(ctx context.Contex
 }
 
 // GetCustomerProfileByID ...
-func (f *FakeOnboardingRepository) GetCustomerProfileByID(ctx context.Context, id string) (*domain.Customer, error) {
+func (f *FakeOnboardingRepository) GetCustomerProfileByID(ctx context.Context, id string) (*base.Customer, error) {
 	return f.GetCustomerProfileByIDFn(ctx, id)
 }
 
 // GetCustomerProfileByProfileID ...
-func (f *FakeOnboardingRepository) GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*domain.Customer, error) {
+func (f *FakeOnboardingRepository) GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*base.Customer, error) {
 	return f.GetCustomerProfileByProfileIDFn(ctx, profileID)
 }
 
@@ -169,12 +176,12 @@ func (f *FakeOnboardingRepository) CreateUserProfile(ctx context.Context, phoneN
 }
 
 // CreateEmptySupplierProfile ...
-func (f *FakeOnboardingRepository) CreateEmptySupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error) {
+func (f *FakeOnboardingRepository) CreateEmptySupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error) {
 	return f.CreateEmptySupplierProfileFn(ctx, profileID)
 }
 
 // CreateEmptyCustomerProfile creates an empty customer profile
-func (f *FakeOnboardingRepository) CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*domain.Customer, error) {
+func (f *FakeOnboardingRepository) CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*base.Customer, error) {
 	return f.CreateEmptyCustomerProfileFn(ctx, profileID)
 }
 
@@ -209,12 +216,12 @@ func (f *FakeOnboardingRepository) CheckIfUsernameExists(ctx context.Context, ph
 }
 
 // GenerateAuthCredentialsForAnonymousUser ...
-func (f *FakeOnboardingRepository) GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*resources.AuthCredentialResponse, error) {
+func (f *FakeOnboardingRepository) GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*base.AuthCredentialResponse, error) {
 	return f.GenerateAuthCredentialsForAnonymousUserFn(ctx)
 }
 
 // GenerateAuthCredentials ...
-func (f *FakeOnboardingRepository) GenerateAuthCredentials(ctx context.Context, phone string) (*resources.AuthCredentialResponse, error) {
+func (f *FakeOnboardingRepository) GenerateAuthCredentials(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
 	return f.GenerateAuthCredentialsFn(ctx, phone)
 }
 
@@ -249,12 +256,12 @@ func (f *FakeOnboardingRepository) UpdatePIN(ctx context.Context, id string, pin
 }
 
 // ExchangeRefreshTokenForIDToken ...
-func (f *FakeOnboardingRepository) ExchangeRefreshTokenForIDToken(token string) (*resources.AuthCredentialResponse, error) {
+func (f *FakeOnboardingRepository) ExchangeRefreshTokenForIDToken(token string) (*base.AuthCredentialResponse, error) {
 	return f.ExchangeRefreshTokenForIDTokenFn(token)
 }
 
 // GetCustomerOrSupplierProfileByProfileID ...
-func (f *FakeOnboardingRepository) GetCustomerOrSupplierProfileByProfileID(ctx context.Context, flavour base.Flavour, profileID string) (*domain.Customer, *domain.Supplier, error) {
+func (f *FakeOnboardingRepository) GetCustomerOrSupplierProfileByProfileID(ctx context.Context, flavour base.Flavour, profileID string) (*base.Customer, *base.Supplier, error) {
 	return f.GetCustomerOrSupplierProfileByProfileIDFn(ctx, flavour, profileID)
 }
 
@@ -316,4 +323,11 @@ func (f *FakeOnboardingRepository) UpdateVerifiedIdentifiers(ctx context.Context
 // UpdateVerifiedUIDS ...
 func (f *FakeOnboardingRepository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []string) error {
 	return f.UpdateVerifiedUIDSFn(ctx, id, uids)
+}
+
+// GetOrCreatePhoneNumberUser ...
+func (f *FakeOnboardingRepository) GetOrCreatePhoneNumberUser(ctx context.Context,
+	phone string,
+) (*auth.UserRecord, error) {
+	return f.GetOrCreatePhoneNumberUserFn(ctx, phone)
 }

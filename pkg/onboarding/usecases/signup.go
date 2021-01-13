@@ -8,7 +8,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -16,13 +15,13 @@ import (
 // SignUpUseCases represents all the business logic involved in setting up a user
 type SignUpUseCases interface {
 	// VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
-	VerifyPhoneNumber(ctx context.Context, phone string) (*resources.OtpResponse, error)
+	VerifyPhoneNumber(ctx context.Context, phone string) (*base.OtpResponse, error)
 	// checks whether a phone number has been registred by another user. Checks both primary and
 	// secondary phone numbers. If the the phone number is foreign, it send an OTP to that phone number
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 
 	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
-	CreateUserByPhone(ctx context.Context, input *resources.SignUpInput) (*resources.UserResponse, error)
+	CreateUserByPhone(ctx context.Context, input *resources.SignUpInput) (*base.UserResponse, error)
 
 	// updates the user profile of the currently logged in user
 	UpdateUserProfile(ctx context.Context, input *resources.UserProfileInput) (*base.UserProfile, error)
@@ -94,7 +93,7 @@ func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string)
 func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	ctx context.Context,
 	input *resources.SignUpInput,
-) (*resources.UserResponse, error) {
+) (*base.UserResponse, error) {
 	userData, err := utils.ValidateSignUpInput(input)
 	if err != nil {
 		return nil, err
@@ -123,7 +122,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		return nil, exceptions.CheckPhoneNumberExistError()
 	}
 	// get or create user via their phone number
-	user, err := base.GetOrCreatePhoneNumberUser(ctx, *userData.PhoneNumber)
+	user, err := s.onboardingRepository.GetOrCreatePhoneNumberUser(ctx, *userData.PhoneNumber)
 	if err != nil {
 		// Note Here we are returning a custom `InternalServerError`
 		// since the error that comes back from `GetOrCreatePhoneNumberUser` is not well formatted
@@ -157,8 +156,8 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		return nil, err
 	}
 
-	var supplier *domain.Supplier
-	var customer *domain.Customer
+	var supplier *base.Supplier
+	var customer *base.Customer
 
 	supplier, err = s.onboardingRepository.CreateEmptySupplierProfile(ctx, profile.ID)
 	if err != nil {
@@ -170,7 +169,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	return &resources.UserResponse{
+	return &base.UserResponse{
 		Profile:         profile,
 		SupplierProfile: supplier,
 		CustomerProfile: customer,
@@ -247,7 +246,7 @@ func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Fl
 			return false, exceptions.CompleteSignUpError(nil)
 		}
 		fullName := fmt.Sprintf("%v %v", *pr.UserBioData.FirstName, *pr.UserBioData.LastName)
-		_, _ = s.supplierUsecase.AddCustomerSupplierERPAccount(ctx, fullName, domain.PartnerTypeConsumer)
+		_, _ = s.supplierUsecase.AddCustomerSupplierERPAccount(ctx, fullName, base.PartnerTypeConsumer)
 		return true, nil
 	}
 	return false, exceptions.InvalidFlavourDefinedError()
@@ -318,7 +317,7 @@ func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone 
 }
 
 // VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
-func (s *SignUpUseCasesImpl) VerifyPhoneNumber(ctx context.Context, phone string) (*resources.OtpResponse, error) {
+func (s *SignUpUseCasesImpl) VerifyPhoneNumber(ctx context.Context, phone string) (*base.OtpResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)

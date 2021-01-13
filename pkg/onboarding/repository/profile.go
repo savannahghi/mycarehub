@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 
 	"gitlab.slade360emr.com/go/base"
@@ -12,20 +13,20 @@ import (
 // SupplierRepository  defines signatures that relate to suppliers
 type SupplierRepository interface {
 	// supplier methods
-	GetSupplierProfileByID(ctx context.Context, id string) (*domain.Supplier, error)
+	GetSupplierProfileByID(ctx context.Context, id string) (*base.Supplier, error)
 
-	GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, error)
+	GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*base.Supplier, error)
 
-	AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error)
+	AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error)
 
-	UpdateSupplierProfile(ctx context.Context, data *domain.Supplier) (*domain.Supplier, error)
+	UpdateSupplierProfile(ctx context.Context, data *base.Supplier) (*base.Supplier, error)
 
 	StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error
 
 	StageKYCProcessingRequest(ctx context.Context, data *domain.KYCRequest) error
 
 	// sets the active attribute of supplier profile to true
-	ActivateSupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error)
+	ActivateSupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error)
 
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 
@@ -37,9 +38,9 @@ type SupplierRepository interface {
 // CustomerRepository  defines signatures that relate to customers
 type CustomerRepository interface {
 	// customer methods
-	GetCustomerProfileByID(ctx context.Context, id string) (*domain.Customer, error)
+	GetCustomerProfileByID(ctx context.Context, id string) (*base.Customer, error)
 
-	GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*domain.Customer, error)
+	GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*base.Customer, error)
 }
 
 // OnboardingRepository interface that provide access to all persistent storage operations
@@ -54,10 +55,10 @@ type OnboardingRepository interface {
 	CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error)
 
 	// creates an empty supplier profile
-	CreateEmptySupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error)
+	CreateEmptySupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error)
 
 	// creates an empty customer profile
-	CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*domain.Customer, error)
+	CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*base.Customer, error)
 
 	// fetches a user profile by uid
 	GetUserProfileByUID(ctx context.Context, uid string) (*base.UserProfile, error)
@@ -77,9 +78,9 @@ type OnboardingRepository interface {
 	// checks if a specific username has already been registered to another user
 	CheckIfUsernameExists(ctx context.Context, phone string) (bool, error)
 
-	GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*resources.AuthCredentialResponse, error)
+	GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*base.AuthCredentialResponse, error)
 
-	GenerateAuthCredentials(ctx context.Context, phone string) (*resources.AuthCredentialResponse, error)
+	GenerateAuthCredentials(ctx context.Context, phone string) (*base.AuthCredentialResponse, error)
 
 	FetchAdminUsers(ctx context.Context) ([]*base.UserProfile, error)
 
@@ -105,11 +106,16 @@ type OnboardingRepository interface {
 
 	ExchangeRefreshTokenForIDToken(
 		token string,
-	) (*resources.AuthCredentialResponse, error)
+	) (*base.AuthCredentialResponse, error)
 
 	GetCustomerOrSupplierProfileByProfileID(
 		ctx context.Context,
 		flavour base.Flavour,
 		profileID string,
-	) (*domain.Customer, *domain.Supplier, error)
+	) (*base.Customer, *base.Supplier, error)
+
+	GetOrCreatePhoneNumberUser(
+		ctx context.Context,
+		phone string,
+	) (*auth.UserRecord, error)
 }

@@ -25,7 +25,7 @@ type UserPINUseCases interface {
 		OTP string,
 	) (*resources.PINOutput, error)
 	ChangeUserPIN(ctx context.Context, phone string, pin string) (*resources.PINOutput, error)
-	RequestPINReset(ctx context.Context, phone string) (*resources.OtpResponse, error)
+	RequestPINReset(ctx context.Context, phone string) (*base.OtpResponse, error)
 }
 
 // UserPinUseCaseImpl represents usecase implementation object
@@ -82,7 +82,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 // RequestPINReset sends a request given an existing user's phone number,
 // sends an otp to the phone number that is then used in the process of
 // updating their old PIN to a new one
-func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) (*resources.OtpResponse, error) {
+func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) (*base.OtpResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)

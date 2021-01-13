@@ -6,10 +6,9 @@ import (
 	"testing"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
-func generateTestOTP(t *testing.T, phone string) (*resources.OtpResponse, error) {
+func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {

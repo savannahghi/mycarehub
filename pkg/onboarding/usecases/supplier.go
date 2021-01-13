@@ -43,15 +43,15 @@ const (
 
 // SupplierUseCases represent the business logic required for management of suppliers
 type SupplierUseCases interface {
-	AddPartnerType(ctx context.Context, name *string, partnerType *domain.PartnerType) (bool, error)
+	AddPartnerType(ctx context.Context, name *string, partnerType *base.PartnerType) (bool, error)
 
-	AddCustomerSupplierERPAccount(ctx context.Context, name string, partnerType domain.PartnerType) (*domain.Supplier, error)
+	AddCustomerSupplierERPAccount(ctx context.Context, name string, partnerType base.PartnerType) (*base.Supplier, error)
 
-	FindSupplierByID(ctx context.Context, id string) (*domain.Supplier, error)
+	FindSupplierByID(ctx context.Context, id string) (*base.Supplier, error)
 
-	FindSupplierByUID(ctx context.Context) (*domain.Supplier, error)
+	FindSupplierByUID(ctx context.Context) (*base.Supplier, error)
 
-	SetUpSupplier(ctx context.Context, accountType domain.AccountType) (*domain.Supplier, error)
+	SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
 
 	SuspendSupplier(ctx context.Context) (bool, error)
 
@@ -89,11 +89,11 @@ type SupplierUseCases interface {
 
 	SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error)
 
-	SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *domain.Supplier) error
+	SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *base.Supplier) error
 
 	SendKYCEmail(ctx context.Context, text, emailaddress string) error
 
-	StageKYCProcessingRequest(ctx context.Context, sup *domain.Supplier) error
+	StageKYCProcessingRequest(ctx context.Context, sup *base.Supplier) error
 
 	ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
 }
@@ -131,7 +131,7 @@ func NewSupplierUseCases(
 }
 
 // AddPartnerType create the initial supplier record
-func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, partnerType *domain.PartnerType) (bool, error) {
+func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, partnerType *base.PartnerType) (bool, error) {
 
 	if name == nil || partnerType == nil || !partnerType.IsValid() {
 		return false, fmt.Errorf("expected `name` to be defined and `partnerType` to be valid")
@@ -141,7 +141,7 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 		return false, exceptions.InvalidPartnerTypeError()
 	}
 
-	if *partnerType == domain.PartnerTypeConsumer {
+	if *partnerType == base.PartnerTypeConsumer {
 		return false, fmt.Errorf("invalid `partnerType`. cannot use CONSUMER in this context")
 	}
 
@@ -165,7 +165,7 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 
 // AddCustomerSupplierERPAccount makes a call to our own ERP and creates a  customer account or supplier account  based
 // on the provided partnerType
-func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context, name string, partnerType domain.PartnerType) (*domain.Supplier, error) {
+func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context, name string, partnerType base.PartnerType) (*base.Supplier, error) {
 
 	profile, err := s.profile.UserProfile(ctx)
 	if err != nil {
@@ -185,7 +185,7 @@ func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context,
 	var payload map[string]interface{}
 	var endpoint string
 
-	if partnerType == domain.PartnerTypeConsumer {
+	if partnerType == base.PartnerTypeConsumer {
 		endpoint = customerAPIPath
 		payload = map[string]interface{}{
 			"active":        active,
@@ -212,7 +212,7 @@ func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context,
 	}
 
 	// for customers, we don't return anything. So long as there is not error, we are good
-	if partnerType == domain.PartnerTypeConsumer {
+	if partnerType == base.PartnerTypeConsumer {
 		return nil, nil
 	}
 
@@ -220,12 +220,12 @@ func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context,
 }
 
 // FindSupplierByID fetches a supplier by their id
-func (s SupplierUseCasesImpl) FindSupplierByID(ctx context.Context, id string) (*domain.Supplier, error) {
+func (s SupplierUseCasesImpl) FindSupplierByID(ctx context.Context, id string) (*base.Supplier, error) {
 	return s.repo.GetSupplierProfileByID(ctx, id)
 }
 
 // FindSupplierByUID fetches a supplier by logged in user uid
-func (s SupplierUseCasesImpl) FindSupplierByUID(ctx context.Context) (*domain.Supplier, error) {
+func (s SupplierUseCasesImpl) FindSupplierByUID(ctx context.Context) (*base.Supplier, error) {
 	pr, err := s.profile.UserProfile(ctx)
 	if err != nil {
 		return nil, err
@@ -235,7 +235,7 @@ func (s SupplierUseCasesImpl) FindSupplierByUID(ctx context.Context) (*domain.Su
 }
 
 // SetUpSupplier performs initial account set up during onboarding
-func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType domain.AccountType) (*domain.Supplier, error) {
+func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error) {
 
 	validAccountType := accountType.IsValid()
 	if !validAccountType {
@@ -353,7 +353,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	supplier.AccountType = domain.AccountTypeIndividual
+	supplier.AccountType = base.AccountTypeIndividual
 	supplier.UnderOrganization = true
 
 	ediUserProfile, err := func(sladeCode string) (*base.EDIUserProfile, error) {
@@ -491,7 +491,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 
 		return s.chargemaster.FindBranch(ctx, nil, brFilter, nil)
 	}
-	loc := domain.Location{
+	loc := base.Location{
 		ID:   businessPartner.ID,
 		Name: businessPartner.Name,
 	}
@@ -535,7 +535,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 	}(brs, locationID)
 
 	if branch != nil {
-		loc := domain.Location{
+		loc := base.Location{
 			ID:              branch.Node.ID,
 			Name:            branch.Node.Name,
 			BranchSladeCode: &branch.Node.BranchSladeCode,
@@ -577,13 +577,13 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context
 }
 
 // PublishKYCNudge pushes a kyc nudge to the user feed
-func (s *SupplierUseCasesImpl) PublishKYCNudge(ctx context.Context, uid string, partner *domain.PartnerType, account *domain.AccountType) error {
+func (s *SupplierUseCasesImpl) PublishKYCNudge(ctx context.Context, uid string, partner *base.PartnerType, account *base.AccountType) error {
 
 	if partner == nil || !partner.IsValid() {
 		return fmt.Errorf("expected `partner` to be defined and to be valid")
 	}
 
-	if *partner == domain.PartnerTypeConsumer {
+	if *partner == base.PartnerTypeConsumer {
 		return fmt.Errorf("invalid `partner`. cannot use CONSUMER in this context")
 	}
 
@@ -776,7 +776,7 @@ func (s *SupplierUseCasesImpl) parseKYCAsMap(data interface{}) (map[string]inter
 
 // SaveKYCResponseAndNotifyAdmins saves the kyc information provided by the user
 // and sends a notification to all admins for a pending KYC review request
-func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *domain.Supplier) error {
+func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *base.Supplier) error {
 
 	if _, err := s.repo.UpdateSupplierProfile(ctx, sup); err != nil {
 		return err
@@ -809,7 +809,7 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(ctx context.Contex
 }
 
 // StageKYCProcessingRequest saves kyc processing requests
-func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(ctx context.Context, sup *domain.Supplier) error {
+func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(ctx context.Context, sup *base.Supplier) error {
 	r := &domain.KYCRequest{
 		ID:                  uuid.New().String(),
 		ReqPartnerType:      sup.PartnerType,

@@ -139,7 +139,7 @@ func composeValidUserPayload(t *testing.T, phone string) (*resources.SignUpInput
 	}, nil
 }
 
-func CreateTestUserByPhone(t *testing.T, phone string) (*resources.UserResponse, error) {
+func CreateTestUserByPhone(t *testing.T, phone string) (*base.UserResponse, error) {
 	client := http.DefaultClient
 	validPayload, err := composeValidUserPayload(t, phone)
 	if err != nil {
@@ -183,7 +183,7 @@ func CreateTestUserByPhone(t *testing.T, phone string) (*resources.UserResponse,
 
 	}
 
-	var userResponse resources.UserResponse
+	var userResponse base.UserResponse
 	err = json.Unmarshal(data, &userResponse)
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshall response: %v", err)
@@ -229,7 +229,7 @@ func RemoveTestUserByPhone(t *testing.T, phone string) (bool, error) {
 	return true, nil
 }
 
-func generateTestOTP(t *testing.T, phone string) (*resources.OtpResponse, error) {
+func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {

@@ -253,8 +253,8 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 }
 
 // CreateEmptySupplierProfile creates an empty supplier profile
-func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error) {
-	sup := &domain.Supplier{
+func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error) {
+	sup := &base.Supplier{
 		ID:        uuid.New().String(),
 		ProfileID: &profileID,
 	}
@@ -269,7 +269,7 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created supplier profile: %w", err))
 	}
 	// return the newly created supplier profile
-	supplier := &domain.Supplier{}
+	supplier := &base.Supplier{}
 	err = dsnap.DataTo(supplier)
 	if err != nil {
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier profile: %w", err))
@@ -279,8 +279,8 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 }
 
 // CreateEmptyCustomerProfile creates an empty customer profile
-func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*domain.Customer, error) {
-	cus := &domain.Customer{
+func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*base.Customer, error) {
+	cus := &base.Customer{
 		ID:        uuid.New().String(),
 		ProfileID: &profileID,
 	}
@@ -295,7 +295,7 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created customer profile: %w", err))
 	}
 	// return the newly created customer profile
-	customer := &domain.Customer{}
+	customer := &base.Customer{}
 	err = dsnap.DataTo(customer)
 	if err != nil {
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
@@ -433,11 +433,11 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 // GenerateAuthCredentialsForAnonymousUser generates auth credentials for the anonymous user. This method is here since we don't
 // want to delegate sign-in of anonymous users to the frontend. This is an effort the over reliance on firebase and lettin us
 // handle all the heavy lifting
-func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*resources.AuthCredentialResponse, error) {
+func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*base.AuthCredentialResponse, error) {
 	// todo(dexter) : move anonymousPhoneNumber to base. AnonymousPhoneNumber should NEVER NEVER have a user profile
 	anonymousPhoneNumber := "+254700000000"
 
-	u, err := base.GetOrCreatePhoneNumberUser(ctx, anonymousPhoneNumber)
+	u, err := fr.GetOrCreatePhoneNumberUser(ctx, anonymousPhoneNumber)
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
@@ -451,7 +451,7 @@ func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Contex
 		return nil, exceptions.AuthenticateTokenError(err)
 	}
 
-	return &resources.AuthCredentialResponse{
+	return &base.AuthCredentialResponse{
 		CustomToken:  &customToken,
 		IDToken:      &userTokens.IDToken,
 		ExpiresIn:    userTokens.ExpiresIn,
@@ -466,7 +466,7 @@ func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Contex
 func (fr *Repository) GenerateAuthCredentials(
 	ctx context.Context,
 	phone string,
-) (*resources.AuthCredentialResponse, error) {
+) (*base.AuthCredentialResponse, error) {
 	u, err := fr.FirebaseClient.GetUserByPhoneNumber(ctx, phone)
 	if err != nil {
 		if auth.IsUserNotFound(err) {
@@ -500,7 +500,7 @@ func (fr *Repository) GenerateAuthCredentials(
 		return nil, exceptions.UpdateProfileError(err)
 	}
 
-	return &resources.AuthCredentialResponse{
+	return &base.AuthCredentialResponse{
 		CustomToken:  &customToken,
 		IDToken:      &userTokens.IDToken,
 		ExpiresIn:    userTokens.ExpiresIn,
@@ -964,7 +964,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 // ExchangeRefreshTokenForIDToken takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*resources.AuthCredentialResponse, error) {
+func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*base.AuthCredentialResponse, error) {
 	apiKey, err := base.GetEnvVar(base.FirebaseWebAPIKeyEnvVarName)
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
@@ -1004,7 +1004,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*resou
 			))
 	}
 
-	var tokenResp resources.AuthCredentialResponse
+	var tokenResp base.AuthCredentialResponse
 	err = json.NewDecoder(resp.Body).Decode(&tokenResp)
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
@@ -1014,7 +1014,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*resou
 }
 
 // GetCustomerProfileByID fetch the customer profile by profile id.
-func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*domain.Customer, error) {
+func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*base.Customer, error) {
 	collection := fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName())
 	query := collection.Where("id", "==", id)
 	docs, err := query.Documents(ctx).GetAll()
@@ -1029,7 +1029,7 @@ func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*d
 		return nil, exceptions.InternalServerError(fmt.Errorf("customer profile not found: %w", err))
 	}
 	dsnap := docs[0]
-	cus := &domain.Customer{}
+	cus := &base.Customer{}
 	err = dsnap.DataTo(cus)
 	if err != nil {
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
@@ -1038,7 +1038,7 @@ func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*d
 }
 
 // GetCustomerProfileByProfileID fetches customer profile by given ID
-func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*domain.Customer, error) {
+func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*base.Customer, error) {
 	collection := fr.FirestoreClient.Collection(fr.GetCustomerProfileCollectionName())
 	query := collection.Where("profileID", "==", profileID)
 	docs, err := query.Documents(ctx).GetAll()
@@ -1050,7 +1050,7 @@ func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profile
 		return nil, exceptions.InternalServerError(fmt.Errorf("customer profile not found: %w", err))
 	}
 	dsnap := docs[0]
-	cus := &domain.Customer{}
+	cus := &base.Customer{}
 	err = dsnap.DataTo(cus)
 	if err != nil {
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
@@ -1060,7 +1060,7 @@ func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profile
 
 // GetSupplierProfileByProfileID fetch the supplier profile by profile id.
 // since this same supplierProfile can be used for updating, a companion snapshot record is returned as well
-func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*domain.Supplier, error) {
+func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*base.Supplier, error) {
 	collection := fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName())
 	query := collection.Where("profileID", "==", profileID)
 	docs, err := query.Documents(ctx).GetAll()
@@ -1075,7 +1075,7 @@ func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profile
 		return nil, exceptions.InternalServerError(fmt.Errorf("supplier profile not found: %w", err))
 	}
 	dsnap := docs[0]
-	sup := &domain.Supplier{}
+	sup := &base.Supplier{}
 	err = dsnap.DataTo(sup)
 	if err != nil {
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier profile: %w", err))
@@ -1084,7 +1084,7 @@ func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profile
 }
 
 // GetSupplierProfileByID fetches supplier profile by given ID
-func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*domain.Supplier, error) {
+func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*base.Supplier, error) {
 	collection := fr.FirestoreClient.Collection(fr.GetSupplierProfileCollectionName())
 	query := collection.Where("id", "==", id)
 	docs, err := query.Documents(ctx).GetAll()
@@ -1096,7 +1096,7 @@ func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*d
 		return nil, exceptions.InternalServerError(fmt.Errorf("supplier profile not found: %w", err))
 	}
 	dsnap := docs[0]
-	sup := &domain.Supplier{}
+	sup := &base.Supplier{}
 	err = dsnap.DataTo(sup)
 	if err != nil {
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier profile: %w", err))
@@ -1105,7 +1105,7 @@ func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*d
 }
 
 // AddPartnerType updates the suppier profile with the provided name and  partner type.
-func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *domain.PartnerType) (bool, error) {
+func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error) {
 
 	// get the suppier profile
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
@@ -1134,7 +1134,7 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 }
 
 // ActivateSupplierProfile sets the active attribute of supplier profile to true
-func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID string) (*domain.Supplier, error) {
+func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error) {
 	// get the suppier profile
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 	if err != nil {
@@ -1159,7 +1159,7 @@ func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID str
 }
 
 // UpdateSupplierProfile update the supplier profile
-func (fr *Repository) UpdateSupplierProfile(ctx context.Context, data *domain.Supplier) (*domain.Supplier, error) {
+func (fr *Repository) UpdateSupplierProfile(ctx context.Context, data *base.Supplier) (*base.Supplier, error) {
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, *data.ProfileID)
 	if err != nil {
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to fetch supplier profile: %v", err))
@@ -1350,9 +1350,9 @@ func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
 	ctx context.Context,
 	flavour base.Flavour,
 	profileID string,
-) (*domain.Customer, *domain.Supplier, error) {
-	var customer *domain.Customer
-	var supplier *domain.Supplier
+) (*base.Customer, *base.Supplier, error) {
+	var customer *base.Customer
+	var supplier *base.Supplier
 
 	switch flavour {
 	case base.FlavourConsumer:
@@ -1376,4 +1376,30 @@ func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
 	}
 
 	return customer, supplier, nil
+}
+
+// GetOrCreatePhoneNumberUser retrieves or creates an phone number user
+// account in Firebase Authentication
+func (fr *Repository) GetOrCreatePhoneNumberUser(
+	ctx context.Context,
+	phone string,
+) (*auth.UserRecord, error) {
+	user, err := fr.FirebaseClient.GetUserByPhoneNumber(
+		ctx,
+		phone,
+	)
+	if err == nil {
+		return user, nil
+	}
+
+	params := (&auth.UserToCreate{}).
+		PhoneNumber(phone)
+	newUser, err := fr.FirebaseClient.CreateUser(
+		ctx,
+		params,
+	)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+	return newUser, nil
 }

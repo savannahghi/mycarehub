@@ -217,53 +217,6 @@ func (e BeneficiaryRelationship) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-// AccountType defines the various supplier account types
-type AccountType string
-
-// AccountTypeIndivdual is an example of a suppiler account type
-const (
-	AccountTypeIndividual   AccountType = "INDIVIDUAL"
-	AccountTypeOrganisation AccountType = "ORGANISATION"
-)
-
-// AllAccountType is a slice that represents all the account types
-var AllAccountType = []AccountType{
-	AccountTypeIndividual,
-	AccountTypeOrganisation,
-}
-
-// IsValid checks if the account type is valid
-func (e AccountType) IsValid() bool {
-	switch e {
-	case AccountTypeIndividual, AccountTypeOrganisation:
-		return true
-	}
-	return false
-}
-
-func (e AccountType) String() string {
-	return string(e)
-}
-
-// UnmarshalGQL converts the input, if valid, into a account type value
-func (e *AccountType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AccountType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid AccountType", str)
-	}
-	return nil
-}
-
-// MarshalGQL converts AccountType into a valid JSON string
-func (e AccountType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
 // IdentificationDocType defines the various supplier IdentificationDocTypes
 type IdentificationDocType string
 
@@ -310,63 +263,6 @@ func (e *IdentificationDocType) UnmarshalGQL(v interface{}) error {
 
 // MarshalGQL converts IdentificationDocType into a valid JSON string
 func (e IdentificationDocType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// PartnerType defines the different partner types we have in Be.Well
-type PartnerType string
-
-// PartnerTypeRider is an example of a partner type who is involved in delivery of goods
-const (
-	PartnerTypeRider          PartnerType = "RIDER"
-	PartnerTypePractitioner   PartnerType = "PRACTITIONER"
-	PartnerTypeProvider       PartnerType = "PROVIDER"
-	PartnerTypePharmaceutical PartnerType = "PHARMACEUTICAL"
-	PartnerTypeCoach          PartnerType = "COACH"
-	PartnerTypeNutrition      PartnerType = "NUTRITION"
-	PartnerTypeConsumer       PartnerType = "CONSUMER"
-)
-
-// AllPartnerType represents a list of the partner types we offer
-var AllPartnerType = []PartnerType{
-	PartnerTypeRider,
-	PartnerTypePractitioner,
-	PartnerTypeProvider,
-	PartnerTypePharmaceutical,
-	PartnerTypeCoach,
-	PartnerTypeNutrition,
-	PartnerTypeConsumer,
-}
-
-// IsValid checks if a partner type is valid or not
-func (e PartnerType) IsValid() bool {
-	switch e {
-	case PartnerTypeRider, PartnerTypePractitioner, PartnerTypeProvider, PartnerTypePharmaceutical, PartnerTypeCoach, PartnerTypeNutrition, PartnerTypeConsumer:
-		return true
-	}
-	return false
-}
-
-func (e PartnerType) String() string {
-	return string(e)
-}
-
-// UnmarshalGQL converts the input, if valid, into an correct partner type value
-func (e *PartnerType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = PartnerType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid PartnerType", str)
-	}
-	return nil
-}
-
-// MarshalGQL converts partner type into a valid JSON string
-func (e PartnerType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

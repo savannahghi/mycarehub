@@ -203,7 +203,7 @@ type ComplexityRoot struct {
 		AddOrganizationPractitionerKyc   func(childComplexity int, input domain.OrganizationPractitioner) int
 		AddOrganizationProviderKyc       func(childComplexity int, input domain.OrganizationProvider) int
 		AddOrganizationRiderKyc          func(childComplexity int, input domain.OrganizationRider) int
-		AddPartnerType                   func(childComplexity int, name string, partnerType domain.PartnerType) int
+		AddPartnerType                   func(childComplexity int, name string, partnerType base.PartnerType) int
 		AddPrimaryEmailAddress           func(childComplexity int, email string) int
 		AddSecondaryEmailAddress         func(childComplexity int, email []string) int
 		AddSecondaryPhoneNumber          func(childComplexity int, phone []string) int
@@ -213,7 +213,7 @@ type ComplexityRoot struct {
 		RegisterPushToken                func(childComplexity int, token string) int
 		SetPrimaryEmailAddress           func(childComplexity int, email string) int
 		SetPrimaryPhoneNumber            func(childComplexity int, phone string) int
-		SetUpSupplier                    func(childComplexity int, accountType domain.AccountType) int
+		SetUpSupplier                    func(childComplexity int, accountType base.AccountType) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
 		SupplierSetDefaultLocation       func(childComplexity int, locatonID string) int
 		SuspendSupplier                  func(childComplexity int) int
@@ -415,9 +415,9 @@ type MutationResolver interface {
 	UpdateUserName(ctx context.Context, username string) (bool, error)
 	AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
-	AddPartnerType(ctx context.Context, name string, partnerType domain.PartnerType) (bool, error)
+	AddPartnerType(ctx context.Context, name string, partnerType base.PartnerType) (bool, error)
 	SuspendSupplier(ctx context.Context) (bool, error)
-	SetUpSupplier(ctx context.Context, accountType domain.AccountType) (*domain.Supplier, error)
+	SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
 	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.BranchConnection, error)
 	SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error)
 	AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
@@ -436,7 +436,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
-	SupplierProfile(ctx context.Context) (*domain.Supplier, error)
+	SupplierProfile(ctx context.Context) (*base.Supplier, error)
 	ResumeWithPin(ctx context.Context, pin string) (bool, error)
 	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error)
 	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) (*resources.BranchConnection, error)
@@ -1202,7 +1202,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddPartnerType(childComplexity, args["name"].(string), args["partnerType"].(domain.PartnerType)), true
+		return e.complexity.Mutation.AddPartnerType(childComplexity, args["name"].(string), args["partnerType"].(base.PartnerType)), true
 
 	case "Mutation.addPrimaryEmailAddress":
 		if e.complexity.Mutation.AddPrimaryEmailAddress == nil {
@@ -1322,7 +1322,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetUpSupplier(childComplexity, args["accountType"].(domain.AccountType)), true
+		return e.complexity.Mutation.SetUpSupplier(childComplexity, args["accountType"].(base.AccountType)), true
 
 	case "Mutation.supplierEDILogin":
 		if e.complexity.Mutation.SupplierEDILogin == nil {
@@ -3597,10 +3597,10 @@ func (ec *executionContext) field_Mutation_addPartnerType_args(ctx context.Conte
 		}
 	}
 	args["name"] = arg0
-	var arg1 domain.PartnerType
+	var arg1 base.PartnerType
 	if tmp, ok := rawArgs["partnerType"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("partnerType"))
-		arg1, err = ec.unmarshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPartnerType(ctx, tmp)
+		arg1, err = ec.unmarshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPartnerType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3765,10 +3765,10 @@ func (ec *executionContext) field_Mutation_setPrimaryPhoneNumber_args(ctx contex
 func (ec *executionContext) field_Mutation_setUpSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 domain.AccountType
+	var arg0 base.AccountType
 	if tmp, ok := rawArgs["accountType"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountType"))
-		arg0, err = ec.unmarshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐAccountType(ctx, tmp)
+		arg0, err = ec.unmarshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5004,7 +5004,7 @@ func (ec *executionContext) _Cover_memberName(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Customer_id(ctx context.Context, field graphql.CollectedField, obj *domain.Customer) (ret graphql.Marshaler) {
+func (ec *executionContext) _Customer_id(ctx context.Context, field graphql.CollectedField, obj *base.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5039,7 +5039,7 @@ func (ec *executionContext) _Customer_id(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Customer_profileID(ctx context.Context, field graphql.CollectedField, obj *domain.Customer) (ret graphql.Marshaler) {
+func (ec *executionContext) _Customer_profileID(ctx context.Context, field graphql.CollectedField, obj *base.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5071,7 +5071,7 @@ func (ec *executionContext) _Customer_profileID(ctx context.Context, field graph
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Customer_customerID(ctx context.Context, field graphql.CollectedField, obj *domain.Customer) (ret graphql.Marshaler) {
+func (ec *executionContext) _Customer_customerID(ctx context.Context, field graphql.CollectedField, obj *base.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5103,7 +5103,7 @@ func (ec *executionContext) _Customer_customerID(ctx context.Context, field grap
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Customer_receivablesAccount(ctx context.Context, field graphql.CollectedField, obj *domain.Customer) (ret graphql.Marshaler) {
+func (ec *executionContext) _Customer_receivablesAccount(ctx context.Context, field graphql.CollectedField, obj *base.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5130,12 +5130,12 @@ func (ec *executionContext) _Customer_receivablesAccount(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(domain.ReceivablesAccount)
+	res := resTmp.(base.ReceivablesAccount)
 	fc.Result = res
-	return ec.marshalOReceivablesAccount2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐReceivablesAccount(ctx, field.Selections, res)
+	return ec.marshalOReceivablesAccount2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐReceivablesAccount(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Customer_active(ctx context.Context, field graphql.CollectedField, obj *domain.Customer) (ret graphql.Marshaler) {
+func (ec *executionContext) _Customer_active(ctx context.Context, field graphql.CollectedField, obj *base.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6616,9 +6616,9 @@ func (ec *executionContext) _KYCRequest_reqPartnerType(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(domain.PartnerType)
+	res := resTmp.(base.PartnerType)
 	fc.Result = res
-	return ec.marshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPartnerType(ctx, field.Selections, res)
+	return ec.marshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPartnerType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _KYCRequest_reqOrganizationType(ctx context.Context, field graphql.CollectedField, obj *domain.KYCRequest) (ret graphql.Marshaler) {
@@ -6756,9 +6756,9 @@ func (ec *executionContext) _KYCRequest_supplierRecord(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.Supplier)
+	res := resTmp.(*base.Supplier)
 	fc.Result = res
-	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupplier(ctx, field.Selections, res)
+	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _KYCRequest_status(ctx context.Context, field graphql.CollectedField, obj *domain.KYCRequest) (ret graphql.Marshaler) {
@@ -6793,7 +6793,7 @@ func (ec *executionContext) _KYCRequest_status(ctx context.Context, field graphq
 	return ec.marshalOKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Location_id(ctx context.Context, field graphql.CollectedField, obj *domain.Location) (ret graphql.Marshaler) {
+func (ec *executionContext) _Location_id(ctx context.Context, field graphql.CollectedField, obj *base.Location) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6828,7 +6828,7 @@ func (ec *executionContext) _Location_id(ctx context.Context, field graphql.Coll
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Location_name(ctx context.Context, field graphql.CollectedField, obj *domain.Location) (ret graphql.Marshaler) {
+func (ec *executionContext) _Location_name(ctx context.Context, field graphql.CollectedField, obj *base.Location) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6863,7 +6863,7 @@ func (ec *executionContext) _Location_name(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Location_branchSladeCode(ctx context.Context, field graphql.CollectedField, obj *domain.Location) (ret graphql.Marshaler) {
+func (ec *executionContext) _Location_branchSladeCode(ctx context.Context, field graphql.CollectedField, obj *base.Location) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7340,7 +7340,7 @@ func (ec *executionContext) _Mutation_addPartnerType(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddPartnerType(rctx, args["name"].(string), args["partnerType"].(domain.PartnerType))
+		return ec.resolvers.Mutation().AddPartnerType(rctx, args["name"].(string), args["partnerType"].(base.PartnerType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7417,7 +7417,7 @@ func (ec *executionContext) _Mutation_setUpSupplier(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetUpSupplier(rctx, args["accountType"].(domain.AccountType))
+		return ec.resolvers.Mutation().SetUpSupplier(rctx, args["accountType"].(base.AccountType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7426,9 +7426,9 @@ func (ec *executionContext) _Mutation_setUpSupplier(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*domain.Supplier)
+	res := resTmp.(*base.Supplier)
 	fc.Result = res
-	return ec.marshalOSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupplier(ctx, field.Selections, res)
+	return ec.marshalOSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_supplierEDILogin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10473,7 +10473,7 @@ func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graph
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_id(ctx context.Context, field graphql.CollectedField, obj *domain.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_id(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10508,7 +10508,7 @@ func (ec *executionContext) _PayablesAccount_id(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_name(ctx context.Context, field graphql.CollectedField, obj *domain.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_name(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10543,7 +10543,7 @@ func (ec *executionContext) _PayablesAccount_name(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_isActive(ctx context.Context, field graphql.CollectedField, obj *domain.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_isActive(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10578,7 +10578,7 @@ func (ec *executionContext) _PayablesAccount_isActive(ctx context.Context, field
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_number(ctx context.Context, field graphql.CollectedField, obj *domain.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_number(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10613,7 +10613,7 @@ func (ec *executionContext) _PayablesAccount_number(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_tag(ctx context.Context, field graphql.CollectedField, obj *domain.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_tag(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10648,7 +10648,7 @@ func (ec *executionContext) _PayablesAccount_tag(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_description(ctx context.Context, field graphql.CollectedField, obj *domain.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_description(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10748,9 +10748,9 @@ func (ec *executionContext) _Query_supplierProfile(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.Supplier)
+	res := resTmp.(*base.Supplier)
 	fc.Result = res
-	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupplier(ctx, field.Selections, res)
+	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_resumeWithPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11094,7 +11094,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_id(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_id(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11129,7 +11129,7 @@ func (ec *executionContext) _ReceivablesAccount_id(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_name(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_name(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11164,7 +11164,7 @@ func (ec *executionContext) _ReceivablesAccount_name(ctx context.Context, field 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_isActive(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_isActive(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11199,7 +11199,7 @@ func (ec *executionContext) _ReceivablesAccount_isActive(ctx context.Context, fi
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_number(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_number(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11234,7 +11234,7 @@ func (ec *executionContext) _ReceivablesAccount_number(ctx context.Context, fiel
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_tag(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_tag(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11269,7 +11269,7 @@ func (ec *executionContext) _ReceivablesAccount_tag(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_description(ctx context.Context, field graphql.CollectedField, obj *domain.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_description(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11374,7 +11374,7 @@ func (ec *executionContext) _ServicesOffered_otherServices(ctx context.Context, 
 	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_id(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_id(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11409,7 +11409,7 @@ func (ec *executionContext) _Supplier_id(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_profileID(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_profileID(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11444,7 +11444,7 @@ func (ec *executionContext) _Supplier_profileID(ctx context.Context, field graph
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_supplierId(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_supplierId(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11479,7 +11479,7 @@ func (ec *executionContext) _Supplier_supplierId(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_payablesAccount(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_payablesAccount(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11509,12 +11509,12 @@ func (ec *executionContext) _Supplier_payablesAccount(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.PayablesAccount)
+	res := resTmp.(*base.PayablesAccount)
 	fc.Result = res
-	return ec.marshalNPayablesAccount2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPayablesAccount(ctx, field.Selections, res)
+	return ec.marshalNPayablesAccount2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPayablesAccount(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_supplierKYC(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_supplierKYC(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11549,7 +11549,7 @@ func (ec *executionContext) _Supplier_supplierKYC(ctx context.Context, field gra
 	return ec.marshalNMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_active(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_active(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11584,7 +11584,7 @@ func (ec *executionContext) _Supplier_active(ctx context.Context, field graphql.
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_accountType(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_accountType(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11614,12 +11614,12 @@ func (ec *executionContext) _Supplier_accountType(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(domain.AccountType)
+	res := resTmp.(base.AccountType)
 	fc.Result = res
-	return ec.marshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐAccountType(ctx, field.Selections, res)
+	return ec.marshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_underOrganization(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_underOrganization(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11654,7 +11654,7 @@ func (ec *executionContext) _Supplier_underOrganization(ctx context.Context, fie
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_isOrganizationVerified(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_isOrganizationVerified(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11689,7 +11689,7 @@ func (ec *executionContext) _Supplier_isOrganizationVerified(ctx context.Context
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_partnerType(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_partnerType(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11719,12 +11719,12 @@ func (ec *executionContext) _Supplier_partnerType(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(domain.PartnerType)
+	res := resTmp.(base.PartnerType)
 	fc.Result = res
-	return ec.marshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPartnerType(ctx, field.Selections, res)
+	return ec.marshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPartnerType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_partnerSetupComplete(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_partnerSetupComplete(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11759,7 +11759,7 @@ func (ec *executionContext) _Supplier_partnerSetupComplete(ctx context.Context, 
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_KYCSubmitted(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_KYCSubmitted(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11794,7 +11794,7 @@ func (ec *executionContext) _Supplier_KYCSubmitted(ctx context.Context, field gr
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_sladeCode(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_sladeCode(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11826,7 +11826,7 @@ func (ec *executionContext) _Supplier_sladeCode(ctx context.Context, field graph
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_parentOrganizationID(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_parentOrganizationID(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11858,7 +11858,7 @@ func (ec *executionContext) _Supplier_parentOrganizationID(ctx context.Context, 
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_hasBranches(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_hasBranches(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11890,7 +11890,7 @@ func (ec *executionContext) _Supplier_hasBranches(ctx context.Context, field gra
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_location(ctx context.Context, field graphql.CollectedField, obj *domain.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_location(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11917,9 +11917,9 @@ func (ec *executionContext) _Supplier_location(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*domain.Location)
+	res := resTmp.(*base.Location)
 	fc.Result = res
-	return ec.marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐLocation(ctx, field.Selections, res)
+	return ec.marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLocation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
@@ -15432,7 +15432,7 @@ func (ec *executionContext) _Cover(ctx context.Context, sel ast.SelectionSet, ob
 
 var customerImplementors = []string{"Customer"}
 
-func (ec *executionContext) _Customer(ctx context.Context, sel ast.SelectionSet, obj *domain.Customer) graphql.Marshaler {
+func (ec *executionContext) _Customer(ctx context.Context, sel ast.SelectionSet, obj *base.Customer) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, customerImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -15867,7 +15867,7 @@ func (ec *executionContext) _KYCRequest(ctx context.Context, sel ast.SelectionSe
 
 var locationImplementors = []string{"Location"}
 
-func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet, obj *domain.Location) graphql.Marshaler {
+func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet, obj *base.Location) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, locationImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -16492,7 +16492,7 @@ func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet,
 
 var payablesAccountImplementors = []string{"PayablesAccount"}
 
-func (ec *executionContext) _PayablesAccount(ctx context.Context, sel ast.SelectionSet, obj *domain.PayablesAccount) graphql.Marshaler {
+func (ec *executionContext) _PayablesAccount(ctx context.Context, sel ast.SelectionSet, obj *base.PayablesAccount) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, payablesAccountImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -16697,7 +16697,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 var receivablesAccountImplementors = []string{"ReceivablesAccount"}
 
-func (ec *executionContext) _ReceivablesAccount(ctx context.Context, sel ast.SelectionSet, obj *domain.ReceivablesAccount) graphql.Marshaler {
+func (ec *executionContext) _ReceivablesAccount(ctx context.Context, sel ast.SelectionSet, obj *base.ReceivablesAccount) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, receivablesAccountImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -16781,7 +16781,7 @@ func (ec *executionContext) _ServicesOffered(ctx context.Context, sel ast.Select
 
 var supplierImplementors = []string{"Supplier"}
 
-func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet, obj *domain.Supplier) graphql.Marshaler {
+func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet, obj *base.Supplier) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, supplierImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -17243,13 +17243,13 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐAccountType(ctx context.Context, v interface{}) (domain.AccountType, error) {
-	var res domain.AccountType
+func (ec *executionContext) unmarshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx context.Context, v interface{}) (base.AccountType, error) {
+	var res base.AccountType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐAccountType(ctx context.Context, sel ast.SelectionSet, v domain.AccountType) graphql.Marshaler {
+func (ec *executionContext) marshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx context.Context, sel ast.SelectionSet, v base.AccountType) graphql.Marshaler {
 	return v
 }
 
@@ -17736,17 +17736,17 @@ func (ec *executionContext) marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 	return ec._PageInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPartnerType(ctx context.Context, v interface{}) (domain.PartnerType, error) {
-	var res domain.PartnerType
+func (ec *executionContext) unmarshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPartnerType(ctx context.Context, v interface{}) (base.PartnerType, error) {
+	var res base.PartnerType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPartnerType(ctx context.Context, sel ast.SelectionSet, v domain.PartnerType) graphql.Marshaler {
+func (ec *executionContext) marshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPartnerType(ctx context.Context, sel ast.SelectionSet, v base.PartnerType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNPayablesAccount2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPayablesAccount(ctx context.Context, sel ast.SelectionSet, v *domain.PayablesAccount) graphql.Marshaler {
+func (ec *executionContext) marshalNPayablesAccount2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPayablesAccount(ctx context.Context, sel ast.SelectionSet, v *base.PayablesAccount) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -17931,11 +17931,11 @@ func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalNSupplier2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupplier(ctx context.Context, sel ast.SelectionSet, v domain.Supplier) graphql.Marshaler {
+func (ec *executionContext) marshalNSupplier2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx context.Context, sel ast.SelectionSet, v base.Supplier) graphql.Marshaler {
 	return ec._Supplier(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *domain.Supplier) graphql.Marshaler {
+func (ec *executionContext) marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *base.Supplier) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -18814,7 +18814,7 @@ func (ec *executionContext) marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcom�
 	return ret
 }
 
-func (ec *executionContext) marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐLocation(ctx context.Context, sel ast.SelectionSet, v *domain.Location) graphql.Marshaler {
+func (ec *executionContext) marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLocation(ctx context.Context, sel ast.SelectionSet, v *base.Location) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -18893,7 +18893,7 @@ func (ec *executionContext) marshalOPermissionType2ᚕgitlabᚗslade360emrᚗcom
 	return ret
 }
 
-func (ec *executionContext) marshalOReceivablesAccount2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐReceivablesAccount(ctx context.Context, sel ast.SelectionSet, v domain.ReceivablesAccount) graphql.Marshaler {
+func (ec *executionContext) marshalOReceivablesAccount2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐReceivablesAccount(ctx context.Context, sel ast.SelectionSet, v base.ReceivablesAccount) graphql.Marshaler {
 	return ec._ReceivablesAccount(ctx, sel, &v)
 }
 
@@ -19041,7 +19041,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return graphql.MarshalString(*v)
 }
 
-func (ec *executionContext) marshalOSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *domain.Supplier) graphql.Marshaler {
+func (ec *executionContext) marshalOSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *base.Supplier) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

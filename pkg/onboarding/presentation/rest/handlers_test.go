@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	chargemasterMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
@@ -196,8 +195,8 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
 				}
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*resources.OtpResponse, error) {
-					return &resources.OtpResponse{OTP: "1234"}, nil
+				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+					return &base.OtpResponse{OTP: "1234"}, nil
 				}
 			}
 			// we mock `CheckPhoneExists` to return true
@@ -218,7 +217,7 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
 				}
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*resources.OtpResponse, error) {
+				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return nil, fmt.Errorf("unable generate and send otp")
 				}
 			}

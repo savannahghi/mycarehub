@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
@@ -32,12 +31,12 @@ type ServiceOTP interface {
 	GenerateAndSendOTP(
 		ctx context.Context,
 		phone string,
-	) (*resources.OtpResponse, error)
+	) (*base.OtpResponse, error)
 	SendRetryOTP(
 		ctx context.Context,
 		msisdn string,
 		retryStep int,
-	) (*resources.OtpResponse, error)
+	) (*base.OtpResponse, error)
 	VerifyOTP(ctx context.Context, phone, OTP string) (bool, error)
 }
 
@@ -76,7 +75,7 @@ func NewOTPService(r repository.OnboardingRepository) ServiceOTP {
 func (o *ServiceOTPImpl) GenerateAndSendOTP(
 	ctx context.Context,
 	phone string,
-) (*resources.OtpResponse, error) {
+) (*base.OtpResponse, error) {
 	body := map[string]interface{}{
 		"msisdn": phone,
 	}
@@ -99,7 +98,7 @@ func (o *ServiceOTPImpl) GenerateAndSendOTP(
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal OTP: %v", err)
 	}
-	return &resources.OtpResponse{OTP: OTP}, nil
+	return &base.OtpResponse{OTP: OTP}, nil
 }
 
 // SendRetryOTP generates fallback OTPs when Africa is talking sms fails
@@ -107,7 +106,7 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 	ctx context.Context,
 	msisdn string,
 	retryStep int,
-) (*resources.OtpResponse, error) {
+) (*base.OtpResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(msisdn)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
@@ -140,7 +139,7 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 		return nil, fmt.Errorf("failed to unmarshal OTP: %v", err)
 	}
 
-	return &resources.OtpResponse{OTP: RetryOTP}, nil
+	return &base.OtpResponse{OTP: RetryOTP}, nil
 }
 
 // VerifyOTP takes a phone number and an OTP and checks for the vlidity of the OTP code

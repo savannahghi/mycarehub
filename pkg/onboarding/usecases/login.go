@@ -5,7 +5,6 @@ import (
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -17,9 +16,9 @@ type LoginUseCases interface {
 		phone string,
 		PIN string,
 		flavour base.Flavour,
-	) (*resources.UserResponse, error)
-	RefreshToken(token string) (*resources.AuthCredentialResponse, error)
-	LoginAsAnonymous(ctx context.Context) (*resources.AuthCredentialResponse, error)
+	) (*base.UserResponse, error)
+	RefreshToken(token string) (*base.AuthCredentialResponse, error)
+	LoginAsAnonymous(ctx context.Context) (*base.AuthCredentialResponse, error)
 	ResumeWithPin(ctx context.Context, pin string) error
 }
 
@@ -41,7 +40,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	phone string,
 	PIN string,
 	flavour base.Flavour,
-) (*resources.UserResponse, error) {
+) (*base.UserResponse, error) {
 	phoneNumber, err := base.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
@@ -85,7 +84,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, exceptions.RetrieveRecordError(err)
 	}
 
-	return &resources.UserResponse{
+	return &base.UserResponse{
 		Profile:         profile,
 		CustomerProfile: customer,
 		SupplierProfile: supplier,
@@ -96,13 +95,13 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 // RefreshToken takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func (l *LoginUseCasesImpl) RefreshToken(token string) (*resources.AuthCredentialResponse, error) {
+func (l *LoginUseCasesImpl) RefreshToken(token string) (*base.AuthCredentialResponse, error) {
 	return l.onboardingRepository.ExchangeRefreshTokenForIDToken(token)
 }
 
 // LoginAsAnonymous logs in a user as anonymous. This anonymous user will not have a userProfile since we don't have
 // their phone number. All that we return is auth credentials and an error
-func (l *LoginUseCasesImpl) LoginAsAnonymous(ctx context.Context) (*resources.AuthCredentialResponse, error) {
+func (l *LoginUseCasesImpl) LoginAsAnonymous(ctx context.Context) (*base.AuthCredentialResponse, error) {
 	return l.onboardingRepository.GenerateAuthCredentialsForAnonymousUser(ctx)
 }
 

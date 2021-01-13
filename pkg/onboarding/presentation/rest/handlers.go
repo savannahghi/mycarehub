@@ -11,7 +11,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 // HandlersInterfaces represents all the REST API logic
@@ -348,7 +347,7 @@ func (h *HandlersInterfacesImpl) FindSupplierByUID(ctx context.Context) http.Han
 			return
 		}
 
-		var supplier *domain.Supplier
+		var supplier *base.Supplier
 
 		newContext := context.WithValue(ctx, base.AuthTokenContextKey, s.UID)
 		supplier, err = h.interactor.Supplier.FindSupplierByUID(newContext)

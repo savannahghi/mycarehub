@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 // CreatedUserGraphQLHeaders updates the authorization header with the
@@ -2303,14 +2302,14 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
 	name := "Makmende"
-	partnerPractitioner := domain.PartnerTypePractitioner
+	partnerPractitioner := base.PartnerTypePractitioner
 	_, err = s.Supplier.AddPartnerType(authenticatedContext, &name, &partnerPractitioner)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(authenticatedContext, domain.AccountTypeOrganisation)
+	_, err = s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
