@@ -133,6 +133,9 @@ func (fr Repository) ParseRecordAsSnapshot(ctx context.Context, collection strin
 		doc, err = fr.FirestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
 	case fr.GetPINsCollectionName():
 		doc, err = fr.FirestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
+	case fr.GetKCYProcessCollectionName():
+		doc, err = fr.FirestoreClient.Collection(collection).Where("id", "==", id).Documents(ctx).GetAll()
+
 	}
 	return doc[0], err
 }
@@ -1233,15 +1236,15 @@ func (fr *Repository) FetchKYCProcessingRequestByID(ctx context.Context, id stri
 }
 
 // UpdateKYCProcessingRequest update the supplier profile
-func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, sup *domain.KYCRequest) error {
+func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, kycRequest *domain.KYCRequest) error {
 
-	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetKCYProcessCollectionName(), kycRequest.ID)
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse kyc processing request as firebase snapshot: %v", err))
 	}
 
 	err = base.UpdateRecordOnFirestore(
-		fr.FirestoreClient, fr.GetKCYProcessCollectionName(), record.Ref.ID, sup,
+		fr.FirestoreClient, fr.GetKCYProcessCollectionName(), record.Ref.ID, kycRequest,
 	)
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to update kyc processing request profile: %v", err))
