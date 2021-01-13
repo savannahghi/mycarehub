@@ -512,3 +512,57 @@ func TestRepository_ExchangeRefreshTokenForIDToken(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_GetUserProfileByPhoneNumber(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Get a user by valid phonenumber",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: base.TestUserPhoneNumber,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Get a user by an invalid phonenumber",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "+254",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("returned a nil user")
+				return
+			}
+		})
+	}
+}
