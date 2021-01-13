@@ -2334,3 +2334,100 @@ func TestSupplierSetDefaultLocation(t *testing.T) {
 		})
 	}
 }
+
+func TestProcessKYCRequest(t *testing.T) {
+	ctx := context.Background()
+	service, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("failed to create service")
+		return
+	}
+	supplier := service.Supplier
+
+	/*
+	 * create a supplier account.
+	 */
+
+	seed := rand.NewSource(time.Now().UnixNano())
+	unique := fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9))
+	testPhoneNumber := "+25475698" + unique
+	testPhoneNumberPin := "7463"
+
+	newCtx, err := createUserTestAccount(ctx, service, testPhoneNumber, testPhoneNumberPin, base.FlavourPro, t)
+	if err != nil {
+		t.Errorf("%v", err)
+		return
+	}
+
+	partnerName := "jubileeisnotinsurance"
+	partnerType := domain.PartnerTypeNutrition
+
+	_, err = supplier.AddPartnerType(newCtx, &partnerName, &partnerType)
+	if err != nil {
+		t.Errorf("failed to add partner type, error %v", err)
+		return
+	}
+	_, err = supplier.SetUpSupplier(newCtx, domain.AccountTypeIndividual)
+
+	if err != nil {
+		t.Errorf("failed to add partner type, error %v", err)
+		return
+	}
+
+	test1Input := domain.IndividualNutrition{
+		KRAPIN:                      "someKRAPIN",
+		KRAPINUploadID:              "KRAPINUploadID",
+		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
+		PracticeLicenseID:           "PracticeLicenseID",
+		PracticeLicenseUploadID:     "PracticeLicenseUploadID",
+	}
+
+	_, err = supplier.AddIndividualNutritionKyc(newCtx, test1Input)
+	if err != nil {
+		t.Errorf("failed to add organization nutrition kyc, returned error: %v", err)
+		clean(newCtx, testPhoneNumber, t, service)
+		return
+	}
+
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "valid case",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			kycrequests, err := supplier.FetchKYCProcessingRequests(newCtx)
+			if err != nil {
+				t.Errorf("failed to fetch kyc requests")
+				clean(newCtx, testPhoneNumber, t, service)
+				return
+			}
+			firstKYC := kycrequests[0]
+
+			/* validate data */
+			if firstKYC == nil {
+				t.Errorf("nil kyc returned")
+				clean(newCtx, testPhoneNumber, t, service)
+				return
+			}
+
+			reason := "some reason"
+			response, err := supplier.ProcessKYCRequest(newCtx, firstKYC.ID, domain.KYCProcessStatusApproved, &reason)
+			if err != nil {
+				t.Errorf("failed to process kyc requests: %v", err)
+				clean(newCtx, testPhoneNumber, t, service)
+				return
+			}
+
+			if !response {
+				t.Errorf("%v", err)
+				clean(newCtx, testPhoneNumber, t, service)
+				return
+			}
+		})
+	}
+	clean(newCtx, testPhoneNumber, t, service)
+}

@@ -1430,7 +1430,9 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 
 	supplierEmails := func(profile *base.UserProfile) []string {
 		var emails []string
-		emails = append(emails, *profile.PrimaryEmailAddress)
+		if profile.PrimaryEmailAddress != nil {
+			emails = append(emails, *profile.PrimaryEmailAddress)
+		}
 		emails = append(emails, profile.SecondaryEmailAddresses...)
 		return emails
 	}(pr)
