@@ -646,3 +646,140 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+	// payload 1
+	phoneNumber := struct {
+		PhoneNumber string
+	}{
+		PhoneNumber: base.TestUserPhoneNumber,
+	}
+	bs, err := json.Marshal(phoneNumber)
+	if err != nil {
+		t.Errorf("unable to marshal phoneNumber to JSON: %s", err)
+		return
+	}
+	payload := bytes.NewBuffer(bs)
+
+	// payload 2
+	phoneNumber2 := struct {
+		PhoneNumber string
+	}{
+		PhoneNumber: "0710100595",
+	}
+	bs2, err := json.Marshal(phoneNumber2)
+	if err != nil {
+		t.Errorf("unable to marshal phoneNumber to JSON: %s", err)
+		return
+	}
+	payload2 := bytes.NewBuffer(bs2)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_successfully_get_a_recovery_phone",
+			args: args{
+				url:        fmt.Sprintf("%s/user_recovery_phonenumbers", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "valid:_unable_to_get_profile",
+			args: args{
+				url:        fmt.Sprintf("%s/user_recovery_phonenumbers", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload2,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+			response := httptest.NewRecorder()
+			// we mock the required methods for a valid case
+			if tt.name == "valid:_successfully_get_a_recovery_phone" {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+						SecondaryPhoneNumbers: []string{
+							"0721521456", "0721856741",
+						},
+					}, nil
+				}
+			}
+
+			// we set GetUserProfileByPhoneNumber to return an error
+			if tt.name == "valid:_unable_to_get_profile" {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to retreive profile")
+				}
+			}
+
+			// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
+			// directly and pass in our Request and ResponseRecorder.
+			svr := h.UserRecoveryPhoneNumbers(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+			if !tt.wantErr {
+				data := map[string]interface{}{}
+				err = json.Unmarshal(dataResponse, &data)
+				if err != nil {
+					t.Errorf("bad data returned")
+					return
+				}
+				if !tt.wantErr {
+					_, ok := data["error"]
+					if ok {
+						t.Errorf("error not expected")
+						return
+					}
+				}
+			}
+		})
+	}
+}
