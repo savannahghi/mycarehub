@@ -186,14 +186,12 @@ func CheckUserPINError(err error) error {
 // ExistingPINError is the error message displayed when a
 // pin record fails to be retrieved from database
 func ExistingPINError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: ExistingPINErrMsg,
-			Code:    int(base.PINNotFound),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: ExistingPINErrMsg,
+		Code:    int(base.PINNotFound),
 	}
-	return nil
+
 }
 
 // EncryptPINError  is the error message displayed when

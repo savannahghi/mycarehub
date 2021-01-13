@@ -92,9 +92,6 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 	}
 
 	exists, err := u.CheckHasPIN(ctx, pr.ID)
-	if err != nil {
-		return nil, exceptions.CheckUserPINError(err)
-	}
 	if !exists {
 		return nil, exceptions.ExistingPINError(err)
 	}

@@ -59,7 +59,7 @@ const (
 
 	// ExistingPINErrMsg is the error message displayed when a
 	// pin record fails to be retrieved from database
-	ExistingPINErrMsg = "request for a PIN reset failed. User does not have an existing PIN"
+	ExistingPINErrMsg = "user does not have an existing PIN"
 
 	// CheckUserPINErrMsg is the error message displayed when
 	// server unable to check if the user has a PIN

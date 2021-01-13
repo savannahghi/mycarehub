@@ -11,11 +11,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
-
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	chargemasterMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
@@ -68,6 +66,47 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 
 }
 
+func composeValidPhonePayload(t *testing.T, phone string) *bytes.Buffer {
+	phoneNumber := struct {
+		PhoneNumber string
+	}{
+		PhoneNumber: phone,
+	}
+	bs, err := json.Marshal(phoneNumber)
+	if err != nil {
+		t.Errorf("unable to marshal phoneNumber to JSON: %s", err)
+	}
+	return bytes.NewBuffer(bs)
+}
+
+func composeSignupPayload(t *testing.T, phone, pin, otp string, flavour base.Flavour) *bytes.Buffer {
+	payload := resources.SignUpInput{
+		PhoneNumber: &phone,
+		PIN:         &pin,
+		Flavour:     flavour,
+		OTP:         &otp,
+	}
+
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	return bytes.NewBuffer(bs)
+}
+
+func composeChangePinPayload(t *testing.T, phone, pin, otp string) *bytes.Buffer {
+	payload := domain.ChangePINRequest{
+		PhoneNumber: phone,
+		PIN:         pin,
+		OTP:         otp,
+	}
+
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	return bytes.NewBuffer(bs)
+}
 func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
@@ -77,70 +116,20 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 	}
 
 	h := rest.NewHandlersInterfaces(i)
-	// payload 1
-	phoneNumber := struct {
-		PhoneNumber string
-	}{
-		PhoneNumber: base.TestUserPhoneNumber,
-	}
-	bs, err := json.Marshal(phoneNumber)
-	if err != nil {
-		t.Errorf("unable to marshal phoneNumber to JSON: %s", err)
-		return
-	}
-	payload := bytes.NewBuffer(bs)
+	// valid:_successfully_verifies_a_phone_number
+	payload := composeValidPhonePayload(t, base.TestUserPhoneNumber)
 
 	// payload 2
-	phoneNumber2 := struct {
-		PhoneNumber string
-	}{
-		PhoneNumber: base.TestUserPhoneNumberWithPin,
-	}
-	bs, err = json.Marshal(phoneNumber2)
-	if err != nil {
-		t.Errorf("unable to marshal phoneNumber2 to JSON: %s", err)
-		return
-	}
-	payload2 := bytes.NewBuffer(bs)
+	payload2 := composeValidPhonePayload(t, base.TestUserPhoneNumberWithPin)
 
 	// payload 3
-	phoneNumber3 := struct {
-		PhoneNumber string
-	}{
-		PhoneNumber: "0700100200",
-	}
-	bs, err = json.Marshal(phoneNumber3)
-	if err != nil {
-		t.Errorf("unable to marshal phoneNumber3 to JSON: %s", err)
-		return
-	}
-	payload3 := bytes.NewBuffer(bs)
+	payload3 := composeValidPhonePayload(t, "0700100200")
 
 	// payload 4
-	phoneNumber4 := struct {
-		PhoneNumber string
-	}{
-		PhoneNumber: "0700600300",
-	}
-	bs, err = json.Marshal(phoneNumber4)
-	if err != nil {
-		t.Errorf("unable to marshal phoneNumber4 to JSON: %s", err)
-		return
-	}
-	payload4 := bytes.NewBuffer(bs)
+	payload4 := composeValidPhonePayload(t, "0700600300")
 
 	// payload 5
-	phoneNumber5 := struct {
-		PhoneNumber string
-	}{
-		PhoneNumber: "*",
-	}
-	bs, err = json.Marshal(phoneNumber5)
-	if err != nil {
-		t.Errorf("unable to marshal phoneNumber5 to JSON: %s", err)
-		return
-	}
-	payload5 := bytes.NewBuffer(bs)
+	payload5 := composeValidPhonePayload(t, "*")
 
 	type args struct {
 		url        string
@@ -296,115 +285,46 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 		return
 	}
 
+	h := rest.NewHandlersInterfaces(i)
+
 	// payload
 	pin := "2030"
 	flavour := base.FlavourPro
 	otp := "1234"
 	phoneNumber := base.TestUserPhoneNumber
-	validPayload := resources.SignUpInput{
-		PhoneNumber: &phoneNumber,
-		PIN:         &pin,
-		Flavour:     flavour,
-		OTP:         &otp,
-	}
-
-	bs, err := json.Marshal(validPayload)
-	if err != nil {
-		t.Errorf("unable to marshal test item to JSON: %s", err)
-	}
-	payload := bytes.NewBuffer(bs)
+	payload := composeSignupPayload(t, phoneNumber, pin, otp, flavour)
 
 	// payload 2
 	pin2 := "1000"
 	flavour2 := base.FlavourConsumer
 	otp2 := "9000"
 	phoneNumber2 := "+254720125456"
-	validPayload2 := resources.SignUpInput{
-		PhoneNumber: &phoneNumber2,
-		PIN:         &pin2,
-		Flavour:     flavour2,
-		OTP:         &otp2,
-	}
-
-	bs2, err := json.Marshal(validPayload2)
-	if err != nil {
-		t.Errorf("unable to marshal test item to JSON: %s", err)
-	}
-	payload2 := bytes.NewBuffer(bs2)
+	payload2 := composeSignupPayload(t, phoneNumber2, pin2, otp2, flavour2)
 
 	// payload 3
 	pin3 := "2000"
 	flavour3 := base.FlavourConsumer
 	otp3 := "3000"
 	phoneNumber3 := "+254721100200"
-	validPayload3 := resources.SignUpInput{
-		PhoneNumber: &phoneNumber3,
-		PIN:         &pin3,
-		Flavour:     flavour3,
-		OTP:         &otp3,
-	}
-
-	bs3, err := json.Marshal(validPayload3)
-	if err != nil {
-		t.Errorf("unable to marshal test item to JSON: %s", err)
-	}
-	payload3 := bytes.NewBuffer(bs3)
-
+	payload3 := composeSignupPayload(t, phoneNumber3, pin3, otp3, flavour3)
 	// payload 4
 	pin4 := "1228"
 	flavour4 := base.FlavourConsumer
 	otp4 := "9652"
 	phoneNumber4 := "+254721410698"
-	validPayload4 := resources.SignUpInput{
-		PhoneNumber: &phoneNumber4,
-		PIN:         &pin4,
-		Flavour:     flavour4,
-		OTP:         &otp4,
-	}
-
-	bs4, err := json.Marshal(validPayload4)
-	if err != nil {
-		t.Errorf("unable to marshal test item to JSON: %s", err)
-	}
-	payload4 := bytes.NewBuffer(bs4)
-
+	payload4 := composeSignupPayload(t, phoneNumber4, pin4, otp4, flavour4)
 	// payload 5
 	pin5 := "0000"
 	flavour5 := base.FlavourConsumer
 	otp5 := "9520"
 	phoneNumber5 := "+254721410589"
-	validPayload5 := resources.SignUpInput{
-		PhoneNumber: &phoneNumber5,
-		PIN:         &pin5,
-		Flavour:     flavour5,
-		OTP:         &otp5,
-	}
-
-	bs5, err := json.Marshal(validPayload5)
-	if err != nil {
-		t.Errorf("unable to marshal test item to JSON: %s", err)
-	}
-	payload5 := bytes.NewBuffer(bs5)
-
+	payload5 := composeSignupPayload(t, phoneNumber5, pin5, otp5, flavour5) // payload6
 	// payload6
 	pin6 := "0000"
 	flavour6 := base.FlavourConsumer
 	otp6 := "9520"
 	phoneNumber6 := "+254721410589"
-	validPayload6 := resources.SignUpInput{
-		PhoneNumber: &phoneNumber6,
-		PIN:         &pin6,
-		Flavour:     flavour6,
-		OTP:         &otp6,
-	}
-
-	bs6, err := json.Marshal(validPayload6)
-	if err != nil {
-		t.Errorf("unable to marshal test item to JSON: %s", err)
-	}
-	payload6 := bytes.NewBuffer(bs6)
-
-	h := rest.NewHandlersInterfaces(i)
+	payload6 := composeSignupPayload(t, phoneNumber6, pin6, otp6, flavour6)
 
 	type args struct {
 		url        string
@@ -657,30 +577,10 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 
 	h := rest.NewHandlersInterfaces(i)
 	// payload 1
-	phoneNumber := struct {
-		PhoneNumber string
-	}{
-		PhoneNumber: base.TestUserPhoneNumber,
-	}
-	bs, err := json.Marshal(phoneNumber)
-	if err != nil {
-		t.Errorf("unable to marshal phoneNumber to JSON: %s", err)
-		return
-	}
-	payload := bytes.NewBuffer(bs)
+	payload := composeValidPhonePayload(t, base.TestUserPhoneNumber)
 
 	// payload 2
-	phoneNumber2 := struct {
-		PhoneNumber string
-	}{
-		PhoneNumber: "0710100595",
-	}
-	bs2, err := json.Marshal(phoneNumber2)
-	if err != nil {
-		t.Errorf("unable to marshal phoneNumber to JSON: %s", err)
-		return
-	}
-	payload2 := bytes.NewBuffer(bs2)
+	payload2 := composeValidPhonePayload(t, "0710100595")
 
 	type args struct {
 		url        string
@@ -779,6 +679,298 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 						return
 					}
 				}
+			}
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+	// payload sucessfully_request_pin_reset
+	payload := composeValidPhonePayload(t, base.TestUserPhoneNumber)
+	// _phone_number_invalid
+	payload1 := composeValidPhonePayload(t, "")
+	//invalid:_inable_to_get_primary_phone
+	payload2 := composeValidPhonePayload(t, "0725123456")
+	//invalid:check_has_pin_failed
+	payload3 := composeValidPhonePayload(t, "0700100400")
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:sucessfully_request_pin_reset",
+			args: args{
+				url:        fmt.Sprintf("%s/request_pin_reset", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_phone_number_invalid",
+			args: args{
+				url:        fmt.Sprintf("%s/request_pin_reset", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload1,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_inable_to_get_primary_phone",
+			args: args{
+				url:        fmt.Sprintf("%s/request_pin_reset", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload2,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:check_has_pin_failed",
+			args: args{
+				url:        fmt.Sprintf("%s/request_pin_reset", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload3,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+			response := httptest.NewRecorder()
+			// we mock the required methods for a valid case
+			if tt.name == "valid:sucessfully_request_pin_reset" {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
+					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
+				}
+				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+					return &base.OtpResponse{OTP: "1234"}, nil
+				}
+			}
+
+			if tt.name == "invalid:_inable_to_get_primary_phone" {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to fetch profile")
+				}
+			}
+
+			if tt.name == "invalid:check_has_pin_failed" {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
+					return nil, fmt.Errorf("unable to retrieve pin")
+				}
+			}
+
+			// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
+			// directly and pass in our Request and ResponseRecorder.
+			svr := h.RequestPINReset(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+			if !tt.wantErr {
+				data := map[string]interface{}{}
+				err = json.Unmarshal(dataResponse, &data)
+				if err != nil {
+					t.Errorf("bad data returned")
+					return
+				}
+				if !tt.wantErr {
+					_, ok := data["error"]
+					if ok {
+						t.Errorf("error not expected")
+						return
+					}
+				}
+			}
+
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+	// payload
+	phone := "0712456784"
+	pin := "1897"
+	otp := "000548"
+	payload := composeChangePinPayload(t, phone, pin, otp)
+	// payload2
+	phone1 := "0710472196"
+	pin1 := "02222"
+	otp1 := "0002358"
+	payload1 := composeChangePinPayload(t, phone1, pin1, otp1)
+	// payload3
+	phone2 := ""
+	pin2 := ""
+	otp2 := "6666"
+	payload2 := composeChangePinPayload(t, phone2, pin2, otp2)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "invalid:empty_payload",
+			args: args{
+				url:        fmt.Sprintf("%s/reset_pin", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload2,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "valid:sucessfully_reset_pin",
+			args: args{
+				url:        fmt.Sprintf("%s/reset_pin", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusCreated,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:unable_to_update_pin",
+			args: args{
+				url:        fmt.Sprintf("%s/reset_pin", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload1,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+			response := httptest.NewRecorder()
+			// we mock the required methods for a valid case
+			if tt.name == "valid:sucessfully_reset_pin" {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
+					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
+				}
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.UpdatePINFn = func(ctx context.Context, id string, pin *domain.PIN) (bool, error) {
+					return true, nil
+				}
+			}
+
+			// we set `UpdatePIN` to return an error
+			if tt.name == "invalid:unable_to_update_pin" {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
+					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
+				}
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.UpdatePINFn = func(ctx context.Context, id string, pin *domain.PIN) (bool, error) {
+					return false, fmt.Errorf("unable to update pin")
+				}
+			}
+			svr := h.ResetPin(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
 			}
 		})
 	}
