@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -562,6 +563,64 @@ func TestRepository_GetUserProfileByPhoneNumber(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("returned a nil user")
 				return
+			}
+		})
+	}
+}
+
+func TestRepository_GetSupplierProfileByProfileID(t *testing.T) {
+	ctx := context.Background()
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	profileID := uuid.New().String()
+
+	sup, err := fr.CreateEmptySupplierProfile(ctx, profileID)
+	if err != nil {
+		t.Errorf("failed to create an empty supplier: %v", err)
+	}
+
+	type args struct {
+		ctx       context.Context
+		profileID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.Supplier
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Get Supplier Profile By Valid profile ID",
+			args: args{
+				ctx:       ctx,
+				profileID: profileID,
+			},
+			want:    sup,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Get Supplier Profile By a non-existent profile ID",
+			args: args{
+				ctx:       ctx,
+				profileID: "bogus",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.GetSupplierProfileByProfileID(tt.args.ctx, tt.args.profileID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetSupplierProfileByProfileID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.GetSupplierProfileByProfileID() = %v, want %v", got, tt.want)
 			}
 		})
 	}
