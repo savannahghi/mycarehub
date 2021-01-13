@@ -409,7 +409,7 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) ht
 			}, http.StatusBadRequest)
 			return
 		}
-		v, err := h.interactor.Signup.CheckPhoneExists(ctx, *p.PhoneNumber)
+		v, err := h.interactor.Onboarding.CheckPhoneExists(ctx, *p.PhoneNumber)
 		if err != nil {
 			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,

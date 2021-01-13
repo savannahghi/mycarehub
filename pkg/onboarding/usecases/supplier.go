@@ -98,6 +98,8 @@ type SupplierUseCases interface {
 	StageKYCProcessingRequest(ctx context.Context, sup *base.Supplier) error
 
 	ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
+
+	RetireKYCRequest(ctx context.Context) error
 }
 
 // SupplierUseCasesImpl represents usecase implementation object
@@ -252,37 +254,41 @@ func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType bas
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	supplier, err := s.FindSupplierByUID(ctx)
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		return nil, exceptions.ProfileNotFoundError(err)
 	}
 
-	supplier.AccountType = accountType
-	supplier.UnderOrganization = false
-	supplier.IsOrganizationVerified = false
-	supplier.HasBranches = false
-	supplier.Active = false
-
-	sup, err := s.repo.UpdateSupplierProfile(ctx, supplier)
+	sup, err := s.repo.AddSupplierAccountType(ctx, profile.ID, accountType)
 	if err != nil {
 		return nil, err
 	}
 
-	go func() {
+	go func(u string, pnt base.PartnerType, acnt base.AccountType) {
 		op := func() error {
-			return s.PublishKYCNudge(ctx, uid, &supplier.PartnerType, &supplier.AccountType)
+			return s.PublishKYCNudge(ctx, u, &pnt, &acnt)
 		}
 
 		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
 			logrus.Error(err)
 		}
-	}()
+	}(uid, sup.PartnerType, sup.AccountType)
 
 	return sup, nil
 }
 
 // SuspendSupplier flips the active boolean on the erp partner from true to false
 func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error) {
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, exceptions.UserNotFoundError(err)
+	}
+
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return false, exceptions.ProfileNotFoundError(err)
+	}
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
@@ -291,8 +297,7 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error)
 
 	sup.Active = false
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-	if err != nil {
+	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
 		return false, err
 	}
 
@@ -353,6 +358,16 @@ func (s SupplierUseCasesImpl) CoreEDIUserLogin(username, password string) (*base
 // 3 . update the user's supplier record
 // 4. return the list of branches to the frontend so that a default location can be set
 func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*base.Supplier, error) {
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, exceptions.UserNotFoundError(err)
+	}
+
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return nil, exceptions.ProfileNotFoundError(err)
+	}
+
 	supplier, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		return nil, exceptions.SupplierNotFoundError(err)
@@ -421,8 +436,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		supplier.PartnerSetupComplete = true
 		supplier.OrganizationName = savannahOrgName
 
-		_, err := s.repo.UpdateSupplierProfile(ctx, supplier)
-		if err != nil {
+		if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, supplier); err != nil {
 			return nil, err
 		}
 
@@ -470,15 +484,8 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		supplier.Location = &loc
 	}
 
-	_, err = s.repo.UpdateSupplierProfile(ctx, supplier)
-	if err != nil {
+	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, supplier); err != nil {
 		return nil, err
-	}
-
-	// Send Nudge to fill KYC
-	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get the logged in user: %w", err)
 	}
 
 	go func() {
@@ -496,6 +503,16 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 
 // SupplierSetDefaultLocation updates the default location ot the supplier by the given location id
 func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error) {
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, exceptions.UserNotFoundError(err)
+	}
+
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return false, exceptions.ProfileNotFoundError(err)
+	}
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
@@ -531,8 +548,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 		}
 		sup.Location = &loc
 
-		_, err = s.repo.UpdateSupplierProfile(ctx, sup)
-		if err != nil {
+		if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
 			return false, err
 		}
 
@@ -767,7 +783,17 @@ func (s *SupplierUseCasesImpl) parseKYCAsMap(data interface{}) (map[string]inter
 // and sends a notification to all admins for a pending KYC review request
 func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *base.Supplier) error {
 
-	if _, err := s.repo.UpdateSupplierProfile(ctx, sup); err != nil {
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return exceptions.UserNotFoundError(err)
+	}
+
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return exceptions.ProfileNotFoundError(err)
+	}
+
+	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
 		return err
 	}
 
@@ -820,43 +846,47 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input 
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	if !input.IdentificationDoc.IdentificationDocType.IsValid() {
-		return nil, exceptions.WrongEnumTypeError(input.IdentificationDoc.IdentificationDocType.String())
+	if !sup.KYCSubmitted {
+		if !input.IdentificationDoc.IdentificationDocType.IsValid() {
+			return nil, exceptions.WrongEnumTypeError(input.IdentificationDoc.IdentificationDocType.String())
+		}
+
+		kyc := domain.IndividualRider{
+			IdentificationDoc: domain.Identification{
+				IdentificationDocType:           input.IdentificationDoc.IdentificationDocType,
+				IdentificationDocNumber:         input.IdentificationDoc.IdentificationDocNumber,
+				IdentificationDocNumberUploadID: input.IdentificationDoc.IdentificationDocNumberUploadID,
+			},
+			KRAPIN:                         input.KRAPIN,
+			KRAPINUploadID:                 input.KRAPINUploadID,
+			DrivingLicenseID:               input.DrivingLicenseID,
+			DrivingLicenseUploadID:         input.DrivingLicenseUploadID,
+			CertificateGoodConductUploadID: input.CertificateGoodConductUploadID,
+		}
+
+		if len(input.SupportingDocumentsUploadID) != 0 {
+			ids := []string{}
+			ids = append(ids, input.SupportingDocumentsUploadID...)
+
+			kyc.SupportingDocumentsUploadID = ids
+		}
+
+		kycAsMap, err := s.parseKYCAsMap(kyc)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal kyc to json")
+		}
+
+		sup.SupplierKYC = kycAsMap
+		sup.KYCSubmitted = true
+
+		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			return nil, err
+		}
+
+		return &kyc, nil
 	}
 
-	kyc := domain.IndividualRider{
-		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           input.IdentificationDoc.IdentificationDocType,
-			IdentificationDocNumber:         input.IdentificationDoc.IdentificationDocNumber,
-			IdentificationDocNumberUploadID: input.IdentificationDoc.IdentificationDocNumberUploadID,
-		},
-		KRAPIN:                         input.KRAPIN,
-		KRAPINUploadID:                 input.KRAPINUploadID,
-		DrivingLicenseID:               input.DrivingLicenseID,
-		DrivingLicenseUploadID:         input.DrivingLicenseUploadID,
-		CertificateGoodConductUploadID: input.CertificateGoodConductUploadID,
-	}
-
-	if len(input.SupportingDocumentsUploadID) != 0 {
-		ids := []string{}
-		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-		kyc.SupportingDocumentsUploadID = ids
-	}
-
-	kycAsMap, err := s.parseKYCAsMap(kyc)
-	if err != nil {
-		return nil, fmt.Errorf("cannot marshal kyc to json")
-	}
-
-	sup.SupplierKYC = kycAsMap
-	sup.KYCSubmitted = true
-
-	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
-		return nil, err
-	}
-
-	return &kyc, nil
+	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 }
 
 // AddOrganizationRiderKyc adds KYC for an organization rider
@@ -871,44 +901,48 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(ctx context.Context, inpu
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	kyc := domain.OrganizationRider{
-		OrganizationTypeName:               input.OrganizationTypeName,
-		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
-			pl := []domain.Identification{}
-			for _, i := range p {
-				pl = append(pl, domain.Identification(i))
-			}
-			return pl
-		}(input.DirectorIdentifications),
-		OrganizationCertificate: input.OrganizationCertificate,
+	if !sup.KYCSubmitted {
+		kyc := domain.OrganizationRider{
+			OrganizationTypeName:               input.OrganizationTypeName,
+			CertificateOfIncorporation:         input.CertificateOfIncorporation,
+			CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+			DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+				pl := []domain.Identification{}
+				for _, i := range p {
+					pl = append(pl, domain.Identification(i))
+				}
+				return pl
+			}(input.DirectorIdentifications),
+			OrganizationCertificate: input.OrganizationCertificate,
 
-		KRAPIN:                      input.KRAPIN,
-		KRAPINUploadID:              input.KRAPINUploadID,
-		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+			KRAPIN:                      input.KRAPIN,
+			KRAPINUploadID:              input.KRAPINUploadID,
+			SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+		}
+
+		if len(input.SupportingDocumentsUploadID) != 0 {
+			ids := []string{}
+			ids = append(ids, input.SupportingDocumentsUploadID...)
+
+			kyc.SupportingDocumentsUploadID = ids
+		}
+
+		kycAsMap, err := s.parseKYCAsMap(kyc)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal kyc to json")
+		}
+
+		sup.SupplierKYC = kycAsMap
+		sup.KYCSubmitted = true
+
+		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			return nil, err
+		}
+
+		return &kyc, nil
 	}
 
-	if len(input.SupportingDocumentsUploadID) != 0 {
-		ids := []string{}
-		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-		kyc.SupportingDocumentsUploadID = ids
-	}
-
-	kycAsMap, err := s.parseKYCAsMap(kyc)
-	if err != nil {
-		return nil, fmt.Errorf("cannot marshal kyc to json")
-	}
-
-	sup.SupplierKYC = kycAsMap
-	sup.KYCSubmitted = true
-
-	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
-		return nil, err
-	}
-
-	return &kyc, nil
+	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 }
 
 // AddIndividualPractitionerKyc adds KYC for an individual pratitioner
@@ -919,48 +953,52 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context,
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	for _, p := range input.PracticeServices {
-		if !p.IsValid() {
-			return nil, fmt.Errorf("invalid `PracticeService` provided : %v", p.String())
+	if !sup.KYCSubmitted {
+		for _, p := range input.PracticeServices {
+			if !p.IsValid() {
+				return nil, fmt.Errorf("invalid `PracticeService` provided : %v", p.String())
+			}
 		}
+
+		kyc := domain.IndividualPractitioner{
+
+			IdentificationDoc: func(p domain.Identification) domain.Identification {
+				return domain.Identification(p)
+			}(input.IdentificationDoc),
+
+			KRAPIN:                      input.KRAPIN,
+			KRAPINUploadID:              input.KRAPINUploadID,
+			SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+			RegistrationNumber:          input.RegistrationNumber,
+			PracticeLicenseID:           input.PracticeLicenseID,
+			PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
+			PracticeServices:            input.PracticeServices,
+			Cadre:                       input.Cadre,
+		}
+
+		if len(input.SupportingDocumentsUploadID) != 0 {
+			ids := []string{}
+			ids = append(ids, input.SupportingDocumentsUploadID...)
+
+			kyc.SupportingDocumentsUploadID = ids
+		}
+
+		kycAsMap, err := s.parseKYCAsMap(kyc)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal kyc to json")
+		}
+
+		sup.SupplierKYC = kycAsMap
+		sup.KYCSubmitted = true
+
+		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			return nil, err
+		}
+
+		return &kyc, nil
 	}
 
-	kyc := domain.IndividualPractitioner{
-
-		IdentificationDoc: func(p domain.Identification) domain.Identification {
-			return domain.Identification(p)
-		}(input.IdentificationDoc),
-
-		KRAPIN:                      input.KRAPIN,
-		KRAPINUploadID:              input.KRAPINUploadID,
-		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-		RegistrationNumber:          input.RegistrationNumber,
-		PracticeLicenseID:           input.PracticeLicenseID,
-		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
-		PracticeServices:            input.PracticeServices,
-		Cadre:                       input.Cadre,
-	}
-
-	if len(input.SupportingDocumentsUploadID) != 0 {
-		ids := []string{}
-		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-		kyc.SupportingDocumentsUploadID = ids
-	}
-
-	kycAsMap, err := s.parseKYCAsMap(kyc)
-	if err != nil {
-		return nil, fmt.Errorf("cannot marshal kyc to json")
-	}
-
-	sup.SupplierKYC = kycAsMap
-	sup.KYCSubmitted = true
-
-	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
-		return nil, err
-	}
-
-	return &kyc, nil
+	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 
 }
 
@@ -972,52 +1010,56 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Contex
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	if !input.OrganizationTypeName.IsValid() {
-		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
+	if !sup.KYCSubmitted {
+		if !input.OrganizationTypeName.IsValid() {
+			return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
+		}
+
+		kyc := domain.OrganizationPractitioner{
+			OrganizationTypeName:               input.OrganizationTypeName,
+			KRAPIN:                             input.KRAPIN,
+			KRAPINUploadID:                     input.KRAPINUploadID,
+			SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+			RegistrationNumber:                 input.RegistrationNumber,
+			PracticeLicenseID:                  input.PracticeLicenseID,
+			PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
+			PracticeServices:                   input.PracticeServices,
+			Cadre:                              input.Cadre,
+			CertificateOfIncorporation:         input.CertificateOfIncorporation,
+			CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+			DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+				pl := []domain.Identification{}
+				for _, i := range p {
+					pl = append(pl, domain.Identification(i))
+				}
+				return pl
+			}(input.DirectorIdentifications),
+			OrganizationCertificate: input.OrganizationCertificate,
+		}
+
+		if len(input.SupportingDocumentsUploadID) != 0 {
+			ids := []string{}
+			ids = append(ids, input.SupportingDocumentsUploadID...)
+
+			kyc.SupportingDocumentsUploadID = ids
+		}
+
+		kycAsMap, err := s.parseKYCAsMap(kyc)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal kyc to json")
+		}
+
+		sup.SupplierKYC = kycAsMap
+		sup.KYCSubmitted = true
+
+		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			return nil, err
+		}
+
+		return &kyc, nil
 	}
 
-	kyc := domain.OrganizationPractitioner{
-		OrganizationTypeName:               input.OrganizationTypeName,
-		KRAPIN:                             input.KRAPIN,
-		KRAPINUploadID:                     input.KRAPINUploadID,
-		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
-		RegistrationNumber:                 input.RegistrationNumber,
-		PracticeLicenseID:                  input.PracticeLicenseID,
-		PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
-		PracticeServices:                   input.PracticeServices,
-		Cadre:                              input.Cadre,
-		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
-			pl := []domain.Identification{}
-			for _, i := range p {
-				pl = append(pl, domain.Identification(i))
-			}
-			return pl
-		}(input.DirectorIdentifications),
-		OrganizationCertificate: input.OrganizationCertificate,
-	}
-
-	if len(input.SupportingDocumentsUploadID) != 0 {
-		ids := []string{}
-		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-		kyc.SupportingDocumentsUploadID = ids
-	}
-
-	kycAsMap, err := s.parseKYCAsMap(kyc)
-	if err != nil {
-		return nil, fmt.Errorf("cannot marshal kyc to json")
-	}
-
-	sup.SupplierKYC = kycAsMap
-	sup.KYCSubmitted = true
-
-	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
-		return nil, err
-	}
-
-	return &kyc, nil
+	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 }
 
 // AddOrganizationProviderKyc adds KYC for an organization provider
@@ -1028,62 +1070,66 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, i
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	if !input.OrganizationTypeName.IsValid() {
-		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
-	}
-
-	if !input.Cadre.IsValid() {
-		return nil, fmt.Errorf("invalid `Cadre` provided : %v", input.Cadre.String())
-	}
-
-	for _, practiceService := range input.PracticeServices {
-		if !practiceService.IsValid() {
-			return nil, fmt.Errorf("invalid `PracticeService` provided : %v", practiceService.String())
+	if !sup.KYCSubmitted {
+		if !input.OrganizationTypeName.IsValid() {
+			return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
 		}
-	}
 
-	kyc := domain.OrganizationProvider{
-		OrganizationTypeName:               input.OrganizationTypeName,
-		KRAPIN:                             input.KRAPIN,
-		KRAPINUploadID:                     input.KRAPINUploadID,
-		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
-		RegistrationNumber:                 input.RegistrationNumber,
-		PracticeLicenseID:                  input.PracticeLicenseID,
-		PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
-		PracticeServices:                   input.PracticeServices,
-		Cadre:                              input.Cadre,
-		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
-			pl := []domain.Identification{}
-			for _, i := range p {
-				pl = append(pl, domain.Identification(i))
+		if !input.Cadre.IsValid() {
+			return nil, fmt.Errorf("invalid `Cadre` provided : %v", input.Cadre.String())
+		}
+
+		for _, practiceService := range input.PracticeServices {
+			if !practiceService.IsValid() {
+				return nil, fmt.Errorf("invalid `PracticeService` provided : %v", practiceService.String())
 			}
-			return pl
-		}(input.DirectorIdentifications),
-		OrganizationCertificate: input.OrganizationCertificate,
+		}
+
+		kyc := domain.OrganizationProvider{
+			OrganizationTypeName:               input.OrganizationTypeName,
+			KRAPIN:                             input.KRAPIN,
+			KRAPINUploadID:                     input.KRAPINUploadID,
+			SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+			RegistrationNumber:                 input.RegistrationNumber,
+			PracticeLicenseID:                  input.PracticeLicenseID,
+			PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
+			PracticeServices:                   input.PracticeServices,
+			Cadre:                              input.Cadre,
+			CertificateOfIncorporation:         input.CertificateOfIncorporation,
+			CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+			DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+				pl := []domain.Identification{}
+				for _, i := range p {
+					pl = append(pl, domain.Identification(i))
+				}
+				return pl
+			}(input.DirectorIdentifications),
+			OrganizationCertificate: input.OrganizationCertificate,
+		}
+
+		if len(input.SupportingDocumentsUploadID) != 0 {
+			ids := []string{}
+			ids = append(ids, input.SupportingDocumentsUploadID...)
+
+			kyc.SupportingDocumentsUploadID = ids
+		}
+
+		kycAsMap, err := s.parseKYCAsMap(kyc)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal kyc to json")
+		}
+
+		sup.SupplierKYC = kycAsMap
+		sup.KYCSubmitted = true
+
+		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			return nil, err
+		}
+
+		return &kyc, nil
 	}
 
-	if len(input.SupportingDocumentsUploadID) != 0 {
-		ids := []string{}
-		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-		kyc.SupportingDocumentsUploadID = ids
-	}
-
-	kycAsMap, err := s.parseKYCAsMap(kyc)
-	if err != nil {
-		return nil, fmt.Errorf("cannot marshal kyc to json")
-	}
-
-	sup.SupplierKYC = kycAsMap
-	sup.KYCSubmitted = true
-
-	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
-		return nil, err
-	}
-
-	return &kyc, nil
+	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 }
 
 // AddIndividualPharmaceuticalKyc adds KYC for an individual Pharmaceutical kyc
@@ -1094,42 +1140,46 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(ctx context.Contex
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	if !input.IdentificationDoc.IdentificationDocType.IsValid() {
-		return nil, fmt.Errorf("invalid `IdentificationDocType` provided : %v", input.IdentificationDoc.IdentificationDocType.String())
+	if !sup.KYCSubmitted {
+		if !input.IdentificationDoc.IdentificationDocType.IsValid() {
+			return nil, fmt.Errorf("invalid `IdentificationDocType` provided : %v", input.IdentificationDoc.IdentificationDocType.String())
+		}
+
+		kyc := domain.IndividualPharmaceutical{
+			IdentificationDoc: func(p domain.Identification) domain.Identification {
+				return domain.Identification(p)
+			}(input.IdentificationDoc),
+			KRAPIN:                      input.KRAPIN,
+			KRAPINUploadID:              input.KRAPINUploadID,
+			SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+			RegistrationNumber:          input.RegistrationNumber,
+			PracticeLicenseID:           input.PracticeLicenseID,
+			PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
+		}
+
+		if len(input.SupportingDocumentsUploadID) != 0 {
+			ids := []string{}
+			ids = append(ids, input.SupportingDocumentsUploadID...)
+
+			kyc.SupportingDocumentsUploadID = ids
+		}
+
+		kycAsMap, err := s.parseKYCAsMap(kyc)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal kyc to json")
+		}
+
+		sup.SupplierKYC = kycAsMap
+		sup.KYCSubmitted = true
+
+		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			return nil, err
+		}
+
+		return &kyc, nil
 	}
 
-	kyc := domain.IndividualPharmaceutical{
-		IdentificationDoc: func(p domain.Identification) domain.Identification {
-			return domain.Identification(p)
-		}(input.IdentificationDoc),
-		KRAPIN:                      input.KRAPIN,
-		KRAPINUploadID:              input.KRAPINUploadID,
-		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-		RegistrationNumber:          input.RegistrationNumber,
-		PracticeLicenseID:           input.PracticeLicenseID,
-		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
-	}
-
-	if len(input.SupportingDocumentsUploadID) != 0 {
-		ids := []string{}
-		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-		kyc.SupportingDocumentsUploadID = ids
-	}
-
-	kycAsMap, err := s.parseKYCAsMap(kyc)
-	if err != nil {
-		return nil, fmt.Errorf("cannot marshal kyc to json")
-	}
-
-	sup.SupplierKYC = kycAsMap
-	sup.KYCSubmitted = true
-
-	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
-		return nil, err
-	}
-
-	return &kyc, nil
+	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 }
 
 // AddOrganizationPharmaceuticalKyc adds KYC for a pharmacy organization
@@ -1139,50 +1189,54 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Cont
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	if !input.OrganizationTypeName.IsValid() {
-		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
+	if !sup.KYCSubmitted {
+		if !input.OrganizationTypeName.IsValid() {
+			return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
+		}
+
+		kyc := domain.OrganizationPharmaceutical{
+			OrganizationTypeName:               input.OrganizationTypeName,
+			KRAPIN:                             input.KRAPIN,
+			KRAPINUploadID:                     input.KRAPINUploadID,
+			SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+			CertificateOfIncorporation:         input.CertificateOfIncorporation,
+			CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+			DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+				pl := []domain.Identification{}
+				for _, i := range p {
+					pl = append(pl, domain.Identification(i))
+				}
+				return pl
+			}(input.DirectorIdentifications),
+			OrganizationCertificate: input.OrganizationCertificate,
+			RegistrationNumber:      input.RegistrationNumber,
+			PracticeLicenseID:       input.PracticeLicenseID,
+			PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+		}
+
+		if len(input.SupportingDocumentsUploadID) != 0 {
+			ids := []string{}
+			ids = append(ids, input.SupportingDocumentsUploadID...)
+
+			kyc.SupportingDocumentsUploadID = ids
+		}
+
+		kycAsMap, err := s.parseKYCAsMap(kyc)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal kyc to json")
+		}
+
+		sup.SupplierKYC = kycAsMap
+		sup.KYCSubmitted = true
+
+		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			return nil, err
+		}
+
+		return &kyc, nil
 	}
 
-	kyc := domain.OrganizationPharmaceutical{
-		OrganizationTypeName:               input.OrganizationTypeName,
-		KRAPIN:                             input.KRAPIN,
-		KRAPINUploadID:                     input.KRAPINUploadID,
-		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
-		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
-			pl := []domain.Identification{}
-			for _, i := range p {
-				pl = append(pl, domain.Identification(i))
-			}
-			return pl
-		}(input.DirectorIdentifications),
-		OrganizationCertificate: input.OrganizationCertificate,
-		RegistrationNumber:      input.RegistrationNumber,
-		PracticeLicenseID:       input.PracticeLicenseID,
-		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
-	}
-
-	if len(input.SupportingDocumentsUploadID) != 0 {
-		ids := []string{}
-		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-		kyc.SupportingDocumentsUploadID = ids
-	}
-
-	kycAsMap, err := s.parseKYCAsMap(kyc)
-	if err != nil {
-		return nil, fmt.Errorf("cannot marshal kyc to json")
-	}
-
-	sup.SupplierKYC = kycAsMap
-	sup.KYCSubmitted = true
-
-	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
-		return nil, err
-	}
-
-	return &kyc, nil
+	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 }
 
 // AddIndividualCoachKyc adds KYC for an individual coach
@@ -1192,41 +1246,45 @@ func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(ctx context.Context, input 
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	if !input.IdentificationDoc.IdentificationDocType.IsValid() {
-		return nil, fmt.Errorf("invalid `IdentificationDocType` provided : %v", input.IdentificationDoc.IdentificationDocType.String())
+	if !sup.KYCSubmitted {
+		if !input.IdentificationDoc.IdentificationDocType.IsValid() {
+			return nil, fmt.Errorf("invalid `IdentificationDocType` provided : %v", input.IdentificationDoc.IdentificationDocType.String())
+		}
+
+		kyc := domain.IndividualCoach{
+			IdentificationDoc: func(p domain.Identification) domain.Identification {
+				return domain.Identification(p)
+			}(input.IdentificationDoc),
+			KRAPIN:                      input.KRAPIN,
+			KRAPINUploadID:              input.KRAPINUploadID,
+			SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+			PracticeLicenseID:           input.PracticeLicenseID,
+			PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
+		}
+
+		if len(input.SupportingDocumentsUploadID) != 0 {
+			ids := []string{}
+			ids = append(ids, input.SupportingDocumentsUploadID...)
+
+			kyc.SupportingDocumentsUploadID = ids
+		}
+
+		kycAsMap, err := s.parseKYCAsMap(kyc)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal kyc to json")
+		}
+
+		sup.SupplierKYC = kycAsMap
+		sup.KYCSubmitted = true
+
+		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			return nil, err
+		}
+
+		return &kyc, nil
 	}
 
-	kyc := domain.IndividualCoach{
-		IdentificationDoc: func(p domain.Identification) domain.Identification {
-			return domain.Identification(p)
-		}(input.IdentificationDoc),
-		KRAPIN:                      input.KRAPIN,
-		KRAPINUploadID:              input.KRAPINUploadID,
-		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-		PracticeLicenseID:           input.PracticeLicenseID,
-		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
-	}
-
-	if len(input.SupportingDocumentsUploadID) != 0 {
-		ids := []string{}
-		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-		kyc.SupportingDocumentsUploadID = ids
-	}
-
-	kycAsMap, err := s.parseKYCAsMap(kyc)
-	if err != nil {
-		return nil, fmt.Errorf("cannot marshal kyc to json")
-	}
-
-	sup.SupplierKYC = kycAsMap
-	sup.KYCSubmitted = true
-
-	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
-		return nil, err
-	}
-
-	return &kyc, nil
+	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 }
 
 // AddOrganizationCoachKyc adds KYC for an organization coach
@@ -1236,45 +1294,49 @@ func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(ctx context.Context, inpu
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	kyc := domain.OrganizationCoach{
-		OrganizationTypeName:               input.OrganizationTypeName,
-		KRAPIN:                             input.KRAPIN,
-		KRAPINUploadID:                     input.KRAPINUploadID,
-		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
-		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
-			pl := []domain.Identification{}
-			for _, i := range p {
-				pl = append(pl, domain.Identification(i))
-			}
-			return pl
-		}(input.DirectorIdentifications),
-		OrganizationCertificate: input.OrganizationCertificate,
-		RegistrationNumber:      input.RegistrationNumber,
-		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+	if !sup.KYCSubmitted {
+		kyc := domain.OrganizationCoach{
+			OrganizationTypeName:               input.OrganizationTypeName,
+			KRAPIN:                             input.KRAPIN,
+			KRAPINUploadID:                     input.KRAPINUploadID,
+			SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+			CertificateOfIncorporation:         input.CertificateOfIncorporation,
+			CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+			DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+				pl := []domain.Identification{}
+				for _, i := range p {
+					pl = append(pl, domain.Identification(i))
+				}
+				return pl
+			}(input.DirectorIdentifications),
+			OrganizationCertificate: input.OrganizationCertificate,
+			RegistrationNumber:      input.RegistrationNumber,
+			PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+		}
+
+		if len(input.SupportingDocumentsUploadID) != 0 {
+			ids := []string{}
+			ids = append(ids, input.SupportingDocumentsUploadID...)
+
+			kyc.SupportingDocumentsUploadID = ids
+		}
+
+		kycAsMap, err := s.parseKYCAsMap(kyc)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal kyc to json")
+		}
+
+		sup.SupplierKYC = kycAsMap
+		sup.KYCSubmitted = true
+
+		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			return nil, err
+		}
+
+		return &kyc, nil
 	}
 
-	if len(input.SupportingDocumentsUploadID) != 0 {
-		ids := []string{}
-		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-		kyc.SupportingDocumentsUploadID = ids
-	}
-
-	kycAsMap, err := s.parseKYCAsMap(kyc)
-	if err != nil {
-		return nil, fmt.Errorf("cannot marshal kyc to json")
-	}
-
-	sup.SupplierKYC = kycAsMap
-	sup.KYCSubmitted = true
-
-	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
-		return nil, err
-	}
-
-	return &kyc, nil
+	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 }
 
 // AddIndividualNutritionKyc adds KYC for an individual nutritionist
@@ -1284,37 +1346,41 @@ func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(ctx context.Context, in
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	kyc := domain.IndividualNutrition{
-		IdentificationDoc: func(p domain.Identification) domain.Identification {
-			return domain.Identification(p)
-		}(input.IdentificationDoc),
-		KRAPIN:                      input.KRAPIN,
-		KRAPINUploadID:              input.KRAPINUploadID,
-		SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-		PracticeLicenseID:           input.PracticeLicenseID,
-		PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
+	if !sup.KYCSubmitted {
+		kyc := domain.IndividualNutrition{
+			IdentificationDoc: func(p domain.Identification) domain.Identification {
+				return domain.Identification(p)
+			}(input.IdentificationDoc),
+			KRAPIN:                      input.KRAPIN,
+			KRAPINUploadID:              input.KRAPINUploadID,
+			SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
+			PracticeLicenseID:           input.PracticeLicenseID,
+			PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
+		}
+
+		if len(input.SupportingDocumentsUploadID) != 0 {
+			ids := []string{}
+			ids = append(ids, input.SupportingDocumentsUploadID...)
+
+			kyc.SupportingDocumentsUploadID = ids
+		}
+
+		kycAsMap, err := s.parseKYCAsMap(kyc)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal kyc to json")
+		}
+
+		sup.SupplierKYC = kycAsMap
+		sup.KYCSubmitted = true
+
+		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			return nil, err
+		}
+
+		return &kyc, nil
 	}
 
-	if len(input.SupportingDocumentsUploadID) != 0 {
-		ids := []string{}
-		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-		kyc.SupportingDocumentsUploadID = ids
-	}
-
-	kycAsMap, err := s.parseKYCAsMap(kyc)
-	if err != nil {
-		return nil, fmt.Errorf("cannot marshal kyc to json")
-	}
-
-	sup.SupplierKYC = kycAsMap
-	sup.KYCSubmitted = true
-
-	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
-		return nil, err
-	}
-
-	return &kyc, nil
+	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 }
 
 // AddOrganizationNutritionKyc adds kyc for a nutritionist organisation
@@ -1324,46 +1390,50 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, 
 		return nil, exceptions.SupplierNotFoundError(err)
 	}
 
-	kyc := domain.OrganizationNutrition{
-		OrganizationTypeName:               input.OrganizationTypeName,
-		KRAPIN:                             input.KRAPIN,
-		KRAPINUploadID:                     input.KRAPINUploadID,
-		SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
-		CertificateOfIncorporation:         input.CertificateOfIncorporation,
-		CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
-		DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
-			pl := []domain.Identification{}
-			for _, i := range p {
-				pl = append(pl, domain.Identification(i))
-			}
-			return pl
-		}(input.DirectorIdentifications),
-		OrganizationCertificate: input.OrganizationCertificate,
-		RegistrationNumber:      input.RegistrationNumber,
-		PracticeLicenseID:       input.PracticeLicenseID,
-		PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+	if !sup.KYCSubmitted {
+		kyc := domain.OrganizationNutrition{
+			OrganizationTypeName:               input.OrganizationTypeName,
+			KRAPIN:                             input.KRAPIN,
+			KRAPINUploadID:                     input.KRAPINUploadID,
+			SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+			CertificateOfIncorporation:         input.CertificateOfIncorporation,
+			CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
+			DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
+				pl := []domain.Identification{}
+				for _, i := range p {
+					pl = append(pl, domain.Identification(i))
+				}
+				return pl
+			}(input.DirectorIdentifications),
+			OrganizationCertificate: input.OrganizationCertificate,
+			RegistrationNumber:      input.RegistrationNumber,
+			PracticeLicenseID:       input.PracticeLicenseID,
+			PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+		}
+
+		if len(input.SupportingDocumentsUploadID) != 0 {
+			ids := []string{}
+			ids = append(ids, input.SupportingDocumentsUploadID...)
+
+			kyc.SupportingDocumentsUploadID = ids
+		}
+
+		kycAsMap, err := s.parseKYCAsMap(kyc)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal kyc to json")
+		}
+
+		sup.SupplierKYC = kycAsMap
+		sup.KYCSubmitted = true
+
+		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			return nil, err
+		}
+
+		return &kyc, nil
 	}
 
-	if len(input.SupportingDocumentsUploadID) != 0 {
-		ids := []string{}
-		ids = append(ids, input.SupportingDocumentsUploadID...)
-
-		kyc.SupportingDocumentsUploadID = ids
-	}
-
-	kycAsMap, err := s.parseKYCAsMap(kyc)
-	if err != nil {
-		return nil, fmt.Errorf("cannot marshal kyc to json")
-	}
-
-	sup.SupplierKYC = kycAsMap
-	sup.KYCSubmitted = true
-
-	if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
-		return nil, err
-	}
-
-	return &kyc, nil
+	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 }
 
 // FetchKYCProcessingRequests fetches a list of all unprocessed kyc approval requests
@@ -1386,7 +1456,9 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 
 	req.Status = status
 	req.Processed = true
-	req.RejectionReason = rejectionReason
+	if rejectionReason != nil {
+		req.RejectionReason = rejectionReason
+	}
 
 	if err := s.repo.UpdateKYCProcessingRequest(ctx, req); err != nil {
 		return false, fmt.Errorf("unable to update KYC request record: %v", err)
@@ -1447,6 +1519,32 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 	}
 
 	return true, nil
+}
+
+// RetireKYCRequest retires the KYC process request of a supplier
+func (s *SupplierUseCasesImpl) RetireKYCRequest(ctx context.Context) error {
+
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return exceptions.UserNotFoundError(err)
+	}
+
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return exceptions.ProfileNotFoundError(err)
+	}
+
+	sup, err := s.repo.GetSupplierProfileByProfileID(ctx, profile.ID)
+	if err != nil {
+		return exceptions.SupplierNotFoundError(err)
+	}
+
+	if err := s.repo.RemoveKYCProcessingRequest(ctx, sup.ID); err != nil {
+		// the error is a custom error already. No need to wrap it here
+		return err
+	}
+
+	return nil
 
 }
 

@@ -28,6 +28,7 @@ type ProfileUseCase interface {
 	UpdatePhotoUploadID(ctx context.Context, uploadID string) error
 	UpdateCovers(ctx context.Context, covers []base.Cover) error
 	UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error
+	UpdatePermissions(ctx context.Context, perms []base.PermissionType) error
 	UpdateBioData(ctx context.Context, data base.BioData) error
 	GetUserProfileByUID(
 		ctx context.Context,
@@ -40,6 +41,16 @@ type ProfileUseCase interface {
 	// useContext is used to mark under which scenario the method is been called.
 	SetPrimaryPhoneNumber(ctx context.Context, phoneNumber string, otp string, useContext bool) error
 	SetPrimaryEmailAddress(ctx context.Context, emailAddress string, otp string) error
+
+	// checks whether a phone number has been registred by another user. Checks both primary and
+	// secondary phone numbers. If the the phone number is foreign, it returns false
+	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
+
+	// called to remove specific secondary phone numbers from the user's profile.'
+	RetireSecondaryPhoneNumbers(ctx context.Context, toRemovePhoneNumbers []string) (bool, error)
+
+	// called to remove specific secondary email addresses from the user's profile.
+	RetireSecondaryEmailAddress(ctx context.Context, toRemoveEmails []string) (bool, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -166,21 +177,28 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emai
 	// into the list of new secondary emails
 	previousPrimaryEmail := profile.PrimaryEmailAddress
 	previousSecondaryEmails := profile.SecondaryEmailAddresses
-	newSecEmails := func(oldSecondaryEmails []string, oldPrimaryEmail string, newPrimaryEmail string) []string {
-		secEmails := []string{}
-		for _, email := range oldSecondaryEmails {
-			if email != newPrimaryEmail {
-				secEmails = append(secEmails, email)
+
+	if profile.PrimaryEmailAddress != nil {
+		newSecEmails := func(oldSecondaryEmails []string, oldPrimaryEmail string, newPrimaryEmail string) []string {
+			secEmails := []string{}
+			if len(oldSecondaryEmails) >= 1 {
+				for _, email := range oldSecondaryEmails {
+					if email != newPrimaryEmail {
+						secEmails = append(secEmails, email)
+					}
+				}
+				secEmails = append(secEmails, oldPrimaryEmail)
+			}
+
+			return secEmails
+		}(previousSecondaryEmails, *previousPrimaryEmail, emailAddress)
+
+		if len(newSecEmails) >= 1 {
+			if err := profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, newSecEmails); err != nil {
+				return err
 			}
 		}
-		secEmails = append(secEmails, oldPrimaryEmail)
-
-		return secEmails
-	}(previousSecondaryEmails, *previousPrimaryEmail, emailAddress)
-	if len(newSecEmails) >= 1 {
-		if err := profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, newSecEmails); err != nil {
-			return err
-		}
+		return nil
 	}
 
 	return nil
@@ -306,7 +324,7 @@ func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cov
 
 }
 
-// UpdatePushTokens updates primary push tokens of a specific user profile
+// UpdatePushTokens updates primary push tokens of a specific user profile.
 func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error {
 	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
@@ -319,21 +337,33 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken str
 
 	if retire {
 		// remove the supplied push token then update the profile
-		previousTokens := profile.PushTokens
 		newTokens := []string{}
-		for _, token := range previousTokens {
-			if token != pushToken {
+		for _, token := range profile.PushTokens {
+			if token != pushToken && !base.StringSliceContains(newTokens, token) {
 				newTokens = append(newTokens, token)
 			}
 		}
 
-		if err := profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, newTokens); err != nil {
-			return err
-		}
+		return profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, newTokens)
 
 	}
 
-	return profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, []string{pushToken})
+	newTokens := append(profile.PushTokens, pushToken)
+
+	return profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, newTokens)
+}
+
+// UpdatePermissions updates the profiles permissions
+func (p *ProfileUseCaseImpl) UpdatePermissions(ctx context.Context, perms []base.PermissionType) error {
+	uid, err := base.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return exceptions.UserNotFoundError(err)
+	}
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return exceptions.ProfileNotFoundError(err)
+	}
+	return profile.UpdateProfilePermissions(ctx, p.onboardingRepository, perms)
 }
 
 // UpdateBioData updates primary biodata of a specific user profile
@@ -418,4 +448,84 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(ctx context.Context, emailAd
 		return err
 	}
 	return nil
+}
+
+// CheckPhoneExists checks whether a phone number has been registred by another user.
+// Checks both primary and secondary phone numbers.
+func (p *ProfileUseCaseImpl) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
+	phoneNumber, err := p.baseExt.NormalizeMSISDN(phone)
+	if err != nil {
+		return false, exceptions.NormalizeMSISDNError(err)
+	}
+	exists, err := p.onboardingRepository.CheckIfPhoneNumberExists(ctx, *phoneNumber)
+	if err != nil {
+		return false, exceptions.CheckPhoneNumberExistError()
+	}
+	return exists, nil
+}
+
+// RetireSecondaryPhoneNumbers removes specific secondary phone numbers from the user's profile.'
+func (p *ProfileUseCaseImpl) RetireSecondaryPhoneNumbers(ctx context.Context, toRemovePhoneNumbers []string) (bool, error) {
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, exceptions.UserNotFoundError(err)
+	}
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return false, exceptions.ProfileNotFoundError(err)
+	}
+
+	// loop through the secondary phone numbers and remove the ones that need removing
+	newSecPhones := []string{}
+	if len(profile.SecondaryPhoneNumbers) >= 1 {
+		for _, toRemove := range toRemovePhoneNumbers {
+			for _, current := range profile.SecondaryPhoneNumbers {
+				if toRemove != current && !base.StringSliceContains(newSecPhones, current) {
+					newSecPhones = append(newSecPhones, current)
+				}
+			}
+		}
+	}
+
+	if len(newSecPhones) >= 1 {
+		if err := p.onboardingRepository.HardResetSecondaryPhoneNumbers(ctx, profile.ID, newSecPhones); err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+
+	return false, exceptions.SecondaryResourceHardResetError()
+
+}
+
+// RetireSecondaryEmailAddress removes specific secondary email addresses from the user's profile.
+func (p *ProfileUseCaseImpl) RetireSecondaryEmailAddress(ctx context.Context, toRemoveEmails []string) (bool, error) {
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, exceptions.UserNotFoundError(err)
+	}
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	if err != nil {
+		return false, exceptions.ProfileNotFoundError(err)
+	}
+
+	// loop through the secondary emails and remove the ones that need removing
+	newSecEmails := []string{}
+	if len(profile.SecondaryEmailAddresses) >= 1 {
+		for _, toRemove := range toRemoveEmails {
+			for _, current := range profile.SecondaryEmailAddresses {
+				if toRemove != current && !base.StringSliceContains(newSecEmails, current) {
+					newSecEmails = append(newSecEmails, current)
+				}
+			}
+		}
+	}
+
+	if len(newSecEmails) >= 1 {
+		if err := p.onboardingRepository.HardResetSecondaryEmailAddress(ctx, profile.ID, newSecEmails); err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+	return false, exceptions.SecondaryResourceHardResetError()
 }

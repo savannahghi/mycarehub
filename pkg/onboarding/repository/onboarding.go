@@ -16,13 +16,18 @@ type SupplierRepository interface {
 
 	GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*base.Supplier, error)
 
+	UpdateSupplierProfile(ctx context.Context, profileID string, data *base.Supplier) error
+
 	AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error)
 
-	UpdateSupplierProfile(ctx context.Context, data *base.Supplier) (*base.Supplier, error)
+	AddSupplierAccountType(ctx context.Context, profileID string, accountType base.AccountType) (*base.Supplier, error)
 
 	StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error
 
 	StageKYCProcessingRequest(ctx context.Context, data *domain.KYCRequest) error
+
+	// RemoveKYCProcessingRequest called when the user seeks to retire a kyc processing request.
+	RemoveKYCProcessingRequest(ctx context.Context, supplierProfileID string) error
 
 	// sets the active attribute of supplier profile to true
 	ActivateSupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error)
@@ -84,6 +89,10 @@ type OnboardingRepository interface {
 
 	// removes user completely. This should be used only under testing environment
 	PurgeUserByPhoneNumber(ctx context.Context, phone string) error
+
+	HardResetSecondaryPhoneNumbers(ctx context.Context, id string, newSecondaryPhones []string) error
+
+	HardResetSecondaryEmailAddress(ctx context.Context, id string, newSecondaryEmails []string) error
 
 	// PINs
 	GetPINByProfileID(

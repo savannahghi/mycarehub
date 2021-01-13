@@ -133,7 +133,7 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	phone := base.TestUserPhoneNumber
 	flavour := base.FlavourConsumer
 	pin := base.TestUserPin
-	exists, err := s.Signup.CheckPhoneExists(ctx, phone)
+	exists, err := s.Onboarding.CheckPhoneExists(ctx, phone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if test phone exists: %v", err)
 	}
@@ -177,6 +177,7 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 		UID: logInCreds.Auth.UID,
 	}
 	return authCred, nil
+
 }
 
 // TestAuthenticatedContext returns a logged in context, useful for test purposes
@@ -577,6 +578,68 @@ func TestRepository_GetUserProfileByPhoneNumber(t *testing.T) {
 			got, err := fr.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("returned a nil user")
+				return
+			}
+		})
+	}
+}
+
+func TestRepository_GetUserProfileByPrimaryPhoneNumber(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid : primary phone number in context",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: base.TestUserPhoneNumber,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid : non-existent wrong phone number format",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "+254712qwe234",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid : non existent phone number",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "+254712098765",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.GetUserProfileByPrimaryPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetUserProfileByPrimaryPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -1848,7 +1911,6 @@ func TestRepository_UpdateSupplierProfile(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Supplier
 		wantErr bool
 	}{
 		{
@@ -1857,7 +1919,6 @@ func TestRepository_UpdateSupplierProfile(t *testing.T) {
 				ctx:  ctx,
 				data: validPayload,
 			},
-			want:    supplier,
 			wantErr: false,
 		},
 		{
@@ -1866,20 +1927,15 @@ func TestRepository_UpdateSupplierProfile(t *testing.T) {
 				ctx:  ctx,
 				data: invalidPayload,
 			},
-			want:    nil,
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := fr.UpdateSupplierProfile(tt.args.ctx, tt.args.data)
-			log.Println("The got is:", got)
+			err := fr.UpdateSupplierProfile(tt.args.ctx, *tt.args.data.ProfileID, tt.args.data)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.UpdateSupplierProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Repository.UpdateSupplierProfile() = %v, want %v", got, tt.want)
 			}
 		})
 	}

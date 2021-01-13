@@ -15,11 +15,14 @@ type FakeOnboardingRepository struct {
 	GetSupplierProfileByProfileIDFn func(ctx context.Context, profileID string) (*base.Supplier, error)
 	AddPartnerTypeFn                func(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error)
 
-	UpdateSupplierProfileFn func(ctx context.Context, data *base.Supplier) (*base.Supplier, error)
+	UpdateSupplierProfileFn  func(ctx context.Context, profileID string, data *base.Supplier) error
+	AddSupplierAccountTypeFn func(ctx context.Context, profileID string, accountType base.AccountType) (*base.Supplier, error)
 
 	StageProfileNudgeFn func(ctx context.Context, nudge map[string]interface{}) error
 
 	StageKYCProcessingRequestFn func(ctx context.Context, data *domain.KYCRequest) error
+
+	RemoveKYCProcessingRequestFn func(ctx context.Context, supplierProfileID string) error
 
 	// sets the active attribute of supplier profile to true
 	ActivateSupplierProfileFn func(ctx context.Context, profileID string) (*base.Supplier, error)
@@ -68,6 +71,10 @@ type FakeOnboardingRepository struct {
 	// removes user completely. This should be used only under testing environment
 	PurgeUserByPhoneNumberFn func(ctx context.Context, phone string) error
 
+	HardResetSecondaryPhoneNumbersFn func(ctx context.Context, id string, phoneNumbers []string) error
+
+	HardResetSecondaryEmailAddressFn func(ctx context.Context, id string, newSecondaryEmails []string) error
+
 	// PINs
 	GetPINByProfileIDFn func(ctx context.Context, ProfileID string) (*domain.PIN, error)
 
@@ -103,10 +110,10 @@ type FakeOnboardingRepository struct {
 	UpdatePhotoUploadIDFn           func(ctx context.Context, id string, uploadID string) error
 	UpdateCoversFn                  func(ctx context.Context, id string, covers []base.Cover) error
 	UpdatePushTokensFn              func(ctx context.Context, id string, pushToken []string) error
+	UpdatePermissionsFn             func(ctx context.Context, id string, perms []base.PermissionType) error
 	UpdateBioDataFn                 func(ctx context.Context, id string, data base.BioData) error
 	UpdateVerifiedIdentifiersFn     func(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error
 	UpdateVerifiedUIDSFn            func(ctx context.Context, id string, uids []string) error
-	UpdatePermissionsFn             func(ctx context.Context, id string, perms []base.PermissionType) error
 }
 
 // GetSupplierProfileByID ...
@@ -125,8 +132,13 @@ func (f *FakeOnboardingRepository) AddPartnerType(ctx context.Context, profileID
 }
 
 // UpdateSupplierProfile ...
-func (f *FakeOnboardingRepository) UpdateSupplierProfile(ctx context.Context, data *base.Supplier) (*base.Supplier, error) {
-	return f.UpdateSupplierProfileFn(ctx, data)
+func (f *FakeOnboardingRepository) UpdateSupplierProfile(ctx context.Context, profileID string, data *base.Supplier) error {
+	return f.UpdateSupplierProfileFn(ctx, profileID, data)
+}
+
+// AddSupplierAccountType ...
+func (f *FakeOnboardingRepository) AddSupplierAccountType(ctx context.Context, profileID string, accountType base.AccountType) (*base.Supplier, error) {
+	return f.AddSupplierAccountTypeFn(ctx, profileID, accountType)
 }
 
 // StageProfileNudge ...
@@ -137,6 +149,11 @@ func (f *FakeOnboardingRepository) StageProfileNudge(ctx context.Context, nudge 
 // StageKYCProcessingRequest ...
 func (f *FakeOnboardingRepository) StageKYCProcessingRequest(ctx context.Context, data *domain.KYCRequest) error {
 	return f.StageKYCProcessingRequestFn(ctx, data)
+}
+
+// RemoveKYCProcessingRequest ...
+func (f *FakeOnboardingRepository) RemoveKYCProcessingRequest(ctx context.Context, supplierProfileID string) error {
+	return f.RemoveKYCProcessingRequestFn(ctx, supplierProfileID)
 }
 
 // ActivateSupplierProfile ...
@@ -309,6 +326,11 @@ func (f *FakeOnboardingRepository) UpdatePushTokens(ctx context.Context, id stri
 	return f.UpdatePushTokensFn(ctx, id, pushToken)
 }
 
+// UpdatePermissions ...
+func (f *FakeOnboardingRepository) UpdatePermissions(ctx context.Context, id string, perms []base.PermissionType) error {
+	return f.UpdatePermissionsFn(ctx, id, perms)
+}
+
 // UpdateBioData ...
 func (f *FakeOnboardingRepository) UpdateBioData(ctx context.Context, id string, data base.BioData) error {
 	return f.UpdateBioDataFn(ctx, id, data)
@@ -331,7 +353,12 @@ func (f *FakeOnboardingRepository) GetOrCreatePhoneNumberUser(ctx context.Contex
 	return f.GetOrCreatePhoneNumberUserFn(ctx, phone)
 }
 
-// UpdatePermissions ...
-func (f FakeOnboardingRepository) UpdatePermissions(ctx context.Context, id string, perms []base.PermissionType) error {
-	return f.UpdatePermissionsFn(ctx, id, perms)
+// HardResetSecondaryPhoneNumbers ...
+func (f *FakeOnboardingRepository) HardResetSecondaryPhoneNumbers(ctx context.Context, id string, phoneNumbers []string) error {
+	return f.HardResetSecondaryPhoneNumbersFn(ctx, id, phoneNumbers)
+}
+
+// HardResetSecondaryEmailAddress ...
+func (f *FakeOnboardingRepository) HardResetSecondaryEmailAddress(ctx context.Context, id string, newSecondaryEmails []string) error {
+	return f.HardResetSecondaryPhoneNumbersFn(ctx, id, newSecondaryEmails)
 }

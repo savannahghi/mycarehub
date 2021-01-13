@@ -39,9 +39,13 @@ extend type Mutation {
 
   addSecondaryPhoneNumber(phone: [String!]): Boolean!
 
-  updateUserName(username: String!): Boolean!
+  retireSecondaryPhoneNumbers(phones: [String!]): Boolean! 
 
   addSecondaryEmailAddress(email: [String!]): Boolean!   
+
+  retireSecondaryEmailAddresses(emails: [String!]): Boolean! 
+
+  updateUserName(username: String!): Boolean!
 
   registerPushToken(token: String!): Boolean!
 
@@ -103,6 +107,8 @@ extend type Mutation {
   recordPostVisitSurvey(
     input: PostVisitSurveyInput!
   ): Boolean!
+
+  retireKYCProcessingRequest: Boolean!
 
   # setUserPin(msisdn: String!, pin: String!): Boolean!
 

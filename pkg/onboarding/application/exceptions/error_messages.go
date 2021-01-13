@@ -112,6 +112,10 @@ const (
 	// profile is not found
 	SupplierNotFoundErrMsg = "unable to get the user supplier profile"
 
+	// SupplierKYCAlreadySubmittedErrMsg thrown when another kyc is been submitted whne an old exists
+	// A supplier should have only one kyc
+	SupplierKYCAlreadySubmittedErrMsg = "kyc already exists for supplier"
+
 	// FindProviderErrMsg is displayed if a provider is not found
 	FindProviderErrMsg = "unable to fetch organization branches location"
 
@@ -126,4 +130,7 @@ const (
 
 	// BioDataErrMsg is displayed when a user BioData is incomplete
 	BioDataErrMsg = "incomplete Bio Data, expected first and last name"
+
+	// ResourceUpdateErrMsg is throw when trying to update a resource with empty arguments
+	ResourceUpdateErrMsg = "can't update resource with empty arguments"
 )

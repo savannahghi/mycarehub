@@ -527,12 +527,13 @@ func (fr *Repository) checkIfAdmin(profile *base.UserProfile) bool {
 // UpdateUserName updates the username of a profile that matches the id
 // this method should be called after asserting the username is unique and not associated with another userProfile
 func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName string) error {
-
-	if v, err := fr.CheckIfUsernameExists(ctx, userName); err != nil {
-		if v {
-			return exceptions.InternalServerError(fmt.Errorf("%v", exceptions.UsernameInUseErrMsg))
-		}
+	v, err := fr.CheckIfUsernameExists(ctx, userName)
+	if err != nil {
 		return exceptions.InternalServerError(err)
+	}
+
+	if v {
+		return exceptions.InternalServerError(fmt.Errorf("%v", exceptions.UsernameInUseErrMsg))
 	}
 
 	profile, err := fr.GetUserProfileByID(ctx, id)
@@ -760,15 +761,15 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 	return nil
 }
 
-// UpdatePushTokens updates the pushTokens attribute of the profile that matches the id
-func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken []string) error {
+// UpdatePushTokens updates the pushTokens attribute of the profile that matches the id. This function does a hard reset instead of prior
+// matching
+func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushTokens []string) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
 		return exceptions.ProfileNotFoundError(err)
 	}
-	tokens := profile.PushTokens
-	tokens = append(tokens, pushToken...)
-	profile.PushTokens = tokens
+
+	profile.PushTokens = pushTokens
 
 	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
 	if err != nil {
@@ -782,6 +783,43 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile push tokens: %v", err))
 	}
 	return nil
+}
+
+// UpdatePermissions update the permissions of the user profile
+func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []base.PermissionType) error {
+	profile, err := fr.GetUserProfileByID(ctx, id)
+	if err != nil {
+		return exceptions.ProfileNotFoundError(err)
+	}
+
+	newPerms := []base.PermissionType{}
+	if len(profile.Permissions) >= 1 {
+		for _, perm := range perms {
+			for _, current := range profile.Permissions {
+				if string(perm) != string(current) {
+					newPerms = append(newPerms, perm)
+				}
+			}
+		}
+	} else {
+		newPerms = append(newPerms, perms...)
+	}
+
+	profile.Permissions = newPerms
+
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
+	if err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+	)
+	if err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile push tokens: %v", err))
+	}
+	return nil
+
 }
 
 // UpdateBioData updates the biodate of the profile that matches the id
@@ -1111,6 +1149,76 @@ func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*b
 	return sup, nil
 }
 
+// UpdateSupplierProfile does a generic update of supplier profile.
+func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID string, data *base.Supplier) error {
+	// get the suppier profile
+	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+
+	sup.PayablesAccount = data.PayablesAccount
+	sup.SupplierKYC = data.SupplierKYC
+	sup.Active = data.Active
+	sup.AccountType = data.AccountType
+	sup.UnderOrganization = data.UnderOrganization
+	sup.IsOrganizationVerified = data.IsOrganizationVerified
+	sup.SladeCode = data.SladeCode
+	sup.ParentOrganizationID = data.ParentOrganizationID
+	sup.HasBranches = data.HasBranches
+	sup.Location = data.Location
+	sup.PartnerType = data.PartnerType
+	sup.EDIUserProfile = data.EDIUserProfile
+	sup.PartnerSetupComplete = data.PartnerSetupComplete
+	sup.KYCSubmitted = data.KYCSubmitted
+
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
+	if err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err))
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
+	)
+	if err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile: %v", err))
+	}
+
+	return nil
+
+}
+
+// AddSupplierAccountType update the suppleir profile with the correct account type
+func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID string, accountType base.AccountType) (*base.Supplier, error) {
+
+	// get the suppier profile
+	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	sup.AccountType = accountType
+	sup.UnderOrganization = false
+	sup.IsOrganizationVerified = false
+	sup.HasBranches = false
+	sup.Active = false
+
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
+	if err != nil {
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err))
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, sup,
+	)
+	if err != nil {
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to update user profile: %v", err))
+	}
+
+	return sup, nil
+
+}
+
 // AddPartnerType updates the suppier profile with the provided name and  partner type.
 func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error) {
 
@@ -1165,29 +1273,6 @@ func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID str
 	return sup, nil
 }
 
-// UpdateSupplierProfile update the supplier profile
-func (fr *Repository) UpdateSupplierProfile(ctx context.Context, data *base.Supplier) (*base.Supplier, error) {
-	sup, err := fr.GetSupplierProfileByProfileID(ctx, *data.ProfileID)
-	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to fetch supplier profile: %v", err))
-	}
-
-	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetSupplierProfileCollectionName(), sup.ID)
-	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse supplier profile as firebase snapshot: %v", err))
-	}
-
-	err = base.UpdateRecordOnFirestore(
-		fr.FirestoreClient, fr.GetSupplierProfileCollectionName(), record.Ref.ID, data,
-	)
-	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to update supplier profile: %v", err))
-	}
-
-	return sup, nil
-
-}
-
 // StageProfileNudge ...
 func (fr *Repository) StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error {
 	_, _, err := fr.FirestoreClient.Collection(fr.GetProfileNudgesCollectionName()).Add(ctx, nudge)
@@ -1202,6 +1287,33 @@ func (fr *Repository) StageKYCProcessingRequest(ctx context.Context, data *domai
 	_, _, err := fr.FirestoreClient.Collection(fr.GetKCYProcessCollectionName()).Add(ctx, data)
 	if err != nil {
 		return exceptions.InternalServerError(err)
+	}
+	return nil
+}
+
+// RemoveKYCProcessingRequest removes the supplier's kyc processing request
+func (fr *Repository) RemoveKYCProcessingRequest(ctx context.Context, supplierProfileID string) error {
+	collection := fr.FirestoreClient.Collection(fr.GetKCYProcessCollectionName())
+	query := collection.Where("supplierRecord.id", "==", supplierProfileID)
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to fetch kyc request documents: %v", err))
+	}
+
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("no kyc processing record found: %v", err))
+	}
+
+	req := &domain.KYCRequest{}
+	if err := docs[0].DataTo(req); err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to read supplier kyc record: %w", err))
+	}
+
+	if ref, err := fr.ParseRecordAsSnapshot(ctx, fr.GetKCYProcessCollectionName(), req.ID); err == nil {
+		if _, err = fr.FirestoreClient.Collection(fr.GetKCYProcessCollectionName()).Doc(ref.Ref.ID).Delete(ctx); err != nil {
+			return exceptions.InternalServerError(err)
+		}
+		return nil
 	}
 	return nil
 }
@@ -1221,7 +1333,6 @@ func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain
 		req := &domain.KYCRequest{}
 		err = doc.DataTo(req)
 		if err != nil {
-			logrus.Panicf("line 1205 %v", err)
 			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier: %w", err))
 		}
 		res = append(res, req)
@@ -1431,11 +1542,54 @@ func (fr *Repository) GetOrCreatePhoneNumberUser(
 	}, nil
 }
 
-//UpdatePermissions updates the profiles permissions
-func (fr *Repository) UpdatePermissions(
-	ctx context.Context,
-	id string,
-	perms []base.PermissionType,
-) error {
+// HardResetSecondaryPhoneNumbers does a hard reset of user secondary phone numbers. This should be called when retiring specific
+// secondary phone number and passing in the new secondary phone numbers as an argument.
+func (fr *Repository) HardResetSecondaryPhoneNumbers(ctx context.Context, id string, newSecondaryPhoneNumbers []string) error {
+
+	profile, err := fr.GetUserProfileByID(ctx, id)
+	if err != nil {
+		return exceptions.ProfileNotFoundError(err)
+	}
+
+	profile.SecondaryPhoneNumbers = newSecondaryPhoneNumbers
+
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
+	if err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+	)
+	if err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary phone numbers: %v", err))
+	}
+
+	return nil
+}
+
+// HardResetSecondaryEmailAddress does a hard reset of user secondary email addresses. This should be called when retiring specific
+// secondary email addresses and passing in the new secondary email address as an argument.
+func (fr *Repository) HardResetSecondaryEmailAddress(ctx context.Context, id string, newSecondaryEmails []string) error {
+
+	profile, err := fr.GetUserProfileByID(ctx, id)
+	if err != nil {
+		return exceptions.ProfileNotFoundError(err)
+	}
+
+	profile.SecondaryEmailAddresses = newSecondaryEmails
+
+	record, err := fr.ParseRecordAsSnapshot(ctx, fr.GetUserProfileCollectionName(), profile.ID)
+	if err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+	}
+
+	err = base.UpdateRecordOnFirestore(
+		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
+	)
+	if err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary phone numbers: %v", err))
+	}
+
 	return nil
 }

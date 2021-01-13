@@ -67,6 +67,7 @@ func TestMain(m *testing.M) {
 			r.GetUserProfileCollectionName(),
 			r.GetSupplierProfileCollectionName(),
 			r.GetSurveyCollectionName(),
+			r.GetKCYProcessCollectionName(),
 		}
 		for _, collection := range collections {
 			ref := fsc.Collection(collection)
@@ -158,7 +159,7 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	phone := base.TestUserPhoneNumber
 	flavour := base.FlavourConsumer
 	pin := base.TestUserPin
-	exists, err := s.Signup.CheckPhoneExists(ctx, phone)
+	exists, err := s.Onboarding.CheckPhoneExists(ctx, phone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if test phone exists: %v", err)
 	}

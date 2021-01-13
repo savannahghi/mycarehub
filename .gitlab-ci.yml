@@ -17,7 +17,7 @@ lint_and_test:
   stage: test
   before_script:
     - bash decrypt_service_account.sh
-    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"    
   script:
     - staticcheck ./...
     - go fmt $(go list ./... | grep -v /vendor/)
@@ -25,7 +25,7 @@ lint_and_test:
     - golint -set_exit_status $(go list ./... | grep -v /vendor/)
     - errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
     - gosec -exclude=G101,G404 ./...
-    - go-acc -o coverage.txt --ignore generated,cmd  ./... -- -v
+    - go-acc -o coverage.txt --ignore generated,cmd  ./... -- -timeout 20m
     - grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*resolver*go" | grep -v "server.go" > coverage.out
     - go tool cover -html=coverage.out -o coverage.html
     - gocov convert coverage.out > coverage.json

@@ -66,7 +66,7 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	phone := base.TestUserPhoneNumber
 	flavour := base.FlavourConsumer
 	pin := base.TestUserPin
-	exists, err := s.Signup.CheckPhoneExists(ctx, phone)
+	exists, err := s.Onboarding.CheckPhoneExists(ctx, phone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if test phone exists: %v", err)
 	}

@@ -20,7 +20,7 @@ type LoginUseCases interface {
 	) (*base.UserResponse, error)
 	RefreshToken(token string) (*base.AuthCredentialResponse, error)
 	LoginAsAnonymous(ctx context.Context) (*base.AuthCredentialResponse, error)
-	ResumeWithPin(ctx context.Context, pin string) error
+	ResumeWithPin(ctx context.Context, pin string) (bool, error)
 }
 
 // LoginUseCasesImpl represents the usecase implementation object
@@ -109,30 +109,31 @@ func (l *LoginUseCasesImpl) LoginAsAnonymous(ctx context.Context) (*base.AuthCre
 
 // ResumeWithPin called by the frontend check whether the currentlt logged in user is the once trying to get
 // access to app
-func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) error {
+func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool, error) {
 	profile, err := l.profile.UserProfile(ctx)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		return false, exceptions.ProfileNotFoundError(err)
 	}
 
 	// defensive programming in action
 	if profile == nil {
-		return exceptions.ProfileNotFoundError(nil)
+		return false, exceptions.ProfileNotFoundError(nil)
 	}
 
 	PINData, err := l.onboardingRepository.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
-		return exceptions.PinNotFoundError(err)
+		return false, exceptions.PinNotFoundError(err)
 	}
 	// defensive programming in action
 	if PINData == nil {
-		return exceptions.PinNotFoundError(nil)
+		return false, exceptions.PinNotFoundError(nil)
 	}
 
 	matched := utils.ComparePIN(pin, PINData.Salt, PINData.PINNumber, nil)
 	if !matched {
-		return exceptions.PinMismatchError(nil)
+		// if the pins don't match, return false and dont throw an error.
+		return false, nil
 
 	}
-	return nil
+	return true, nil
 }

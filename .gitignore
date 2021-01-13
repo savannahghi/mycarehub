@@ -1,5 +1,6 @@
 *env.sh
 coverage.txt
+coverage.out
 server
 .gitmessage.txt
 .idea/

@@ -52,15 +52,23 @@ func (r *mutationResolver) AddSecondaryPhoneNumber(ctx context.Context, phone []
 	return true, nil
 }
 
-func (r *mutationResolver) UpdateUserName(ctx context.Context, username string) (bool, error) {
-	if err := r.interactor.Onboarding.UpdateUserName(ctx, username); err != nil {
+func (r *mutationResolver) RetireSecondaryPhoneNumbers(ctx context.Context, phones []string) (bool, error) {
+	return r.interactor.Onboarding.RetireSecondaryPhoneNumbers(ctx, phones)
+}
+
+func (r *mutationResolver) AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error) {
+	if err := r.interactor.Onboarding.UpdateSecondaryPhoneNumbers(ctx, email); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func (r *mutationResolver) AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error) {
-	if err := r.interactor.Onboarding.UpdateSecondaryPhoneNumbers(ctx, email); err != nil {
+func (r *mutationResolver) RetireSecondaryEmailAddresses(ctx context.Context, emails []string) (bool, error) {
+	return r.interactor.Onboarding.RetireSecondaryEmailAddress(ctx, emails)
+}
+
+func (r *mutationResolver) UpdateUserName(ctx context.Context, username string) (bool, error) {
+	if err := r.interactor.Onboarding.UpdateUserName(ctx, username); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -142,6 +150,13 @@ func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input reso
 	return r.interactor.Survey.RecordPostVisitSurvey(ctx, input)
 }
 
+func (r *mutationResolver) RetireKYCProcessingRequest(ctx context.Context) (bool, error) {
+	if err := r.interactor.Supplier.RetireKYCRequest(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	return r.interactor.Onboarding.UserProfile(ctx)
 }
@@ -151,10 +166,7 @@ func (r *queryResolver) SupplierProfile(ctx context.Context) (*base.Supplier, er
 }
 
 func (r *queryResolver) ResumeWithPin(ctx context.Context, pin string) (bool, error) {
-	if err := r.interactor.Login.ResumeWithPin(ctx, pin); err != nil {
-		return false, err
-	}
-	return true, nil
+	return r.interactor.Login.ResumeWithPin(ctx, pin)
 }
 
 func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {

@@ -17,9 +17,6 @@ import (
 type SignUpUseCases interface {
 	// VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
 	VerifyPhoneNumber(ctx context.Context, phone string) (*base.OtpResponse, error)
-	// checks whether a phone number has been registred by another user. Checks both primary and
-	// secondary phone numbers. If the the phone number is foreign, it send an OTP to that phone number
-	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 
 	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
 	CreateUserByPhone(ctx context.Context, input *resources.SignUpInput) (*base.UserResponse, error)
@@ -78,20 +75,6 @@ func NewSignUpUseCases(
 	}
 }
 
-// CheckPhoneExists checks whether a phone number has been registred by another user.
-// Checks both primary and secondary phone numbers.
-func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
-	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
-	if err != nil {
-		return false, exceptions.NormalizeMSISDNError(err)
-	}
-	exists, err := s.onboardingRepository.CheckIfPhoneNumberExists(ctx, *phoneNumber)
-	if err != nil {
-		return false, exceptions.CheckPhoneNumberExistError()
-	}
-	return exists, nil
-}
-
 // CreateUserByPhone creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
 func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	ctx context.Context,
@@ -114,7 +97,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		return nil, exceptions.VerifyOTPError(nil)
 	}
 	// check if phone number is registered to another user
-	exists, err := s.CheckPhoneExists(ctx, *userData.PhoneNumber)
+	exists, err := s.profileUsecase.CheckPhoneExists(ctx, *userData.PhoneNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +304,7 @@ func (s *SignUpUseCasesImpl) VerifyPhoneNumber(ctx context.Context, phone string
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 	// check if phone number exists
-	exists, err := s.CheckPhoneExists(ctx, *phoneNumber)
+	exists, err := s.profileUsecase.CheckPhoneExists(ctx, *phoneNumber)
 	if err != nil {
 		return nil, err
 	}

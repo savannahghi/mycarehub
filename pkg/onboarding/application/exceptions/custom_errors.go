@@ -335,6 +335,16 @@ func SupplierNotFoundError(err error) error {
 	return nil
 }
 
+// SupplierKYCAlreadySubmittedNotFoundError is returned when the user trys to
+// submit another KCY when then is one already submitted
+func SupplierKYCAlreadySubmittedNotFoundError() error {
+	return &base.CustomError{
+		Message: SupplierKYCAlreadySubmittedErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
+	}
+}
+
 // FindProviderError returns an error message when a provider is not found
 func FindProviderError(err error) error {
 	if err != nil {
@@ -403,5 +413,14 @@ func UsernameInUseError() error {
 		Message: UsernameInUseErrMsg,
 		// TODO: provide a correct code
 		Code: int(base.UserNotFound),
+	}
+}
+
+// SecondaryResourceHardResetError this error is returned when there argument to reset a resource has a length of 0
+// resource here means secondary phone numbers and secondary emails
+func SecondaryResourceHardResetError() error {
+	return &base.CustomError{
+		Message: ResourceUpdateErrMsg,
+		Code:    int(base.UndefinedArguments),
 	}
 }

@@ -9,46 +9,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
-func TestCheckPhoneExists_ExistingPhoneNumber(t *testing.T) {
-	s, err := InitializeTestService(context.Background())
-	if err != nil {
-		t.Error("failed to setup signup usecase")
-	}
-
-	phone := base.TestUserPhoneNumber
-
-	// remove user then signup user with the phone number then run phone number check
-	// ignore the error since it is of no consequence to us
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
-
-	otp, err := generateTestOTP(t, phone)
-	if err != nil {
-		t.Errorf("failed to generate test OTP: %v", err)
-		return
-	}
-	pin := base.TestUserPin
-	resp, err := s.Signup.CreateUserByPhone(
-		context.Background(),
-		&resources.SignUpInput{
-			PhoneNumber: &phone,
-			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
-			OTP:         &otp.OTP,
-		},
-	)
-
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-
-	resp2, err2 := s.Signup.CheckPhoneExists(context.Background(), phone)
-	assert.Nil(t, err2)
-	assert.NotNil(t, resp2)
-	assert.Equal(t, true, resp2)
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
-}
-
 func TestCreateUserWithPhoneNumber(t *testing.T) {
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -133,82 +93,6 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 			}
 		})
 	}
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
-}
-
-func TestCreateUserWithPhoneNumber_Consumer(t *testing.T) {
-	s, err := InitializeTestService(context.Background())
-	if err != nil {
-		t.Error("failed to setup signup usecase")
-	}
-	phone := base.TestUserPhoneNumber
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
-
-	otp, err := generateTestOTP(t, phone)
-	if err != nil {
-		t.Errorf("failed to generate test OTP: %v", err)
-		return
-	}
-
-	pin := "1234"
-
-	resp, err := s.Signup.CreateUserByPhone(
-		context.Background(),
-		&resources.SignUpInput{
-			PhoneNumber: &phone,
-			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
-			OTP:         &otp.OTP,
-		},
-	)
-
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
-}
-
-func TestCreateUserWithPhoneNumber_Pro(t *testing.T) {
-	s, err := InitializeTestService(context.Background())
-	if err != nil {
-		t.Error("failed to setup signup usecase")
-	}
-	phone := base.TestUserPhoneNumber
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
-
-	otp, err := generateTestOTP(t, phone)
-	if err != nil {
-		t.Errorf("failed to generate test OTP: %v", err)
-		return
-	}
-
-	pin := "1234"
-
-	resp, err := s.Signup.CreateUserByPhone(
-		context.Background(),
-		&resources.SignUpInput{
-			PhoneNumber: &phone,
-			PIN:         &pin,
-			Flavour:     base.FlavourPro,
-			OTP:         &otp.OTP,
-		},
-	)
-
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
