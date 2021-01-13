@@ -53,6 +53,26 @@ func TestSendRetryOTP(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Happy case - Send Retry OTP via Twilio US number 1",
+			args: args{
+				ctx:       context.Background(),
+				msisdn:    "+15017122661",
+				retryStep: 2,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy case - Send Retry OTP via Twilio US number 2",
+			args: args{
+				ctx:       context.Background(),
+				msisdn:    "+12028569601 ",
+				retryStep: 2,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
 			name: "Sad case - Send Retry OTP via a nonexistent channel",
 			args: args{
 				ctx:       context.Background(),
