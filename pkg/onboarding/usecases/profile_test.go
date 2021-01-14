@@ -3,7 +3,6 @@ package usecases_test
 import (
 	"context"
 	"log"
-
 	"testing"
 
 	"firebase.google.com/go/auth"
@@ -625,4 +624,182 @@ func TestUserProfileCovers(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 2, len(pr.Covers))
 
+}
+
+func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("could not get test authenticated context")
+		return
+	}
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	unauthenticatedCtx := context.Background()
+	type args struct {
+		ctx  context.Context
+		uids []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: add verified uids",
+			args: args{
+				ctx:  ctx,
+				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: unable to get logged in user",
+			args: args{
+				ctx:  unauthenticatedCtx,
+				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			err := s.Onboarding.UpdateVerifiedUIDS(tt.args.ctx, tt.args.uids)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("could not get test authenticated context")
+		return
+	}
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	unauthenticatedCtx := context.Background()
+	type args struct {
+		ctx            context.Context
+		emailAddresses []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: update secondary emails",
+			args: args{
+				ctx:            ctx,
+				emailAddresses: []string{"me4@gmail.com", "kalulu@gmail.com"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: unable to get logged in user",
+			args: args{
+				ctx:            unauthenticatedCtx,
+				emailAddresses: []string{"me4@gmail.com", "kalulu@gmail.com"},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := s.Onboarding.UpdateSecondaryEmailAddresses(tt.args.ctx, tt.args.emailAddresses)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("could not get test authenticated context")
+		return
+	}
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	unauthenticatedCtx := context.Background()
+
+	type args struct {
+		ctx      context.Context
+		userName string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: update name succeeds",
+			args: args{
+				ctx:      ctx,
+				userName: "kamau",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: unable to get logged in user",
+			args: args{
+				ctx:      unauthenticatedCtx,
+				userName: "mwas",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			err := s.Onboarding.UpdateUserName(tt.args.ctx, tt.args.userName)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
 }

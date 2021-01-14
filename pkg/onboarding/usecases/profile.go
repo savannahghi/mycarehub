@@ -230,7 +230,6 @@ func (p *ProfileUseCaseImpl) UpdateVerifiedUIDS(ctx context.Context, uids []stri
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
-
 	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return exceptions.ProfileNotFoundError(err)
