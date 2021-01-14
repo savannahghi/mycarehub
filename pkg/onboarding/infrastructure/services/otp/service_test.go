@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
@@ -17,8 +19,8 @@ func TestSendRetryOTP(t *testing.T) {
 		t.Errorf("can't instantiate firebase repository in resolver: %w", err)
 		return
 	}
-
-	otpservice := otp.NewOTPService(fr)
+	ext := extension.NewBaseExtensionImpl()
+	otpservice := otp.NewOTPService(fr, ext)
 	type args struct {
 		ctx       context.Context
 		msisdn    string

@@ -19,6 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -108,6 +109,7 @@ type SupplierUseCasesImpl struct {
 	engagement   engagement.ServiceEngagement
 	mg           mailgun.ServiceMailgun
 	messaging    messaging.ServiceMessaging
+	baseExt      extension.BaseExtension
 }
 
 // NewSupplierUseCases returns a new a onboarding usecase
@@ -118,7 +120,8 @@ func NewSupplierUseCases(
 	chrg chargemaster.ServiceChargeMaster,
 	eng engagement.ServiceEngagement,
 	mg mailgun.ServiceMailgun,
-	messaging messaging.ServiceMessaging) SupplierUseCases {
+	messaging messaging.ServiceMessaging,
+	ext extension.BaseExtension) SupplierUseCases {
 
 	return &SupplierUseCasesImpl{
 		repo:         r,
@@ -127,7 +130,8 @@ func NewSupplierUseCases(
 		chargemaster: chrg,
 		engagement:   eng,
 		mg:           mg,
-		messaging:    messaging}
+		messaging:    messaging,
+		baseExt:      ext}
 }
 
 // AddPartnerType create the initial supplier record
@@ -145,7 +149,7 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 		return false, fmt.Errorf("invalid `partnerType`. cannot use CONSUMER in this context")
 	}
 
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return false, exceptions.UserNotFoundError(err)
 	}
@@ -242,7 +246,7 @@ func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType bas
 		return nil, fmt.Errorf("%v is not an allowed AccountType choice", accountType.String())
 	}
 
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, exceptions.UserNotFoundError(err)
 	}
@@ -460,7 +464,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 	businessPartner = *partner.Edges[0].Node
 	var brFilter []*resources.BranchFilterInput
 
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get the logged in user: %w", err)
 	}

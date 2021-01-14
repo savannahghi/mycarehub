@@ -14,6 +14,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
@@ -22,6 +23,22 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+
+	otpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp/mock"
+	mockRepo "gitlab.slade360emr.com/go/profile/pkg/onboarding/repository/mock"
+
+	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
+	chargemasterMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster/mock"
+
+	engagementMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement/mock"
+
+	erpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp/mock"
+
+	mailgunMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun/mock"
+
+	messagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging/mock"
 )
 
 func TestMain(m *testing.M) {
@@ -32,6 +49,7 @@ func TestMain(m *testing.M) {
 	os.Setenv("DEBUG", "true")
 	collectionEnvValue := os.Getenv("ROOT_COLLECTION_SUFFIX")
 	os.Setenv("ROOT_COLLECTION_SUFFIX", fmt.Sprintf("onboarding_ci_%v", time.Now().Unix()))
+
 	ctx := context.Background()
 	r := database.Repository{} // They are nil
 	fsc, fbc := InitializeTestFirebaseClient(ctx)
@@ -99,18 +117,19 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, err
 	}
 
-	otp := otp.NewOTPService(fr)
-	profile := usecases.NewProfileUseCase(fr, otp)
+	ext := extension.NewBaseExtensionImpl()
+	otp := otp.NewOTPService(fr, ext)
+	profile := usecases.NewProfileUseCase(fr, otp, ext)
 	erp := erp.NewERPService(fr)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
 	engage := engagement.NewServiceEngagementImpl(fr)
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
-	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes)
-	login := usecases.NewLoginUseCases(fr, profile)
-	survey := usecases.NewSurveyUseCases(fr)
-	userpin := usecases.NewUserPinUseCase(fr, otp, profile)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp)
+	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
+	login := usecases.NewLoginUseCases(fr, profile, ext)
+	survey := usecases.NewSurveyUseCases(fr, ext)
+	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, ext)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -290,4 +309,39 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 			}
 		})
 	}
+}
+
+var fakeRepo mockRepo.FakeOnboardingRepository
+var fakeOtp otpMock.FakeServiceOTP
+var fakeBaseExt extMock.FakeBaseExtensionImpl
+
+// InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
+func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
+	var r repository.OnboardingRepository = &fakeRepo
+	var otpSvc otp.ServiceOTP = &fakeOtp
+	var erpSvc erp.ServiceERP = &erpMock.FakeServiceERP{}
+	var chargemasterSvc chargemaster.ServiceChargeMaster = &chargemasterMock.FakeServiceChargeMaster{}
+	var engagementSvc engagement.ServiceEngagement = &engagementMock.FakeServiceEngagement{}
+	var mailgunSvc mailgun.ServiceMailgun = &mailgunMock.FakeServiceMailgun{}
+	var messagingSvc messaging.ServiceMessaging = &messagingMock.FakeServiceMessaging{}
+	var ext extension.BaseExtension = &fakeBaseExt
+
+	profile := usecases.NewProfileUseCase(r, otpSvc, ext)
+	login := usecases.NewLoginUseCases(r, profile, ext)
+	survey := usecases.NewSurveyUseCases(r, ext)
+	supplier := usecases.NewSupplierUseCases(
+		r, profile, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, ext,
+	)
+	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext)
+	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
+
+	i, err := interactor.NewOnboardingInteractor(
+		r, profile, su, otpSvc, supplier, login,
+		survey, userpin, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("can't instantiate service : %w", err)
+	}
+	return i, nil
+
 }

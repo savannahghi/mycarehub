@@ -7,6 +7,7 @@ import (
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -45,16 +46,17 @@ type ProfileUseCase interface {
 type ProfileUseCaseImpl struct {
 	onboardingRepository repository.OnboardingRepository
 	otpUseCases          otp.ServiceOTP
+	baseExt              extension.BaseExtension
 }
 
 // NewProfileUseCase returns a new a onboarding usecase
-func NewProfileUseCase(r repository.OnboardingRepository, otp otp.ServiceOTP) ProfileUseCase {
-	return &ProfileUseCaseImpl{onboardingRepository: r, otpUseCases: otp}
+func NewProfileUseCase(r repository.OnboardingRepository, otp otp.ServiceOTP, ext extension.BaseExtension) ProfileUseCase {
+	return &ProfileUseCaseImpl{onboardingRepository: r, otpUseCases: otp, baseExt: ext}
 }
 
 // UserProfile retrieves the profile of the logged in user, if they have one
 func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile, error) {
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, exceptions.UserNotFoundError(err)
 	}
@@ -92,14 +94,14 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 
 	var profile *base.UserProfile
 
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := p.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return exceptions.NormalizeMSISDNError(err)
 	}
 
 	// fetch the user profile
 	if useContext {
-		uid, err := base.GetLoggedInUserUID(ctx)
+		uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 		if err != nil {
 			return exceptions.UserNotFoundError(err)
 		}
@@ -151,7 +153,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 // this call is only valid via graphql api
 func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emailAddress string) error {
 
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
@@ -195,7 +197,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emai
 // UpdateSecondaryPhoneNumbers updates secondary phone numbers of a specific user profile
 // this should be called after a prior check of uniqueness is done
 func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error {
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
@@ -211,7 +213,7 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(ctx context.Context, ph
 // UpdateSecondaryEmailAddresses updates secondary email address of a specific user profile
 // this should be called after a prior check of uniqueness is done
 func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(ctx context.Context, emailAddresses []string) error {
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
@@ -226,7 +228,7 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(ctx context.Context, 
 
 // UpdateVerifiedUIDS updates the profile's verified uids
 func (p *ProfileUseCaseImpl) UpdateVerifiedUIDS(ctx context.Context, uids []string) error {
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
@@ -234,13 +236,12 @@ func (p *ProfileUseCaseImpl) UpdateVerifiedUIDS(ctx context.Context, uids []stri
 	if err != nil {
 		return exceptions.ProfileNotFoundError(err)
 	}
-
 	return profile.UpdateProfileVerifiedUIDS(ctx, p.onboardingRepository, uids)
 }
 
 // UpdateVerifiedIdentifiers updates the profile's verified identifiers
 func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(ctx context.Context, identifiers []base.VerifiedIdentifier) error {
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
@@ -257,13 +258,13 @@ func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(ctx context.Context, iden
 func (p *ProfileUseCaseImpl) UpdateSuspended(ctx context.Context, status bool, phone string, useContext bool) error {
 	var profile *base.UserProfile
 
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := p.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return exceptions.NormalizeMSISDNError(err)
 	}
 	// fetch the user profile
 	if useContext {
-		uid, err := base.GetLoggedInUserUID(ctx)
+		uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 		if err != nil {
 			return exceptions.UserNotFoundError(err)
 		}
@@ -284,7 +285,7 @@ func (p *ProfileUseCaseImpl) UpdateSuspended(ctx context.Context, status bool, p
 // UpdatePhotoUploadID updates photouploadid attribute of a specific user profile
 func (p *ProfileUseCaseImpl) UpdatePhotoUploadID(ctx context.Context, uploadID string) error {
 
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
@@ -300,7 +301,7 @@ func (p *ProfileUseCaseImpl) UpdatePhotoUploadID(ctx context.Context, uploadID s
 
 // UpdateCovers updates primary covers of a specific user profile
 func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cover) error {
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
@@ -314,7 +315,7 @@ func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cov
 
 // UpdatePushTokens updates primary push tokens of a specific user profile
 func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error {
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
@@ -345,7 +346,7 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken str
 // UpdateBioData updates primary biodata of a specific user profile
 func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioData) error {
 
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}

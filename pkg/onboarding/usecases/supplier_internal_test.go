@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
@@ -21,9 +23,9 @@ func TestParseKYCAsMap(t *testing.T) {
 	if err != nil {
 		return
 	}
-
-	otp := otp.NewOTPService(fr)
-	profile := NewProfileUseCase(fr, otp)
+	ext := extension.NewBaseExtensionImpl()
+	otp := otp.NewOTPService(fr, ext)
+	profile := NewProfileUseCase(fr, otp, ext)
 	erp := erp.NewERPService(fr)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
 	engage := engagement.NewServiceEngagementImpl(fr)

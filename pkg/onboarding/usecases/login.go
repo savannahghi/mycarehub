@@ -5,6 +5,7 @@ import (
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -26,11 +27,12 @@ type LoginUseCases interface {
 type LoginUseCasesImpl struct {
 	onboardingRepository repository.OnboardingRepository
 	profile              ProfileUseCase
+	baseExt              extension.BaseExtension
 }
 
 // NewLoginUseCases initializes a new sign up usecase
-func NewLoginUseCases(r repository.OnboardingRepository, p ProfileUseCase) LoginUseCases {
-	return &LoginUseCasesImpl{onboardingRepository: r, profile: p}
+func NewLoginUseCases(r repository.OnboardingRepository, p ProfileUseCase, ext extension.BaseExtension) LoginUseCases {
+	return &LoginUseCasesImpl{onboardingRepository: r, profile: p, baseExt: ext}
 }
 
 // LoginByPhone returns credentials that are used to log a user in
@@ -41,7 +43,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	PIN string,
 	flavour base.Flavour,
 ) (*base.UserResponse, error) {
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := l.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}

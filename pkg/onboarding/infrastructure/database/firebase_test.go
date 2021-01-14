@@ -13,6 +13,7 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
@@ -30,19 +31,19 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	if err != nil {
 		return nil, err
 	}
-
-	otp := otp.NewOTPService(fr)
-	profile := usecases.NewProfileUseCase(fr, otp)
+	ext := extension.NewBaseExtensionImpl()
+	otp := otp.NewOTPService(fr, ext)
+	profile := usecases.NewProfileUseCase(fr, otp, ext)
 	erp := erp.NewERPService(fr)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
 	engage := engagement.NewServiceEngagementImpl(fr)
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
-	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes)
-	login := usecases.NewLoginUseCases(fr, profile)
-	survey := usecases.NewSurveyUseCases(fr)
-	userpin := usecases.NewUserPinUseCase(fr, otp, profile)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp)
+	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
+	login := usecases.NewLoginUseCases(fr, profile, ext)
+	survey := usecases.NewSurveyUseCases(fr, ext)
+	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, ext)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,

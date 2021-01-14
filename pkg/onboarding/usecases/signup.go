@@ -6,6 +6,7 @@ import (
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
@@ -55,6 +56,7 @@ type SignUpUseCasesImpl struct {
 	pinUsecase           UserPINUseCases
 	supplierUsecase      SupplierUseCases
 	otpUseCases          otp.ServiceOTP
+	baseExt              extension.BaseExtension
 }
 
 // NewSignUpUseCases returns a new a onboarding usecase
@@ -64,6 +66,7 @@ func NewSignUpUseCases(
 	pin UserPINUseCases,
 	supplier SupplierUseCases,
 	otp otp.ServiceOTP,
+	ext extension.BaseExtension,
 ) SignUpUseCases {
 	return &SignUpUseCasesImpl{
 		onboardingRepository: r,
@@ -71,13 +74,14 @@ func NewSignUpUseCases(
 		pinUsecase:           pin,
 		supplierUsecase:      supplier,
 		otpUseCases:          otp,
+		baseExt:              ext,
 	}
 }
 
 // CheckPhoneExists checks whether a phone number has been registred by another user.
 // Checks both primary and secondary phone numbers.
 func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
@@ -85,7 +89,6 @@ func (s *SignUpUseCasesImpl) CheckPhoneExists(ctx context.Context, phone string)
 	if err != nil {
 		return false, exceptions.CheckPhoneNumberExistError()
 	}
-
 	return exists, nil
 }
 
@@ -260,7 +263,7 @@ func (s *SignUpUseCasesImpl) RetirePushToken(ctx context.Context, token string) 
 
 // GetUserRecoveryPhoneNumbers fetches the phone numbers of a user for the purposes of recoverying an account.
 func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, phone string) (*resources.AccountRecoveryPhonesResponse, error) {
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
@@ -290,7 +293,7 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 // SetPhoneAsPrimary called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
 // where the phone number is associated with.
 func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(ctx context.Context, phone, otp string) (bool, error) {
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
@@ -304,7 +307,7 @@ func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(ctx context.Context, phone, otp s
 // RemoveUserByPhoneNumber removes the record of a user using the provided phone number. This method will ONLY be called
 // in testing environment.
 func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone string) error {
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return exceptions.NormalizeMSISDNError(err)
 	}
@@ -313,7 +316,7 @@ func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone 
 
 // VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
 func (s *SignUpUseCasesImpl) VerifyPhoneNumber(ctx context.Context, phone string) (*base.OtpResponse, error) {
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}

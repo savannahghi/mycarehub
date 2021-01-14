@@ -2,6 +2,7 @@ package usecases_test
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"testing"
 
@@ -627,17 +628,13 @@ func TestUserProfileCovers(t *testing.T) {
 }
 
 func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
-		t.Errorf("could not get test authenticated context")
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-	unauthenticatedCtx := context.Background()
+
 	type args struct {
 		ctx  context.Context
 		uids []string
@@ -648,17 +645,27 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid: add verified uids",
+			name: "valid:_update_profile_uids",
 			args: args{
 				ctx:  ctx,
 				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
 			},
 			wantErr: false,
 		},
+
 		{
-			name: "invalid: unable to get logged in user",
+			name: "invalid:_unable_to_get_logged_in_user",
 			args: args{
-				ctx:  unauthenticatedCtx,
+				ctx:  ctx,
+				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "invalid:_unable_to_get_profile_of_logged_in_user",
+			args: args{
+				ctx:  ctx,
 				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
 			},
 			wantErr: true,
@@ -666,15 +673,47 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_update_profile_uids" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+				fakeRepo.UpdateVerifiedUIDSFn = func(ctx context.Context, id string, uids []string) error {
+					return nil
+				}
+			}
 
-			err := s.Onboarding.UpdateVerifiedUIDS(tt.args.ctx, tt.args.uids)
+			if tt.name == "invalid:_unable_to_get_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged user")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_profile_of_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get profile")
+				}
+			}
+
+			err := i.Onboarding.UpdateVerifiedUIDS(tt.args.ctx, tt.args.uids)
+
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("error expected got %v", err)
 					return
 				}
 			}
-
 			if !tt.wantErr {
 				if err != nil {
 					t.Errorf("error not expected got %v", err)
@@ -687,17 +726,12 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 }
 
 func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
-		t.Errorf("could not get test authenticated context")
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-	unauthenticatedCtx := context.Background()
 	type args struct {
 		ctx            context.Context
 		emailAddresses []string
@@ -708,7 +742,7 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid: update secondary emails",
+			name: "valid:_update_profile_secondary_email",
 			args: args{
 				ctx:            ctx,
 				emailAddresses: []string{"me4@gmail.com", "kalulu@gmail.com"},
@@ -716,9 +750,17 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "invalid: unable to get logged in user",
+			name: "invalid:_unable_to_get_logged_in_user",
 			args: args{
-				ctx:            unauthenticatedCtx,
+				ctx:            ctx,
+				emailAddresses: []string{"me4@gmail.com", "kalulu@gmail.com"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_get_profile_of_logged_in_user",
+			args: args{
+				ctx:            ctx,
 				emailAddresses: []string{"me4@gmail.com", "kalulu@gmail.com"},
 			},
 			wantErr: true,
@@ -726,14 +768,43 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := s.Onboarding.UpdateSecondaryEmailAddresses(tt.args.ctx, tt.args.emailAddresses)
+			if tt.name == "valid:_update_profile_secondary_email" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, uids []string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged user")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_profile_of_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get profile")
+				}
+			}
+
+			err := i.Onboarding.UpdateSecondaryEmailAddresses(tt.args.ctx, tt.args.emailAddresses)
+
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("error expected got %v", err)
 					return
 				}
 			}
-
 			if !tt.wantErr {
 				if err != nil {
 					t.Errorf("error not expected got %v", err)
@@ -745,17 +816,12 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 }
 
 func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
-		t.Errorf("could not get test authenticated context")
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-	unauthenticatedCtx := context.Background()
 
 	type args struct {
 		ctx      context.Context
@@ -767,7 +833,7 @@ func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid: update name succeeds",
+			name: "valid:_update_name_suceeds",
 			args: args{
 				ctx:      ctx,
 				userName: "kamau",
@@ -775,9 +841,9 @@ func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "invalid: unable to get logged in user",
+			name: "invalid:_unable_to_get_logged_in_user",
 			args: args{
-				ctx:      unauthenticatedCtx,
+				ctx:      ctx,
 				userName: "mwas",
 			},
 			wantErr: true,
@@ -785,15 +851,138 @@ func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_update_name_suceeds" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+				fakeRepo.UpdateUserNameFn = func(ctx context.Context, id string, phoneNumber string) error {
+					return nil
+				}
+			}
 
-			err := s.Onboarding.UpdateUserName(tt.args.ctx, tt.args.userName)
+			if tt.name == "invalid:_unable_to_get_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged user")
+				}
+			}
+			err := i.Onboarding.UpdateUserName(tt.args.ctx, tt.args.userName)
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("error expected got %v", err)
 					return
 				}
 			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
 
+func TestProfileUseCaseImpl_UpdateVerifiedIdentrs(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		identifiers []base.VerifiedIdentifier
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:_update_name_suceeds",
+			args: args{
+				ctx: ctx,
+				identifiers: []base.VerifiedIdentifier{
+					{
+						UID:           "a4f39af7-5b64-4c2f-91bd-42b3af315a5h",
+						LoginProvider: "Facebook",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_unable_to_get_logged_in_user",
+			args: args{
+				ctx: ctx,
+				identifiers: []base.VerifiedIdentifier{
+					{
+						UID:           "j4f39af7-5b64-4c2f-91bd-42b3af225a5c",
+						LoginProvider: "Phone",
+					},
+				},
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "invalid:_unable_to_get_profile_of_logged_in_user",
+			args: args{
+				ctx: ctx,
+				identifiers: []base.VerifiedIdentifier{
+					{
+						UID:           "p4f39af7-5b64-4c2f-91bd-42b3af315a5c",
+						LoginProvider: "Google",
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_update_name_suceeds" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+				fakeRepo.UpdateVerifiedIdentifiersFn = func(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged user")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_profile_of_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get profile")
+				}
+			}
+
+			err := i.Onboarding.UpdateVerifiedIdentifiers(tt.args.ctx, tt.args.identifiers)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
 			if !tt.wantErr {
 				if err != nil {
 					t.Errorf("error not expected got %v", err)

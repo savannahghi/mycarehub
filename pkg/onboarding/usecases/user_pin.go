@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
@@ -31,20 +32,22 @@ type UserPinUseCaseImpl struct {
 	onboardingRepository repository.OnboardingRepository
 	otpUseCases          otp.ServiceOTP
 	profileUseCases      ProfileUseCase
+	baseExt              extension.BaseExtension
 }
 
 // NewUserPinUseCase returns a new UserPin usecase
-func NewUserPinUseCase(r repository.OnboardingRepository, otp otp.ServiceOTP, p ProfileUseCase) UserPINUseCases {
+func NewUserPinUseCase(r repository.OnboardingRepository, otp otp.ServiceOTP, p ProfileUseCase, ext extension.BaseExtension) UserPINUseCases {
 	return &UserPinUseCaseImpl{
 		onboardingRepository: r,
 		otpUseCases:          otp,
 		profileUseCases:      p,
+		baseExt:              ext,
 	}
 }
 
 // SetUserPIN receives phone number and pin from phonenumber sign up
 func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone string) (bool, error) {
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := u.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
@@ -81,7 +84,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 // sends an otp to the phone number that is then used in the process of
 // updating their old PIN to a new one
 func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) (*base.OtpResponse, error) {
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := u.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
@@ -111,7 +114,7 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 	PIN string,
 	OTP string,
 ) (bool, error) {
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := u.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
@@ -156,7 +159,7 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 
 // ChangeUserPIN updates authenticated user's pin with the newly supplied pin
 func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pin string) (bool, error) {
-	phoneNumber, err := base.NormalizeMSISDN(phone)
+	phoneNumber, err := u.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
 	}

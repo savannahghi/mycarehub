@@ -14,6 +14,13 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	otpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp/mock"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/rest"
+	mockRepo "gitlab.slade360emr.com/go/profile/pkg/onboarding/repository/mock"
+
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
+
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	chargemasterMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
@@ -25,18 +32,18 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	messagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
-	otpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp/mock"
+
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/rest"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
-	mockRepo "gitlab.slade360emr.com/go/profile/pkg/onboarding/repository/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
 var fakeRepo mockRepo.FakeOnboardingRepository
 var fakeOtp otpMock.FakeServiceOTP
+var fakeBaseExt extMock.FakeBaseExtensionImpl
 var serverUrl = "http://localhost:5000"
 
+// InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
 func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var r repository.OnboardingRepository = &fakeRepo
 	var otpSvc otp.ServiceOTP = &fakeOtp
@@ -45,15 +52,16 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var engagementSvc engagement.ServiceEngagement = &engagementMock.FakeServiceEngagement{}
 	var mailgunSvc mailgun.ServiceMailgun = &mailgunMock.FakeServiceMailgun{}
 	var messagingSvc messaging.ServiceMessaging = &messagingMock.FakeServiceMessaging{}
+	var ext extension.BaseExtension = &fakeBaseExt
 
-	profile := usecases.NewProfileUseCase(r, otpSvc)
-	login := usecases.NewLoginUseCases(r, profile)
-	survey := usecases.NewSurveyUseCases(r)
+	profile := usecases.NewProfileUseCase(r, otpSvc, ext)
+	login := usecases.NewLoginUseCases(r, profile, ext)
+	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
-		r, profile, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc,
+		r, profile, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, ext,
 	)
-	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile)
-	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc)
+	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext)
+	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, otpSvc, supplier, login,
@@ -107,6 +115,7 @@ func composeChangePinPayload(t *testing.T, phone, pin, otp string) *bytes.Buffer
 	}
 	return bytes.NewBuffer(bs)
 }
+
 func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
@@ -207,6 +216,15 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 			response := httptest.NewRecorder()
 			// we mock the required methods for a valid case
+			fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+				phone := "+254721123123"
+				return &phone, nil
+			}
+			if tt.name == "invalid:_phone_number_is_empty" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("empty phone number")
+				}
+			}
 			if tt.name == "valid:_successfully_verifies_a_phone_number" {
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
@@ -628,6 +646,10 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 			response := httptest.NewRecorder()
 			// we mock the required methods for a valid case
 			if tt.name == "valid:_successfully_get_a_recovery_phone" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
 				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",
@@ -641,6 +663,10 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 
 			// we set GetUserProfileByPhoneNumber to return an error
 			if tt.name == "valid:_unable_to_get_profile" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
 				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to retreive profile")
 				}
@@ -767,6 +793,16 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 			response := httptest.NewRecorder()
 			// we mock the required methods for a valid case
+			fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+				phone := "+254721123123"
+				return &phone, nil
+			}
+			if tt.name == "invalid:_phone_number_invalid" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("invalid phone number")
+				}
+			}
+
 			if tt.name == "valid:sucessfully_request_pin_reset" {
 				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
 					return &base.UserProfile{

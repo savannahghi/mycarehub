@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
@@ -44,11 +45,12 @@ type ServiceOTP interface {
 
 // ServiceOTPImpl represents OTP usecases
 type ServiceOTPImpl struct {
-	Otp *base.InterServiceClient
+	Otp     *base.InterServiceClient
+	baseExt extension.BaseExtension
 }
 
 // NewOTPService returns new instance of ServiceOTPImpl
-func NewOTPService(r repository.OnboardingRepository) ServiceOTP {
+func NewOTPService(r repository.OnboardingRepository, ext extension.BaseExtension) ServiceOTP {
 
 	var config base.DepsConfig
 	//os file and parse it to go type
@@ -70,7 +72,7 @@ func NewOTPService(r repository.OnboardingRepository) ServiceOTP {
 
 	}
 
-	return &ServiceOTPImpl{Otp: otpClient}
+	return &ServiceOTPImpl{Otp: otpClient, baseExt: ext}
 }
 
 // GenerateAndSendOTP creates a new otp and sends it to the provided phone number.
@@ -109,7 +111,7 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 	msisdn string,
 	retryStep int,
 ) (*base.OtpResponse, error) {
-	phoneNumber, err := base.NormalizeMSISDN(msisdn)
+	phoneNumber, err := o.baseExt.NormalizeMSISDN(msisdn)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
