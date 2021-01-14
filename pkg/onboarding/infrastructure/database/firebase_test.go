@@ -15,6 +15,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
@@ -26,6 +27,56 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
+
+func TestMain(m *testing.M) {
+	log.Printf("Setting tests up ...")
+	envOriginalValue := os.Getenv("ENVIRONMENT")
+	os.Setenv("ENVIRONMENT", "staging")
+	debugEnvValue := os.Getenv("DEBUG")
+	os.Setenv("DEBUG", "true")
+	collectionEnvValue := os.Getenv("ROOT_COLLECTION_SUFFIX")
+	os.Setenv("ROOT_COLLECTION_SUFFIX", fmt.Sprintf("onboarding_ci_%v", time.Now().Unix()))
+	ctx := context.Background()
+	r := database.Repository{} // They are nil
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
+
+	purgeRecords := func() {
+		collections := []string{
+			r.GetCustomerProfileCollectionName(),
+			r.GetPINsCollectionName(),
+			r.GetUserProfileCollectionName(),
+			r.GetSupplierProfileCollectionName(),
+			r.GetSurveyCollectionName(),
+		}
+		for _, collection := range collections {
+			ref := fsc.Collection(collection)
+			base.DeleteCollection(ctx, fsc, ref, 10)
+		}
+	}
+
+	// try clean up first
+	purgeRecords()
+
+	// do clean up
+	log.Printf("Running tests ...")
+	code := m.Run()
+
+	log.Printf("Tearing tests down ...")
+	purgeRecords()
+
+	// restore environment varibles to original values
+	os.Setenv(envOriginalValue, "ENVIRONMENT")
+	os.Setenv("DEBUG", debugEnvValue)
+	os.Setenv("ROOT_COLLECTION_SUFFIX", collectionEnvValue)
+
+	os.Exit(code)
+}
 
 func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) {
 	fr, err := database.NewFirebaseRepository(ctx)
@@ -79,6 +130,7 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	}
 	if !exists {
 		otp, err := s.Otp.GenerateAndSendOTP(ctx, phone)
+		log.Println("The otp is:", otp)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate test OTP: %v", err)
 		}
@@ -131,50 +183,6 @@ func GetTestAuthenticatedContext(t *testing.T) (context.Context, *auth.Token, er
 		auth,
 	)
 	return authenticatedContext, auth, nil
-}
-func TestMain(m *testing.M) {
-	log.Printf("Setting tests up ...")
-	originalENV := os.Getenv("ENVIRONMENT")
-	os.Setenv("ENVIRONMENT", "staging")
-	originaDEBUG := os.Getenv("DEBUG")
-	os.Setenv("DEBUG", "true")
-	os.Setenv("ROOT_COLLECTION_SUFFIX", fmt.Sprintf("onboarding_ci_%v", time.Now().Unix()))
-	originalROOT_S := os.Getenv("ROOT_COLLECTION_SUFFIX")
-	ctx := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		log.Panicf("failed to initialize test FireStore client")
-	}
-	if fbc == nil {
-		log.Panicf("failed to initialize test FireBase client")
-	}
-
-	purgeRecords := func() {
-		collections := []string{
-			r.GetCustomerProfileCollectionName(),
-			r.GetPINsCollectionName(),
-			r.GetUserProfileCollectionName(),
-			r.GetSupplierProfileCollectionName(),
-			r.GetSurveyCollectionName(),
-		}
-		for _, collection := range collections {
-			ref := fsc.Collection(collection)
-			base.DeleteCollection(ctx, fsc, ref, 10)
-		}
-	}
-	purgeRecords()
-	os.Setenv("ENVIRONMENT", originalENV)
-	os.Setenv("DEBUG", originaDEBUG)
-	os.Setenv("ROOT_COLLECTION_SUFFIX", originalROOT_S)
-
-	log.Printf("Running tests ...")
-	code := m.Run()
-
-	log.Printf("Tearing tests down ...")
-	purgeRecords()
-
-	os.Exit(code)
 }
 
 func InitializeTestFirebaseClient(ctx context.Context) (*firestore.Client, *auth.Client) {
@@ -841,7 +849,6 @@ func TestRepository_CheckIfPhoneNumberExists(t *testing.T) {
 		t.Errorf("failed to create new Firebase Repository: %v", err)
 		return
 	}
-
 	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
@@ -993,7 +1000,6 @@ func TestRepository_GetPINByProfileID(t *testing.T) {
 		t.Errorf("failed to create new Firebase Repository: %v", err)
 		return
 	}
-
 	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
@@ -1066,6 +1072,217 @@ func TestRepository_GetPINByProfileID(t *testing.T) {
 
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Repository.GetPINByProfileID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_SavePIN(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	validPin := base.TestUserPin
+
+	salt, encryptedPin := utils.EncryptPIN(validPin, nil)
+
+	validSavePinPayload := &domain.PIN{
+		ID:        uuid.New().String(),
+		ProfileID: user.ID,
+		PINNumber: encryptedPin,
+		Salt:      salt,
+	}
+
+	type args struct {
+		ctx context.Context
+		pin *domain.PIN
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: save pin with valid pin payload",
+			args: args{
+				ctx: ctx,
+				pin: validSavePinPayload,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "sad case: save pin with pin no payload",
+			args: args{
+				ctx: ctx,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.SavePIN(tt.args.ctx, tt.args.pin)
+			log.Println("Got is", got)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.SavePIN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Repository.SavePIN() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_UpdatePIN(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	validPin := base.TestUserPin
+
+	salt, encryptedPin := utils.EncryptPIN(validPin, nil)
+
+	validSavePinPayload := &domain.PIN{
+		ID:        uuid.New().String(),
+		ProfileID: user.ID,
+		PINNumber: encryptedPin,
+		Salt:      salt,
+	}
+
+	type args struct {
+		ctx context.Context
+		id  string
+		pin *domain.PIN
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: update pin with valid pin payload",
+			args: args{
+				ctx: ctx,
+				id:  user.ID,
+				pin: validSavePinPayload,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "sad case: update pin with invalid payload",
+			args: args{
+				ctx: ctx,
+				id:  "", // empty user profile
+				pin: validSavePinPayload,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.UpdatePIN(tt.args.ctx, tt.args.id, tt.args.pin)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdatePIN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Repository.UpdatePIN() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_ActivateSupplierProfile(t *testing.T) {
+	ctx := context.Background()
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	profileID := uuid.New().String()
+
+	supplier, err := fr.CreateEmptySupplierProfile(ctx, profileID)
+	if err != nil {
+		t.Errorf("failed to create an empty supplier: %v", err)
+	}
+
+	// Expected supplier after activation should be active
+	// want == Updated supplier
+	supplier.Active = true
+
+	type args struct {
+		ctx       context.Context
+		profileID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.Supplier
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Activate Supplier By Valid profile ID",
+			args: args{
+				ctx:       ctx,
+				profileID: profileID,
+			},
+			want:    supplier,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Activate Supplier By a non-existent profile ID",
+			args: args{
+				ctx:       ctx,
+				profileID: "bogus",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.ActivateSupplierProfile(tt.args.ctx, tt.args.profileID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.ActivateSupplierProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.ActivateSupplierProfile() = %v, want %v", got, tt.want)
 			}
 		})
 	}

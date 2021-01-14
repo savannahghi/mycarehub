@@ -2362,12 +2362,18 @@ func TestSupplierUseCasesImpl_ProcessKYCRequest(t *testing.T) {
 		t.Errorf("can't set up a supplier")
 		return
 	}
+	test1ID := uuid.New().String()
 	nutritionKYCInput := domain.IndividualNutrition{
-		KRAPIN:                      "someKRAPIN",
-		KRAPINUploadID:              "KRAPINUploadID",
-		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
-		PracticeLicenseID:           "PracticeLicenseID",
-		PracticeLicenseUploadID:     "PracticeLicenseUploadID",
+		IdentificationDoc: domain.Identification{
+			IdentificationDocType:           domain.IdentificationDocTypeMilitary,
+			IdentificationDocNumber:         "1111111111",
+			IdentificationDocNumberUploadID: test1ID,
+		},
+		KRAPIN:                      test1ID,
+		KRAPINUploadID:              test1ID,
+		SupportingDocumentsUploadID: []string{test1ID, strings.ToUpper(test1ID)},
+		PracticeLicenseID:           test1ID,
+		PracticeLicenseUploadID:     test1ID,
 	}
 
 	_, err = s.Supplier.AddIndividualNutritionKyc(ctx, nutritionKYCInput)
