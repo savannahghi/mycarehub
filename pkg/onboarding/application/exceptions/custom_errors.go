@@ -398,3 +398,13 @@ func CompleteSignUpError(err error) error {
 		Code: int(base.Internal),
 	}
 }
+
+// UsernameInUseError is the error message displayed when the provided username
+// is associated with another profile
+func UsernameInUseError() error {
+	return &base.CustomError{
+		Message: UsernameInUseErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.UserNotFound),
+	}
+}

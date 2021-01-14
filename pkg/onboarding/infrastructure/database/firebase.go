@@ -416,7 +416,7 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 	}
 
 	if len(docs) == 0 {
-		return nil, exceptions.PinNotFoundError(nil)
+		return nil, exceptions.PinNotFoundError(fmt.Errorf("failed to get a user pin"))
 	}
 
 	dsnap := docs[0]

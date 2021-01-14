@@ -15,6 +15,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
@@ -823,6 +824,248 @@ func TestRepository_GetUserProfileByID(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Repository.GetUserProfileByID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_CheckIfPhoneNumberExists(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Check for a valid number that does not exist",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "+254721524371",
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Check for a number that exists",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: *user.PrimaryPhone,
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.CheckIfPhoneNumberExists(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.CheckIfPhoneNumberExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Repository.CheckIfPhoneNumberExists() = %v, want %v", got, tt.want)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected, got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected, got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestRepository_CheckIfUsernameExists(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	type args struct {
+		ctx      context.Context
+		userName string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Check for a nonexistent username",
+			args: args{
+				ctx:      ctx,
+				userName: "Jatelo Jakom",
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Check for an existing username",
+			args: args{
+				ctx:      ctx,
+				userName: *user.UserName,
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.CheckIfUsernameExists(tt.args.ctx, tt.args.userName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.CheckIfUsernameExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Repository.CheckIfUsernameExists() = %v, want %v", got, tt.want)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected, got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected, got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestRepository_GetPINByProfileID(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	pin, err := fr.GetPINByProfileID(ctx, user.ID)
+	if err != nil {
+		t.Errorf("failed to get pin")
+		return
+	}
+
+	type args struct {
+		ctx       context.Context
+		profileID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.PIN
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Get pin using a valid profileID",
+			args: args{
+				ctx:       ctx,
+				profileID: pin.ProfileID,
+			},
+			want:    pin,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Get pin using an invalid profileID",
+			args: args{
+				ctx:       ctx,
+				profileID: "invalidID",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Get pin using an empty profileID",
+			args: args{
+				ctx:       ctx,
+				profileID: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.GetPINByProfileID(tt.args.ctx, tt.args.profileID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetPINByProfileID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected, got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected, got %v", err)
+					return
+				}
+			}
+
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.GetPINByProfileID() = %v, want %v", got, tt.want)
 			}
 		})
 	}
