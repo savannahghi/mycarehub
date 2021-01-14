@@ -20,15 +20,11 @@ func UserNotFoundError(err error) error {
 
 // ProfileNotFoundError returns an error message when a profile is not found
 func ProfileNotFoundError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: ProfileNotFoundErrMsg,
-			Code:    int(base.ProfileNotFound),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: ProfileNotFoundErrMsg,
+		Code:    int(base.ProfileNotFound),
 	}
-
-	return nil
 }
 
 // NormalizeMSISDNError returns an error when normalizing the msisdn fails

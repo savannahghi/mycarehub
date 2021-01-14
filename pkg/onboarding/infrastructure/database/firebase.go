@@ -153,9 +153,8 @@ func (fr *Repository) GetUserProfileByUID(
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
-
 	if len(docs) == 0 {
-		return nil, exceptions.ProfileNotFoundError(err)
+		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("failed to get a user profile"))
 	}
 	if len(docs) > 1 && base.IsDebug() {
 		log.Printf("user with uids %s has > 1 profile (they have %d)", uid, len(docs))
@@ -186,7 +185,7 @@ func (fr *Repository) GetUserProfileByID(
 	}
 
 	if len(docs) == 0 {
-		return nil, exceptions.ProfileNotFoundError(err)
+		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("failed to get a user profile"))
 	}
 	dsnap := docs[0]
 	userProfile := &base.UserProfile{}

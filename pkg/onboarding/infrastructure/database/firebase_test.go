@@ -625,3 +625,204 @@ func TestRepository_GetSupplierProfileByProfileID(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_GetSupplierProfileByID(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	profileID := uuid.New().String()
+	supplier, err := fr.CreateEmptySupplierProfile(ctx, profileID)
+	if err != nil {
+		t.Errorf("failed to create an empty supplier: %v", err)
+	}
+
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.Supplier
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Get Supplier by a valid ID",
+			args: args{
+				ctx: ctx,
+				id:  supplier.ID,
+			},
+			want:    supplier,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Get Supplier using a non-existent ID",
+			args: args{
+				ctx: ctx,
+				id:  "randomID",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Get Supplier using an empty ID",
+			args: args{
+				ctx: ctx,
+				id:  "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.GetSupplierProfileByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetSupplierProfileByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.GetSupplierProfileByID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_GetUserProfileByUID(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+		uid string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Get user profile by a valid UID",
+			args: args{
+				ctx: ctx,
+				uid: auth.UID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Get user profile by a non-existent UID",
+			args: args{
+				ctx: context.Background(),
+				uid: "random",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: Get user profile using an empty UID",
+			args: args{
+				ctx: ctx,
+				uid: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.GetUserProfileByUID(tt.args.ctx, tt.args.uid)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetUserProfileByUID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("returned a nil user")
+				return
+			}
+		})
+	}
+}
+
+func TestRepository_GetUserProfileByID(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.UserProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Get user profile using a valid ID",
+			args: args{
+				ctx: ctx,
+				id:  user.ID,
+			},
+			want:    user,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Get user profile using an invalid ID",
+			args: args{
+				ctx: ctx,
+				id:  "invalid",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Get user profile using an empty ID",
+			args: args{
+				ctx: ctx,
+				id:  "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.GetUserProfileByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetUserProfileByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.GetUserProfileByID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
