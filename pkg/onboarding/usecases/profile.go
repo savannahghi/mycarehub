@@ -36,8 +36,8 @@ type ProfileUseCase interface {
 
 	// masks phone number.
 	MaskPhoneNumbers(phones []string) []string
-	// called to set the primary phone number of a specific profile. Since this is used under unauthenticate REST and
-	// graphql, useContext is used to mark under which scenario the mehod is been called.
+	// called to set the primary phone number of a specific profile.
+	// useContext is used to mark under which scenario the method is been called.
 	SetPrimaryPhoneNumber(ctx context.Context, phoneNumber string, otp string, useContext bool) error
 	SetPrimaryEmailAddress(ctx context.Context, emailAddress string, otp string) error
 }
@@ -88,7 +88,7 @@ func (p *ProfileUseCaseImpl) UpdateUserName(ctx context.Context, userName string
 
 // UpdatePrimaryPhoneNumber updates the primary phone number of a specific user profile
 // this should be called after a prior check of uniqueness is done
-// this call if valid for both unauthenticated  rest and authenticated graphql. We use `useContext` to determine
+// We use `useContext` to determine
 // which mode to fetch the user profile
 func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone string, useContext bool) error {
 
@@ -150,40 +150,33 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 
 // UpdatePrimaryEmailAddress updates primary email address of a specific user profile
 // this should be called after a prior check of uniqueness is done
-// this call is only valid via graphql api
 func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emailAddress string) error {
-
 	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
-
 	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		return exceptions.ProfileNotFoundError(err)
 	}
-
-	previousPrimaryEmail := profile.PrimaryEmailAddress
-	previousSecondaryEmails := profile.SecondaryEmailAddresses
-
 	if err := profile.UpdateProfilePrimaryEmailAddress(ctx, p.onboardingRepository, emailAddress); err != nil {
 		return err
 	}
-
 	// removes the new primary email from the list of secondary emails and adds the previous primary email
 	// into the list of new secondary emails
+	previousPrimaryEmail := profile.PrimaryEmailAddress
+	previousSecondaryEmails := profile.SecondaryEmailAddresses
 	newSecEmails := func(oldSecondaryEmails []string, oldPrimaryEmail string, newPrimaryEmail string) []string {
 		secEmails := []string{}
-		for _, phone := range oldSecondaryEmails {
-			if phone != newPrimaryEmail {
-				secEmails = append(secEmails, phone)
+		for _, email := range oldSecondaryEmails {
+			if email != newPrimaryEmail {
+				secEmails = append(secEmails, email)
 			}
 		}
 		secEmails = append(secEmails, oldPrimaryEmail)
 
 		return secEmails
 	}(previousSecondaryEmails, *previousPrimaryEmail, emailAddress)
-
 	if len(newSecEmails) >= 1 {
 		if err := profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, newSecEmails); err != nil {
 			return err
@@ -418,7 +411,6 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(ctx context.Context, emailAd
 	if err != nil {
 		return exceptions.VerifyOTPError(err)
 	}
-
 	if !verified {
 		return exceptions.VerifyOTPError(nil)
 	}

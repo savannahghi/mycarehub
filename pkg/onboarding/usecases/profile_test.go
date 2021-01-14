@@ -887,7 +887,7 @@ func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 	}
 }
 
-func TestProfileUseCaseImpl_UpdateVerifiedIdentrs(t *testing.T) {
+func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
@@ -989,6 +989,276 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentrs(t *testing.T) {
 					return
 				}
 			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	primaryEmail := "me@gmail.com"
+
+	type args struct {
+		ctx          context.Context
+		emailAddress string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:_update_email_suceeds",
+			args: args{
+				ctx:          ctx,
+				emailAddress: primaryEmail,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_unable_to_get_logged_in_user",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "kalulu@gmail.com",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_get_profile_of_logged_in_user",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "juha@gmail.com",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_update_primary_email_address",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "juha@gmail.com",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_update_secondary_email_address",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "juha@gmail.com",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:_update_email_suceeds" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
+				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_update_primary_email_address" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
+				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
+					return fmt.Errorf("unable to update primary address")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_update_secondary_email_address" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						PrimaryEmailAddress: &primaryEmail,
+						SecondaryEmailAddresses: []string{
+							"", "lulu@gmail.com",
+						},
+					}, nil
+				}
+				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
+					return fmt.Errorf("unable to update secondary email")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged user")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_profile_of_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get profile")
+				}
+			}
+
+			err := i.Onboarding.UpdatePrimaryEmailAddress(tt.args.ctx, tt.args.emailAddress)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	primaryEmail := "juha@gmail.com"
+
+	type args struct {
+		ctx          context.Context
+		emailAddress string
+		otp          string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:_set_primary_address_suceeds",
+			args: args{
+				ctx:          ctx,
+				emailAddress: primaryEmail,
+				otp:          "689552",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid:_verify_otp_fails",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "kichwa@gmail.com",
+				otp:          "453852",
+			},
+			wantErr: true,
+		},
+		{
+			name: "valid:_verify_otp_returns_false",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "kalu@gmail.com",
+				otp:          "235789",
+			},
+			wantErr: true,
+		},
+		{
+			name: "valid:_update_primary_address_fails",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "mwendwapole@gmail.com",
+				otp:          "897523",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_set_primary_address_suceeds" {
+				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
+					return nil
+				}
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
+				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "valid:_verify_otp_fails" {
+				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return false, fmt.Errorf("unable to verify email otp")
+				}
+			}
+
+			if tt.name == "valid:_verify_otp_returns_false" {
+				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "valid:_update_primary_address_fails" {
+				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
+					return fmt.Errorf("unable to update primary email")
+				}
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get loggedin user")
+				}
+			}
+
+			err := i.Onboarding.SetPrimaryEmailAddress(tt.args.ctx, tt.args.emailAddress, tt.args.otp)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+
 		})
 	}
 }

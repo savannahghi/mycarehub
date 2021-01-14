@@ -7,17 +7,13 @@ import (
 )
 
 // BaseExtension is an interface that represents some methods in base
-// The `onboarding` service has a dependency
-// on `base` library.
-// Our first step to making some functions testable is to remove the base dependency.
+// The `onboarding` service has a dependency on `base` library.
+// Our first step to making some functions are testable is to remove the base dependency.
 // This can be achieved with the below interface.
 type BaseExtension interface {
 	// functions that we use from base
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	NormalizeMSISDN(msisdn string) (*string, error)
-	// LogStartupError(ctx context.Context, err error)
-	// SetupISCclient(config DepsConfig, serviceName string) (*InterServiceClient, error)
-	// GetEnvVar(envVarName string) (string, error)
 }
 
 // BaseExtensionImpl ...
