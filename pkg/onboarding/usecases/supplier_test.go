@@ -2251,7 +2251,7 @@ func TestSupplierSetDefaultLocation(t *testing.T) {
 	partnerPractitioner := base.PartnerTypePractitioner
 	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerPractitioner)
 	if err != nil {
-		t.Errorf("can't create a supplier")
+		t.Errorf("failed to add partner type")
 		return
 	}
 
@@ -2335,46 +2335,34 @@ func TestSupplierSetDefaultLocation(t *testing.T) {
 	}
 }
 
-func TestProcessKYCRequest(t *testing.T) {
-	ctx := context.Background()
-	service, err := InitializeTestService(ctx)
+func TestSupplierUseCasesImpl_ProcessKYCRequest(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
-		t.Errorf("failed to create service")
-		return
-	}
-	supplier := service.Supplier
-
-	/*
-	 * create a supplier account.
-	 */
-
-	seed := rand.NewSource(time.Now().UnixNano())
-	unique := fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9)) + fmt.Sprint(rand.New(seed).Intn(9))
-	testPhoneNumber := "+25475698" + unique
-	testPhoneNumberPin := "7463"
-
-	newCtx, err := createUserTestAccount(ctx, service, testPhoneNumber, testPhoneNumberPin, base.FlavourPro, t)
-	if err != nil {
-		t.Errorf("%v", err)
+		t.Errorf("failed to get test authenticated context: %v", err)
 		return
 	}
 
-	partnerName := "jubileeisnotinsurance"
-	partnerType := base.PartnerTypeNutrition
-
-	_, err = supplier.AddPartnerType(newCtx, &partnerName, &partnerType)
+	s, err := InitializeTestService(ctx)
 	if err != nil {
-		t.Errorf("failed to add partner type, error %v", err)
-		return
-	}
-	_, err = supplier.SetUpSupplier(newCtx, base.AccountTypeIndividual)
-
-	if err != nil {
-		t.Errorf("failed to add partner type, error %v", err)
+		t.Errorf("unable to initialize test service")
 		return
 	}
 
-	test1Input := domain.IndividualNutrition{
+	name := "Makmende"
+	partnerTypeNutrition := base.PartnerTypeNutrition
+
+	_, err = s.Supplier.AddPartnerType(ctx, &name, &partnerTypeNutrition)
+	if err != nil {
+		t.Errorf("can't add partner type")
+		return
+	}
+
+	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeIndividual)
+	if err != nil {
+		t.Errorf("can't set up a supplier")
+		return
+	}
+	nutritionKYCInput := domain.IndividualNutrition{
 		KRAPIN:                      "someKRAPIN",
 		KRAPINUploadID:              "KRAPINUploadID",
 		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
@@ -2382,51 +2370,74 @@ func TestProcessKYCRequest(t *testing.T) {
 		PracticeLicenseUploadID:     "PracticeLicenseUploadID",
 	}
 
-	_, err = supplier.AddIndividualNutritionKyc(newCtx, test1Input)
+	_, err = s.Supplier.AddIndividualNutritionKyc(ctx, nutritionKYCInput)
 	if err != nil {
-		t.Errorf("failed to add organization nutrition kyc, returned error: %v", err)
-		clean(newCtx, testPhoneNumber, t, service)
+		t.Errorf("can't create KYC for a individual")
 		return
 	}
 
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "valid case",
-		},
+	// Fetch Individual Nutrition Kyc request
+	kycrequests, err := s.Supplier.FetchKYCProcessingRequests(ctx)
+	if err != nil {
+		t.Errorf("failed to fetch kyc requests")
+		return
+	}
+	firstKYC := kycrequests[0]
+
+	/* validate data */
+	if firstKYC == nil {
+		t.Errorf("nil kyc returned")
+		return
 	}
 
+	reason := "some reason"
+
+	type args struct {
+		ctx             context.Context
+		id              string
+		status          domain.KYCProcessStatus
+		rejectionReason *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "successful approve KYC request",
+			args: args{
+				ctx:             ctx,
+				id:              firstKYC.ID,
+				rejectionReason: nil,
+				status:          domain.KYCProcessStatusApproved,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "successful reject KYC request",
+			args: args{
+				ctx:             ctx,
+				rejectionReason: &reason,
+				id:              firstKYC.ID,
+				status:          domain.KYCProcessStatusRejected,
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			kycrequests, err := supplier.FetchKYCProcessingRequests(newCtx)
-			if err != nil {
-				t.Errorf("failed to fetch kyc requests")
-				clean(newCtx, testPhoneNumber, t, service)
+			got, err := s.Supplier.ProcessKYCRequest(tt.args.ctx, tt.args.id, tt.args.status, tt.args.rejectionReason)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.ProcessKYCRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			firstKYC := kycrequests[0]
-
-			/* validate data */
-			if firstKYC == nil {
-				t.Errorf("nil kyc returned")
-				clean(newCtx, testPhoneNumber, t, service)
-				return
-			}
-
-			response, err := supplier.ProcessKYCRequest(newCtx, firstKYC.ID, domain.KYCProcessStatusApproved, nil)
-			if err != nil {
-				t.Errorf("failed to process kyc requests: %v", err)
-				clean(newCtx, testPhoneNumber, t, service)
-				return
-			}
-
-			if !response {
-				t.Errorf("%v", err)
-				clean(newCtx, testPhoneNumber, t, service)
-				return
+			if got != tt.want {
+				t.Errorf("SupplierUseCasesImpl.ProcessKYCRequest() = %v, want %v", got, tt.want)
 			}
 		})
 	}
-	clean(newCtx, testPhoneNumber, t, service)
 }

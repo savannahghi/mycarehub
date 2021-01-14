@@ -1427,7 +1427,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 	// get user profile
 	pr, err := s.profile.GetProfileByID(ctx, req.SupplierRecord.ProfileID)
 	if err != nil {
-		return false, exceptions.ProfileNotFoundError(err)
+		return false, exceptions.ProfileNotFoundError(fmt.Errorf("failed to get a user profile"))
 	}
 
 	supplierEmails := func(profile *base.UserProfile) []string {
