@@ -120,7 +120,7 @@ const (
 	SupplierKYCAlreadySubmittedErrMsg = "kyc already exists for supplier"
 
 	// FindProviderErrMsg is displayed if a provider is not found
-	FindProviderErrMsg = "unable to fetch organization branches location"
+	FindProviderErrMsg = "unable to fetch provider from chargemaster"
 
 	// PublishKYCNudgeErrMsg is displayed if we are unable to publish a kyc nudge
 	PublishKYCNudgeErrMsg = "unable to publish kyc nudge"
@@ -136,4 +136,7 @@ const (
 
 	// ResourceUpdateErrMsg is throw when trying to update a resource with empty arguments
 	ResourceUpdateErrMsg = "can't update resource with empty arguments"
+
+	// InvalidSladeCodeErrMsg is displayed when slade code the edi user profile doesn't match with selected provider
+	InvalidSladeCodeErrMsg = "invalid slade code, doesn't match with selected provider"
 )

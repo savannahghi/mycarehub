@@ -62,6 +62,7 @@ type ServiceChargeMaster interface {
 		sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error)
 	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
 		sort []*resources.BranchSortInput) (*resources.BranchConnection, error)
+	FetchProviderByID(ctx context.Context, id string) (*domain.BusinessPartner, error)
 }
 
 // ServiceChargeMasterImpl ..
@@ -164,6 +165,25 @@ func (chr ServiceChargeMasterImpl) FindProvider(ctx context.Context, pagination 
 		PageInfo: pageInfo,
 	}
 	return connection, nil
+}
+
+// FetchProviderByID returns details of a specific provider given the ID
+func (chr ServiceChargeMasterImpl) FetchProviderByID(ctx context.Context, id string) (*domain.BusinessPartner, error) {
+
+	partner := &domain.BusinessPartner{}
+	BusinessPartnerPath := fmt.Sprintf("%v%v/", ChargeMasterBusinessPartnerPath, id)
+
+	err := base.ReadRequestToTarget(chr.FetchChargeMasterClient(), "GET", BusinessPartnerPath, "", nil, partner)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if partner is empty
+	if (*partner == domain.BusinessPartner{}) {
+		return nil, fmt.Errorf("business partner not found. invalid id: %v", id)
+	}
+
+	return partner, nil
 }
 
 // FindBranch lists all locations known to Slade 360 Charge Master

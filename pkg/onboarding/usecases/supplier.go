@@ -445,7 +445,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 
 	// verify slade code.
 	if ediUserProfile.BusinessPartner != orgSladeCode {
-		return nil, fmt.Errorf("invalid slade code for selected provider: %v, got: %v", sladeCode, ediUserProfile.BusinessPartner)
+		return nil, exceptions.InvalidSladeCodeError()
 	}
 
 	supplier.EDIUserProfile = ediUserProfile
@@ -472,8 +472,12 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		supplier.HasBranches = true
 		supplier.ParentOrganizationID = *businessPartner.Parent
 
-		// TODO(muchogo) Retrieve the parent org using parent ID
-		// Update supplier organization name using parent details
+		partner, err := s.chargemaster.FetchProviderByID(ctx, *businessPartner.Parent)
+		if err != nil {
+			return nil, exceptions.FindProviderError(err)
+		}
+
+		supplier.OrganizationName = partner.Name
 
 	} else {
 		supplier.OrganizationName = businessPartner.Name

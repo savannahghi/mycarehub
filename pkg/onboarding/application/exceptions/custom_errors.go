@@ -432,3 +432,12 @@ func SecondaryResourceHardResetError() error {
 		Code:    int(base.UndefinedArguments),
 	}
 }
+
+// InvalidSladeCodeError when the slade code the edi user profile doesn't match with selected provider
+func InvalidSladeCodeError() error {
+	return &base.CustomError{
+		Message: InvalidSladeCodeErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
+	}
+}

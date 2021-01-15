@@ -3,6 +3,7 @@ package chargemaster
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -336,6 +337,78 @@ func Test_parentOrgSladeCodeFromBranch(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("parentOrgSladeCodeFromBranch() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestServiceChargeMasterImpl_FetchProviderByID(t *testing.T) {
+	fr, err := database.NewFirebaseRepository(context.Background())
+	if err != nil {
+		t.Errorf("can't instantiate firebase repository in resolver: %w", err)
+		return
+	}
+
+	ctx := context.Background()
+	cm := NewChargeMasterUseCasesImpl(fr)
+
+	pagination := &base.PaginationInput{}
+	filter := []*resources.BusinessPartnerFilterInput{}
+	sort := []*resources.BusinessPartnerSortInput{}
+
+	partners, err := cm.FindProvider(ctx, pagination, filter, sort)
+	if err != nil {
+		t.Errorf("can't find provider: %w", err)
+		return
+	}
+
+	partner := partners.Edges[0].Node
+
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.BusinessPartner
+		wantErr bool
+	}{
+		{
+			name: "happy case: valid",
+			args: args{
+				ctx: ctx,
+				id:  partner.ID,
+			},
+			want:    partner,
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid ID",
+			args: args{
+				ctx: ctx,
+				id:  "InvalidID",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: empty ID",
+			args: args{
+				ctx: ctx,
+				id:  "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := cm.FetchProviderByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ServiceChargeMasterImpl.FetchProviderByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ServiceChargeMasterImpl.FetchProviderByID() = %v, want %v", got, tt.want)
 			}
 		})
 	}
