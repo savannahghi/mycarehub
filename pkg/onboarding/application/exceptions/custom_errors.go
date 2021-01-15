@@ -143,14 +143,11 @@ func RetrieveRecordError(err error) error {
 // LikelyToRecommendError is the error message displayed that
 // occurs when the recommendation threshold is crossed
 func LikelyToRecommendError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: LikelyToRecommendErrMsg,
-			Code:    int(base.UndefinedArguments),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: LikelyToRecommendErrMsg,
+		Code:    int(base.UndefinedArguments),
 	}
-	return nil
 }
 
 // GenerateAndSendOTPError is the error message displayed when a

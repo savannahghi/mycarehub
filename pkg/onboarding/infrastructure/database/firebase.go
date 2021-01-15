@@ -694,7 +694,11 @@ func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status boo
 	err = base.UpdateRecordOnFirestore(
 		fr.FirestoreClient, fr.GetUserProfileCollectionName(), record.Ref.ID, profile,
 	)
-	return exceptions.InternalServerError(err)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+
+	return nil
 }
 
 // UpdatePhotoUploadID updates the photoUploadID attribute of the profile that matches the id
@@ -913,7 +917,7 @@ func (fr *Repository) RecordPostVisitSurvey(
 	UID string,
 ) error {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
-		return exceptions.LikelyToRecommendError(nil)
+		return exceptions.LikelyToRecommendError(fmt.Errorf("the likelihood of recommending should be an int between 0 and 10"))
 
 	}
 	feedbackCollection := fr.FirestoreClient.Collection(fr.GetSurveyCollectionName())

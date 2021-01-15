@@ -1287,3 +1287,293 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_AddPartnerType(t *testing.T) {
+	ctx := context.Background()
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	testRiderName := "Test Rider"
+	rider := base.PartnerTypeRider
+	testPractitionerName := "Test Practitioner"
+	practitioner := base.PartnerTypePractitioner
+	testProviderName := "Test Provider"
+	provider := base.PartnerTypeProvider
+
+	profileID := uuid.New().String()
+
+	supplier, err := fr.CreateEmptySupplierProfile(ctx, profileID)
+	if err != nil {
+		t.Errorf("failed to create an empty supplier: %v", err)
+	}
+
+	type args struct {
+		ctx         context.Context
+		profileID   string
+		name        *string
+		partnerType *base.PartnerType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Add a valid rider partner type",
+			args: args{
+				ctx:         ctx,
+				profileID:   *supplier.ProfileID,
+				name:        &testRiderName,
+				partnerType: &rider,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Add a valid practitioner partner type",
+			args: args{
+				ctx:         ctx,
+				profileID:   *supplier.ProfileID,
+				name:        &testPractitionerName,
+				partnerType: &practitioner,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Add a valid provider partner type",
+			args: args{
+				ctx:         ctx,
+				profileID:   *supplier.ProfileID,
+				name:        &testProviderName,
+				partnerType: &provider,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Use an invalid ID",
+			args: args{
+				ctx:         ctx,
+				profileID:   "invalidid",
+				name:        &testProviderName,
+				partnerType: &provider,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.AddPartnerType(tt.args.ctx, tt.args.profileID, tt.args.name, tt.args.partnerType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.AddPartnerType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected, got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected, got %v", err)
+					return
+				}
+			}
+
+			if got != tt.want {
+				t.Errorf("Repository.AddPartnerType() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_RecordPostVisitSurvey(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		input resources.PostVisitSurveyInput
+		UID   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully record a post visit survey",
+			args: args{
+				ctx: ctx,
+				input: resources.PostVisitSurveyInput{
+					LikelyToRecommend: 10,
+					Criticism:         "Nothing at all. Good job.",
+					Suggestions:       "Can't think of anything.",
+				},
+				UID: auth.UID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Invalid input",
+			args: args{
+				ctx: ctx,
+				input: resources.PostVisitSurveyInput{
+					LikelyToRecommend: 100,
+					Criticism:         "Nothing at all. Good job.",
+					Suggestions:       "Can't think of anything.",
+				},
+				UID: auth.UID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.RecordPostVisitSurvey(tt.args.ctx, tt.args.input, tt.args.UID); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.RecordPostVisitSurvey() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRepository_UpdateSuspended(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	type args struct {
+		ctx    context.Context
+		id     string
+		status bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully update the suspend status",
+			args: args{
+				ctx:    ctx,
+				id:     user.ID,
+				status: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully update the suspend status",
+			args: args{
+				ctx:    ctx,
+				id:     user.ID,
+				status: false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Use an invalid id",
+			args: args{
+				ctx:    ctx,
+				id:     "invalid id",
+				status: true,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdateSuspended(tt.args.ctx, tt.args.id, tt.args.status); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateSuspended() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRepository_UpdateVerifiedUIDS(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	type args struct {
+		ctx  context.Context
+		id   string
+		uids []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully update profile UIDs",
+			args: args{
+				ctx:  ctx,
+				id:   user.ID,
+				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Invalid ID",
+			args: args{
+				ctx:  ctx,
+				id:   "invalidid",
+				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdateVerifiedUIDS(tt.args.ctx, tt.args.id, tt.args.uids); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateVerifiedUIDS() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
