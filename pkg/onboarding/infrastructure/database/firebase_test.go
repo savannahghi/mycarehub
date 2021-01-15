@@ -1577,3 +1577,230 @@ func TestRepository_UpdateVerifiedUIDS(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_UpdateVerifiedIdentifiers(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	presentIdentifiers := []base.VerifiedIdentifier{
+		{
+			UID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+			LoginProvider: "Facebook",
+		},
+	}
+
+	type args struct {
+		ctx         context.Context
+		id          string
+		identifiers []base.VerifiedIdentifier
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully update the user's verified identifiers",
+			args: args{
+				ctx: ctx,
+				id:  userProfile.ID,
+				identifiers: []base.VerifiedIdentifier{
+					{
+						UID:           auth.UID,
+						LoginProvider: "Facebook",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Use a different UID",
+			args: args{
+				ctx:         ctx,
+				id:          userProfile.ID,
+				identifiers: presentIdentifiers,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Adding a new identifier",
+			args: args{
+				ctx: ctx,
+				id:  userProfile.ID,
+				identifiers: []base.VerifiedIdentifier{
+					{
+						UID:           "5d46d3bd-a482-4787-9b87-3c94510c8b53",
+						LoginProvider: "Google",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Use an invalid id",
+			args: args{
+				ctx: ctx,
+				id:  "invalidid",
+				identifiers: []base.VerifiedIdentifier{
+					{
+						UID:           auth.UID,
+						LoginProvider: "Facebook",
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdateVerifiedIdentifiers(tt.args.ctx, tt.args.id, tt.args.identifiers); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateVerifiedIdentifiers() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRepository_UpdateCovers(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	newCover := []base.Cover{
+		{
+			PayerName:      "Payer 6",
+			PayerSladeCode: 27,
+			MemberName:     "Jakom",
+			MemberNumber:   "12345",
+		},
+	}
+
+	type args struct {
+		ctx    context.Context
+		id     string
+		covers []base.Cover
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Sad Case - Using an invalid ID",
+			args: args{
+				ctx: ctx,
+				id:  "invalidID",
+				covers: []base.Cover{
+					{
+						PayerName:      "payer1",
+						PayerSladeCode: 1,
+						MemberName:     "name1",
+						MemberNumber:   "mem1",
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Happy Case - Add a valid new cover",
+			args: args{
+				ctx:    ctx,
+				id:     userProfile.ID,
+				covers: newCover,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdateCovers(tt.args.ctx, tt.args.id, tt.args.covers); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateCovers() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRepository_UpdateSecondaryEmailAddresses(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	type args struct {
+		ctx            context.Context
+		id             string
+		emailAddresses []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Update Profile Secondary Email",
+			args: args{
+				ctx:            ctx,
+				id:             userProfile.ID,
+				emailAddresses: []string{"jatelo@gmail.com", "nyaras@gmail.com"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Update Profile Secondary Email using an invalid ID",
+			args: args{
+				ctx:            ctx,
+				id:             "invalid id",
+				emailAddresses: []string{"jatelo@gmail.com", "nyaras@gmail.com"},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdateSecondaryEmailAddresses(tt.args.ctx, tt.args.id, tt.args.emailAddresses); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateSecondaryEmailAddresses() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
