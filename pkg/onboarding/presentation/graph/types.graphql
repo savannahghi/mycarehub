@@ -96,6 +96,7 @@ type Supplier {
   partnerSetupComplete: Boolean!
   KYCSubmitted: Boolean!
 
+  organizationName: String
   sladeCode: String
   parentOrganizationID: String
   hasBranches: Boolean

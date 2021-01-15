@@ -40,6 +40,7 @@ const (
 	supplierCollectionName = "suppliers"
 	futureHours            = 878400
 	savannahSladeCode      = "1"
+	savannahOrgName        = "Savannah Informatics"
 )
 
 // SupplierUseCases represent the business logic required for management of suppliers
@@ -86,7 +87,7 @@ type SupplierUseCases interface {
 
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 
-	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.BranchConnection, error)
+	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*base.Supplier, error)
 
 	SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error)
 
@@ -351,7 +352,7 @@ func (s SupplierUseCasesImpl) CoreEDIUserLogin(username, password string) (*base
 // 2 . fetch the branches of the provider given the slade code which we have
 // 3 . update the user's supplier record
 // 4. return the list of branches to the frontend so that a default location can be set
-func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.BranchConnection, error) {
+func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*base.Supplier, error) {
 	supplier, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		return nil, exceptions.SupplierNotFoundError(err)
@@ -392,16 +393,8 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		}
 		return ediUserProfile, nil
 	}(sladeCode)
-
 	if err != nil {
 		return nil, err
-	}
-
-	pageInfo := &base.PageInfo{
-		HasNextPage:     false,
-		HasPreviousPage: false,
-		StartCursor:     nil,
-		EndCursor:       nil,
 	}
 
 	// The slade code comes in the form 'PRO-1234' or 'BRA-PRO-1234-1'
@@ -426,13 +419,14 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		supplier.Active = true
 		supplier.KYCSubmitted = true
 		supplier.PartnerSetupComplete = true
+		supplier.OrganizationName = savannahOrgName
 
 		_, err := s.repo.UpdateSupplierProfile(ctx, supplier)
 		if err != nil {
 			return nil, err
 		}
 
-		return &resources.BranchConnection{PageInfo: pageInfo}, nil
+		return supplier, nil
 	}
 
 	// verify slade code.
@@ -454,16 +448,34 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 	if err != nil {
 		return nil, exceptions.FindProviderError(err)
 	}
-
-	var businessPartner domain.BusinessPartner
-
 	if len(partner.Edges) != 1 {
 		return nil, fmt.Errorf("expected one business partner, found: %v", len(partner.Edges))
 	}
 
-	businessPartner = *partner.Edges[0].Node
-	var brFilter []*resources.BranchFilterInput
+	businessPartner := *partner.Edges[0].Node
 
+	if businessPartner.Parent != nil {
+		supplier.HasBranches = true
+		supplier.ParentOrganizationID = *businessPartner.Parent
+
+		// TODO(muchogo) Retrieve the parent org using parent ID
+		// Update supplier organization name using parent details
+
+	} else {
+		supplier.OrganizationName = businessPartner.Name
+		loc := base.Location{
+			ID:   businessPartner.ID,
+			Name: businessPartner.Name,
+		}
+		supplier.Location = &loc
+	}
+
+	_, err = s.repo.UpdateSupplierProfile(ctx, supplier)
+	if err != nil {
+		return nil, err
+	}
+
+	// Send Nudge to fill KYC
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get the logged in user: %w", err)
@@ -479,34 +491,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		}
 	}()
 
-	if businessPartner.Parent != nil {
-		supplier.HasBranches = true
-		supplier.ParentOrganizationID = *businessPartner.Parent
-		filter := &resources.BranchFilterInput{
-			ParentOrganizationID: businessPartner.Parent,
-		}
-
-		brFilter = append(brFilter, filter)
-
-		_, err := s.repo.UpdateSupplierProfile(ctx, supplier)
-		if err != nil {
-			return nil, err
-		}
-
-		return s.chargemaster.FindBranch(ctx, nil, brFilter, nil)
-	}
-	loc := base.Location{
-		ID:   businessPartner.ID,
-		Name: businessPartner.Name,
-	}
-	supplier.Location = &loc
-
-	_, err = s.repo.UpdateSupplierProfile(ctx, supplier)
-	if err != nil {
-		return nil, err
-	}
-
-	return &resources.BranchConnection{PageInfo: pageInfo}, nil
+	return supplier, nil
 }
 
 // SupplierSetDefaultLocation updates the default location ot the supplier by the given location id

@@ -54,7 +54,7 @@ extend type Mutation {
     username: String!
     password: String!
     sladeCode: String!
-  ): BranchConnection!
+  ): Supplier!
 
   supplierSetDefaultLocation(locatonID: String!): Boolean!
 

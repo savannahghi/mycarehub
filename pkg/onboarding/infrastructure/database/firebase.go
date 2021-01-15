@@ -360,7 +360,7 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 }
 
 // CheckIfPhoneNumberExists checks both PRIMARY PHONE NUMBERs and SECONDARY PHONE NUMBERs for the
-// existance of the argument phoneNnumber.
+// existence of the argument phoneNumber.
 func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber string) (bool, error) {
 	// check first primary phone numbers
 	collection1 := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
@@ -576,7 +576,7 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 	return nil
 }
 
-// UpdatePrimaryEmailAddress the primary email addresse of the profile that matches the id
+// UpdatePrimaryEmailAddress the primary email addresses of the profile that matches the id
 // this method should be called after asserting the emailAddress is unique and not associated with another userProfile
 func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, emailAddress string) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
@@ -1322,7 +1322,7 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	}
 
 	// delete user customer profile
-	// some old profiles may not have a custome profile since the original implementation created a customer profile
+	// some old profiles may not have a customer profile since the original implementation created a customer profile
 	// only for CONSUMER. However the current and correct logic creates a customer profile regardless of flavour. Hence, the deletion of customer
 	// profile should only occur if a customer profile exists and not throw an error.
 	cpr, err := fr.GetCustomerProfileByProfileID(ctx, pr.ID)

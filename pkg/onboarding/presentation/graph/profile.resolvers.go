@@ -82,7 +82,7 @@ func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType base.A
 	return r.interactor.Supplier.SetUpSupplier(ctx, accountType)
 }
 
-func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.BranchConnection, error) {
+func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*base.Supplier, error) {
 	return r.interactor.Supplier.SupplierEDILogin(ctx, username, password, sladeCode)
 }
 

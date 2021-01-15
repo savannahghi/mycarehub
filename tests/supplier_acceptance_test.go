@@ -515,25 +515,28 @@ func TestSupplierEDILogin(t *testing.T) {
 	}
 
 	graphQLMutationPayload := `
-	mutation supplierEDILogin($username: String!, $password: String!, $sladeCode: String!){
-		supplierEDILogin(username: $username, password:$password, sladeCode: $sladeCode){
-		  edges{
-			cursor
-			node{
-			  id
-			  name
-			  branchSladeCode
-			  organizationSladeCode
-			}
-			
+	mutation supplierEDILogin($username: String!, $password: String!, $sladeCode: String!) {
+		supplierEDILogin(username: $username, password:$password, sladeCode: $sladeCode) {
+		  id
+		  profileID
+		  supplierId
+		  active
+		  accountType
+		  underOrganization
+		  isOrganizationVerified
+		  partnerType
+		  partnerSetupComplete
+		  KYCSubmitted
+		  organizationName
+		  sladeCode
+		  parentOrganizationID
+		  hasBranches
+		  location {
+			id
+			name
+			branchSladeCode
 		  }
-		  pageInfo{
-			hasNextPage
-			hasPreviousPage
-			startCursor
-			endCursor
-		  }
-	  }
+		}
 	  }`
 	type args struct {
 		query map[string]interface{}

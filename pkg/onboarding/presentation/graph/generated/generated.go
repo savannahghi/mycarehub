@@ -356,6 +356,7 @@ type ComplexityRoot struct {
 		IsOrganizationVerified func(childComplexity int) int
 		KYCSubmitted           func(childComplexity int) int
 		Location               func(childComplexity int) int
+		OrganizationName       func(childComplexity int) int
 		ParentOrganizationID   func(childComplexity int) int
 		PartnerSetupComplete   func(childComplexity int) int
 		PartnerType            func(childComplexity int) int
@@ -413,7 +414,7 @@ type MutationResolver interface {
 	AddPartnerType(ctx context.Context, name string, partnerType base.PartnerType) (bool, error)
 	SuspendSupplier(ctx context.Context) (bool, error)
 	SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
-	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.BranchConnection, error)
+	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*base.Supplier, error)
 	SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error)
 	AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
 	AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error)
@@ -2106,6 +2107,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Supplier.Location(childComplexity), true
 
+	case "Supplier.organizationName":
+		if e.complexity.Supplier.OrganizationName == nil {
+			break
+		}
+
+		return e.complexity.Supplier.OrganizationName(childComplexity), true
+
 	case "Supplier.parentOrganizationID":
 		if e.complexity.Supplier.ParentOrganizationID == nil {
 			break
@@ -2906,7 +2914,7 @@ extend type Mutation {
     username: String!
     password: String!
     sladeCode: String!
-  ): BranchConnection!
+  ): Supplier!
 
   supplierSetDefaultLocation(locatonID: String!): Boolean!
 
@@ -3061,6 +3069,7 @@ type Supplier {
   partnerSetupComplete: Boolean!
   KYCSubmitted: Boolean!
 
+  organizationName: String
   sladeCode: String
   parentOrganizationID: String
   hasBranches: Boolean
@@ -7471,9 +7480,9 @@ func (ec *executionContext) _Mutation_supplierEDILogin(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*resources.BranchConnection)
+	res := resTmp.(*base.Supplier)
 	fc.Result = res
-	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchConnection(ctx, field.Selections, res)
+	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_supplierSetDefaultLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11725,6 +11734,38 @@ func (ec *executionContext) _Supplier_KYCSubmitted(ctx context.Context, field gr
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Supplier_organizationName(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Supplier",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Supplier_sladeCode(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
@@ -16751,6 +16792,8 @@ func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "organizationName":
+			out.Values[i] = ec._Supplier_organizationName(ctx, field, obj)
 		case "sladeCode":
 			out.Values[i] = ec._Supplier_sladeCode(ctx, field, obj)
 		case "parentOrganizationID":
