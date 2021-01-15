@@ -397,10 +397,8 @@ github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
-gitlab.slade360emr.com/go/base v0.0.107 h1:sBJ+OuMfGKuL4ami8FEuygoX8OaYGqcd+kRYdPPm6z0=
-gitlab.slade360emr.com/go/base v0.0.107/go.mod h1:NQCbdQXpVVU7sgzL04d5jRVdDCfQHrNpe2/+GS4G7VM=
-gitlab.slade360emr.com/go/base v0.0.109 h1:XtYVzhUMm4P1bFCddK89dQCPxzHE1Sdzy7Q58BDD6Y0=
-gitlab.slade360emr.com/go/base v0.0.109/go.mod h1:NQCbdQXpVVU7sgzL04d5jRVdDCfQHrNpe2/+GS4G7VM=
+gitlab.slade360emr.com/go/base v0.0.110 h1:tRMru3AIWFXtSb9n3EOAMLEJBSsU6x0n033ayg5bP/0=
+gitlab.slade360emr.com/go/base v0.0.110/go.mod h1:NQCbdQXpVVU7sgzL04d5jRVdDCfQHrNpe2/+GS4G7VM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=

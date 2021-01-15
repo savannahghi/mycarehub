@@ -106,6 +106,7 @@ type FakeOnboardingRepository struct {
 	UpdateBioDataFn                 func(ctx context.Context, id string, data base.BioData) error
 	UpdateVerifiedIdentifiersFn     func(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error
 	UpdateVerifiedUIDSFn            func(ctx context.Context, id string, uids []string) error
+	UpdatePermissionsFn             func(ctx context.Context, id string, perms []base.PermissionType) error
 }
 
 // GetSupplierProfileByID ...
@@ -328,4 +329,9 @@ func (f *FakeOnboardingRepository) GetOrCreatePhoneNumberUser(ctx context.Contex
 	phone string,
 ) (*resources.CreatedUserResponse, error) {
 	return f.GetOrCreatePhoneNumberUserFn(ctx, phone)
+}
+
+// UpdatePermissions ...
+func (f FakeOnboardingRepository) UpdatePermissions(ctx context.Context, id string, perms []base.PermissionType) error {
+	return f.UpdatePermissionsFn(ctx, id, perms)
 }

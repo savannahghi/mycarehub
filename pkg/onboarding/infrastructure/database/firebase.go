@@ -1430,3 +1430,12 @@ func (fr *Repository) GetOrCreatePhoneNumberUser(
 		ProviderID:  newUser.ProviderID,
 	}, nil
 }
+
+//UpdatePermissions updates the profiles permissions
+func (fr *Repository) UpdatePermissions(
+	ctx context.Context,
+	id string,
+	perms []base.PermissionType,
+) error {
+	return nil
+}

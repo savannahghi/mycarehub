@@ -111,6 +111,15 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}, nil
 }
 
+func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {
+	ctx := context.Background()
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize test service: %v", err)
+	}
+	return s.Otp.GenerateAndSendOTP(ctx, phone)
+}
+
 // CreateTestUserByPhone creates a user that is to be used in
 // running of our test cases.
 // If the test user already exists then they are logged in
@@ -129,7 +138,7 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 		return nil, fmt.Errorf("failed to check if test phone exists: %v", err)
 	}
 	if !exists {
-		otp, err := s.Otp.GenerateAndSendOTP(ctx, phone)
+		otp, err := generateTestOTP(t, phone)
 		log.Println("The otp is:", otp)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate test OTP: %v", err)
@@ -1138,7 +1147,6 @@ func TestRepository_SavePIN(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := fr.SavePIN(tt.args.ctx, tt.args.pin)
-			log.Println("Got is", got)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.SavePIN() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1800,6 +1808,137 @@ func TestRepository_UpdateSecondaryEmailAddresses(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := fr.UpdateSecondaryEmailAddresses(tt.args.ctx, tt.args.id, tt.args.emailAddresses); (err != nil) != tt.wantErr {
 				t.Errorf("Repository.UpdateSecondaryEmailAddresses() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRepository_UpdateSupplierProfile(t *testing.T) {
+	ctx := context.Background()
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	profileID := uuid.New().String()
+
+	supplier, err := fr.CreateEmptySupplierProfile(ctx, profileID)
+	if err != nil {
+		t.Errorf("failed to create an empty supplier: %v", err)
+	}
+
+	validPayload := &base.Supplier{
+		ID:        supplier.ID,
+		ProfileID: supplier.ProfileID,
+		Active:    true,
+	}
+	newprofileID := uuid.New().String()
+	invalidPayload := &base.Supplier{
+		ID:        uuid.New().String(),
+		ProfileID: &newprofileID,
+		Active:    true,
+	}
+
+	type args struct {
+		ctx  context.Context
+		data *base.Supplier
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.Supplier
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Update Supplier Profile Supplier By Valid payload",
+			args: args{
+				ctx:  ctx,
+				data: validPayload,
+			},
+			want:    supplier,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Update Supplier Profile By invalid payload",
+			args: args{
+				ctx:  ctx,
+				data: invalidPayload,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.UpdateSupplierProfile(tt.args.ctx, tt.args.data)
+			log.Println("The got is:", got)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateSupplierProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.UpdateSupplierProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_FetchKYCProcessingRequests(t *testing.T) {
+	ctx := context.Background()
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	reqPartnerType := base.PartnerTypeCoach
+	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
+	id := uuid.New().String()
+	kycReq := &domain.KYCRequest{
+		ID:                  id,
+		ReqPartnerType:      reqPartnerType,
+		ReqOrganizationType: organizationTypeLimitedCompany,
+	}
+
+	err = fr.StageKYCProcessingRequest(ctx, kycReq)
+	if err != nil {
+		t.Errorf("failed to stage kyc: %v", err)
+		return
+	}
+
+	kycRequests := []*domain.KYCRequest{}
+	kycRequests = append(kycRequests, kycReq)
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.KYCRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Fetch KYC Processing Requests",
+			args: args{
+				ctx: ctx,
+			},
+			want:    kycRequests,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.FetchKYCProcessingRequests(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.FetchKYCProcessingRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.FetchKYCProcessingRequests() = %v, want %v", got, tt.want)
 			}
 		})
 	}
