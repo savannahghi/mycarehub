@@ -12,15 +12,10 @@ import (
 	"testing"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	otpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp/mock"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/rest"
-	mockRepo "gitlab.slade360emr.com/go/profile/pkg/onboarding/repository/mock"
-
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
-
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	chargemasterMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
@@ -32,9 +27,11 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	messagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
-
+	otpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/rest"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
+	mockRepo "gitlab.slade360emr.com/go/profile/pkg/onboarding/repository/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
@@ -112,6 +109,24 @@ func composeChangePinPayload(t *testing.T, phone, pin, otp string) *bytes.Buffer
 	bs, err := json.Marshal(payload)
 	if err != nil {
 		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	return bytes.NewBuffer(bs)
+}
+
+func composeRefreshTokenPayload(t *testing.T, token *string) *bytes.Buffer {
+	refreshToken := &resources.RefreshTokenPayload{RefreshToken: token}
+	bs, err := json.Marshal(refreshToken)
+	if err != nil {
+		t.Errorf("unable to marshal token string to JSON: %s", err)
+	}
+	return bytes.NewBuffer(bs)
+}
+
+func composeUIDPayload(t *testing.T, uid *string) *bytes.Buffer {
+	uidPayload := &resources.UIDPayload{UID: uid}
+	bs, err := json.Marshal(uidPayload)
+	if err != nil {
+		t.Errorf("unable to marshal token string to JSON: %s", err)
 	}
 	return bytes.NewBuffer(bs)
 }
@@ -460,23 +475,20 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				}
 				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
 					return &base.AuthCredentialResponse{
-						UID: "5550",
-						// IDToken:      "555",
+						UID:          "5550",
 						RefreshToken: "55550",
 					}, nil
 				}
 				// SetUserPINFn =
 				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID: "5550",
-						// ProfileID:  "555",
+						ID:         "5550",
 						SupplierID: "5555",
 					}, nil
 				}
 				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*base.Customer, error) {
 					return &base.Customer{
-						ID: "0000",
-						// ProfileID:  "1230",
+						ID:         "0000",
 						CustomerID: "22222",
 					}, nil
 				}
@@ -1008,6 +1020,314 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 				t.Errorf("nil response body data")
 				return
 			}
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_RefreshToken(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	token := "10c17f3b-a9a9-431c-ad0a-94c684eccd85"
+	payload := composeRefreshTokenPayload(t, &token)
+
+	token1 := "b5c52b32-7dd5-4dd5-9ddb-44cac9701d6c"
+	payload1 := composeRefreshTokenPayload(t, &token1)
+
+	token2 := "*"
+	payload2 := composeRefreshTokenPayload(t, &token2)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_successfully_refresh_token",
+			args: args{
+				url:        fmt.Sprintf("%s/refresh_token", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_refresh_token_fails",
+			args: args{
+				url:        fmt.Sprintf("%s/refresh_token", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload1,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_refresh_token_with_invalid_payload",
+			args: args{
+				url:        fmt.Sprintf("%s/refresh_token", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload2,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+			response := httptest.NewRecorder()
+			if tt.name == "valid:_successfully_refresh_token" {
+				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(token string) (*base.AuthCredentialResponse, error) {
+					return &base.AuthCredentialResponse{
+						UID:          "5550",
+						RefreshToken: "55550",
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_refresh_token_fails" {
+				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(token string) (*base.AuthCredentialResponse, error) {
+					return nil, fmt.Errorf("unable to refresh token")
+				}
+			}
+
+			svr := h.RefreshToken(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_GetUserProfileByUID(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	uid := "db963177-21b2-489f-83e6-3521bf5db516"
+	payload := composeUIDPayload(t, &uid)
+
+	uid1 := "584799be-97c5-4aa4-8b0f-094990bd55b1"
+	payload1 := composeUIDPayload(t, &uid1)
+
+	uid2 := "*"
+	payload2 := composeUIDPayload(t, &uid2)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_successfully_get_profile_by_uid",
+			args: args{
+				url:        fmt.Sprintf("%s/user_profile", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_unable_to_get_profile_by_uid",
+			args: args{
+				url:        fmt.Sprintf("%s/user_profile", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload1,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_get_profile_by_uid_with_invalid_payload",
+			args: args{
+				url:        fmt.Sprintf("%s/user_profile", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload2,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+			response := httptest.NewRecorder()
+			if tt.name == "valid:_successfully_get_profile_by_uid" {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_profile_by_uid" {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get profile")
+				}
+			}
+
+			svr := h.GetUserProfileByUID(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	payload := composeValidPhonePayload(t, base.TestUserPhoneNumber)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_successfully_send_otp",
+			args: args{
+				url:        fmt.Sprintf("%s/send_otp", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_unable_to_send_otp",
+			args: args{
+				url:        fmt.Sprintf("%s/send_otp", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+			response := httptest.NewRecorder()
+			if tt.name == "valid:_successfully_send_otp" {
+				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+					return &base.OtpResponse{OTP: "1234"}, nil
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_send_otp" {
+				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+					return nil, fmt.Errorf("unable to send otp")
+				}
+			}
+
+			svr := h.SendOTP(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
 		})
 	}
 }
