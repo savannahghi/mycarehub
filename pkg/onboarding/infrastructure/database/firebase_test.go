@@ -2019,7 +2019,7 @@ func TestRepository_UpdatePrimaryEmailAddress(t *testing.T) {
 		return
 	}
 
-	newPrimaryEmail := "nyaras@gmail.com"
+	newPrimaryEmail := "johndoe@gmail.com"
 
 	type args struct {
 		ctx          context.Context
@@ -2478,5 +2478,253 @@ func TestRepository_UpdateKYCProcessingRequest(t *testing.T) {
 				return
 			}
 		}
+	}
+}
+
+func TestRepository_PurgeUserByPhoneNumber(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully purge a user",
+			args: args{
+				ctx:   ctx,
+				phone: *userProfile.PrimaryPhone,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Use an invalid phonenumber",
+			args: args{
+				ctx:   ctx,
+				phone: "invalid number",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Use an unathenticated context",
+			args: args{
+				ctx:   context.Background(),
+				phone: "invalid number",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.PurgeUserByPhoneNumber(tt.args.ctx, tt.args.phone); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.PurgeUserByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRepository_GenerateAuthCredentialsForAnonymousUser(t *testing.T) {
+	ctx := context.Background()
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	anonymousPhoneNumber := "+254700000000"
+
+	user, err := fr.GetOrCreatePhoneNumberUser(ctx, anonymousPhoneNumber)
+	if err != nil {
+		t.Errorf("failed to create a user")
+		return
+	}
+
+	customToken, err := base.CreateFirebaseCustomToken(ctx, user.UID)
+	if err != nil {
+		t.Errorf("failed to create a custom auth token for the user")
+		return
+	}
+
+	_, err = base.AuthenticateCustomFirebaseToken(customToken)
+	if err != nil {
+		t.Errorf("failed to fetch an ID token")
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.AuthCredentialResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully generate auth credentials for anonymous user",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			authResponse, err := fr.GenerateAuthCredentialsForAnonymousUser(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GenerateAuthCredentialsForAnonymousUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr {
+				if *authResponse.CustomToken == "" {
+					t.Errorf("nil custom token")
+					return
+				}
+
+				if *authResponse.IDToken == "" {
+					t.Errorf("nil ID token")
+					return
+				}
+
+				if authResponse.RefreshToken == "" {
+					t.Errorf("nil refresh token")
+					return
+				}
+
+				if authResponse.UID == "" {
+					t.Errorf("returned a nil user")
+					return
+				}
+
+				if !authResponse.IsAnonymous {
+					t.Errorf("the user should be anonymous")
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestRepository_GenerateAuthCredentials(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	customToken, err := base.CreateFirebaseCustomToken(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to create a custom auth token for the user")
+		return
+	}
+
+	userToken, err := base.AuthenticateCustomFirebaseToken(customToken)
+	if err != nil {
+		t.Errorf("failed to fetch an ID token")
+		return
+	}
+
+	validCredentials := &base.AuthCredentialResponse{
+		CustomToken:  &customToken,
+		IDToken:      &userToken.IDToken,
+		ExpiresIn:    userToken.ExpiresIn,
+		RefreshToken: userToken.RefreshToken,
+		UID:          auth.UID,
+		IsAnonymous:  false,
+		IsAdmin:      false,
+	}
+
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.AuthCredentialResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully generate valid auth credentials",
+			args: args{
+				ctx:   ctx,
+				phone: *userProfile.PrimaryPhone,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Use an invalid phonenumber",
+			args: args{
+				ctx:   ctx,
+				phone: "invalidphone",
+			},
+			want:    validCredentials,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			authResponse, err := fr.GenerateAuthCredentials(tt.args.ctx, tt.args.phone)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GenerateAuthCredentials() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				if *authResponse.CustomToken == "" {
+					t.Errorf("nil custom token")
+					return
+				}
+
+				if *authResponse.IDToken == "" {
+					t.Errorf("nil ID token")
+					return
+				}
+
+				if authResponse.RefreshToken == "" {
+					t.Errorf("nil refresh token")
+					return
+				}
+
+				if authResponse.UID == "" {
+					t.Errorf("returned a nil user")
+					return
+				}
+
+			}
+		})
 	}
 }
