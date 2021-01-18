@@ -47,6 +47,14 @@ func CheckPhoneNumberExistError() error {
 	}
 }
 
+// CheckEmailExistError returned when the provided email already exists.
+func CheckEmailExistError() error {
+	return &base.CustomError{
+		Message: EmailInUseErrMsg,
+		Code:    int(base.EmailAddressInUse),
+	}
+}
+
 // InternalServerError returns an error if something wrong happened in performing the operation
 func InternalServerError(err error) error {
 	return &base.CustomError{

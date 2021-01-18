@@ -8,6 +8,9 @@ const (
 	//PhoneNumberInUseErrMsg is the error message displayed when a phone number provided is associated with a profile already
 	PhoneNumberInUseErrMsg = "provided phone number is already in use"
 
+	//EmailInUseErrMsg is the error message displayed when a email provided is associated with a profile already
+	EmailInUseErrMsg = "provided email address is already in use"
+
 	// UserNotFoundErrMsg is the error message displayed when a user is not found
 	UserNotFoundErrMsg = "failed to get a user"
 

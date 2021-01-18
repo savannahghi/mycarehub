@@ -46,6 +46,10 @@ type ProfileUseCase interface {
 	// secondary phone numbers. If the the phone number is foreign, it returns false
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 
+	// check whether a email has been registred by another user. Checks both primary and
+	// secondary emails. If the the phone number is foreign, it returns false
+	CheckEmailExists(ctx context.Context, email string) (bool, error)
+
 	// called to remove specific secondary phone numbers from the user's profile.'
 	RetireSecondaryPhoneNumbers(ctx context.Context, toRemovePhoneNumbers []string) (bool, error)
 
@@ -208,33 +212,77 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emai
 // UpdateSecondaryPhoneNumbers updates secondary phone numbers of a specific user profile
 // this should be called after a prior check of uniqueness is done
 func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error {
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return exceptions.UserNotFoundError(err)
+	uniquePhones := []string{}
+	// assert that the phone numbers are unique
+	for _, phone := range phoneNumbers {
+		exist, err := p.CheckPhoneExists(ctx, phone)
+		if err != nil {
+			// this is a wrapped error. No need to wrap it again
+			return err
+		}
+
+		if !exist {
+			uniquePhones = append(uniquePhones, phone)
+		}
 	}
 
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
-	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+	if len(uniquePhones) >= 1 {
+		uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+		if err != nil {
+			return exceptions.UserNotFoundError(err)
+		}
+
+		profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+		if err != nil {
+			return exceptions.ProfileNotFoundError(err)
+		}
+
+		return profile.UpdateProfileSecondaryPhoneNumbers(ctx, p.onboardingRepository, phoneNumbers)
 	}
 
-	return profile.UpdateProfileSecondaryPhoneNumbers(ctx, p.onboardingRepository, phoneNumbers)
+	// throw an error indicating the phone number(s) is/are already in the use
+	return exceptions.CheckPhoneNumberExistError()
 }
 
 // UpdateSecondaryEmailAddresses updates secondary email address of a specific user profile
 // this should be called after a prior check of uniqueness is done
 func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(ctx context.Context, emailAddresses []string) error {
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return exceptions.UserNotFoundError(err)
+	uniqueEmails := []string{}
+	// assert that the phone numbers are unique
+	for _, email := range emailAddresses {
+		exist, err := p.CheckEmailExists(ctx, email)
+		if err != nil {
+			// this is a wrapped error. No need to wrap it again
+			return err
+		}
+
+		if !exist {
+			uniqueEmails = append(uniqueEmails, email)
+		}
 	}
 
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
-	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+	if len(uniqueEmails) >= 1 {
+		uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+		if err != nil {
+			return exceptions.UserNotFoundError(err)
+		}
+
+		profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+		if err != nil {
+			return exceptions.ProfileNotFoundError(err)
+		}
+
+		if profile.PrimaryEmailAddress != nil {
+			return profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, uniqueEmails)
+		}
+
+		// internal error. primary email addresses must be present before addong secondary email addresses.
+		return exceptions.InternalServerError(fmt.Errorf("primary email addresses must be present before adding secondary email addresses"))
+
 	}
 
-	return profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, emailAddresses)
+	// throw an error indicating the email(s) is/are already in the use
+	return exceptions.CheckEmailExistError()
 }
 
 // UpdateVerifiedUIDS updates the profile's verified uids
@@ -460,6 +508,16 @@ func (p *ProfileUseCaseImpl) CheckPhoneExists(ctx context.Context, phone string)
 	exists, err := p.onboardingRepository.CheckIfPhoneNumberExists(ctx, *phoneNumber)
 	if err != nil {
 		return false, exceptions.CheckPhoneNumberExistError()
+	}
+	return exists, nil
+}
+
+// CheckEmailExists checks whether a email has been registred by another user.
+// Checks both primary and secondary emails.
+func (p *ProfileUseCaseImpl) CheckEmailExists(ctx context.Context, email string) (bool, error) {
+	exists, err := p.onboardingRepository.CheckIfEmailExists(ctx, email)
+	if err != nil {
+		return false, exceptions.CheckEmailExistError()
 	}
 	return exists, nil
 }

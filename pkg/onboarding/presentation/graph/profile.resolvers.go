@@ -57,7 +57,7 @@ func (r *mutationResolver) RetireSecondaryPhoneNumbers(ctx context.Context, phon
 }
 
 func (r *mutationResolver) AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error) {
-	if err := r.interactor.Onboarding.UpdateSecondaryPhoneNumbers(ctx, email); err != nil {
+	if err := r.interactor.Onboarding.UpdateSecondaryEmailAddresses(ctx, email); err != nil {
 		return false, err
 	}
 	return true, nil

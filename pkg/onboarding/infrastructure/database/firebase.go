@@ -386,6 +386,33 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 	return false, nil
 }
 
+// CheckIfEmailExists checks in both PRIMARY EMAIL and SECONDARY EMAIL for the
+// existence of the argument email
+func (fr *Repository) CheckIfEmailExists(ctx context.Context, email string) (bool, error) {
+	// check first primary email
+	collection1 := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
+	docs1, err := collection1.Where("primaryEmailAddress", "==", email).Documents(ctx).GetAll()
+	if err != nil {
+		return false, exceptions.InternalServerError(err)
+	}
+
+	if len(docs1) == 1 {
+		return true, nil
+	}
+
+	// then check in secondary email
+	collection2 := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
+	docs2, err := collection2.Where("secondaryEmailAddresses", "array-contains", email).Documents(ctx).GetAll()
+	if err != nil {
+		return false, err
+	}
+	if len(docs2) == 1 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 // CheckIfUsernameExists checks if the provided username exists. If true, it means its has already been associated with
 // another user
 func (fr *Repository) CheckIfUsernameExists(ctx context.Context, userName string) (bool, error) {

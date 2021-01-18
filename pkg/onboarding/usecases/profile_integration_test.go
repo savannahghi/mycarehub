@@ -225,6 +225,10 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.SecondaryPhoneNumbers))
 
+	// try adding secondaryPhone1 again. this should fail because secondaryPhone1 already exists
+	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone1})
+	assert.NotNil(t, err)
+
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone2})
 	assert.Nil(t, err)
 
@@ -232,6 +236,10 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 	assert.Equal(t, 2, len(pr.SecondaryPhoneNumbers))
+
+	// try adding secondaryPhone2 again. this should fail because secondaryPhone2 already exists
+	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone2})
+	assert.NotNil(t, err)
 
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone3})
 	assert.Nil(t, err)
@@ -242,7 +250,102 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	assert.Equal(t, 3, len(pr.SecondaryPhoneNumbers))
 }
 
-//todo: TestAddSecondaryEmailAddress
+func TestAddSecondaryEmailAddress(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+	primaryPhone := base.TestUserPhoneNumber
+	primaryEmail := "primary@example.com"
+	secondaryemail1 := "user1@gmail.com"
+	secondaryemail2 := "user2@gmail.com"
+	secondaryemail3 := "user3@gmail.com"
+
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
+
+	otp, err := generateTestOTP(t, primaryPhone)
+	if err != nil {
+		t.Errorf("failed to generate test OTP: %v", err)
+		return
+	}
+	pin := "1234"
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &primaryPhone,
+			PIN:         &pin,
+			Flavour:     base.FlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Profile)
+	assert.NotNil(t, resp.CustomerProfile)
+	assert.NotNil(t, resp.SupplierProfile)
+
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	assert.Nil(t, err)
+	assert.NotNil(t, login1)
+
+	// create authenticated context
+	ctx := context.Background()
+	authCred := &auth.Token{UID: login1.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		authCred,
+	)
+	s, _ = InitializeTestService(authenticatedContext)
+
+	// try adding a secondart email address. This should fail because the profile does not have a primary email first
+	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail1})
+	assert.NotNil(t, err)
+
+	// add the profile's primary email address. This is necessary. primary email must first exist before adding secondary emails
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
+	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail1})
+	assert.Nil(t, err)
+
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.SecondaryEmailAddresses))
+
+	// try adding secondaryemail1 again since secondaryemail1 is already in use
+	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail1})
+	assert.NotNil(t, err)
+
+	// now add secondaryemail2
+	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail2})
+	assert.Nil(t, err)
+
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 2, len(pr.SecondaryEmailAddresses))
+
+	// try adding secondaryemail2 again since secondaryemail1 is already in use
+	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail2})
+	assert.NotNil(t, err)
+
+	// now add secondaryemail3
+	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail3})
+	assert.Nil(t, err)
+
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 3, len(pr.SecondaryEmailAddresses))
+
+	// try adding secondaryemail3 again since secondaryemail3 is already in use
+	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail3})
+	assert.NotNil(t, err)
+
+}
 
 func TestUpdateUserProfileCovers(t *testing.T) {
 	s, err := InitializeTestService(context.Background())
@@ -543,7 +646,11 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
-	// add the profile's primary email address
+	// try adding a secondary email. this should fail because a primary email has not been added prior
+	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail1})
+	assert.NotNil(t, err)
+
+	// now add the profile's primary email address. This is necessary. primary email must first exist before adding secondary emails
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 

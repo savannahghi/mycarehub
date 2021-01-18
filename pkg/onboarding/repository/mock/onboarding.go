@@ -59,6 +59,8 @@ type FakeOnboardingRepository struct {
 	// checks if a specific phone number has already been registered to another user
 	CheckIfPhoneNumberExistsFn func(ctx context.Context, phone string) (bool, error)
 
+	CheckIfEmailExistsFn func(ctx context.Context, email string) (bool, error)
+
 	// checks if a specific username has already been registered to another user
 	CheckIfUsernameExistsFn func(ctx context.Context, phone string) (bool, error)
 
@@ -224,6 +226,11 @@ func (f *FakeOnboardingRepository) GetUserProfileByPrimaryPhoneNumber(ctx contex
 // CheckIfPhoneNumberExists checks if a specific phone number has already been registered to another user
 func (f *FakeOnboardingRepository) CheckIfPhoneNumberExists(ctx context.Context, phone string) (bool, error) {
 	return f.CheckIfPhoneNumberExistsFn(ctx, phone)
+}
+
+// CheckIfEmailExists ...
+func (f *FakeOnboardingRepository) CheckIfEmailExists(ctx context.Context, email string) (bool, error) {
+	return f.CheckIfEmailExistsFn(ctx, email)
 }
 
 // CheckIfUsernameExists checks if a specific username has already been registered to another user

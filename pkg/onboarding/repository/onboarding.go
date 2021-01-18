@@ -78,6 +78,9 @@ type OnboardingRepository interface {
 	// checks if a specific phone number has already been registered to another user
 	CheckIfPhoneNumberExists(ctx context.Context, phone string) (bool, error)
 
+	// checks if a specific email has already been registered to another user
+	CheckIfEmailExists(ctx context.Context, phone string) (bool, error)
+
 	// checks if a specific username has already been registered to another user
 	CheckIfUsernameExists(ctx context.Context, phone string) (bool, error)
 
