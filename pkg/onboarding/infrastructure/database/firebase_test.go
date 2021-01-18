@@ -1943,3 +1943,327 @@ func TestRepository_FetchKYCProcessingRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_UpdatePrimaryEmailAddress(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	newPrimaryEmail := "nyaras@gmail.com"
+
+	type args struct {
+		ctx          context.Context
+		id           string
+		emailAddress string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Update using a valid email",
+			args: args{
+				ctx:          ctx,
+				id:           userProfile.ID,
+				emailAddress: newPrimaryEmail,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Unable to get logged in user",
+			args: args{
+				ctx:          ctx,
+				id:           "invalidid",
+				emailAddress: newPrimaryEmail,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdatePrimaryEmailAddress(tt.args.ctx, tt.args.id, tt.args.emailAddress); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdatePrimaryEmailAddress() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected, got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestRepository_UpdatePrimaryPhoneNumber(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	newPrimaryPhoneNumber := "+254711111111"
+	type args struct {
+		ctx         context.Context
+		id          string
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Update using a valid email",
+			args: args{
+				ctx:         ctx,
+				id:          userProfile.ID,
+				phoneNumber: newPrimaryPhoneNumber,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Unable to get logged in user",
+			args: args{
+				ctx:         ctx,
+				id:          "invalidid",
+				phoneNumber: newPrimaryPhoneNumber,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdatePrimaryPhoneNumber(tt.args.ctx, tt.args.id, tt.args.phoneNumber); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdatePrimaryPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected, got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestRepository_UpdateSecondaryPhoneNumbers(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	newSecondaryPhoneNumbers := []string{"+254744556677", "+254700998877"}
+
+	type args struct {
+		ctx          context.Context
+		id           string
+		phoneNumbers []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Update secondary phonenumbers",
+			args: args{
+				ctx:          ctx,
+				id:           userProfile.ID,
+				phoneNumbers: newSecondaryPhoneNumbers,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Update secondary phonenumbers using an invalid ID",
+			args: args{
+				ctx:          ctx,
+				id:           "invalid id",
+				phoneNumbers: newSecondaryPhoneNumbers,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdateSecondaryPhoneNumbers(tt.args.ctx, tt.args.id, tt.args.phoneNumbers); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateSecondaryPhoneNumbers() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected, got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestRepository_UpdateBioData(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	firstName := "Jatelo"
+	lastName := "Mzima"
+	dateOfBirth := base.Date{
+		Year:  2000,
+		Month: 12,
+		Day:   17,
+	}
+	var gender base.Gender = "male"
+
+	updateAllData := base.BioData{
+		FirstName:   &firstName,
+		LastName:    &lastName,
+		DateOfBirth: &dateOfBirth,
+		Gender:      gender,
+	}
+
+	updateFirstName := base.BioData{
+		FirstName: &firstName,
+	}
+	updateLastName := base.BioData{
+		LastName: &lastName,
+	}
+	updateDateOfBirth := base.BioData{
+		DateOfBirth: &dateOfBirth,
+	}
+	updateGender := base.BioData{
+		Gender: gender,
+	}
+	type args struct {
+		ctx  context.Context
+		id   string
+		data base.BioData
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Update all biodata",
+			args: args{
+				ctx:  ctx,
+				id:   userProfile.ID,
+				data: updateAllData,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Update firstname only",
+			args: args{
+				ctx:  ctx,
+				id:   userProfile.ID,
+				data: updateFirstName,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Update lastname only",
+			args: args{
+				ctx:  ctx,
+				id:   userProfile.ID,
+				data: updateLastName,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Update date of birth only",
+			args: args{
+				ctx:  ctx,
+				id:   userProfile.ID,
+				data: updateDateOfBirth,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Update gender only",
+			args: args{
+				ctx:  ctx,
+				id:   userProfile.ID,
+				data: updateGender,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Use an invalid ID",
+			args: args{
+				ctx:  ctx,
+				id:   "invalid id",
+				data: updateAllData,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdateBioData(tt.args.ctx, tt.args.id, tt.args.data); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateBioData() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected, got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
