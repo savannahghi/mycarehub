@@ -102,6 +102,12 @@ type FakeOnboardingRepository struct {
 		phone string,
 	) (*resources.CreatedUserResponse, error)
 
+	GetUserProfileAttributesFn func(
+		ctx context.Context,
+		UIDs []string,
+		attribute string,
+	) (map[string][]string, error)
+
 	// Userprofile
 	UpdateUserNameFn                func(ctx context.Context, id string, phoneNumber string) error
 	UpdatePrimaryPhoneNumberFn      func(ctx context.Context, id string, phoneNumber string) error
@@ -368,4 +374,17 @@ func (f *FakeOnboardingRepository) HardResetSecondaryPhoneNumbers(ctx context.Co
 // HardResetSecondaryEmailAddress ...
 func (f *FakeOnboardingRepository) HardResetSecondaryEmailAddress(ctx context.Context, id string, newSecondaryEmails []string) error {
 	return f.HardResetSecondaryPhoneNumbersFn(ctx, id, newSecondaryEmails)
+}
+
+// GetUserProfileAttributes ...
+func (f *FakeOnboardingRepository) GetUserProfileAttributes(
+	ctx context.Context,
+	UIDs []string,
+	attribute string,
+) (map[string][]string, error) {
+	return f.GetUserProfileAttributesFn(
+		ctx,
+		UIDs,
+		attribute,
+	)
 }

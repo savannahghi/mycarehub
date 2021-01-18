@@ -12,6 +12,20 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
+const (
+	// EmailsAttribute is an attribute that represents
+	// a user profile's email addresses
+	EmailsAttribute = "emails"
+
+	// PhoneNumbersAttribute is an attribute that represents
+	// a user profile's phone numbers
+	PhoneNumbersAttribute = "phonenumbers"
+
+	// FCMTokensAttribute is an attribute that represents
+	// a user profile's FCM push tokens
+	FCMTokensAttribute = "tokens"
+)
+
 // ProfileUseCase represents all the profile business logi
 type ProfileUseCase interface {
 	// profile releted
@@ -55,6 +69,33 @@ type ProfileUseCase interface {
 
 	// called to remove specific secondary email addresses from the user's profile.
 	RetireSecondaryEmailAddress(ctx context.Context, toRemoveEmails []string) (bool, error)
+
+	GetUserProfileAttributes(
+		ctx context.Context,
+		UIDs []string,
+		attribute string,
+	) (map[string][]string, error)
+
+	ConfirmedEmailAddresses(
+		ctx context.Context,
+		UIDs []string,
+	) (map[string][]string, error)
+
+	ConfirmedPhoneNumbers(
+		ctx context.Context,
+		UIDs []string,
+	) (map[string][]string, error)
+
+	ValidFCMTokens(
+		ctx context.Context,
+		UIDs []string,
+	) (map[string][]string, error)
+
+	ProfileAttributes(
+		ctx context.Context,
+		UIDs []string,
+		attribute string,
+	) (map[string][]string, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -605,4 +646,130 @@ func (p *ProfileUseCaseImpl) RetireSecondaryEmailAddress(ctx context.Context, to
 		return true, nil
 	}
 	return false, exceptions.SecondaryResourceHardResetError()
+}
+
+// GetUserProfileAttributes takes a slice of UIDs and for each UID,
+// it fetches the user profiles confirmed emails, phone numbers and
+// FCM push tokens
+func (p *ProfileUseCaseImpl) GetUserProfileAttributes(
+	ctx context.Context,
+	UIDs []string,
+	attribute string,
+) (map[string][]string, error) {
+	output := make(map[string][]string)
+	values := []string{}
+
+	for _, UID := range UIDs {
+		profile, err := p.onboardingRepository.GetUserProfileByUID(
+			ctx,
+			UID,
+		)
+		if err != nil {
+			return output, err
+		}
+
+		switch attribute {
+		case EmailsAttribute:
+			if profile.PrimaryEmailAddress != nil {
+				values = append(values, *profile.PrimaryEmailAddress)
+			}
+
+			secondaryEmails := profile.SecondaryEmailAddresses
+			if len(secondaryEmails) != 0 {
+				values = append(values, secondaryEmails...)
+			}
+
+		case PhoneNumbersAttribute:
+			values = append(values, *profile.PrimaryPhone)
+			secondaryPhones := profile.SecondaryPhoneNumbers
+			if len(secondaryPhones) != 0 {
+				values = append(values, secondaryPhones...)
+			}
+
+		case FCMTokensAttribute:
+			values = append(values, profile.PushTokens...)
+
+		default:
+			err := fmt.Errorf("failed to retrieve user profile attribute %s",
+				attribute,
+			)
+			return nil, exceptions.RetrieveRecordError(err)
+		}
+		output[UID] = values
+	}
+
+	return output, nil
+}
+
+// ConfirmedEmailAddresses returns verified email addresses for
+// each of the UID in the slice of UIDs provided
+func (p *ProfileUseCaseImpl) ConfirmedEmailAddresses(
+	ctx context.Context,
+	UIDs []string,
+) (map[string][]string, error) {
+	return p.GetUserProfileAttributes(
+		ctx,
+		UIDs,
+		EmailsAttribute,
+	)
+}
+
+// ConfirmedPhoneNumbers returns verified phone numbers for
+// each of the UID in the slice of UIDs provided
+func (p *ProfileUseCaseImpl) ConfirmedPhoneNumbers(
+	ctx context.Context,
+	UIDs []string,
+) (map[string][]string, error) {
+	return p.GetUserProfileAttributes(
+		ctx,
+		UIDs,
+		PhoneNumbersAttribute,
+	)
+}
+
+// ValidFCMTokens returns valid FCM push tokens for
+// each of the UID in the slice of UIDs provided
+func (p *ProfileUseCaseImpl) ValidFCMTokens(
+	ctx context.Context,
+	UIDs []string,
+) (map[string][]string, error) {
+	return p.GetUserProfileAttributes(
+		ctx,
+		UIDs,
+		FCMTokensAttribute,
+	)
+}
+
+// ProfileAttributes retrieves the user profiles confirmed emails,
+// phone numbers and FCM push tokens
+func (p *ProfileUseCaseImpl) ProfileAttributes(
+	ctx context.Context,
+	UIDs []string,
+	attribute string,
+) (map[string][]string, error) {
+	switch attribute {
+	case EmailsAttribute:
+		return p.ConfirmedEmailAddresses(
+			ctx,
+			UIDs,
+		)
+
+	case PhoneNumbersAttribute:
+		return p.ConfirmedPhoneNumbers(
+			ctx,
+			UIDs,
+		)
+
+	case FCMTokensAttribute:
+		return p.ValidFCMTokens(
+			ctx,
+			UIDs,
+		)
+
+	default:
+		err := fmt.Errorf("failed to retrieve user profile attribute %s",
+			attribute,
+		)
+		return nil, exceptions.RetrieveRecordError(err)
+	}
 }

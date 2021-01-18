@@ -6,7 +6,10 @@ import (
 	"log"
 	"testing"
 
+	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
 func TestMaskPhoneNumbers(t *testing.T) {
@@ -1143,6 +1146,558 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 				}
 			}
 			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx       context.Context
+		UIDs      []string
+		attribute string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    map[string][]string
+		wantErr bool
+	}{
+		{
+			name: "valid:_get_user_profile_emails",
+			args: args{
+				ctx:       ctx,
+				UIDs:      []string{uuid.New().String()},
+				attribute: usecases.EmailsAttribute,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid:_get_user_profile_phone_numbers",
+			args: args{
+				ctx:       ctx,
+				UIDs:      []string{uuid.New().String()},
+				attribute: usecases.PhoneNumbersAttribute,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid:_get_user_profile_fcm_tokens",
+			args: args{
+				ctx:       ctx,
+				UIDs:      []string{uuid.New().String()},
+				attribute: usecases.FCMTokensAttribute,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_failed_get_user_profile_attribute",
+			args: args{
+				ctx:       ctx,
+				UIDs:      []string{uuid.New().String()},
+				attribute: "not-an-attribute",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_failed_get_user_profile",
+			args: args{
+				ctx:       ctx,
+				UIDs:      []string{uuid.New().String()},
+				attribute: usecases.FCMTokensAttribute,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_get_user_profile_emails" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					email := base.GenerateRandomEmail()
+					return &base.UserProfile{
+						PrimaryEmailAddress: &email,
+						SecondaryEmailAddresses: []string{
+							base.GenerateRandomEmail(),
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "valid:_get_user_profile_phone_numbers" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					phone := base.TestUserPhoneNumber
+					return &base.UserProfile{
+						PrimaryPhone:          &phone,
+						SecondaryPhoneNumbers: []string{"+254700000000"},
+					}, nil
+				}
+			}
+
+			if tt.name == "valid:_get_user_profile_fcm_tokens" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						PushTokens: []string{uuid.New().String()},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_failed_get_user_profile" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					email := base.GenerateRandomEmail()
+					phone := base.TestUserPhoneNumber
+					return &base.UserProfile{
+						PrimaryEmailAddress: &email,
+						SecondaryEmailAddresses: []string{
+							base.GenerateRandomEmail(),
+						},
+						PrimaryPhone:          &phone,
+						SecondaryPhoneNumbers: []string{"+254700000000"},
+						PushTokens:            []string{uuid.New().String()},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_failed_get_user_profile" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					return nil, exceptions.ProfileNotFoundError()
+				}
+			}
+
+			attribute, err := i.Onboarding.GetUserProfileAttributes(
+				tt.args.ctx,
+				tt.args.UIDs,
+				tt.args.attribute,
+			)
+
+			if tt.wantErr && attribute != nil {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr && attribute == nil {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_ConfirmedEmailAddresses(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+	type args struct {
+		ctx  context.Context
+		UIDs []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:_get_confirmed_emails",
+			args: args{
+				ctx:  ctx,
+				UIDs: []string{uuid.New().String()},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_failed_get_user_profile",
+			args: args{
+				ctx:  ctx,
+				UIDs: []string{uuid.New().String()},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_get_confirmed_emails" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					email := base.GenerateRandomEmail()
+					return &base.UserProfile{
+						PrimaryEmailAddress: &email,
+						SecondaryEmailAddresses: []string{
+							base.GenerateRandomEmail(),
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_failed_get_user_profile" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					return nil, exceptions.ProfileNotFoundError()
+				}
+			}
+
+			confirmedEmails, err := i.Onboarding.ConfirmedEmailAddresses(
+				tt.args.ctx,
+				tt.args.UIDs,
+			)
+			if tt.wantErr && confirmedEmails != nil {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr && confirmedEmails == nil {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_ConfirmedPhoneNumbers(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+	type args struct {
+		ctx  context.Context
+		UIDs []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:_get_confirmed_emails",
+			args: args{
+				ctx:  ctx,
+				UIDs: []string{uuid.New().String()},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_failed_get_user_profile",
+			args: args{
+				ctx:  ctx,
+				UIDs: []string{uuid.New().String()},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_get_confirmed_emails" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					phone := base.TestUserPhoneNumber
+					return &base.UserProfile{
+						PrimaryPhone:          &phone,
+						SecondaryPhoneNumbers: []string{"+254700000000"},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_failed_get_user_profile" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					return nil, exceptions.ProfileNotFoundError()
+				}
+			}
+
+			confirmedEmails, err := i.Onboarding.ConfirmedPhoneNumbers(
+				tt.args.ctx,
+				tt.args.UIDs,
+			)
+			if tt.wantErr && confirmedEmails != nil {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr && confirmedEmails == nil {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_validFCM(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+	type args struct {
+		ctx  context.Context
+		UIDs []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:_valid_fcm_tokens",
+			args: args{
+				ctx:  ctx,
+				UIDs: []string{uuid.New().String()},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_failed_get_user_profile",
+			args: args{
+				ctx:  ctx,
+				UIDs: []string{uuid.New().String()},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_valid_fcm_tokens" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						PushTokens: []string{uuid.New().String()},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_failed_get_user_profile" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					return nil, exceptions.ProfileNotFoundError()
+				}
+			}
+
+			validFCM, err := i.Onboarding.ValidFCMTokens(
+				tt.args.ctx,
+				tt.args.UIDs,
+			)
+			if tt.wantErr && validFCM != nil {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr && validFCM == nil {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx       context.Context
+		UIDs      []string
+		attribute string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    map[string][]string
+		wantErr bool
+	}{
+		{
+			name: "valid:_get_user_profile_emails",
+			args: args{
+				ctx:       ctx,
+				UIDs:      []string{uuid.New().String()},
+				attribute: usecases.EmailsAttribute,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid:_get_user_profile_phone_numbers",
+			args: args{
+				ctx:       ctx,
+				UIDs:      []string{uuid.New().String()},
+				attribute: usecases.PhoneNumbersAttribute,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid:_get_user_profile_fcm_tokens",
+			args: args{
+				ctx:       ctx,
+				UIDs:      []string{uuid.New().String()},
+				attribute: usecases.FCMTokensAttribute,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_failed_get_user_profile_attribute",
+			args: args{
+				ctx:       ctx,
+				UIDs:      []string{uuid.New().String()},
+				attribute: "not-an-attribute",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_failed_get_user_profile",
+			args: args{
+				ctx:       ctx,
+				UIDs:      []string{uuid.New().String()},
+				attribute: usecases.FCMTokensAttribute,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_get_user_profile_emails" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					email := base.GenerateRandomEmail()
+					return &base.UserProfile{
+						PrimaryEmailAddress: &email,
+						SecondaryEmailAddresses: []string{
+							base.GenerateRandomEmail(),
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "valid:_get_user_profile_phone_numbers" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					phone := base.TestUserPhoneNumber
+					return &base.UserProfile{
+						PrimaryPhone:          &phone,
+						SecondaryPhoneNumbers: []string{"+254700000000"},
+					}, nil
+				}
+			}
+
+			if tt.name == "valid:_get_user_profile_fcm_tokens" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						PushTokens: []string{uuid.New().String()},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_failed_get_user_profile" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					email := base.GenerateRandomEmail()
+					phone := base.TestUserPhoneNumber
+					return &base.UserProfile{
+						PrimaryEmailAddress: &email,
+						SecondaryEmailAddresses: []string{
+							base.GenerateRandomEmail(),
+						},
+						PrimaryPhone:          &phone,
+						SecondaryPhoneNumbers: []string{"+254700000000"},
+						PushTokens:            []string{uuid.New().String()},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_failed_get_user_profile" {
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+				) (*base.UserProfile, error) {
+					return nil, exceptions.ProfileNotFoundError()
+				}
+			}
+
+			attribute, err := i.Onboarding.ProfileAttributes(
+				tt.args.ctx,
+				tt.args.UIDs,
+				tt.args.attribute,
+			)
+
+			if tt.wantErr && attribute != nil {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr && attribute == nil {
 				if err != nil {
 					t.Errorf("error not expected got %v", err)
 					return

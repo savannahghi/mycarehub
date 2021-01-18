@@ -16,7 +16,6 @@ import (
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -140,31 +139,41 @@ func (fr Repository) ParseRecordAsSnapshot(ctx context.Context, collection strin
 	return doc[0], err
 }
 
-// GetUserProfileByUID retrieves the user profile bu UID
+// GetUserProfileByUID retrieves the user profile by UID
 func (fr *Repository) GetUserProfileByUID(
 	ctx context.Context,
 	uid string,
 ) (*base.UserProfile, error) {
-	// Retrieve the user profile
-	logrus.Printf(uid)
-	collection := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
-	query := collection.Where("verifiedUIDS", "array-contains", uid)
+	collection := fr.FirestoreClient.Collection(
+		fr.GetUserProfileCollectionName(),
+	)
+	query := collection.Where(
+		"verifiedUIDS",
+		"array-contains",
+		uid,
+	)
 	docs, err := query.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
+
 	if len(docs) == 0 {
 		return nil, exceptions.ProfileNotFoundError()
 	}
+
 	if len(docs) > 1 && base.IsDebug() {
-		log.Printf("user with uids %s has > 1 profile (they have %d)", uid, len(docs))
+		log.Printf("user with uids %s has > 1 profile (they have %d)",
+			uid,
+			len(docs),
+		)
 	}
-	// read and unpack profile
+
 	dsnap := docs[0]
 	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
+		err = fmt.Errorf("unable to read user profile")
+		return nil, exceptions.InternalServerError(err)
 	}
 	return userProfile, nil
 }

@@ -3,9 +3,11 @@ package rest
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 
 	"firebase.google.com/go/auth"
+	"github.com/gorilla/mux"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
@@ -30,6 +32,7 @@ type HandlersInterfaces interface {
 	RemoveUserByPhoneNumber(ctx context.Context) http.HandlerFunc
 	GetUserProfileByUID(ctx context.Context) http.HandlerFunc
 	UpdateCovers(ctx context.Context) http.HandlerFunc
+	ProfileAttributes(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -493,5 +496,44 @@ func (h *HandlersInterfacesImpl) UpdateCovers(ctx context.Context) http.HandlerF
 			},
 			http.StatusOK,
 		)
+	}
+}
+
+// ProfileAttributes retreives confirmed user profile attributes.
+// These attributes include a user's verified phone numbers, verfied emails
+// and verified FCM push tokens
+func (h *HandlersInterfacesImpl) ProfileAttributes(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		attribute, found := vars["attribute"]
+		log.Printf("attr...%s\n", attribute)
+		log.Printf("attr found...%v\n", found)
+		if !found {
+			err := fmt.Errorf("request does not have a path var named `%s`",
+				attribute,
+			)
+			base.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		p := &resources.UIDsPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if len(p.UIDs) == 0 {
+			err := fmt.Errorf("expected a `UID` to be defined")
+			base.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		output, err := h.interactor.Onboarding.ProfileAttributes(
+			ctx,
+			p.UIDs,
+			attribute,
+		)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, output, http.StatusOK)
 	}
 }

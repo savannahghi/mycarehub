@@ -187,6 +187,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.UpdateCovers(ctx))
+	isc.Path("/contactdetails/{attribute}/").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.ProfileAttributes(ctx))
 
 	// The reason for the below endpoints to be used for interservice communication
 	// is to allow for the creation of internal `test` users that can be used

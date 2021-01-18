@@ -14,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
 func TestUpdateUserProfile(t *testing.T) {
@@ -692,15 +693,14 @@ func TestUpdateCovers(t *testing.T) {
 				t.Errorf("bad data returned")
 				return
 			}
-			// TODO ! uncomment/ remove after error message format has been standardized
-			// TODO! assert some data
-			// if tt.wantErr {
-			// 	errMsg, ok := data["error"]
-			// 	if !ok {
-			// 		t.Errorf("Request error: %s", errMsg)
-			// 		return
-			// 	}
-			// }
+
+			if tt.wantErr {
+				errMsg, ok := data["error"]
+				if !ok {
+					t.Errorf("Request error: %s", errMsg)
+					return
+				}
+			}
 
 			if !tt.wantErr {
 				_, ok := data["error"]
@@ -713,6 +713,405 @@ func TestUpdateCovers(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
+	_, err = RemoveTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user: %s", err)
+	}
+}
+
+func TestEmailsProfileAttributes(t *testing.T) {
+	client := http.DefaultClient
+	phoneNumber := base.TestUserPhoneNumber
+	user, err := CreateTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to create a user by phone %v", err)
+		return
+	}
+	if user == nil {
+		t.Errorf("nil user found")
+		return
+	}
+	uids := &resources.UIDsPayload{
+		UIDs: []string{user.Auth.UID},
+	}
+	bs, err := json.Marshal(uids)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	payload := bytes.NewBuffer(bs)
+
+	emptyData := &resources.UIDsPayload{
+		UIDs: []string{},
+	}
+	emptyBs, err := json.Marshal(emptyData)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	emptyPayload := bytes.NewBuffer(emptyBs)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "success: get a user's emails",
+			args: args{
+				url: fmt.Sprintf("%s/internal/contactdetails/%s/",
+					baseURL,
+					usecases.EmailsAttribute,
+				),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "failure: nil payload supplied",
+			args: args{
+				url: fmt.Sprintf("%s/internal/contactdetails/%s/",
+					baseURL,
+					usecases.EmailsAttribute,
+				),
+				httpMethod: http.MethodPost,
+				body:       emptyPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if !tt.wantErr {
+				_, ok := data["error"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+		})
+	}
+
+	_, err = RemoveTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user: %s", err)
+	}
+}
+
+func TestPhoneNumbersProfileAttributes(t *testing.T) {
+	client := http.DefaultClient
+	phoneNumber := base.TestUserPhoneNumber
+	user, err := CreateTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to create a user by phone %v", err)
+		return
+	}
+	if user == nil {
+		t.Errorf("nil user found")
+		return
+	}
+	uids := &resources.UIDsPayload{
+		UIDs: []string{user.Auth.UID},
+	}
+	bs, err := json.Marshal(uids)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	payload := bytes.NewBuffer(bs)
+
+	emptyData := &resources.UIDsPayload{
+		UIDs: []string{},
+	}
+	emptyBs, err := json.Marshal(emptyData)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	emptyPayload := bytes.NewBuffer(emptyBs)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "success: get a user's phone numbers",
+			args: args{
+				url: fmt.Sprintf("%s/internal/contactdetails/%s/",
+					baseURL,
+					usecases.PhoneNumbersAttribute,
+				),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "failure: nil payload supplied",
+			args: args{
+				url: fmt.Sprintf("%s/internal/contactdetails/%s/",
+					baseURL,
+					usecases.PhoneNumbersAttribute,
+				),
+				httpMethod: http.MethodPost,
+				body:       emptyPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if !tt.wantErr {
+				_, ok := data["error"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+		})
+	}
+
+	_, err = RemoveTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user: %s", err)
+	}
+}
+
+func TestTokensProfileAttributes(t *testing.T) {
+	client := http.DefaultClient
+	phoneNumber := base.TestUserPhoneNumber
+	user, err := CreateTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to create a user by phone %v", err)
+		return
+	}
+	if user == nil {
+		t.Errorf("nil user found")
+		return
+	}
+	uids := &resources.UIDsPayload{
+		UIDs: []string{user.Auth.UID},
+	}
+	bs, err := json.Marshal(uids)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	payload := bytes.NewBuffer(bs)
+
+	emptyData := &resources.UIDsPayload{
+		UIDs: []string{},
+	}
+	emptyBs, err := json.Marshal(emptyData)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	emptyPayload := bytes.NewBuffer(emptyBs)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "success: get a user's fcm push tokens",
+			args: args{
+				url: fmt.Sprintf("%s/internal/contactdetails/%s/",
+					baseURL,
+					usecases.FCMTokensAttribute,
+				),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "failure: nil payload supplied",
+			args: args{
+				url: fmt.Sprintf("%s/internal/contactdetails/%s/",
+					baseURL,
+					usecases.FCMTokensAttribute,
+				),
+				httpMethod: http.MethodPost,
+				body:       emptyPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+				r.Header.Add(k, v)
+			}
+
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("HTTP error: %v", err)
+				return
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if !tt.wantErr {
+				_, ok := data["error"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+		})
+	}
+
 	_, err = RemoveTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)

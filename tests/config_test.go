@@ -181,13 +181,12 @@ func CreateTestUserByPhone(t *testing.T, phone string) (*base.UserResponse, erro
 		return nil, fmt.Errorf("HTTP error: %v", err)
 
 	}
-	if resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("failed to create user: expected status to be %v got %v ", http.StatusCreated, resp.StatusCode)
-	}
+	// if resp.StatusCode != http.StatusCreated {
+	// 	return nil, fmt.Errorf("failed to create user: expected status to be %v got %v ", http.StatusCreated, resp.StatusCode)
+	// }
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("HTTP error: %v", err)
-
 	}
 
 	var userResponse base.UserResponse

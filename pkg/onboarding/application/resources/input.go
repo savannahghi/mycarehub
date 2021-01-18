@@ -199,3 +199,9 @@ type UpdateCoversPayload struct {
 	MemberNumber   *string `json:"memberNumber"`
 	PayerSladeCode *int    `json:"payerSladeCode"`
 }
+
+// UIDsPayload is an input of a slice of users' UIDs used
+// for ISC requests to retrieve contact details of the users
+type UIDsPayload struct {
+	UIDs []string `json:"uids"`
+}
