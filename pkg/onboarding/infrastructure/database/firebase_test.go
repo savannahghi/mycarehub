@@ -2323,3 +2323,160 @@ func TestRepository_UpdateBioData(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_FetchKYCProcessingRequestByID(t *testing.T) {
+	ctx := context.Background()
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	reqPartnerType := base.PartnerTypeCoach
+	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
+	id := uuid.New().String()
+	kycReq := &domain.KYCRequest{
+		ID:                  id,
+		ReqPartnerType:      reqPartnerType,
+		ReqOrganizationType: organizationTypeLimitedCompany,
+	}
+
+	err = fr.StageKYCProcessingRequest(ctx, kycReq)
+	if err != nil {
+		t.Errorf("failed to stage kyc: %v", err)
+		return
+	}
+
+	kycRequests := []*domain.KYCRequest{}
+	kycRequests = append(kycRequests, kycReq)
+
+	kycRequest := kycRequests[0]
+
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.KYCRequest
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Fetch KYC Processing Requests by ID",
+			args: args{
+				ctx: ctx,
+				id:  kycRequest.ID,
+			},
+			want:    kycRequest,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fr.FetchKYCProcessingRequestByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.FetchKYCProcessingRequestByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected, got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected, got %v", err)
+					return
+				}
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.FetchKYCProcessingRequestByID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_UpdateKYCProcessingRequest(t *testing.T) {
+	ctx := context.Background()
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	reqPartnerType := base.PartnerTypeCoach
+	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
+	id := uuid.New().String()
+	kycReq := &domain.KYCRequest{
+		ID:                  id,
+		ReqPartnerType:      reqPartnerType,
+		ReqOrganizationType: organizationTypeLimitedCompany,
+	}
+
+	err = fr.StageKYCProcessingRequest(ctx, kycReq)
+	if err != nil {
+		t.Errorf("failed to stage kyc: %v", err)
+		return
+	}
+
+	kycRequests := []*domain.KYCRequest{}
+	kycRequests = append(kycRequests, kycReq)
+
+	kycRequest := kycRequests[0]
+
+	kycStatus := domain.KYCProcessStatusApproved
+
+	updatedKYCReq := &domain.KYCRequest{
+		ID:     kycRequest.ID,
+		Status: kycStatus,
+	}
+
+	updatedKYCRequests := []*domain.KYCRequest{}
+	updatedKYCRequests = append(updatedKYCRequests, updatedKYCReq)
+
+	updatedKYCRequest := updatedKYCRequests[0]
+
+	type args struct {
+		ctx        context.Context
+		kycRequest *domain.KYCRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Update KYC Processing Requests",
+			args: args{
+				ctx:        ctx,
+				kycRequest: updatedKYCRequest,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdateKYCProcessingRequest(tt.args.ctx, tt.args.kycRequest); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateKYCProcessingRequest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+		if tt.wantErr {
+			if err == nil {
+				t.Errorf("error expected, got %v", err)
+				return
+			}
+		}
+
+		if !tt.wantErr {
+			if err != nil {
+				t.Errorf("error not expected, got %v", err)
+				return
+			}
+		}
+	}
+}
