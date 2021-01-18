@@ -17,7 +17,10 @@ import (
 )
 
 func TestCreateUserWithPhoneNumber(t *testing.T) {
-	client := http.DefaultClient
+	client := http.Client{
+		// timeout to cater for server response time
+		Timeout: 10 * time.Second,
+	}
 	phoneNumber := base.TestUserPhoneNumber
 	validPayload, err := composeValidUserPayload(t, phoneNumber)
 	if err != nil {
@@ -144,16 +147,10 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 func TestVerifySignUpPhoneNumber(t *testing.T) {
 	client := http.DefaultClient
 	// prepare a valid payload
-	phoneNumber := base.TestUserPhoneNumber
-	_, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
 	registeredPhone := struct {
 		PhoneNumber string
 	}{
-		PhoneNumber: base.TestUserPhoneNumber,
+		PhoneNumber: base.TestUserPhoneNumberWithPin,
 	}
 	bs, err := json.Marshal(registeredPhone)
 	if err != nil {
@@ -192,8 +189,8 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 				httpMethod: http.MethodPost,
 				body:       payload,
 			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
+			wantStatus: http.StatusOK,
+			wantErr:    false,
 		},
 		{
 			name: "failure: verify a phone number whose profile does not exist",
@@ -273,11 +270,6 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 				return
 			}
 		})
-	}
-	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("unable to remove test user: %s", err)
 	}
 }
 

@@ -952,7 +952,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "valid:_verify_otp_fails",
+			name: "invalid:_verify_otp_fails",
 			args: args{
 				ctx:          ctx,
 				emailAddress: "kichwa@gmail.com",
@@ -961,7 +961,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "valid:_verify_otp_returns_false",
+			name: "invalid:_verify_otp_returns_false",
 			args: args{
 				ctx:          ctx,
 				emailAddress: "kalu@gmail.com",
@@ -970,7 +970,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "valid:_update_primary_address_fails",
+			name: "invalid:_update_primary_address_fails",
 			args: args{
 				ctx:          ctx,
 				emailAddress: "mwendwapole@gmail.com",
@@ -1002,19 +1002,19 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				}
 			}
 
-			if tt.name == "valid:_verify_otp_fails" {
+			if tt.name == "invalid:_verify_otp_fails" {
 				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, fmt.Errorf("unable to verify email otp")
 				}
 			}
 
-			if tt.name == "valid:_verify_otp_returns_false" {
+			if tt.name == "invalid:_verify_otp_returns_false" {
 				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, nil
 				}
 			}
 
-			if tt.name == "valid:_update_primary_address_fails" {
+			if tt.name == "invalid:_update_primary_address_fails" {
 				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}

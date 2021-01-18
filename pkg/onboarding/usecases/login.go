@@ -52,7 +52,6 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	if err != nil {
 		return nil, exceptions.ProfileNotFoundError(err)
 	}
-	// defensive programming in action
 	if profile == nil {
 		return nil, exceptions.ProfileNotFoundError(nil)
 	}
@@ -61,7 +60,6 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	if err != nil {
 		return nil, exceptions.PinNotFoundError(err)
 	}
-	// defensive programming in action
 	if PINData == nil {
 		return nil, exceptions.PinNotFoundError(nil)
 	}
@@ -114,8 +112,6 @@ func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool
 	if err != nil {
 		return false, exceptions.ProfileNotFoundError(err)
 	}
-
-	// defensive programming in action
 	if profile == nil {
 		return false, exceptions.ProfileNotFoundError(nil)
 	}
@@ -124,7 +120,6 @@ func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool
 	if err != nil {
 		return false, exceptions.PinNotFoundError(err)
 	}
-	// defensive programming in action
 	if PINData == nil {
 		return false, exceptions.PinNotFoundError(nil)
 	}

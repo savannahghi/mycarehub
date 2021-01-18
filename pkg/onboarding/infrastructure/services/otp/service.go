@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -84,6 +85,8 @@ func (o *ServiceOTPImpl) GenerateAndSendOTP(
 		"msisdn": phone,
 	}
 	resp, err := o.Otp.MakeRequest(http.MethodPost, SendOtp, body)
+	// the 2s delay allows time for the sms gateway unexpected timeout
+	time.Sleep(time.Second * 2)
 	if err != nil {
 		return nil, exceptions.GenerateAndSendOTPError(err)
 	}
