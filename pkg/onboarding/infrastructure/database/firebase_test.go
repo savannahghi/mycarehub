@@ -2536,8 +2536,12 @@ func TestRepository_PurgeUserByPhoneNumber(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := fr.PurgeUserByPhoneNumber(tt.args.ctx, tt.args.phone); (err != nil) != tt.wantErr {
-				t.Errorf("Repository.PurgeUserByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+			err := fr.PurgeUserByPhoneNumber(tt.args.ctx, tt.args.phone)
+			if !tt.wantErr && err != nil {
+				t.Errorf("Unexpected error occurred ;  %v  ", err)
+			}
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error. got %v  ", err)
 			}
 		})
 	}

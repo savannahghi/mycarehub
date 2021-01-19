@@ -145,7 +145,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 	newSecPhones := func(oldSecondaryPhones []string, oldPrimaryPhone string, newPrimaryPhone string) []string {
 		secPhones := []string{}
 		for _, phone := range oldSecondaryPhones {
-			if phone != newPrimaryPhone {
+			if phone != newPrimaryPhone && !base.StringSliceContains(secPhones, phone) {
 				secPhones = append(secPhones, phone)
 			}
 		}

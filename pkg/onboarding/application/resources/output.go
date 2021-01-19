@@ -26,7 +26,16 @@ type AccountRecoveryPhonesResponse struct {
 
 // OKResp is used to return OK responses in inter-service calls
 type OKResp struct {
-	Status string `json:"status"`
+	Status   string      `json:"status,omitempty"`
+	Response interface{} `json:"response,omitempty"`
+}
+
+// NewOKResp a shortcut to create an instance of OKResp
+func NewOKResp(rawResponse interface{}) *OKResp {
+	return &OKResp{
+		Status:   "OK",
+		Response: rawResponse,
+	}
 }
 
 // CreatedUserResponse is used to return a created user

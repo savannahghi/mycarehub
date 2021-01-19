@@ -135,7 +135,7 @@ func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
 		}
-		base.WriteJSONResponse(w, response, http.StatusOK)
+		base.WriteJSONResponse(w, resources.NewOKResp(response), http.StatusOK)
 	}
 }
 
