@@ -310,13 +310,13 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) == 0 {
-		return nil, exceptions.InternalServerError(fmt.Errorf("%v", base.ProfileNotFound))
+		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("%v", base.ProfileNotFound))
 	}
 	dsnap := docs[0]
 	profile := &base.UserProfile{}
 	err = dsnap.DataTo(profile)
 	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
 	}
 	return profile, nil
 }
@@ -493,7 +493,7 @@ func (fr *Repository) GenerateAuthCredentials(
 	ctx context.Context,
 	phone string,
 ) (*base.AuthCredentialResponse, error) {
-	u, err := fr.FirebaseClient.GetUserByPhoneNumber(ctx, phone)
+	resp, err := fr.GetOrCreatePhoneNumberUser(ctx, phone)
 	if err != nil {
 		if auth.IsUserNotFound(err) {
 			return nil, exceptions.UserNotFoundError(err)
@@ -501,7 +501,7 @@ func (fr *Repository) GenerateAuthCredentials(
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	customToken, err := base.CreateFirebaseCustomToken(ctx, u.UID)
+	customToken, err := base.CreateFirebaseCustomToken(ctx, resp.UID)
 	if err != nil {
 		return nil, exceptions.CustomTokenError(err)
 	}
@@ -515,14 +515,14 @@ func (fr *Repository) GenerateAuthCredentials(
 	}
 
 	if err := fr.UpdateVerifiedIdentifiers(ctx, pr.ID, []base.VerifiedIdentifier{{
-		UID:           u.UID,
+		UID:           resp.UID,
 		LoginProvider: base.LoginProviderTypePhone,
 		Timestamp:     time.Now().In(base.TimeLocation),
 	}}); err != nil {
 		return nil, exceptions.UpdateProfileError(err)
 	}
 
-	if err := fr.UpdateVerifiedUIDS(ctx, pr.ID, []string{u.UID}); err != nil {
+	if err := fr.UpdateVerifiedUIDS(ctx, pr.ID, []string{resp.UID}); err != nil {
 		return nil, exceptions.UpdateProfileError(err)
 	}
 
@@ -531,7 +531,7 @@ func (fr *Repository) GenerateAuthCredentials(
 		IDToken:      &userTokens.IDToken,
 		ExpiresIn:    userTokens.ExpiresIn,
 		RefreshToken: userTokens.RefreshToken,
-		UID:          u.UID,
+		UID:          resp.UID,
 		IsAnonymous:  false,
 		IsAdmin:      fr.checkIfAdmin(pr),
 	}, nil
@@ -640,11 +640,10 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 	newPhones := []string{}
 	if len(profile.SecondaryPhoneNumbers) >= 1 {
 		for _, phone := range phoneNumbers {
-			for _, current := range profile.SecondaryPhoneNumbers {
-				if phone != current && phone != *profile.PrimaryPhone && !base.StringSliceContains(newPhones, phone) {
-					newPhones = append(newPhones, phone)
-				}
+			if phone != *profile.PrimaryPhone && !base.StringSliceContains(newPhones, phone) && !base.StringSliceContains(profile.SecondaryPhoneNumbers, phone) {
+				newPhones = append(newPhones, phone)
 			}
+
 		}
 	} else {
 		newPhones = append(newPhones, phoneNumbers...)
@@ -669,7 +668,7 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 
 // UpdateSecondaryEmailAddresses the secondary email addresses of the profile that matches the id
 // this method should be called after asserting the emailAddresses  as unique and not associated with another userProfile
-func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id string, emailAddresses []string) error {
+func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id string, uniqueEmailAddresses []string) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
 		return exceptions.ProfileNotFoundError(err)
@@ -678,16 +677,13 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 	// check the email addresses been added are unique , does not currently existing the user's profile and is not the primary email address
 	newEmails := []string{}
 	if len(profile.SecondaryEmailAddresses) >= 1 {
-		for _, email := range emailAddresses {
-			for _, current := range profile.SecondaryEmailAddresses {
-				if email != current && email != *profile.PrimaryEmailAddress && !base.StringSliceContains(newEmails, email) {
-					newEmails = append(newEmails, email)
-				}
+		for _, email := range uniqueEmailAddresses {
+			if email != *profile.PrimaryEmailAddress && !base.StringSliceContains(newEmails, email) && !base.StringSliceContains(profile.SecondaryEmailAddresses, email) {
+				newEmails = append(newEmails, email)
 			}
-
 		}
 	} else {
-		newEmails = append(newEmails, emailAddresses...)
+		newEmails = append(newEmails, uniqueEmailAddresses...)
 	}
 
 	profile.SecondaryEmailAddresses = append(profile.SecondaryEmailAddresses, newEmails...)
@@ -1485,11 +1481,11 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 
 	// delete the user from firebase
 	u, err := fr.FirebaseClient.GetUserByPhoneNumber(ctx, phone)
-	if err != nil {
-		return exceptions.InternalServerError(err)
-	}
-	if err := fr.FirebaseClient.DeleteUser(ctx, u.UID); err != nil {
-		return exceptions.InternalServerError(err)
+	if err == nil {
+		// only run firebase delete if firebase manages to find the user. It's not fatal if firebase fails to find the user
+		if err := fr.FirebaseClient.DeleteUser(ctx, u.UID); err != nil {
+			return exceptions.InternalServerError(err)
+		}
 	}
 
 	return nil

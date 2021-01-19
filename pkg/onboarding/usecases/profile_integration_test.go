@@ -130,6 +130,11 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
+	// try to login with secondaryPhone. This should fail because secondaryPhone != primaryPhone
+	login2, err := s.Login.LoginByPhone(context.Background(), secondaryPhone, pin, base.FlavourConsumer)
+	assert.NotNil(t, err)
+	assert.Nil(t, login2)
+
 	// add a secondary phone number to the user
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone})
 	assert.Nil(t, err)
@@ -140,10 +145,10 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	assert.Equal(t, 1, len(pr.SecondaryPhoneNumbers))
 
 	// login to add assert the secondary phone number has been added
-	login2, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login3, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
 	assert.Nil(t, err)
-	assert.NotNil(t, login2)
-	assert.Equal(t, 1, len(login2.Profile.SecondaryPhoneNumbers))
+	assert.NotNil(t, login3)
+	assert.Equal(t, 1, len(login3.Profile.SecondaryPhoneNumbers))
 
 	// send otp to the secondary phone number we intend to make primary
 	otpResp, err := s.Otp.GenerateAndSendOTP(context.Background(), secondaryPhone)
@@ -156,14 +161,17 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	assert.NotNil(t, setResp)
 
 	// login with the old primary phone number. This should fail
-	login3, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
-	assert.NotNil(t, err)
-	assert.Nil(t, login3)
-
-	// login with the new primary phone number. This should not fail
-	login4, err := s.Login.LoginByPhone(context.Background(), secondaryPhone, pin, base.FlavourConsumer)
+	login4, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
 	assert.NotNil(t, err)
 	assert.Nil(t, login4)
+
+	// login with the new primary phone number. This should not fail. Assert that the primary phone number
+	// is the new one and the secondary phone slice contains the old primary phone number.
+	login5, err := s.Login.LoginByPhone(context.Background(), secondaryPhone, pin, base.FlavourConsumer)
+	assert.Nil(t, err)
+	assert.NotNil(t, login5)
+	assert.Equal(t, secondaryPhone, *login5.Profile.PrimaryPhone)
+	assert.Contains(t, login5.Profile.SecondaryPhoneNumbers, secondaryPhone)
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), secondaryPhone)
@@ -217,6 +225,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
+	// add the first secondary phone number
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone1})
 	assert.Nil(t, err)
 
@@ -229,6 +238,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone1})
 	assert.NotNil(t, err)
 
+	// add the second secondary phone number
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone2})
 	assert.Nil(t, err)
 
@@ -241,6 +251,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone2})
 	assert.NotNil(t, err)
 
+	// add the third secondary phone number
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone3})
 	assert.Nil(t, err)
 
@@ -248,6 +259,19 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 	assert.Equal(t, 3, len(pr.SecondaryPhoneNumbers))
+
+	// try to login with each secondary phone number. This should fail
+	login2, err := s.Login.LoginByPhone(context.Background(), secondaryPhone1, pin, base.FlavourConsumer)
+	assert.NotNil(t, err)
+	assert.Nil(t, login2)
+
+	login3, err := s.Login.LoginByPhone(context.Background(), secondaryPhone2, pin, base.FlavourConsumer)
+	assert.NotNil(t, err)
+	assert.Nil(t, login3)
+
+	login4, err := s.Login.LoginByPhone(context.Background(), secondaryPhone3, pin, base.FlavourConsumer)
+	assert.NotNil(t, err)
+	assert.Nil(t, login4)
 }
 
 func TestAddSecondaryEmailAddress(t *testing.T) {
@@ -299,7 +323,7 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
-	// try adding a secondart email address. This should fail because the profile does not have a primary email first
+	// try adding a secondary email address. This should fail because the profile does not have a primary email first
 	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail1})
 	assert.NotNil(t, err)
 

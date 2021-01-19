@@ -50,7 +50,8 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 
 	profile, err := l.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
-		return nil, exceptions.ProfileNotFoundError(err)
+		// the error is wrapped already. No need to wrap it agains
+		return nil, err
 	}
 	if profile == nil {
 		return nil, exceptions.ProfileNotFoundError(nil)
