@@ -26,6 +26,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, err
 	}
 	ext := extension.NewBaseExtensionImpl()
+	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(fr, ext)
 	profile := usecases.NewProfileUseCase(fr, otp, ext)
 	erp := erp.NewERPService(fr)
@@ -34,9 +35,9 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
-	login := usecases.NewLoginUseCases(fr, profile, ext)
+	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
-	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext)
+	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, ext)
 
 	return &interactor.Interactor{

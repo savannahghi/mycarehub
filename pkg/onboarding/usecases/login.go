@@ -6,7 +6,6 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -28,11 +27,19 @@ type LoginUseCasesImpl struct {
 	onboardingRepository repository.OnboardingRepository
 	profile              ProfileUseCase
 	baseExt              extension.BaseExtension
+	pinExt               extension.PINExtension
 }
 
 // NewLoginUseCases initializes a new sign up usecase
-func NewLoginUseCases(r repository.OnboardingRepository, p ProfileUseCase, ext extension.BaseExtension) LoginUseCases {
-	return &LoginUseCasesImpl{onboardingRepository: r, profile: p, baseExt: ext}
+func NewLoginUseCases(
+	r repository.OnboardingRepository, p ProfileUseCase,
+	ext extension.BaseExtension, pin extension.PINExtension) LoginUseCases {
+	return &LoginUseCasesImpl{
+		onboardingRepository: r,
+		profile:              p,
+		baseExt:              ext,
+		pinExt:               pin,
+	}
 }
 
 // LoginByPhone returns credentials that are used to log a user in
@@ -65,7 +72,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, exceptions.PinNotFoundError(nil)
 	}
 
-	matched := utils.ComparePIN(PIN, PINData.Salt, PINData.PINNumber, nil)
+	matched := l.pinExt.ComparePIN(PIN, PINData.Salt, PINData.PINNumber, nil)
 	if !matched {
 		return nil, exceptions.PinMismatchError(nil)
 
@@ -125,7 +132,7 @@ func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool
 		return false, exceptions.PinNotFoundError(nil)
 	}
 
-	matched := utils.ComparePIN(pin, PINData.Salt, PINData.PINNumber, nil)
+	matched := l.pinExt.ComparePIN(pin, PINData.Salt, PINData.PINNumber, nil)
 	if !matched {
 		// if the pins don't match, return false and dont throw an error.
 		return false, nil

@@ -1,4 +1,4 @@
-package utils
+package extension
 
 import (
 	"crypto/rand"
@@ -12,6 +12,16 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"golang.org/x/crypto/pbkdf2"
 )
+
+// PINExtension ...
+type PINExtension interface {
+	EncryptPIN(rawPwd string, options *Options) (string, string)
+	ComparePIN(rawPwd string, salt string, encodedPwd string, options *Options) bool
+}
+
+// PINExtensionImpl ...
+type PINExtensionImpl struct {
+}
 
 const (
 	// DefaultSaltLen is the length of generated salt for the user is 256
@@ -41,6 +51,11 @@ type Options struct {
 	HashFunction func() hash.Hash
 }
 
+// NewPINExtensionImpl ...
+func NewPINExtensionImpl() PINExtension {
+	return &PINExtensionImpl{}
+}
+
 func generateSalt(length int) []byte {
 	salt := make([]byte, length)
 	_, err := rand.Read(salt)
@@ -56,7 +71,7 @@ func generateSalt(length int) []byte {
 // EncryptPIN takes two arguments, a raw pin, and a pointer to an Options struct.
 // In order to use default options, pass `nil` as the second argument.
 // It returns the generated salt and encoded key for the user.
-func EncryptPIN(rawPwd string, options *Options) (string, string) {
+func (p PINExtensionImpl) EncryptPIN(rawPwd string, options *Options) (string, string) {
 	if options == nil {
 		salt := generateSalt(DefaultSaltLen)
 		encodedPwd := pbkdf2.Key([]byte(rawPwd), salt, defaultIterations, DefaultKeyLen, DefaultHashFunction)
@@ -70,7 +85,7 @@ func EncryptPIN(rawPwd string, options *Options) (string, string) {
 // ComparePIN takes four arguments, the raw password, its generated salt, the encoded password,
 // and a pointer to the Options struct, and returns a boolean value determining whether the password is the correct one or not.
 // Passing `nil` as the last argument resorts to default options.
-func ComparePIN(rawPwd string, salt string, encodedPwd string, options *Options) bool {
+func (p PINExtensionImpl) ComparePIN(rawPwd string, salt string, encodedPwd string, options *Options) bool {
 	if options == nil {
 		return encodedPwd == hex.EncodeToString(pbkdf2.Key([]byte(rawPwd), []byte(salt), defaultIterations, DefaultKeyLen, DefaultHashFunction))
 	}

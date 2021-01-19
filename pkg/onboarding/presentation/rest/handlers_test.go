@@ -38,6 +38,7 @@ import (
 var fakeRepo mockRepo.FakeOnboardingRepository
 var fakeOtp otpMock.FakeServiceOTP
 var fakeBaseExt extMock.FakeBaseExtensionImpl
+var fakePinExt extMock.PINExtensionImpl
 var serverUrl = "http://localhost:5000"
 
 // InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
@@ -50,14 +51,15 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var mailgunSvc mailgun.ServiceMailgun = &mailgunMock.FakeServiceMailgun{}
 	var messagingSvc messaging.ServiceMessaging = &messagingMock.FakeServiceMessaging{}
 	var ext extension.BaseExtension = &fakeBaseExt
+	var pinExt extension.PINExtension = &fakePinExt
 
 	profile := usecases.NewProfileUseCase(r, otpSvc, ext)
-	login := usecases.NewLoginUseCases(r, profile, ext)
+	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
 		r, profile, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, ext,
 	)
-	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext)
+	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
 
 	i, err := interactor.NewOnboardingInteractor(
@@ -127,6 +129,20 @@ func composeUIDPayload(t *testing.T, uid *string) *bytes.Buffer {
 	bs, err := json.Marshal(uidPayload)
 	if err != nil {
 		t.Errorf("unable to marshal token string to JSON: %s", err)
+	}
+	return bytes.NewBuffer(bs)
+}
+
+func composeLoginPayload(t *testing.T, phone, pin string, flavour base.Flavour) *bytes.Buffer {
+	payload := resources.LoginPayload{
+		PhoneNumber: &phone,
+		PIN:         &pin,
+		Flavour:     flavour,
+	}
+
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
 	}
 	return bytes.NewBuffer(bs)
 }
@@ -422,7 +438,7 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 			wantErr:    true,
 		},
 		{
-			name: "invalid_create_user_via_their_phone_number_fails",
+			name: "invalid_get_or_create_phone_returns_error",
 			args: args{
 				url:        fmt.Sprintf("%s/create_user_by_phone", serverUrl),
 				httpMethod: http.MethodPost,
@@ -450,6 +466,10 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				}
 				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
+				}
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
 				}
 				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
 					return &resources.CreatedUserResponse{
@@ -479,7 +499,9 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 						RefreshToken: "55550",
 					}, nil
 				}
-				// SetUserPINFn =
+				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
+					return "salt", "passw"
+				}
 				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
 						ID:         "5550",
@@ -530,6 +552,10 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, fmt.Errorf("unable to check phone")
 				}
@@ -541,15 +567,23 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return true, nil
 				}
 			}
 
 			// mock `GetOrCreatePhoneNumberUser` to return an error
-			if tt.name == "invalid_check_phone_exists_returns_true" {
+			if tt.name == "invalid_get_or_create_phone_returns_error" {
 				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
+				}
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
 				}
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
@@ -584,13 +618,6 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				if err != nil {
 					t.Errorf("bad data returned")
 					return
-				}
-				if !tt.wantErr {
-					_, ok := data["error"]
-					if ok {
-						t.Errorf("error not expected")
-						return
-					}
 				}
 			}
 		})
@@ -1328,6 +1355,355 @@ func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
 				return
 			}
 
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+	// payload
+	phone := "0712456784"
+	pin := "1897"
+	flavour := base.FlavourPro
+	payload := composeLoginPayload(t, phone, pin, flavour)
+
+	// payload1 : invalid:_get_userprofile_by_primary_phone_fails
+	phone1 := "0708598520"
+	pin1 := "1800"
+	flavour1 := base.FlavourConsumer
+	payload1 := composeLoginPayload(t, phone1, pin1, flavour1)
+
+	// payload2 : invalid:_get_pinbyprofileid_fails
+	phone2 := "0708590000"
+	pin2 := "1000"
+	flavour2 := base.FlavourConsumer
+	payload2 := composeLoginPayload(t, phone2, pin2, flavour2)
+
+	// payload3 invalid:_get_pinbyprofileid_returns_nil
+	phone3 := "0702123852"
+	pin3 := "1500"
+	flavour3 := base.FlavourConsumer
+	payload3 := composeLoginPayload(t, phone3, pin3, flavour3)
+
+	// payload4 invalid:_pin_mismatch
+	phone4 := "0702960230"
+	pin4 := "1023"
+	flavour4 := base.FlavourConsumer
+	payload4 := composeLoginPayload(t, phone4, pin4, flavour4)
+
+	// payload5 invalid:_generate_auth_credentials_fails
+	phone5 := "0705222888"
+	pin5 := "1093"
+	flavour5 := base.FlavourConsumer
+	payload5 := composeLoginPayload(t, phone5, pin5, flavour5)
+
+	// payload6 invalid:_generate_auth_credentials_fails
+	phone6 := "0702960111"
+	pin6 := "1253"
+	flavour6 := base.FlavourConsumer
+	payload6 := composeLoginPayload(t, phone6, pin6, flavour6)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_successfully_login_by_phone",
+			args: args{
+				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_get_userprofile_by_primary_phone_fails",
+			args: args{
+				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload1,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_get_pinbyprofileid_fails",
+			args: args{
+				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload2,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_get_pinbyprofileid_returns_nil",
+			args: args{
+				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload3,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_pin_mismatch",
+			args: args{
+				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload4,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_generate_auth_credentials_fails",
+			args: args{
+				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload5,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_unable_to_get_supplier_profile",
+			args: args{
+				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload6,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+			response := httptest.NewRecorder()
+			// we mock the required methods for a valid case
+			if tt.name == "valid:_successfully_login_by_phone" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "123",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID:           "125",
+								LoginProvider: "Phone",
+							},
+						},
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
+					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
+				}
+				fakePinExt.ComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return true
+				}
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+					return &base.AuthCredentialResponse{
+						UID: "5550",
+						// IDToken:      "555",
+						RefreshToken: "55550",
+					}, nil
+				}
+				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour base.Flavour, profileID string) (*base.Customer, *base.Supplier, error) {
+					return &base.Customer{ID: "5550"}, &base.Supplier{ID: "5550"}, nil
+				}
+			}
+
+			if tt.name == "invalid:_get_userprofile_by_primary_phone_fails" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get user profile")
+				}
+			}
+
+			if tt.name == "invalid:_get_pinbyprofileid_fails" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "123",
+					}, nil
+				}
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
+					return nil, fmt.Errorf("unable to get pin by profileID")
+				}
+
+			}
+
+			if tt.name == "invalid:_get_pinbyprofileid_returns_nil" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "123",
+					}, nil
+				}
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
+					return nil, nil
+				}
+			}
+
+			if tt.name == "invalid:_pin_mismatch" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "123",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID:           "125",
+								LoginProvider: "Phone",
+							},
+						},
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
+					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
+				}
+				fakePinExt.ComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return false
+				}
+			}
+
+			if tt.name == "invalid:_generate_auth_credentials_fails" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "123",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID:           "125",
+								LoginProvider: "Phone",
+							},
+						},
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
+					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
+				}
+				fakePinExt.ComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return true
+				}
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+					return nil, fmt.Errorf("unable to generate auth credentials")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_supplier_profile" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "123",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID:           "125",
+								LoginProvider: "Phone",
+							},
+						},
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
+					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
+				}
+				fakePinExt.ComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
+					return true
+				}
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+					return &base.AuthCredentialResponse{
+						UID: "5550",
+						// IDToken:      "555",
+						RefreshToken: "55550",
+					}, nil
+				}
+				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour base.Flavour, profileID string) (*base.Customer, *base.Supplier, error) {
+					return nil, nil, fmt.Errorf("unable to get supplier profile")
+				}
+			}
+
+			svr := h.LoginByPhone(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+			if !tt.wantErr {
+				data := map[string]interface{}{}
+				err = json.Unmarshal(dataResponse, &data)
+				if err != nil {
+					t.Errorf("bad data returned")
+					return
+				}
+				if !tt.wantErr {
+					_, ok := data["error"]
+					if ok {
+						t.Errorf("error not expected")
+						return
+					}
+				}
+			}
 		})
 	}
 }

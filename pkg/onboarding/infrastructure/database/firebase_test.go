@@ -15,7 +15,6 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
@@ -84,6 +83,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, err
 	}
 	ext := extension.NewBaseExtensionImpl()
+	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(fr, ext)
 	profile := usecases.NewProfileUseCase(fr, otp, ext)
 	erp := erp.NewERPService(fr)
@@ -92,9 +92,9 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
-	login := usecases.NewLoginUseCases(fr, profile, ext)
+	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
-	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext)
+	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, ext)
 
 	return &interactor.Interactor{
@@ -1169,7 +1169,8 @@ func TestRepository_SavePIN(t *testing.T) {
 
 	validPin := base.TestUserPin
 
-	salt, encryptedPin := utils.EncryptPIN(validPin, nil)
+	var pin extension.PINExtensionImpl
+	salt, encryptedPin := pin.EncryptPIN(validPin, nil)
 
 	validSavePinPayload := &domain.PIN{
 		ID:        uuid.New().String(),
@@ -1241,7 +1242,8 @@ func TestRepository_UpdatePIN(t *testing.T) {
 
 	validPin := base.TestUserPin
 
-	salt, encryptedPin := utils.EncryptPIN(validPin, nil)
+	var pin extension.PINExtensionImpl
+	salt, encryptedPin := pin.EncryptPIN(validPin, nil)
 
 	validSavePinPayload := &domain.PIN{
 		ID:        uuid.New().String(),

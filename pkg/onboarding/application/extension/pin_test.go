@@ -1,27 +1,28 @@
-package utils_test
+package extension_test
 
 import (
 	"encoding/hex"
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEncryptPIN(t *testing.T) {
+	pin := extension.NewPINExtensionImpl()
 	type args struct {
 		rawPwd  string
-		options *utils.Options
+		options *extension.Options
 	}
 
-	customOptions := utils.Options{
+	customOptions := extension.Options{
 		// salt length should be greater than 0
 		SaltLen:      0,
 		Iterations:   2,
 		KeyLen:       1,
-		HashFunction: utils.DefaultHashFunction,
+		HashFunction: extension.DefaultHashFunction,
 	}
 	tests := []struct {
 		name      string
@@ -49,32 +50,32 @@ func TestEncryptPIN(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			salt, encoded := utils.EncryptPIN(tt.args.rawPwd, tt.args.options)
+			salt, encoded := pin.EncryptPIN(tt.args.rawPwd, tt.args.options)
 			if tt.wantError {
-				if reflect.DeepEqual(len([]byte(salt)), utils.DefaultSaltLen) {
-					t.Error("Received length of salt:", len([]byte(salt)), "Expected length of salt:", utils.DefaultSaltLen)
+				if reflect.DeepEqual(len([]byte(salt)), extension.DefaultSaltLen) {
+					t.Error("Received length of salt:", len([]byte(salt)), "Expected length of salt:", extension.DefaultSaltLen)
 					return
 				}
 				encodedBytes, err := hex.DecodeString(encoded)
 				if err != nil {
 					t.Error("Encrypted Password not hex encoded properly")
 				}
-				if reflect.DeepEqual(len(encodedBytes), utils.DefaultKeyLen) {
-					t.Error("Received length of password:", len(encodedBytes), "Expected length of password:", utils.DefaultKeyLen)
+				if reflect.DeepEqual(len(encodedBytes), extension.DefaultKeyLen) {
+					t.Error("Received length of password:", len(encodedBytes), "Expected length of password:", extension.DefaultKeyLen)
 					return
 				}
 			}
 			if !tt.wantError {
-				if !reflect.DeepEqual(len([]byte(salt)), utils.DefaultSaltLen) {
-					t.Error("Received length of salt:", len([]byte(salt)), "Expected length of salt:", utils.DefaultSaltLen)
+				if !reflect.DeepEqual(len([]byte(salt)), extension.DefaultSaltLen) {
+					t.Error("Received length of salt:", len([]byte(salt)), "Expected length of salt:", extension.DefaultSaltLen)
 					return
 				}
 				encodedBytes, err := hex.DecodeString(encoded)
 				if err != nil {
 					t.Error("Encrypted Password not hex encoded properly")
 				}
-				if !reflect.DeepEqual(len(encodedBytes), utils.DefaultKeyLen) {
-					t.Error("Received length of password:", len(encodedBytes), "Expected length of password:", utils.DefaultKeyLen)
+				if !reflect.DeepEqual(len(encodedBytes), extension.DefaultKeyLen) {
+					t.Error("Received length of password:", len(encodedBytes), "Expected length of password:", extension.DefaultKeyLen)
 					return
 				}
 			}
@@ -84,12 +85,13 @@ func TestEncryptPIN(t *testing.T) {
 }
 
 func TestComparePIN(t *testing.T) {
-	salt, encoded := utils.EncryptPIN("1234", nil)
+	pin := extension.NewPINExtensionImpl()
+	salt, encoded := pin.EncryptPIN("1234", nil)
 	type args struct {
 		rawPwd     string
 		salt       string
 		encodedPwd string
-		options    *utils.Options
+		options    *extension.Options
 	}
 	tests := []struct {
 		name      string
@@ -133,7 +135,7 @@ func TestComparePIN(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			isEncypted := utils.ComparePIN(tt.args.rawPwd, tt.args.salt, tt.args.encodedPwd, tt.args.options)
+			isEncypted := pin.ComparePIN(tt.args.rawPwd, tt.args.salt, tt.args.encodedPwd, tt.args.options)
 			if !tt.wantError {
 				assert.True(t, isEncypted)
 				assert.Equal(t, tt.want, isEncypted)

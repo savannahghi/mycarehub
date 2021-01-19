@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -37,12 +39,12 @@ func ValidateSignUpInput(input *resources.SignUpInput) (*resources.SignUpInput, 
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
-	err = ValidatePINLength(*input.PIN)
+	err = extension.ValidatePINLength(*input.PIN)
 	if err != nil {
 		return nil, exceptions.ValidatePINLengthError(err)
 	}
 
-	err = ValidatePINDigits(*input.PIN)
+	err = extension.ValidatePINDigits(*input.PIN)
 	if err != nil {
 		return nil, exceptions.ValidatePINDigitsError(err)
 	}

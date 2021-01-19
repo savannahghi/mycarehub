@@ -119,6 +119,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}
 
 	ext := extension.NewBaseExtensionImpl()
+	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(fr, ext)
 	profile := usecases.NewProfileUseCase(fr, otp, ext)
 	erp := erp.NewERPService(fr)
@@ -127,9 +128,9 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
-	login := usecases.NewLoginUseCases(fr, profile, ext)
+	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
-	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext)
+	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, ext)
 
 	return &interactor.Interactor{
@@ -315,6 +316,7 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 var fakeRepo mockRepo.FakeOnboardingRepository
 var fakeOtp otpMock.FakeServiceOTP
 var fakeBaseExt extMock.FakeBaseExtensionImpl
+var fakePinExt extMock.PINExtensionImpl
 
 // InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
 func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
@@ -326,14 +328,15 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var mailgunSvc mailgun.ServiceMailgun = &mailgunMock.FakeServiceMailgun{}
 	var messagingSvc messaging.ServiceMessaging = &messagingMock.FakeServiceMessaging{}
 	var ext extension.BaseExtension = &fakeBaseExt
+	var pinExt extension.PINExtension = &fakePinExt
 
 	profile := usecases.NewProfileUseCase(r, otpSvc, ext)
-	login := usecases.NewLoginUseCases(r, profile, ext)
+	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
 		r, profile, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, ext,
 	)
-	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext)
+	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
 
 	i, err := interactor.NewOnboardingInteractor(

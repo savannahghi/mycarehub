@@ -60,19 +60,20 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate firebase repository in resolver: %w", err)
 	}
-	ext := extension.NewBaseExtensionImpl()
-	otp := otp.NewOTPService(fr, ext)
-	profile := usecases.NewProfileUseCase(fr, otp, ext)
+	baseExt := extension.NewBaseExtensionImpl()
+	pinExt := extension.NewPINExtensionImpl()
+	otp := otp.NewOTPService(fr, baseExt)
+	profile := usecases.NewProfileUseCase(fr, otp, baseExt)
 	erp := erp.NewERPService(fr)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
 	engage := engagement.NewServiceEngagementImpl(fr)
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
-	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
-	login := usecases.NewLoginUseCases(fr, profile, ext)
-	survey := usecases.NewSurveyUseCases(fr, ext)
-	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, ext)
+	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, baseExt)
+	login := usecases.NewLoginUseCases(fr, profile, baseExt, pinExt)
+	survey := usecases.NewSurveyUseCases(fr, baseExt)
+	userpin := usecases.NewUserPinUseCase(fr, otp, profile, baseExt, pinExt)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(
 		fr, profile, su, otp, supplier, login, survey, userpin, erp, chrg, engage, mg, mes,

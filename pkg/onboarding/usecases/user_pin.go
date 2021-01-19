@@ -8,7 +8,6 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -33,15 +32,20 @@ type UserPinUseCaseImpl struct {
 	otpUseCases          otp.ServiceOTP
 	profileUseCases      ProfileUseCase
 	baseExt              extension.BaseExtension
+	pinExt               extension.PINExtension
 }
 
 // NewUserPinUseCase returns a new UserPin usecase
-func NewUserPinUseCase(r repository.OnboardingRepository, otp otp.ServiceOTP, p ProfileUseCase, ext extension.BaseExtension) UserPINUseCases {
+func NewUserPinUseCase(
+	r repository.OnboardingRepository,
+	otp otp.ServiceOTP, p ProfileUseCase,
+	ext extension.BaseExtension, pin extension.PINExtension) UserPINUseCases {
 	return &UserPinUseCaseImpl{
 		onboardingRepository: r,
 		otpUseCases:          otp,
 		profileUseCases:      p,
 		baseExt:              ext,
+		pinExt:               pin,
 	}
 }
 
@@ -52,11 +56,11 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
-	if err := utils.ValidatePINLength(pin); err != nil {
+	if err := extension.ValidatePINLength(pin); err != nil {
 		return false, exceptions.ValidatePINLengthError(err)
 	}
 
-	if err = utils.ValidatePINDigits(pin); err != nil {
+	if err = extension.ValidatePINDigits(pin); err != nil {
 		return false, exceptions.ValidatePINDigitsError(err)
 	}
 
@@ -65,7 +69,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 		return false, exceptions.ProfileNotFoundError(err)
 	}
 	// EncryptPIN the PIN
-	salt, encryptedPin := utils.EncryptPIN(pin, nil)
+	salt, encryptedPin := u.pinExt.EncryptPIN(pin, nil)
 
 	pinPayload := &domain.PIN{
 		ID:        uuid.New().String(),
@@ -139,7 +143,7 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 	}
 
 	// EncryptPIN the PIN
-	salt, encryptedPin := utils.EncryptPIN(PIN, nil)
+	salt, encryptedPin := u.pinExt.EncryptPIN(PIN, nil)
 	if err != nil {
 		return false, exceptions.EncryptPINError(err)
 	}
@@ -175,7 +179,7 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 	}
 
 	// EncryptPIN the PIN
-	salt, encryptedPin := utils.EncryptPIN(pin, nil)
+	salt, encryptedPin := u.pinExt.EncryptPIN(pin, nil)
 	if err != nil {
 		return false, exceptions.EncryptPINError(err)
 	}

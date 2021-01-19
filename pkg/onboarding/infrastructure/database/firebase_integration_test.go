@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 )
@@ -163,7 +163,8 @@ func TestPurgeUserByPhoneNumber(t *testing.T) {
 	pin, err = fr.GetPINByProfileID(ctx, invalidpr1.ID)
 	assert.Nil(t, err)
 	assert.NotNil(t, pin)
-	matched := utils.ComparePIN(userpin, pin.Salt, pin.PINNumber, nil)
+	var pinExt extension.PINExtensionImpl
+	matched := pinExt.ComparePIN(userpin, pin.Salt, pin.PINNumber, nil)
 	assert.Equal(t, true, matched)
 
 	// now remove. this should pass even though customer/supplier profile don't exist. What must be removed is the pins
