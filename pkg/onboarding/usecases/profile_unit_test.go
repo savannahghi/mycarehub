@@ -1043,3 +1043,111 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 		})
 	}
 }
+
+func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx   context.Context
+		perms []base.PermissionType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: succefully updates permissions",
+			args: args{
+				ctx:   ctx,
+				perms: []base.PermissionType{base.PermissionTypeSuperAdmin},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: get logged in user uid fails",
+			args: args{
+				ctx:   ctx,
+				perms: []base.PermissionType{base.PermissionTypeSuperAdmin},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: get user profile by UID fails",
+			args: args{
+				ctx:   ctx,
+				perms: []base.PermissionType{base.PermissionTypeSuperAdmin},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: update permissions fails",
+			args: args{
+				ctx:   ctx,
+				perms: []base.PermissionType{base.PermissionTypeSuperAdmin},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid: succefully updates permissions" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: "12334"}, nil
+				}
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid: get logged in user uid fails" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get loggeg in user UID")
+				}
+			}
+
+			if tt.name == "invalid: get user profile by UID fails" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("failed to get user profile by UID")
+				}
+			}
+
+			if tt.name == "invalid: update permissions fails" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: "12334"}, nil
+				}
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+					return fmt.Errorf("unable to update permissions")
+				}
+			}
+
+			err := i.Onboarding.UpdatePermissions(tt.args.ctx, tt.args.perms)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}

@@ -403,7 +403,7 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken str
 
 // UpdatePermissions updates the profiles permissions
 func (p *ProfileUseCaseImpl) UpdatePermissions(ctx context.Context, perms []base.PermissionType) error {
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
