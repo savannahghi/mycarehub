@@ -2732,3 +2732,65 @@ func TestRepository_GenerateAuthCredentials(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_FetchAdminUsers(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fr, err := database.NewFirebaseRepository(ctx)
+	if err != nil {
+		t.Errorf("failed to create new Firebase Repository: %v", err)
+		return
+	}
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	permissions := base.DefaultAdminPermissions
+
+	err = fr.UpdatePermissions(ctx, userProfile.ID, permissions)
+	if err != nil {
+		t.Errorf("failed to update user permissions: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*base.UserProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Fetch admin users",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			adminResponse, err := fr.FetchAdminUsers(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.FetchAdminUsers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				if len(adminResponse) == 0 {
+					t.Errorf("nil admin response")
+					return
+				}
+
+			}
+		})
+	}
+}

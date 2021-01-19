@@ -1408,10 +1408,11 @@ func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, kycRequest
 // FetchAdminUsers fetches all admins
 func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile, error) {
 	collection := fr.FirestoreClient.Collection(fr.GetUserProfileCollectionName())
-	query := collection.Where("permissions", "array-contains", base.PermissionTypeSuperAdmin).Where("permissions", "array-contains", base.PermissionTypeAdmin)
+	query := collection.Where("permissions", "array-contains-any", base.DefaultAdminPermissions)
 	docs, err := query.Documents(ctx).GetAll()
+	log.Println("The admin profile is:", docs)
 	if err != nil {
-		return nil, exceptions.InternalServerError(err)
+		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
 	var admins []*base.UserProfile
 	for _, doc := range docs {
