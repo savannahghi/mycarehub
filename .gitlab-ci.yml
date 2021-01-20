@@ -17,9 +17,11 @@ lint_and_test:
   stage: test
   before_script:
     - bash decrypt_service_account.sh
-    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"    
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com" 
+    - curl -L -o ./install-misspell.sh https://git.io/misspell && sh ./install-misspell.sh   
   script:
     - staticcheck ./...
+    - misspell .
     - go fmt $(go list ./... | grep -v /vendor/)
     - go vet $(go list ./... | grep -v /vendor/)
     - golint -set_exit_status $(go list ./... | grep -v /vendor/)

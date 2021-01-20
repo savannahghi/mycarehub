@@ -159,7 +159,8 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
-		return false, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return false, err
 	}
 
 	v, err := s.repo.AddPartnerType(ctx, profile.ID, name, partnerType)
@@ -176,7 +177,8 @@ func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context,
 
 	profile, err := s.profile.UserProfile(ctx)
 	if err != nil {
-		return nil, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	currency, err := base.FetchDefaultCurrency(s.erp.FetchERPClient())
@@ -256,7 +258,8 @@ func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType bas
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
-		return nil, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	sup, err := s.repo.AddSupplierAccountType(ctx, profile.ID, accountType)
@@ -287,12 +290,14 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error)
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
-		return false, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return false, err
 	}
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return false, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return false, err
 	}
 
 	sup.Active = false
@@ -365,12 +370,14 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
-		return nil, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	supplier, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	supplier.AccountType = base.AccountTypeIndividual
@@ -515,12 +522,14 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
-		return false, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return false, err
 	}
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return false, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return false, err
 	}
 
 	// fetch the branches of the provider filtered by ParentOrganizationID
@@ -567,7 +576,8 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	// fetch the branches of the provider filtered by ParentOrganizationID
@@ -794,7 +804,8 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(ctx context.Contex
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 
 	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
@@ -847,7 +858,8 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input 
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if !sup.KYCSubmitted {
@@ -902,7 +914,8 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(ctx context.Context, inpu
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if !sup.KYCSubmitted {
@@ -954,7 +967,8 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context,
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if !sup.KYCSubmitted {
@@ -1011,7 +1025,8 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Contex
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if !sup.KYCSubmitted {
@@ -1071,7 +1086,8 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, i
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if !sup.KYCSubmitted {
@@ -1141,7 +1157,8 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(ctx context.Contex
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if !sup.KYCSubmitted {
@@ -1190,7 +1207,8 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(ctx context.Contex
 func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if !sup.KYCSubmitted {
@@ -1247,7 +1265,8 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Cont
 func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if !sup.KYCSubmitted {
@@ -1295,7 +1314,8 @@ func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(ctx context.Context, input 
 func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if !sup.KYCSubmitted {
@@ -1347,7 +1367,8 @@ func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(ctx context.Context, inpu
 func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if !sup.KYCSubmitted {
@@ -1391,7 +1412,8 @@ func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(ctx context.Context, in
 func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		return nil, exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if !sup.KYCSubmitted {
@@ -1492,7 +1514,8 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 	// get user profile
 	pr, err := s.profile.GetProfileByID(ctx, req.SupplierRecord.ProfileID)
 	if err != nil {
-		return false, exceptions.ProfileNotFoundError(fmt.Errorf("failed to get a user profile"))
+		// this is a wrapped error. No need to wrap it again
+		return false, err
 	}
 
 	supplierEmails := func(profile *base.UserProfile) []string {
@@ -1535,12 +1558,14 @@ func (s *SupplierUseCasesImpl) RetireKYCRequest(ctx context.Context) error {
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 
 	sup, err := s.repo.GetSupplierProfileByProfileID(ctx, profile.ID)
 	if err != nil {
-		return exceptions.SupplierNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 
 	if err := s.repo.RemoveKYCProcessingRequest(ctx, sup.ID); err != nil {

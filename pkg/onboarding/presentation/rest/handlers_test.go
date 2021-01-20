@@ -707,7 +707,7 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 					return &phone, nil
 				}
 				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("unable to retreive profile")
+					return nil, fmt.Errorf("unable to retrieve profile")
 				}
 			}
 
@@ -758,7 +758,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 	}
 
 	h := rest.NewHandlersInterfaces(i)
-	// payload sucessfully_request_pin_reset
+	// payload successfully_request_pin_reset
 	payload := composeValidPhonePayload(t, base.TestUserPhoneNumber)
 	// _phone_number_invalid
 	payload1 := composeValidPhonePayload(t, "")
@@ -780,7 +780,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "valid:sucessfully_request_pin_reset",
+			name: "valid:successfully_request_pin_reset",
 			args: args{
 				url:        fmt.Sprintf("%s/request_pin_reset", serverUrl),
 				httpMethod: http.MethodPost,
@@ -842,7 +842,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 				}
 			}
 
-			if tt.name == "valid:sucessfully_request_pin_reset" {
+			if tt.name == "valid:successfully_request_pin_reset" {
 				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",
@@ -962,7 +962,7 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 			wantErr:    true,
 		},
 		{
-			name: "valid:sucessfully_reset_pin",
+			name: "valid:successfully_reset_pin",
 			args: args{
 				url:        fmt.Sprintf("%s/reset_pin", serverUrl),
 				httpMethod: http.MethodPost,
@@ -994,7 +994,7 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 			response := httptest.NewRecorder()
 			// we mock the required methods for a valid case
-			if tt.name == "valid:sucessfully_reset_pin" {
+			if tt.name == "valid:successfully_reset_pin" {
 				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",

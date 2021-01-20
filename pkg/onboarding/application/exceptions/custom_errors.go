@@ -19,9 +19,8 @@ func UserNotFoundError(err error) error {
 }
 
 // ProfileNotFoundError returns an error message when a profile is not found
-func ProfileNotFoundError(err error) error {
+func ProfileNotFoundError() error {
 	return &base.CustomError{
-		Err:     err,
 		Message: ProfileNotFoundErrMsg,
 		Code:    int(base.ProfileNotFound),
 	}
@@ -331,16 +330,20 @@ func FetchDefaultCurrencyError(err error) error {
 }
 
 // SupplierNotFoundError returns an error message when a supplier is not found
-func SupplierNotFoundError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: SupplierNotFoundErrMsg,
-			// TODO: provide a correct code
-			Code: int(base.UserNotFound),
-		}
+func SupplierNotFoundError() error {
+	return &base.CustomError{
+		Message: SupplierNotFoundErrMsg,
+		Code:    int(base.ProfileNotFound),
 	}
-	return nil
+
+}
+
+// CustomerNotFoundError returns an error message when a customer is not found
+func CustomerNotFoundError() error {
+	return &base.CustomError{
+		Message: CustomerNotFoundErrMsg,
+		Code:    int(base.ProfileNotFound),
+	}
 }
 
 // SupplierKYCAlreadySubmittedNotFoundError is returned when the user trys to

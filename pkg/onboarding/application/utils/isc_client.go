@@ -15,7 +15,7 @@ func NewInterServiceClient(serviceName string) *base.InterServiceClient {
 	//os file and parse it to go type
 	file, err := ioutil.ReadFile(filepath.Clean(base.PathToDepsFile()))
 	if err != nil {
-		log.Errorf("error occured while opening deps file %v", err)
+		log.Errorf("error occurred while opening deps file %v", err)
 		os.Exit(1)
 	}
 	var config base.DepsConfig

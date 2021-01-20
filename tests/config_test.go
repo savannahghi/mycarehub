@@ -246,7 +246,7 @@ func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {
 }
 
 func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {
-	// create a user and thier profile
+	// create a user and their profile
 	phoneNumber := base.TestUserPhoneNumber
 	resp, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {

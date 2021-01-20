@@ -164,7 +164,8 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *resou
 	// get the old user profile
 	pr, err := s.profileUsecase.UserProfile(ctx)
 	if err != nil {
-		return nil, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if input.PhotoUploadID != nil {
@@ -221,7 +222,8 @@ func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Fl
 	if flavour == base.FlavourConsumer {
 		pr, err := s.profileUsecase.UserProfile(ctx)
 		if err != nil {
-			return false, exceptions.ProfileNotFoundError(err)
+			// this is a wrapped error. No need to wrap it again
+			return false, err
 		}
 		if pr.UserBioData.FirstName == nil || pr.UserBioData.LastName == nil {
 			return false, exceptions.CompleteSignUpError(nil)
@@ -253,7 +255,8 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 
 	pr, err := s.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
-		return nil, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	// cherrypick the phone numbers and mask them

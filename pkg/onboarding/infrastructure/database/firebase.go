@@ -154,7 +154,7 @@ func (fr *Repository) GetUserProfileByUID(
 		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) == 0 {
-		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("failed to get a user profile"))
+		return nil, exceptions.ProfileNotFoundError()
 	}
 	if len(docs) > 1 && base.IsDebug() {
 		log.Printf("user with uids %s has > 1 profile (they have %d)", uid, len(docs))
@@ -185,7 +185,7 @@ func (fr *Repository) GetUserProfileByID(
 	}
 
 	if len(docs) == 0 {
-		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("failed to get a user profile"))
+		return nil, exceptions.ProfileNotFoundError()
 	}
 	dsnap := docs[0]
 	userProfile := &base.UserProfile{}
@@ -310,7 +310,7 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) == 0 {
-		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("%v", base.ProfileNotFound))
+		return nil, exceptions.ProfileNotFoundError()
 	}
 	dsnap := docs[0]
 	profile := &base.UserProfile{}
@@ -355,7 +355,7 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 		return pr, nil
 	}
 
-	return nil, exceptions.InternalServerError(fmt.Errorf("%v", base.ProfileNotFound))
+	return nil, exceptions.ProfileNotFoundError()
 
 }
 
@@ -511,7 +511,8 @@ func (fr *Repository) GenerateAuthCredentials(
 	}
 	pr, err := fr.GetUserProfileByPrimaryPhoneNumber(ctx, phone)
 	if err != nil {
-		return nil, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	if err := fr.UpdateVerifiedIdentifiers(ctx, pr.ID, []base.VerifiedIdentifier{{
@@ -565,7 +566,8 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 	profile.UserName = &userName
 
@@ -587,7 +589,8 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, phoneNumber string) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 	profile.PrimaryPhone = &phoneNumber
 
@@ -609,7 +612,8 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, emailAddress string) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 	profile.PrimaryEmailAddress = &emailAddress
 
@@ -633,7 +637,8 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string, phoneNumbers []string) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 
 	// check the phone number been added are unique, does not currently existing the user's profile and is not the primary phone number
@@ -671,7 +676,8 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id string, uniqueEmailAddresses []string) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 
 	// check the email addresses been added are unique , does not currently existing the user's profile and is not the primary email address
@@ -706,7 +712,8 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status bool) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 	profile.Suspended = status
 
@@ -729,7 +736,8 @@ func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status boo
 func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, uploadID string) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 	profile.PhotoUploadID = uploadID
 
@@ -751,7 +759,8 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base.Cover) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 	// check that the new cover been added is unique and does not currently exist in the user's profile
 	newCovers := []base.Cover{}
@@ -789,7 +798,8 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushTokens []string) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 
 	profile.PushTokens = pushTokens
@@ -812,7 +822,8 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []base.PermissionType) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 
 	newPerms := []base.PermissionType{}
@@ -849,7 +860,8 @@ func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []
 func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.BioData) error {
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 
 	profile.UserBioData.FirstName = func(pr *base.UserProfile, dt base.BioData) *string {
@@ -897,7 +909,8 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 		// for each run, get the user profile. this will ensure the fetch profile always has the latest data
 		profile, err := fr.GetUserProfileByID(ctx, id)
 		if err != nil {
-			return exceptions.ProfileNotFoundError(err)
+			// this is a wrapped error. No need to wrap it again
+			return err
 		}
 
 		if !checkIdentifierExists(profile, identifier.UID) {
@@ -942,7 +955,8 @@ func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []
 		// for each run, get the user profile. this will ensure the fetch profile always has the latest data
 		profile, err := fr.GetUserProfileByID(ctx, id)
 		if err != nil {
-			return exceptions.ProfileNotFoundError(err)
+			// this is a wrapped error. No need to wrap it again
+			return err
 		}
 
 		if !base.StringSliceContains(profile.VerifiedUIDS, uid) {
@@ -1115,7 +1129,7 @@ func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profile
 	}
 
 	if len(docs) == 0 {
-		return nil, exceptions.InternalServerError(fmt.Errorf("customer profile not found: %w", err))
+		return nil, exceptions.CustomerNotFoundError()
 	}
 	dsnap := docs[0]
 	cus := &base.Customer{}
@@ -1140,7 +1154,7 @@ func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profile
 	}
 
 	if len(docs) == 0 {
-		return nil, exceptions.InternalServerError(fmt.Errorf("supplier profile not found: %w", err))
+		return nil, exceptions.SupplierNotFoundError()
 	}
 	dsnap := docs[0]
 	sup := &base.Supplier{}
@@ -1572,7 +1586,8 @@ func (fr *Repository) HardResetSecondaryPhoneNumbers(ctx context.Context, id str
 
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 
 	profile.SecondaryPhoneNumbers = newSecondaryPhoneNumbers
@@ -1598,7 +1613,8 @@ func (fr *Repository) HardResetSecondaryEmailAddress(ctx context.Context, id str
 
 	profile, err := fr.GetUserProfileByID(ctx, id)
 	if err != nil {
-		return exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return err
 	}
 
 	profile.SecondaryEmailAddresses = newSecondaryEmails

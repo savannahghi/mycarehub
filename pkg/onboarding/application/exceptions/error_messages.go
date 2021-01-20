@@ -101,7 +101,7 @@ const (
 
 	// AddPartnerTypeErrMsg is an error message displayed when there is a
 	// failure to create a partner type
-	AddPartnerTypeErrMsg = "error occured while adding partner type"
+	AddPartnerTypeErrMsg = "error occurred while adding partner type"
 
 	// InvalidPartnerTypeErrMsg is an error message displayed when an
 	// invalid partner type is provided
@@ -114,6 +114,10 @@ const (
 	// SupplierNotFoundErrMsg is an error message displayed when a supplier
 	// profile is not found
 	SupplierNotFoundErrMsg = "unable to get the user supplier profile"
+
+	// CustomerNotFoundErrMsg  is an error message displayed when a customer
+	// profile is not found
+	CustomerNotFoundErrMsg = "unable to get the user customer profile"
 
 	// SupplierKYCAlreadySubmittedErrMsg thrown when another kyc is been submitted whne an old exists
 	// A supplier should have only one kyc

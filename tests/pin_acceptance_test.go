@@ -315,7 +315,7 @@ func TestRequestPINReset(t *testing.T) {
 }
 
 func TestUpdateUserPIN(t *testing.T) {
-	// create a user and thier profile
+	// create a user and their profile
 	phoneNumber := base.TestUserPhoneNumber
 	_, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {

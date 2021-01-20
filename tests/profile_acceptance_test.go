@@ -385,7 +385,7 @@ func TestUserProfile(t *testing.T) {
 				return
 			}
 			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("Bad status reponse returned")
+				t.Errorf("Bad status response returned")
 				return
 			}
 			dataResponse, err := ioutil.ReadAll(resp.Body)
@@ -692,7 +692,7 @@ func TestUpdateCovers(t *testing.T) {
 				t.Errorf("bad data returned")
 				return
 			}
-			// TODO ! uncomment/ remove after error message format has been standerdized
+			// TODO ! uncomment/ remove after error message format has been standardized
 			// TODO! assert some data
 			// if tt.wantErr {
 			// 	errMsg, ok := data["error"]

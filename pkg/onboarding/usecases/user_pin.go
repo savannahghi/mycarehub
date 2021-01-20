@@ -66,7 +66,8 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 
 	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
-		return false, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return false, err
 	}
 	// EncryptPIN the PIN
 	salt, encryptedPin := u.pinExt.EncryptPIN(pin, nil)
@@ -95,7 +96,8 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 
 	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
-		return nil, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
 	}
 
 	exists, err := u.CheckHasPIN(ctx, pr.ID)
@@ -134,7 +136,8 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 
 	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
-		return false, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return false, err
 	}
 
 	exists, err := u.CheckHasPIN(ctx, profile.ID)
@@ -170,7 +173,8 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 
 	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
-		return false, exceptions.ProfileNotFoundError(err)
+		// this is a wrapped error. No need to wrap it again
+		return false, err
 	}
 
 	exists, err := u.CheckHasPIN(ctx, profile.ID)

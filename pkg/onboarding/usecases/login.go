@@ -57,16 +57,17 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 
 	profile, err := l.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
-		// the error is wrapped already. No need to wrap it agains
+		// the error is wrapped already. No need to wrap it again
 		return nil, err
 	}
 	if profile == nil {
-		return nil, exceptions.ProfileNotFoundError(nil)
+		return nil, exceptions.ProfileNotFoundError()
 	}
 
 	PINData, err := l.onboardingRepository.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
-		return nil, exceptions.PinNotFoundError(err)
+		// the error is wrapped already. No need to wrap it again
+		return nil, err
 	}
 	if PINData == nil {
 		return nil, exceptions.PinNotFoundError(nil)
@@ -118,10 +119,11 @@ func (l *LoginUseCasesImpl) LoginAsAnonymous(ctx context.Context) (*base.AuthCre
 func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool, error) {
 	profile, err := l.profile.UserProfile(ctx)
 	if err != nil {
-		return false, exceptions.ProfileNotFoundError(err)
+		// the error is wrapped already. No need to wrap it again
+		return false, err
 	}
 	if profile == nil {
-		return false, exceptions.ProfileNotFoundError(nil)
+		return false, exceptions.ProfileNotFoundError()
 	}
 
 	PINData, err := l.onboardingRepository.GetPINByProfileID(ctx, profile.ID)

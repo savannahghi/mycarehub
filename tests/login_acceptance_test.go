@@ -268,7 +268,7 @@ func TestLoginInByPhone(t *testing.T) {
 				t.Errorf("bad data returned")
 				return
 			}
-			// TODO ! uncomment/ remove after error message format has been standerdized
+			// TODO ! uncomment/ remove after error message format has been standardized
 			// TODO! assert some data
 			// if tt.wantErr {
 			// 	errMsg, ok := data["error"]
@@ -537,7 +537,7 @@ func TestRefreshToken(t *testing.T) {
 				t.Errorf("bad data returned")
 				return
 			}
-			// TODO ! uncomment/ remove after error message format has been standerdized
+			// TODO ! uncomment/ remove after error message format has been standardized
 			// TODO! assert some data
 			// if tt.wantErr {
 			// 	errMsg, ok := data["error"]

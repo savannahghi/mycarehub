@@ -82,7 +82,7 @@ func TestProfileUseCaseImpl_GetUserProfileByUID(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "sucess: get a user profile given their UID",
+			name: "success: get a user profile given their UID",
 			args: args{
 				ctx: ctx,
 				UID: auth.UID,
@@ -193,7 +193,7 @@ func TestProfileUseCaseImpl_GetProfileByID(t *testing.T) {
 
 	profile, err := s.Onboarding.UserProfile(ctx)
 	if err != nil {
-		t.Errorf("could not retreive user profile")
+		t.Errorf("could not retrieve user profile")
 		return
 	}
 
@@ -207,7 +207,7 @@ func TestProfileUseCaseImpl_GetProfileByID(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid: user profile retreived",
+			name: "valid: user profile retrieved",
 			args: args{
 				ctx: ctx,
 				id:  &profile.ID,
@@ -614,7 +614,7 @@ func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid:_update_name_suceeds",
+			name: "valid:_update_name_succeeds",
 			args: args{
 				ctx:      ctx,
 				userName: "kamau",
@@ -632,7 +632,7 @@ func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "valid:_update_name_suceeds" {
+			if tt.name == "valid:_update_name_succeeds" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
@@ -686,7 +686,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid:_update_name_suceeds",
+			name: "valid:_update_name_succeeds",
 			args: args{
 				ctx: ctx,
 				identifiers: []base.VerifiedIdentifier{
@@ -728,7 +728,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "valid:_update_name_suceeds" {
+			if tt.name == "valid:_update_name_succeeds" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
@@ -793,7 +793,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid:_update_email_suceeds",
+			name: "valid:_update_email_succeeds",
 			args: args{
 				ctx:          ctx,
 				emailAddress: primaryEmail,
@@ -836,7 +836,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if tt.name == "valid:_update_email_suceeds" {
+			if tt.name == "valid:_update_email_succeeds" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
@@ -943,7 +943,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid:_set_primary_address_suceeds",
+			name: "valid:_set_primary_address_succeeds",
 			args: args{
 				ctx:          ctx,
 				emailAddress: primaryEmail,
@@ -981,7 +981,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "valid:_set_primary_address_suceeds" {
+			if tt.name == "valid:_set_primary_address_succeeds" {
 				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}

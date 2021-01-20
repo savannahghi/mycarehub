@@ -2452,7 +2452,7 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 				}
 			}
 			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("Bad status reponse returned")
+				t.Errorf("Bad status response returned")
 				return
 			}
 
