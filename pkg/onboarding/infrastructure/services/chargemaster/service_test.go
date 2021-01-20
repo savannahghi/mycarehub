@@ -10,16 +10,10 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 )
 
 func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
-	fr, err := database.NewFirebaseRepository(context.Background())
-	if err != nil {
-		t.Errorf("can't instantiate firebase repository in resolver: %w", err)
-		return
-	}
-	cm := NewChargeMasterUseCasesImpl(fr)
+	cm := NewChargeMasterUseCasesImpl()
 	assert.NotNil(t, cm)
 	type args struct {
 		ctx        context.Context
@@ -151,12 +145,7 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 }
 
 func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
-	fr, err := database.NewFirebaseRepository(context.Background())
-	if err != nil {
-		t.Errorf("can't instantiate firebase repository in resolver: %w", err)
-		return
-	}
-	cm := NewChargeMasterUseCasesImpl(fr)
+	cm := NewChargeMasterUseCasesImpl()
 	assert.NotNil(t, cm)
 	type args struct {
 		ctx        context.Context
@@ -343,14 +332,8 @@ func Test_parentOrgSladeCodeFromBranch(t *testing.T) {
 }
 
 func TestServiceChargeMasterImpl_FetchProviderByID(t *testing.T) {
-	fr, err := database.NewFirebaseRepository(context.Background())
-	if err != nil {
-		t.Errorf("can't instantiate firebase repository in resolver: %w", err)
-		return
-	}
-
 	ctx := context.Background()
-	cm := NewChargeMasterUseCasesImpl(fr)
+	cm := NewChargeMasterUseCasesImpl()
 
 	pagination := &base.PaginationInput{}
 	filter := []*resources.BusinessPartnerFilterInput{}

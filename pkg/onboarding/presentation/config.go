@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
@@ -34,6 +36,7 @@ import (
 const (
 	mbBytes              = 1048576
 	serverTimeoutSeconds = 120
+	otpService           = "otp"
 )
 
 // AllowedOrigins is list of CORS origins allowed to interact with
@@ -62,11 +65,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	}
 	baseExt := extension.NewBaseExtensionImpl()
 	pinExt := extension.NewPINExtensionImpl()
-	otp := otp.NewOTPService(fr, baseExt)
+	otpClient := utils.NewInterServiceClient(otpService)
+	otp := otp.NewOTPService(otpClient, baseExt)
 	profile := usecases.NewProfileUseCase(fr, otp, baseExt)
-	erp := erp.NewERPService(fr)
-	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
-	engage := engagement.NewServiceEngagementImpl(fr)
+	erp := erp.NewERPService()
+	chrg := chargemaster.NewChargeMasterUseCasesImpl()
+	engage := engagement.NewServiceEngagementImpl()
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, baseExt)

@@ -7,7 +7,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 // ServiceERP represents logic required to communicate with ERP
@@ -22,7 +21,7 @@ type ServiceERPImpl struct {
 }
 
 // NewERPService returns new instance of ServiceImpl
-func NewERPService(r repository.OnboardingRepository) ServiceERP {
+func NewERPService() ServiceERP {
 
 	erpClient, err := base.NewERPClient()
 	if err != nil {

@@ -11,7 +11,6 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 const (
@@ -71,7 +70,7 @@ type ServiceChargeMasterImpl struct {
 }
 
 // NewChargeMasterUseCasesImpl ...
-func NewChargeMasterUseCasesImpl(r repository.OnboardingRepository) ServiceChargeMaster {
+func NewChargeMasterUseCasesImpl() ServiceChargeMaster {
 
 	clientID := base.MustGetEnvVar(ChargeMasterClientIDEnvVarName)
 	clientSecret := base.MustGetEnvVar(ChargeMasterClientSecretEnvVarName)

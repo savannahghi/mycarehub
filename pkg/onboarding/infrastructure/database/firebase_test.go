@@ -15,6 +15,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
@@ -26,6 +27,8 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
+
+const otpService = "otp"
 
 func TestMain(m *testing.M) {
 	log.Printf("Setting tests up ...")
@@ -84,11 +87,12 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}
 	ext := extension.NewBaseExtensionImpl()
 	pinExt := extension.NewPINExtensionImpl()
-	otp := otp.NewOTPService(fr, ext)
+	otpClient := utils.NewInterServiceClient(otpService)
+	otp := otp.NewOTPService(otpClient, ext)
 	profile := usecases.NewProfileUseCase(fr, otp, ext)
-	erp := erp.NewERPService(fr)
-	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
-	engage := engagement.NewServiceEngagementImpl(fr)
+	erp := erp.NewERPService()
+	chrg := chargemaster.NewChargeMasterUseCasesImpl()
+	engage := engagement.NewServiceEngagementImpl()
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)

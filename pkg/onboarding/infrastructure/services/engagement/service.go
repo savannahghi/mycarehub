@@ -6,7 +6,6 @@ import (
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 const engagementService = "engagement"
@@ -29,7 +28,7 @@ type ServiceEngagementImpl struct {
 }
 
 // NewServiceEngagementImpl ...
-func NewServiceEngagementImpl(r repository.OnboardingRepository) ServiceEngagement {
+func NewServiceEngagementImpl() ServiceEngagement {
 
 	client := utils.NewInterServiceClient(engagementService)
 

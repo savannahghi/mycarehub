@@ -6,6 +6,8 @@ import (
 	"log"
 	"testing"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -20,6 +22,8 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
+const otpService = "otp"
+
 func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) {
 	fr, err := NewFirebaseRepository(ctx)
 	if err != nil {
@@ -27,11 +31,12 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}
 	ext := extension.NewBaseExtensionImpl()
 	pinExt := extension.NewPINExtensionImpl()
-	otp := otp.NewOTPService(fr, ext)
+	otpClient := utils.NewInterServiceClient(otpService)
+	otp := otp.NewOTPService(otpClient, ext)
 	profile := usecases.NewProfileUseCase(fr, otp, ext)
-	erp := erp.NewERPService(fr)
-	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
-	engage := engagement.NewServiceEngagementImpl(fr)
+	erp := erp.NewERPService()
+	chrg := chargemaster.NewChargeMasterUseCasesImpl()
+	engage := engagement.NewServiceEngagementImpl()
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)

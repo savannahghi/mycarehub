@@ -12,6 +12,8 @@ import (
 	"os"
 	"testing"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -44,6 +46,7 @@ const (
 	testEDIPortalUsername    = "avenue-4190@healthcloud.co.ke"
 	testEDIPortalPassword    = "test provider"
 	testChargeMasterBranchID = "94294577-6b27-4091-9802-1ce0f2ce4153"
+	otpService               = "otp"
 )
 
 /// these are set up once in TestMain and used by all the acceptance tests in
@@ -88,11 +91,12 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}
 	ext := extension.NewBaseExtensionImpl()
 	pinExt := extension.NewPINExtensionImpl()
-	otp := otp.NewOTPService(fr, ext)
+	otpClient := utils.NewInterServiceClient(otpService)
+	otp := otp.NewOTPService(otpClient, ext)
 	profile := usecases.NewProfileUseCase(fr, otp, ext)
-	erp := erp.NewERPService(fr)
-	chrg := chargemaster.NewChargeMasterUseCasesImpl(fr)
-	engage := engagement.NewServiceEngagementImpl(fr)
+	erp := erp.NewERPService()
+	chrg := chargemaster.NewChargeMasterUseCasesImpl()
+	engage := engagement.NewServiceEngagementImpl()
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
