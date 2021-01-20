@@ -163,7 +163,7 @@ func (o *ServiceOTPImpl) VerifyOTP(ctx context.Context, phone, otp string) (bool
 	return r.IsVerified, nil
 }
 
-// VerifyEmailOTP checks the otp provided mathes the one sent to the user via email address
+// VerifyEmailOTP checks the otp provided matches the one sent to the user via email address
 func (o *ServiceOTPImpl) VerifyEmailOTP(ctx context.Context, email, otp string) (bool, error) {
 
 	type VerifyOTP struct {
