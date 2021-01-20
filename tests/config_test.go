@@ -85,10 +85,9 @@ func initializeAcceptanceTestFirebaseClient(ctx context.Context) (*firestore.Cli
 }
 
 func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) {
-	fr, err := database.NewFirebaseRepository(ctx)
-	if err != nil {
-		return nil, err
-	}
+	fsc, fbc := initializeAcceptanceTestFirebaseClient(ctx)
+	firestoreExtension := database.NewFirestoreClientExtension(fsc)
+	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 	ext := extension.NewBaseExtensionImpl()
 	pinExt := extension.NewPINExtensionImpl()
 	otpClient := utils.NewInterServiceClient(otpService)

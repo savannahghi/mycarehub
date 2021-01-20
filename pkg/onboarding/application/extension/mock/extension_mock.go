@@ -7,7 +7,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 )
 
-// FakeBaseExtensionImpl is a `base` library mock .
+// FakeBaseExtensionImpl is a `base` library fake  .
 type FakeBaseExtensionImpl struct {
 	GetLoggedInUserUIDFn func(ctx context.Context) (string, error)
 	NormalizeMSISDNFn    func(msisdn string) (*string, error)
@@ -23,7 +23,7 @@ func (b *FakeBaseExtensionImpl) NormalizeMSISDN(msisdn string) (*string, error) 
 	return b.NormalizeMSISDNFn(msisdn)
 }
 
-// PINExtensionImpl is a `PIN` mock .
+// PINExtensionImpl is a `PIN` fake  .
 type PINExtensionImpl struct {
 	EncryptPINFn func(rawPwd string, options *extension.Options) (string, string)
 	ComparePINFn func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
@@ -39,7 +39,7 @@ func (p *PINExtensionImpl) ComparePIN(rawPwd string, salt string, encodedPwd str
 	return p.ComparePINFn(rawPwd, salt, encodedPwd, options)
 }
 
-// ISCClientExtension is an ISC mock
+// ISCClientExtension is an ISC fake
 type ISCClientExtension struct {
 	MakeRequestFn func(method string, path string, body interface{}) (*http.Response, error)
 }

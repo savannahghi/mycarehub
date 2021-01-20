@@ -41,16 +41,16 @@ type ISCClientExtension interface {
 	MakeRequest(method string, path string, body interface{}) (*http.Response, error)
 }
 
-// MakeRequest performs an inter service http request and returns a response
-func (i *ISCExtensionImpl) MakeRequest(method string, path string, body interface{}) (*http.Response, error) {
-	var isc base.InterServiceClient
-	return isc.MakeRequest(method, path, body)
-}
-
 // ISCExtensionImpl ...
 type ISCExtensionImpl struct{}
 
 // NewISCExtension initializes an ISC extension
 func NewISCExtension() ISCClientExtension {
 	return &ISCExtensionImpl{}
+}
+
+// MakeRequest performs an inter service http request and returns a response
+func (i *ISCExtensionImpl) MakeRequest(method string, path string, body interface{}) (*http.Response, error) {
+	var isc base.InterServiceClient
+	return isc.MakeRequest(method, path, body)
 }

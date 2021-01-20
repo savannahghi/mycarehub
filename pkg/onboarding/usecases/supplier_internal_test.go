@@ -2,8 +2,10 @@ package usecases
 
 import (
 	"context"
+	"log"
 	"testing"
 
+	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 
@@ -22,7 +24,23 @@ const otpService = "otp"
 func TestParseKYCAsMap(t *testing.T) {
 	ctx := context.Background()
 
-	fr, err := database.NewFirebaseRepository(ctx)
+	fc := base.FirebaseClient{}
+	fa, err := fc.InitFirebase()
+	if err != nil {
+		log.Fatalf("unable to initialize Firestore for the Feed: %s", err)
+	}
+
+	fsc, err := fa.Firestore(ctx)
+	if err != nil {
+		log.Fatalf("unable to initialize Firestore: %s", err)
+	}
+
+	fbc, err := fa.Auth(ctx)
+	if err != nil {
+		log.Panicf("can't initialize Firebase auth when setting up profile service: %s", err)
+	}
+	firestoreExtension := database.NewFirestoreClientExtension(fsc)
+	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 	if err != nil {
 		return
 	}

@@ -59,10 +59,18 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	if err != nil {
 		return nil, err
 	}
-	fr, err := database.NewFirebaseRepository(context.Background())
+	fsc, err := firebaseApp.Firestore(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("can't instantiate firebase repository in resolver: %w", err)
+		log.Fatalf("unable to initialize Firestore: %s", err)
 	}
+
+	fbc, err := firebaseApp.Auth(ctx)
+	if err != nil {
+		log.Panicf("can't initialize Firebase auth when setting up profile service: %s", err)
+	}
+	firestoreExtension := database.NewFirestoreClientExtension(fsc)
+	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+
 	baseExt := extension.NewBaseExtensionImpl()
 	pinExt := extension.NewPINExtensionImpl()
 	otpClient := utils.NewInterServiceClient(otpService)
