@@ -670,24 +670,49 @@ func (p *ProfileUseCaseImpl) GetUserProfileAttributes(
 
 		switch attribute {
 		case EmailsAttribute:
-			if profile.PrimaryEmailAddress != nil {
-				values = append(values, *profile.PrimaryEmailAddress)
+			primaryEmail := profile.PrimaryEmailAddress
+
+			if primaryEmail == nil {
+				//if not found just show an empty list
+				output[UID] = []string{}
+				continue
 			}
+
+			output[UID] = append(values, *primaryEmail)
 
 			secondaryEmails := profile.SecondaryEmailAddresses
 			if len(secondaryEmails) != 0 {
-				values = append(values, secondaryEmails...)
+				for _, secondaryEmail := range secondaryEmails {
+					output[UID] = append(
+						values,
+						*primaryEmail,
+						secondaryEmail,
+					)
+				}
 			}
 
 		case PhoneNumbersAttribute:
-			values = append(values, *profile.PrimaryPhone)
+			output[UID] = append(values, *profile.PrimaryPhone)
 			secondaryPhones := profile.SecondaryPhoneNumbers
 			if len(secondaryPhones) != 0 {
-				values = append(values, secondaryPhones...)
+				for _, secondaryPhone := range secondaryPhones {
+					output[UID] = append(
+						values,
+						*profile.PrimaryPhone,
+						secondaryPhone,
+					)
+				}
 			}
 
 		case FCMTokensAttribute:
-			values = append(values, profile.PushTokens...)
+			if len(profile.PushTokens) == 0 {
+				// We do not expect there to be a user profile wtihout
+				// FCM push tokens, but we can't be too sure
+				// if not found just show an empty list
+				output[UID] = []string{}
+				continue
+			}
+			output[UID] = append(values, profile.PushTokens...)
 
 		default:
 			err := fmt.Errorf("failed to retrieve user profile attribute %s",
@@ -695,7 +720,6 @@ func (p *ProfileUseCaseImpl) GetUserProfileAttributes(
 			)
 			return nil, exceptions.RetrieveRecordError(err)
 		}
-		output[UID] = values
 	}
 
 	return output, nil

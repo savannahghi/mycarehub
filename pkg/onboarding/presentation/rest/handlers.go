@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"firebase.google.com/go/auth"
@@ -506,8 +505,6 @@ func (h *HandlersInterfacesImpl) ProfileAttributes(ctx context.Context) http.Han
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		attribute, found := vars["attribute"]
-		log.Printf("attr...%s\n", attribute)
-		log.Printf("attr found...%v\n", found)
 		if !found {
 			err := fmt.Errorf("request does not have a path var named `%s`",
 				attribute,
