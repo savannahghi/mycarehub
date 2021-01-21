@@ -84,9 +84,6 @@ type FakeOnboardingRepository struct {
 	// Record post visit survey
 	RecordPostVisitSurveyFn func(ctx context.Context, input resources.PostVisitSurveyInput, UID string) error
 
-	// SetPrimaryPhoneNumberFn
-	SetPrimaryPhoneNumberFn func(ctx context.Context, phoneNumber string, otp string, useContext bool) error
-
 	// User Pin methods
 	SavePINFn   func(ctx context.Context, pin *domain.PIN) (bool, error)
 	UpdatePINFn func(ctx context.Context, id string, pin *domain.PIN) (bool, error)
@@ -281,11 +278,6 @@ func (f *FakeOnboardingRepository) GetPINByProfileID(ctx context.Context, Profil
 //RecordPostVisitSurvey Record post visit survey
 func (f *FakeOnboardingRepository) RecordPostVisitSurvey(ctx context.Context, input resources.PostVisitSurveyInput, UID string) error {
 	return f.RecordPostVisitSurveyFn(ctx, input, UID)
-}
-
-// SetPrimaryPhoneNumber sets the provided phonenumber as the primary phone of the associated profile
-func (f *FakeOnboardingRepository) SetPrimaryPhoneNumber(ctx context.Context, phoneNumber string, otp string, useContext bool) error {
-	return f.SetPrimaryPhoneNumberFn(ctx, phoneNumber, otp, useContext)
 }
 
 //SavePIN  User Pin methods

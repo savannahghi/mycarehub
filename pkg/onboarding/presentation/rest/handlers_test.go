@@ -177,6 +177,19 @@ func composeCoversUpdatePayload(t *testing.T, uid, payerName, memberName, member
 	return bytes.NewBuffer(bs)
 }
 
+func composeSetPrimaryPhoneNumberPayload(t *testing.T, phone, otp string) *bytes.Buffer {
+	payload := resources.SetPrimaryPhoneNumberPayload{
+		PhoneNumber: &phone,
+		OTP:         &otp,
+	}
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return nil
+	}
+	return bytes.NewBuffer(bs)
+}
+
 func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
@@ -1440,6 +1453,10 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 	flavour6 := base.FlavourConsumer
 	payload6 := composeLoginPayload(t, phone6, pin6, flavour6)
 
+	// payload7 invalid:_invalid_flavour_used
+	phone7 := "0712456784"
+	pin7 := "1897"
+	payload7 := composeLoginPayload(t, phone7, pin7, "invalidFlavour")
 	type args struct {
 		url        string
 		httpMethod string
@@ -1518,6 +1535,16 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
 				httpMethod: http.MethodPost,
 				body:       payload6,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_invalid_flavour_used",
+			args: args{
+				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload7,
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,
@@ -1698,6 +1725,12 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				}
 				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour base.Flavour, profileID string) (*base.Customer, *base.Supplier, error) {
 					return nil, nil, fmt.Errorf("unable to get supplier profile")
+				}
+			}
+
+			if tt.name == "invalid:_invalid_flavour_used" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("invalid flavour defined")
 				}
 			}
 
@@ -2364,6 +2397,172 @@ func TestHandlersInterfacesImpl_RemoveUserByPhoneNumber(t *testing.T) {
 				return
 			}
 
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	primaryPhone := "+254701567839"
+	otp := "890087"
+	validPayload := composeSetPrimaryPhoneNumberPayload(t, primaryPhone, otp)
+
+	primaryPhone1 := "+254765738293"
+	otp1 := "345678"
+	payload1 := composeSetPrimaryPhoneNumberPayload(t, primaryPhone1, otp1)
+
+	primaryPhone2 := " "
+	otp2 := " "
+	payload2 := composeSetPrimaryPhoneNumberPayload(t, primaryPhone2, otp2)
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_successfully_set_a_primary_phonenumber",
+			args: args{
+				url:        fmt.Sprintf("%s/set_primary_phonenumber", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_fail_to_set_a_primary_phonenumber",
+			args: args{
+				url:        fmt.Sprintf("%s/set_primary_phonenumber", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload1,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_phonenumber_and_otp_missing",
+			args: args{
+				url:        fmt.Sprintf("%s/set_primary_phonenumber", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload2,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if tt.name == "valid:_successfully_set_a_primary_phonenumber" {
+
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254799774466"
+					return &phone, nil
+				}
+
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254799774466"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+						SecondaryPhoneNumbers: []string{
+							"0721521456", "0721856741",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdatePrimaryPhoneNumberFn = func(ctx context.Context, id string, phoneNumber string) error {
+					return nil
+				}
+
+				fakeRepo.UpdateSecondaryPhoneNumbersFn = func(ctx context.Context, id string, phoneNumbers []string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:_fail_to_set_a_primary_phonenumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254799774466"
+					return &phone, nil
+				}
+
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254799774466"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+						SecondaryPhoneNumbers: []string{
+							"0721521456", "0721856741",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdatePrimaryPhoneNumberFn = func(ctx context.Context, id string, phoneNumber string) error {
+					return fmt.Errorf("failed to set a primary phone number")
+				}
+			}
+
+			if tt.name == "invalid:_phonenumber_and_otp_missing" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("empty phone number provided")
+				}
+			}
+
+			response := httptest.NewRecorder()
+
+			svr := h.SetPrimaryPhoneNumber(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
 		})
 	}
 }
