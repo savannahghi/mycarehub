@@ -116,7 +116,6 @@ func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile
 	if err != nil {
 		return nil, exceptions.UserNotFoundError(err)
 	}
-
 	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again

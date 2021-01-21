@@ -125,7 +125,6 @@ func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool
 	if profile == nil {
 		return false, exceptions.ProfileNotFoundError()
 	}
-
 	PINData, err := l.onboardingRepository.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
 		return false, exceptions.PinNotFoundError(err)
@@ -133,7 +132,6 @@ func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool
 	if PINData == nil {
 		return false, exceptions.PinNotFoundError(nil)
 	}
-
 	matched := l.pinExt.ComparePIN(pin, PINData.Salt, PINData.PINNumber, nil)
 	if !matched {
 		// if the pins don't match, return false and dont throw an error.
