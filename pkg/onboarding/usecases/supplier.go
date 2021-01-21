@@ -100,6 +100,8 @@ type SupplierUseCases interface {
 	ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
 
 	RetireKYCRequest(ctx context.Context) error
+
+	PublishKYCFeedItem(ctx context.Context, uids ...string) error
 }
 
 // SupplierUseCasesImpl represents usecase implementation object
@@ -1550,24 +1552,20 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 
 // RetireKYCRequest retires the KYC process request of a supplier
 func (s *SupplierUseCasesImpl) RetireKYCRequest(ctx context.Context) error {
-
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
-
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-
 	sup, err := s.repo.GetSupplierProfileByProfileID(ctx, profile.ID)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-
 	if err := s.repo.RemoveKYCProcessingRequest(ctx, sup.ID); err != nil {
 		// the error is a custom error already. No need to wrap it here
 		return err
