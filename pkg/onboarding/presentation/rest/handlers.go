@@ -431,7 +431,7 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) ht
 			base.WriteJSONResponse(w, resources.OKResp{Status: "OK"}, http.StatusOK)
 			return
 		}
-		err = fmt.Errorf("`phoneNumber` does not exist and not assiciated with any user ")
+		err = fmt.Errorf("`phoneNumber` does not exist and not associated with any user ")
 		base.WriteJSONResponse(w, base.CustomError{
 			Err:     err,
 			Message: err.Error(),

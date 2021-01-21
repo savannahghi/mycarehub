@@ -2086,3 +2086,284 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 		})
 	}
 }
+
+func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	uid := "5cf354a2-1d3e-400d-8716-7e2aead29f2c"
+	payload := composeUIDPayload(t, &uid)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_successfully_get_supplier_by_uid",
+			args: args{
+				url:        fmt.Sprintf("%s/supplier", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_fail_to_get_supplier_by_uid",
+			args: args{
+				url:        fmt.Sprintf("%s/supplier", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_unable_to_get_user_profile_by_uid",
+			args: args{
+				url:        fmt.Sprintf("%s/supplier", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("failed to create a new request: %s", err)
+				return
+			}
+
+			response := httptest.NewRecorder()
+
+			if tt.name == "valid:_successfully_get_supplier_by_uid" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "FSO798-AD3", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "AD-FSO798",
+					}, nil
+				}
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ProfileID: &profileID,
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_fail_to_get_supplier_by_uid" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "FSO798-AD3", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "AD-FSO798",
+					}, nil
+				}
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return nil, fmt.Errorf("failed to get the supplier profile")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_user_profile_by_uid" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "FSO798-AD3", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get profile")
+				}
+			}
+
+			svr := h.FindSupplierByUID(ctx)
+			svr.ServeHTTP(response, req)
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_RemoveUserByPhoneNumber(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	primaryPhone := "+254711445566"
+	validPayload := composeValidPhonePayload(t, primaryPhone)
+	validPayload1 := composeValidPhonePayload(t, "+254777882200")
+	validPayload2 := composeValidPhonePayload(t, "+")
+
+	invalidPayload := composeValidPhonePayload(t, " ")
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_Successfully_remove_user_by_phone",
+			args: args{
+				url:        fmt.Sprintf("%s/remove_user", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_unable_to_remove_user_by_phone",
+			args: args{
+				url:        fmt.Sprintf("%s/remove_user", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload1,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+
+		{
+			name: "invalid:_empty_phonenumber",
+			args: args{
+				url:        fmt.Sprintf("%s/remove_user", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       invalidPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_unable_to_check_if_phone_exists",
+			args: args{
+				url:        fmt.Sprintf("%s/remove_user", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload2,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			response := httptest.NewRecorder()
+
+			if tt.name == "valid:_Successfully_remove_user_by_phone" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721026491"
+					return &phone, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.PurgeUserByPhoneNumberFn = func(ctx context.Context, phone string) error {
+					return nil
+				}
+
+			}
+
+			if tt.name == "invalid:_unable_to_remove_user_by_phone" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721026491"
+					return &phone, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.PurgeUserByPhoneNumberFn = func(ctx context.Context, phone string) error {
+					return fmt.Errorf("unable to purge user by phonenumber")
+				}
+
+			}
+
+			if tt.name == "invalid:_empty_phonenumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("empty phone number")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_check_if_phone_exists" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "0788554422"
+					return &phone, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, fmt.Errorf("the phone does not exist")
+				}
+
+			}
+
+			svr := h.RemoveUserByPhoneNumber(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+		})
+	}
+}
