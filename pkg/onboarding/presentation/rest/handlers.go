@@ -187,7 +187,7 @@ func (h *HandlersInterfacesImpl) LoginAnonymous(ctx context.Context) http.Handle
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &resources.LoginPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
-		if p.Flavour.String() == " " {
+		if p.Flavour.String() == "" {
 			err := fmt.Errorf("expected `flavour` to be defined")
 			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,

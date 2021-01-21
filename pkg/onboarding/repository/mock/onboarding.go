@@ -12,6 +12,7 @@ import (
 // FakeOnboardingRepository is a mock onboarding repository.
 type FakeOnboardingRepository struct {
 	GetSupplierProfileByIDFn        func(ctx context.Context, id string) (*base.Supplier, error)
+	GetSupplierProfileByUIDFn       func(ctx context.Context, uid string) (*base.Supplier, error)
 	GetSupplierProfileByProfileIDFn func(ctx context.Context, profileID string) (*base.Supplier, error)
 	AddPartnerTypeFn                func(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error)
 
@@ -127,6 +128,11 @@ type FakeOnboardingRepository struct {
 // GetSupplierProfileByID ...
 func (f *FakeOnboardingRepository) GetSupplierProfileByID(ctx context.Context, id string) (*base.Supplier, error) {
 	return f.GetSupplierProfileByIDFn(ctx, id)
+}
+
+// GetSupplierProfileByUID ...
+func (f *FakeOnboardingRepository) GetSupplierProfileByUID(ctx context.Context, uid string) (*base.Supplier, error) {
+	return f.GetSupplierProfileByUIDFn(ctx, uid)
 }
 
 // GetSupplierProfileByProfileID ...

@@ -147,6 +147,36 @@ func composeLoginPayload(t *testing.T, phone, pin string, flavour base.Flavour) 
 	return bytes.NewBuffer(bs)
 }
 
+func composeSendRetryOTPPayload(t *testing.T, phone string, retryStep int) *bytes.Buffer {
+	payload := resources.SendRetryOTPPayload{
+		Phone:     &phone,
+		RetryStep: &retryStep,
+	}
+
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return nil
+	}
+	return bytes.NewBuffer(bs)
+}
+
+func composeCoversUpdatePayload(t *testing.T, uid, payerName, memberName, memberNumber string, payerSladeCode int) *bytes.Buffer {
+	payload := resources.UpdateCoversPayload{
+		UID:            &uid,
+		PayerName:      &payerName,
+		MemberName:     &memberName,
+		MemberNumber:   &memberNumber,
+		PayerSladeCode: &payerSladeCode,
+	}
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return nil
+	}
+	return bytes.NewBuffer(bs)
+}
+
 func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
@@ -662,7 +692,7 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "valid:_unable_to_get_profile",
+			name: "invalid:_unable_to_get_profile",
 			args: args{
 				url:        fmt.Sprintf("%s/user_recovery_phonenumbers", serverUrl),
 				httpMethod: http.MethodPost,
@@ -701,7 +731,7 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 			}
 
 			// we set GetUserProfileByPhoneNumber to return an error
-			if tt.name == "valid:_unable_to_get_profile" {
+			if tt.name == "invalid:_unable_to_get_profile" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254721123123"
 					return &phone, nil
@@ -1703,6 +1733,355 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 						return
 					}
 				}
+			}
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	// valid payload
+	validPayload := composeSendRetryOTPPayload(t, base.TestUserPhoneNumber, 1)
+
+	invalidPayload := composeSendRetryOTPPayload(t, "", 2)
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_successfully_send_retry_otp",
+			args: args{
+				url:        fmt.Sprintf("%s/send_retry_otp", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_unable_to_send_otp",
+			args: args{
+				url:        fmt.Sprintf("%s/send_retry_otp", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_unable_to_send_otp_due_to_missing_msisdn",
+			args: args{
+				url:        fmt.Sprintf("%s/send_retry_otp", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       invalidPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create a new request: %v", err)
+				return
+			}
+
+			response := httptest.NewRecorder()
+
+			if tt.name == "valid:_successfully_send_retry_otp" {
+				fakeOtp.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
+					return &base.OtpResponse{
+						OTP: "123456",
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_send_otp" {
+				fakeOtp.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
+					return nil, fmt.Errorf("unable to send OTP")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_send_otp_due_to_missing_msisdn" {
+				fakeOtp.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
+					return nil, fmt.Errorf("unable to send OTP")
+				}
+			}
+
+			svr := h.SendRetryOTP(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_LoginAnonymous(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	validPayload := composeLoginPayload(t, "", "", base.FlavourConsumer)
+	invalidPayload := composeLoginPayload(t, "", "", " ")
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_successfully_login_as_anonymous",
+			args: args{
+				url:        fmt.Sprintf("%s/login_anonymous", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_invalid_flavour_defined",
+			args: args{
+				url:        fmt.Sprintf("%s/login_anonymous", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       invalidPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_missing_flavour",
+			args: args{
+				url:        fmt.Sprintf("%s/login_anonymous", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       invalidPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if tt.name == "valid:_successfully_login_as_anonymous" {
+				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*base.AuthCredentialResponse, error) {
+					return &base.AuthCredentialResponse{
+						UID:          "6660",
+						RefreshToken: "6660",
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_invalid_flavour_defined" {
+				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*base.AuthCredentialResponse, error) {
+					return nil, fmt.Errorf("an invalid `flavour` defined")
+				}
+			}
+
+			if tt.name == "invalid:_missing_flavour" {
+				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*base.AuthCredentialResponse, error) {
+					return nil, fmt.Errorf("expected `flavour` to be defined")
+				}
+			}
+
+			response := httptest.NewRecorder()
+
+			svr := h.LoginAnonymous(ctx)
+
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	invalidUID := " "
+	uid := "5cf354a2-1d3e-400d-8716-7e2aead29f2c"
+	payerName := "Payer Name"
+	memberName := "Member Name"
+	memberNumber := "5678"
+	payerSladeCode := 1234
+
+	validPayload := composeCoversUpdatePayload(t, uid, payerName, memberName, memberNumber, payerSladeCode)
+	inValidPayload := composeCoversUpdatePayload(t, invalidUID, payerName, memberName, memberNumber, payerSladeCode)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_Successfully_update_covers",
+			args: args{
+				url:        fmt.Sprintf("%s/update_covers", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_update_covers_fails",
+			args: args{
+				url:        fmt.Sprintf("%s/update_covers", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_get_user_profile_by_UID_fails",
+			args: args{
+				url:        fmt.Sprintf("%s/update_covers", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       inValidPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			response := httptest.NewRecorder()
+
+			if tt.name == "valid:_Successfully_update_covers" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7",
+					}, nil
+				}
+
+				fakeRepo.UpdateCoversFn = func(ctx context.Context, id string, covers []base.Cover) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:_get_user_profile_by_UID_fails" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user UID")
+				}
+			}
+
+			if tt.name == "invalid:_update_covers_fails" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7",
+					}, nil
+				}
+
+				fakeRepo.UpdateCoversFn = func(ctx context.Context, id string, covers []base.Cover) error {
+					return fmt.Errorf("unable to update covers")
+				}
+			}
+
+			svr := h.UpdateCovers(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
 			}
 		})
 	}
