@@ -364,3 +364,9 @@ type KYCRequest {
   supplierRecord: Supplier!
   status: KYCProcessStatus
 }
+
+
+type SupplierLogin{
+	branches:BranchConnection!
+	supplier:Supplier!
+}

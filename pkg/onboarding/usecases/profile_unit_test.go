@@ -61,7 +61,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
@@ -85,7 +85,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -156,7 +156,7 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
@@ -180,7 +180,7 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -243,7 +243,7 @@ func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
@@ -339,7 +339,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
@@ -359,7 +359,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -447,7 +447,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &primaryEmail,
@@ -465,7 +465,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &primaryEmail,
@@ -480,7 +480,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &primaryEmail,
@@ -507,7 +507,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -598,7 +598,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &primaryEmail,
@@ -707,7 +707,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{ID: "12334"}, nil
 				}
 				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
@@ -725,7 +725,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get user profile by UID")
 				}
 			}
@@ -734,7 +734,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{ID: "12334"}, nil
 				}
 				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
@@ -829,6 +829,7 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					email := base.GenerateRandomEmail()
 					return &base.UserProfile{
@@ -844,6 +845,7 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					phone := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -857,6 +859,7 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						PushTokens: []string{uuid.New().String()},
@@ -868,6 +871,7 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					email := base.GenerateRandomEmail()
 					phone := base.TestUserPhoneNumber
@@ -887,6 +891,7 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					return nil, exceptions.ProfileNotFoundError()
 				}
@@ -956,6 +961,7 @@ func TestProfileUseCaseImpl_ConfirmedEmailAddresses(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					email := base.GenerateRandomEmail()
 					return &base.UserProfile{
@@ -971,6 +977,7 @@ func TestProfileUseCaseImpl_ConfirmedEmailAddresses(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					return nil, exceptions.ProfileNotFoundError()
 				}
@@ -1038,6 +1045,7 @@ func TestProfileUseCaseImpl_ConfirmedPhoneNumbers(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					phone := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -1051,6 +1059,7 @@ func TestProfileUseCaseImpl_ConfirmedPhoneNumbers(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					return nil, exceptions.ProfileNotFoundError()
 				}
@@ -1118,6 +1127,7 @@ func TestProfileUseCaseImpl_validFCM(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						PushTokens: []string{uuid.New().String()},
@@ -1129,6 +1139,7 @@ func TestProfileUseCaseImpl_validFCM(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					return nil, exceptions.ProfileNotFoundError()
 				}
@@ -1225,6 +1236,7 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					email := base.GenerateRandomEmail()
 					return &base.UserProfile{
@@ -1240,6 +1252,7 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					phone := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -1253,6 +1266,7 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						PushTokens: []string{uuid.New().String()},
@@ -1264,6 +1278,7 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					email := base.GenerateRandomEmail()
 					phone := base.TestUserPhoneNumber
@@ -1283,6 +1298,7 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(
 					ctx context.Context,
 					uid string,
+					suspended bool,
 				) (*base.UserProfile, error) {
 					return nil, exceptions.ProfileNotFoundError()
 				}
@@ -1410,7 +1426,7 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
@@ -1431,7 +1447,7 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
@@ -1455,7 +1471,7 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
@@ -1487,7 +1503,7 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get userprofile")
 				}
 
@@ -1505,7 +1521,7 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get user profile")
 				}
 			}

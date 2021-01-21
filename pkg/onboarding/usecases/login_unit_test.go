@@ -93,7 +93,7 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
@@ -117,7 +117,7 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, nil
 				}
 
@@ -127,7 +127,7 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
@@ -142,7 +142,7 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
@@ -157,7 +157,7 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil

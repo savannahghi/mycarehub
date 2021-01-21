@@ -90,11 +90,11 @@ func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType base.A
 	return r.interactor.Supplier.SetUpSupplier(ctx, accountType)
 }
 
-func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*base.Supplier, error) {
+func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error) {
 	return r.interactor.Supplier.SupplierEDILogin(ctx, username, password, sladeCode)
 }
 
-func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error) {
+func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locatonID string) (*base.Supplier, error) {
 	return r.interactor.Supplier.SupplierSetDefaultLocation(ctx, locatonID)
 }
 

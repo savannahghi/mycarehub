@@ -18,6 +18,15 @@ func UserNotFoundError(err error) error {
 	return nil
 }
 
+// ProfileSuspendFoundError is returned is the user profile has been suspended.
+func ProfileSuspendFoundError() error {
+	return &base.CustomError{
+		Message: ProfileSuspenedFoundErrMsg,
+		// todo(dexter): this error warrants a correct error code in base
+		Code: int(base.ProfileNotFound),
+	}
+}
+
 // ProfileNotFoundError returns an error message when a profile is not found
 func ProfileNotFoundError() error {
 	return &base.CustomError{

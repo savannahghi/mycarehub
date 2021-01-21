@@ -87,9 +87,9 @@ type SupplierUseCases interface {
 
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 
-	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*base.Supplier, error)
+	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error)
 
-	SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error)
+	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error)
 
 	SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *base.Supplier) error
 
@@ -159,7 +159,7 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 		return false, exceptions.UserNotFoundError(err)
 	}
 
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return false, err
@@ -258,7 +258,7 @@ func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType bas
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
@@ -290,7 +290,7 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error)
 		return false, exceptions.UserNotFoundError(err)
 	}
 
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return false, err
@@ -364,13 +364,15 @@ func (s SupplierUseCasesImpl) CoreEDIUserLogin(username, password string) (*base
 // 2 . fetch the branches of the provider given the slade code which we have
 // 3 . update the user's supplier record
 // 4. return the list of branches to the frontend so that a default location can be set
-func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*base.Supplier, error) {
+func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error) {
+	var resp resources.SupplierLogin
+
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
@@ -434,9 +436,6 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 	}
 
 	if orgSladeCode == savannahSladeCode {
-		// profile.Permissions = base.DefaultAdminPermissions
-		// todo(dexter) add call to update profile permissions in base
-
 		supplier.EDIUserProfile = ediUserProfile
 		supplier.IsOrganizationVerified = true
 		supplier.SladeCode = sladeCode
@@ -449,7 +448,12 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 			return nil, err
 		}
 
-		return supplier, nil
+		if err := s.profile.UpdatePermissions(ctx, base.DefaultAdminPermissions); err != nil {
+			return nil, err
+		}
+
+		resp.Supplier = supplier
+		return &resp, nil
 	}
 
 	// verify slade code.
@@ -477,6 +481,16 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 
 	businessPartner := *partner.Edges[0].Node
 
+	go func() {
+		op := func() error {
+			return s.PublishKYCNudge(ctx, uid, &supplier.PartnerType, &supplier.AccountType)
+		}
+
+		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
 	if businessPartner.Parent != nil {
 		supplier.HasBranches = true
 		supplier.ParentOrganizationID = *businessPartner.Parent
@@ -488,50 +502,78 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 
 		supplier.OrganizationName = partner.Name
 
-	} else {
-		supplier.OrganizationName = businessPartner.Name
-		loc := base.Location{
-			ID:   businessPartner.ID,
-			Name: businessPartner.Name,
+		if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, supplier); err != nil {
+			return nil, err
 		}
-		supplier.Location = &loc
+
+		// fetch all locatoions of the business partner
+		filter := []*resources.BranchFilterInput{
+			{
+				ParentOrganizationID: &supplier.ParentOrganizationID,
+			},
+		}
+
+		brs, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
+		if len(brs.Edges) == 0 || err != nil {
+			return nil, exceptions.FindProviderError(err)
+		}
+
+		if len(brs.Edges) > 1 {
+			// set branches in the final response object
+			resp.Branches = brs
+			return &resp, nil
+		}
+
+		if len(brs.Edges) == 1 {
+			spr, err := s.SupplierSetDefaultLocation(ctx, brs.Edges[0].Node.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			resp.Supplier = spr
+			return &resp, nil
+
+		}
+		return nil, exceptions.InternalServerError(nil)
+
 	}
+
+	// set the main branch as the supplier's location
+	supplier.OrganizationName = businessPartner.Name
+	loc := base.Location{
+		ID:   businessPartner.ID,
+		Name: businessPartner.Name,
+	}
+	supplier.Location = &loc
 
 	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, supplier); err != nil {
 		return nil, err
 	}
 
-	go func() {
-		op := func() error {
-			return s.PublishKYCNudge(ctx, uid, &supplier.PartnerType, &supplier.AccountType)
-		}
+	// set the supplier profile in the final response object
+	resp.Supplier = supplier
 
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			logrus.Error(err)
-		}
-	}()
-
-	return supplier, nil
+	return &resp, nil
 }
 
 // SupplierSetDefaultLocation updates the default location ot the supplier by the given location id
-func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, locationID string) (bool, error) {
+func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error) {
 
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
-		return false, exceptions.UserNotFoundError(err)
+		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
-		return false, err
+		return nil, err
 	}
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
-		return false, err
+		return nil, err
 	}
 
 	// fetch the branches of the provider filtered by ParentOrganizationID
@@ -543,7 +585,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 
 	brs, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
 	if err != nil {
-		return false, exceptions.FindProviderError(err)
+		return nil, exceptions.FindProviderError(err)
 	}
 
 	branch := func(brs *resources.BranchConnection, location string) *resources.BranchEdge {
@@ -564,18 +606,20 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, lo
 		sup.Location = &loc
 
 		if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
-			return false, err
+			return nil, err
 		}
 
-		return true, nil
+		// refetch the supplier profile and return it
+		return s.FindSupplierByUID(ctx)
 	}
 
-	return false, fmt.Errorf("unable to get location of id %v : %v", locationID, err)
+	return nil, fmt.Errorf("unable to get location of id %v : %v", locationID, err)
 }
 
 // FetchSupplierAllowedLocations retrieves all the locations that the user in context can work on.
 func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error) {
 
+	// fetch the supplier's profile
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
@@ -594,6 +638,32 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context
 		return nil, exceptions.FindProviderError(err)
 	}
 
+	if sup.Location != nil {
+		var resp resources.BranchConnection
+		resp.PageInfo = brs.PageInfo
+
+		newEdges := []*resources.BranchEdge{}
+		for _, edge := range brs.Edges {
+			if edge.Node.ID == sup.Location.ID {
+				loc := &resources.BranchEdge{
+					Cursor: edge.Cursor,
+					Node: &domain.Branch{
+						ID:                    edge.Node.ID,
+						Name:                  edge.Node.Name,
+						OrganizationSladeCode: edge.Node.OrganizationSladeCode,
+						BranchSladeCode:       edge.Node.BranchSladeCode,
+						Default:               true,
+					},
+				}
+				newEdges = append(newEdges, loc)
+			} else {
+				newEdges = append(newEdges, edge)
+			}
+		}
+
+		resp.Edges = newEdges
+		return &resp, nil
+	}
 	return brs, nil
 }
 
@@ -804,7 +874,7 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(ctx context.Contex
 		return exceptions.UserNotFoundError(err)
 	}
 
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -1492,6 +1562,13 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 		return false, fmt.Errorf("unable to update KYC request record: %v", err)
 	}
 
+	// get user profile
+	pr, err := s.profile.GetProfileByID(ctx, req.SupplierRecord.ProfileID)
+	if err != nil {
+		// this is a wrapped error. No need to wrap it again
+		return false, err
+	}
+
 	var email string
 	var message string
 
@@ -1507,17 +1584,23 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 		email = s.generateProcessKYCApprovalEmailTemplate()
 		message = "Your KYC details have been reviewed and approved. We look forward to working with you."
 
+		// fetch the supplier profile and update the active to true
+		sup, err := s.FindSupplierByUID(ctx)
+		if err != nil {
+			// this is a wrapped error. No need to wrap it again
+			return false, err
+		}
+
+		sup.Active = true
+
+		if err := s.repo.UpdateSupplierProfile(ctx, pr.ID, sup); err != nil {
+			return false, err
+		}
+
 	case domain.KYCProcessStatusRejected:
 		email = s.generateProcessKYCRejectionEmailTemplate()
 		message = "Your KYC details have been reviewed and not verified. Incase of any queries, please contact us via +254 790 360 360"
 
-	}
-
-	// get user profile
-	pr, err := s.profile.GetProfileByID(ctx, req.SupplierRecord.ProfileID)
-	if err != nil {
-		// this is a wrapped error. No need to wrap it again
-		return false, err
 	}
 
 	supplierEmails := func(profile *base.UserProfile) []string {
@@ -1556,7 +1639,8 @@ func (s *SupplierUseCasesImpl) RetireKYCRequest(ctx context.Context) error {
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid)
+
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err

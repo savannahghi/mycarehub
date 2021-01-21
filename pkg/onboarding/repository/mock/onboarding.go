@@ -46,16 +46,16 @@ type FakeOnboardingRepository struct {
 	CreateEmptyCustomerProfileFn func(ctx context.Context, profileID string) (*base.Customer, error)
 
 	// fetches a user profile by uid
-	GetUserProfileByUIDFn func(ctx context.Context, uid string) (*base.UserProfile, error)
+	GetUserProfileByUIDFn func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error)
 
 	// fetches a user profile by id
-	GetUserProfileByIDFn func(ctx context.Context, id string) (*base.UserProfile, error)
+	GetUserProfileByIDFn func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error)
 
 	// fetches a user profile by phone number
-	GetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
+	GetUserProfileByPhoneNumberFn func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error)
 
 	// fetches a user profile by primary phone number
-	GetUserProfileByPrimaryPhoneNumberFn func(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
+	GetUserProfileByPrimaryPhoneNumberFn func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error)
 
 	// checks if a specific phone number has already been registered to another user
 	CheckIfPhoneNumberExistsFn func(ctx context.Context, phone string) (bool, error)
@@ -216,23 +216,23 @@ func (f *FakeOnboardingRepository) CreateEmptyCustomerProfile(ctx context.Contex
 }
 
 // GetUserProfileByUID fetches a user profile by uidActivateSupplierProfile
-func (f *FakeOnboardingRepository) GetUserProfileByUID(ctx context.Context, uid string) (*base.UserProfile, error) {
-	return f.GetUserProfileByUIDFn(ctx, uid)
+func (f *FakeOnboardingRepository) GetUserProfileByUID(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+	return f.GetUserProfileByUIDFn(ctx, uid, suspended)
 }
 
 // GetUserProfileByID fetches a user profile by id
-func (f *FakeOnboardingRepository) GetUserProfileByID(ctx context.Context, id string) (*base.UserProfile, error) {
-	return f.GetUserProfileByIDFn(ctx, id)
+func (f *FakeOnboardingRepository) GetUserProfileByID(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+	return f.GetUserProfileByIDFn(ctx, id, suspended)
 }
 
 // GetUserProfileByPhoneNumber fetches a user profile by phone number
-func (f *FakeOnboardingRepository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
-	return f.GetUserProfileByPhoneNumberFn(ctx, phoneNumber)
+func (f *FakeOnboardingRepository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+	return f.GetUserProfileByPhoneNumberFn(ctx, phoneNumber, suspended)
 }
 
 // GetUserProfileByPrimaryPhoneNumber fetches a user profile by primary phone number
-func (f *FakeOnboardingRepository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
-	return f.GetUserProfileByPrimaryPhoneNumberFn(ctx, phoneNumber)
+func (f *FakeOnboardingRepository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+	return f.GetUserProfileByPrimaryPhoneNumberFn(ctx, phoneNumber, suspended)
 }
 
 // CheckIfPhoneNumberExists checks if a specific phone number has already been registered to another user

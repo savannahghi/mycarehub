@@ -17,6 +17,9 @@ const (
 	// ProfileNotFoundErrMsg is the error message displayed when a user is not found
 	ProfileNotFoundErrMsg = "failed to get a user profile"
 
+	// ProfileSuspenedFoundErrMsg is the error message displayed when a user's profile has been suspended
+	ProfileSuspenedFoundErrMsg = "the user profile has been suspended"
+
 	// PINNotFoundErrMsg is the error message displayed when a pin is not found
 	PINNotFoundErrMsg = "failed to get a user pin"
 

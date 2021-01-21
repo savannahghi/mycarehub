@@ -2,7 +2,6 @@ package usecases_test
 
 import (
 	"context"
-	"log"
 	"testing"
 
 	"firebase.google.com/go/auth"
@@ -780,8 +779,530 @@ func TestCheckPhoneExists(t *testing.T) {
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
 }
 
-func TestMaskPhoneNumbers(t *testing.T) {
+func TestGetUserProfileByUID(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+	primaryPhone := base.TestUserPhoneNumber
+	pin := "1234"
 
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
+
+	otp, err := generateTestOTP(t, primaryPhone)
+	assert.Nil(t, err)
+	assert.NotNil(t, otp)
+
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &primaryPhone,
+			PIN:         &pin,
+			Flavour:     base.FlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Profile)
+	assert.NotNil(t, resp.CustomerProfile)
+	assert.NotNil(t, resp.SupplierProfile)
+
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	assert.Nil(t, err)
+	assert.NotNil(t, login1)
+
+	// create authenticated context
+	ctx := context.Background()
+	authCred := &auth.Token{UID: login1.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		authCred,
+	)
+	s, _ = InitializeTestService(authenticatedContext)
+
+	// fetch the user profile using UID
+	pr, err := s.Onboarding.GetUserProfileByUID(authenticatedContext, login1.Auth.UID)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, login1.Profile.ID, pr.ID)
+	assert.Equal(t, login1.Profile.UserName, pr.UserName)
+
+	// now fetch using an authenticated context. should not fail
+	pr2, err := s.Onboarding.GetUserProfileByUID(context.Background(), login1.Auth.UID)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr2)
+	assert.Equal(t, login1.Profile.ID, pr2.ID)
+	assert.Equal(t, login1.Profile.UserName, pr2.UserName)
+}
+
+func TestUserProfile(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+	primaryPhone := base.TestUserPhoneNumber
+	pin := "1234"
+
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
+
+	otp, err := generateTestOTP(t, primaryPhone)
+	assert.Nil(t, err)
+	assert.NotNil(t, otp)
+
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &primaryPhone,
+			PIN:         &pin,
+			Flavour:     base.FlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Profile)
+	assert.NotNil(t, resp.CustomerProfile)
+	assert.NotNil(t, resp.SupplierProfile)
+
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	assert.Nil(t, err)
+	assert.NotNil(t, login1)
+
+	// create authenticated context
+	ctx := context.Background()
+	authCred := &auth.Token{UID: login1.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		authCred,
+	)
+	s, _ = InitializeTestService(authenticatedContext)
+
+	// fetch the user profile using authenticated context
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, login1.Profile.ID, pr.ID)
+	assert.Equal(t, login1.Profile.UserName, pr.UserName)
+
+	// now fetch using an unauthenticated context. should fail
+	pr2, err := s.Onboarding.UserProfile(context.Background())
+	assert.NotNil(t, err)
+	assert.Nil(t, pr2)
+
+}
+
+func TestGetProfileByID(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+	primaryPhone := base.TestUserPhoneNumber
+	pin := "1234"
+
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
+
+	otp, err := generateTestOTP(t, primaryPhone)
+	assert.Nil(t, err)
+	assert.NotNil(t, otp)
+
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &primaryPhone,
+			PIN:         &pin,
+			Flavour:     base.FlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Profile)
+	assert.NotNil(t, resp.CustomerProfile)
+	assert.NotNil(t, resp.SupplierProfile)
+
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	assert.Nil(t, err)
+	assert.NotNil(t, login1)
+
+	// create authenticated context
+	ctx := context.Background()
+	authCred := &auth.Token{UID: login1.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		authCred,
+	)
+	s, _ = InitializeTestService(authenticatedContext)
+
+	// fetch the user profile using ID
+	pr, err := s.Onboarding.GetProfileByID(authenticatedContext, &login1.Profile.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, login1.Profile.ID, pr.ID)
+	assert.Equal(t, login1.Profile.UserName, pr.UserName)
+
+	// now fetch using an authenticated context. should not fail
+	pr2, err := s.Onboarding.GetProfileByID(context.Background(), &login1.Profile.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr2)
+	assert.Equal(t, login1.Profile.ID, pr2.ID)
+	assert.Equal(t, login1.Profile.UserName, pr2.UserName)
+
+}
+
+func TestUpdateBioData(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	validPhoneNumber := base.TestUserPhoneNumber
+	validPIN := "1234"
+
+	validFlavourConsumer := base.FlavourConsumer
+
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
+
+	// send otp to the phone number to initiate registration process
+	otp, err := generateTestOTP(t, validPhoneNumber)
+	assert.Nil(t, err)
+	assert.NotNil(t, otp)
+
+	// this should pass
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &validPhoneNumber,
+			PIN:         &validPIN,
+			Flavour:     validFlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Profile)
+	assert.Equal(t, validPhoneNumber, *resp.Profile.PrimaryPhone)
+	assert.NotNil(t, resp.Profile.UserName)
+	assert.NotNil(t, resp.CustomerProfile)
+	assert.NotNil(t, resp.SupplierProfile)
+
+	// create authenticated context
+	ctx := context.Background()
+	authCred := &auth.Token{UID: resp.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		authCred,
+	)
+
+	s, _ = InitializeTestService(authenticatedContext)
+
+	dateOfBirth1 := base.Date{
+		Day:   12,
+		Year:  1998,
+		Month: 2,
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+
+	firstName1 := "makmende1"
+	lastName1 := "Omera1"
+	firstName2 := "makmende2"
+	lastName2 := "Omera2"
+
+	justDOB := base.BioData{
+		DateOfBirth: &dateOfBirth1,
+	}
+
+	justFirstName := base.BioData{
+		FirstName: &firstName1,
+	}
+
+	justLastName := base.BioData{
+		LastName: &lastName1,
+	}
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update just the date of birth
+	err = s.Onboarding.UpdateBioData(authenticatedContext, justDOB)
+	assert.Nil(t, err)
+
+	// fetch and assert dob has been updated
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, justDOB.DateOfBirth, pr.UserBioData.DateOfBirth)
+
+	// update just the firstname
+	err = s.Onboarding.UpdateBioData(authenticatedContext, justFirstName)
+	assert.Nil(t, err)
+
+	// fetch and assert firstname has been updated
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, justFirstName.FirstName, pr.UserBioData.FirstName)
+
+	// update just the lastname
+	err = s.Onboarding.UpdateBioData(authenticatedContext, justLastName)
+	assert.Nil(t, err)
+
+	// fetch and assert firstname has been updated
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, justLastName.LastName, pr.UserBioData.LastName)
+
+	// update with the entire update input
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
+
+	// fetch and assert dob, lastname & firstname have been updated
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, completeUserDetails.DateOfBirth, pr.UserBioData.DateOfBirth)
+	assert.Equal(t, completeUserDetails.LastName, pr.UserBioData.LastName)
+	assert.Equal(t, completeUserDetails.FirstName, pr.UserBioData.FirstName)
+
+	assert.NotEqual(t, justDOB.DateOfBirth, pr.UserBioData.DateOfBirth)
+	assert.NotEqual(t, justFirstName.FirstName, pr.UserBioData.LastName)
+	assert.NotEqual(t, justLastName.LastName, pr.UserBioData.FirstName)
+
+	// try update with an invalid context
+	err = s.Onboarding.UpdateBioData(context.Background(), completeUserDetails)
+	assert.NotNil(t, err)
+
+}
+
+func TestUpdatePhotoUploadID(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	validPhoneNumber := base.TestUserPhoneNumber
+	validPIN := "1234"
+
+	validFlavourConsumer := base.FlavourConsumer
+
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
+
+	// send otp to the phone number to initiate registration process
+	otp, err := generateTestOTP(t, validPhoneNumber)
+	assert.Nil(t, err)
+	assert.NotNil(t, otp)
+
+	// this should pass
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &validPhoneNumber,
+			PIN:         &validPIN,
+			Flavour:     validFlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Profile)
+	assert.Equal(t, validPhoneNumber, *resp.Profile.PrimaryPhone)
+	assert.NotNil(t, resp.Profile.UserName)
+	assert.NotNil(t, resp.CustomerProfile)
+	assert.NotNil(t, resp.SupplierProfile)
+
+	// create authenticated context
+	ctx := context.Background()
+	authCred := &auth.Token{UID: resp.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		authCred,
+	)
+
+	s, _ = InitializeTestService(authenticatedContext)
+
+	uploadID1 := "photo-url1"
+	uploadID2 := "photo-url2"
+
+	err = s.Onboarding.UpdatePhotoUploadID(authenticatedContext, uploadID1)
+	assert.Nil(t, err)
+
+	// fetch and assert firstname has been updated
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, uploadID1, pr.PhotoUploadID)
+	assert.NotEqual(t, resp.Profile.PhotoUploadID, pr.PhotoUploadID)
+
+	err = s.Onboarding.UpdatePhotoUploadID(authenticatedContext, uploadID2)
+	assert.Nil(t, err)
+
+	// fetch and assert firstname has been updated again
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, uploadID2, pr.PhotoUploadID)
+	assert.NotEqual(t, resp.Profile.PhotoUploadID, pr.PhotoUploadID)
+	assert.NotEqual(t, uploadID1, pr.PhotoUploadID)
+}
+
+func TestUpdateSuspended(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	validPhoneNumber := base.TestUserPhoneNumber
+	validPIN := "1234"
+
+	validFlavourConsumer := base.FlavourConsumer
+
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
+
+	// send otp to the phone number to initiate registration process
+	otp, err := generateTestOTP(t, validPhoneNumber)
+	assert.Nil(t, err)
+	assert.NotNil(t, otp)
+
+	// this should pass
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &validPhoneNumber,
+			PIN:         &validPIN,
+			Flavour:     validFlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Profile)
+	assert.Equal(t, validPhoneNumber, *resp.Profile.PrimaryPhone)
+	assert.NotNil(t, resp.Profile.UserName)
+	assert.NotNil(t, resp.CustomerProfile)
+	assert.NotNil(t, resp.SupplierProfile)
+
+	// create authenticated context
+	ctx := context.Background()
+	authCred := &auth.Token{UID: resp.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		authCred,
+	)
+
+	s, _ = InitializeTestService(authenticatedContext)
+
+	// fetch the profile and assert suspended
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, false, pr.Suspended)
+
+	// now suspend the profile
+	err = s.Onboarding.UpdateSuspended(authenticatedContext, true, *pr.PrimaryPhone, true)
+	assert.Nil(t, err)
+
+	// fetch the profile. this should fail because the profile has been suspended
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.NotNil(t, err)
+	assert.Nil(t, pr)
+}
+
+func TestUpdatePermissions(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	validPhoneNumber := base.TestUserPhoneNumber
+	validPIN := "1234"
+
+	validFlavourConsumer := base.FlavourConsumer
+
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
+
+	// send otp to the phone number to initiate registration process
+	otp, err := generateTestOTP(t, validPhoneNumber)
+	assert.Nil(t, err)
+	assert.NotNil(t, otp)
+
+	// this should pass
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &validPhoneNumber,
+			PIN:         &validPIN,
+			Flavour:     validFlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Profile)
+	assert.Equal(t, validPhoneNumber, *resp.Profile.PrimaryPhone)
+	assert.NotNil(t, resp.Profile.UserName)
+	assert.NotNil(t, resp.CustomerProfile)
+	assert.NotNil(t, resp.SupplierProfile)
+
+	// create authenticated context
+	ctx := context.Background()
+	authCred := &auth.Token{UID: resp.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		authCred,
+	)
+
+	s, _ = InitializeTestService(authenticatedContext)
+
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
+
+	// use unauthenticated context. should fail
+	err = s.Onboarding.UpdatePermissions(context.Background(), perms)
+	assert.NotNil(t, err)
+
+	pr, err = s.Onboarding.UserProfile(context.Background())
+	assert.NotNil(t, err)
+	assert.Nil(t, pr)
+
+}
+
+func TestMaskPhoneNumbers(t *testing.T) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {
@@ -827,349 +1348,6 @@ func TestMaskPhoneNumbers(t *testing.T) {
 					t.Errorf("wanted: %v, got: %v", tt.want[i], number)
 					return
 				}
-			}
-		})
-	}
-}
-
-func TestProfileUseCaseImpl_GetUserProfileByUID(t *testing.T) {
-	ctx, auth, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-	type args struct {
-		ctx context.Context
-		UID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "success: get a user profile given their UID",
-			args: args{
-				ctx: ctx,
-				UID: auth.UID,
-			},
-			wantErr: false,
-		},
-		{
-			name: "failure: fail get a user profile given a bad UID",
-			args: args{
-				ctx: ctx,
-				UID: "not-a-valid-uid",
-			},
-			wantErr: true,
-		},
-		{
-			name: "failure: fail get a user profile given an empty UID",
-			args: args{
-				ctx: ctx,
-				UID: "",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			profile, err := s.Onboarding.GetUserProfileByUID(tt.args.ctx, tt.args.UID)
-			if tt.wantErr && profile != nil {
-				t.Errorf("expected nil but got %v, since the error %v occurred",
-					profile,
-					err,
-				)
-				return
-			}
-
-			if !tt.wantErr && profile == nil {
-				t.Errorf("expected a profile but got nil, since no error occurred")
-				return
-			}
-
-		})
-	}
-}
-
-func TestProfileUseCaseImpl_UserProfile(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("could not get test authenticated context")
-		return
-	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *base.UserProfile
-		wantErr bool
-	}{
-		{
-			name: "valid: user profile retrieved",
-			args: args{
-				ctx: ctx,
-			},
-			wantErr: false,
-		},
-		{
-			name: "invalid: unauthenticated context supplied",
-			args: args{
-				ctx: context.Background(),
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.Onboarding.UserProfile(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.UserProfile() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if (got == nil) != tt.wantErr {
-				t.Errorf("nil user profile returned")
-				return
-			}
-		})
-	}
-}
-
-func TestProfileUseCaseImpl_GetProfileByID(t *testing.T) {
-
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("could not get test authenticated context")
-		return
-	}
-
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-
-	profile, err := s.Onboarding.UserProfile(ctx)
-	if err != nil {
-		t.Errorf("could not retrieve user profile")
-		return
-	}
-
-	type args struct {
-		ctx context.Context
-		id  *string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "valid: user profile retrieved",
-			args: args{
-				ctx: ctx,
-				id:  &profile.ID,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.Onboarding.GetProfileByID(tt.args.ctx, tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.GetProfileByID() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if (got == nil) != tt.wantErr {
-				t.Errorf("nil user profile returned")
-				return
-			}
-		})
-	}
-}
-
-func TestProfileUseCaseImpl_UpdateBioData(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("could not get test authenticated context")
-		return
-	}
-
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-
-	dateOfBirth := base.Date{
-		Day:   12,
-		Year:  2000,
-		Month: 2,
-	}
-
-	firstName := "Jatelo"
-	lastName := "Omera"
-	bioData := base.BioData{
-		FirstName:   &firstName,
-		LastName:    &lastName,
-		DateOfBirth: &dateOfBirth,
-	}
-
-	var gender base.Gender = "female"
-	updateGender := base.BioData{
-		Gender: gender,
-	}
-
-	updateDOB := base.BioData{
-		DateOfBirth: &dateOfBirth,
-	}
-
-	updateFirstName := base.BioData{
-		FirstName: &firstName,
-	}
-
-	updateLastName := base.BioData{
-		LastName: &lastName,
-	}
-
-	type args struct {
-		ctx  context.Context
-		data base.BioData
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully update biodata",
-			args: args{
-				ctx:  ctx,
-				data: bioData,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Happy case - Successfully update the firstname",
-			args: args{
-				ctx:  ctx,
-				data: updateFirstName,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Happy case - Successfully update the lastname",
-			args: args{
-				ctx:  ctx,
-				data: updateLastName,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Happy case - Successfully update the date of birth",
-			args: args{
-				ctx:  ctx,
-				data: updateDOB,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Happy case - Successfully update the gender",
-			args: args{
-				ctx:  ctx,
-				data: updateGender,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Unauthenticated context",
-			args: args{
-				ctx:  context.Background(),
-				data: bioData,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := s.Onboarding.UpdateBioData(tt.args.ctx, tt.args.data); (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.UpdateBioData() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestProfileUseCaseImpl_UpdatePhotoUploadID(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("could not get test authenticated context")
-		return
-	}
-
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-
-	uid, err := base.GetLoggedInUserUID(ctx)
-	if err != nil {
-		t.Errorf("could not get the logged in user")
-		return
-	}
-
-	profile, err := s.Onboarding.GetUserProfileByUID(ctx, uid)
-	if err != nil {
-		t.Errorf("could not retrieve user profile")
-		return
-	}
-
-	uploadID := "some-photo-upload-id"
-	log.Printf("THE UPLOAD ID IS %v", profile.PhotoUploadID)
-
-	type args struct {
-		ctx      context.Context
-		uploadID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully update the PhotoUploadID",
-			args: args{
-				ctx:      ctx,
-				uploadID: uploadID,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Use an unauthenticated context",
-			args: args{
-				ctx:      context.Background(),
-				uploadID: uploadID,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := s.Onboarding.UpdatePhotoUploadID(tt.args.ctx, tt.args.uploadID); (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.UpdatePhotoUploadID() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

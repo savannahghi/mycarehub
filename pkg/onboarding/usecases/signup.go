@@ -253,7 +253,7 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
-	pr, err := s.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
+	pr, err := s.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return nil, err

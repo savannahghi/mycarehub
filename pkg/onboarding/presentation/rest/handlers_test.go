@@ -558,7 +558,7 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 					}, nil
 				}
 				// should return a profile with an ID
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "123",
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
@@ -732,7 +732,7 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
@@ -749,7 +749,7 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to retrieve profile")
 				}
 			}
@@ -886,7 +886,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 			}
 
 			if tt.name == "valid:successfully_request_pin_reset" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
@@ -901,13 +901,13 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_inable_to_get_primary_phone" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to fetch profile")
 				}
 			}
 
 			if tt.name == "invalid:check_has_pin_failed" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
@@ -1038,7 +1038,7 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 			response := httptest.NewRecorder()
 			// we mock the required methods for a valid case
 			if tt.name == "valid:successfully_reset_pin" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
@@ -1057,7 +1057,7 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 
 			// we set `UpdatePIN` to return an error
 			if tt.name == "invalid:unable_to_update_pin" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
@@ -1277,7 +1277,7 @@ func TestHandlersInterfacesImpl_GetUserProfileByUID(t *testing.T) {
 			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 			response := httptest.NewRecorder()
 			if tt.name == "valid:_successfully_get_profile_by_uid" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
@@ -1285,7 +1285,7 @@ func TestHandlersInterfacesImpl_GetUserProfileByUID(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_get_profile_by_uid" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -1567,7 +1567,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "123",
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
@@ -1602,7 +1602,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get user profile")
 				}
 			}
@@ -1613,7 +1613,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "123",
 					}, nil
@@ -1630,7 +1630,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "123",
 					}, nil
@@ -1645,7 +1645,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "123",
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
@@ -1670,7 +1670,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "123",
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
@@ -1698,7 +1698,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "123",
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
@@ -2066,7 +2066,7 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 					return "8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7",
 					}, nil
@@ -2088,7 +2088,7 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "f4f39af7",
 					}, nil
@@ -2191,7 +2191,7 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "AD-FSO798",
 					}, nil
@@ -2208,7 +2208,7 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "AD-FSO798",
 					}, nil
@@ -2223,7 +2223,7 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -2489,7 +2489,7 @@ func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
@@ -2523,7 +2523,7 @@ func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,

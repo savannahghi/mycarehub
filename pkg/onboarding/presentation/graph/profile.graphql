@@ -58,9 +58,9 @@ extend type Mutation {
     username: String!
     password: String!
     sladeCode: String!
-  ): Supplier!
+  ): SupplierLogin!
 
-  supplierSetDefaultLocation(locatonID: String!): Boolean!
+  supplierSetDefaultLocation(locatonID: String!): Supplier!
 
   addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
 

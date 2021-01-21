@@ -282,7 +282,7 @@ func TestRemoveKYCProcessingRequest(t *testing.T) {
 	assert.Nil(t, err)
 
 	// get the user profile
-	profile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	assert.Nil(t, err)
 	assert.NotNil(t, profile)
 
@@ -333,13 +333,13 @@ func TestPurgeUserByPhoneNumber(t *testing.T) {
 	}
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
-	profile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	assert.Nil(t, err)
 	assert.NotNil(t, profile)
 	assert.Equal(t, base.TestUserPhoneNumber, *profile.PrimaryPhone)
 
 	// fetch the same profile but now using the primary phone number
-	profile, err = fr.GetUserProfileByPrimaryPhoneNumber(ctx, base.TestUserPhoneNumber)
+	profile, err = fr.GetUserProfileByPrimaryPhoneNumber(ctx, base.TestUserPhoneNumber, false)
 	assert.Nil(t, err)
 	assert.NotNil(t, profile)
 	assert.Equal(t, base.TestUserPhoneNumber, *profile.PrimaryPhone)
@@ -792,7 +792,7 @@ func TestRepository_GetUserProfileByPhoneNumber(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := fr.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
+			got, err := fr.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber, false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -858,7 +858,7 @@ func TestRepository_GetUserProfileByPrimaryPhoneNumber(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := fr.GetUserProfileByPrimaryPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
+			got, err := fr.GetUserProfileByPrimaryPhoneNumber(tt.args.ctx, tt.args.phoneNumber, false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.GetUserProfileByPrimaryPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1059,7 +1059,7 @@ func TestRepository_GetUserProfileByUID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := fr.GetUserProfileByUID(tt.args.ctx, tt.args.uid)
+			got, err := fr.GetUserProfileByUID(tt.args.ctx, tt.args.uid, false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.GetUserProfileByUID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1090,7 +1090,7 @@ func TestRepository_GetUserProfileByID(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -1134,7 +1134,7 @@ func TestRepository_GetUserProfileByID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := fr.GetUserProfileByID(tt.args.ctx, tt.args.id)
+			got, err := fr.GetUserProfileByID(tt.args.ctx, tt.args.id, false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.GetUserProfileByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1163,7 +1163,7 @@ func TestRepository_CheckIfPhoneNumberExists(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -1243,7 +1243,7 @@ func TestRepository_CheckIfUsernameExists(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -1323,7 +1323,7 @@ func TestRepository_GetPINByProfileID(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -1417,7 +1417,7 @@ func TestRepository_SavePIN(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -1495,7 +1495,7 @@ func TestRepository_UpdatePIN(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -1818,7 +1818,7 @@ func TestRepository_UpdateSuspended(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -1888,7 +1888,7 @@ func TestRepository_UpdateVerifiedUIDS(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	user, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -1949,7 +1949,7 @@ func TestRepository_UpdateVerifiedIdentifiers(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -2050,7 +2050,7 @@ func TestRepository_UpdateCovers(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -2127,7 +2127,7 @@ func TestRepository_UpdateSecondaryEmailAddresses(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -2320,7 +2320,7 @@ func TestRepository_UpdatePrimaryEmailAddress(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -2390,7 +2390,7 @@ func TestRepository_UpdatePrimaryPhoneNumber(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -2459,7 +2459,7 @@ func TestRepository_UpdateSecondaryPhoneNumbers(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -2529,7 +2529,7 @@ func TestRepository_UpdateBioData(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -2913,7 +2913,7 @@ func TestRepository_GenerateAuthCredentials(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return
@@ -3019,7 +3019,7 @@ func TestRepository_FetchAdminUsers(t *testing.T) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID)
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
 		t.Errorf("failed to get a user profile")
 		return

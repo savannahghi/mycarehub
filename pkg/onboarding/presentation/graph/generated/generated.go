@@ -371,6 +371,11 @@ type ComplexityRoot struct {
 		UnderOrganization      func(childComplexity int) int
 	}
 
+	SupplierLogin struct {
+		Branches func(childComplexity int) int
+		Supplier func(childComplexity int) int
+	}
+
 	UserProfile struct {
 		Covers                  func(childComplexity int) int
 		ID                      func(childComplexity int) int
@@ -419,8 +424,8 @@ type MutationResolver interface {
 	AddPartnerType(ctx context.Context, name string, partnerType base.PartnerType) (bool, error)
 	SuspendSupplier(ctx context.Context) (bool, error)
 	SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
-	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*base.Supplier, error)
-	SupplierSetDefaultLocation(ctx context.Context, locatonID string) (bool, error)
+	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error)
+	SupplierSetDefaultLocation(ctx context.Context, locatonID string) (*base.Supplier, error)
 	AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
 	AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error)
 	AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error)
@@ -2214,6 +2219,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Supplier.UnderOrganization(childComplexity), true
 
+	case "SupplierLogin.branches":
+		if e.complexity.SupplierLogin.Branches == nil {
+			break
+		}
+
+		return e.complexity.SupplierLogin.Branches(childComplexity), true
+
+	case "SupplierLogin.supplier":
+		if e.complexity.SupplierLogin.Supplier == nil {
+			break
+		}
+
+		return e.complexity.SupplierLogin.Supplier(childComplexity), true
+
 	case "UserProfile.covers":
 		if e.complexity.UserProfile.Covers == nil {
 			break
@@ -2955,9 +2974,9 @@ extend type Mutation {
     username: String!
     password: String!
     sladeCode: String!
-  ): Supplier!
+  ): SupplierLogin!
 
-  supplierSetDefaultLocation(locatonID: String!): Boolean!
+  supplierSetDefaultLocation(locatonID: String!): Supplier!
 
   addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
 
@@ -3380,7 +3399,12 @@ type KYCRequest {
   supplierRecord: Supplier!
   status: KYCProcessStatus
 }
-`, BuiltIn: false},
+
+
+type SupplierLogin{
+	branches:BranchConnection!
+	supplier:Supplier!
+}`, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
 scalar _FieldSet
@@ -7637,9 +7661,9 @@ func (ec *executionContext) _Mutation_supplierEDILogin(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.Supplier)
+	res := resTmp.(*resources.SupplierLogin)
 	fc.Result = res
-	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
+	return ec.marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐSupplierLogin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_supplierSetDefaultLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -7679,9 +7703,9 @@ func (ec *executionContext) _Mutation_supplierSetDefaultLocation(ctx context.Con
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*base.Supplier)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addIndividualRiderKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12086,6 +12110,76 @@ func (ec *executionContext) _Supplier_location(ctx context.Context, field graphq
 	res := resTmp.(*base.Location)
 	fc.Result = res
 	return ec.marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLocation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SupplierLogin_branches(ctx context.Context, field graphql.CollectedField, obj *resources.SupplierLogin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SupplierLogin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Branches, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*resources.BranchConnection)
+	fc.Result = res
+	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SupplierLogin_supplier(ctx context.Context, field graphql.CollectedField, obj *resources.SupplierLogin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SupplierLogin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Supplier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*base.Supplier)
+	fc.Result = res
+	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
@@ -17020,6 +17114,38 @@ func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var supplierLoginImplementors = []string{"SupplierLogin"}
+
+func (ec *executionContext) _SupplierLogin(ctx context.Context, sel ast.SelectionSet, obj *resources.SupplierLogin) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, supplierLoginImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SupplierLogin")
+		case "branches":
+			out.Values[i] = ec._SupplierLogin_branches(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supplier":
+			out.Values[i] = ec._SupplierLogin_supplier(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var userProfileImplementors = []string{"UserProfile", "_Entity"}
 
 func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionSet, obj *base.UserProfile) graphql.Marshaler {
@@ -18080,6 +18206,20 @@ func (ec *executionContext) marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 		return graphql.Null
 	}
 	return ec._Supplier(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSupplierLogin2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐSupplierLogin(ctx context.Context, sel ast.SelectionSet, v resources.SupplierLogin) graphql.Marshaler {
+	return ec._SupplierLogin(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐSupplierLogin(ctx context.Context, sel ast.SelectionSet, v *resources.SupplierLogin) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SupplierLogin(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v base.UserProfile) graphql.Marshaler {

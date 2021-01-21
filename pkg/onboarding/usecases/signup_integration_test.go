@@ -301,6 +301,8 @@ func TestUpdateUserProfile(t *testing.T) {
 		authCred,
 	)
 
+	s, _ = InitializeTestService(authenticatedContext)
+
 	dateOfBirth1 := base.Date{
 		Day:   12,
 		Year:  1998,

@@ -64,7 +64,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 		return false, exceptions.ValidatePINDigitsError(err)
 	}
 
-	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
+	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return false, err
@@ -94,7 +94,7 @@ func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) 
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
-	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
+	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
@@ -134,7 +134,7 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 		return false, exceptions.VerifyOTPError(nil)
 	}
 
-	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
+	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return false, err
@@ -171,7 +171,7 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
-	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
+	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return false, err

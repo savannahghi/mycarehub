@@ -55,7 +55,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
-	profile, err := l.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber)
+	profile, err := l.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
 	if err != nil {
 		// the error is wrapped already. No need to wrap it again
 		return nil, err

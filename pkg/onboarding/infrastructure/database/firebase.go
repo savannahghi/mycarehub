@@ -93,6 +93,7 @@ func (fr Repository) GetKCYProcessCollectionName() string {
 func (fr *Repository) GetUserProfileByUID(
 	ctx context.Context,
 	uid string,
+	suspended bool,
 ) (*base.UserProfile, error) {
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
@@ -123,6 +124,14 @@ func (fr *Repository) GetUserProfileByUID(
 		err = fmt.Errorf("unable to read user profile")
 		return nil, exceptions.InternalServerError(err)
 	}
+
+	if !suspended {
+		// never return a suspended user profile
+		if userProfile.Suspended {
+			return nil, exceptions.ProfileSuspendFoundError()
+		}
+	}
+
 	return userProfile, nil
 }
 
@@ -130,6 +139,7 @@ func (fr *Repository) GetUserProfileByUID(
 func (fr *Repository) GetUserProfileByID(
 	ctx context.Context,
 	id string,
+	suspended bool,
 ) (*base.UserProfile, error) {
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
@@ -153,6 +163,13 @@ func (fr *Repository) GetUserProfileByID(
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
+	}
+
+	if !suspended {
+		// never return a suspended user profile
+		if userProfile.Suspended {
+			return nil, exceptions.ProfileSuspendFoundError()
+		}
 	}
 	return userProfile, nil
 }
@@ -285,7 +302,7 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 }
 
 //GetUserProfileByPrimaryPhoneNumber fetches a user profile by primary phone number
-func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "primaryPhone",
@@ -305,12 +322,19 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 	if err != nil {
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
 	}
+
+	if !suspended {
+		// never return a suspended user profile
+		if profile.Suspended {
+			return nil, exceptions.ProfileSuspendFoundError()
+		}
+	}
 	return profile, nil
 }
 
 // GetUserProfileByPhoneNumber fetches a user profile by phone number. This method traverses both PRIMARY PHONE numbers
 // and SECONDARY PHONE numbers.
-func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
 	// check first primary phone numbers
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
@@ -349,6 +373,14 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 		if err := dsnap.DataTo(pr); err != nil {
 			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 		}
+
+		if !suspended {
+			// never return a suspended user profile
+			if pr.Suspended {
+				return nil, exceptions.ProfileSuspendFoundError()
+			}
+		}
+
 		return pr, nil
 	}
 
@@ -532,7 +564,7 @@ func (fr *Repository) GenerateAuthCredentials(
 	if err != nil {
 		return nil, exceptions.AuthenticateTokenError(err)
 	}
-	pr, err := fr.GetUserProfileByPrimaryPhoneNumber(ctx, phone)
+	pr, err := fr.GetUserProfileByPrimaryPhoneNumber(ctx, phone, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
@@ -585,7 +617,7 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 	if v {
 		return exceptions.InternalServerError(fmt.Errorf("%v", exceptions.UsernameInUseErrMsg))
 	}
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -618,7 +650,7 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 // UpdatePrimaryPhoneNumber append a new primary phone number to the user profile
 // this method should be called after asserting the phone number is unique and not associated with another userProfile
 func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, phoneNumber string) error {
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -653,7 +685,7 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 // UpdatePrimaryEmailAddress the primary email addresses of the profile that matches the id
 // this method should be called after asserting the emailAddress is unique and not associated with another userProfile
 func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, emailAddress string) error {
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -688,7 +720,7 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 // UpdateSecondaryPhoneNumbers the secondary phone numbers of the profile that matches the id
 // this method should be called after asserting the phone numbers are unique and not associated with another userProfile
 func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string, phoneNumbers []string) error {
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -736,7 +768,7 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 // UpdateSecondaryEmailAddresses the secondary email addresses of the profile that matches the id
 // this method should be called after asserting the emailAddresses  as unique and not associated with another userProfile
 func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id string, uniqueEmailAddresses []string) error {
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -782,7 +814,7 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 
 // UpdateSuspended updates the suspend attribute of the profile that matches the id
 func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status bool) error {
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, true)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -812,11 +844,12 @@ func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status boo
 	}
 
 	return nil
+
 }
 
 // UpdatePhotoUploadID updates the photoUploadID attribute of the profile that matches the id
 func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, uploadID string) error {
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -850,7 +883,7 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 
 // UpdateCovers updates the covers attribute of the profile that matches the id
 func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base.Cover) error {
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -900,7 +933,7 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 // UpdatePushTokens updates the pushTokens attribute of the profile that matches the id. This function does a hard reset instead of prior
 // matching
 func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushTokens []string) error {
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -934,7 +967,7 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 
 // UpdatePermissions update the permissions of the user profile
 func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []base.PermissionType) error {
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -982,7 +1015,7 @@ func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []
 
 // UpdateBioData updates the biodate of the profile that matches the id
 func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.BioData) error {
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -1042,7 +1075,7 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 
 	for _, identifier := range identifiers {
 		// for each run, get the user profile. this will ensure the fetch profile always has the latest data
-		profile, err := fr.GetUserProfileByID(ctx, id)
+		profile, err := fr.GetUserProfileByID(ctx, id, false)
 		if err != nil {
 			// this is a wrapped error. No need to wrap it again
 			return err
@@ -1098,7 +1131,7 @@ func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []
 
 	for _, uid := range uids {
 		// for each run, get the user profile. this will ensure the fetch profile always has the latest data
-		profile, err := fr.GetUserProfileByID(ctx, id)
+		profile, err := fr.GetUserProfileByID(ctx, id, false)
 		if err != nil {
 			// this is a wrapped error. No need to wrap it again
 			return err
@@ -1520,17 +1553,22 @@ func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID str
 	if err != nil {
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-	// TODO check if len(docs) is 0
-	updateCommand := &UpdateCommand{
-		CollectionName: fr.GetSupplierProfileCollectionName(),
-		ID:             docs[0].Ref.ID,
-		Data:           sup,
+
+	if len(docs) == 1 {
+		updateCommand := &UpdateCommand{
+			CollectionName: fr.GetSupplierProfileCollectionName(),
+			ID:             docs[0].Ref.ID,
+			Data:           sup,
+		}
+		err = fr.FirestoreClient.Update(ctx, updateCommand)
+		if err != nil {
+			return nil, exceptions.InternalServerError(fmt.Errorf("unable to update user profile: %v", err))
+		}
+		return sup, nil
 	}
-	err = fr.FirestoreClient.Update(ctx, updateCommand)
-	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to update user profile: %v", err))
-	}
-	return sup, nil
+
+	return nil, exceptions.InternalServerError(fmt.Errorf("unexpected number of records: %v", len(docs)))
+
 }
 
 // StageProfileNudge ...
@@ -1698,7 +1736,7 @@ func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile,
 
 // PurgeUserByPhoneNumber removes the record of a user given a phone number.
 func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) error {
-	pr, err := fr.GetUserProfileByPhoneNumber(ctx, phone)
+	pr, err := fr.GetUserProfileByPhoneNumber(ctx, phone, false)
 	if err != nil {
 		return exceptions.InternalServerError(err)
 	}
@@ -1878,7 +1916,7 @@ func (fr *Repository) GetOrCreatePhoneNumberUser(
 // secondary phone number and passing in the new secondary phone numbers as an argument.
 func (fr *Repository) HardResetSecondaryPhoneNumbers(ctx context.Context, id string, newSecondaryPhoneNumbers []string) error {
 
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -1914,7 +1952,7 @@ func (fr *Repository) HardResetSecondaryPhoneNumbers(ctx context.Context, id str
 // secondary email addresses and passing in the new secondary email address as an argument.
 func (fr *Repository) HardResetSecondaryEmailAddress(ctx context.Context, id string, newSecondaryEmails []string) error {
 
-	profile, err := fr.GetUserProfileByID(ctx, id)
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err

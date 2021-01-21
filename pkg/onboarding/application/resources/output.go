@@ -47,3 +47,9 @@ type CreatedUserResponse struct {
 	PhotoURL    string `json:"photo_url,omitempty"`
 	ProviderID  string `json:"provider_id,omitempty"`
 }
+
+// SupplierLogin is the response returned after the user has successfully login to edi
+type SupplierLogin struct {
+	Branches *BranchConnection `json:"branches,omitempty"`
+	Supplier *base.Supplier    `json:"supplier,omitempty"`
+}

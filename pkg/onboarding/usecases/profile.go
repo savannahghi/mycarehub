@@ -116,7 +116,7 @@ func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile
 	if err != nil {
 		return nil, exceptions.UserNotFoundError(err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
@@ -126,7 +126,7 @@ func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile
 
 // GetProfileByID returns the profile identified by the indicated ID
 func (p *ProfileUseCaseImpl) GetProfileByID(ctx context.Context, id *string) (*base.UserProfile, error) {
-	profile, err := p.onboardingRepository.GetUserProfileByID(ctx, *id)
+	profile, err := p.onboardingRepository.GetUserProfileByID(ctx, *id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
@@ -163,14 +163,14 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 		if err != nil {
 			return exceptions.UserNotFoundError(err)
 		}
-		profile, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+		profile, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 		if err != nil {
 			// this is a wrapped error. No need to wrap it again
 			return err
 		}
 
 	} else {
-		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
+		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber, false)
 		if err != nil {
 			// this is a wrapped error. No need to wrap it again
 			return err
@@ -215,7 +215,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emai
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -278,7 +278,7 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(ctx context.Context, ph
 			return exceptions.UserNotFoundError(err)
 		}
 
-		profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+		profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 		if err != nil {
 			// this is a wrapped error. No need to wrap it again
 			return err
@@ -314,7 +314,7 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(ctx context.Context, 
 			return exceptions.UserNotFoundError(err)
 		}
 
-		profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+		profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 		if err != nil {
 			// this is a wrapped error. No need to wrap it again
 			return err
@@ -339,7 +339,7 @@ func (p *ProfileUseCaseImpl) UpdateVerifiedUIDS(ctx context.Context, uids []stri
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -354,7 +354,7 @@ func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(ctx context.Context, iden
 		return exceptions.UserNotFoundError(err)
 	}
 
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -377,13 +377,13 @@ func (p *ProfileUseCaseImpl) UpdateSuspended(ctx context.Context, status bool, p
 		if err != nil {
 			return exceptions.UserNotFoundError(err)
 		}
-		profile, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+		profile, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 		if err != nil {
 			// this is a wrapped error. No need to wrap it again
 			return err
 		}
 	} else {
-		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
+		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber, false)
 		if err != nil {
 			// this is a wrapped error. No need to wrap it again
 			return err
@@ -401,7 +401,7 @@ func (p *ProfileUseCaseImpl) UpdatePhotoUploadID(ctx context.Context, uploadID s
 		return exceptions.UserNotFoundError(err)
 	}
 
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -417,7 +417,7 @@ func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cov
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -432,7 +432,7 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken str
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -462,7 +462,7 @@ func (p *ProfileUseCaseImpl) UpdatePermissions(ctx context.Context, perms []base
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -477,7 +477,7 @@ func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioDat
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -508,7 +508,7 @@ func (p *ProfileUseCaseImpl) GetUserProfileByUID(
 	ctx context.Context,
 	UID string,
 ) (*base.UserProfile, error) {
-	return p.onboardingRepository.GetUserProfileByUID(ctx, UID)
+	return p.onboardingRepository.GetUserProfileByUID(ctx, UID, false)
 }
 
 // SetPrimaryPhoneNumber set the primary phone number of the user after verifying the otp code
@@ -585,7 +585,7 @@ func (p *ProfileUseCaseImpl) RetireSecondaryPhoneNumbers(ctx context.Context, to
 	if err != nil {
 		return false, exceptions.UserNotFoundError(err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return false, err
@@ -620,7 +620,7 @@ func (p *ProfileUseCaseImpl) RetireSecondaryEmailAddress(ctx context.Context, to
 	if err != nil {
 		return false, exceptions.UserNotFoundError(err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return false, err
@@ -662,6 +662,7 @@ func (p *ProfileUseCaseImpl) GetUserProfileAttributes(
 		profile, err := p.onboardingRepository.GetUserProfileByUID(
 			ctx,
 			UID,
+			false,
 		)
 		if err != nil {
 			return output, err

@@ -64,16 +64,16 @@ type OnboardingRepository interface {
 	CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*base.Customer, error)
 
 	// fetches a user profile by uid
-	GetUserProfileByUID(ctx context.Context, uid string) (*base.UserProfile, error)
+	GetUserProfileByUID(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error)
 
-	// fetches a user profile by id
-	GetUserProfileByID(ctx context.Context, id string) (*base.UserProfile, error)
+	// fetches a user profile by id. returns the unsuspend profile
+	GetUserProfileByID(ctx context.Context, id string, suspended bool) (*base.UserProfile, error)
 
 	// fetches a user profile by phone number
-	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
+	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error)
 
 	// fetches a user profile by primary phone number
-	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
+	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error)
 
 	// checks if a specific phone number has already been registered to another user
 	CheckIfPhoneNumberExists(ctx context.Context, phone string) (bool, error)
