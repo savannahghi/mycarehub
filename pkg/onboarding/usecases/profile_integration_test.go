@@ -476,6 +476,9 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
+	err = s.Onboarding.UpdatePushTokens(context.Background(), "token1", false)
+	assert.NotNil(t, err)
+
 	err = s.Onboarding.UpdatePushTokens(authenticatedContext, "token1", false)
 	assert.Nil(t, err)
 
@@ -501,6 +504,9 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 	assert.Equal(t, 3, len(pr.PushTokens))
 
 	// remove the token and assert new length
+	err = s.Onboarding.UpdatePushTokens(context.Background(), "token2", true)
+	assert.NotNil(t, err)
+
 	err = s.Onboarding.UpdatePushTokens(authenticatedContext, "token2", true)
 	assert.Nil(t, err)
 
@@ -731,4 +737,44 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.SecondaryEmailAddresses))
 	assert.Equal(t, false, base.StringSliceContains(pr.SecondaryPhoneNumbers, secondaryemail2))
+}
+
+func TestCheckPhoneExists(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	phone := base.TestUserPhoneNumber
+
+	// remove user then signup user with the phone number then run phone number check
+	// ignore the error since it is of no consequence to us
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
+
+	otp, err := generateTestOTP(t, phone)
+	if err != nil {
+		t.Errorf("failed to generate test OTP: %v", err)
+		return
+	}
+	pin := base.TestUserPin
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &phone,
+			PIN:         &pin,
+			Flavour:     base.FlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+
+	resp2, err2 := s.Onboarding.CheckPhoneExists(context.Background(), phone)
+	assert.Nil(t, err2)
+	assert.NotNil(t, resp2)
+	assert.Equal(t, true, resp2)
+
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
 }
