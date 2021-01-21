@@ -6,3 +6,10 @@ server
 .idea/
 test_output.txt
 documentation/site
+artifacts.zip
+bewell-app-ci.json
+bin/
+coverage.html
+coverage.json
+coverage_report.txt
+install-misspell.sh

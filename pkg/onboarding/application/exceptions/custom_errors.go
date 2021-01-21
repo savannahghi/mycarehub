@@ -8,14 +8,11 @@ import (
 
 // UserNotFoundError returns an error message when a user is not found
 func UserNotFoundError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: UserNotFoundErrMsg,
-			Code:    int(base.UserNotFound),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: UserNotFoundErrMsg,
+		Code:    int(base.UserNotFound),
 	}
-	return nil
 }
 
 // ProfileSuspendFoundError is returned is the user profile has been suspended.
@@ -37,14 +34,11 @@ func ProfileNotFoundError() error {
 
 // NormalizeMSISDNError returns an error when normalizing the msisdn fails
 func NormalizeMSISDNError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: NormalizeMSISDNErrMsg,
-			Code:    int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: NormalizeMSISDNErrMsg,
+		Code:    int(base.Internal),
 	}
-	return nil
 }
 
 // CheckPhoneNumberExistError check if phone number is registered to another user
@@ -94,66 +88,51 @@ func PinMismatchError(err error) error {
 // CustomTokenError is the error message displayed when a
 // custom token is not created
 func CustomTokenError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: CustomTokenErrMsg,
-			Code:    int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: CustomTokenErrMsg,
+		Code:    int(base.Internal),
 	}
-	return nil
 }
 
 // AuthenticateTokenError is the error message displayed when a
 // custom token is not authenticated
 func AuthenticateTokenError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: AuthenticateTokenErrMsg,
-			Code:    int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: AuthenticateTokenErrMsg,
+		Code:    int(base.Internal),
 	}
-	return nil
 }
 
 // UpdateProfileError is the error message displayed when a
 // user profile cannot be updated
 func UpdateProfileError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: UpdateProfileErrMsg,
-			Code:    int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: UpdateProfileErrMsg,
+		Code:    int(base.Internal),
 	}
-	return nil
 }
 
 // AddRecordError is the error message displayed when a
 // record fails to be added to the database
 func AddRecordError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: AddRecordErrMsg,
-			Code:    int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: AddRecordErrMsg,
+		Code:    int(base.Internal),
 	}
-	return nil
 }
 
 // RetrieveRecordError is the error message displayed when a
 // failure occurs while retrieving records from the database
 func RetrieveRecordError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: RetrieveRecordErrMsg,
-			Code:    int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: RetrieveRecordErrMsg,
+		Code:    int(base.Internal),
 	}
-	return nil
 }
 
 // LikelyToRecommendError is the error message displayed that
@@ -169,27 +148,21 @@ func LikelyToRecommendError(err error) error {
 // GenerateAndSendOTPError is the error message displayed when a
 // generate and send otp fails
 func GenerateAndSendOTPError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: GenerateAndSendOTPErrMsg,
-			Code:    int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: GenerateAndSendOTPErrMsg,
+		Code:    int(base.Internal),
 	}
-	return nil
 }
 
 // CheckUserPINError is the error message displayed when
 // a server is unable to check if the user has a PIN
 func CheckUserPINError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: CheckUserPINErrMsg,
-			Code:    int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: CheckUserPINErrMsg,
+		Code:    int(base.Internal),
 	}
-	return nil
 }
 
 // ExistingPINError is the error message displayed when a
@@ -206,43 +179,36 @@ func ExistingPINError(err error) error {
 // EncryptPINError  is the error message displayed when
 // pin encryption fails
 func EncryptPINError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: EncryptPINErrMsg,
-			// TODO: add correct error code
-			Code: int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: EncryptPINErrMsg,
+		// TODO: add correct error code
+		Code: int(base.Internal),
 	}
-	return nil
 }
 
 // ValidatePINDigitsError  is the error message displayed when
 // invalid  pin digits are given
 func ValidatePINDigitsError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: ValidatePINDigitsErrMsg,
-			// TODO: a give a correct code
-			Code: int(base.UserNotFound),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: ValidatePINDigitsErrMsg,
+		// TODO: a give a correct code
+		Code: int(base.UserNotFound),
 	}
-	return nil
+
 }
 
 // ValidatePINLengthError  is the error message displayed when
 // an invalid Pin length is given
 func ValidatePINLengthError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: ValidatePINLengthErrMsg,
-			// TODO: a give a correct code
-			Code: int(base.UserNotFound),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: ValidatePINLengthErrMsg,
+		// TODO: a give a correct code
+		Code: int(base.UserNotFound),
 	}
-	return nil
+
 }
 
 // InValidPushTokenLengthError  is the error message displayed when
@@ -302,15 +268,13 @@ func InvalidFlavourDefinedError() error {
 // AddPartnerTypeError is an error message displayed when there is a
 // failure to create a partner type
 func AddPartnerTypeError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: AddPartnerTypeErrMsg,
-			// TODO: provide a correct code
-			Code: int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: AddPartnerTypeErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
 	}
-	return nil
+
 }
 
 // InvalidPartnerTypeError is an error message displayed when an
@@ -327,15 +291,12 @@ func InvalidPartnerTypeError() error {
 // FetchDefaultCurrencyError is an error message displayed when
 // the default currency is not found
 func FetchDefaultCurrencyError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: FetchDefaultCurrencyErrMsg,
-			// TODO: provide a correct code
-			Code: int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: FetchDefaultCurrencyErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
 	}
-	return nil
 }
 
 // SupplierNotFoundError returns an error message when a supplier is not found
@@ -367,29 +328,23 @@ func SupplierKYCAlreadySubmittedNotFoundError() error {
 
 // FindProviderError returns an error message when a provider is not found
 func FindProviderError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: FindProviderErrMsg,
-			// TODO: provide a correct code
-			Code: int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: FindProviderErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
 	}
-	return nil
 }
 
 // PublishKYCNudgeError returns an error message when there's a failure in
 // creating a KYC nudge
 func PublishKYCNudgeError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: PublishKYCNudgeErrMsg,
-			// TODO: provide a correct code
-			Code: int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: PublishKYCNudgeErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
 	}
-	return nil
 }
 
 // InvalidCredentialsError returns an error message when wrong credentials are provided
@@ -404,15 +359,12 @@ func InvalidCredentialsError() error {
 
 // SaveUserPinError returns an error message when we are unable to save a user pin
 func SaveUserPinError(err error) error {
-	if err != nil {
-		return &base.CustomError{
-			Err:     err,
-			Message: SaveUserPinErrMsg,
-			// TODO: provide a correct code
-			Code: int(base.Internal),
-		}
+	return &base.CustomError{
+		Err:     err,
+		Message: SaveUserPinErrMsg,
+		// TODO: provide a correct code
+		Code: int(base.Internal),
 	}
-	return nil
 }
 
 // CompleteSignUpError returns an error message when we are unable
