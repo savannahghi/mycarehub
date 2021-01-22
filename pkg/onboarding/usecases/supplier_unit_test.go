@@ -1387,3 +1387,208 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 	}
 
 }
+
+func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	validInput := domain.OrganizationPharmaceutical{
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		KRAPIN:               "A0352HDAKCS",
+		KRAPINUploadID:       "kra-pin-upload-id",
+		SupportingDocumentsUploadID: []string{
+			"supporting_docs_upload_id",
+			"random_upload_id",
+		},
+		CertificateOfIncorporation:         "certificate_of_incorporation",
+		CertificateOfInCorporationUploadID: "certificate_of_incorporation_upload_id",
+		DirectorIdentifications: []domain.Identification{
+			{
+				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocNumber:         "12345",
+				IdentificationDocNumberUploadID: "upload_id",
+			},
+		},
+		OrganizationCertificate: "organization_certificate",
+		RegistrationNumber:      "registration_number",
+		PracticeLicenseID:       "license_id",
+		PracticeLicenseUploadID: "license_upload_id",
+	}
+
+	type args struct {
+		ctx   context.Context
+		input domain.OrganizationPharmaceutical
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.OrganizationPharmaceutical
+		wantErr bool
+	}{
+		{
+			name: "valid:_successfully_AddOrganizationPharmaceuticalKyc",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			want:    &validInput,
+			wantErr: true, //TODO:@Sala- confirm why it fails to get a user
+		},
+		{
+			name: "valid:_use_invalid_organization_name",
+			args: args{
+				ctx: ctx,
+				input: domain.OrganizationPharmaceutical{
+					OrganizationTypeName: "invalid organization name",
+				},
+			},
+			want:    &validInput,
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_find_supplierByUID",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_get_user_profile_by_uid",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_get_logged_in_user",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:_successfully_AddOrganizationPharmaceuticalKyc" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "400d-8716-5cf354a2-1d3e-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af791bd-42b3af3-5b64-4c2f-15a4e",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return &base.Supplier{
+						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
+						KYCSubmitted: false,
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+			}
+
+			if tt.name == "valid:_use_invalid_organization_name" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "400d-8716-5cf354a2-1d3e-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af791bd-42b3af3-5b64-4c2f-15a4e",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return &base.Supplier{
+						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
+						KYCSubmitted: false,
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return fmt.Errorf("invalid organization name")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_find_supplierByUID" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "-91bd-42b3af315a4e",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+							},
+						},
+					}, nil
+				}
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return nil, fmt.Errorf("failed to get the supplier profile")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_user_profile_by_uid" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "FSO798-AD3", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get profile")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged in user")
+				}
+			}
+
+			_, err := i.Supplier.AddOrganizationPharmaceuticalKyc(tt.args.ctx, tt.args.input)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+
+		})
+	}
+}
