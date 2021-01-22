@@ -4,13 +4,16 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 )
 
 // FakeBaseExtensionImpl is a `base` library fake  .
 type FakeBaseExtensionImpl struct {
-	GetLoggedInUserUIDFn func(ctx context.Context) (string, error)
-	NormalizeMSISDNFn    func(msisdn string) (*string, error)
+	GetLoggedInUserUIDFn   func(ctx context.Context) (string, error)
+	NormalizeMSISDNFn      func(msisdn string) (*string, error)
+	FetchDefaultCurrencyFn func(c base.Client,
+	) (*base.FinancialYearAndCurrency, error)
 }
 
 // GetLoggedInUserUID ...
@@ -21,6 +24,12 @@ func (b *FakeBaseExtensionImpl) GetLoggedInUserUID(ctx context.Context) (string,
 // NormalizeMSISDN ...
 func (b *FakeBaseExtensionImpl) NormalizeMSISDN(msisdn string) (*string, error) {
 	return b.NormalizeMSISDNFn(msisdn)
+}
+
+// FetchDefaultCurrency ...
+func (b *FakeBaseExtensionImpl) FetchDefaultCurrency(c base.Client,
+) (*base.FinancialYearAndCurrency, error) {
+	return b.FetchDefaultCurrencyFn(c)
 }
 
 // PINExtensionImpl is a `PIN` fake  .

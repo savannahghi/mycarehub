@@ -183,7 +183,7 @@ func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context,
 		return nil, err
 	}
 
-	currency, err := base.FetchDefaultCurrency(s.erp.FetchERPClient())
+	currency, err := s.baseExt.FetchDefaultCurrency(s.erp.FetchERPClient())
 	if err != nil {
 		return nil, exceptions.FetchDefaultCurrencyError(err)
 	}
@@ -1545,7 +1545,12 @@ func (s *SupplierUseCasesImpl) SendKYCEmail(ctx context.Context, text, emailaddr
 }
 
 // ProcessKYCRequest transitions a kyc request to a given state
-func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error) {
+func (s *SupplierUseCasesImpl) ProcessKYCRequest(
+	ctx context.Context,
+	id string,
+	status domain.KYCProcessStatus,
+	rejectionReason *string,
+) (bool, error) {
 
 	req, err := s.repo.FetchKYCProcessingRequestByID(ctx, id)
 	if err != nil {
@@ -1576,7 +1581,11 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(ctx context.Context, id string,
 	case domain.KYCProcessStatusApproved:
 		go func() {
 			// create supplier erp account
-			if _, err := s.AddCustomerSupplierERPAccount(ctx, req.SupplierRecord.SupplierName, req.ReqPartnerType); err != nil {
+			if _, err := s.AddCustomerSupplierERPAccount(
+				ctx,
+				req.SupplierRecord.SupplierName,
+				req.ReqPartnerType,
+			); err != nil {
 				logrus.Error(fmt.Errorf("unable to create erp supplier account: %v", err))
 			}
 		}()

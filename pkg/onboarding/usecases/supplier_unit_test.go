@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 )
 
@@ -758,4 +760,630 @@ func TestProfileUseCaseImpl_RetireKYCRequest(t *testing.T) {
 
 		})
 	}
+}
+
+func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	rejectionReason := "You can do better :("
+	type args struct {
+		ctx             context.Context
+		id              string
+		status          domain.KYCProcessStatus
+		rejectionReason *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:_approved_a_kyc_request",
+			args: args{
+				ctx:    ctx,
+				id:     uuid.New().String(),
+				status: domain.KYCProcessStatusApproved,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid:_rejected_a_kyc_request",
+			args: args{
+				ctx:             ctx,
+				id:              uuid.New().String(),
+				status:          domain.KYCProcessStatusRejected,
+				rejectionReason: &rejectionReason,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_failed_to_get_process_kyc_request",
+			args: args{
+				ctx:             ctx,
+				id:              uuid.New().String(),
+				status:          domain.KYCProcessStatusRejected,
+				rejectionReason: &rejectionReason,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_failed_to_update_supplier_profile",
+			args: args{
+				ctx:             ctx,
+				id:              uuid.New().String(),
+				status:          domain.KYCProcessStatusRejected,
+				rejectionReason: &rejectionReason,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_failed_to_update_user_profile",
+			args: args{
+				ctx:    ctx,
+				id:     uuid.New().String(),
+				status: domain.KYCProcessStatusApproved,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_failed_to_get_supplier_profile_when_approved",
+			args: args{
+				ctx:    ctx,
+				id:     uuid.New().String(),
+				status: domain.KYCProcessStatusApproved,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_failed_to_update_supplier_profile_when_approved",
+			args: args{
+				ctx:    ctx,
+				id:     uuid.New().String(),
+				status: domain.KYCProcessStatusApproved,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_failed_to_send_email",
+			args: args{
+				ctx:    ctx,
+				id:     uuid.New().String(),
+				status: domain.KYCProcessStatusRejected,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_failed_to_send_sms",
+			args: args{
+				ctx:    ctx,
+				id:     uuid.New().String(),
+				status: domain.KYCProcessStatusRejected,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_approved_a_kyc_request" {
+				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
+					ctx context.Context,
+					id string,
+				) (*domain.KYCRequest, error) {
+					profileID := uuid.New().String()
+					return &domain.KYCRequest{
+						ID: uuid.New().String(),
+						SupplierRecord: &base.Supplier{
+							ProfileID: &profileID,
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateKYCProcessingRequestFn = func(
+					ctx context.Context,
+					sup *domain.KYCRequest,
+				) error {
+					return nil
+				}
+
+				fakeRepo.GetUserProfileByIDFn = func(
+					ctx context.Context,
+					id string,
+					suspended bool,
+				) (*base.UserProfile, error) {
+					email := base.GenerateRandomEmail()
+					phone := base.TestUserPhoneNumber
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &email,
+						PrimaryPhone:        &phone,
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(
+					ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client,
+				) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(
+					ctx context.Context,
+					profileID string,
+				) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(
+					ctx context.Context,
+					profileID string,
+					data *base.Supplier,
+				) error {
+					return nil
+				}
+
+				fakeMailgunSvc.SendMailFn = func(
+					email string,
+					message string,
+					subject string,
+				) error {
+					return nil
+				}
+
+				fakeMessagingSvc.SendSMSFn = func(
+					phoneNumbers []string,
+					message string,
+				) error {
+					return nil
+				}
+			}
+
+			if tt.name == "valid:_rejected_a_kyc_request" {
+				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
+					ctx context.Context,
+					id string,
+				) (*domain.KYCRequest, error) {
+					profileID := uuid.New().String()
+					return &domain.KYCRequest{
+						ID: uuid.New().String(),
+						SupplierRecord: &base.Supplier{
+							ProfileID: &profileID,
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateKYCProcessingRequestFn = func(
+					ctx context.Context,
+					sup *domain.KYCRequest,
+				) error {
+					return nil
+				}
+
+				fakeRepo.GetUserProfileByIDFn = func(
+					ctx context.Context,
+					id string,
+					suspended bool,
+				) (*base.UserProfile, error) {
+					email := base.GenerateRandomEmail()
+					phone := base.TestUserPhoneNumber
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &email,
+						PrimaryPhone:        &phone,
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(
+					ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeMailgunSvc.SendMailFn = func(
+					email string,
+					message string,
+					subject string,
+				) error {
+					return nil
+				}
+
+				fakeMessagingSvc.SendSMSFn = func(
+					phoneNumbers []string,
+					message string,
+				) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:_failed_to_get_process_kyc_request" {
+				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
+					ctx context.Context,
+					id string,
+				) (*domain.KYCRequest, error) {
+					return nil, fmt.Errorf("failed to get the request")
+				}
+			}
+
+			if tt.name == "invalid:_failed_to_update_supplier_profile" {
+				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
+					ctx context.Context,
+					id string,
+				) (*domain.KYCRequest, error) {
+					profileID := uuid.New().String()
+					return &domain.KYCRequest{
+						ID: uuid.New().String(),
+						SupplierRecord: &base.Supplier{
+							ProfileID: &profileID,
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateKYCProcessingRequestFn = func(
+					ctx context.Context,
+					sup *domain.KYCRequest,
+				) error {
+					return fmt.Errorf("failed to update supplier profile")
+				}
+			}
+
+			if tt.name == "invalid:_failed_to_update_user_profile" {
+				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
+					ctx context.Context,
+					id string,
+				) (*domain.KYCRequest, error) {
+					profileID := uuid.New().String()
+					return &domain.KYCRequest{
+						ID: uuid.New().String(),
+						SupplierRecord: &base.Supplier{
+							ProfileID: &profileID,
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateKYCProcessingRequestFn = func(
+					ctx context.Context,
+					sup *domain.KYCRequest,
+				) error {
+					return nil
+				}
+
+				fakeRepo.GetUserProfileByIDFn = func(
+					ctx context.Context,
+					id string,
+					suspended bool,
+				) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			if tt.name == "invalid:_failed_to_get_supplier_profile_when_approved" {
+				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
+					ctx context.Context,
+					id string,
+				) (*domain.KYCRequest, error) {
+					profileID := uuid.New().String()
+					return &domain.KYCRequest{
+						ID: uuid.New().String(),
+						SupplierRecord: &base.Supplier{
+							ProfileID: &profileID,
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateKYCProcessingRequestFn = func(
+					ctx context.Context,
+					sup *domain.KYCRequest,
+				) error {
+					return nil
+				}
+
+				fakeRepo.GetUserProfileByIDFn = func(
+					ctx context.Context,
+					id string,
+					suspended bool,
+				) (*base.UserProfile, error) {
+					email := base.GenerateRandomEmail()
+					phone := base.TestUserPhoneNumber
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &email,
+						PrimaryPhone:        &phone,
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(
+					ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client,
+				) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(
+					ctx context.Context,
+					profileID string,
+				) (*base.Supplier, error) {
+					return nil, fmt.Errorf("failed to get supplier profile")
+				}
+			}
+
+			if tt.name == "invalid:_failed_to_update_supplier_profile_when_approved" {
+				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
+					ctx context.Context,
+					id string,
+				) (*domain.KYCRequest, error) {
+					profileID := uuid.New().String()
+					return &domain.KYCRequest{
+						ID: uuid.New().String(),
+						SupplierRecord: &base.Supplier{
+							ProfileID: &profileID,
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateKYCProcessingRequestFn = func(
+					ctx context.Context,
+					sup *domain.KYCRequest,
+				) error {
+					return nil
+				}
+
+				fakeRepo.GetUserProfileByIDFn = func(
+					ctx context.Context,
+					id string,
+					suspended bool,
+				) (*base.UserProfile, error) {
+					email := base.GenerateRandomEmail()
+					phone := base.TestUserPhoneNumber
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &email,
+						PrimaryPhone:        &phone,
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(
+					ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client,
+				) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(
+					ctx context.Context,
+					profileID string,
+				) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(
+					ctx context.Context,
+					profileID string,
+					data *base.Supplier,
+				) error {
+					return fmt.Errorf("failed to update supplier profile")
+				}
+			}
+
+			if tt.name == "invalid:_failed_to_send_email" {
+				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
+					ctx context.Context,
+					id string,
+				) (*domain.KYCRequest, error) {
+					profileID := uuid.New().String()
+					return &domain.KYCRequest{
+						ID: uuid.New().String(),
+						SupplierRecord: &base.Supplier{
+							ProfileID: &profileID,
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateKYCProcessingRequestFn = func(
+					ctx context.Context,
+					sup *domain.KYCRequest,
+				) error {
+					return nil
+				}
+
+				fakeRepo.GetUserProfileByIDFn = func(
+					ctx context.Context,
+					id string,
+					suspended bool,
+				) (*base.UserProfile, error) {
+					email := base.GenerateRandomEmail()
+					phone := base.TestUserPhoneNumber
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &email,
+						PrimaryPhone:        &phone,
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(
+					ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeMailgunSvc.SendMailFn = func(
+					email string,
+					message string,
+					subject string,
+				) error {
+					return fmt.Errorf("failed to send email")
+				}
+			}
+
+			if tt.name == "invalid:_failed_to_send_sms" {
+				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
+					ctx context.Context,
+					id string,
+				) (*domain.KYCRequest, error) {
+					profileID := uuid.New().String()
+					return &domain.KYCRequest{
+						ID: uuid.New().String(),
+						SupplierRecord: &base.Supplier{
+							ProfileID: &profileID,
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateKYCProcessingRequestFn = func(
+					ctx context.Context,
+					sup *domain.KYCRequest,
+				) error {
+					return nil
+				}
+
+				fakeRepo.GetUserProfileByIDFn = func(
+					ctx context.Context,
+					id string,
+					suspended bool,
+				) (*base.UserProfile, error) {
+					email := base.GenerateRandomEmail()
+					phone := base.TestUserPhoneNumber
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &email,
+						PrimaryPhone:        &phone,
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(
+					ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeMailgunSvc.SendMailFn = func(
+					email string,
+					message string,
+					subject string,
+				) error {
+					return nil
+				}
+
+				fakeMessagingSvc.SendSMSFn = func(
+					phoneNumbers []string,
+					message string,
+				) error {
+					return fmt.Errorf("failed to send sms")
+				}
+			}
+
+			_, err := i.Supplier.ProcessKYCRequest(
+				tt.args.ctx,
+				tt.args.id,
+				tt.args.status,
+				tt.args.rejectionReason,
+			)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+
 }

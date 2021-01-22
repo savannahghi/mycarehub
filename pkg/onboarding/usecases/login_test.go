@@ -340,16 +340,19 @@ var fakeBaseExt extMock.FakeBaseExtensionImpl
 var fakePinExt extMock.PINExtensionImpl
 var fakeMailgunSvc mailgunMock.FakeServiceMailgun
 var fakeEngagementSvs engagementMock.FakeServiceEngagement
+var fakeMessagingSvc messagingMock.FakeServiceMessaging
+var fakeEPRSvc erpMock.FakeServiceERP
+var fakeChargeMasterSvc chargemasterMock.FakeServiceChargeMaster
 
 // InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
 func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var r repository.OnboardingRepository = &fakeRepo
 	var otpSvc otp.ServiceOTP = &fakeOtp
-	var erpSvc erp.ServiceERP = &erpMock.FakeServiceERP{}
-	var chargemasterSvc chargemaster.ServiceChargeMaster = &chargemasterMock.FakeServiceChargeMaster{}
+	var erpSvc erp.ServiceERP = &fakeEPRSvc
+	var chargemasterSvc chargemaster.ServiceChargeMaster = &fakeChargeMasterSvc
 	var engagementSvc engagement.ServiceEngagement = &fakeEngagementSvs
 	var mailgunSvc mailgun.ServiceMailgun = &fakeMailgunSvc
-	var messagingSvc messaging.ServiceMessaging = &messagingMock.FakeServiceMessaging{}
+	var messagingSvc messaging.ServiceMessaging = &fakeMessagingSvc
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
 

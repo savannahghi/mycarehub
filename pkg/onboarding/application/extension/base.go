@@ -15,6 +15,8 @@ type BaseExtension interface {
 	// functions that we use from base
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	NormalizeMSISDN(msisdn string) (*string, error)
+	FetchDefaultCurrency(c base.Client,
+	) (*base.FinancialYearAndCurrency, error)
 }
 
 // BaseExtensionImpl ...
@@ -34,6 +36,13 @@ func (b *BaseExtensionImpl) GetLoggedInUserUID(ctx context.Context) (string, err
 // NormalizeMSISDN validates the input phone number.
 func (b *BaseExtensionImpl) NormalizeMSISDN(msisdn string) (*string, error) {
 	return base.NormalizeMSISDN(msisdn)
+}
+
+// FetchDefaultCurrency fetched an ERP's organization's default
+// current currency
+func (b *BaseExtensionImpl) FetchDefaultCurrency(c base.Client,
+) (*base.FinancialYearAndCurrency, error) {
+	return base.FetchDefaultCurrency(c)
 }
 
 // ISCClientExtension represents the base ISC client
