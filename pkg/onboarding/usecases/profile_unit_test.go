@@ -1549,3 +1549,257 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 		})
 	}
 }
+
+func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+
+	primaryPhone := "+254719789543"
+	primaryPhone1 := "+254765739201"
+	type args struct {
+		ctx        context.Context
+		phone      string
+		useContext bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:_update_primaryPhoneNumber_with_useContext_false",
+			args: args{
+				ctx:        ctx,
+				phone:      primaryPhone,
+				useContext: false,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "valid:_update_primaryPhoneNumber_with_useContext_true",
+			args: args{
+				ctx:        ctx,
+				phone:      primaryPhone1,
+				useContext: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_missing_primaryPhoneNumber",
+			args: args{
+				ctx:        ctx,
+				phone:      " ",
+				useContext: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_get_logged_in_user",
+			args: args{
+				ctx:        ctx,
+				phone:      "+25463728192",
+				useContext: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_get_userProfile_by_phonenumber",
+			args: args{
+				ctx:        ctx,
+				phone:      "+254736291036",
+				useContext: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_get_profile_of_logged_in_user",
+			args: args{
+				ctx:        ctx,
+				phone:      "+25463728192",
+				useContext: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_update_secondary_phonenumber",
+			args: args{
+				ctx:        ctx,
+				phone:      "+25463728192",
+				useContext: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_update_primary_phonenumber",
+			args: args{
+				ctx:        ctx,
+				phone:      "+25463728192",
+				useContext: false,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:_update_primaryPhoneNumber_with_useContext_false" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254755889922"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "ABCDE",
+						PrimaryPhone: &phoneNumber,
+						SecondaryPhoneNumbers: []string{
+							"0765839203", "0789437282",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdatePrimaryPhoneNumberFn = func(ctx context.Context, id string, phoneNumber string) error {
+					return nil
+				}
+
+				fakeRepo.UpdateSecondaryPhoneNumbersFn = func(ctx context.Context, id string, phoneNumbers []string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "valid:_update_primaryPhoneNumber_with_useContext_true" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254789029156"
+					return &phone, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "f4f39af7--91bd-42b3af315a4e",
+						PrimaryPhone: &primaryPhone1,
+						SecondaryPhoneNumbers: []string{
+							"0765839203", "0789437282",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdatePrimaryPhoneNumberFn = func(ctx context.Context, id string, phoneNumber string) error {
+					return nil
+				}
+
+				fakeRepo.UpdateSecondaryPhoneNumbersFn = func(ctx context.Context, id string, phoneNumbers []string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:_missing_primaryPhoneNumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("empty phone number provided")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_logged_in_user" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254789029156"
+					return &phone, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged in user")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_userProfile_by_phonenumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254799774466"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get user profile by phonenumber")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_get_profile_of_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get profile")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_update_secondary_phonenumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254755889922"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "ABCDE",
+						PrimaryPhone: &phoneNumber,
+						SecondaryPhoneNumbers: []string{
+							"0765839203", "0789437282",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdatePrimaryPhoneNumberFn = func(ctx context.Context, id string, phoneNumber string) error {
+					return nil
+				}
+
+				fakeRepo.UpdateSecondaryPhoneNumbersFn = func(ctx context.Context, id string, phoneNumbers []string) error {
+					return fmt.Errorf("unable to update secondary phonenumber")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_update_secondary_phonenumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254755889922"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "ABCDE",
+						PrimaryPhone: &phoneNumber,
+						SecondaryPhoneNumbers: []string{
+							"0765839203", "0789437282",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdatePrimaryPhoneNumberFn = func(ctx context.Context, id string, phoneNumber string) error {
+					return fmt.Errorf("unable to update primary phonenumber")
+				}
+
+			}
+
+			err := i.Onboarding.UpdatePrimaryPhoneNumber(tt.args.ctx, tt.args.phone, tt.args.useContext)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
