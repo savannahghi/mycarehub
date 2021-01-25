@@ -53,7 +53,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
 
-	profile := usecases.NewProfileUseCase(r, otpSvc, ext)
+	profile := usecases.NewProfileUseCase(r, otpSvc, ext, engagementSvc)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(

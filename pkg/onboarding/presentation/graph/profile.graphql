@@ -35,8 +35,6 @@ extend type Mutation {
 
   setPrimaryEmailAddress(email: String!, otp:String!): Boolean!
 
-  addPrimaryEmailAddress(email: String!, otp:String!): Boolean!
-
   addSecondaryPhoneNumber(phone: [String!]): Boolean!
 
   retireSecondaryPhoneNumbers(phones: [String!]): Boolean! 

@@ -405,3 +405,21 @@ func InvalidSladeCodeError() error {
 		Code: int(base.Internal),
 	}
 }
+
+// ResolveNudgeErr is the error that represents the failure of not
+// being able to resolve a given nudge
+func ResolveNudgeErr(
+	err error,
+	flavour base.Flavour,
+	name string,
+) error {
+	return &base.CustomError{
+		Err: err,
+		Message: fmt.Sprintf(
+			ResolveNudgeErrMsg,
+			flavour,
+			name,
+		),
+		Code: int(base.Internal),
+	}
+}

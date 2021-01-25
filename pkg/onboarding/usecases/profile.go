@@ -3,11 +3,13 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -25,6 +27,10 @@ const (
 	// a user profile's FCM push tokens
 	FCMTokensAttribute = "tokens"
 )
+
+// VerifyEmailNudgeTitle is the title defined in the `engagement service`
+// for the `VerifyEmail` nudge
+const VerifyEmailNudgeTitle = "Add Primary Email Address"
 
 // ProfileUseCase represents all the profile business logi
 type ProfileUseCase interface {
@@ -54,7 +60,11 @@ type ProfileUseCase interface {
 	// called to set the primary phone number of a specific profile.
 	// useContext is used to mark under which scenario the method is been called.
 	SetPrimaryPhoneNumber(ctx context.Context, phoneNumber string, otp string, useContext bool) error
-	SetPrimaryEmailAddress(ctx context.Context, emailAddress string, otp string) error
+	SetPrimaryEmailAddress(
+		ctx context.Context,
+		emailAddress string,
+		otp string,
+	) error
 
 	// checks whether a phone number has been registred by another user. Checks both primary and
 	// secondary phone numbers. If the the phone number is foreign, it returns false
@@ -103,11 +113,22 @@ type ProfileUseCaseImpl struct {
 	onboardingRepository repository.OnboardingRepository
 	otpUseCases          otp.ServiceOTP
 	baseExt              extension.BaseExtension
+	engagement           engagement.ServiceEngagement
 }
 
 // NewProfileUseCase returns a new a onboarding usecase
-func NewProfileUseCase(r repository.OnboardingRepository, otp otp.ServiceOTP, ext extension.BaseExtension) ProfileUseCase {
-	return &ProfileUseCaseImpl{onboardingRepository: r, otpUseCases: otp, baseExt: ext}
+func NewProfileUseCase(
+	r repository.OnboardingRepository,
+	otp otp.ServiceOTP,
+	ext extension.BaseExtension,
+	eng engagement.ServiceEngagement,
+) ProfileUseCase {
+	return &ProfileUseCaseImpl{
+		onboardingRepository: r,
+		otpUseCases:          otp,
+		baseExt:              ext,
+		engagement:           eng,
+	}
 }
 
 // UserProfile retrieves the profile of the logged in user, if they have one
@@ -536,7 +557,15 @@ func (p *ProfileUseCaseImpl) SetPrimaryPhoneNumber(ctx context.Context, phoneNum
 }
 
 // SetPrimaryEmailAddress set the primary email address of the user after verifying the otp code
-func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(ctx context.Context, emailAddress string, otp string) error {
+func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
+	ctx context.Context,
+	emailAddress string,
+	otp string,
+) error {
+	UID, err := p.baseExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return exceptions.UserNotFoundError(err)
+	}
 	// verify otp code
 	verified, err := p.otpUseCases.VerifyEmailOTP(
 		ctx,
@@ -552,6 +581,54 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(ctx context.Context, emailAd
 	if err := p.UpdatePrimaryEmailAddress(ctx, emailAddress); err != nil {
 		return err
 	}
+
+	// The `VerifyEmail` nudge is by default created for both flavours, `PRO`
+	// and `CONSUMER`, thus if a user adds and verifies their `Primary Email`
+	// we need to `Resolve` the nudge for this user in both flavours
+	// Resolve the nudge in `CONSUMER`
+	consumerResp, err := p.engagement.ResolveDefaultNudgeByTitle(
+		UID,
+		base.FlavourConsumer,
+		VerifyEmailNudgeTitle,
+	)
+	if err != nil {
+		return exceptions.ResolveNudgeErr(
+			err,
+			base.FlavourConsumer,
+			VerifyEmailNudgeTitle,
+		)
+	}
+
+	if consumerResp.StatusCode != http.StatusOK {
+		return exceptions.ResolveNudgeErr(
+			fmt.Errorf("unexpected status code %v", consumerResp.StatusCode),
+			base.FlavourConsumer,
+			VerifyEmailNudgeTitle,
+		)
+	}
+
+	// Resolve the nudge in `PRO`
+	proResp, err := p.engagement.ResolveDefaultNudgeByTitle(
+		UID,
+		base.FlavourPro,
+		VerifyEmailNudgeTitle,
+	)
+	if err != nil {
+		return exceptions.ResolveNudgeErr(
+			err,
+			base.FlavourPro,
+			VerifyEmailNudgeTitle,
+		)
+	}
+
+	if proResp.StatusCode != http.StatusOK {
+		return exceptions.ResolveNudgeErr(
+			fmt.Errorf("unexpected status code %v", proResp.StatusCode),
+			base.FlavourPro,
+			VerifyEmailNudgeTitle,
+		)
+	}
+
 	return nil
 }
 

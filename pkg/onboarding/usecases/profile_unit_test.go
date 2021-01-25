@@ -3,6 +3,7 @@ package usecases_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/google/uuid"
@@ -543,6 +544,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 		ctx          context.Context
 		emailAddress string
 		otp          string
+		UID          string
 	}
 	tests := []struct {
 		name    string
@@ -557,6 +559,15 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				otp:          "689552",
 			},
 			wantErr: false,
+		},
+		{
+			name: "invalid:_failed_to_get_logged_in_uid",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "kichwa@gmail.com",
+				otp:          "453852",
+			},
+			wantErr: true,
 		},
 		{
 			name: "invalid:_verify_otp_fails",
@@ -585,10 +596,52 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid:_resolving_the_consumer_nudge_fails",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "mwendwapole@gmail.com",
+				otp:          "897523",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_resolving_the_pro_nudge_fails",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "mwendwapole@gmail.com",
+				otp:          "897523",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_resolving_the_consumer_nudge_does_not_return_a_200",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "mwendwapole@gmail.com",
+				otp:          "897523",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_resolving_the_pro_nudge_does_not_return_a_200",
+			args: args{
+				ctx:          ctx,
+				emailAddress: "mwendwapole@gmail.com",
+				otp:          "897523",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:_set_primary_address_succeeds" {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
 				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
@@ -596,32 +649,78 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					return nil
 				}
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+					return uuid.New().String(), nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
 				}
 				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
 					return nil
 				}
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) (*http.Response, error) {
+					return &http.Response{
+						Status:     "200 OK",
+						StatusCode: 200,
+					}, nil
+				}
+
+				// Resolve the second nudge
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) (*http.Response, error) {
+					return &http.Response{
+						Status:     "200 OK",
+						StatusCode: 200,
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:_failed_to_get_logged_in_uid" {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("an error has occured")
+				}
 			}
 
 			if tt.name == "invalid:_verify_otp_fails" {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
 				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, fmt.Errorf("unable to verify email otp")
 				}
 			}
 
 			if tt.name == "invalid:_verify_otp_returns_false" {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
 				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, nil
 				}
 			}
 
 			if tt.name == "invalid:_update_primary_address_fails" {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
 				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
@@ -633,7 +732,171 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				}
 			}
 
-			err := i.Onboarding.SetPrimaryEmailAddress(tt.args.ctx, tt.args.emailAddress, tt.args.otp)
+			if tt.name == "invalid:_resolving_the_consumer_nudge_fails" {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
+				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
+					return nil
+				}
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
+				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
+					return nil
+				}
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) (*http.Response, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "invalid:_resolving_the_pro_nudge_fails" {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
+				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
+					return nil
+				}
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
+				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
+					return nil
+				}
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) (*http.Response, error) {
+					return &http.Response{
+						Status:     "200 OK",
+						StatusCode: 200,
+					}, nil
+				}
+
+				// Resolve the second nudge
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) (*http.Response, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "invalid:_resolving_the_consumer_nudge_does_not_return_a_200" {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
+				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
+					return nil
+				}
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
+				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
+					return nil
+				}
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) (*http.Response, error) {
+					return &http.Response{StatusCode: 405}, nil
+				}
+			}
+
+			if tt.name == "invalid:_resolving_the_pro_nudge_does_not_return_a_200" {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
+				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
+					return nil
+				}
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+					}, nil
+				}
+				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
+					return nil
+				}
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) (*http.Response, error) {
+					return &http.Response{
+						Status:     "200 OK",
+						StatusCode: 200,
+					}, nil
+				}
+
+				// Resolve the second nudge
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) (*http.Response, error) {
+					return &http.Response{StatusCode: 405}, nil
+				}
+			}
+
+			err := i.Onboarding.SetPrimaryEmailAddress(
+				tt.args.ctx,
+				tt.args.emailAddress,
+				tt.args.otp,
+			)
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("error expected got %v", err)

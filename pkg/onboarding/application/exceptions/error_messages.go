@@ -146,4 +146,8 @@ const (
 
 	// InvalidSladeCodeErrMsg is displayed when slade code the edi user profile doesn't match with selected provider
 	InvalidSladeCodeErrMsg = "invalid slade code, doesn't match with selected provider"
+
+	// ResolveNudgeErrMsg is displayed when a nudge fails to be resolved
+	// It takes the `flavour` and a `name` of the nudge to be more specific
+	ResolveNudgeErrMsg = "failed to resolve %v `%s` nudge"
 )

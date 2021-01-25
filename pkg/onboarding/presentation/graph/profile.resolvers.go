@@ -38,13 +38,6 @@ func (r *mutationResolver) SetPrimaryEmailAddress(ctx context.Context, email str
 	return true, nil
 }
 
-func (r *mutationResolver) AddPrimaryEmailAddress(ctx context.Context, email string, otp string) (bool, error) {
-	if err := r.interactor.Onboarding.SetPrimaryEmailAddress(ctx, email, otp); err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
 func (r *mutationResolver) AddSecondaryPhoneNumber(ctx context.Context, phone []string) (bool, error) {
 	if err := r.interactor.Onboarding.UpdateSecondaryPhoneNumbers(ctx, phone); err != nil {
 		return false, err

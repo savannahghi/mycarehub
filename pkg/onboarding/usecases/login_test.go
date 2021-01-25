@@ -138,16 +138,16 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, err
 	}
 
-	ext := extension.NewBaseExtensionImpl()
-	pinExt := extension.NewPINExtensionImpl()
 	otpClient := utils.NewInterServiceClient(otpService)
-	otp := otp.NewOTPService(otpClient, ext)
-	profile := usecases.NewProfileUseCase(fr, otp, ext)
 	erp := erp.NewERPService()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	engage := engagement.NewServiceEngagementImpl()
+	engage := engagement.NewServiceEngagementImpl(otpClient)
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
+	ext := extension.NewBaseExtensionImpl()
+	pinExt := extension.NewPINExtensionImpl()
+	otp := otp.NewOTPService(otpClient, ext)
+	profile := usecases.NewProfileUseCase(fr, otp, ext, engage)
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
@@ -356,7 +356,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
 
-	profile := usecases.NewProfileUseCase(r, otpSvc, ext)
+	profile := usecases.NewProfileUseCase(r, otpSvc, ext, engagementSvc)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
