@@ -284,7 +284,6 @@ func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType bas
 
 // SuspendSupplier flips the active boolean on the erp partner from true to false
 func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error) {
-
 	uid, err := base.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return false, exceptions.UserNotFoundError(err)
@@ -1094,7 +1093,6 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context,
 
 // AddOrganizationPractitionerKyc adds KYC for an organization pratitioner
 func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error) {
-
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
