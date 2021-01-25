@@ -2998,3 +2998,404 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 		})
 	}
 }
+
+func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	validRespPayload := `{"IsPublished":true}`
+	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
+
+	admin1 := &base.UserProfile{
+		ID: "8716-7e2aead29f2c-8716-7e2aead29f2c",
+	}
+	adminUsers := []*base.UserProfile{}
+	adminUsers = append(adminUsers, admin1)
+
+	validInput := domain.OrganizationNutrition{
+		OrganizationTypeName:               domain.OrganizationTypeLimitedCompany,
+		KRAPIN:                             "nutrition-random-kra-pin",
+		KRAPINUploadID:                     "nutrition-krapin-upload-id",
+		SupportingDocumentsUploadID:        []string{"uploadid-1", "uploadid-2"},
+		CertificateOfIncorporation:         "incorp-certificate",
+		CertificateOfInCorporationUploadID: "incorp-certificate-uploadID",
+		DirectorIdentifications: []domain.Identification{
+			{
+				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocNumber:         "12345678910",
+				IdentificationDocNumberUploadID: "id-upload",
+			},
+		},
+		OrganizationCertificate: "nutrition-organization-cert",
+		RegistrationNumber:      "nutrition-reg-no",
+		PracticeLicenseUploadID: "nutrition-practice-license-uploadid",
+	}
+
+	type args struct {
+		ctx   context.Context
+		input domain.OrganizationNutrition
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.OrganizationNutrition
+		wantErr bool
+	}{
+		{
+			name: "valid:successfully_add_organizationNutritionKYC",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			want:    &validInput,
+			wantErr: false,
+		},
+		{
+			name: "invalid:fail_to_add_organizationNutritionKYC",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_supplier",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:successfully_add_organizationNutritionKYC" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return &base.Supplier{
+						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
+						KYCSubmitted: false,
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "400d-8716--91bd-42b3af315a4e",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: "f4f39af7-91bd-42b3af-315a4e",
+							},
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
+
+				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
+					return nil
+				}
+
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+					return &http.Response{
+						Status:     "OK",
+						StatusCode: 200,
+						Body:       respReader,
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_add_organizationNutritionKYC" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return &base.Supplier{
+						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
+						KYCSubmitted: false,
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "400d-8716--91bd-42b3af315a4e",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: "f4f39af7-91bd-42b3af-315a4e",
+							},
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
+
+				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
+					return fmt.Errorf("failed to add organization nutrition kyc")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_supplier" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return nil, fmt.Errorf("failed to get supplier")
+				}
+			}
+			got, err := i.Supplier.AddOrganizationNutritionKyc(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.AddOrganizationNutritionKyc() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SupplierUseCasesImpl.AddOrganizationNutritionKyc() = %v, want %v", got, tt.want)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestSupplierUseCasesImpl_RetireKYCRequest(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:retire_kyc_request",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:fail_to_retire_kyc_request",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_logged_in_user",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_user_profile",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_supplier_profile",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:retire_kyc_request" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.RemoveKYCProcessingRequestFn = func(ctx context.Context, supplierProfileID string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_retire_kyc_request" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.RemoveKYCProcessingRequestFn = func(ctx context.Context, supplierProfileID string) error {
+					return fmt.Errorf("failed to remove kyc processing request")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_user_profile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("failed to get userprofile")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_supplier_profile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return nil, fmt.Errorf("failed to get supplier profile")
+				}
+			}
+
+			err := i.Supplier.RetireKYCRequest(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.RetireKYCRequest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
