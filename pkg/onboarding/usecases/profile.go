@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/cenkalti/backoff"
+	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -586,46 +588,59 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 	// and `CONSUMER`, thus if a user adds and verifies their `Primary Email`
 	// we need to `Resolve` the nudge for this user in both flavours
 	// Resolve the nudge in `CONSUMER`
-	consumerResp, err := p.engagement.ResolveDefaultNudgeByTitle(
+	go func() {
+		cons := func() error {
+			return p.ResolveDefaultNudge(
+				UID,
+				base.FlavourConsumer,
+				VerifyEmailNudgeTitle,
+			)
+		}
+		if err := backoff.Retry(cons, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+
+		pro := func() error {
+			return p.ResolveDefaultNudge(
+				UID,
+				base.FlavourPro,
+				VerifyEmailNudgeTitle,
+			)
+		}
+		if err := backoff.Retry(pro, backoff.NewExponentialBackOff()); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
+	return nil
+}
+
+// ResolveDefaultNudge resolves a default nudge from the `engagement service`
+func (p *ProfileUseCaseImpl) ResolveDefaultNudge(
+	UID string,
+	flavour base.Flavour,
+	nudgeTitle string,
+) error {
+	resp, err := p.engagement.ResolveDefaultNudgeByTitle(
 		UID,
-		base.FlavourConsumer,
-		VerifyEmailNudgeTitle,
+		flavour,
+		nudgeTitle,
 	)
 	if err != nil {
 		return exceptions.ResolveNudgeErr(
 			err,
-			base.FlavourConsumer,
-			VerifyEmailNudgeTitle,
+			flavour,
+			nudgeTitle,
+			nil,
 		)
 	}
 
-	if consumerResp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK {
 		return exceptions.ResolveNudgeErr(
-			fmt.Errorf("unexpected status code %v", consumerResp.StatusCode),
-			base.FlavourConsumer,
-			VerifyEmailNudgeTitle,
-		)
-	}
-
-	// Resolve the nudge in `PRO`
-	proResp, err := p.engagement.ResolveDefaultNudgeByTitle(
-		UID,
-		base.FlavourPro,
-		VerifyEmailNudgeTitle,
-	)
-	if err != nil {
-		return exceptions.ResolveNudgeErr(
-			err,
-			base.FlavourPro,
-			VerifyEmailNudgeTitle,
-		)
-	}
-
-	if proResp.StatusCode != http.StatusOK {
-		return exceptions.ResolveNudgeErr(
-			fmt.Errorf("unexpected status code %v", proResp.StatusCode),
-			base.FlavourPro,
-			VerifyEmailNudgeTitle,
+			fmt.Errorf("unexpected status code %v", resp.StatusCode),
+			flavour,
+			nudgeTitle,
+			&resp.StatusCode,
 		)
 	}
 

@@ -412,7 +412,21 @@ func ResolveNudgeErr(
 	err error,
 	flavour base.Flavour,
 	name string,
+	statusCode *int,
 ) error {
+	if statusCode != nil {
+		return &base.CustomError{
+			Err: err,
+			Message: fmt.Sprintf(
+				ResolveNudgeBadStatusErrMsg,
+				flavour,
+				name,
+				statusCode,
+			),
+			Code: int(base.Internal),
+		}
+	}
+
 	return &base.CustomError{
 		Err: err,
 		Message: fmt.Sprintf(

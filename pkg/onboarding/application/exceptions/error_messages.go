@@ -150,4 +150,9 @@ const (
 	// ResolveNudgeErrMsg is displayed when a nudge fails to be resolved
 	// It takes the `flavour` and a `name` of the nudge to be more specific
 	ResolveNudgeErrMsg = "failed to resolve %v `%s` nudge"
+
+	// ResolveNudgeBadStatusErrMsg is displayed when a nudge fails to be resolved
+	// beacuse of an unexpected `Status code` being returned
+	// It takes the `flavour`, `name` and a `StatusCode` f orthe nudge to be more specific
+	ResolveNudgeBadStatusErrMsg = "failed to resolve %v `%s` nudge with status code %v"
 )

@@ -1,7 +1,6 @@
 package mock
 
 import (
-	"log"
 	"net/http"
 
 	"gitlab.slade360emr.com/go/base"
@@ -40,7 +39,6 @@ func (f *FakeServiceEngagement) ResolveDefaultNudgeByTitle(
 	flavour base.Flavour,
 	nudgeTitle string,
 ) (*http.Response, error) {
-	log.Printf("ResolveDefaultNudgeByTitleFn...We got here \n\n")
 	return f.ResolveDefaultNudgeByTitleFn(
 		UID,
 		flavour,

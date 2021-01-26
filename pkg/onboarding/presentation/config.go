@@ -37,6 +37,7 @@ const (
 	mbBytes              = 1048576
 	serverTimeoutSeconds = 120
 	otpService           = "otp"
+	engagementService    = "engagement"
 )
 
 // AllowedOrigins is list of CORS origins allowed to interact with
@@ -71,15 +72,21 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
-	iscClient := utils.NewInterServiceClient(otpService)
+	// Initialize ISC clients
+	otpClient := utils.NewInterServiceClient(otpService)
+	engagementClient := utils.NewInterServiceClient(engagementService)
+
+	// Initialize new instance of our infrastructure services
 	erp := erp.NewERPService()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	engage := engagement.NewServiceEngagementImpl(iscClient)
+	engage := engagement.NewServiceEngagementImpl(engagementClient)
 	mg := mailgun.NewServiceMailgunImpl()
 	mes := messaging.NewServiceMessagingImpl()
 	baseExt := extension.NewBaseExtensionImpl()
 	pinExt := extension.NewPINExtensionImpl()
-	otp := otp.NewOTPService(iscClient, baseExt)
+	otp := otp.NewOTPService(otpClient, baseExt)
+
+	// Initialize the usecases
 	profile := usecases.NewProfileUseCase(fr, otp, baseExt, engage)
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, baseExt)
 	login := usecases.NewLoginUseCases(fr, profile, baseExt, pinExt)
