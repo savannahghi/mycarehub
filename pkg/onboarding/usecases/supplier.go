@@ -176,13 +176,11 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 // AddCustomerSupplierERPAccount makes a call to our own ERP and creates a  customer account or supplier account  based
 // on the provided partnerType
 func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context, name string, partnerType base.PartnerType) (*base.Supplier, error) {
-
 	profile, err := s.profile.UserProfile(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
-
 	currency, err := s.baseExt.FetchDefaultCurrency(s.erp.FetchERPClient())
 	if err != nil {
 		return nil, exceptions.FetchDefaultCurrencyError(err)

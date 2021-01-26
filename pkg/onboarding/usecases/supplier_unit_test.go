@@ -5172,3 +5172,290 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 		})
 	}
 }
+
+func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	profileID := "93ca42bb-5cfc-4499-b137-2df4d67b4a21"
+	supplier := &base.Supplier{
+		ProfileID: &profileID,
+	}
+
+	type args struct {
+		ctx         context.Context
+		name        string
+		partnerType base.PartnerType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.Supplier
+		wantErr bool
+	}{
+		{
+			name: "valid:successfully_add_CustomerSupplierERPAccount",
+			args: args{
+				ctx:         ctx,
+				name:        "partner1",
+				partnerType: base.PartnerTypeConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid:successfully_add_CustomerSupplierERPAccount_using_PartnerTypeRider",
+			args: args{
+				ctx:         ctx,
+				name:        "partner2",
+				partnerType: base.PartnerTypeRider,
+			},
+			want:    supplier,
+			wantErr: false,
+		},
+		{
+			name: "invalid:fail_to_activateSupplierProfile",
+			args: args{
+				ctx:         ctx,
+				name:        "partner3",
+				partnerType: base.PartnerTypeRider,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_userProfile",
+			args: args{
+				ctx:         ctx,
+				name:        "partner4",
+				partnerType: base.PartnerTypeRider,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_DefaultCurrency",
+			args: args{
+				ctx:         ctx,
+				name:        "partner5",
+				partnerType: base.PartnerTypeRider,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_createErpSupplier",
+			args: args{
+				ctx:         ctx,
+				name:        "partner6",
+				partnerType: base.PartnerTypeRider,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:successfully_add_CustomerSupplierERPAccount" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: "f4f39af7-91bd-42b3af-315a4e",
+							},
+						},
+					}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+					return nil
+				}
+			}
+
+			if tt.name == "valid:successfully_add_CustomerSupplierERPAccount_using_PartnerTypeRider" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: uid,
+							},
+						},
+					}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+					return nil
+				}
+
+				fakeRepo.ActivateSupplierProfileFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ProfileID: &profileID,
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_activateSupplierProfile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: uid,
+							},
+						},
+					}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+					return nil
+				}
+
+				fakeRepo.ActivateSupplierProfileFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return nil, fmt.Errorf("failed to activate supplier profile")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_userProfile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_DefaultCurrency" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: uid,
+							},
+						},
+					}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					return nil, fmt.Errorf("fail to fetch default currency")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_createErpSupplier" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: "f4f39af7-91bd-42b3af-315a4e",
+							},
+						},
+					}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+					return fmt.Errorf("failed to create ERP supplier")
+				}
+			}
+
+			got, err := i.Supplier.AddCustomerSupplierERPAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.AddCustomerSupplierERPAccount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SupplierUseCasesImpl.AddCustomerSupplierERPAccount() = %v, want %v", got, tt.want)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
