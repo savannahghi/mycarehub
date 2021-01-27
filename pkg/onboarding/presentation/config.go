@@ -208,10 +208,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		HandlerFunc(h.ProfileAttributes(ctx))
 
 	// The reason for the below endpoints to be used for interservice communication
-	// is to allow for the creation of internal `test` users that can be used
+	// is to allow for the creation and deletion of internal `test` users that can be used
 	// to run tests in other services that require an authenticated user.
-	// The creation of the users occurs in `Base` which is a central util accessible by
-	// all the other services
+	// These endpoint have been used in the `Base` lib to create and delete the test users
 	isc.Path("/verify_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
@@ -224,6 +223,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.LoginByPhone(ctx))
+	isc.Path("/remove_user").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.RemoveUserByPhoneNumber(ctx))
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()
