@@ -20,6 +20,17 @@ testing:
     depRootDomain: https://sms-staging.healthcloud.co.ke
   - depName: twilio
     depRootDomain: https://twilio-testing.healthcloud.co.ke
+demo:
+  - depName: mailgun
+    depRootDomain: https://mailgun-demo.healthcloud.co.ke
+  - depName: otp
+    depRootDomain: https://otp-demo.healthcloud.co.ke
+  - depName: engagement
+    depRootDomain: https://engagement-demo.healthcloud.co.ke
+  - depName: sms
+    depRootDomain: https://sms-demo.healthcloud.co.ke
+  - depName: twilio
+    depRootDomain: https://twilio-demo.healthcloud.co.ke    
 production:
   - depName: mailgun
     depRootDomain: https://mailgun-prod.healthcloud.co.ke

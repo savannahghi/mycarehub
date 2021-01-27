@@ -68,7 +68,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 			wantStatus: http.StatusBadRequest,
 		},
 		{
-			name: "invalid:_error_occured_when_sending_the_request",
+			name: "invalid:_error_occurred_when_sending_the_request",
 			args: args{
 				UID:        uuid.New().String(),
 				flavour:    base.FlavourConsumer,
@@ -117,17 +117,17 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 						Status:     "BAD REQUEST",
 						StatusCode: 400,
 						Body:       nil,
-					}, fmt.Errorf("error occured")
+					}, fmt.Errorf("error occurred")
 				}
 			}
 
-			if tt.name == "invalid:_error_occured_when_sending_the_request" {
+			if tt.name == "invalid:_error_occurred_when_sending_the_request" {
 				fakeISCExt.MakeRequestFn = func(
 					method string,
 					path string,
 					body interface{},
 				) (*http.Response, error) {
-					return nil, fmt.Errorf("error occured")
+					return nil, fmt.Errorf("error occurred")
 				}
 			}
 

@@ -686,7 +686,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 
 			if tt.name == "invalid:_failed_to_get_logged_in_uid" {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("an error has occured")
+					return nil, fmt.Errorf("an error has occurred")
 				}
 			}
 
