@@ -24,6 +24,7 @@ type UserPINUseCases interface {
 	) (bool, error)
 	ChangeUserPIN(ctx context.Context, phone string, pin string) (bool, error)
 	RequestPINReset(ctx context.Context, phone string) (*base.OtpResponse, error)
+	CheckHasPIN(ctx context.Context, profileID string) (bool, error)
 }
 
 // UserPinUseCaseImpl represents usecase implementation object
@@ -140,16 +141,13 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 		return false, err
 	}
 
-	exists, err := u.CheckHasPIN(ctx, profile.ID)
-	if !exists {
-		return false, exceptions.ExistingPINError(err)
+	_, err = u.CheckHasPIN(ctx, profile.ID)
+	if err != nil {
+		return false, exceptions.EncryptPINError(err)
 	}
 
 	// EncryptPIN the PIN
 	salt, encryptedPin := u.pinExt.EncryptPIN(PIN, nil)
-	if err != nil {
-		return false, exceptions.EncryptPINError(err)
-	}
 
 	pinPayload := &domain.PIN{
 		ID:        uuid.New().String(),
@@ -177,16 +175,12 @@ func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pi
 		return false, err
 	}
 
-	exists, err := u.CheckHasPIN(ctx, profile.ID)
-	if !exists {
-		return false, exceptions.ExistingPINError(err)
-	}
-
-	// EncryptPIN the PIN
-	salt, encryptedPin := u.pinExt.EncryptPIN(pin, nil)
+	_, err = u.CheckHasPIN(ctx, profile.ID)
 	if err != nil {
 		return false, exceptions.EncryptPINError(err)
 	}
+
+	salt, encryptedPin := u.pinExt.EncryptPIN(pin, nil)
 
 	pinPayload := &domain.PIN{
 		ID:        uuid.New().String(),

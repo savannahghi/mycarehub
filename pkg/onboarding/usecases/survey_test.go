@@ -2,17 +2,19 @@ package usecases_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
 func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
-	authenticatedContext := base.GetAuthenticatedContext(t)
-	s, err := InitializeTestService(authenticatedContext)
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
-		t.Errorf("unable to initialize test service")
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
 		return
 	}
 
@@ -27,9 +29,9 @@ func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "good case",
+			name: "valid:_record_post_vist_survey",
 			args: args{
-				ctx: authenticatedContext,
+				ctx: ctx,
 				input: resources.PostVisitSurveyInput{
 					LikelyToRecommend: 10,
 					Criticism:         "very good developers",
@@ -42,7 +44,7 @@ func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
 		{
 			name: "bad case - invalid input",
 			args: args{
-				ctx: authenticatedContext,
+				ctx: ctx,
 				input: resources.PostVisitSurveyInput{
 					LikelyToRecommend: 11,
 					Criticism:         "piece of crap",
@@ -53,7 +55,20 @@ func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "bad case - user not found",
+			name: "invalid:_unable_to_record_survey",
+			args: args{
+				ctx: ctx,
+				input: resources.PostVisitSurveyInput{
+					LikelyToRecommend: 5,
+					Criticism:         "very good developers",
+					Suggestions:       "pay them more",
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:_user_not_found",
 			args: args{
 				ctx: context.Background(),
 				input: resources.PostVisitSurveyInput{
@@ -68,22 +83,52 @@ func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rs := s
-			got, err := rs.Survey.RecordPostVisitSurvey(tt.args.ctx, tt.args.input)
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"SurveyUseCasesImpl.RecordPostVisitSurvey() error = %v,wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
+
+			if tt.name == "invalid:_user_not_found" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged in user")
+				}
 			}
-			if got != tt.want {
-				t.Errorf("SurveyUseCasesImpl.RecordPostVisitSurvey() = %v, want %v",
-					got,
-					tt.want,
-				)
+
+			if tt.name == "valid:_record_post_vist_survey" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "8716-7e2aead29f2c", nil
+				}
+				fakeRepo.RecordPostVisitSurveyFn = func(ctx context.Context, input resources.PostVisitSurveyInput, UID string) error {
+					return nil
+				}
 			}
+
+			if tt.name == "invalid:_unable_to_record_survey" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "8716-7e2aead29f2c", nil
+				}
+				fakeRepo.RecordPostVisitSurveyFn = func(ctx context.Context, input resources.PostVisitSurveyInput, UID string) error {
+					return fmt.Errorf("unable to record post visit survey")
+				}
+			}
+
+			got, err := i.Survey.RecordPostVisitSurvey(tt.args.ctx, tt.args.input)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+
+				if got != tt.want {
+					t.Errorf("expected %v got %v  ", tt.want, got)
+					return
+				}
+			}
+
 		})
 	}
 }

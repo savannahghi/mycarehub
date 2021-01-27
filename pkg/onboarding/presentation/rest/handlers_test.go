@@ -862,6 +862,16 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,
 		},
+		{
+			name: "invalid:otp_generation_fails",
+			args: args{
+				url:        fmt.Sprintf("%s/request_pin_reset", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload3,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -897,6 +907,21 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 				}
 				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return &base.OtpResponse{OTP: "1234"}, nil
+				}
+			}
+
+			if tt.name == "invalid:otp_generation_fails" {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
+					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
+				}
+				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+					return nil, fmt.Errorf("unable to generate otp")
 				}
 			}
 

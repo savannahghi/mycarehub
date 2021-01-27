@@ -13,461 +13,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 )
-
-const (
-	testSladeCode               = "BRA-PRO-4190-4"
-	testEDIPortalUsername       = "avenue-4190@healthcloud.co.ke"
-	testEDIPortalPassword       = "test provider"
-	testChargeMasterParentOrgId = "83d3479d-e902-4aab-a27d-6d5067454daf"
-	testChargeMasterBranchID    = "94294577-6b27-4091-9802-1ce0f2ce4153"
-)
-
-func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-
-	testRiderName := "Test Rider"
-	rider := base.PartnerTypeRider
-	testPractitionerName := "Test Practitioner"
-	practitioner := base.PartnerTypePractitioner
-	testProviderName := "Test Provider"
-	provider := base.PartnerTypeProvider
-	testPharmaceuticalName := "Test Pharmaceutical"
-	pharmaceutical := base.PartnerTypePharmaceutical
-	testCoachName := "Test Coach"
-	coach := base.PartnerTypeCoach
-	testNutritionName := "Test Nutrition"
-	nutrition := base.PartnerTypeNutrition
-	testConsumerName := "Test Consumer"
-	consumer := base.PartnerTypeConsumer
-
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-	type args struct {
-		ctx         context.Context
-		name        *string
-		partnerType *base.PartnerType
-	}
-	tests := []struct {
-		name        string
-		args        args
-		want        bool
-		wantErr     bool
-		expectedErr string
-	}{
-		{
-			name: "valid: add PartnerTypeRider ",
-			args: args{
-				ctx:         ctx,
-				name:        &testRiderName,
-				partnerType: &rider,
-			},
-			want:    true,
-			wantErr: false,
-		},
-
-		{
-			name: "valid: add PartnerTypePractitioner ",
-			args: args{
-				ctx:         ctx,
-				name:        &testPractitionerName,
-				partnerType: &practitioner,
-			},
-			want:    true,
-			wantErr: false,
-		},
-
-		{
-			name: "valid: add PartnerTypeProvider ",
-			args: args{
-				ctx:         ctx,
-				name:        &testProviderName,
-				partnerType: &provider,
-			},
-			want:    true,
-			wantErr: false,
-		},
-
-		{
-			name: "valid: add PartnerTypePharmaceutical",
-			args: args{
-				ctx:         ctx,
-				name:        &testPharmaceuticalName,
-				partnerType: &pharmaceutical,
-			},
-			want:    true,
-			wantErr: false,
-		},
-
-		{
-			name: "valid: add PartnerTypeCoach",
-			args: args{
-				ctx:         ctx,
-				name:        &testCoachName,
-				partnerType: &coach,
-			},
-			want:    true,
-			wantErr: false,
-		},
-
-		{
-			name: "valid: add PartnerTypeNutrition",
-			args: args{
-				ctx:         ctx,
-				name:        &testNutritionName,
-				partnerType: &nutrition,
-			},
-			want:    true,
-			wantErr: false,
-		},
-
-		{
-			name: "invalid: add PartnerTypeConsumer",
-			args: args{
-				ctx:         ctx,
-				name:        &testConsumerName,
-				partnerType: &consumer,
-			},
-			want:        false,
-			wantErr:     true,
-			expectedErr: "invalid `partnerType`. cannot use CONSUMER in this context",
-		},
-
-		{
-			name: "invalid : invalid context",
-			args: args{
-				ctx:         context.Background(),
-				name:        &testRiderName,
-				partnerType: &rider,
-			},
-			want:        false,
-			wantErr:     true,
-			expectedErr: `unable to get the logged in user: auth token not found in context: unable to get auth token from context with key "UID" `,
-		},
-		{
-			name: "invalid : missing name arg",
-			args: args{
-				ctx: ctx,
-			},
-			want:        false,
-			wantErr:     true,
-			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			supplier := s
-			got, err := supplier.Supplier.AddPartnerType(tt.args.ctx, tt.args.name, tt.args.partnerType)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddPartnerType() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("SupplierUseCasesImpl.AddPartnerType() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestSetUpSupplier(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-
-	individualPartner := base.AccountTypeIndividual
-	organizationPartner := base.AccountTypeOrganisation
-
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-
-	type args struct {
-		ctx         context.Context
-		accountType base.AccountType
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Successful individual supplier account setup",
-			args: args{
-				ctx:         ctx,
-				accountType: individualPartner,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Successful organization supplier account setup",
-			args: args{
-				ctx:         ctx,
-				accountType: organizationPartner,
-			},
-			wantErr: false,
-		},
-		{
-			name: "SadCase - Invalid supplier setup",
-			args: args{
-				ctx:         ctx,
-				accountType: "non existent type",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			supplier := s
-			_, err := supplier.Supplier.SetUpSupplier(tt.args.ctx, tt.args.accountType)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SetUpSupplier() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-
-}
-
-func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
-	i, err := InitializeFakeOnboaridingInteractor()
-	if err != nil {
-		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
-		return
-	}
-
-	validUsername := "avenue-4190@healthcloud.co.ke"
-	validPassword := "test provider"
-
-	invalidUsername := "username"
-	invalidPassword := "password"
-
-	emptyUsername := " "
-	emptyPassword := " "
-
-	type args struct {
-		username *string
-		password *string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *base.EDIUserProfile
-		wantErr bool
-	}{
-		{
-			name: "valid:use_valid_credentials",
-			args: args{
-				username: &validUsername,
-				password: &validPassword,
-			},
-			wantErr: false,
-		},
-		{
-			name: "invalid:use_nil_credentials",
-			args: args{
-				username: &emptyUsername,
-				password: &emptyPassword,
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid:use_invalid_credentials",
-			args: args{
-				username: &invalidUsername,
-				password: &invalidPassword,
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid:fail_to_fetch_user_profile",
-			args: args{
-				username: &validUsername,
-				password: &validPassword,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			if tt.name == "valid:use_valid_credentials" {
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
-					return nil, nil
-				}
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
-					return &base.EDIUserProfile{
-						ID:        578902332,
-						GUID:      uuid.New().String(),
-						FirstName: "firstName",
-						LastName:  "lastName",
-					}, nil
-				}
-			}
-
-			if tt.name == "invalid:use_nil_credentials" {
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
-					return nil, fmt.Errorf("nil credentials provided")
-				}
-			}
-
-			if tt.name == "invalid:use_invalid_credentials" {
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
-					return nil, fmt.Errorf("invalid credentials provided")
-				}
-			}
-
-			if tt.name == "invalid:fail_to_fetch_user_profile" {
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
-					return nil, nil
-				}
-
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
-					return nil, fmt.Errorf("fail to fetch user profile")
-				}
-			}
-
-			_, err := i.Supplier.EDIUserLogin(tt.args.username, tt.args.password)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("error expected got %v", err)
-					return
-				}
-			}
-
-			if !tt.wantErr {
-				if err != nil {
-					t.Errorf("error not expected got %v", err)
-					return
-				}
-			}
-		})
-	}
-}
-
-func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
-	i, err := InitializeFakeOnboaridingInteractor()
-	if err != nil {
-		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
-		return
-	}
-
-	type args struct {
-		username string
-		password string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case:_valid_credentials",
-			args: args{
-				username: "bewell@slade360.co.ke",
-				password: "please change me",
-			},
-			wantErr: false,
-		},
-		{
-			name: "invalid:_fail_to_fetch_UserProfile",
-			args: args{
-				username: "bewell@slade360.co.ke",
-				password: "please change me",
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid:fail_to_login_client",
-			args: args{
-				username: "invalid Username",
-				password: "invalid Password",
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid:empty_username_and_password",
-			args: args{
-				username: "",
-				password: "",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Happy Case:_valid_credentials" {
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
-					return nil, nil
-				}
-
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
-					return &base.EDIUserProfile{
-						ID:        5782332,
-						GUID:      uuid.New().String(),
-						Email:     "johndoe@gmail.com",
-						FirstName: "John",
-						LastName:  "Doe",
-					}, nil
-				}
-			}
-
-			if tt.name == "invalid:_fail_to_fetch_UserProfile" {
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
-					return nil, nil
-				}
-
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
-					return nil, fmt.Errorf("fail to fetch user profile")
-				}
-			}
-
-			if tt.name == "invalid:fail_to_login_client" {
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
-					return nil, fmt.Errorf("cannot initialize edi client with supplied credentials")
-				}
-			}
-
-			if tt.name == "invalid:empty_username_and_password" {
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
-					return nil, fmt.Errorf("invalid credentials")
-				}
-			}
-
-			coreEdiLogin := i
-			_, err := coreEdiLogin.Supplier.CoreEDIUserLogin(tt.args.username, tt.args.password)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
-func clean(newCtx context.Context, testPhoneNumber string, t *testing.T, service *interactor.Interactor) {
-	err := service.Signup.RemoveUserByPhoneNumber(newCtx, testPhoneNumber)
-	if err != nil {
-		t.Errorf("failed to clean data after test error: %v", err)
-		return
-	}
-}
 
 func TestProfileUseCaseImpl_FindSupplierByID(t *testing.T) {
 	ctx := context.Background()
@@ -1488,12 +1034,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-
+	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
@@ -1611,8 +1152,9 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
-						ProfileID: &profileID,
+						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -1798,12 +1340,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-
+	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
@@ -1890,7 +1427,8 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 				}
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ProfileID: &profileID,
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -2025,12 +1563,7 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-
+	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
@@ -2141,8 +1674,9 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
-						ProfileID: &profileID,
+						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -2337,12 +1871,7 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-
+	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
@@ -2448,8 +1977,9 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:        "42b3af315a4e-5b64-4c2f-91bd",
-						ProfileID: &profileID,
+						ID:           "42b3af315a4e-5b64-4c2f-91bd",
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -2591,12 +2121,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-
+	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
@@ -2703,8 +2228,9 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
-						ProfileID: &profileID,
+						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -2845,12 +2371,7 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-
+	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
@@ -2954,8 +2475,9 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
-						ProfileID: &profileID,
+						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -3098,12 +2620,7 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-
+	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
@@ -3190,8 +2707,9 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
-						ProfileID: &profileID,
+						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -3340,11 +2858,7 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_RetireKYCRequest(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
+	ctx := context.Background()
 
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
@@ -3499,11 +3013,7 @@ func TestSupplierUseCasesImpl_RetireKYCRequest(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
+	ctx := context.Background()
 
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
@@ -3624,8 +3134,9 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
-						ProfileID: &profileID,
+						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -3866,11 +3377,7 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
+	ctx := context.Background()
 
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
@@ -3995,8 +3502,9 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
-						ProfileID: &profileID,
+						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -4237,11 +3745,7 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
+	ctx := context.Background()
 
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
@@ -4360,8 +3864,9 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
-						ProfileID: &profileID,
+						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -4602,11 +4107,7 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
+	ctx := context.Background()
 
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
@@ -4723,8 +4224,9 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
-						ProfileID: &profileID,
+						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -4965,11 +4467,7 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
+	ctx := context.Background()
 
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
@@ -5075,8 +4573,9 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
-						ProfileID: &profileID,
+						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID:    &profileID,
+						KYCSubmitted: false,
 					}, nil
 				}
 
@@ -5272,11 +4771,7 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
+	ctx := context.Background()
 
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
@@ -7045,6 +6540,152 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return
 				}
 			}
+		})
+	}
+}
+
+func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	testRiderName := "Test Rider"
+	rider := base.PartnerTypeRider
+
+	type args struct {
+		ctx         context.Context
+		name        *string
+		partnerType *base.PartnerType
+	}
+	tests := []struct {
+		name        string
+		args        args
+		want        bool
+		wantErr     bool
+		expectedErr string
+	}{
+		{
+			name: "valid:add_partner_type",
+			args: args{
+				ctx:         ctx,
+				name:        &testRiderName,
+				partnerType: &rider,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid : missing name arg",
+			args: args{
+				ctx: ctx,
+			},
+			want:        false,
+			wantErr:     true,
+			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
+		},
+		{
+			name: "invalid:unable_to_login",
+			args: args{
+				ctx:         ctx,
+				name:        &testRiderName,
+				partnerType: &rider,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:unable_to_get_user_profile_by_id",
+			args: args{
+				ctx:         ctx,
+				name:        &testRiderName,
+				partnerType: &rider,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:unable_to_add_partner_type",
+			args: args{
+				ctx:         ctx,
+				name:        &testRiderName,
+				partnerType: &rider,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:add_partner_type" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+				fakeRepo.AddPartnerTypeFn = func(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error) {
+					return true, nil
+				}
+			}
+
+			if tt.name == "invalid:unable_to_login" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to login")
+				}
+			}
+
+			if tt.name == "invalid:unable_to_get_user_profile_by_id" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get profile by uid")
+				}
+
+			}
+
+			if tt.name == "invalid:unable_to_add_partner_type" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+				fakeRepo.AddPartnerTypeFn = func(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error) {
+					return false, fmt.Errorf("unable to add partner type")
+				}
+			}
+
+			got, err := i.Supplier.AddPartnerType(tt.args.ctx, tt.args.name, tt.args.partnerType)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+
+				if got != tt.want {
+					t.Errorf("expected %v got %v  ", tt.want, got)
+					return
+				}
+			}
+
 		})
 	}
 }

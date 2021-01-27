@@ -282,23 +282,20 @@ func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType bas
 
 // SuspendSupplier flips the active boolean on the erp partner from true to false
 func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error) {
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return false, exceptions.UserNotFoundError(err)
 	}
-
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return false, err
 	}
-
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return false, err
 	}
-
 	sup.Active = false
 
 	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
@@ -862,22 +859,18 @@ func (s *SupplierUseCasesImpl) parseKYCAsMap(data interface{}) (map[string]inter
 // SaveKYCResponseAndNotifyAdmins saves the kyc information provided by the user
 // and sends a notification to all admins for a pending KYC review request
 func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *base.Supplier) error {
-
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
-
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-
 	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
 		return err
 	}
-
 	if err := s.StageKYCProcessingRequest(ctx, sup); err != nil {
 		return err
 	}
@@ -927,7 +920,6 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input 
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
-
 	if !sup.KYCSubmitted {
 		if !input.IdentificationDoc.IdentificationDocType.IsValid() {
 			return nil, exceptions.WrongEnumTypeError(input.IdentificationDoc.IdentificationDocType.String())
@@ -1435,7 +1427,6 @@ func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(ctx context.Context, in
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
-
 	if !sup.KYCSubmitted {
 		kyc := domain.IndividualNutrition{
 			IdentificationDoc: func(p domain.Identification) domain.Identification {

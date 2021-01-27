@@ -10,6 +10,16 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
+)
+
+const (
+	testSladeCode               = "BRA-PRO-4190-4"
+	testEDIPortalUsername       = "avenue-4190@healthcloud.co.ke"
+	testEDIPortalPassword       = "test provider"
+	testChargeMasterParentOrgId = "83d3479d-e902-4aab-a27d-6d5067454daf"
+	testChargeMasterBranchID    = "94294577-6b27-4091-9802-1ce0f2ce4153"
+	// otpService                  = "otp"
 )
 
 func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
@@ -1813,4 +1823,356 @@ func TestSuspendSupplier(t *testing.T) {
 	assert.NotNil(t, sup)
 	assert.Equal(t, false, sup.Active)
 
+}
+
+// TODO: improve test by adding good testcases and properly asserting responses
+func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	testRiderName := "Test Rider"
+	rider := base.PartnerTypeRider
+	testPractitionerName := "Test Practitioner"
+	practitioner := base.PartnerTypePractitioner
+	testProviderName := "Test Provider"
+	provider := base.PartnerTypeProvider
+	testPharmaceuticalName := "Test Pharmaceutical"
+	pharmaceutical := base.PartnerTypePharmaceutical
+	testCoachName := "Test Coach"
+	coach := base.PartnerTypeCoach
+	testNutritionName := "Test Nutrition"
+	nutrition := base.PartnerTypeNutrition
+	testConsumerName := "Test Consumer"
+	consumer := base.PartnerTypeConsumer
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	type args struct {
+		ctx         context.Context
+		name        *string
+		partnerType *base.PartnerType
+	}
+	tests := []struct {
+		name        string
+		args        args
+		want        bool
+		wantErr     bool
+		expectedErr string
+	}{
+		{
+			name: "valid: add PartnerTypeRider ",
+			args: args{
+				ctx:         ctx,
+				name:        &testRiderName,
+				partnerType: &rider,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypePractitioner ",
+			args: args{
+				ctx:         ctx,
+				name:        &testPractitionerName,
+				partnerType: &practitioner,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypeProvider ",
+			args: args{
+				ctx:         ctx,
+				name:        &testProviderName,
+				partnerType: &provider,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypePharmaceutical",
+			args: args{
+				ctx:         ctx,
+				name:        &testPharmaceuticalName,
+				partnerType: &pharmaceutical,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypeCoach",
+			args: args{
+				ctx:         ctx,
+				name:        &testCoachName,
+				partnerType: &coach,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "valid: add PartnerTypeNutrition",
+			args: args{
+				ctx:         ctx,
+				name:        &testNutritionName,
+				partnerType: &nutrition,
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "invalid: add PartnerTypeConsumer",
+			args: args{
+				ctx:         ctx,
+				name:        &testConsumerName,
+				partnerType: &consumer,
+			},
+			want:        false,
+			wantErr:     true,
+			expectedErr: "invalid `partnerType`. cannot use CONSUMER in this context",
+		},
+
+		{
+			name: "invalid : invalid context",
+			args: args{
+				ctx:         context.Background(),
+				name:        &testRiderName,
+				partnerType: &rider,
+			},
+			want:        false,
+			wantErr:     true,
+			expectedErr: `unable to get the logged in user: auth token not found in context: unable to get auth token from context with key "UID" `,
+		},
+		{
+			name: "invalid : missing name arg",
+			args: args{
+				ctx: ctx,
+			},
+			want:        false,
+			wantErr:     true,
+			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			supplier := s
+			got, err := supplier.Supplier.AddPartnerType(tt.args.ctx, tt.args.name, tt.args.partnerType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.AddPartnerType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("SupplierUseCasesImpl.AddPartnerType() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TODO: improve test by adding good testcases and properly asserting responses
+func TestSetUpSupplier(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	individualPartner := base.AccountTypeIndividual
+	organizationPartner := base.AccountTypeOrganisation
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		accountType base.AccountType
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Successful individual supplier account setup",
+			args: args{
+				ctx:         ctx,
+				accountType: individualPartner,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Successful organization supplier account setup",
+			args: args{
+				ctx:         ctx,
+				accountType: organizationPartner,
+			},
+			wantErr: false,
+		},
+		{
+			name: "SadCase - Invalid supplier setup",
+			args: args{
+				ctx:         ctx,
+				accountType: "non existent type",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			supplier := s
+			_, err := supplier.Supplier.SetUpSupplier(tt.args.ctx, tt.args.accountType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SetUpSupplier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+
+}
+
+// TODO: improve test by adding good testcases and properly asserting responses
+func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	validUsername := "avenue-4190@healthcloud.co.ke"
+	validPassword := "test provider"
+
+	invalidUsername := "username"
+	invalidPassword := "password"
+
+	emptyUsername := ""
+	emptyPassword := ""
+	type args struct {
+		username *string
+		password *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: valid credentials",
+			args: args{
+				username: &validUsername,
+				password: &validPassword,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: Wrong userame and password",
+			args: args{
+				username: &invalidUsername,
+				password: &invalidPassword,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: empty username and password",
+			args: args{
+				username: &emptyUsername,
+				password: &emptyPassword,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ediLogin := s
+			_, err := ediLogin.Supplier.EDIUserLogin(tt.args.username, tt.args.password)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+// TODO: improve test by adding good testcases and properly asserting responses
+func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	type args struct {
+		username string
+		password string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: valid credentials",
+			args: args{
+				username: "bewell@slade360.co.ke",
+				password: "please change me",
+			},
+			wantErr: true, // TODO: switch to true when https://accounts-core.release.slade360.co.ke/
+			// comes back live
+		},
+		{
+			name: "Sad Case: Wrong userame and password",
+			args: args{
+				username: "invalid Username",
+				password: "invalid Password",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: empty username and password",
+			args: args{
+				username: "",
+				password: "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			coreEdiLogin := s
+			_, err := coreEdiLogin.Supplier.CoreEDIUserLogin(tt.args.username, tt.args.password)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func clean(newCtx context.Context, testPhoneNumber string, t *testing.T, service *interactor.Interactor) {
+	err := service.Signup.RemoveUserByPhoneNumber(newCtx, testPhoneNumber)
+	if err != nil {
+		t.Errorf("failed to clean data after test error: %v", err)
+		return
+	}
 }

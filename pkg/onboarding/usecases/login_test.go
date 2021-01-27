@@ -175,6 +175,15 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}, nil
 }
 
+func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {
+	ctx := context.Background()
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize test service: %v", err)
+	}
+	return s.Otp.GenerateAndSendOTP(ctx, phone)
+}
+
 // CreateTestUserByPhone creates a user that is to be used in
 // running of our test cases.
 // If the test user already exists then they are logged in
