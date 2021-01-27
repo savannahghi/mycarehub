@@ -14,6 +14,7 @@ type FakeBaseExtensionImpl struct {
 	NormalizeMSISDNFn      func(msisdn string) (*string, error)
 	FetchDefaultCurrencyFn func(c base.Client,
 	) (*base.FinancialYearAndCurrency, error)
+	FetchUserProfileFn func(authClient base.Client) (*base.EDIUserProfile, error)
 }
 
 // GetLoggedInUserUID ...
@@ -30,6 +31,11 @@ func (b *FakeBaseExtensionImpl) NormalizeMSISDN(msisdn string) (*string, error) 
 func (b *FakeBaseExtensionImpl) FetchDefaultCurrency(c base.Client,
 ) (*base.FinancialYearAndCurrency, error) {
 	return b.FetchDefaultCurrencyFn(c)
+}
+
+// FetchUserProfile ...
+func (b *FakeBaseExtensionImpl) FetchUserProfile(authClient base.Client) (*base.EDIUserProfile, error) {
+	return b.FetchUserProfileFn(authClient)
 }
 
 // PINExtensionImpl is a `PIN` fake  .

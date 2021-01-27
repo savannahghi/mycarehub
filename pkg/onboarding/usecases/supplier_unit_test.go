@@ -326,7 +326,7 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy Case: valid credentials",
+			name: "Happy Case:_valid_credentials",
 			args: args{
 				username: "bewell@slade360.co.ke",
 				password: "please change me",
@@ -353,6 +353,21 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Happy Case:_valid_credentials" {
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return &base.EDIUserProfile{
+						ID:   5782332,
+						GUID: uuid.New().String(),
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad Case: Wrong userame and password" {
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return nil, fmt.Errorf("invalid credentials")
+				}
+			}
+
 			coreEdiLogin := s
 			_, err := coreEdiLogin.Supplier.CoreEDIUserLogin(tt.args.username, tt.args.password)
 			if (err != nil) != tt.wantErr {

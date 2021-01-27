@@ -38,6 +38,7 @@ const (
 	serverTimeoutSeconds = 120
 	otpService           = "otp"
 	engagementService    = "engagement"
+	mailgunService       = "mailgun"
 )
 
 // AllowedOrigins is list of CORS origins allowed to interact with
@@ -75,12 +76,13 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize ISC clients
 	otpClient := utils.NewInterServiceClient(otpService)
 	engagementClient := utils.NewInterServiceClient(engagementService)
+	mailgunClient := utils.NewInterServiceClient(mailgunService)
 
 	// Initialize new instance of our infrastructure services
 	erp := erp.NewERPService()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
-	mg := mailgun.NewServiceMailgunImpl()
+	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
 	mes := messaging.NewServiceMessagingImpl()
 	baseExt := extension.NewBaseExtensionImpl()
 	pinExt := extension.NewPINExtensionImpl()

@@ -47,6 +47,8 @@ const (
 	testEDIPortalPassword    = "test provider"
 	testChargeMasterBranchID = "94294577-6b27-4091-9802-1ce0f2ce4153"
 	otpService               = "otp"
+	mailgunService           = "mailgun"
+	engagementService        = "engagement"
 )
 
 /// these are set up once in TestMain and used by all the acceptance tests in
@@ -89,11 +91,15 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
+	// Initialize ISC clients
 	iscClient := utils.NewInterServiceClient(otpService)
+	mailgunClient := utils.NewInterServiceClient(mailgunService)
+	engagementClient := utils.NewInterServiceClient(engagementService)
+
 	erp := erp.NewERPService()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	engage := engagement.NewServiceEngagementImpl(iscClient)
-	mg := mailgun.NewServiceMailgunImpl()
+	engage := engagement.NewServiceEngagementImpl(engagementClient)
+	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
 	mes := messaging.NewServiceMessagingImpl()
 	ext := extension.NewBaseExtensionImpl()
 	pinExt := extension.NewPINExtensionImpl()

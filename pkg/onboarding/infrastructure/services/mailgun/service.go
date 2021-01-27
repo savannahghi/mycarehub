@@ -6,6 +6,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
@@ -27,7 +28,7 @@ type ServiceMailgunImpl struct {
 }
 
 // NewServiceMailgunImpl ...
-func NewServiceMailgunImpl() ServiceMailgun {
+func NewServiceMailgunImpl(mailgun extension.ISCClientExtension) ServiceMailgun {
 	client := utils.NewInterServiceClient(mailgunService)
 	return &ServiceMailgunImpl{Mailgun: client}
 }
@@ -51,7 +52,6 @@ func (mg *ServiceMailgunImpl) SendMail(email string, message string, subject str
 	}
 
 	resp, err := mg.FetchClient().MakeRequest(http.MethodPost, sendEmail, body)
-
 	if err != nil {
 		return fmt.Errorf("unable to send KYC email: %w", err)
 	}

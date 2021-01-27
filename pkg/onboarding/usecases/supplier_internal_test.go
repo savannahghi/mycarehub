@@ -19,7 +19,11 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 )
 
-const otpService = "otp"
+const (
+	otpService        = "otp"
+	mailgunService    = "mailgun"
+	engagementService = "engagement"
+)
 
 func TestParseKYCAsMap(t *testing.T) {
 	ctx := context.Background()
@@ -44,12 +48,15 @@ func TestParseKYCAsMap(t *testing.T) {
 	if err != nil {
 		return
 	}
+	// Initialize ISC clients
+	otpClient := utils.NewInterServiceClient(otpService)
+	mailgunClient := utils.NewInterServiceClient(mailgunService)
+	engagementClient := utils.NewInterServiceClient(engagementService)
 
 	erp := erp.NewERPService()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	otpClient := utils.NewInterServiceClient(otpService)
-	engage := engagement.NewServiceEngagementImpl(otpClient)
-	mg := mailgun.NewServiceMailgunImpl()
+	engage := engagement.NewServiceEngagementImpl(engagementClient)
+	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
 	mes := messaging.NewServiceMessagingImpl()
 	ext := extension.NewBaseExtensionImpl()
 	otp := otp.NewOTPService(otpClient, ext)

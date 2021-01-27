@@ -42,7 +42,11 @@ import (
 	messagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging/mock"
 )
 
-const otpService = "otp"
+const (
+	otpService        = "otp"
+	mailgunService    = "mailgun"
+	engagementService = "engagement"
+)
 
 func TestMain(m *testing.M) {
 	log.Printf("Setting tests up ...")
@@ -137,12 +141,15 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	if err != nil {
 		return nil, err
 	}
-
+	// Initialize ISC clients
 	otpClient := utils.NewInterServiceClient(otpService)
+	mailgunClient := utils.NewInterServiceClient(mailgunService)
+	engagementClient := utils.NewInterServiceClient(engagementService)
+
 	erp := erp.NewERPService()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	engage := engagement.NewServiceEngagementImpl(otpClient)
-	mg := mailgun.NewServiceMailgunImpl()
+	engage := engagement.NewServiceEngagementImpl(engagementClient)
+	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
 	mes := messaging.NewServiceMessagingImpl()
 	ext := extension.NewBaseExtensionImpl()
 	pinExt := extension.NewPINExtensionImpl()

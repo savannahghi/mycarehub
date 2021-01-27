@@ -364,7 +364,7 @@ func (s SupplierUseCasesImpl) CoreEDIUserLogin(username, password string) (*base
 func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error) {
 	var resp resources.SupplierLogin
 
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, exceptions.UserNotFoundError(err)
 	}
