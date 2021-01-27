@@ -15,6 +15,7 @@ type FakeBaseExtensionImpl struct {
 	FetchDefaultCurrencyFn func(c base.Client,
 	) (*base.FinancialYearAndCurrency, error)
 	FetchUserProfileFn func(authClient base.Client) (*base.EDIUserProfile, error)
+	LoginClientFn      func(username string, password string) (base.Client, error)
 }
 
 // GetLoggedInUserUID ...
@@ -36,6 +37,11 @@ func (b *FakeBaseExtensionImpl) FetchDefaultCurrency(c base.Client,
 // FetchUserProfile ...
 func (b *FakeBaseExtensionImpl) FetchUserProfile(authClient base.Client) (*base.EDIUserProfile, error) {
 	return b.FetchUserProfileFn(authClient)
+}
+
+// LoginClient returns a logged in client with the supplied username and password
+func (b *FakeBaseExtensionImpl) LoginClient(username, password string) (base.Client, error) {
+	return b.LoginClientFn(username, password)
 }
 
 // PINExtensionImpl is a `PIN` fake  .

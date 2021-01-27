@@ -319,12 +319,12 @@ func (s SupplierUseCasesImpl) EDIUserLogin(username, password *string) (*base.ED
 		return nil, exceptions.InvalidCredentialsError()
 	}
 
-	ediClient, err := base.LoginClient(*username, *password)
+	ediClient, err := s.baseExt.LoginClient(*username, *password)
 	if err != nil {
 		return nil, fmt.Errorf("cannot initialize edi client with supplied credentials: %w", err)
 	}
 
-	userProfile, err := base.FetchUserProfile(ediClient)
+	userProfile, err := s.baseExt.FetchUserProfile(ediClient)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve EDI user profile: %w", err)
 	}

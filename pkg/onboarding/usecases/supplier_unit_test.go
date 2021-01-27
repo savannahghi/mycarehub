@@ -241,24 +241,21 @@ func TestSetUpSupplier(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
+	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
+
 	validUsername := "avenue-4190@healthcloud.co.ke"
 	validPassword := "test provider"
 
 	invalidUsername := "username"
 	invalidPassword := "password"
 
-	emptyUsername := ""
-	emptyPassword := ""
+	emptyUsername := " "
+	emptyPassword := " "
+
 	type args struct {
 		username *string
 		password *string
@@ -266,10 +263,11 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
+		want    *base.EDIUserProfile
 		wantErr bool
 	}{
 		{
-			name: "Happy Case: valid credentials",
+			name: "valid:use_valid_credentials",
 			args: args{
 				username: &validUsername,
 				password: &validPassword,
@@ -277,7 +275,15 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case: Wrong userame and password",
+			name: "invalid:use_nil_credentials",
+			args: args{
+				username: &emptyUsername,
+				password: &emptyPassword,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:use_invalid_credentials",
 			args: args{
 				username: &invalidUsername,
 				password: &invalidPassword,
@@ -285,21 +291,71 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad case: empty username and password",
+			name: "invalid:fail_to_fetch_user_profile",
 			args: args{
-				username: &emptyUsername,
-				password: &emptyPassword,
+				username: &validUsername,
+				password: &validPassword,
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ediLogin := s
-			_, err := ediLogin.Supplier.EDIUserLogin(tt.args.username, tt.args.password)
+
+			if tt.name == "valid:use_valid_credentials" {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return &base.EDIUserProfile{
+						ID:        578902332,
+						GUID:      uuid.New().String(),
+						FirstName: "firstName",
+						LastName:  "lastName",
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:use_nil_credentials" {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, fmt.Errorf("nil credentials provided")
+				}
+			}
+
+			if tt.name == "invalid:use_invalid_credentials" {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, fmt.Errorf("invalid credentials provided")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_fetch_user_profile" {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return nil, fmt.Errorf("fail to fetch user profile")
+				}
+			}
+
+			_, err := i.Supplier.EDIUserLogin(tt.args.username, tt.args.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SupplierUseCasesImpl.EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
 			}
 		})
 	}

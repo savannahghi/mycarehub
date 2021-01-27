@@ -17,6 +17,8 @@ type BaseExtension interface {
 	NormalizeMSISDN(msisdn string) (*string, error)
 	FetchDefaultCurrency(c base.Client,
 	) (*base.FinancialYearAndCurrency, error)
+	LoginClient(username string, password string) (base.Client, error)
+	FetchUserProfile(authClient base.Client) (*base.EDIUserProfile, error)
 }
 
 // BaseExtensionImpl ...
@@ -43,6 +45,16 @@ func (b *BaseExtensionImpl) NormalizeMSISDN(msisdn string) (*string, error) {
 func (b *BaseExtensionImpl) FetchDefaultCurrency(c base.Client,
 ) (*base.FinancialYearAndCurrency, error) {
 	return base.FetchDefaultCurrency(c)
+}
+
+// LoginClient returns a logged in client with the supplied username and password
+func (b *BaseExtensionImpl) LoginClient(username, password string) (base.Client, error) {
+	return base.LoginClient(username, password)
+}
+
+// FetchUserProfile ...
+func (b *BaseExtensionImpl) FetchUserProfile(authClient base.Client) (*base.EDIUserProfile, error) {
+	return base.FetchUserProfile(authClient)
 }
 
 // ISCClientExtension represents the base ISC client
