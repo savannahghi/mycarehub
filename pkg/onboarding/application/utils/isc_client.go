@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"os"
-
 	"github.com/labstack/gommon/log"
 	"gitlab.slade360emr.com/go/base"
 )
@@ -12,7 +10,6 @@ func NewInterServiceClient(serviceName string) *base.InterServiceClient {
 	config, err := base.LoadDepsFromYAML()
 	if err != nil {
 		log.Errorf("occurred while opening deps file %v", err)
-		os.Exit(1)
 	}
 
 	client, err := base.SetupISCclient(*config, serviceName)

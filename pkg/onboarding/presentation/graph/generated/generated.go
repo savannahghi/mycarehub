@@ -216,6 +216,7 @@ type ComplexityRoot struct {
 		SetPrimaryEmailAddress           func(childComplexity int, email string, otp string) int
 		SetPrimaryPhoneNumber            func(childComplexity int, phone string, otp string) int
 		SetUpSupplier                    func(childComplexity int, accountType base.AccountType) int
+		SetupAsExperimentParticipant     func(childComplexity int, participate *bool) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
 		SupplierSetDefaultLocation       func(childComplexity int, locatonID string) int
 		SuspendSupplier                  func(childComplexity int) int
@@ -438,6 +439,7 @@ type MutationResolver interface {
 	ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
 	RecordPostVisitSurvey(ctx context.Context, input resources.PostVisitSurveyInput) (bool, error)
 	RetireKYCProcessingRequest(ctx context.Context) (bool, error)
+	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -1347,6 +1349,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetUpSupplier(childComplexity, args["accountType"].(base.AccountType)), true
+
+	case "Mutation.setupAsExperimentParticipant":
+		if e.complexity.Mutation.SetupAsExperimentParticipant == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setupAsExperimentParticipant_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetupAsExperimentParticipant(childComplexity, args["participate"].(*bool)), true
 
 	case "Mutation.supplierEDILogin":
 		if e.complexity.Mutation.SupplierEDILogin == nil {
@@ -3010,10 +3024,7 @@ extend type Mutation {
 
   retireKYCProcessingRequest: Boolean!
 
-  # setUserPin(msisdn: String!, pin: String!): Boolean!
-
-  # addTester(email: String!): Boolean!
-  # removeTester(email: String!): Boolean!
+  setupAsExperimentParticipant(participate:Boolean): Boolean! 
 
 }
 `, BuiltIn: false},
@@ -3843,6 +3854,21 @@ func (ec *executionContext) field_Mutation_setUpSupplier_args(ctx context.Contex
 		}
 	}
 	args["accountType"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setupAsExperimentParticipant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["participate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("participate"))
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["participate"] = arg0
 	return args, nil
 }
 
@@ -8191,6 +8217,48 @@ func (ec *executionContext) _Mutation_retireKYCProcessingRequest(ctx context.Con
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().RetireKYCProcessingRequest(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setupAsExperimentParticipant(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setupAsExperimentParticipant_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetupAsExperimentParticipant(rctx, args["participate"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16236,6 +16304,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "retireKYCProcessingRequest":
 			out.Values[i] = ec._Mutation_retireKYCProcessingRequest(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setupAsExperimentParticipant":
+			out.Values[i] = ec._Mutation_setupAsExperimentParticipant(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

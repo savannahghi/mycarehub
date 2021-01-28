@@ -19,12 +19,6 @@ func ValidateUID(w http.ResponseWriter, r *http.Request) (*resources.UIDPayload,
 		err := fmt.Errorf("invalid credentials, expected a uid")
 		return nil, err
 	}
-	if p == nil {
-		err := fmt.Errorf(
-			"nil business partner UID struct after decoding input")
-		return nil, err
-	}
-
 	return p, nil
 }
 

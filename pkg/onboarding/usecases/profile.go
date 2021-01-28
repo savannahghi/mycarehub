@@ -11,6 +11,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -108,6 +109,8 @@ type ProfileUseCase interface {
 		UIDs []string,
 		attribute string,
 	) (map[string][]string, error)
+
+	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -445,8 +448,7 @@ func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cov
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-	return profile.UpdateProfileCovers(ctx, p.onboardingRepository, covers)
-
+	return profile.UpdateProfileCovers(ctx, p.onboardingRepository, utils.AddHashToCovers(covers))
 }
 
 // UpdatePushTokens updates primary push tokens of a specific user profile.
@@ -888,4 +890,23 @@ func (p *ProfileUseCaseImpl) ProfileAttributes(
 		)
 		return nil, exceptions.RetrieveRecordError(err)
 	}
+}
+
+// SetupAsExperimentParticipant sets up the logged-in user as an experiment participant.
+// An experiment participant will be able to see unstable or otherwise flaged-feature in the UI of the app
+func (p *ProfileUseCaseImpl) SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error) {
+	// fetch the user profile
+	pr, err := p.UserProfile(ctx)
+	if err != nil {
+		// this is a wrapped error. No need to wrap it again
+		return false, err
+	}
+
+	if *participate {
+		// add the user to the list of experiment participants
+		return p.onboardingRepository.AddUserAsExperimentParticipant(ctx, pr)
+	}
+
+	// remove the user to the list of experiment participants
+	return p.onboardingRepository.RemoveUserAsExperimentParticipant(ctx, pr)
 }

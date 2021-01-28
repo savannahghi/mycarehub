@@ -150,6 +150,10 @@ func (r *mutationResolver) RetireKYCProcessingRequest(ctx context.Context) (bool
 	return true, nil
 }
 
+func (r *mutationResolver) SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error) {
+	return r.interactor.Onboarding.SetupAsExperimentParticipant(ctx, participate)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	return r.interactor.Onboarding.UserProfile(ctx)
 }

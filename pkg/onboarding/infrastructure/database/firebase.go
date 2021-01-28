@@ -22,13 +22,14 @@ import (
 )
 
 const (
-	userProfileCollectionName     = "user_profiles"
-	supplierProfileCollectionName = "supplier_profiles"
-	customerProfileCollectionName = "customer_profiles"
-	pinsCollectionName            = "pins"
-	surveyCollectionName          = "post_visit_survey"
-	profileNudgesCollectionName   = "profile_nudges"
-	kycProcessCollectionName      = "kyc_processing"
+	userProfileCollectionName           = "user_profiles"
+	supplierProfileCollectionName       = "supplier_profiles"
+	customerProfileCollectionName       = "customer_profiles"
+	pinsCollectionName                  = "pins"
+	surveyCollectionName                = "post_visit_survey"
+	profileNudgesCollectionName         = "profile_nudges"
+	kycProcessCollectionName            = "kyc_processing"
+	experimentParticipantCollectionName = "experiment_participants"
 
 	firebaseExchangeRefreshTokenURL = "https://securetoken.googleapis.com/v1/token?key="
 )
@@ -83,9 +84,15 @@ func (fr Repository) GetProfileNudgesCollectionName() string {
 	return suffixed
 }
 
-// GetKCYProcessCollectionName fetches location where kyc processing request will be saved
+// GetKCYProcessCollectionName fetches collection where kyc processing request will be saved
 func (fr Repository) GetKCYProcessCollectionName() string {
 	suffixed := base.SuffixCollection(kycProcessCollectionName)
+	return suffixed
+}
+
+// GetExperimentParticipantCollectionName fetches the collection where experiment participant will be saved
+func (fr *Repository) GetExperimentParticipantCollectionName() string {
+	suffixed := base.SuffixCollection(experimentParticipantCollectionName)
 	return suffixed
 }
 
@@ -582,14 +589,21 @@ func (fr *Repository) GenerateAuthCredentials(
 		return nil, exceptions.UpdateProfileError(err)
 	}
 
+	canExperiment, err := fr.CheckIfExperimentParticipant(ctx, pr.ID)
+	if err != nil {
+		// this is a wrapped error. No need to wrap it again
+		return nil, err
+	}
+
 	return &base.AuthCredentialResponse{
-		CustomToken:  &customToken,
-		IDToken:      &userTokens.IDToken,
-		ExpiresIn:    userTokens.ExpiresIn,
-		RefreshToken: userTokens.RefreshToken,
-		UID:          resp.UID,
-		IsAnonymous:  false,
-		IsAdmin:      fr.checkIfAdmin(pr),
+		CustomToken:   &customToken,
+		IDToken:       &userTokens.IDToken,
+		ExpiresIn:     userTokens.ExpiresIn,
+		RefreshToken:  userTokens.RefreshToken,
+		UID:           resp.UID,
+		IsAnonymous:   false,
+		IsAdmin:       fr.checkIfAdmin(pr),
+		CanExperiment: canExperiment,
 	}, nil
 }
 
@@ -888,13 +902,13 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-	// check that the new cover been added is unique and does not currently exist in the user's profile
+
+	// check that the new cover been added is unique and does not currently exist in the user's profile.
 	newCovers := []base.Cover{}
 	if len(profile.Covers) >= 1 {
 		for _, cover := range covers {
-			for _, current := range profile.Covers {
-				if current.MemberName != cover.MemberName && current.MemberNumber != cover.MemberNumber &&
-					current.PayerName != cover.PayerName && current.PayerSladeCode != cover.PayerSladeCode {
+			if !utils.IfCoverExistsInSlice(profile.Covers, cover) {
+				if !utils.IfCoverExistsInSlice(newCovers, cover) {
 					newCovers = append(newCovers, cover)
 				}
 			}
@@ -1081,7 +1095,7 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 			return err
 		}
 
-		if !checkIdentifierExists(profile, identifier.UID) {
+		if !utils.CheckIdentifierExists(profile, identifier.UID) {
 			uids := profile.VerifiedIdentifiers
 
 			uids = append(uids, identifier)
@@ -1115,15 +1129,6 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 	}
 
 	return nil
-}
-
-func checkIdentifierExists(profile *base.UserProfile, UID string) bool {
-	foundVerifiedUIDs := []string{}
-	verifiedIDs := profile.VerifiedIdentifiers
-	for _, verifiedID := range verifiedIDs {
-		foundVerifiedUIDs = append(foundVerifiedUIDs, verifiedID.UID)
-	}
-	return base.StringSliceContains(foundVerifiedUIDs, UID)
 }
 
 // UpdateVerifiedUIDS adds a UID to a user profile during login if it does not exist
@@ -1982,4 +1987,77 @@ func (fr *Repository) HardResetSecondaryEmailAddress(ctx context.Context, id str
 	}
 
 	return nil
+}
+
+// CheckIfExperimentParticipant check if a user has subscribed to be an experiment participant
+func (fr *Repository) CheckIfExperimentParticipant(ctx context.Context, profileID string) (bool, error) {
+	query := &GetAllQuery{
+		CollectionName: fr.GetExperimentParticipantCollectionName(),
+		FieldName:      "id",
+		Value:          profileID,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+	}
+
+	if len(docs) == 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
+// AddUserAsExperimentParticipant adds the provided user profile as an experiment participant if does not already exist.
+// this method is idempotent.
+func (fr *Repository) AddUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error) {
+	exists, err := fr.CheckIfExperimentParticipant(ctx, profile.ID)
+	if err != nil {
+		return false, err
+	}
+
+	if !exists {
+		createCommand := &CreateCommand{
+			CollectionName: fr.GetExperimentParticipantCollectionName(),
+			Data:           profile,
+		}
+		_, err = fr.FirestoreClient.Create(ctx, createCommand)
+		if err != nil {
+			return false, exceptions.InternalServerError(fmt.Errorf("unable to add user profile of ID %v in experiment_participant: %v", profile.ID, err))
+		}
+		return true, nil
+	}
+	// the user already exists as an experiment participant
+	return true, nil
+
+}
+
+// RemoveUserAsExperimentParticipant removes the provide user profile as an experiment participant. This methold does not check
+// for existence before deletion since non-existence is relativelt equavalent to a removal
+func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error) {
+	// fetch the document References
+	query := &GetAllQuery{
+		CollectionName: fr.GetExperimentParticipantCollectionName(),
+		FieldName:      "id",
+		Value:          profile.ID,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+	}
+	// means the document was removed or does not exist
+	if len(docs) == 0 {
+		return true, nil
+	}
+	deleteCommand := &DeleteCommand{
+		CollectionName: fr.GetExperimentParticipantCollectionName(),
+		ID:             docs[0].Ref.ID,
+	}
+	err = fr.FirestoreClient.Delete(ctx, deleteCommand)
+	if err != nil {
+		return false, exceptions.InternalServerError(fmt.Errorf("unable to remove user profile of ID %v from experiment_participant: %v", profile.ID, err))
+	}
+
+	return true, nil
 }

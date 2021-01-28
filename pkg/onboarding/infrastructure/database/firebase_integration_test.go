@@ -2248,7 +2248,7 @@ func TestRepository_UpdateSupplierProfile(t *testing.T) {
 	}
 }
 
-func TestRepository_FetchKYCProcessingRequests(t *testing.T) {
+func TestRepositoryFetchKYCProcessingRequests(t *testing.T) {
 	ctx := context.Background()
 
 	fsc, fbc := InitializeTestFirebaseClient(ctx)
@@ -2651,7 +2651,7 @@ func TestRepository_UpdateBioData(t *testing.T) {
 	}
 }
 
-func TestRepository_FetchKYCProcessingRequestByID(t *testing.T) {
+func TestRepositoryFetchKYCProcessingRequestByID(t *testing.T) {
 	ctx := context.Background()
 
 	fsc, fbc := InitializeTestFirebaseClient(ctx)
@@ -2731,7 +2731,7 @@ func TestRepository_FetchKYCProcessingRequestByID(t *testing.T) {
 	}
 }
 
-func TestRepository_UpdateKYCProcessingRequest(t *testing.T) {
+func TestRepositoryUpdateKYCProcessingRequest(t *testing.T) {
 	ctx := context.Background()
 
 	fsc, fbc := InitializeTestFirebaseClient(ctx)
@@ -2816,7 +2816,7 @@ func TestRepository_UpdateKYCProcessingRequest(t *testing.T) {
 	}
 }
 
-func TestRepository_GenerateAuthCredentialsForAnonymousUser(t *testing.T) {
+func TestRepositoryGenerateAuthCredentialsForAnonymousUser(t *testing.T) {
 	ctx := context.Background()
 
 	fsc, fbc := InitializeTestFirebaseClient(ctx)
@@ -2904,7 +2904,7 @@ func TestRepository_GenerateAuthCredentialsForAnonymousUser(t *testing.T) {
 	}
 }
 
-func TestRepository_GenerateAuthCredentials(t *testing.T) {
+func TestRepositoryGenerateAuthCredentials(t *testing.T) {
 	ctx, auth, err := GetTestAuthenticatedContext(t)
 	if err != nil {
 		t.Errorf("failed to get test authenticated context: %v", err)
@@ -3010,7 +3010,7 @@ func TestRepository_GenerateAuthCredentials(t *testing.T) {
 	}
 }
 
-func TestRepository_FetchAdminUsers(t *testing.T) {
+func TestRepositoryFetchAdminUsers(t *testing.T) {
 	ctx, auth, err := GetTestAuthenticatedContext(t)
 	if err != nil {
 		t.Errorf("failed to get test authenticated context: %v", err)

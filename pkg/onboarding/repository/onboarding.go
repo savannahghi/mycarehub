@@ -128,4 +128,10 @@ type OnboardingRepository interface {
 		ctx context.Context,
 		phone string,
 	) (*resources.CreatedUserResponse, error)
+
+	AddUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error)
+
+	RemoveUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error)
+
+	CheckIfExperimentParticipant(ctx context.Context, profileID string) (bool, error)
 }

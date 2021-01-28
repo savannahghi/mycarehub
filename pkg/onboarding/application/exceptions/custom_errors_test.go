@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 )
 
@@ -88,5 +89,11 @@ func TestCustomErrors(t *testing.T) {
 	err = exceptions.SecondaryResourceHardResetError()
 	assert.NotNil(t, err)
 	err = exceptions.InvalidSladeCodeError()
+	assert.NotNil(t, err)
+
+	statusCode1 := 1
+	err = exceptions.ResolveNudgeErr(fmt.Errorf("error"), base.FlavourConsumer, "name1", &statusCode1)
+	assert.NotNil(t, err)
+	err = exceptions.ResolveNudgeErr(fmt.Errorf("error"), base.FlavourConsumer, "name2", nil)
 	assert.NotNil(t, err)
 }

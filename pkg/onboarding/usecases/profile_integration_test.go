@@ -423,6 +423,15 @@ func TestUpdateUserProfileCovers(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Covers))
 
+	// try adding the first cover again. This should add the cover because the cover already exists
+	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer1", PayerSladeCode: 1, MemberName: "name1", MemberNumber: "mem1"}})
+	assert.Nil(t, err)
+
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Covers))
+
 	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer2", PayerSladeCode: 2, MemberName: "name2", MemberNumber: "mem2"}})
 	assert.Nil(t, err)
 
@@ -430,6 +439,40 @@ func TestUpdateUserProfileCovers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 	assert.Equal(t, 2, len(pr.Covers))
+
+	// try adding the second cover again. This should add the cover because the cover already exists
+	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer2", PayerSladeCode: 2, MemberName: "name2", MemberNumber: "mem2"}})
+	assert.Nil(t, err)
+
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 2, len(pr.Covers))
+
+	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer1", PayerSladeCode: 2, MemberName: "name11", MemberNumber: "mem22"}})
+	assert.Nil(t, err)
+
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 3, len(pr.Covers))
+
+	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer1", PayerSladeCode: 2, MemberName: "name111", MemberNumber: "mem222"}})
+	assert.Nil(t, err)
+
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 4, len(pr.Covers))
+
+	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer2", PayerSladeCode: 1, MemberName: "name2", MemberNumber: "mem2"}})
+	assert.Nil(t, err)
+
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 5, len(pr.Covers))
+
 }
 
 func TestUpdateUserProfilePushTokens(t *testing.T) {
@@ -1299,7 +1342,95 @@ func TestUpdatePermissions(t *testing.T) {
 	pr, err = s.Onboarding.UserProfile(context.Background())
 	assert.NotNil(t, err)
 	assert.Nil(t, pr)
+}
 
+func TestSetupAsExperimentParticipant(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+
+	validPhoneNumber := base.TestUserPhoneNumber
+	validPIN := "1234"
+
+	validFlavourConsumer := base.FlavourConsumer
+
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
+
+	// send otp to the phone number to initiate registration process
+	otp, err := generateTestOTP(t, validPhoneNumber)
+	assert.Nil(t, err)
+	assert.NotNil(t, otp)
+
+	// this should pass
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &validPhoneNumber,
+			PIN:         &validPIN,
+			Flavour:     validFlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Profile)
+	assert.Equal(t, validPhoneNumber, *resp.Profile.PrimaryPhone)
+	assert.NotNil(t, resp.Profile.UserName)
+	assert.NotNil(t, resp.CustomerProfile)
+	assert.NotNil(t, resp.SupplierProfile)
+	// check that the currently created user can not experiment on new features
+	assert.Equal(t, false, resp.Auth.CanExperiment)
+
+	// create authenticated context
+	ctx := context.Background()
+	authCred := &auth.Token{UID: resp.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		authCred,
+	)
+
+	s, _ = InitializeTestService(authenticatedContext)
+
+	// now add the user as an experiment participant
+	input := true
+	status, err := s.Onboarding.SetupAsExperimentParticipant(authenticatedContext, &input)
+	assert.Nil(t, err)
+	assert.NotNil(t, status)
+	assert.Equal(t, true, status)
+
+	// try to add the user as an experiment participant. This should return the the same respones since th method internally is idempotent
+	status, err = s.Onboarding.SetupAsExperimentParticipant(authenticatedContext, &input)
+	assert.Nil(t, err)
+	assert.NotNil(t, status)
+	assert.Equal(t, true, status)
+
+	// login the user and assert they can experiment on new features
+	login1, err := s.Login.LoginByPhone(context.Background(), validPhoneNumber, validPIN, validFlavourConsumer)
+	assert.Nil(t, err)
+	assert.NotNil(t, login1)
+	assert.Equal(t, true, login1.Auth.CanExperiment)
+
+	// now remove the user as an experiment participant
+	input2 := false
+	status, err = s.Onboarding.SetupAsExperimentParticipant(authenticatedContext, &input2)
+	assert.Nil(t, err)
+	assert.NotNil(t, status)
+	assert.Equal(t, true, status)
+
+	// try removing the user as an experiment participant.This should return the the same respones since th method internally is idempotent
+	status, err = s.Onboarding.SetupAsExperimentParticipant(authenticatedContext, &input2)
+	assert.Nil(t, err)
+	assert.NotNil(t, status)
+	assert.Equal(t, true, status)
+
+	// login the user and assert they can not experiment on new features
+	login2, err := s.Login.LoginByPhone(context.Background(), validPhoneNumber, validPIN, validFlavourConsumer)
+	assert.Nil(t, err)
+	assert.NotNil(t, login1)
+	assert.Equal(t, false, login2.Auth.CanExperiment)
 }
 
 func TestMaskPhoneNumbers(t *testing.T) {

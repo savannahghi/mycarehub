@@ -109,6 +109,12 @@ type FakeOnboardingRepository struct {
 		attribute string,
 	) (map[string][]string, error)
 
+	CheckIfExperimentParticipantFn func(ctx context.Context, profileID string) (bool, error)
+
+	AddUserAsExperimentParticipantFn func(ctx context.Context, profile *base.UserProfile) (bool, error)
+
+	RemoveUserAsExperimentParticipantFn func(ctx context.Context, profile *base.UserProfile) (bool, error)
+
 	// Userprofile
 	UpdateUserNameFn                func(ctx context.Context, id string, phoneNumber string) error
 	UpdatePrimaryPhoneNumberFn      func(ctx context.Context, id string, phoneNumber string) error
@@ -393,4 +399,19 @@ func (f *FakeOnboardingRepository) GetUserProfileAttributes(
 		UIDs,
 		attribute,
 	)
+}
+
+// CheckIfExperimentParticipant ...
+func (f *FakeOnboardingRepository) CheckIfExperimentParticipant(ctx context.Context, profileID string) (bool, error) {
+	return f.CheckIfExperimentParticipantFn(ctx, profileID)
+}
+
+// AddUserAsExperimentParticipant ...
+func (f *FakeOnboardingRepository) AddUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error) {
+	return f.AddUserAsExperimentParticipantFn(ctx, profile)
+}
+
+// RemoveUserAsExperimentParticipant ...
+func (f *FakeOnboardingRepository) RemoveUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error) {
+	return f.RemoveUserAsExperimentParticipantFn(ctx, profile)
 }

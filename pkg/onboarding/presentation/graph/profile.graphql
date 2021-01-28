@@ -108,9 +108,6 @@ extend type Mutation {
 
   retireKYCProcessingRequest: Boolean!
 
-  # setUserPin(msisdn: String!, pin: String!): Boolean!
-
-  # addTester(email: String!): Boolean!
-  # removeTester(email: String!): Boolean!
+  setupAsExperimentParticipant(participate:Boolean): Boolean! 
 
 }
