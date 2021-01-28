@@ -556,7 +556,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 // SupplierSetDefaultLocation updates the default location ot the supplier by the given location id
 func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error) {
 
-	uid, err := base.GetLoggedInUserUID(ctx)
+	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, exceptions.UserNotFoundError(err)
 	}
