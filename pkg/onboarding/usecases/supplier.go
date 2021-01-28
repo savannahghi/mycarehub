@@ -341,12 +341,12 @@ func (s SupplierUseCasesImpl) CoreEDIUserLogin(username, password string) (*base
 		return nil, exceptions.InvalidCredentialsError()
 	}
 
-	ediClient, err := utils.LoginClient(username, password)
+	ediClient, err := s.baseExt.LoginClient(username, password)
 	if err != nil {
 		return nil, fmt.Errorf("cannot initialize edi client with supplied credentials: %w", err)
 	}
 
-	userProfile, err := base.FetchUserProfile(ediClient)
+	userProfile, err := s.baseExt.FetchUserProfile(ediClient)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve EDI user profile: %w", err)
 	}
@@ -452,12 +452,10 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		resp.Supplier = supplier
 		return &resp, nil
 	}
-
 	// verify slade code.
 	if ediUserProfile.BusinessPartner != orgSladeCode {
 		return nil, exceptions.InvalidSladeCodeError()
 	}
-
 	supplier.EDIUserProfile = ediUserProfile
 	supplier.IsOrganizationVerified = true
 	supplier.SladeCode = sladeCode
@@ -487,7 +485,6 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 			logrus.Error(err)
 		}
 	}()
-
 	if businessPartner.Parent != nil {
 		supplier.HasBranches = true
 		supplier.ParentOrganizationID = *businessPartner.Parent
@@ -503,7 +500,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 			return nil, err
 		}
 
-		// fetch all locatoions of the business partner
+		// fetch all locations of the business partner
 		filter := []*resources.BranchFilterInput{
 			{
 				ParentOrganizationID: &supplier.ParentOrganizationID,

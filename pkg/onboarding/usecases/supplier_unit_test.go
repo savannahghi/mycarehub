@@ -363,16 +363,12 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 }
 
 func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
+	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
+
 	type args struct {
 		username string
 		password string
@@ -388,11 +384,18 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 				username: "bewell@slade360.co.ke",
 				password: "please change me",
 			},
-			wantErr: true, // TODO: switch to true when https://accounts-core.release.slade360.co.ke/
-			// comes back live
+			wantErr: false,
 		},
 		{
-			name: "Sad Case: Wrong userame and password",
+			name: "invalid:_fail_to_fetch_UserProfile",
+			args: args{
+				username: "bewell@slade360.co.ke",
+				password: "please change me",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_login_client",
 			args: args{
 				username: "invalid Username",
 				password: "invalid Password",
@@ -400,7 +403,7 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad case: empty username and password",
+			name: "invalid:empty_username_and_password",
 			args: args{
 				username: "",
 				password: "",
@@ -411,21 +414,44 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Happy Case:_valid_credentials" {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+
 				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
 					return &base.EDIUserProfile{
-						ID:   5782332,
-						GUID: uuid.New().String(),
+						ID:        5782332,
+						GUID:      uuid.New().String(),
+						Email:     "johndoe@gmail.com",
+						FirstName: "John",
+						LastName:  "Doe",
 					}, nil
 				}
 			}
 
-			if tt.name == "Sad Case: Wrong userame and password" {
+			if tt.name == "invalid:_fail_to_fetch_UserProfile" {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return nil, fmt.Errorf("fail to fetch user profile")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_login_client" {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, fmt.Errorf("cannot initialize edi client with supplied credentials")
+				}
+			}
+
+			if tt.name == "invalid:empty_username_and_password" {
 				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
 					return nil, fmt.Errorf("invalid credentials")
 				}
 			}
 
-			coreEdiLogin := s
+			coreEdiLogin := i
 			_, err := coreEdiLogin.Supplier.CoreEDIUserLogin(tt.args.username, tt.args.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SupplierUseCasesImpl.CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
@@ -6189,6 +6215,833 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 			if !tt.wantErr {
 				if err != nil {
 					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	sladeCode := "1"
+	savannahOrgName := "Savannah Informatics"
+	cursor := "8765"
+	parent := "parent"
+	edges := &resources.BusinessPartnerEdge{
+		Cursor: &cursor,
+		Node: &domain.BusinessPartner{
+			ID:        "BUS1N3SS-P123-1D",
+			Name:      savannahOrgName,
+			SladeCode: sladeCode,
+			Parent:    &parent,
+		},
+	}
+
+	newEdges := []*resources.BusinessPartnerEdge{}
+	newEdges = append(newEdges, edges)
+
+	payload2 := &resources.BranchEdge{
+		Cursor: &cursor,
+		Node: &domain.Branch{
+			ID:                    "BUS1N3SS-P123-1D",
+			Name:                  savannahOrgName,
+			OrganizationSladeCode: "123456",
+			BranchSladeCode:       sladeCode,
+		},
+	}
+	newPayload := []*resources.BranchEdge{}
+	newPayload = append(newPayload, payload2)
+
+	payload3 := &resources.BusinessPartnerEdge{
+		Cursor: &cursor,
+		Node: &domain.BusinessPartner{
+			ID:        "BUS1N3SS-P123",
+			Name:      "Random Org",
+			SladeCode: "PRO-1234",
+			Parent:    &parent,
+		},
+	}
+
+	newPayload3 := []*resources.BusinessPartnerEdge{}
+	newPayload3 = append(newPayload3, payload3)
+
+	payload4 := &resources.BranchEdge{
+		Cursor: &cursor,
+		Node: &domain.Branch{
+			ID:                    "BUS1N3SS-P123",
+			Name:                  "Random Org",
+			OrganizationSladeCode: "1234",
+			BranchSladeCode:       "PRO-1234",
+		},
+	}
+	newPayload4 := []*resources.BranchEdge{}
+	newPayload4 = append(newPayload4, payload4)
+
+	// This will help test the case where a parent is nil
+	payload5 := &resources.BusinessPartnerEdge{
+		Cursor: &cursor,
+		Node: &domain.BusinessPartner{
+			ID:        "BUS1N3SS-P123",
+			Name:      "Random Org",
+			SladeCode: "PRO-1234",
+		},
+	}
+
+	newPayload5 := []*resources.BusinessPartnerEdge{}
+	newPayload5 = append(newPayload5, payload5)
+
+	type args struct {
+		ctx       context.Context
+		username  string
+		password  string
+		sladeCode string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:successful_login",
+			args: args{
+				ctx:       ctx,
+				username:  "bewell@slade360.co.ke",
+				password:  "please change me",
+				sladeCode: "1",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid:successful_login_with_a_non-savannah_sladeCode",
+			args: args{
+				ctx:       ctx,
+				username:  "bewell@slade360.co.ke",
+				password:  "please change me",
+				sladeCode: "PRO-1234",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid:nil_business_parent",
+			args: args{
+				ctx:       ctx,
+				username:  "bewell@slade360.co.ke",
+				password:  "please change me",
+				sladeCode: "PRO-1234",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid:nil_business_parent_fail_to_updateSupplierProfile",
+			args: args{
+				ctx:       ctx,
+				username:  "bewell@slade360.co.ke",
+				password:  "please change me",
+				sladeCode: "PRO-1234",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_update_permissions",
+			args: args{
+				ctx:       ctx,
+				username:  "bewell@slade360.co.ke",
+				password:  "please change me",
+				sladeCode: "1",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_ediUserProfile_using_SavannahSladeCode",
+			args: args{
+				ctx:       ctx,
+				username:  "bewell@slade360.co.ke",
+				password:  "please change me",
+				sladeCode: "1",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_ediUserProfile_using_non-SavannahSladeCode",
+			args: args{
+				ctx:       ctx,
+				username:  "bewell@slade360.co.ke",
+				password:  "please change me",
+				sladeCode: "1023",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:unable_to_get_logged_in_user",
+			args: args{
+				ctx:       ctx,
+				username:  "userName",
+				password:  "1234der5",
+				sladeCode: "PRO-1234",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:unable_to_get_userProfileByUID",
+			args: args{
+				ctx:       ctx,
+				username:  "userName",
+				password:  "1234der5",
+				sladeCode: "PRO-1234",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:unable_to_find_SupplierByUID",
+			args: args{
+				ctx:       ctx,
+				username:  "userName",
+				password:  "1234der5",
+				sladeCode: "PRO-1234",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:successful_login" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return &base.Supplier{
+						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
+						ID:                uid,
+						AccountType:       base.AccountTypeIndividual,
+						UnderOrganization: true,
+					}, nil
+				}
+
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return &base.EDIUserProfile{
+						ID:        578278332,
+						GUID:      uuid.New().String(),
+						Email:     "juhakalulu@gmail.com",
+						FirstName: "Juha",
+						LastName:  "Kalulu",
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: "12334"}, nil
+				}
+
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+					return nil
+				}
+
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput,
+					sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
+					return &resources.BusinessPartnerConnection{
+						Edges: newEdges,
+						PageInfo: &base.PageInfo{
+							HasNextPage: false,
+						},
+					}, nil
+				}
+
+				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
+					return &http.Response{
+						Status:     "OK",
+						StatusCode: http.StatusOK,
+						Body:       nil,
+					}, nil
+				}
+
+				fakeChargeMasterSvc.FetchProviderByIDFn = func(ctx context.Context, id string) (*domain.BusinessPartner, error) {
+					return &domain.BusinessPartner{
+						ID:        "BUS1N3SS-P123-1D",
+						Name:      savannahOrgName,
+						SladeCode: "1",
+						Parent:    &parent,
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
+					sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
+					return &resources.BranchConnection{
+						Edges: newPayload,
+						PageInfo: &base.PageInfo{
+							HasNextPage: false,
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+			}
+
+			if tt.name == "valid:successful_login_with_a_non-savannah_sladeCode" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return &base.Supplier{
+						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
+						ID:                uid,
+						AccountType:       base.AccountTypeIndividual,
+						UnderOrganization: true,
+					}, nil
+				}
+
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return &base.EDIUserProfile{
+						ID:              578278332,
+						GUID:            uuid.New().String(),
+						Email:           "juhakalulu@gmail.com",
+						FirstName:       "Juha",
+						LastName:        "Kalulu",
+						BusinessPartner: "1234",
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: "12334"}, nil
+				}
+
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+					return nil
+				}
+
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput,
+					sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
+					return &resources.BusinessPartnerConnection{
+						Edges: newPayload3,
+						PageInfo: &base.PageInfo{
+							HasNextPage: false,
+						},
+					}, nil
+				}
+
+				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
+					return &http.Response{
+						Status:     "OK",
+						StatusCode: http.StatusOK,
+						Body:       nil,
+					}, nil
+				}
+
+				fakeChargeMasterSvc.FetchProviderByIDFn = func(ctx context.Context, id string) (*domain.BusinessPartner, error) {
+					parent := "parent"
+					return &domain.BusinessPartner{
+						ID:        "BUS1N3SS-P123",
+						Name:      "Random Org",
+						SladeCode: "PRO-1234",
+						Parent:    &parent,
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
+					sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
+					return &resources.BranchConnection{
+						Edges: newPayload4,
+						PageInfo: &base.PageInfo{
+							HasNextPage: false,
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+			}
+
+			if tt.name == "valid:nil_business_parent" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return &base.Supplier{
+						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
+						ID:                uid,
+						AccountType:       base.AccountTypeIndividual,
+						UnderOrganization: true,
+					}, nil
+				}
+
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return &base.EDIUserProfile{
+						ID:              578278332,
+						GUID:            uuid.New().String(),
+						Email:           "juhakalulu@gmail.com",
+						FirstName:       "Juha",
+						LastName:        "Kalulu",
+						BusinessPartner: "1234",
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: "12334"}, nil
+				}
+
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+					return nil
+				}
+
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput,
+					sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
+					return &resources.BusinessPartnerConnection{
+						Edges: newPayload5,
+						PageInfo: &base.PageInfo{
+							HasNextPage: false,
+						},
+					}, nil
+				}
+
+				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
+					return &http.Response{
+						Status:     "OK",
+						StatusCode: http.StatusOK,
+						Body:       nil,
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+			}
+
+			if tt.name == "valid:nil_business_parent_fail_to_updateSupplierProfile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return &base.Supplier{
+						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
+						ID:                uid,
+						AccountType:       base.AccountTypeIndividual,
+						UnderOrganization: true,
+					}, nil
+				}
+
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return &base.EDIUserProfile{
+						ID:              578278332,
+						GUID:            uuid.New().String(),
+						Email:           "juhakalulu@gmail.com",
+						FirstName:       "Juha",
+						LastName:        "Kalulu",
+						BusinessPartner: "1234",
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: "12334"}, nil
+				}
+
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+					return nil
+				}
+
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput,
+					sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
+					return &resources.BusinessPartnerConnection{
+						Edges: newPayload5,
+						PageInfo: &base.PageInfo{
+							HasNextPage: false,
+						},
+					}, nil
+				}
+
+				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
+					return &http.Response{
+						Status:     "OK",
+						StatusCode: http.StatusOK,
+						Body:       nil,
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return fmt.Errorf("failed to update supplier profile")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_update_permissions" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return &base.Supplier{
+						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
+						ID:                uid,
+						AccountType:       base.AccountTypeIndividual,
+						UnderOrganization: true,
+					}, nil
+				}
+
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return &base.EDIUserProfile{
+						ID:        578278332,
+						GUID:      uuid.New().String(),
+						Email:     "juhakalulu@gmail.com",
+						FirstName: "Juha",
+						LastName:  "Kalulu",
+					}, nil
+				}
+
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: "12334"}, nil
+				}
+
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+					return fmt.Errorf("failed to update permissions")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_ediUserProfile_using_SavannahSladeCode" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return &base.Supplier{
+						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
+						ID:                uid,
+						AccountType:       base.AccountTypeIndividual,
+						UnderOrganization: true,
+					}, nil
+				}
+
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return nil, fmt.Errorf("cannot get edi user profile")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_ediUserProfile_using_non-SavannahSladeCode" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					return &base.Supplier{
+						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
+						ID:                uid,
+						AccountType:       base.AccountTypeIndividual,
+						UnderOrganization: true,
+					}, nil
+				}
+
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, fmt.Errorf("edi user profile not found")
+				}
+
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return nil, fmt.Errorf("cannot get edi user profile")
+				}
+			}
+
+			if tt.name == "invalid:unable_to_get_logged_in_user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged in user")
+				}
+			}
+
+			if tt.name == "invalid:unable_to_get_userProfileByUID" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get user profile by UID")
+				}
+			}
+
+			if tt.name == "unable_to_find_SupplierByUID" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "400d-8716--91bd-42b3af315a4e",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: "f4f39af7-91bd-42b3af-315a4e",
+							},
+						},
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return nil, fmt.Errorf("supplier not found")
+				}
+			}
+
+			resp, err := i.Supplier.SupplierEDILogin(tt.args.ctx, tt.args.username, tt.args.password, tt.args.sladeCode)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.SupplierEDILogin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+
+				if resp == nil {
+					t.Errorf("nil response returned")
 					return
 				}
 			}
