@@ -2066,3 +2066,246 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestProfileUseCase_UpdateBioData(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+	dateOfBirth := base.Date{
+		Day:   12,
+		Year:  2000,
+		Month: 2,
+	}
+
+	firstName := "Jatelo"
+	lastName := "Omera"
+	bioData := base.BioData{
+		FirstName:   &firstName,
+		LastName:    &lastName,
+		DateOfBirth: &dateOfBirth,
+	}
+
+	var gender base.Gender = "female"
+	updateGender := base.BioData{
+		Gender: gender,
+	}
+
+	updateDOB := base.BioData{
+		DateOfBirth: &dateOfBirth,
+	}
+
+	updateFirstName := base.BioData{
+		FirstName: &firstName,
+	}
+
+	updateLastName := base.BioData{
+		LastName: &lastName,
+	}
+	type args struct {
+		ctx  context.Context
+		data base.BioData
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: update primary biodata of a specific user profile",
+			args: args{
+				ctx:  ctx,
+				data: bioData,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: update primary biodata of a specific user profile - gender",
+			args: args{
+				ctx:  ctx,
+				data: updateGender,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: update primary biodata of a specific user profile - DOB",
+			args: args{
+				ctx:  ctx,
+				data: updateDOB,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: update primary biodata of a specific user profile - First Name",
+			args: args{
+				ctx:  ctx,
+				data: updateFirstName,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid: update primary biodata of a specific user profile - Last Name",
+			args: args{
+				ctx:  ctx,
+				data: updateLastName,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: get logged in user uid fails",
+			args: args{
+				ctx:  ctx,
+				data: bioData,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: get user profile by UID fails",
+			args: args{
+				ctx:  ctx,
+				data: bioData,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: update primary biodata of a specific user profile",
+			args: args{
+				ctx:  ctx,
+				data: bioData,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid: update primary biodata of a specific user profile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return nil
+				}
+
+			}
+			if tt.name == "valid: update primary biodata of a specific user profile - gender" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return nil
+				}
+
+			}
+			if tt.name == "valid: update primary biodata of a specific user profile - DOB" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return nil
+				}
+
+			}
+			if tt.name == "valid: update primary biodata of a specific user profile - First Name" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return nil
+				}
+
+			}
+			if tt.name == "valid: update primary biodata of a specific user profile - Last Name" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return nil
+				}
+
+			}
+			if tt.name == "invalid: get logged in user uid fails" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get loggeg in user UID")
+				}
+			}
+
+			if tt.name == "invalid: get user profile by UID fails" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("failed to get user profile by UID")
+				}
+			}
+			if tt.name == "invalid: update primary biodata of a specific user profile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return fmt.Errorf("failed update primary biodata of a user profile")
+				}
+
+			}
+
+			err := i.Onboarding.UpdateBioData(tt.args.ctx, tt.args.data)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}

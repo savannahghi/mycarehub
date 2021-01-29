@@ -6673,7 +6673,6 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 					return
 				}
 			}
-
 			if !tt.wantErr {
 				if err != nil {
 					t.Errorf("error not expected got %v", err)
@@ -6686,6 +6685,174 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 				}
 			}
 
+		})
+	}
+}
+func TestProfileUseCaseImpl_FindSupplierByUID(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	profileID := "93ca42bb-5cfc-4499-b137-2df4d67b4a21"
+	supplier := &base.Supplier{
+		ProfileID: &profileID,
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.Supplier
+		wantErr bool
+	}{
+		{
+			name: "valid:_find_supplier_by_uid",
+			args: args{
+				ctx: ctx,
+			},
+			want:    supplier,
+			wantErr: false,
+		},
+		{
+			name: "invalid:_find_supplier_by_uid",
+			args: args{
+				ctx: ctx,
+			},
+			want:    supplier,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:_find_supplier_by_uid" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID:        "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						ProfileID: &profileID,
+					}, nil
+				}
+
+			}
+
+			if tt.name == "invalid:_find_supplier_by_uid" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return nil, fmt.Errorf("failed to get supplier")
+				}
+
+			}
+
+			sup, err := i.Supplier.FindSupplierByUID(tt.args.ctx)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+
+				if *sup.ProfileID == "" {
+					t.Errorf("empty profileID returned %v", sup.ProfileID)
+					return
+				}
+			}
+
+		})
+	}
+}
+func TestSupplierUseCase_StageKYCProcessingRequest(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	profileID := "93ca42bb-5cfc-4499-b137-2df4d67b4a21"
+	supplier := &base.Supplier{
+		ProfileID: &profileID,
+	}
+	type args struct {
+		ctx context.Context
+		sup *base.Supplier
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:_stage_KYC_processing",
+			args: args{
+				ctx: ctx,
+				sup: supplier,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_stage_KYC_processing",
+			args: args{
+				ctx: ctx,
+				sup: supplier,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:_stage_KYC_processing" {
+				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
+					return nil
+				}
+
+			}
+			if tt.name == "invalid:_stage_KYC_processing" {
+				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
+					return fmt.Errorf("failed to stage KYC processing request")
+				}
+
+			}
+			err := i.Supplier.StageKYCProcessingRequest(tt.args.ctx, tt.args.sup)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
 		})
 	}
 }
