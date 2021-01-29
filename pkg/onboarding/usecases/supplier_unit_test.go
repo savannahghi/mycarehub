@@ -6688,6 +6688,7 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 		})
 	}
 }
+
 func TestProfileUseCaseImpl_FindSupplierByUID(t *testing.T) {
 	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
@@ -6841,6 +6842,310 @@ func TestSupplierUseCase_StageKYCProcessingRequest(t *testing.T) {
 			}
 			err := i.Supplier.StageKYCProcessingRequest(tt.args.ctx, tt.args.sup)
 
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
+	ctx := context.Background()
+
+	individualPartner := base.AccountTypeIndividual
+	organizationPartner := base.AccountTypeOrganisation
+
+	s, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		accountType base.AccountType
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Successful individual supplier account setup",
+			args: args{
+				ctx:         ctx,
+				accountType: individualPartner,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Successful organization supplier account setup",
+			args: args{
+				ctx:         ctx,
+				accountType: organizationPartner,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid failed to get the logged in user",
+			args: args{
+				ctx:         ctx,
+				accountType: organizationPartner,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid failed to get user profile",
+			args: args{
+				ctx:         ctx,
+				accountType: organizationPartner,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid failed to add supplier account type",
+			args: args{
+				ctx:         ctx,
+				accountType: organizationPartner,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_resolving_the_consumer_nudge_fails",
+			args: args{
+				ctx:         ctx,
+				accountType: organizationPartner,
+			},
+			wantErr: false, // the error is logged
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Successful individual supplier account setup" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(
+					ctx context.Context,
+					profileID string,
+				) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.AddSupplierAccountTypeFn = func(
+					ctx context.Context,
+					profileID string,
+					accountType base.AccountType,
+				) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeEngagementSvs.PublishKYCNudgeFn = func(
+					uid string,
+					payload base.Nudge,
+				) (*http.Response, error) {
+					return &http.Response{StatusCode: 200}, nil
+				}
+
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) error {
+					return nil
+				}
+			}
+
+			if tt.name == "Successful organization supplier account setup" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(
+					ctx context.Context,
+					profileID string,
+				) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.AddSupplierAccountTypeFn = func(
+					ctx context.Context,
+					profileID string,
+					accountType base.AccountType,
+				) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeEngagementSvs.PublishKYCNudgeFn = func(
+					uid string,
+					payload base.Nudge,
+				) (*http.Response, error) {
+					return &http.Response{StatusCode: 200}, nil
+				}
+
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid failed to get the logged in user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "invalid failed to get user profile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "invalid failed to add supplier account type" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(
+					ctx context.Context,
+					profileID string,
+				) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.AddSupplierAccountTypeFn = func(
+					ctx context.Context,
+					profileID string,
+					accountType base.AccountType,
+				) (*base.Supplier, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "invalid:_resolving_the_consumer_nudge_fails" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(
+					ctx context.Context,
+					profileID string,
+				) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.AddSupplierAccountTypeFn = func(
+					ctx context.Context,
+					profileID string,
+					accountType base.AccountType,
+				) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeEngagementSvs.PublishKYCNudgeFn = func(
+					uid string,
+					payload base.Nudge,
+				) (*http.Response, error) {
+					return &http.Response{StatusCode: 200}, nil
+				}
+
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := s.Supplier.SetUpSupplier(
+				tt.args.ctx,
+				tt.args.accountType,
+			)
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("error expected got %v", err)

@@ -3,7 +3,6 @@ package usecases
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/cenkalti/backoff"
@@ -592,59 +591,33 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 	// Resolve the nudge in `CONSUMER`
 	go func() {
 		cons := func() error {
-			return p.ResolveDefaultNudge(
+			return p.engagement.ResolveDefaultNudgeByTitle(
 				UID,
 				base.FlavourConsumer,
 				VerifyEmailNudgeTitle,
 			)
 		}
-		if err := backoff.Retry(cons, backoff.NewExponentialBackOff()); err != nil {
+		if err := backoff.Retry(
+			cons,
+			backoff.NewExponentialBackOff(),
+		); err != nil {
 			logrus.Error(err)
 		}
 
 		pro := func() error {
-			return p.ResolveDefaultNudge(
+			return p.engagement.ResolveDefaultNudgeByTitle(
 				UID,
 				base.FlavourPro,
 				VerifyEmailNudgeTitle,
 			)
 		}
-		if err := backoff.Retry(pro, backoff.NewExponentialBackOff()); err != nil {
+		if err := backoff.Retry(
+			pro,
+			backoff.NewExponentialBackOff(),
+		); err != nil {
 			logrus.Error(err)
 		}
 	}()
-
-	return nil
-}
-
-// ResolveDefaultNudge resolves a default nudge from the `engagement service`
-func (p *ProfileUseCaseImpl) ResolveDefaultNudge(
-	UID string,
-	flavour base.Flavour,
-	nudgeTitle string,
-) error {
-	resp, err := p.engagement.ResolveDefaultNudgeByTitle(
-		UID,
-		flavour,
-		nudgeTitle,
-	)
-	if err != nil {
-		return exceptions.ResolveNudgeErr(
-			err,
-			flavour,
-			nudgeTitle,
-			nil,
-		)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return exceptions.ResolveNudgeErr(
-			fmt.Errorf("unexpected status code %v", resp.StatusCode),
-			flavour,
-			nudgeTitle,
-			&resp.StatusCode,
-		)
-	}
 
 	return nil
 }

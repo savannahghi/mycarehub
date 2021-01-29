@@ -3,7 +3,6 @@ package usecases_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/google/uuid"
@@ -614,24 +613,6 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "invalid:_resolving_the_consumer_nudge_does_not_return_a_200",
-			args: args{
-				ctx:          ctx,
-				emailAddress: "mwendwapole@gmail.com",
-				otp:          "897523",
-			},
-			wantErr: false,
-		},
-		{
-			name: "invalid:_resolving_the_pro_nudge_does_not_return_a_200",
-			args: args{
-				ctx:          ctx,
-				emailAddress: "mwendwapole@gmail.com",
-				otp:          "897523",
-			},
-			wantErr: false,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -664,11 +645,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
-				) (*http.Response, error) {
-					return &http.Response{
-						Status:     "200 OK",
-						StatusCode: 200,
-					}, nil
+				) error {
+					return nil
 				}
 
 				// Resolve the second nudge
@@ -676,11 +654,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
-				) (*http.Response, error) {
-					return &http.Response{
-						Status:     "200 OK",
-						StatusCode: 200,
-					}, nil
+				) error {
+					return nil
 				}
 			}
 
@@ -761,8 +736,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
-				) (*http.Response, error) {
-					return nil, fmt.Errorf("an error occurred")
+				) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -795,11 +770,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
-				) (*http.Response, error) {
-					return &http.Response{
-						Status:     "200 OK",
-						StatusCode: 200,
-					}, nil
+				) error {
+					return nil
 				}
 
 				// Resolve the second nudge
@@ -807,88 +779,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
-				) (*http.Response, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-
-			if tt.name == "invalid:_resolving_the_consumer_nudge_does_not_return_a_200" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:                  uuid.New().String(),
-						PrimaryEmailAddress: &primaryEmail,
-					}, nil
-				}
-				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
-					return true, nil
-				}
-				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
-					return nil
-				}
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:                  uuid.New().String(),
-						PrimaryEmailAddress: &primaryEmail,
-					}, nil
-				}
-				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
-					return nil
-				}
-				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
-					UID string,
-					flavour base.Flavour,
-					nudgeTitle string,
-				) (*http.Response, error) {
-					return &http.Response{StatusCode: 405}, nil
-				}
-			}
-
-			if tt.name == "invalid:_resolving_the_pro_nudge_does_not_return_a_200" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:                  uuid.New().String(),
-						PrimaryEmailAddress: &primaryEmail,
-					}, nil
-				}
-				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
-					return true, nil
-				}
-				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
-					return nil
-				}
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:                  uuid.New().String(),
-						PrimaryEmailAddress: &primaryEmail,
-					}, nil
-				}
-				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
-					return nil
-				}
-				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
-					UID string,
-					flavour base.Flavour,
-					nudgeTitle string,
-				) (*http.Response, error) {
-					return &http.Response{
-						Status:     "200 OK",
-						StatusCode: 200,
-					}, nil
-				}
-
-				// Resolve the second nudge
-				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
-					UID string,
-					flavour base.Flavour,
-					nudgeTitle string,
-				) (*http.Response, error) {
-					return &http.Response{StatusCode: 405}, nil
+				) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 

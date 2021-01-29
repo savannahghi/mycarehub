@@ -1979,7 +1979,6 @@ func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 	}
 }
 
-// TODO: improve test by adding good testcases and properly asserting responses
 func TestSetUpSupplier(t *testing.T) {
 	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
@@ -2030,13 +2029,30 @@ func TestSetUpSupplier(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "SadCase - unauthenticated context",
+			args: args{
+				ctx:         context.Background(),
+				accountType: organizationPartner,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			supplier := s
-			_, err := supplier.Supplier.SetUpSupplier(tt.args.ctx, tt.args.accountType)
+			supplier, err := s.Supplier.SetUpSupplier(tt.args.ctx, tt.args.accountType)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SetUpSupplier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if supplier == nil && !tt.wantErr {
+				t.Errorf("expected a supplier and nil error but got: %v", err)
+				return
+			}
+
+			if supplier != nil && tt.wantErr {
+				t.Errorf("expected an error but instead got a nil")
 				return
 			}
 		})

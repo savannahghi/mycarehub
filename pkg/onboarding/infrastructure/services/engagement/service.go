@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 )
 
@@ -23,7 +24,7 @@ type ServiceEngagement interface {
 		UID string,
 		flavour base.Flavour,
 		nudgeTitle string,
-	) (*http.Response, error)
+	) error
 }
 
 // ServiceEngagementImpl represents engagement usecases
@@ -68,8 +69,8 @@ func (en *ServiceEngagementImpl) ResolveDefaultNudgeByTitle(
 	UID string,
 	flavour base.Flavour,
 	nudgeTitle string,
-) (*http.Response, error) {
-	return en.Engage.MakeRequest(
+) error {
+	resp, err := en.Engage.MakeRequest(
 		http.MethodPatch,
 		fmt.Sprintf(
 			resolveDefaultNudges,
@@ -79,4 +80,24 @@ func (en *ServiceEngagementImpl) ResolveDefaultNudgeByTitle(
 		),
 		nil,
 	)
+
+	if err != nil {
+		return exceptions.ResolveNudgeErr(
+			err,
+			flavour,
+			nudgeTitle,
+			nil,
+		)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return exceptions.ResolveNudgeErr(
+			fmt.Errorf("unexpected status code %v", resp.StatusCode),
+			flavour,
+			nudgeTitle,
+			&resp.StatusCode,
+		)
+	}
+
+	return nil
 }

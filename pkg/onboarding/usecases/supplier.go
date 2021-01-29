@@ -41,6 +41,10 @@ const (
 	futureHours            = 878400
 	savannahSladeCode      = "1"
 	savannahOrgName        = "Savannah Informatics"
+
+	// PartnerAccountSetupNudgeTitle is the title defined in the `engagement service`
+	// for the `PartnerAccountSetupNudge`
+	PartnerAccountSetupNudgeTitle = "Setup your partner account"
 )
 
 // SupplierUseCases represent the business logic required for management of suppliers
@@ -276,6 +280,22 @@ func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType bas
 			logrus.Error(err)
 		}
 	}(uid, sup.PartnerType, sup.AccountType)
+
+	go func() {
+		pro := func() error {
+			return s.engagement.ResolveDefaultNudgeByTitle(
+				uid,
+				base.FlavourPro,
+				PartnerAccountSetupNudgeTitle,
+			)
+		}
+		if err := backoff.Retry(
+			pro,
+			backoff.NewExponentialBackOff(),
+		); err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	return sup, nil
 }

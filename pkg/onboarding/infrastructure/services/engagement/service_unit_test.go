@@ -131,7 +131,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 				}
 			}
 
-			resp, err := e.ResolveDefaultNudgeByTitle(
+			err := e.ResolveDefaultNudgeByTitle(
 				tt.args.UID,
 				tt.args.flavour,
 				tt.args.nudgeTitle,
@@ -145,11 +145,6 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 			if !tt.wantErr {
 				if err != nil {
 					t.Errorf("error not expected got %v", err)
-					return
-				}
-
-				if resp.StatusCode != tt.wantStatus {
-					t.Errorf("expected status code 200 but got %v", resp.StatusCode)
 					return
 				}
 			}

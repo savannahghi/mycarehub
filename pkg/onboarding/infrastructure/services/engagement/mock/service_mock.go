@@ -14,7 +14,7 @@ type FakeServiceEngagement struct {
 		UID string,
 		flavour base.Flavour,
 		nudgeTitle string,
-	) (*http.Response, error)
+	) error
 }
 
 // PublishKYCNudge ...
@@ -38,7 +38,7 @@ func (f *FakeServiceEngagement) ResolveDefaultNudgeByTitle(
 	UID string,
 	flavour base.Flavour,
 	nudgeTitle string,
-) (*http.Response, error) {
+) error {
 	return f.ResolveDefaultNudgeByTitleFn(
 		UID,
 		flavour,
