@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
@@ -116,6 +120,615 @@ func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("SignUpUseCasesImpl.RetirePushToken() = %v, want %v", got, tt.want)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	phoneNumber := "+254777886622"
+	pin := "1234"
+	otp := "678251"
+
+	validSignUpInput := &resources.SignUpInput{
+		PhoneNumber: &phoneNumber,
+		PIN:         &pin,
+		Flavour:     base.FlavourConsumer,
+		OTP:         &otp,
+	}
+
+	invalidPhoneNumber := "+254"
+	invalidPin := ""
+	invalidOTP := ""
+
+	invalidSignUpInput := &resources.SignUpInput{
+		PhoneNumber: &invalidPhoneNumber,
+		PIN:         &invalidPin,
+		Flavour:     base.FlavourConsumer,
+		OTP:         &invalidOTP,
+	}
+
+	type args struct {
+		ctx   context.Context
+		input *resources.SignUpInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:successfully_create_user_by_phone",
+			args: args{
+				ctx:   ctx,
+				input: validSignUpInput,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:fail_to_verifyOTP",
+			args: args{
+				ctx:   ctx,
+				input: validSignUpInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:use_invalid_input",
+			args: args{
+				ctx:   ctx,
+				input: invalidSignUpInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_check_ifPhoneNumberExists",
+			args: args{
+				ctx:   ctx,
+				input: validSignUpInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_create_user_profile",
+			args: args{
+				ctx:   ctx,
+				input: validSignUpInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_generate_auth_credentials",
+			args: args{
+				ctx:   ctx,
+				input: validSignUpInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_set_userPin",
+			args: args{
+				ctx:   ctx,
+				input: validSignUpInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_create_empty_supplier_profile",
+			args: args{
+				ctx:   ctx,
+				input: validSignUpInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_create_empty_customer_profile",
+			args: args{
+				ctx:   ctx,
+				input: validSignUpInput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:successfully_create_user_by_phone" {
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, nil
+				}
+
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
+					return &resources.CreatedUserResponse{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						DisplayName: "John Doe",
+						Email:       "johndoe@gmail.com",
+						PhoneNumber: phoneNumber,
+					}, nil
+				}
+
+				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+					}, nil
+				}
+
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+					customToken := uuid.New().String()
+					idToken := uuid.New().String()
+					refreshToken := uuid.New().String()
+					return &base.AuthCredentialResponse{
+						CustomToken:  &customToken,
+						IDToken:      &idToken,
+						RefreshToken: refreshToken,
+					}, nil
+				}
+
+				// Mock SetUserPin begins here
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+
+				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
+					return "salt", "password"
+				}
+
+				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
+					return true, nil
+				}
+				// Finished mocking SetUserPin
+
+				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+
+				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*base.Customer, error) {
+					return &base.Customer{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_verifyOTP" {
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "invalid:use_invalid_input" {
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_check_ifPhoneNumberExists" {
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return true, nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_create_user_profile" {
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, nil
+				}
+
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
+					return &resources.CreatedUserResponse{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						DisplayName: "John Doe",
+						Email:       "johndoe@gmail.com",
+						PhoneNumber: phoneNumber,
+					}, nil
+				}
+
+				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("fail to create user profile")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_generate_auth_credentials" {
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, nil
+				}
+
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
+					return &resources.CreatedUserResponse{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						DisplayName: "John Doe",
+						Email:       "johndoe@gmail.com",
+						PhoneNumber: phoneNumber,
+					}, nil
+				}
+
+				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+					}, nil
+				}
+
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+					return nil, fmt.Errorf("failed to generate auth credentials")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_set_userPin" {
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, nil
+				}
+
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
+					return &resources.CreatedUserResponse{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						DisplayName: "John Doe",
+						Email:       "johndoe@gmail.com",
+						PhoneNumber: phoneNumber,
+					}, nil
+				}
+
+				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+					}, nil
+				}
+
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+					customToken := uuid.New().String()
+					idToken := uuid.New().String()
+					refreshToken := uuid.New().String()
+					return &base.AuthCredentialResponse{
+						CustomToken:  &customToken,
+						IDToken:      &idToken,
+						RefreshToken: refreshToken,
+					}, nil
+				}
+
+				// Mock SetUserPin begins here
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+
+				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
+					return "salt", "password"
+				}
+
+				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
+					return false, fmt.Errorf("failed to save user pin")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_create_empty_supplier_profile" {
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, nil
+				}
+
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
+					return &resources.CreatedUserResponse{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						DisplayName: "John Doe",
+						Email:       "johndoe@gmail.com",
+						PhoneNumber: phoneNumber,
+					}, nil
+				}
+
+				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+					}, nil
+				}
+
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+					customToken := uuid.New().String()
+					idToken := uuid.New().String()
+					refreshToken := uuid.New().String()
+					return &base.AuthCredentialResponse{
+						CustomToken:  &customToken,
+						IDToken:      &idToken,
+						RefreshToken: refreshToken,
+					}, nil
+				}
+
+				// Mock SetUserPin begins here
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+
+				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
+					return "salt", "password"
+				}
+
+				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
+					return true, nil
+				}
+				// Finished mocking SetUserPin
+
+				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return nil, fmt.Errorf("failed to create empty supplier profile")
+				}
+			}
+
+			if tt.name == "fail_to_create_empty_customer_profile" {
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, nil
+				}
+
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
+					return &resources.CreatedUserResponse{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						DisplayName: "John Doe",
+						Email:       "johndoe@gmail.com",
+						PhoneNumber: phoneNumber,
+					}, nil
+				}
+
+				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+					}, nil
+				}
+
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+					customToken := uuid.New().String()
+					idToken := uuid.New().String()
+					refreshToken := uuid.New().String()
+					return &base.AuthCredentialResponse{
+						CustomToken:  &customToken,
+						IDToken:      &idToken,
+						RefreshToken: refreshToken,
+					}, nil
+				}
+
+				// Mock SetUserPin begins here
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+					}, nil
+				}
+
+				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
+					return "salt", "password"
+				}
+
+				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
+					return true, nil
+				}
+				// Finished mocking SetUserPin
+
+				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return &base.Supplier{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+
+				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*base.Customer, error) {
+					return nil, fmt.Errorf("failed to create empty customer profile")
+				}
+			}
+
+			_, err := i.Signup.CreateUserByPhone(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.CreateUserByPhone() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:successfully_verify_a_phonenumber",
+			args: args{
+				ctx:   ctx,
+				phone: "+254777886622",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_phone_number_is_empty",
+			args: args{
+				ctx:   ctx,
+				phone: "+",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_user_phone_already_exists",
+			args: args{
+				ctx:   ctx,
+				phone: "+254777886622",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_generate_and_send_otp",
+			args: args{
+				ctx:   ctx,
+				phone: "+254777886622",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_check_if_phone_exists",
+			args: args{
+				ctx:   ctx,
+				phone: "+254777886622",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:successfully_verify_a_phonenumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, nil
+				}
+
+				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+					return &base.OtpResponse{OTP: "1234"}, nil
+				}
+			}
+
+			if tt.name == "invalid:_phone_number_is_empty" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("empty phone number")
+				}
+			}
+
+			if tt.name == "invalid:_user_phone_already_exists" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return true, nil
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_check_if_phone_exists" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, fmt.Errorf("unable to check if phone exists")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_generate_and_send_otp" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, nil
+				}
+
+				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+					return nil, fmt.Errorf("failed to generate and send otp")
+				}
+			}
+
+			_, err := i.Signup.VerifyPhoneNumber(tt.args.ctx, tt.args.phone)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.VerifyPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 
 			if tt.wantErr {
