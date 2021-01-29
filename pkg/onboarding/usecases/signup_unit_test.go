@@ -746,3 +746,249 @@ func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestSignUpUseCasesImpl_RemoveUserByPhoneNumber(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:successfully_RemoveUserByPhoneNumber",
+			args: args{
+				ctx:   ctx,
+				phone: "+254799739102",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:fail_to_RemoveUserByPhoneNumber",
+			args: args{
+				ctx:   ctx,
+				phone: "+254799739102",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_normalize_phone",
+			args: args{
+				ctx:   ctx,
+				phone: "+",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:successfully_RemoveUserByPhoneNumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				fakeRepo.PurgeUserByPhoneNumberFn = func(ctx context.Context, phone string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_RemoveUserByPhoneNumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				fakeRepo.PurgeUserByPhoneNumberFn = func(ctx context.Context, phone string) error {
+					return fmt.Errorf("failed to purge user by phonenumber")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_normalize_phone" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("failed to normalize phonenumber")
+				}
+			}
+
+			err := i.Signup.RemoveUserByPhoneNumber(tt.args.ctx, tt.args.phone)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.RemoveUserByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestSignUpUseCasesImpl_SetPhoneAsPrimary(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		phone string
+		otp   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid:set_primary_phoneNumber",
+			args: args{
+				ctx:   ctx,
+				phone: "+254795941530",
+				otp:   "567291",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid:fail_to_normalize_phoneNumber",
+			args: args{
+				ctx:   ctx,
+				phone: "+",
+				otp:   "567291",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_update_primary_phonenumber",
+			args: args{
+				ctx:   ctx,
+				phone: "+25463728192",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:set_primary_phoneNumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				// Begin Mocking SetPrimaryPhoneNumber
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				// Begin Mocking UpdatePrimaryPhoneNumber
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254755889922"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "ABCDE",
+						PrimaryPhone: &phoneNumber,
+						SecondaryPhoneNumbers: []string{
+							"0765839203", "0789437282",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdatePrimaryPhoneNumberFn = func(ctx context.Context, id string, phoneNumber string) error {
+					return nil
+				}
+
+				fakeRepo.UpdateSecondaryPhoneNumbersFn = func(ctx context.Context, id string, phoneNumbers []string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_normalize_phoneNumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("failed to normalize phonenumber")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_update_primary_phonenumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254777886622"
+					return &phone, nil
+				}
+
+				// Begin Mocking SetPrimaryPhoneNumber
+				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				// Begin Mocking UpdatePrimaryPhoneNumber
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254755889922"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "ABCDE",
+						PrimaryPhone: &phoneNumber,
+						SecondaryPhoneNumbers: []string{
+							"0765839203", "0789437282",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdatePrimaryPhoneNumberFn = func(ctx context.Context, id string, phoneNumber string) error {
+					return fmt.Errorf("failed to update primary phone")
+				}
+			}
+
+			got, err := i.Signup.SetPhoneAsPrimary(tt.args.ctx, tt.args.phone, tt.args.otp)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.SetPhoneAsPrimary() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("SignUpUseCasesImpl.SetPhoneAsPrimary() = %v, want %v", got, tt.want)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
