@@ -992,3 +992,423 @@ func TestSignUpUseCasesImpl_SetPhoneAsPrimary(t *testing.T) {
 		})
 	}
 }
+
+func TestSignUpUseCasesImpl_RegisterPushToken(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		token string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid:register_pushtoken",
+			args: args{
+				ctx:   ctx,
+				token: uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid:nil_token",
+			args: args{
+				ctx:   ctx,
+				token: "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_userProfile",
+			args: args{
+				ctx:   ctx,
+				token: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_loggedInUser",
+			args: args{
+				ctx:   ctx,
+				token: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:register_pushtoken" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:        "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						Suspended: false,
+					}, nil
+				}
+				fakeRepo.UpdatePushTokensFn = func(ctx context.Context, id string, pushToken []string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:nil_token" {
+				fakeRepo.UpdatePushTokensFn = func(ctx context.Context, id string, pushToken []string) error {
+					return fmt.Errorf("failed to register push token")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_userProfile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_loggedInUser" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			got, err := i.Signup.RegisterPushToken(tt.args.ctx, tt.args.token)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.RegisterPushToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("SignUpUseCasesImpl.RegisterPushToken() = %v, want %v", got, tt.want)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	userFirstName := "John"
+	userLastName := "Doe"
+
+	type args struct {
+		ctx     context.Context
+		flavour base.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid:successfully_complete_signup",
+			args: args{
+				ctx:     ctx,
+				flavour: base.FlavourConsumer,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid:fail_to_get_userProfile",
+			args: args{
+				ctx:     ctx,
+				flavour: base.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_loggedInUser",
+			args: args{
+				ctx:     ctx,
+				flavour: base.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:missing_bioData",
+			args: args{
+				ctx:     ctx,
+				flavour: base.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:invalid_flavour",
+			args: args{
+				ctx:     ctx,
+				flavour: base.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_AddCustomerSupplierERPAccount",
+			args: args{
+				ctx:     ctx,
+				flavour: base.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_FetchDefaultCurrency",
+			args: args{
+				ctx:     ctx,
+				flavour: base.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:successfully_complete_signup" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+						UserBioData: base.BioData{
+							FirstName: &userFirstName,
+							LastName:  &userLastName,
+						},
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: "f4f39af7-91bd-42b3af-315a4e",
+							},
+						},
+						UserBioData: base.BioData{
+							FirstName: &userFirstName,
+							LastName:  &userLastName,
+						},
+					}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_userProfile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_loggedInUser" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			if tt.name == "invalid:missing_bioData" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: "f4f39af7-91bd-42b3af-315a4e",
+							},
+						},
+					}, nil
+				}
+
+			}
+
+			if tt.name == "invalid:invalid_flavour" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("invalid flavour defined")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_AddCustomerSupplierERPAccount" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+						UserBioData: base.BioData{
+							FirstName: &userFirstName,
+							LastName:  &userLastName,
+						},
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: "f4f39af7-91bd-42b3af-315a4e",
+							},
+						},
+						UserBioData: base.BioData{
+							FirstName: &userFirstName,
+							LastName:  &userLastName,
+						},
+					}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+					return fmt.Errorf("failed to add customer supplier ERP account")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_FetchDefaultCurrency" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+						UserBioData: base.BioData{
+							FirstName: &userFirstName,
+							LastName:  &userLastName,
+						},
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "7e2aea-d29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: "f4f39af7-91bd-42b3af-315a4e",
+							},
+						},
+						UserBioData: base.BioData{
+							FirstName: &userFirstName,
+							LastName:  &userLastName,
+						},
+					}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					return nil, fmt.Errorf("failed to fetch default currency")
+				}
+			}
+
+			got, err := i.Signup.CompleteSignup(tt.args.ctx, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.CompleteSignup() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("SignUpUseCasesImpl.CompleteSignup() = %v, want %v", got, tt.want)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
