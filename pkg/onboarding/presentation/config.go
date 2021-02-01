@@ -73,18 +73,20 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
+	// Initialize base (common) extension
+	baseExt := extension.NewBaseExtensionImpl()
+
 	// Initialize ISC clients
-	otpClient := utils.NewInterServiceClient(otpService)
-	engagementClient := utils.NewInterServiceClient(engagementService)
-	mailgunClient := utils.NewInterServiceClient(mailgunService)
+	otpClient := utils.NewInterServiceClient(otpService, baseExt)
+	engagementClient := utils.NewInterServiceClient(engagementService, baseExt)
+	mailgunClient := utils.NewInterServiceClient(mailgunService, baseExt)
 
 	// Initialize new instance of our infrastructure services
 	erp := erp.NewERPService()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
 	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
-	mes := messaging.NewServiceMessagingImpl()
-	baseExt := extension.NewBaseExtensionImpl()
+	mes := messaging.NewServiceMessagingImpl(baseExt)
 	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(otpClient, baseExt)
 

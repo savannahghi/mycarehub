@@ -141,17 +141,19 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	if err != nil {
 		return nil, err
 	}
+
+	ext := extension.NewBaseExtensionImpl()
+
 	// Initialize ISC clients
-	otpClient := utils.NewInterServiceClient(otpService)
-	mailgunClient := utils.NewInterServiceClient(mailgunService)
-	engagementClient := utils.NewInterServiceClient(engagementService)
+	otpClient := utils.NewInterServiceClient(otpService, ext)
+	mailgunClient := utils.NewInterServiceClient(mailgunService, ext)
+	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
 	erp := erp.NewERPService()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
 	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
-	mes := messaging.NewServiceMessagingImpl()
-	ext := extension.NewBaseExtensionImpl()
+	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(otpClient, ext)
 	profile := usecases.NewProfileUseCase(fr, otp, ext, engage)

@@ -48,17 +48,18 @@ func TestParseKYCAsMap(t *testing.T) {
 	if err != nil {
 		return
 	}
+
+	ext := extension.NewBaseExtensionImpl()
 	// Initialize ISC clients
-	otpClient := utils.NewInterServiceClient(otpService)
-	mailgunClient := utils.NewInterServiceClient(mailgunService)
-	engagementClient := utils.NewInterServiceClient(engagementService)
+	otpClient := utils.NewInterServiceClient(otpService, ext)
+	mailgunClient := utils.NewInterServiceClient(mailgunService, ext)
+	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
 	erp := erp.NewERPService()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
 	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
-	mes := messaging.NewServiceMessagingImpl()
-	ext := extension.NewBaseExtensionImpl()
+	mes := messaging.NewServiceMessagingImpl(ext)
 	otp := otp.NewOTPService(otpClient, ext)
 	profile := NewProfileUseCase(fr, otp, ext, engage)
 

@@ -19,6 +19,20 @@ type BaseExtension interface {
 	) (*base.FinancialYearAndCurrency, error)
 	LoginClient(username string, password string) (base.Client, error)
 	FetchUserProfile(authClient base.Client) (*base.EDIUserProfile, error)
+	LoadDepsFromYAML() (*base.DepsConfig, error)
+	SetupISCclient(config base.DepsConfig, serviceName string) (*base.InterServiceClient, error)
+	GetEnvVar(envName string) (string, error)
+	NewServerClient(
+		clientID string,
+		clientSecret string,
+		apiTokenURL string,
+		apiHost string,
+		apiScheme string,
+		grantType string,
+		username string,
+		password string,
+		extraHeaders map[string]string,
+	) (*base.ServerClient, error)
 }
 
 // BaseExtensionImpl ...
@@ -55,6 +69,37 @@ func (b *BaseExtensionImpl) LoginClient(username, password string) (base.Client,
 // FetchUserProfile ...
 func (b *BaseExtensionImpl) FetchUserProfile(authClient base.Client) (*base.EDIUserProfile, error) {
 	return base.FetchUserProfile(authClient)
+}
+
+// LoadDepsFromYAML ...
+func (b *BaseExtensionImpl) LoadDepsFromYAML() (*base.DepsConfig, error) {
+	return base.LoadDepsFromYAML()
+}
+
+// SetupISCclient ...
+func (b *BaseExtensionImpl) SetupISCclient(config base.DepsConfig, serviceName string) (*base.InterServiceClient, error) {
+	return base.SetupISCclient(config, serviceName)
+}
+
+// GetEnvVar ...
+func (b *BaseExtensionImpl) GetEnvVar(envName string) (string, error) {
+	return base.GetEnvVar(envName)
+}
+
+// NewServerClient ...
+func (b *BaseExtensionImpl) NewServerClient(
+	clientID string,
+	clientSecret string,
+	apiTokenURL string,
+	apiHost string,
+	apiScheme string,
+	grantType string,
+	username string,
+	password string,
+	extraHeaders map[string]string,
+) (*base.ServerClient, error) {
+	return base.NewServerClient(
+		clientID, clientSecret, apiTokenURL, apiHost, apiScheme, grantType, username, password, extraHeaders)
 }
 
 // ISCClientExtension represents the base ISC client

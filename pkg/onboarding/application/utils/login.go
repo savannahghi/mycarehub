@@ -1,6 +1,9 @@
 package utils
 
-import "gitlab.slade360emr.com/go/base"
+import (
+	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+)
 
 // Default login client settings (env var names)
 const (
@@ -16,37 +19,37 @@ const (
 
 // LoginClient returns an API client that is logged in with the supplied username and password
 // to EDI Core authserver
-func LoginClient(username string, password string) (base.Client, error) {
-	clientID, clientIDErr := base.GetEnvVar(CoreEDIClientIDEnvVarName)
+func LoginClient(username string, password string, baseExt extension.BaseExtension) (base.Client, error) {
+	clientID, clientIDErr := baseExt.GetEnvVar(CoreEDIClientIDEnvVarName)
 	if clientIDErr != nil {
 		return nil, clientIDErr
 	}
 
-	clientSecret, clientSecretErr := base.GetEnvVar(CoreEDIClientSecretEnvVarName)
+	clientSecret, clientSecretErr := baseExt.GetEnvVar(CoreEDIClientSecretEnvVarName)
 	if clientSecretErr != nil {
 		return nil, clientSecretErr
 	}
 
-	apiTokenURL, apiTokenURLErr := base.GetEnvVar(CoreEDITokenURLEnvVarName)
+	apiTokenURL, apiTokenURLErr := baseExt.GetEnvVar(CoreEDITokenURLEnvVarName)
 	if apiTokenURLErr != nil {
 		return nil, apiTokenURLErr
 	}
 
-	apiHost, apiHostErr := base.GetEnvVar(CoreEDIAPIHostEnvVarName)
+	apiHost, apiHostErr := baseExt.GetEnvVar(CoreEDIAPIHostEnvVarName)
 	if apiHostErr != nil {
 		return nil, apiHostErr
 	}
 
-	apiScheme, apiSchemeErr := base.GetEnvVar(CoreEDIAPISchemeEnvVarName)
+	apiScheme, apiSchemeErr := baseExt.GetEnvVar(CoreEDIAPISchemeEnvVarName)
 	if apiSchemeErr != nil {
 		return nil, apiSchemeErr
 	}
 
-	grantType, grantTypeErr := base.GetEnvVar(CoreEDIGrantTypeEnvVarName)
+	grantType, grantTypeErr := baseExt.GetEnvVar(CoreEDIGrantTypeEnvVarName)
 	if grantTypeErr != nil {
 		return nil, grantTypeErr
 	}
 	extraHeaders := make(map[string]string)
-	return base.NewServerClient(
+	return baseExt.NewServerClient(
 		clientID, clientSecret, apiTokenURL, apiHost, apiScheme, grantType, username, password, extraHeaders)
 }

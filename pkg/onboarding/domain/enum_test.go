@@ -632,3 +632,129 @@ func TestOrganizationType_MarshalGQL(t *testing.T) {
 		})
 	}
 }
+
+func TestPractitionerService_String(t *testing.T) {
+	tests := []struct {
+		name string
+		e    domain.PractitionerService
+		want string
+	}{
+		{
+			name: "INPATIENT_SERVICES",
+			e:    domain.PractitionerServiceInpatientServices,
+			want: "INPATIENT_SERVICES",
+		},
+		{
+			name: "PHARMACY",
+			e:    domain.PractitionerServicePharmacy,
+			want: "PHARMACY",
+		},
+		{
+			name: "MATERNITY",
+			e:    domain.PractitionerServiceMaternity,
+			want: "MATERNITY",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.e.String(); got != tt.want {
+				t.Errorf("String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPractitionerService_IsValid(t *testing.T) {
+	tests := []struct {
+		name string
+		e    domain.PractitionerService
+		want bool
+	}{
+		{
+			name: "valid",
+			e:    domain.PractitionerServiceOutpatientServices,
+			want: true,
+		},
+		{
+			name: "invalid",
+			e:    domain.PractitionerService("this is not real"),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.e.IsValid(); got != tt.want {
+				t.Errorf("String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPractitionerService_UnmarshalGQL(t *testing.T) {
+	valid := domain.PractitionerServiceOutpatientServices
+	invalid := domain.PractitionerService("this is not real")
+	type args struct {
+		v interface{}
+	}
+	tests := []struct {
+		name    string
+		e       *domain.PractitionerService
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid",
+			e:    &valid,
+			args: args{
+				v: "OUTPATIENT_SERVICES",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid",
+			e:    &invalid,
+			args: args{
+				v: "this is not real",
+			},
+			wantErr: true,
+		},
+		{
+			name: "non string",
+			e:    &invalid,
+			args: args{
+				v: 1,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.e.UnmarshalGQL(tt.args.v); (err != nil) != tt.wantErr {
+				t.Errorf("UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPractitionerService_MarshalGQL(t *testing.T) {
+	tests := []struct {
+		name  string
+		e     domain.PractitionerService
+		wantW string
+	}{
+		{
+			name:  "valid",
+			e:     domain.PractitionerServiceOutpatientServices,
+			wantW: strconv.Quote("OUTPATIENT_SERVICES"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &bytes.Buffer{}
+			tt.e.MarshalGQL(w)
+			if gotW := w.String(); gotW != tt.wantW {
+				t.Errorf("MarshalGQL() = %v, want %v", gotW, tt.wantW)
+			}
+		})
+	}
+}

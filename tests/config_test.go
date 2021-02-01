@@ -91,17 +91,18 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	firestoreExtension := database.NewFirestoreClientExtension(fsc)
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
+	ext := extension.NewBaseExtensionImpl()
+
 	// Initialize ISC clients
-	iscClient := utils.NewInterServiceClient(otpService)
-	mailgunClient := utils.NewInterServiceClient(mailgunService)
-	engagementClient := utils.NewInterServiceClient(engagementService)
+	iscClient := utils.NewInterServiceClient(otpService, ext)
+	mailgunClient := utils.NewInterServiceClient(mailgunService, ext)
+	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
 	erp := erp.NewERPService()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
 	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
-	mes := messaging.NewServiceMessagingImpl()
-	ext := extension.NewBaseExtensionImpl()
+	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(iscClient, ext)
 	profile := usecases.NewProfileUseCase(fr, otp, ext, engage)

@@ -2,6 +2,7 @@ package messaging
 
 import (
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
@@ -32,9 +33,9 @@ type ServiceMessagingImpl struct {
 }
 
 // NewServiceMessagingImpl ...
-func NewServiceMessagingImpl() ServiceMessaging {
-	sms := utils.NewInterServiceClient(smsService)
-	tw := utils.NewInterServiceClient(twilioService)
+func NewServiceMessagingImpl(baseExt extension.BaseExtension) ServiceMessaging {
+	sms := utils.NewInterServiceClient(smsService, baseExt)
+	tw := utils.NewInterServiceClient(twilioService, baseExt)
 	return &ServiceMessagingImpl{SMS: sms, Twilio: tw}
 }
 
