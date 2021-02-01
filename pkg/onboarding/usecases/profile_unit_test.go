@@ -2201,3 +2201,160 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 		})
 	}
 }
+
+func TestProfileUseCase_CheckPhoneExists(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid:_check phone number exists",
+			args: args{
+				ctx:   ctx,
+				phone: "+254711223344",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid:_check phone number exists - empty phone number provided",
+			args: args{
+				ctx:   ctx,
+				phone: "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "invalid:_check phone number exists",
+			args: args{
+				ctx:   ctx,
+				phone: "+254711223344",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_check phone number exists" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254711223344"
+					return &phone, nil
+				}
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, nil
+				}
+			}
+			if tt.name == "invalid:_check phone number exists - empty phone number provided" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("empty phone number provided")
+				}
+			}
+			if tt.name == "invalid:_check phone number exists" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254711223344"
+					return &phone, nil
+				}
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, fmt.Errorf("error checking if phone number exists")
+				}
+			}
+			_, err := i.Onboarding.CheckPhoneExists(tt.args.ctx, tt.args.phone)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCase_CheckEmailExists(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+	validEmail := "me4@gmail.com"
+	type args struct {
+		ctx   context.Context
+		email string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "valid:_check email exists",
+			args: args{
+				ctx:   ctx,
+				email: validEmail,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "invalid:_check email exists",
+			args: args{
+				ctx:   ctx,
+				email: "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:_check email exists" {
+				fakeRepo.CheckIfEmailExistsFn = func(ctx context.Context, email string) (bool, error) {
+					return false, nil
+				}
+			}
+			if tt.name == "invalid:_check email exists" {
+				fakeRepo.CheckIfEmailExistsFn = func(ctx context.Context, email string) (bool, error) {
+					return false, fmt.Errorf("failed to if email exists")
+				}
+			}
+			_, err := i.Onboarding.CheckEmailExists(tt.args.ctx, tt.args.email)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
