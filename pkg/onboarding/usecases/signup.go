@@ -258,7 +258,6 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
-
 	// cherrypick the phone numbers and mask them
 	phones := func(p *base.UserProfile) []string {
 		phs := []string{}
@@ -267,9 +266,7 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 		return phs
 
 	}(pr)
-
 	masked := s.profileUsecase.MaskPhoneNumbers(phones)
-
 	return &resources.AccountRecoveryPhonesResponse{
 		MaskedPhoneNumbers:   masked,
 		UnMaskedPhoneNumbers: phones,

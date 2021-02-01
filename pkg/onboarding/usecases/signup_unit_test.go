@@ -1412,3 +1412,336 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 		})
 	}
 }
+
+func TestSignUpUseCasesImpl_GetUserRecoveryPhoneNumbers(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *resources.AccountRecoveryPhonesResponse
+		wantErr bool
+	}{
+		{
+			name: "valid:successfully_GetUserRecoveryPhoneNumbers",
+			args: args{
+				ctx:   ctx,
+				phone: "+254766228822",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:fail_to_normalize_phone",
+			args: args{
+				ctx:   ctx,
+				phone: "+254766228822",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_userProfile",
+			args: args{
+				ctx:   ctx,
+				phone: "+254766228822",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:successfully_GetUserRecoveryPhoneNumbers" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+						SecondaryPhoneNumbers: []string{
+							"0744610111", "0794959697",
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_normalize_phone" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("failed to normalize phone")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_userProfile" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+			got, err := i.Signup.GetUserRecoveryPhoneNumbers(tt.args.ctx, tt.args.phone)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.GetUserRecoveryPhoneNumbers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if got == nil {
+					t.Errorf("returned a nil account recovery phone response")
+					return
+				}
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestSignUpUseCasesImpl_UpdateUserProfile(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	photoUploadID := "somePhotoUploadID"
+	firstName := "John"
+	lastName := "Doe"
+	gender := base.GenderMale
+	dateOfBirth := base.Date{
+		Year:  1990,
+		Month: 3,
+		Day:   10,
+	}
+	validInput := &resources.UserProfileInput{
+		PhotoUploadID: &photoUploadID,
+		DateOfBirth:   &dateOfBirth,
+		Gender:        &gender,
+		FirstName:     &firstName,
+		LastName:      &lastName,
+	}
+	invalidInput := &resources.UserProfileInput{
+		PhotoUploadID: nil,
+		DateOfBirth:   nil,
+		Gender:        nil,
+		FirstName:     nil,
+		LastName:      nil,
+	}
+	type args struct {
+		ctx   context.Context
+		input *resources.UserProfileInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.UserProfile
+		wantErr bool
+	}{
+		{
+			name: "valid:successfully_update_userProfile",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:missing_biodata",
+			args: args{
+				ctx:   ctx,
+				input: invalidInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_updatePhotoUploadID",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_getUserProfile",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_getLoggedInUser",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:successfully_update_userProfile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdatePhotoUploadIDFn = func(ctx context.Context, id string, uploadID string) error {
+					return nil
+				}
+
+				// Begin mocking UpdateBioData
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return nil
+				}
+
+			}
+
+			if tt.name == "invalid:missing_biodata" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdatePhotoUploadIDFn = func(ctx context.Context, id string, uploadID string) error {
+					return nil
+				}
+
+				// Begin mocking UpdateBioData
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return fmt.Errorf("failed to update biodata")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_updatePhotoUploadID" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdatePhotoUploadIDFn = func(ctx context.Context, id string, uploadID string) error {
+					return fmt.Errorf("failed to update the photo upload ID")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_getUserProfile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("failed to get a user profile")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_getLoggedInUser" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			got, err := i.Signup.UpdateUserProfile(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignUpUseCasesImpl.UpdateUserProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if got == nil {
+					t.Errorf("returned a nil account recovery phone response")
+					return
+				}
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
