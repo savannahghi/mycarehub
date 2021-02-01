@@ -60,17 +60,11 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		// the error is wrapped already. No need to wrap it again
 		return nil, err
 	}
-	if profile == nil {
-		return nil, exceptions.ProfileNotFoundError()
-	}
 
 	PINData, err := l.onboardingRepository.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
 		// the error is wrapped already. No need to wrap it again
 		return nil, err
-	}
-	if PINData == nil {
-		return nil, exceptions.PinNotFoundError(nil)
 	}
 
 	matched := l.pinExt.ComparePIN(PIN, PINData.Salt, PINData.PINNumber, nil)

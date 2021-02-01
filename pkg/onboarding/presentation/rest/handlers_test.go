@@ -1454,12 +1454,6 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 	flavour2 := base.FlavourConsumer
 	payload2 := composeLoginPayload(t, phone2, pin2, flavour2)
 
-	// payload3 invalid:_get_pinbyprofileid_returns_nil
-	phone3 := "0702123852"
-	pin3 := "1500"
-	flavour3 := base.FlavourConsumer
-	payload3 := composeLoginPayload(t, phone3, pin3, flavour3)
-
 	// payload4 invalid:_pin_mismatch
 	phone4 := "0702960230"
 	pin4 := "1023"
@@ -1471,12 +1465,6 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 	pin5 := "1093"
 	flavour5 := base.FlavourConsumer
 	payload5 := composeLoginPayload(t, phone5, pin5, flavour5)
-
-	// payload6 invalid:_generate_auth_credentials_fails
-	phone6 := "0702960111"
-	pin6 := "1253"
-	flavour6 := base.FlavourConsumer
-	payload6 := composeLoginPayload(t, phone6, pin6, flavour6)
 
 	// payload7 invalid:_invalid_flavour_used
 	phone7 := "0712456784"
@@ -1525,16 +1513,6 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 			wantErr:    true,
 		},
 		{
-			name: "invalid:_get_pinbyprofileid_returns_nil",
-			args: args{
-				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       payload3,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-		{
 			name: "invalid:_pin_mismatch",
 			args: args{
 				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
@@ -1550,16 +1528,6 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
 				httpMethod: http.MethodPost,
 				body:       payload5,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-		{
-			name: "invalid:_unable_to_get_supplier_profile",
-			args: args{
-				url:        fmt.Sprintf("%s/login_by_phone", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       payload6,
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,
@@ -1649,22 +1617,6 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 
 			}
 
-			if tt.name == "invalid:_get_pinbyprofileid_returns_nil" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254721123123"
-					return &phone, nil
-				}
-
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID: "123",
-					}, nil
-				}
-				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
-					return nil, nil
-				}
-			}
-
 			if tt.name == "invalid:_pin_mismatch" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254721123123"
@@ -1715,41 +1667,6 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				}
 				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("unable to generate auth credentials")
-				}
-			}
-
-			if tt.name == "invalid:_unable_to_get_supplier_profile" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254721123123"
-					return &phone, nil
-				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID: "123",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
-							{
-								UID:           "125",
-								LoginProvider: "Phone",
-							},
-						},
-						PrimaryPhone: &phoneNumber,
-					}, nil
-				}
-				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
-					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
-				}
-				fakePinExt.ComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
-					return true
-				}
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
-					return &base.AuthCredentialResponse{
-						UID: "5550",
-						// IDToken:      "555",
-						RefreshToken: "55550",
-					}, nil
-				}
-				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour base.Flavour, profileID string) (*base.Customer, *base.Supplier, error) {
-					return nil, nil, fmt.Errorf("unable to get supplier profile")
 				}
 			}
 

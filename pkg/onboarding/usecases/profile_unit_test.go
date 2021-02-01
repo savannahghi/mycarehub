@@ -2293,11 +2293,10 @@ func TestProfileUseCase_CheckPhoneExists(t *testing.T) {
 
 func TestProfileUseCase_CheckEmailExists(t *testing.T) {
 	ctx := context.Background()
+
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
-		t.Errorf("failed to fake initialize onboarding interactor: %v",
-			err,
-		)
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
 	validEmail := "me4@gmail.com"
@@ -2343,6 +2342,126 @@ func TestProfileUseCase_CheckEmailExists(t *testing.T) {
 				}
 			}
 			_, err := i.Onboarding.CheckEmailExists(tt.args.ctx, tt.args.email)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_UpdatePhotoUploadID(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx      context.Context
+		uploadID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:successfully_updatePhotoUploadID",
+			args: args{
+				ctx:      ctx,
+				uploadID: "some-upload-id",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:fail_to_update_photoUploadID",
+			args: args{
+				ctx:      ctx,
+				uploadID: "some-upload-id",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_loggedInUser",
+			args: args{
+				ctx:      ctx,
+				uploadID: "some-upload-id",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:fail_to_get_userProfile",
+			args: args{
+				ctx:      ctx,
+				uploadID: "some-upload-id",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:successfully_updatePhotoUploadID" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+
+				fakeRepo.UpdatePhotoUploadIDFn = func(ctx context.Context, id string, uploadID string) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_loggedInUser" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_userProfile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			if tt.name == "invalid:fail_to_update_photoUploadID" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+
+				fakeRepo.UpdatePhotoUploadIDFn = func(ctx context.Context, id string, uploadID string) error {
+					return fmt.Errorf("failed to update photo upload ID")
+				}
+			}
+			err := i.Onboarding.UpdatePhotoUploadID(tt.args.ctx, tt.args.uploadID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.UpdatePhotoUploadID() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("error expected got %v", err)
