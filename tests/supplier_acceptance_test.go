@@ -1104,7 +1104,7 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 		  identificationDocType
 		  identificationDocNumber
 		  identificationDocNumberUploadID
-	}
+		}
 		registrationNumber
 		KRAPIN
 		KRAPINUploadID
@@ -2466,7 +2466,6 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 				t.Errorf("Bad status response returned; %v ", string(b))
 				return
 			}
-
 		})
 	}
 	// perform tear down; remove user
@@ -2475,4 +2474,646 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 		t.Errorf("unable to remove test user: %s", err)
 	}
 
+}
+
+func TestAddOrganizationCoachKYC(t *testing.T) {
+	// create a user and their profile
+	phoneNumber := base.TestUserPhoneNumber
+	user, err := CreateTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to create a user by phone %v", err)
+		return
+	}
+
+	idToken := user.Auth.IDToken
+	headers, err := CreatedUserGraphQLHeaders(idToken)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+
+	graphqlMutation := `
+	mutation   addOrganizationCoachKYC($input:OrganizationCoachInput!){
+		addOrganizationCoachKYC(input:$input) {
+		    organizationTypeName        
+            KRAPIN            
+            certificateOfIncorporation
+            certificateOfInCorporationUploadID       
+            organizationCertificate       
+            registrationNumber
+			practiceLicenseUploadID
+			practiceLicenseID
+	}
+	}`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"directorIdentifications": []map[string]interface{}{
+								{
+									"identificationDocType":           "NATIONALID",
+									"identificationDocNumber":         "12345678",
+									"identificationDocNumberUploadID": "12345678",
+								},
+							},
+							"organizationTypeName":               "LIMITED_COMPANY",
+							"certificateOfIncorporation":         "CERT-123456",
+							"certificateOfInCorporationUploadID": "CERT-UPLOAD-123456",
+							"registrationNumber":                 "REG-123456",
+							"KRAPIN":                             "KRA-123456789",
+							"KRAPINUploadID":                     "KRA-UPLOAD-123456789",
+							"practiceLicenseUploadID":            "PRAC-UPLOAD-123456",
+							"practiceLicenseID":                  "PRACL",
+							"supportingDocumentsUploadID":        []string{"SUPP-UPLOAD-123456"},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid with bogus identification document type",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"directorIdentifications": []map[string]interface{}{
+								{
+									"identificationDocType":           "bogusID",
+									"identificationDocNumber":         "12345678",
+									"identificationDocNumberUploadID": "12345678",
+								},
+							},
+							"organizationTypeName":               "LIMITED_COMPANY",
+							"certificateOfIncorporation":         "CERT-123456",
+							"certificateOfInCorporationUploadID": "CERT-UPLOAD-123456",
+							"registrationNumber":                 "REG-123456",
+							"KRAPIN":                             123456789,
+							"KRAPINUploadID":                     "KRA-UPLOAD-123456789",
+							"practiceLicenseID":                  "PRAC-123456",
+							"practiceLicenseUploadID":            "PRAC-123456",
+							"supportingDocumentsUploadID":        []string{"SUPP-UPLOAD-123456"},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusUnprocessableEntity,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected got error: %w", data["errors"])
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				b, _ := httputil.DumpResponse(resp, true)
+				t.Errorf("Bad status response returned; %v ", string(b))
+				return
+			}
+		})
+	}
+
+	// perform tear down; remove user
+	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user: %s", err)
+	}
+}
+
+func TestAddIndividualNutritionKYC(t *testing.T) {
+	// create a user and their profile
+	phoneNumber := base.TestUserPhoneNumber
+	user, err := CreateTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to create a user by phone %v", err)
+		return
+	}
+
+	idToken := user.Auth.IDToken
+	headers, err := CreatedUserGraphQLHeaders(idToken)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+
+	graphqlMutation := `
+	mutation   addIndividualNutritionKYC($input:IndividualNutritionInput!){
+		addIndividualNutritionKYC(input:$input) {    
+			identificationDoc {
+				identificationDocType
+				identificationDocNumber
+				identificationDocNumberUploadID
+		  	}
+			KRAPIN
+			KRAPINUploadID
+			supportingDocumentsUploadID             
+			practiceLicenseUploadID
+			practiceLicenseID
+	}
+	}`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"identificationDoc": map[string]interface{}{
+								"identificationDocType":           "NATIONALID",
+								"identificationDocNumber":         "12345",
+								"identificationDocNumberUploadID": "12345",
+							},
+							"KRAPIN":                      "KRA-123456789",
+							"KRAPINUploadID":              "KRA-UPLOAD-123456789",
+							"practiceLicenseUploadID":     "PRAC-UPLOAD-123456",
+							"practiceLicenseID":           "PRACL",
+							"supportingDocumentsUploadID": []string{"SUPP-UPLOAD-123456"},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid with bogus identification document type",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"identificationDoc": map[string]interface{}{
+								"identificationDocType":           "bogusType",
+								"identificationDocNumber":         "12345",
+								"identificationDocNumberUploadID": "12345",
+							},
+							"KRAPIN":                      123456789,
+							"KRAPINUploadID":              "KRA-UPLOAD-123456789",
+							"practiceLicenseID":           "PRAC-123456",
+							"practiceLicenseUploadID":     "PRAC-123456",
+							"supportingDocumentsUploadID": []string{"SUPP-UPLOAD-123456"},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusUnprocessableEntity,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected got error: %w", data["errors"])
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				b, _ := httputil.DumpResponse(resp, true)
+				t.Errorf("Bad status response returned; %v ", string(b))
+				return
+			}
+		})
+	}
+
+	// perform tear down; remove user
+	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user: %s", err)
+	}
+}
+
+func TestAddOrganizationNutritionKyc(t *testing.T) {
+	// create a user and their profile
+	phoneNumber := base.TestUserPhoneNumber
+	user, err := CreateTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to create a user by phone %v", err)
+		return
+	}
+
+	idToken := user.Auth.IDToken
+	headers, err := CreatedUserGraphQLHeaders(idToken)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+
+	graphqlMutation := `
+	mutation   addOrganizationNutritionKYC($input:OrganizationNutritionInput!){
+		addOrganizationNutritionKYC(input:$input) {    
+			organizationTypeName
+			KRAPIN
+			KRAPINUploadID		
+			practiceLicenseID
+			registrationNumber
+	}
+	}`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"organizationTypeName": "LIMITED_COMPANY",
+							"KRAPIN":               "KRA-123456789",
+							"KRAPINUploadID":       "KRA-UPLOAD-123456789",
+							"practiceLicenseID":    "PRACL",
+							"registrationNumber":   "10222",
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected got error: %w", data["errors"])
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				b, _ := httputil.DumpResponse(resp, true)
+				t.Errorf("Bad status response returned; %v ", string(b))
+				return
+			}
+		})
+	}
+
+	// perform tear down; remove user
+	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user: %s", err)
+	}
+}
+
+func TestSetupAsExperimentParticipant(t *testing.T) {
+	// create a user and their profile
+	phoneNumber := base.TestUserPhoneNumber
+	user, err := CreateTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to create a user by phone %v", err)
+		return
+	}
+
+	idToken := user.Auth.IDToken
+	headers, err := CreatedUserGraphQLHeaders(idToken)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+
+	graphqlMutation := `
+	mutation setupAsExperimentParticipant($participate:Boolean!){
+		setupAsExperimentParticipant(participate:$participate)
+	}`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"participate": true,
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+
+			if tt.wantErr {
+				_, ok := data["errors"]
+				if !ok {
+					t.Errorf("expected an error")
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected got error: %w", data["errors"])
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				b, _ := httputil.DumpResponse(resp, true)
+				t.Errorf("Bad status response returned; %v ", string(b))
+				return
+			}
+		})
+	}
+
+	// perform tear down; remove user
+	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user: %s", err)
+	}
 }

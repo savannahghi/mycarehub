@@ -244,7 +244,6 @@ func (s SupplierUseCasesImpl) FindSupplierByUID(ctx context.Context) (*base.Supp
 		return nil, err
 	}
 	return s.repo.GetSupplierProfileByProfileID(ctx, pr.ID)
-
 }
 
 // SetUpSupplier performs initial account set up during onboarding
@@ -331,7 +330,6 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error)
 // EDIUserLogin used to login a user to EDI (Portal Authserver) and return their
 // EDI (Portal Authserver) profile
 func (s SupplierUseCasesImpl) EDIUserLogin(username, password *string) (*base.EDIUserProfile, error) {
-
 	if username == nil || password == nil {
 		return nil, exceptions.InvalidCredentialsError()
 	}
@@ -458,7 +456,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		supplier.PartnerSetupComplete = true
 		supplier.OrganizationName = savannahOrgName
 
-		if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, supplier); err != nil {
+		if err := s.repo.UpdateSupplierProfile(ctx, *supplier.ProfileID, supplier); err != nil {
 			return nil, err
 		}
 

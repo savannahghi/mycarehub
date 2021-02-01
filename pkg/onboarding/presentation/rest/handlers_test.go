@@ -2158,6 +2158,12 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 	uid := "5cf354a2-1d3e-400d-8716-7e2aead29f2c"
 	payload := composeUIDPayload(t, &uid)
 
+	uid1 := "98cbf5e8-162b-4b8a-a618-f6fff3c36ef9"
+	payload1 := composeUIDPayload(t, &uid1)
+
+	uid2 := "53298383-eb8a-4a3e-8428-cf76e7af644e"
+	payload2 := composeUIDPayload(t, &uid2)
+
 	type args struct {
 		url        string
 		httpMethod string
@@ -2185,9 +2191,9 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 			args: args{
 				url:        fmt.Sprintf("%s/supplier", serverUrl),
 				httpMethod: http.MethodPost,
-				body:       payload,
+				body:       payload1,
 			},
-			wantStatus: http.StatusBadRequest,
+			wantStatus: http.StatusNotFound,
 			wantErr:    true,
 		},
 		{
@@ -2195,9 +2201,9 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 			args: args{
 				url:        fmt.Sprintf("%s/supplier", serverUrl),
 				httpMethod: http.MethodPost,
-				body:       payload,
+				body:       payload2,
 			},
-			wantStatus: http.StatusBadRequest,
+			wantStatus: http.StatusNotFound,
 			wantErr:    true,
 		},
 	}

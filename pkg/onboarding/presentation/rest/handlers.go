@@ -384,7 +384,6 @@ func (h *HandlersInterfacesImpl) FindSupplierByUID(ctx context.Context) http.Han
 
 		newContext := context.WithValue(ctx, base.AuthTokenContextKey, s.UID)
 		supplier, err = h.interactor.Supplier.FindSupplierByUID(newContext)
-
 		if supplier == nil || err != nil {
 			err := fmt.Errorf("supplier profile not found")
 			base.WriteJSONResponse(w, err, http.StatusNotFound)

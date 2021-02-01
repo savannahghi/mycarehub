@@ -2941,6 +2941,7 @@ input OrganizationPharmaceuticalInput {
 }
 
 extend type Mutation {
+ 
   completeSignup(flavour:Flavour!): Boolean!
 
   updateUserProfile(input: UserProfileInput!): UserProfile!

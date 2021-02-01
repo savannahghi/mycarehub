@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -51,6 +52,7 @@ func (r *mutationResolver) RetireSecondaryPhoneNumbers(ctx context.Context, phon
 
 func (r *mutationResolver) AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error) {
 	if err := r.interactor.Onboarding.UpdateSecondaryEmailAddresses(ctx, email); err != nil {
+		fmt.Println("VANT UPDATE", err)
 		return false, err
 	}
 	return true, nil
@@ -190,3 +192,13 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *mutationResolver) ResumeWithPin(ctx context.Context, pin string) (bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}

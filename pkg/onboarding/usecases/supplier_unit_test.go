@@ -5903,6 +5903,16 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid:unable_to_find_supplier_by_id",
+			args: args{
+				ctx:       ctx,
+				username:  "userName",
+				password:  "1234der5",
+				sladeCode: "PRO-1234",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -6019,6 +6029,32 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return nil
 				}
 
+			}
+
+			if tt.name == "invalid:unable_to_find_supplier_by_id" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
+					}, nil
+				}
+
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					return nil, fmt.Errorf("unable to get supplier profile by profile id")
+				}
 			}
 
 			if tt.name == "valid:successful_login_with_a_non-savannah_sladeCode" {
@@ -7154,6 +7190,115 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 			}
 			if !tt.wantErr {
 				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
+	s, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	username := "user"
+	password := "pass"
+
+	// var username1 string
+	// var password1 string
+
+	type args struct {
+		username *string
+		password *string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+
+		{
+			name: "valid:login_user_with_username_and_password",
+			args: args{
+				username: &username,
+				password: &password,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:unable_to_initialize_login_client",
+			args: args{
+				username: &username,
+				password: &password,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:unable_to_fetch_user_profile",
+			args: args{
+				username: &username,
+				password: &password,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeBaseExt.LoginClientFn = nil
+			fakeBaseExt.FetchUserProfileFn = nil
+			if tt.name == "valid:login_user_with_username_and_password" {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return &base.EDIUserProfile{
+						ID:              578278332,
+						GUID:            uuid.New().String(),
+						Email:           "juhakalulu@gmail.com",
+						FirstName:       "Juha",
+						LastName:        "Kalulu",
+						BusinessPartner: "1234",
+					}, nil
+				}
+
+			}
+
+			if tt.name == "invalid:unable_to_initialize_login_client" {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, fmt.Errorf("unable to login the client")
+				}
+
+			}
+
+			if tt.name == "invalid:unable_to_fetch_user_profile" {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+					return nil, nil
+				}
+				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+					return nil, fmt.Errorf("unable to fetch user profile")
+				}
+			}
+
+			profile, err := s.Supplier.EDIUserLogin(
+				tt.args.username,
+				tt.args.password,
+			)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+				if profile.Email != "juhakalulu@gmail.com" {
 					t.Errorf("error not expected got %v", err)
 					return
 				}
