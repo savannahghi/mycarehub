@@ -500,6 +500,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 			logrus.Error(err)
 		}
 	}()
+
 	if businessPartner.Parent != nil {
 		supplier.HasBranches = true
 		supplier.ParentOrganizationID = *businessPartner.Parent
@@ -530,6 +531,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		if len(brs.Edges) > 1 {
 			// set branches in the final response object
 			resp.Branches = brs
+			resp.Supplier = supplier
 			return &resp, nil
 		}
 
@@ -1038,7 +1040,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(ctx context.Context, inpu
 	return nil, exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 }
 
-// AddIndividualPractitionerKyc adds KYC for an individual pratitioner
+// AddIndividualPractitionerKyc adds KYC for an individual practitioner
 func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error) {
 
 	sup, err := s.FindSupplierByUID(ctx)
@@ -1096,7 +1098,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context,
 
 }
 
-// AddOrganizationPractitionerKyc adds KYC for an organization pratitioner
+// AddOrganizationPractitionerKyc adds KYC for an organization practitioner
 func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {

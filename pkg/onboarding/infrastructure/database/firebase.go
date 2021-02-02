@@ -1435,6 +1435,7 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID strin
 	sup.EDIUserProfile = data.EDIUserProfile
 	sup.PartnerSetupComplete = data.PartnerSetupComplete
 	sup.KYCSubmitted = data.KYCSubmitted
+	sup.OrganizationName = data.OrganizationName
 
 	query := &GetAllQuery{
 		CollectionName: fr.GetSupplierProfileCollectionName(),
@@ -1460,7 +1461,7 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID strin
 
 }
 
-// AddSupplierAccountType update the suppleir profile with the correct account type
+// AddSupplierAccountType update the supplier profile with the correct account type
 func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID string, accountType base.AccountType) (*base.Supplier, error) {
 
 	// get the suppier profile
@@ -2033,7 +2034,7 @@ func (fr *Repository) AddUserAsExperimentParticipant(ctx context.Context, profil
 }
 
 // RemoveUserAsExperimentParticipant removes the provide user profile as an experiment participant. This methold does not check
-// for existence before deletion since non-existence is relativelt equavalent to a removal
+// for existence before deletion since non-existence is relatively equivalent to a removal
 func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error) {
 	// fetch the document References
 	query := &GetAllQuery{

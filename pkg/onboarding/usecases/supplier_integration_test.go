@@ -1630,7 +1630,7 @@ func TestSupplierEDILogin(t *testing.T) {
 	resp4, err := s.Supplier.SupplierEDILogin(authenticatedContext, testEDIPortalUsername, testEDIPortalPassword, testSladeCode)
 	assert.Nil(t, err)
 	assert.NotNil(t, resp4)
-	assert.Nil(t, resp4.Supplier)
+	assert.NotNil(t, resp4.Supplier)
 	assert.NotNil(t, resp4.Branches)
 }
 
@@ -1700,7 +1700,7 @@ func TestFetchSupplierAllowedLocations(t *testing.T) {
 	resp4, err := s.Supplier.SupplierEDILogin(authenticatedContext, testEDIPortalUsername, testEDIPortalPassword, testSladeCode)
 	assert.Nil(t, err)
 	assert.NotNil(t, resp4)
-	assert.Nil(t, resp4.Supplier)
+	assert.NotNil(t, resp4.Supplier)
 	assert.NotNil(t, resp4.Branches)
 
 	// fetch all AllowedLocations for the suppier
@@ -1811,7 +1811,7 @@ func TestSuspendSupplier(t *testing.T) {
 	assert.NotNil(t, sup)
 	assert.Equal(t, true, sup.Active)
 
-	// now suspend the susplier
+	// now suspend the supplier
 	v, err := s.Supplier.SuspendSupplier(authenticatedContext)
 	assert.Nil(t, err)
 	assert.NotNil(t, v)
