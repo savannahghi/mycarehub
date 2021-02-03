@@ -3077,3 +3077,91 @@ func TestRepositoryFetchAdminUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateAddresses(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+		return
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+		return
+	}
+	firestoreExtension := database.NewFirestoreClientExtension(fsc)
+	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	address := base.Address{
+		Latitude:  "-1.2349035671",
+		Longitude: "36.79329309999994",
+	}
+	type args struct {
+		ctx         context.Context
+		id          string
+		address     base.Address
+		addressType base.AddressType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy:) add home address",
+			args: args{
+				ctx:         ctx,
+				id:          userProfile.ID,
+				address:     address,
+				addressType: base.AddressTypeHome,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy:) add work address",
+			args: args{
+				ctx:         ctx,
+				id:          userProfile.ID,
+				address:     address,
+				addressType: base.AddressTypeWork,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad:( failed to add",
+			args: args{
+				ctx:         ctx,
+				id:          "not-a-uid",
+				address:     address,
+				addressType: base.AddressTypeWork,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdateAddresses(
+				tt.args.ctx,
+				tt.args.id,
+				tt.args.address,
+				tt.args.addressType,
+			); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateAddresses() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
+			}
+		})
+	}
+}

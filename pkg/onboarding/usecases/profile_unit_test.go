@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
@@ -2460,6 +2461,298 @@ func TestProfileUseCaseImpl_UpdatePhotoUploadID(t *testing.T) {
 			err := i.Onboarding.UpdatePhotoUploadID(tt.args.ctx, tt.args.uploadID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ProfileUseCaseImpl.UpdatePhotoUploadID() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	addr := resources.AddressInput{
+		Latitude:  1.2,
+		Longitude: -34.001,
+	}
+	type args struct {
+		ctx         context.Context
+		input       resources.AddressInput
+		addressType base.AddressType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy:) add home address",
+			args: args{
+				ctx:         ctx,
+				input:       addr,
+				addressType: base.AddressTypeHome,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy:) add work address",
+			args: args{
+				ctx:         ctx,
+				input:       addr,
+				addressType: base.AddressTypeWork,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad:( failed to get logged in user",
+			args: args{
+				ctx:         ctx,
+				input:       addr,
+				addressType: base.AddressTypeWork,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad:( failed to get user profile",
+			args: args{
+				ctx:         ctx,
+				input:       addr,
+				addressType: base.AddressTypeWork,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad:( failed to update user profile",
+			args: args{
+				ctx:         ctx,
+				input:       addr,
+				addressType: base.AddressTypeWork,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "happy:) add home address" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdateAddressesFn = func(ctx context.Context, id string, address base.Address, addressType base.AddressType) error {
+					return nil
+				}
+			}
+
+			if tt.name == "happy:) add work address" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdateAddressesFn = func(ctx context.Context, id string, address base.Address, addressType base.AddressType) error {
+					return nil
+				}
+			}
+
+			if tt.name == "sad:( failed to get logged in user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occured")
+				}
+			}
+
+			if tt.name == "sad:( failed to get user profile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("an error ocurred")
+				}
+			}
+
+			if tt.name == "sad:( failed to update user profile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdateAddressesFn = func(ctx context.Context, id string, address base.Address, addressType base.AddressType) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := i.Onboarding.AddAddress(
+				tt.args.ctx,
+				tt.args.input,
+				tt.args.addressType,
+			)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "happy:) get addresses",
+			args:    args{ctx: ctx},
+			wantErr: false,
+		},
+		{
+			name:    "sad:( failed to get logged in user",
+			args:    args{ctx: ctx},
+			wantErr: true,
+		},
+		{
+			name:    "sad:( failed to get user profile",
+			args:    args{ctx: ctx},
+			wantErr: true,
+		},
+		{
+			name:    "sad:/ failed to get the home addresses",
+			args:    args{ctx: ctx},
+			wantErr: true,
+		},
+		{
+			name:    "sad:/ failed to get the work addresses",
+			args:    args{ctx: ctx},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "happy:) get addresses" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+						HomeAddress: &base.Address{
+							Latitude:  "123",
+							Longitude: "-1.2",
+						},
+						WorkAddress: &base.Address{
+							Latitude:  "123",
+							Longitude: "-1.2",
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "sad:( failed to get logged in user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occured")
+				}
+			}
+
+			if tt.name == "sad:( failed to get user profile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("an error ocurred")
+				}
+			}
+
+			if tt.name == "sad:/ failed to get the home addresses" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:          uuid.New().String(),
+						HomeAddress: &base.Address{},
+						WorkAddress: &base.Address{
+							Latitude:  "123",
+							Longitude: "-1.2",
+						},
+					}, nil
+				}
+			}
+
+			if tt.name == "sad:/ failed to get the work addresses" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+						HomeAddress: &base.Address{
+							Latitude:  "123",
+							Longitude: "-1.2",
+						},
+						WorkAddress: &base.Address{},
+					}, nil
+				}
+			}
+
+			_, err := i.Onboarding.GetAddresses(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.GetAddresses() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 
 			if tt.wantErr {

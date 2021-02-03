@@ -39,6 +39,8 @@ type UserProfile @key(fields: "id") {
   photoUploadID: String
   covers: [Cover]
   userBioData: BioData
+  homeAddress: Address
+  workAddress: Address
 }
 
 type Customer {
@@ -369,4 +371,23 @@ type KYCRequest {
 type SupplierLogin{
 	branches:BranchConnection!
 	supplier:Supplier!
+}
+
+type Address {
+  latitude: String!
+  longitude: String!
+  locality: String
+  name: String
+  placeID: String
+  formattedAddress: String
+}
+
+type UserAddresses {
+  homeAddress: ThinAddress!
+  workAddress: ThinAddress!
+}
+
+type ThinAddress {
+  latitude: Float!
+  longitude: Float!
 }

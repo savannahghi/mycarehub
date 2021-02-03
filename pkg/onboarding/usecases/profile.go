@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/cenkalti/backoff"
@@ -10,7 +11,9 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -110,6 +113,14 @@ type ProfileUseCase interface {
 	) (map[string][]string, error)
 
 	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
+
+	AddAddress(
+		ctx context.Context,
+		input resources.AddressInput,
+		addressType base.AddressType,
+	) (*base.Address, error)
+
+	GetAddresses(ctx context.Context) (*domain.UserAddresses, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -631,7 +642,7 @@ func (p *ProfileUseCaseImpl) CheckPhoneExists(ctx context.Context, phone string)
 	}
 	exists, err := p.onboardingRepository.CheckIfPhoneNumberExists(ctx, *phoneNumber)
 	if err != nil {
-		return false, exceptions.CheckPhoneNumberExistError()
+		return false, err
 	}
 	return exists, nil
 }
@@ -882,4 +893,102 @@ func (p *ProfileUseCaseImpl) SetupAsExperimentParticipant(ctx context.Context, p
 
 	// remove the user to the list of experiment participants
 	return p.onboardingRepository.RemoveUserAsExperimentParticipant(ctx, pr)
+}
+
+// AddAddress adds a user's home or work address to thir user's profile
+func (p *ProfileUseCaseImpl) AddAddress(
+	ctx context.Context,
+	input resources.AddressInput,
+	addressType base.AddressType,
+) (*base.Address, error) {
+	var address *base.Address
+	profile, err := p.UserProfile(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	address = &base.Address{
+		// Longitude and latitude coordinates are stored with
+		// 15 decimal digits right of the decimal points
+		Latitude:         fmt.Sprintf("%.15f", input.Latitude),
+		Longitude:        fmt.Sprintf("%.15f", input.Longitude),
+		Locality:         input.Locality,
+		Name:             input.Name,
+		PlaceID:          input.PlaceID,
+		FormattedAddress: input.FormattedAddress,
+	}
+	err = p.onboardingRepository.UpdateAddresses(
+		ctx,
+		profile.ID,
+		*address,
+		addressType,
+	)
+	if err != nil {
+		return address, err
+	}
+
+	return address, nil
+}
+
+// GetAddresses returns a user's home and work addresses
+func (p *ProfileUseCaseImpl) GetAddresses(
+	ctx context.Context,
+) (*domain.UserAddresses, error) {
+	profile, err := p.UserProfile(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var thinHomeAddress domain.ThinAddress
+	if profile.HomeAddress != nil {
+		homeLatitude, err := strconv.ParseFloat(
+			profile.HomeAddress.Latitude,
+			64,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		homeLongitude, err := strconv.ParseFloat(
+			profile.HomeAddress.Longitude,
+			64,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		thinHomeAddress = domain.ThinAddress{
+			Latitude:  homeLatitude,
+			Longitude: homeLongitude,
+		}
+	}
+
+	var thinWorkAddress domain.ThinAddress
+	if profile.WorkAddress != nil {
+		workLatitude, err := strconv.ParseFloat(
+			profile.WorkAddress.Latitude,
+			64,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		workLongitude, err := strconv.ParseFloat(
+			profile.WorkAddress.Longitude,
+			64,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		thinWorkAddress = domain.ThinAddress{
+			Latitude:  workLatitude,
+			Longitude: workLongitude,
+		}
+	}
+
+	return &domain.UserAddresses{
+		HomeAddress: thinHomeAddress,
+		WorkAddress: thinWorkAddress,
+	}, nil
 }

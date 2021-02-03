@@ -100,3 +100,8 @@ enum PermissionType {
   UNSUSPEND_SUPPLIER
   PROCESS_KYC
 }
+
+enum AddressType {
+  HOME
+  WORK
+}

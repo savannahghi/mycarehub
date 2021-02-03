@@ -423,7 +423,7 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 	}
 	docs1, err := fr.FirestoreClient.GetAll(ctx, query1)
 	if err != nil {
-		return false, err
+		return false, exceptions.InternalServerError(err)
 	}
 	if len(docs1) == 1 {
 		return true, nil
@@ -2061,4 +2061,51 @@ func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, pro
 	}
 
 	return true, nil
+}
+
+// UpdateAddresses persists a user's home or work address information to the database
+func (fr *Repository) UpdateAddresses(
+	ctx context.Context,
+	id string,
+	address base.Address,
+	addressType base.AddressType,
+) error {
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
+	if err != nil {
+		return err
+	}
+
+	switch addressType {
+	case base.AddressTypeHome:
+		{
+			profile.HomeAddress = &address
+		}
+	case base.AddressTypeWork:
+		{
+			profile.WorkAddress = &address
+		}
+	default:
+		return exceptions.WrongEnumTypeError(addressType.String())
+	}
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		FieldName:      "id",
+		Value:          profile.ID,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+	updateCommand := &UpdateCommand{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		ID:             docs[0].Ref.ID,
+		Data:           profile,
+	}
+	err = fr.FirestoreClient.Update(ctx, updateCommand)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+	return nil
 }

@@ -204,6 +204,18 @@ func CreateTestUserByPhone(t *testing.T, phone string) (*base.UserResponse, erro
 	return &userResponse, nil
 }
 
+func TestCreateTestUserByPhone(t *testing.T) {
+	userResponse, err := CreateTestUserByPhone(t, base.TestUserPhoneNumber)
+	if err != nil {
+		t.Errorf("failed to create test user")
+		return
+	}
+	if userResponse == nil {
+		t.Errorf("got a nil user response")
+		return
+	}
+}
+
 func RemoveTestUserByPhone(t *testing.T, phone string) (bool, error) {
 	client := http.DefaultClient
 	validPayload := &resources.PhoneNumberPayload{PhoneNumber: &phone}
@@ -240,6 +252,29 @@ func RemoveTestUserByPhone(t *testing.T, phone string) (bool, error) {
 		return false, fmt.Errorf("failed to remove user: expected status to be %v got %v ", http.StatusCreated, resp.StatusCode)
 	}
 	return true, nil
+}
+
+func TestRemoveTestUserByPhone(t *testing.T) {
+	phone := base.TestUserPhoneNumber
+	userResponse, err := CreateTestUserByPhone(t, phone)
+	if err != nil {
+		t.Errorf("failed to create test user")
+		return
+	}
+	if userResponse == nil {
+		t.Errorf("got a nil user response")
+		return
+	}
+
+	removed, err := RemoveTestUserByPhone(t, phone)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+		return
+	}
+	if !removed {
+		t.Errorf("user was not removed")
+		return
+	}
 }
 
 func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {

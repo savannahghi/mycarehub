@@ -205,3 +205,13 @@ type UpdateCoversPayload struct {
 type UIDsPayload struct {
 	UIDs []string `json:"uids"`
 }
+
+// AddressInput represents a user's geo location input
+type AddressInput struct {
+	Latitude         float64 `json:"latitude"`
+	Longitude        float64 `json:"longitude"`
+	Locality         *string `json:"locality"`
+	Name             *string `json:"name"`
+	PlaceID          *string `json:"placeID"`
+	FormattedAddress *string `json:"formattedAddress"`
+}

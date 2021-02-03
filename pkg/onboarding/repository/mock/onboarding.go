@@ -129,6 +129,7 @@ type FakeOnboardingRepository struct {
 	UpdateBioDataFn                 func(ctx context.Context, id string, data base.BioData) error
 	UpdateVerifiedIdentifiersFn     func(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error
 	UpdateVerifiedUIDSFn            func(ctx context.Context, id string, uids []string) error
+	UpdateAddressesFn               func(ctx context.Context, id string, address base.Address, addressType base.AddressType) error
 }
 
 // GetSupplierProfileByID ...
@@ -414,4 +415,14 @@ func (f *FakeOnboardingRepository) AddUserAsExperimentParticipant(ctx context.Co
 // RemoveUserAsExperimentParticipant ...
 func (f *FakeOnboardingRepository) RemoveUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error) {
 	return f.RemoveUserAsExperimentParticipantFn(ctx, profile)
+}
+
+// UpdateAddresses ...
+func (f *FakeOnboardingRepository) UpdateAddresses(
+	ctx context.Context,
+	id string,
+	address base.Address,
+	addressType base.AddressType,
+) error {
+	return f.UpdateAddressesFn(ctx, id, address, addressType)
 }

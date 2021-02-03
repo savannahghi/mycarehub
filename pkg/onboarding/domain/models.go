@@ -65,3 +65,15 @@ type PostVisitSurvey struct {
 	UID               string    `json:"uid" firestore:"uid"`
 	Timestamp         time.Time `json:"timestamp" firestore:"timestamp"`
 }
+
+// UserAddresses represents a user's home and work addresses
+type UserAddresses struct {
+	HomeAddress ThinAddress `json:"homeAddress"`
+	WorkAddress ThinAddress `json:"workAddress"`
+}
+
+// ThinAddress represents an addresses lat-long
+type ThinAddress struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}

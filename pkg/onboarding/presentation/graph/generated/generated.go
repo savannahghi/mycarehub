@@ -50,6 +50,15 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Address struct {
+		FormattedAddress func(childComplexity int) int
+		Latitude         func(childComplexity int) int
+		Locality         func(childComplexity int) int
+		Longitude        func(childComplexity int) int
+		Name             func(childComplexity int) int
+		PlaceID          func(childComplexity int) int
+	}
+
 	Beneficiary struct {
 		DateOfBirth  func(childComplexity int) int
 		Emails       func(childComplexity int) int
@@ -192,6 +201,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		AddAddress                       func(childComplexity int, input resources.AddressInput, addressType base.AddressType) int
 		AddIndividualCoachKyc            func(childComplexity int, input domain.IndividualCoach) int
 		AddIndividualNutritionKyc        func(childComplexity int, input domain.IndividualNutrition) int
 		AddIndividualPharmaceuticalKyc   func(childComplexity int, input domain.IndividualPharmaceutical) int
@@ -330,6 +340,7 @@ type ComplexityRoot struct {
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) int
 		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) int
+		GetAddresses                  func(childComplexity int) int
 		ResumeWithPin                 func(childComplexity int, pin string) int
 		SupplierProfile               func(childComplexity int) int
 		UserProfile                   func(childComplexity int) int
@@ -376,8 +387,19 @@ type ComplexityRoot struct {
 		Supplier func(childComplexity int) int
 	}
 
+	ThinAddress struct {
+		Latitude  func(childComplexity int) int
+		Longitude func(childComplexity int) int
+	}
+
+	UserAddresses struct {
+		HomeAddress func(childComplexity int) int
+		WorkAddress func(childComplexity int) int
+	}
+
 	UserProfile struct {
 		Covers                  func(childComplexity int) int
+		HomeAddress             func(childComplexity int) int
 		ID                      func(childComplexity int) int
 		Permissions             func(childComplexity int) int
 		PhotoUploadID           func(childComplexity int) int
@@ -391,6 +413,7 @@ type ComplexityRoot struct {
 		UserBioData             func(childComplexity int) int
 		UserName                func(childComplexity int) int
 		VerifiedIdentifiers     func(childComplexity int) int
+		WorkAddress             func(childComplexity int) int
 	}
 
 	VerifiedIdentifier struct {
@@ -440,6 +463,7 @@ type MutationResolver interface {
 	RecordPostVisitSurvey(ctx context.Context, input resources.PostVisitSurveyInput) (bool, error)
 	RetireKYCProcessingRequest(ctx context.Context) (bool, error)
 	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
+	AddAddress(ctx context.Context, input resources.AddressInput, addressType base.AddressType) (*base.Address, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -449,6 +473,7 @@ type QueryResolver interface {
 	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) (*resources.BranchConnection, error)
 	FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error)
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
+	GetAddresses(ctx context.Context) (*domain.UserAddresses, error)
 }
 type VerifiedIdentifierResolver interface {
 	Timestamp(ctx context.Context, obj *base.VerifiedIdentifier) (*base.Date, error)
@@ -468,6 +493,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Address.formattedAddress":
+		if e.complexity.Address.FormattedAddress == nil {
+			break
+		}
+
+		return e.complexity.Address.FormattedAddress(childComplexity), true
+
+	case "Address.latitude":
+		if e.complexity.Address.Latitude == nil {
+			break
+		}
+
+		return e.complexity.Address.Latitude(childComplexity), true
+
+	case "Address.locality":
+		if e.complexity.Address.Locality == nil {
+			break
+		}
+
+		return e.complexity.Address.Locality(childComplexity), true
+
+	case "Address.longitude":
+		if e.complexity.Address.Longitude == nil {
+			break
+		}
+
+		return e.complexity.Address.Longitude(childComplexity), true
+
+	case "Address.name":
+		if e.complexity.Address.Name == nil {
+			break
+		}
+
+		return e.complexity.Address.Name(childComplexity), true
+
+	case "Address.placeID":
+		if e.complexity.Address.PlaceID == nil {
+			break
+		}
+
+		return e.complexity.Address.PlaceID(childComplexity), true
 
 	case "Beneficiary.dateOfBirth":
 		if e.complexity.Beneficiary.DateOfBirth == nil {
@@ -1066,6 +1133,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Location.Name(childComplexity), true
+
+	case "Mutation.addAddress":
+		if e.complexity.Mutation.AddAddress == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addAddress_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddAddress(childComplexity, args["input"].(resources.AddressInput), args["addressType"].(base.AddressType)), true
 
 	case "Mutation.addIndividualCoachKYC":
 		if e.complexity.Mutation.AddIndividualCoachKyc == nil {
@@ -1999,6 +2078,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FindProvider(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*resources.BusinessPartnerFilterInput), args["sort"].([]*resources.BusinessPartnerSortInput)), true
 
+	case "Query.getAddresses":
+		if e.complexity.Query.GetAddresses == nil {
+			break
+		}
+
+		return e.complexity.Query.GetAddresses(childComplexity), true
+
 	case "Query.resumeWithPIN":
 		if e.complexity.Query.ResumeWithPin == nil {
 			break
@@ -2233,12 +2319,47 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SupplierLogin.Supplier(childComplexity), true
 
+	case "ThinAddress.latitude":
+		if e.complexity.ThinAddress.Latitude == nil {
+			break
+		}
+
+		return e.complexity.ThinAddress.Latitude(childComplexity), true
+
+	case "ThinAddress.longitude":
+		if e.complexity.ThinAddress.Longitude == nil {
+			break
+		}
+
+		return e.complexity.ThinAddress.Longitude(childComplexity), true
+
+	case "UserAddresses.homeAddress":
+		if e.complexity.UserAddresses.HomeAddress == nil {
+			break
+		}
+
+		return e.complexity.UserAddresses.HomeAddress(childComplexity), true
+
+	case "UserAddresses.workAddress":
+		if e.complexity.UserAddresses.WorkAddress == nil {
+			break
+		}
+
+		return e.complexity.UserAddresses.WorkAddress(childComplexity), true
+
 	case "UserProfile.covers":
 		if e.complexity.UserProfile.Covers == nil {
 			break
 		}
 
 		return e.complexity.UserProfile.Covers(childComplexity), true
+
+	case "UserProfile.homeAddress":
+		if e.complexity.UserProfile.HomeAddress == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.HomeAddress(childComplexity), true
 
 	case "UserProfile.id":
 		if e.complexity.UserProfile.ID == nil {
@@ -2330,6 +2451,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserProfile.VerifiedIdentifiers(childComplexity), true
+
+	case "UserProfile.workAddress":
+		if e.complexity.UserProfile.WorkAddress == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.WorkAddress(childComplexity), true
 
 	case "VerifiedIdentifier.loginProvider":
 		if e.complexity.VerifiedIdentifier.LoginProvider == nil {
@@ -2524,6 +2652,11 @@ enum PermissionType {
   SUSPEND_SUPPLIER
   UNSUSPEND_SUPPLIER
   PROCESS_KYC
+}
+
+enum AddressType {
+  HOME
+  WORK
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/external.graphql", Input: `
@@ -2913,7 +3046,15 @@ input OrganizationPharmaceuticalInput {
   practiceLicenseID: String!
   practiceLicenseUploadID: String
 }
-`, BuiltIn: false},
+
+input AddressInput {
+  latitude: Float!
+  longitude: Float!
+  locality: String
+  name: String
+  placeID: String
+  formattedAddress: String
+}`, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
 
@@ -2937,7 +3078,7 @@ input OrganizationPharmaceuticalInput {
 
   fetchKYCProcessingRequests: [KYCRequest!]
 
-  # listTesters: [String!]!
+  getAddresses: UserAddresses!
 }
 
 extend type Mutation {
@@ -3027,6 +3168,10 @@ extend type Mutation {
 
   setupAsExperimentParticipant(participate:Boolean): Boolean! 
 
+  addAddress(
+    input: AddressInput!
+    addressType: AddressType!
+  ): Address!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -3070,6 +3215,8 @@ type UserProfile @key(fields: "id") {
   photoUploadID: String
   covers: [Cover]
   userBioData: BioData
+  homeAddress: Address
+  workAddress: Address
 }
 
 type Customer {
@@ -3400,6 +3547,25 @@ type KYCRequest {
 type SupplierLogin{
 	branches:BranchConnection!
 	supplier:Supplier!
+}
+
+type Address {
+  latitude: String!
+  longitude: String!
+  locality: String
+  name: String
+  placeID: String
+  formattedAddress: String
+}
+
+type UserAddresses {
+  homeAddress: ThinAddress!
+  workAddress: ThinAddress!
+}
+
+type ThinAddress {
+  latitude: Float!
+  longitude: Float!
 }`, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
@@ -3465,6 +3631,30 @@ func (ec *executionContext) field_Entity_findUserProfileByID_args(ctx context.Co
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addAddress_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 resources.AddressInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐAddressInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	var arg1 base.AddressType
+	if tmp, ok := rawArgs["addressType"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addressType"))
+		arg1, err = ec.unmarshalNAddressType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddressType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["addressType"] = arg1
 	return args, nil
 }
 
@@ -4123,6 +4313,204 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Address_latitude(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Address",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Latitude, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Address_longitude(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Address",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Longitude, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Address_locality(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Address",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Locality, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Address_name(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Address",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Address_placeID(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Address",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PlaceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Address_formattedAddress(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Address",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FormattedAddress, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
 
 func (ec *executionContext) _Beneficiary_name(ctx context.Context, field graphql.CollectedField, obj *model.Beneficiary) (ret graphql.Marshaler) {
 	defer func() {
@@ -8276,6 +8664,48 @@ func (ec *executionContext) _Mutation_setupAsExperimentParticipant(ctx context.C
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_addAddress(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addAddress_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddAddress(rctx, args["input"].(resources.AddressInput), args["addressType"].(base.AddressType))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*base.Address)
+	fc.Result = res
+	return ec.marshalNAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _OrganizationCoach_organizationTypeName(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationCoach) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11091,6 +11521,41 @@ func (ec *executionContext) _Query_fetchKYCProcessingRequests(ctx context.Contex
 	return ec.marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequestᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_getAddresses(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAddresses(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.UserAddresses)
+	fc.Result = res
+	return ec.marshalNUserAddresses2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserAddresses(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12169,6 +12634,146 @@ func (ec *executionContext) _SupplierLogin_supplier(ctx context.Context, field g
 	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ThinAddress_latitude(ctx context.Context, field graphql.CollectedField, obj *domain.ThinAddress) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ThinAddress",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Latitude, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ThinAddress_longitude(ctx context.Context, field graphql.CollectedField, obj *domain.ThinAddress) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ThinAddress",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Longitude, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserAddresses_homeAddress(ctx context.Context, field graphql.CollectedField, obj *domain.UserAddresses) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserAddresses",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HomeAddress, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.ThinAddress)
+	fc.Result = res
+	return ec.marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserAddresses_workAddress(ctx context.Context, field graphql.CollectedField, obj *domain.UserAddresses) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserAddresses",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WorkAddress, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.ThinAddress)
+	fc.Result = res
+	return ec.marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12624,6 +13229,70 @@ func (ec *executionContext) _UserProfile_userBioData(ctx context.Context, field 
 	res := resTmp.(base.BioData)
 	fc.Result = res
 	return ec.marshalOBioData2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐBioData(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_homeAddress(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HomeAddress, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*base.Address)
+	fc.Result = res
+	return ec.marshalOAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_workAddress(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WorkAddress, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*base.Address)
+	fc.Result = res
+	return ec.marshalOAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _VerifiedIdentifier_uid(ctx context.Context, field graphql.CollectedField, obj *base.VerifiedIdentifier) (ret graphql.Marshaler) {
@@ -13849,6 +14518,66 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
+
+func (ec *executionContext) unmarshalInputAddressInput(ctx context.Context, obj interface{}) (resources.AddressInput, error) {
+	var it resources.AddressInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "latitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latitude"))
+			it.Latitude, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "longitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("longitude"))
+			it.Longitude, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "locality":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locality"))
+			it.Locality, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "placeID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("placeID"))
+			it.PlaceID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "formattedAddress":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("formattedAddress"))
+			it.FormattedAddress, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
 
 func (ec *executionContext) unmarshalInputBeneficiaryInput(ctx context.Context, obj interface{}) (model.BeneficiaryInput, error) {
 	var it model.BeneficiaryInput
@@ -15373,6 +16102,46 @@ func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, 
 
 // region    **************************** object.gotpl ****************************
 
+var addressImplementors = []string{"Address"}
+
+func (ec *executionContext) _Address(ctx context.Context, sel ast.SelectionSet, obj *base.Address) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, addressImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Address")
+		case "latitude":
+			out.Values[i] = ec._Address_latitude(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "longitude":
+			out.Values[i] = ec._Address_longitude(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "locality":
+			out.Values[i] = ec._Address_locality(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._Address_name(ctx, field, obj)
+		case "placeID":
+			out.Values[i] = ec._Address_placeID(ctx, field, obj)
+		case "formattedAddress":
+			out.Values[i] = ec._Address_formattedAddress(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var beneficiaryImplementors = []string{"Beneficiary"}
 
 func (ec *executionContext) _Beneficiary(ctx context.Context, sel ast.SelectionSet, obj *model.Beneficiary) graphql.Marshaler {
@@ -16313,6 +17082,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "addAddress":
+			out.Values[i] = ec._Mutation_addAddress(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16882,6 +17656,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_fetchKYCProcessingRequests(ctx, field)
 				return res
 			})
+		case "getAddresses":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getAddresses(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "_entities":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -17133,6 +17921,70 @@ func (ec *executionContext) _SupplierLogin(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var thinAddressImplementors = []string{"ThinAddress"}
+
+func (ec *executionContext) _ThinAddress(ctx context.Context, sel ast.SelectionSet, obj *domain.ThinAddress) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, thinAddressImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ThinAddress")
+		case "latitude":
+			out.Values[i] = ec._ThinAddress_latitude(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "longitude":
+			out.Values[i] = ec._ThinAddress_longitude(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userAddressesImplementors = []string{"UserAddresses"}
+
+func (ec *executionContext) _UserAddresses(ctx context.Context, sel ast.SelectionSet, obj *domain.UserAddresses) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userAddressesImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserAddresses")
+		case "homeAddress":
+			out.Values[i] = ec._UserAddresses_homeAddress(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "workAddress":
+			out.Values[i] = ec._UserAddresses_workAddress(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var userProfileImplementors = []string{"UserProfile", "_Entity"}
 
 func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionSet, obj *base.UserProfile) graphql.Marshaler {
@@ -17181,6 +18033,10 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_covers(ctx, field, obj)
 		case "userBioData":
 			out.Values[i] = ec._UserProfile_userBioData(ctx, field, obj)
+		case "homeAddress":
+			out.Values[i] = ec._UserProfile_homeAddress(ctx, field, obj)
+		case "workAddress":
+			out.Values[i] = ec._UserProfile_workAddress(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17517,6 +18373,35 @@ func (ec *executionContext) marshalNAccountType2gitlabᚗslade360emrᚗcomᚋgo�
 	return v
 }
 
+func (ec *executionContext) marshalNAddress2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx context.Context, sel ast.SelectionSet, v base.Address) graphql.Marshaler {
+	return ec._Address(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx context.Context, sel ast.SelectionSet, v *base.Address) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Address(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐAddressInput(ctx context.Context, v interface{}) (resources.AddressInput, error) {
+	res, err := ec.unmarshalInputAddressInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNAddressType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddressType(ctx context.Context, v interface{}) (base.AddressType, error) {
+	var res base.AddressType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAddressType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddressType(ctx context.Context, sel ast.SelectionSet, v base.AddressType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
 	res, err := graphql.UnmarshalAny(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -17635,6 +18520,21 @@ func (ec *executionContext) unmarshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋ
 
 func (ec *executionContext) marshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx context.Context, sel ast.SelectionSet, v base.Flavour) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloat(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloat(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
@@ -18209,6 +19109,24 @@ func (ec *executionContext) marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcom�
 	return ec._SupplierLogin(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx context.Context, sel ast.SelectionSet, v domain.ThinAddress) graphql.Marshaler {
+	return ec._ThinAddress(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserAddresses2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserAddresses(ctx context.Context, sel ast.SelectionSet, v domain.UserAddresses) graphql.Marshaler {
+	return ec._UserAddresses(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserAddresses2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserAddresses(ctx context.Context, sel ast.SelectionSet, v *domain.UserAddresses) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UserAddresses(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v base.UserProfile) graphql.Marshaler {
 	return ec._UserProfile(ctx, sel, &v)
 }
@@ -18562,6 +19480,13 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalOAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx context.Context, sel ast.SelectionSet, v *base.Address) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Address(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOBioData2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐBioData(ctx context.Context, sel ast.SelectionSet, v base.BioData) graphql.Marshaler {

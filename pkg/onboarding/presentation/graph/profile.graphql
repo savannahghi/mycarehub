@@ -21,7 +21,7 @@ extend type Query {
 
   fetchKYCProcessingRequests: [KYCRequest!]
 
-  # listTesters: [String!]!
+  getAddresses: UserAddresses!
 }
 
 extend type Mutation {
@@ -111,4 +111,8 @@ extend type Mutation {
 
   setupAsExperimentParticipant(participate:Boolean): Boolean! 
 
+  addAddress(
+    input: AddressInput!
+    addressType: AddressType!
+  ): Address!
 }

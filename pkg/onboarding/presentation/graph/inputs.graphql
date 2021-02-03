@@ -274,3 +274,12 @@ input OrganizationPharmaceuticalInput {
   practiceLicenseID: String!
   practiceLicenseUploadID: String
 }
+
+input AddressInput {
+  latitude: Float!
+  longitude: Float!
+  locality: String
+  name: String
+  placeID: String
+  formattedAddress: String
+}

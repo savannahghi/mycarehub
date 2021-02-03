@@ -2,6 +2,7 @@ package usecases_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"firebase.google.com/go/auth"
@@ -1481,5 +1482,233 @@ func TestMaskPhoneNumbers(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestAddAddress(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	addr := resources.AddressInput{
+		Latitude:  1.2,
+		Longitude: -34.001,
+	}
+
+	type args struct {
+		ctx         context.Context
+		input       resources.AddressInput
+		addressType base.AddressType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy:) add home address",
+			args: args{
+				ctx:         ctx,
+				input:       addr,
+				addressType: base.AddressTypeHome,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy:) add work address",
+			args: args{
+				ctx:         ctx,
+				input:       addr,
+				addressType: base.AddressTypeWork,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad:( failed to get logged in user",
+			args: args{
+				ctx:         context.Background(),
+				input:       addr,
+				addressType: base.AddressTypeWork,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := s.Onboarding.AddAddress(tt.args.ctx, tt.args.input, tt.args.addressType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.AddAddress() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestGetAddresses(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	addr := resources.AddressInput{
+		Latitude:  1.2,
+		Longitude: -34.001,
+	}
+
+	_, err = s.Onboarding.AddAddress(ctx, addr, base.AddressTypeWork)
+	if err != nil {
+		t.Errorf("unable to add test address")
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "happy:) get addresses",
+			args:    args{ctx: ctx},
+			wantErr: false,
+		},
+		{
+			name:    "sad:( failed to get logged in user",
+			args:    args{ctx: context.Background()},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := s.Onboarding.GetAddresses(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.GetAddresses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestIntegrationGetAddresses(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup profile usecase")
+	}
+
+	validPhoneNumber := base.TestUserPhoneNumber
+	validPIN := base.TestUserPin
+	validFlavourConsumer := base.FlavourConsumer
+
+	_ = s.Signup.RemoveUserByPhoneNumber(
+		context.Background(),
+		validPhoneNumber,
+	)
+
+	otp, err := generateTestOTP(t, validPhoneNumber)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+		return
+	}
+
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &validPhoneNumber,
+			PIN:         &validPIN,
+			Flavour:     validFlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+		return
+	}
+	if resp.Profile.HomeAddress != nil {
+		t.Errorf("did not expect an address")
+		return
+	}
+	if resp.Profile.WorkAddress != nil {
+		t.Errorf("did not expect an address")
+		return
+	}
+
+	// create authenticated context
+	ctx := context.Background()
+	authCred := &auth.Token{UID: resp.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		authCred,
+	)
+
+	lat := -1.2
+	long := 34.56
+
+	addr, err := s.Onboarding.AddAddress(
+		authenticatedContext,
+		resources.AddressInput{
+			Latitude:  lat,
+			Longitude: long,
+		},
+		base.AddressTypeHome,
+	)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+		return
+	}
+	if addr == nil {
+		t.Errorf("expected an address")
+		return
+	}
+
+	addrLat := addr.Latitude
+	addrLong := addr.Longitude
+
+	if addrLat != fmt.Sprintf("%.15f", lat) {
+		t.Errorf("got a wrong address Latitude")
+		return
+	}
+	if addrLong != fmt.Sprintf("%.15f", long) {
+		t.Errorf("got a wrong address Longitude")
+		return
+	}
+
+	profile, err := s.Onboarding.UserProfile(authenticatedContext)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+		return
+	}
+	if profile == nil {
+		t.Errorf("expected a user profile")
+		return
+	}
+
+	if profile.HomeAddress == nil {
+		t.Errorf("we expected an address")
+		return
+	}
+
+	err = s.Signup.RemoveUserByPhoneNumber(
+		authenticatedContext,
+		validPhoneNumber,
+	)
+	if err != nil {
+		t.Errorf("an error occurred: %v", err)
+		return
 	}
 }
