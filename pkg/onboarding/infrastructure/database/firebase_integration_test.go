@@ -3165,3 +3165,162 @@ func TestUpdateAddresses(t *testing.T) {
 		})
 	}
 }
+
+func TestAddNHIFDetails(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+		return
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+		return
+	}
+	firestoreExtension := database.NewFirestoreClientExtension(fsc)
+	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+
+	photoID := uuid.New().String()
+	input := resources.NHIFDetailsInput{
+		MembershipNumber: "12345",
+		IDNumber:         "12345",
+		NHIFCardPhotoID:  photoID,
+	}
+
+	type args struct {
+		ctx       context.Context
+		input     resources.NHIFDetailsInput
+		profileID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy:) successfully add NHIF details",
+			args: args{
+				ctx:       ctx,
+				input:     input,
+				profileID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad:( unsuccessfully add NHIF details since it exists",
+			args: args{
+				ctx:       ctx,
+				input:     input,
+				profileID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad:( unsuccessfully add NHIF details",
+			args: args{
+				ctx:       context.Background(),
+				input:     input,
+				profileID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			nhif, err := fr.AddNHIFDetails(tt.args.ctx, tt.args.input, tt.args.profileID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.AddNHIFDetails() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && nhif != nil {
+				t.Errorf("the error was not expected")
+				return
+			}
+
+			if !tt.wantErr && nhif == nil {
+				t.Errorf("an error was expected: %v", err)
+				return
+			}
+		})
+	}
+}
+
+func TestGetNHIFDetailsByProfileID(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+		return
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+		return
+	}
+	firestoreExtension := database.NewFirestoreClientExtension(fsc)
+	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+
+	input := resources.NHIFDetailsInput{
+		MembershipNumber: "123456",
+		IDNumber:         "11111111",
+	}
+	profileID := uuid.New().String()
+	_, err = fr.AddNHIFDetails(ctx, input, profileID)
+	if err != nil {
+		t.Errorf("failed to add NHIF details")
+		return
+	}
+	type args struct {
+		ctx       context.Context
+		profileID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy:) successfully get NHIF details",
+			args: args{
+				ctx:       ctx,
+				profileID: profileID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad:( unsuccessfully get NHIF details",
+			args: args{
+				ctx:       ctx,
+				profileID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			nhif, err := fr.GetNHIFDetailsByProfileID(tt.args.ctx, tt.args.profileID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetNHIFDetailsByProfileID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && nhif != nil {
+				t.Errorf("the error was not expected")
+				return
+			}
+
+			if !tt.wantErr && nhif == nil {
+				t.Errorf("an error was expected: %v", err)
+				return
+			}
+		})
+	}
+}

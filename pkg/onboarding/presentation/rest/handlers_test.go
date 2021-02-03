@@ -61,10 +61,11 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	)
 	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
+	nhif := usecases.NewNHIFUseCases(r, profile, ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, otpSvc, supplier, login,
-		survey, userpin, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc,
+		survey, userpin, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, nhif,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

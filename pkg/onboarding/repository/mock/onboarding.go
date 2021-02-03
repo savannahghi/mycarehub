@@ -115,6 +115,17 @@ type FakeOnboardingRepository struct {
 
 	RemoveUserAsExperimentParticipantFn func(ctx context.Context, profile *base.UserProfile) (bool, error)
 
+	AddNHIFDetailsFn func(
+		ctx context.Context,
+		input resources.NHIFDetailsInput,
+		profileID string,
+	) (*domain.NHIFDetails, error)
+
+	GetNHIFDetailsByProfileIDFn func(
+		ctx context.Context,
+		profileID string,
+	) (*domain.NHIFDetails, error)
+
 	// Userprofile
 	UpdateUserNameFn                func(ctx context.Context, id string, phoneNumber string) error
 	UpdatePrimaryPhoneNumberFn      func(ctx context.Context, id string, phoneNumber string) error
@@ -425,4 +436,21 @@ func (f *FakeOnboardingRepository) UpdateAddresses(
 	addressType base.AddressType,
 ) error {
 	return f.UpdateAddressesFn(ctx, id, address, addressType)
+}
+
+// AddNHIFDetails ...
+func (f *FakeOnboardingRepository) AddNHIFDetails(
+	ctx context.Context,
+	input resources.NHIFDetailsInput,
+	profileID string,
+) (*domain.NHIFDetails, error) {
+	return f.AddNHIFDetailsFn(ctx, input, profileID)
+}
+
+// GetNHIFDetailsByProfileID ...
+func (f *FakeOnboardingRepository) GetNHIFDetailsByProfileID(
+	ctx context.Context,
+	profileID string,
+) (*domain.NHIFDetails, error) {
+	return f.GetNHIFDetailsByProfileIDFn(ctx, profileID)
 }

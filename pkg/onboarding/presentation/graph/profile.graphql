@@ -22,6 +22,8 @@ extend type Query {
   fetchKYCProcessingRequests: [KYCRequest!]
 
   getAddresses: UserAddresses!
+  
+  NHIFDetails: NHIFDetails!
 }
 
 extend type Mutation {
@@ -109,7 +111,9 @@ extend type Mutation {
 
   retireKYCProcessingRequest: Boolean!
 
-  setupAsExperimentParticipant(participate:Boolean): Boolean! 
+  setupAsExperimentParticipant(participate:Boolean): Boolean!
+
+  addNHIFDetails(input: NHIFDetailsInput!): NHIFDetails!
 
   addAddress(
     input: UserAddressInput!

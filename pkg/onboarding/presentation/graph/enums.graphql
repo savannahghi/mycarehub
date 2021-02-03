@@ -105,3 +105,8 @@ enum AddressType {
   HOME
   WORK
 }
+
+enum EmploymentType {
+  EMPLOYED
+  SELF_EMPLOYED
+}

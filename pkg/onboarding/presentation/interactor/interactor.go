@@ -28,17 +28,26 @@ type Interactor struct {
 	Engagement   engagement.ServiceEngagement
 	Mailgun      mailgun.ServiceMailgun
 	Messaging    messaging.ServiceMessaging
+	NHIF         usecases.NHIFUseCases
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
 func NewOnboardingInteractor(
-	fr repository.OnboardingRepository, profile usecases.ProfileUseCase,
-	su usecases.SignUpUseCases, otp otp.ServiceOTP,
-	supplier usecases.SupplierUseCases, login usecases.LoginUseCases,
-	survey usecases.SurveyUseCases, userpin usecases.UserPINUseCases,
-	erp erp.ServiceERP, chrg chargemaster.ServiceChargeMaster,
-	engage engagement.ServiceEngagement, mg mailgun.ServiceMailgun,
-	mes messaging.ServiceMessaging) (*Interactor, error) {
+	fr repository.OnboardingRepository,
+	profile usecases.ProfileUseCase,
+	su usecases.SignUpUseCases,
+	otp otp.ServiceOTP,
+	supplier usecases.SupplierUseCases,
+	login usecases.LoginUseCases,
+	survey usecases.SurveyUseCases,
+	userpin usecases.UserPINUseCases,
+	erp erp.ServiceERP,
+	chrg chargemaster.ServiceChargeMaster,
+	engage engagement.ServiceEngagement,
+	mg mailgun.ServiceMailgun,
+	mes messaging.ServiceMessaging,
+	nhif usecases.NHIFUseCases,
+) (*Interactor, error) {
 
 	return &Interactor{
 		Onboarding:   profile,
@@ -53,5 +62,6 @@ func NewOnboardingInteractor(
 		Engagement:   engage,
 		Mailgun:      mg,
 		Messaging:    mes,
+		NHIF:         nhif,
 	}, nil
 }

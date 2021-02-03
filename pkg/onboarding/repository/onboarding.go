@@ -134,4 +134,15 @@ type OnboardingRepository interface {
 	RemoveUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error)
 
 	CheckIfExperimentParticipant(ctx context.Context, profileID string) (bool, error)
+
+	AddNHIFDetails(
+		ctx context.Context,
+		input resources.NHIFDetailsInput,
+		profileID string,
+	) (*domain.NHIFDetails, error)
+
+	GetNHIFDetailsByProfileID(
+		ctx context.Context,
+		profileID string,
+	) (*domain.NHIFDetails, error)
 }

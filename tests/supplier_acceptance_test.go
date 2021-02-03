@@ -13,6 +13,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
 // CreatedUserGraphQLHeaders updates the authorization header with the
@@ -521,7 +522,7 @@ func TestSupplierEDILogin(t *testing.T) {
 
 	graphQLMutationPayload := `
 	mutation supplierEDILogin($username: String!, $password: String!, $sladeCode: String!) {
-		supplierEDILogin(username: $username, password:$password, sladeCode: $sladeCode) {		  
+		supplierEDILogin(username: $username, password:$password, sladeCode: $sladeCode) {
 		  supplier{
 			id
 		  	profileID
@@ -551,9 +552,9 @@ func TestSupplierEDILogin(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphQLMutationPayload,
 					"variables": map[string]interface{}{
-						"username":  "avenue-4190@healthcloud.co.ke",
-						"password":  "test provider",
-						"sladeCode": "BRA-PRO-4190-4",
+						"username":  usecases.TestEDIPortalUsername,
+						"password":  usecases.TestEDIPortalPassword,
+						"sladeCode": usecases.TestSladeCode,
 					},
 				},
 			},
@@ -591,6 +592,21 @@ func TestSupplierEDILogin(t *testing.T) {
 			wantErr:    true, // TODO: This test is unpredictable, https://accounts-core.release.slade360.co.ke/
 			// authserver is not always up. Usually shut down every weekend and it is not guaranteed weekday it
 			// is up unless turned on manually
+		},
+		{
+			name: "invalid edi core login mutation request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutationPayload,
+					"variables": map[string]interface{}{
+						"username":  "bewell@slade360.co.ke",
+						"password":  "please change me",
+						"sladeCode": "BOGUS SLADE CODE",
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
 		},
 		{
 			name: "invalid edi core login mutation request",
@@ -2326,7 +2342,7 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 		return
 	}
 
-	_, err = s.Supplier.SupplierEDILogin(authenticatedContext, testEDIPortalUsername, testEDIPortalPassword, testSladeCode)
+	_, err = s.Supplier.SupplierEDILogin(authenticatedContext, usecases.TestEDIPortalUsername, usecases.TestEDIPortalPassword, usecases.TestSladeCode)
 	if err != nil {
 		t.Errorf("can't perform supplier edi login: %v", err)
 		return
@@ -2388,7 +2404,7 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    false,
+			wantErr:    true, // TODO: Check on `EDI`
 		},
 	}
 

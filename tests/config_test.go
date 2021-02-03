@@ -42,9 +42,6 @@ const (
 )
 
 const (
-	testSladeCode            = "BRA-PRO-4190-4"
-	testEDIPortalUsername    = "avenue-4190@healthcloud.co.ke"
-	testEDIPortalPassword    = "test provider"
 	testChargeMasterBranchID = "94294577-6b27-4091-9802-1ce0f2ce4153"
 	otpService               = "otp"
 	mailgunService           = "mailgun"
@@ -111,6 +108,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	survey := usecases.NewSurveyUseCases(fr, ext)
 	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, ext)
+	nhif := usecases.NewNHIFUseCases(fr, profile, ext)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -123,6 +121,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		ERP:          erp,
 		ChargeMaster: chrg,
 		Engagement:   engage,
+		NHIF:         nhif,
 	}, nil
 }
 

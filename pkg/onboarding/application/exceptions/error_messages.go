@@ -155,4 +155,10 @@ const (
 	// because of an unexpected `Status code` being returned
 	// It takes the `flavour`, `name` and a `StatusCode` f orthe nudge to be more specific
 	ResolveNudgeBadStatusErrMsg = "failed to resolve %v `%s` nudge with status code %v"
+
+	// NHIFNotFoundErrMsg is the error message displayed when a NHIF is not found
+	NHIFNotFoundErrMsg = "failed to get the user's NHIF details"
+
+	// RecordExistsErrMsg is the error message displayed an existing record is found
+	RecordExistsErrMsg = "a similar record has been found in the database"
 )

@@ -281,5 +281,14 @@ input UserAddressInput {
   locality: String
   name: String
   placeID: String
-  formattedAddress: String
+  formattedAddress: String 
+}
+
+input NHIFDetailsInput {
+  membershipNumber: String!
+  employment: EmploymentType!
+  idDocType: IdentificationDocType!
+	idNumber: String!
+	identificationCardPhotoID: String!                     
+	NHIFCardPhotoID: String!                  
 }

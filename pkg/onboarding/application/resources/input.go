@@ -215,3 +215,13 @@ type UserAddressInput struct {
 	PlaceID          *string `json:"placeID"`
 	FormattedAddress *string `json:"formattedAddress"`
 }
+
+// NHIFDetailsInput represents a user's thin NHIF input details
+type NHIFDetailsInput struct {
+	MembershipNumber          string                       `json:"membershipNumber"`
+	Employment                domain.EmploymentType        `json:"employmentType"`
+	IDDocType                 domain.IdentificationDocType `json:"IDDocType"`
+	IDNumber                  string                       `json:"IDNumber"`
+	IdentificationCardPhotoID string                       `json:"identificationCardPhotoID"`
+	NHIFCardPhotoID           string                       `json:"nhifCardPhotoID"`
+}

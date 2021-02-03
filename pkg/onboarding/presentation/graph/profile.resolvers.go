@@ -156,6 +156,10 @@ func (r *mutationResolver) SetupAsExperimentParticipant(ctx context.Context, par
 	return r.interactor.Onboarding.SetupAsExperimentParticipant(ctx, participate)
 }
 
+func (r *mutationResolver) AddNHIFDetails(ctx context.Context, input resources.NHIFDetailsInput) (*domain.NHIFDetails, error) {
+	return r.interactor.NHIF.AddNHIFDetails(ctx, input)
+}
+
 func (r *mutationResolver) AddAddress(ctx context.Context, input resources.UserAddressInput, addressType base.AddressType) (*base.Address, error) {
 	return r.interactor.Onboarding.AddAddress(
 		ctx,
@@ -194,6 +198,10 @@ func (r *queryResolver) FetchKYCProcessingRequests(ctx context.Context) ([]*doma
 
 func (r *queryResolver) GetAddresses(ctx context.Context) (*domain.UserAddresses, error) {
 	return r.interactor.Onboarding.GetAddresses(ctx)
+}
+
+func (r *queryResolver) NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error) {
+	return r.interactor.NHIF.NHIFDetails(ctx)
 }
 
 // Mutation returns generated.MutationResolver implementation.

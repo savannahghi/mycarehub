@@ -12,7 +12,7 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
-	github.com/aws/aws-sdk-go v1.37.4 // indirect
+	github.com/aws/aws-sdk-go v1.37.5 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/google/pprof v0.0.0-20210125172800-10e9aeb4a998 // indirect
 	github.com/google/uuid v1.2.0

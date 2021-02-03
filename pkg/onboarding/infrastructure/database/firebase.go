@@ -30,6 +30,7 @@ const (
 	profileNudgesCollectionName         = "profile_nudges"
 	kycProcessCollectionName            = "kyc_processing"
 	experimentParticipantCollectionName = "experiment_participants"
+	nhifDetailsCollectionName           = "nhif_details"
 
 	firebaseExchangeRefreshTokenURL = "https://securetoken.googleapis.com/v1/token?key="
 )
@@ -93,6 +94,12 @@ func (fr Repository) GetKCYProcessCollectionName() string {
 // GetExperimentParticipantCollectionName fetches the collection where experiment participant will be saved
 func (fr *Repository) GetExperimentParticipantCollectionName() string {
 	suffixed := base.SuffixCollection(experimentParticipantCollectionName)
+	return suffixed
+}
+
+// GetNHIFDetailsCollectionName ...
+func (fr Repository) GetNHIFDetailsCollectionName() string {
+	suffixed := base.SuffixCollection(nhifDetailsCollectionName)
 	return suffixed
 }
 
@@ -2108,4 +2115,101 @@ func (fr *Repository) UpdateAddresses(
 		return exceptions.InternalServerError(err)
 	}
 	return nil
+}
+
+// AddNHIFDetails persists a user's NHIF details
+func (fr *Repository) AddNHIFDetails(
+	ctx context.Context,
+	input resources.NHIFDetailsInput,
+	profileID string,
+) (*domain.NHIFDetails, error) {
+	// Do a check if the item exists
+	collectionName := fr.GetNHIFDetailsCollectionName()
+	query := &GetAllQuery{
+		CollectionName: collectionName,
+		FieldName:      "membershipNumber",
+		Value:          input.MembershipNumber,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	if len(docs) > 0 {
+		return nil, exceptions.RecordExistsError(fmt.Errorf("record exists"))
+	}
+
+	nhifDetails := domain.NHIFDetails{
+		ID:                        uuid.New().String(),
+		ProfileID:                 profileID,
+		MembershipNumber:          input.MembershipNumber,
+		Employment:                input.Employment,
+		IDDocType:                 input.IDDocType,
+		IDNumber:                  input.IDNumber,
+		IdentificationCardPhotoID: input.IdentificationCardPhotoID,
+		NHIFCardPhotoID:           input.NHIFCardPhotoID,
+	}
+
+	createCommand := &CreateCommand{
+		CollectionName: collectionName,
+		Data:           nhifDetails,
+	}
+	docRef, err := fr.FirestoreClient.Create(ctx, createCommand)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	getNhifQuery := &GetSingleQuery{
+		CollectionName: collectionName,
+		Value:          docRef.ID,
+	}
+	dsnap, err := fr.FirestoreClient.Get(ctx, getNhifQuery)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	nhif := &domain.NHIFDetails{}
+	err = dsnap.DataTo(nhif)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	return nhif, nil
+}
+
+// GetNHIFDetailsByProfileID fetches a user's NHIF details given their profile ID
+func (fr *Repository) GetNHIFDetailsByProfileID(
+	ctx context.Context,
+	profileID string,
+) (*domain.NHIFDetails, error) {
+	query := &GetAllQuery{
+		CollectionName: fr.GetNHIFDetailsCollectionName(),
+		FieldName:      "profileID",
+		Value:          profileID,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	if len(docs) > 1 && base.IsDebug() {
+		log.Printf("> 1 NHIF details with profile ID %s (count: %d)",
+			profileID,
+			len(docs),
+		)
+	}
+
+	if len(docs) == 0 {
+		return nil, exceptions.NHIFNotFoundError(fmt.Errorf("failed to get NHIF details"))
+	}
+
+	nhif := &domain.NHIFDetails{}
+	err = docs[0].DataTo(nhif)
+	if err != nil {
+		return nil, err
+	}
+
+	return nhif, nil
 }

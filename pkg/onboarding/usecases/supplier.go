@@ -45,6 +45,15 @@ const (
 	// PartnerAccountSetupNudgeTitle is the title defined in the `engagement service`
 	// for the `PartnerAccountSetupNudge`
 	PartnerAccountSetupNudgeTitle = "Setup your partner account"
+
+	// TestSladeCode is a test slade code for `test` EDI Login
+	TestSladeCode = "BRA-PRO-3873-4"
+
+	// TestEDIPortalUsername is a test username for `test` EDI Login
+	TestEDIPortalUsername = "malibu.pharmacy-3873@healthcloud.co.ke"
+
+	// TestEDIPortalPassword is a test passowrd for `test` EDI Login
+	TestEDIPortalPassword = "test provider one"
 )
 
 // SupplierUseCases represent the business logic required for management of suppliers

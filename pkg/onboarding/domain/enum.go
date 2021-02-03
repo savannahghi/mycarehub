@@ -363,3 +363,50 @@ func (e *KYCProcessStatus) UnmarshalGQL(v interface{}) error {
 func (e KYCProcessStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
+
+// EmploymentType ...
+type EmploymentType string
+
+// EmploymentTypeEmployed ..
+const (
+	EmploymentTypeEmployed     EmploymentType = "EMPLOYED"
+	EmploymentTypeSelfEmployed EmploymentType = "SELF_EMPLOYED"
+)
+
+// AllEmploymentType ..
+var AllEmploymentType = []EmploymentType{
+	EmploymentTypeEmployed,
+	EmploymentTypeSelfEmployed,
+}
+
+// IsValid ..
+func (e EmploymentType) IsValid() bool {
+	switch e {
+	case EmploymentTypeEmployed, EmploymentTypeSelfEmployed:
+		return true
+	}
+	return false
+}
+
+func (e EmploymentType) String() string {
+	return string(e)
+}
+
+// UnmarshalGQL ..
+func (e *EmploymentType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EmploymentType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EmploymentType", str)
+	}
+	return nil
+}
+
+// MarshalGQL ..
+func (e EmploymentType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
