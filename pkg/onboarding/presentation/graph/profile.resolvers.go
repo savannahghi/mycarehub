@@ -156,7 +156,7 @@ func (r *mutationResolver) SetupAsExperimentParticipant(ctx context.Context, par
 	return r.interactor.Onboarding.SetupAsExperimentParticipant(ctx, participate)
 }
 
-func (r *mutationResolver) AddAddress(ctx context.Context, input resources.AddressInput, addressType base.AddressType) (*base.Address, error) {
+func (r *mutationResolver) AddAddress(ctx context.Context, input resources.UserAddressInput, addressType base.AddressType) (*base.Address, error) {
 	return r.interactor.Onboarding.AddAddress(
 		ctx,
 		input,

@@ -201,7 +201,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAddress                       func(childComplexity int, input resources.AddressInput, addressType base.AddressType) int
+		AddAddress                       func(childComplexity int, input resources.UserAddressInput, addressType base.AddressType) int
 		AddIndividualCoachKyc            func(childComplexity int, input domain.IndividualCoach) int
 		AddIndividualNutritionKyc        func(childComplexity int, input domain.IndividualNutrition) int
 		AddIndividualPharmaceuticalKyc   func(childComplexity int, input domain.IndividualPharmaceutical) int
@@ -463,7 +463,7 @@ type MutationResolver interface {
 	RecordPostVisitSurvey(ctx context.Context, input resources.PostVisitSurveyInput) (bool, error)
 	RetireKYCProcessingRequest(ctx context.Context) (bool, error)
 	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
-	AddAddress(ctx context.Context, input resources.AddressInput, addressType base.AddressType) (*base.Address, error)
+	AddAddress(ctx context.Context, input resources.UserAddressInput, addressType base.AddressType) (*base.Address, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -1144,7 +1144,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddAddress(childComplexity, args["input"].(resources.AddressInput), args["addressType"].(base.AddressType)), true
+		return e.complexity.Mutation.AddAddress(childComplexity, args["input"].(resources.UserAddressInput), args["addressType"].(base.AddressType)), true
 
 	case "Mutation.addIndividualCoachKYC":
 		if e.complexity.Mutation.AddIndividualCoachKyc == nil {
@@ -3047,7 +3047,7 @@ input OrganizationPharmaceuticalInput {
   practiceLicenseUploadID: String
 }
 
-input AddressInput {
+input UserAddressInput {
   latitude: Float!
   longitude: Float!
   locality: String
@@ -3169,7 +3169,7 @@ extend type Mutation {
   setupAsExperimentParticipant(participate:Boolean): Boolean! 
 
   addAddress(
-    input: AddressInput!
+    input: UserAddressInput!
     addressType: AddressType!
   ): Address!
 }
@@ -3637,10 +3637,10 @@ func (ec *executionContext) field_Entity_findUserProfileByID_args(ctx context.Co
 func (ec *executionContext) field_Mutation_addAddress_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 resources.AddressInput
+	var arg0 resources.UserAddressInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐAddressInput(ctx, tmp)
+		arg0, err = ec.unmarshalNUserAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐUserAddressInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8689,7 +8689,7 @@ func (ec *executionContext) _Mutation_addAddress(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddAddress(rctx, args["input"].(resources.AddressInput), args["addressType"].(base.AddressType))
+		return ec.resolvers.Mutation().AddAddress(rctx, args["input"].(resources.UserAddressInput), args["addressType"].(base.AddressType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14519,66 +14519,6 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputAddressInput(ctx context.Context, obj interface{}) (resources.AddressInput, error) {
-	var it resources.AddressInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "latitude":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latitude"))
-			it.Latitude, err = ec.unmarshalNFloat2float64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "longitude":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("longitude"))
-			it.Longitude, err = ec.unmarshalNFloat2float64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "locality":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locality"))
-			it.Locality, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "name":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "placeID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("placeID"))
-			it.PlaceID, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "formattedAddress":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("formattedAddress"))
-			it.FormattedAddress, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputBeneficiaryInput(ctx context.Context, obj interface{}) (model.BeneficiaryInput, error) {
 	var it model.BeneficiaryInput
 	var asMap = obj.(map[string]interface{})
@@ -16010,6 +15950,66 @@ func (ec *executionContext) unmarshalInputSortParam(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortOrder"))
 			it.SortOrder, err = ec.unmarshalNSortOrder2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUserAddressInput(ctx context.Context, obj interface{}) (resources.UserAddressInput, error) {
+	var it resources.UserAddressInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "latitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latitude"))
+			it.Latitude, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "longitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("longitude"))
+			it.Longitude, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "locality":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locality"))
+			it.Locality, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "placeID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("placeID"))
+			it.PlaceID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "formattedAddress":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("formattedAddress"))
+			it.FormattedAddress, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18387,11 +18387,6 @@ func (ec *executionContext) marshalNAddress2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 	return ec._Address(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐAddressInput(ctx context.Context, v interface{}) (resources.AddressInput, error) {
-	res, err := ec.unmarshalInputAddressInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNAddressType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddressType(ctx context.Context, v interface{}) (base.AddressType, error) {
 	var res base.AddressType
 	err := res.UnmarshalGQL(v)
@@ -19111,6 +19106,11 @@ func (ec *executionContext) marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcom�
 
 func (ec *executionContext) marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx context.Context, sel ast.SelectionSet, v domain.ThinAddress) graphql.Marshaler {
 	return ec._ThinAddress(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalNUserAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐUserAddressInput(ctx context.Context, v interface{}) (resources.UserAddressInput, error) {
+	res, err := ec.unmarshalInputUserAddressInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNUserAddresses2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserAddresses(ctx context.Context, sel ast.SelectionSet, v domain.UserAddresses) graphql.Marshaler {

@@ -206,8 +206,8 @@ type UIDsPayload struct {
 	UIDs []string `json:"uids"`
 }
 
-// AddressInput represents a user's geo location input
-type AddressInput struct {
+// UserAddressInput represents a user's geo location input
+type UserAddressInput struct {
 	Latitude         float64 `json:"latitude"`
 	Longitude        float64 `json:"longitude"`
 	Locality         *string `json:"locality"`

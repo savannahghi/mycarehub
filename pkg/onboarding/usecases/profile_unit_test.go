@@ -2487,13 +2487,13 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
-	addr := resources.AddressInput{
+	addr := resources.UserAddressInput{
 		Latitude:  1.2,
 		Longitude: -34.001,
 	}
 	type args struct {
 		ctx         context.Context
-		input       resources.AddressInput
+		input       resources.UserAddressInput
 		addressType base.AddressType
 	}
 	tests := []struct {

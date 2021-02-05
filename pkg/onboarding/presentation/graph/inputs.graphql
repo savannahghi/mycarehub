@@ -275,7 +275,7 @@ input OrganizationPharmaceuticalInput {
   practiceLicenseUploadID: String
 }
 
-input AddressInput {
+input UserAddressInput {
   latitude: Float!
   longitude: Float!
   locality: String

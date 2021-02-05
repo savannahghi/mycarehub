@@ -112,7 +112,7 @@ extend type Mutation {
   setupAsExperimentParticipant(participate:Boolean): Boolean! 
 
   addAddress(
-    input: AddressInput!
+    input: UserAddressInput!
     addressType: AddressType!
   ): Address!
 }

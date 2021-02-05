@@ -1739,7 +1739,7 @@ func TestGraphQLAddAddress(t *testing.T) {
 	headers := setUpLoggedInTestUserGraphHeaders(t)
 
 	graphqlMutation := `
-	mutation addAddress($input: AddressInput!, $addrType: AddressType!){
+	mutation addAddress($input: UserAddressInput!, $addrType: AddressType!){
 		addAddress(input: $input, addressType: $addrType){
 			latitude
 			longitude

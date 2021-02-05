@@ -1497,14 +1497,14 @@ func TestAddAddress(t *testing.T) {
 		return
 	}
 
-	addr := resources.AddressInput{
+	addr := resources.UserAddressInput{
 		Latitude:  1.2,
 		Longitude: -34.001,
 	}
 
 	type args struct {
 		ctx         context.Context
-		input       resources.AddressInput
+		input       resources.UserAddressInput
 		addressType base.AddressType
 	}
 	tests := []struct {
@@ -1563,7 +1563,7 @@ func TestGetAddresses(t *testing.T) {
 		return
 	}
 
-	addr := resources.AddressInput{
+	addr := resources.UserAddressInput{
 		Latitude:  1.2,
 		Longitude: -34.001,
 	}
@@ -1661,7 +1661,7 @@ func TestIntegrationGetAddresses(t *testing.T) {
 
 	addr, err := s.Onboarding.AddAddress(
 		authenticatedContext,
-		resources.AddressInput{
+		resources.UserAddressInput{
 			Latitude:  lat,
 			Longitude: long,
 		},

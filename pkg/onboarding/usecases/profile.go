@@ -116,7 +116,7 @@ type ProfileUseCase interface {
 
 	AddAddress(
 		ctx context.Context,
-		input resources.AddressInput,
+		input resources.UserAddressInput,
 		addressType base.AddressType,
 	) (*base.Address, error)
 
@@ -898,7 +898,7 @@ func (p *ProfileUseCaseImpl) SetupAsExperimentParticipant(ctx context.Context, p
 // AddAddress adds a user's home or work address to thir user's profile
 func (p *ProfileUseCaseImpl) AddAddress(
 	ctx context.Context,
-	input resources.AddressInput,
+	input resources.UserAddressInput,
 	addressType base.AddressType,
 ) (*base.Address, error) {
 	var address *base.Address
