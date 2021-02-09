@@ -97,7 +97,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	survey := usecases.NewSurveyUseCases(fr, baseExt)
 	userpin := usecases.NewUserPinUseCase(fr, otp, profile, baseExt, pinExt)
 	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, baseExt)
-	nhif := usecases.NewNHIFUseCases(fr, profile, baseExt)
+	nhif := usecases.NewNHIFUseCases(fr, profile, baseExt, engage)
 
 	i, err := interactor.NewOnboardingInteractor(
 		fr, profile, su, otp, supplier, login, survey, userpin, erp, chrg, engage, mg, mes, nhif,

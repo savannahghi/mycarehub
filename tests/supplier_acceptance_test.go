@@ -13,7 +13,17 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
+)
+
+const (
+	// TestSladeCode is a test slade code for `test` EDI Login
+	TestSladeCode = "BRA-PRO-3873-4"
+
+	// TestEDIPortalUsername is a test username for `test` EDI Login
+	TestEDIPortalUsername = "malibu.pharmacy-3873@healthcloud.co.ke"
+
+	// TestEDIPortalPassword is a test passowrd for `test` EDI Login
+	TestEDIPortalPassword = "test provider one"
 )
 
 // CreatedUserGraphQLHeaders updates the authorization header with the
@@ -552,9 +562,9 @@ func TestSupplierEDILogin(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphQLMutationPayload,
 					"variables": map[string]interface{}{
-						"username":  usecases.TestEDIPortalUsername,
-						"password":  usecases.TestEDIPortalPassword,
-						"sladeCode": usecases.TestSladeCode,
+						"username":  TestEDIPortalUsername,
+						"password":  TestEDIPortalPassword,
+						"sladeCode": TestSladeCode,
 					},
 				},
 			},
@@ -2342,7 +2352,7 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 		return
 	}
 
-	_, err = s.Supplier.SupplierEDILogin(authenticatedContext, usecases.TestEDIPortalUsername, usecases.TestEDIPortalPassword, usecases.TestSladeCode)
+	_, err = s.Supplier.SupplierEDILogin(authenticatedContext, TestEDIPortalUsername, TestEDIPortalPassword, TestSladeCode)
 	if err != nil {
 		t.Errorf("can't perform supplier edi login: %v", err)
 		return

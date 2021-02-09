@@ -70,23 +70,24 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad:( fail to resolve add NHIF nudge",
+			args: args{
+				ctx:   ctx,
+				input: validInput,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "happy:) successfully add NHIF Details" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+					return uuid.New().String(), nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
-							{
-								UID: uid,
-							},
-						},
-					}, nil
+					return &base.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeRepo.AddNHIFDetailsFn = func(ctx context.Context, input resources.NHIFDetailsInput, profileID string) (*domain.NHIFDetails, error) {
@@ -97,22 +98,23 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 						IDNumber:         "12345",
 					}, nil
 				}
+
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) error {
+					return nil
+				}
 			}
 
 			if tt.name == "sad:( fail to add NHIF Details" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+					return uuid.New().String(), nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
-							{
-								UID: uid,
-							},
-						},
-					}, nil
+					return &base.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeRepo.AddNHIFDetailsFn = func(ctx context.Context, input resources.NHIFDetailsInput, profileID string) (*domain.NHIFDetails, error) {
@@ -122,7 +124,7 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 
 			if tt.name == "sad:( fail to get a user profile" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+					return uuid.New().String(), nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
@@ -133,6 +135,33 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 			if tt.name == "sad:( fail to get logged in user" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			if tt.name == "sad:( fail to resolve add NHIF nudge" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: uuid.New().String()}, nil
+				}
+
+				fakeRepo.AddNHIFDetailsFn = func(ctx context.Context, input resources.NHIFDetailsInput, profileID string) (*domain.NHIFDetails, error) {
+					return &domain.NHIFDetails{
+						ID:               uuid.New().String(),
+						ProfileID:        profileID,
+						MembershipNumber: "12345",
+						IDNumber:         "12345",
+					}, nil
+				}
+
+				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					UID string,
+					flavour base.Flavour,
+					nudgeTitle string,
+				) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 			got, err := i.NHIF.AddNHIFDetails(tt.args.ctx, tt.args.input)

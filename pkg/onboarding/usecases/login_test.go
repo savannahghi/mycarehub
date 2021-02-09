@@ -162,7 +162,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	survey := usecases.NewSurveyUseCases(fr, ext)
 	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, ext)
-	nhif := usecases.NewNHIFUseCases(fr, profile, ext)
+	nhif := usecases.NewNHIFUseCases(fr, profile, ext, engage)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -384,7 +384,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	)
 	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
-	nhif := usecases.NewNHIFUseCases(r, profile, ext)
+	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, otpSvc, supplier, login,

@@ -11,10 +11,18 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
 const (
+	// TestSladeCode is a test slade code for `test` EDI Login
+	TestSladeCode = "BRA-PRO-3873-4"
+
+	// TestEDIPortalUsername is a test username for `test` EDI Login
+	TestEDIPortalUsername = "malibu.pharmacy-3873@healthcloud.co.ke"
+
+	// TestEDIPortalPassword is a test passowrd for `test` EDI Login
+	TestEDIPortalPassword = "test provider one"
+
 	testChargeMasterParentOrgId = "83d3479d-e902-4aab-a27d-6d5067454daf"
 	testChargeMasterBranchID    = "94294577-6b27-4091-9802-1ce0f2ce4153"
 )
@@ -1624,7 +1632,7 @@ func TestSupplierEDILogin(t *testing.T) {
 	assert.Equal(t, false, resp3.Active)
 	assert.Nil(t, resp3.EDIUserProfile)
 
-	resp4, err := s.Supplier.SupplierEDILogin(authenticatedContext, usecases.TestEDIPortalUsername, usecases.TestEDIPortalPassword, usecases.TestSladeCode)
+	resp4, err := s.Supplier.SupplierEDILogin(authenticatedContext, TestEDIPortalUsername, TestEDIPortalPassword, TestSladeCode)
 	assert.Nil(t, err)
 	assert.NotNil(t, resp4)
 	assert.NotNil(t, resp4.Supplier)
@@ -1694,7 +1702,7 @@ func TestFetchSupplierAllowedLocations(t *testing.T) {
 	assert.Equal(t, false, resp3.Active)
 	assert.Nil(t, resp3.EDIUserProfile)
 
-	resp4, err := s.Supplier.SupplierEDILogin(authenticatedContext, usecases.TestEDIPortalUsername, usecases.TestEDIPortalPassword, usecases.TestSladeCode)
+	resp4, err := s.Supplier.SupplierEDILogin(authenticatedContext, TestEDIPortalUsername, TestEDIPortalPassword, TestSladeCode)
 	assert.Nil(t, err)
 	assert.NotNil(t, resp4)
 	assert.NotNil(t, resp4.Supplier)
@@ -2069,8 +2077,8 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 		t.Errorf("unable to initialize test service")
 		return
 	}
-	validUsername := usecases.TestEDIPortalUsername
-	validPassword := usecases.TestEDIPortalPassword
+	validUsername := TestEDIPortalUsername
+	validPassword := TestEDIPortalPassword
 
 	invalidUsername := "username"
 	invalidPassword := "password"
