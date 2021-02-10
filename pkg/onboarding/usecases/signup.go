@@ -229,7 +229,12 @@ func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Fl
 			return false, exceptions.CompleteSignUpError(nil)
 		}
 		fullName := fmt.Sprintf("%v %v", *pr.UserBioData.FirstName, *pr.UserBioData.LastName)
-		_, _ = s.supplierUsecase.AddCustomerSupplierERPAccount(ctx, fullName, base.PartnerTypeConsumer)
+
+		// todo(dexter): replace this with pubsub
+		go func() {
+			_, _ = s.supplierUsecase.AddCustomerSupplierERPAccount(ctx, fullName, base.PartnerTypeConsumer)
+		}()
+
 		return true, nil
 	}
 	return false, exceptions.InvalidFlavourDefinedError()
