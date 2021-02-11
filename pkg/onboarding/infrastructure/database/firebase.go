@@ -2202,7 +2202,7 @@ func (fr *Repository) GetNHIFDetailsByProfileID(
 	}
 
 	if len(docs) == 0 {
-		return nil, exceptions.NHIFNotFoundError(fmt.Errorf("failed to get NHIF details"))
+		return nil, nil
 	}
 
 	nhif := &domain.NHIFDetails{}

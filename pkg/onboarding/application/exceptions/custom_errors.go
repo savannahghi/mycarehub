@@ -438,15 +438,6 @@ func ResolveNudgeErr(
 	}
 }
 
-// NHIFNotFoundError displays error message when a NHIF is not found
-func NHIFNotFoundError(err error) error {
-	return &base.CustomError{
-		Err:     err,
-		Message: NHIFNotFoundErrMsg,
-		Code:    int(base.Internal),
-	}
-}
-
 // RecordExistsError is the error message displayed when a
 // similar record is found in the DB
 func RecordExistsError(err error) error {

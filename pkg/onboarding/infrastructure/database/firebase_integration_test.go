@@ -3297,12 +3297,12 @@ func TestGetNHIFDetailsByProfileID(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "sad:( unsuccessfully get NHIF details",
+			name: "sad:( get NHIF details that don't exist",
 			args: args{
 				ctx:       ctx,
 				profileID: uuid.New().String(),
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -3314,11 +3314,6 @@ func TestGetNHIFDetailsByProfileID(t *testing.T) {
 			}
 			if tt.wantErr && nhif != nil {
 				t.Errorf("the error was not expected")
-				return
-			}
-
-			if !tt.wantErr && nhif == nil {
-				t.Errorf("an error was expected: %v", err)
 				return
 			}
 		})

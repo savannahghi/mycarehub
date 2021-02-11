@@ -217,6 +217,13 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "happy:) successfully return nil NHIF details",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+		{
 			name: "happy:) fail to return NHIF Details",
 			args: args{
 				ctx: ctx,
@@ -267,6 +274,27 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 				}
 			}
 
+			if tt.name == "happy:) successfully return nil NHIF details" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+						VerifiedIdentifiers: []base.VerifiedIdentifier{
+							{
+								UID: uid,
+							},
+						},
+					}, nil
+				}
+
+				fakeRepo.GetNHIFDetailsByProfileIDFn = func(ctx context.Context, profileID string) (*domain.NHIFDetails, error) {
+					return nil, nil
+				}
+			}
+
 			if tt.name == "happy:) fail to return NHIF Details" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return uuid.New().String(), nil
@@ -304,7 +332,7 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 				}
 			}
 
-			got, err := i.NHIF.NHIFDetails(tt.args.ctx)
+			_, err := i.NHIF.NHIFDetails(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NHIFUseCaseImpl.NHIFDetails() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -320,11 +348,6 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 			if !tt.wantErr {
 				if err != nil {
 					t.Errorf("error not expected got %v", err)
-					return
-				}
-
-				if got == nil {
-					t.Errorf("nil response returned")
 					return
 				}
 			}
