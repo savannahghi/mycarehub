@@ -64,6 +64,9 @@ models:
   IdentificationInput:
     model:
       - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.Identification
+  SupportingDocumentInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.SupportingDocument    
   IndividualRiderInput:
     model:
       - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.IndividualRider

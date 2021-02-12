@@ -927,6 +927,7 @@ func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(ctx context.Context, su
 		Processed:           false,
 		SupplierRecord:      sup,
 		Status:              domain.KYCProcessStatusPending,
+		FiledTimestamp:      time.Now().In(domain.TimeLocation),
 	}
 
 	return s.repo.StageKYCProcessingRequest(ctx, r)
@@ -956,13 +957,7 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input 
 			DrivingLicenseID:               input.DrivingLicenseID,
 			DrivingLicenseUploadID:         input.DrivingLicenseUploadID,
 			CertificateGoodConductUploadID: input.CertificateGoodConductUploadID,
-		}
-
-		if len(input.SupportingDocumentsUploadID) != 0 {
-			ids := []string{}
-			ids = append(ids, input.SupportingDocumentsUploadID...)
-
-			kyc.SupportingDocumentsUploadID = ids
+			SupportingDocuments:            input.SupportingDocuments,
 		}
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
@@ -1010,16 +1005,9 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(ctx context.Context, inpu
 			}(input.DirectorIdentifications),
 			OrganizationCertificate: input.OrganizationCertificate,
 
-			KRAPIN:                      input.KRAPIN,
-			KRAPINUploadID:              input.KRAPINUploadID,
-			SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-		}
-
-		if len(input.SupportingDocumentsUploadID) != 0 {
-			ids := []string{}
-			ids = append(ids, input.SupportingDocumentsUploadID...)
-
-			kyc.SupportingDocumentsUploadID = ids
+			KRAPIN:              input.KRAPIN,
+			KRAPINUploadID:      input.KRAPINUploadID,
+			SupportingDocuments: input.SupportingDocuments,
 		}
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
@@ -1062,21 +1050,14 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context,
 				return domain.Identification(p)
 			}(input.IdentificationDoc),
 
-			KRAPIN:                      input.KRAPIN,
-			KRAPINUploadID:              input.KRAPINUploadID,
-			SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-			RegistrationNumber:          input.RegistrationNumber,
-			PracticeLicenseID:           input.PracticeLicenseID,
-			PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
-			PracticeServices:            input.PracticeServices,
-			Cadre:                       input.Cadre,
-		}
-
-		if len(input.SupportingDocumentsUploadID) != 0 {
-			ids := []string{}
-			ids = append(ids, input.SupportingDocumentsUploadID...)
-
-			kyc.SupportingDocumentsUploadID = ids
+			KRAPIN:                  input.KRAPIN,
+			KRAPINUploadID:          input.KRAPINUploadID,
+			RegistrationNumber:      input.RegistrationNumber,
+			PracticeLicenseID:       input.PracticeLicenseID,
+			PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+			PracticeServices:        input.PracticeServices,
+			Cadre:                   input.Cadre,
+			SupportingDocuments:     input.SupportingDocuments,
 		}
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
@@ -1115,7 +1096,6 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Contex
 			OrganizationTypeName:               input.OrganizationTypeName,
 			KRAPIN:                             input.KRAPIN,
 			KRAPINUploadID:                     input.KRAPINUploadID,
-			SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
 			RegistrationNumber:                 input.RegistrationNumber,
 			PracticeLicenseID:                  input.PracticeLicenseID,
 			PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
@@ -1131,13 +1111,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Contex
 				return pl
 			}(input.DirectorIdentifications),
 			OrganizationCertificate: input.OrganizationCertificate,
-		}
-
-		if len(input.SupportingDocumentsUploadID) != 0 {
-			ids := []string{}
-			ids = append(ids, input.SupportingDocumentsUploadID...)
-
-			kyc.SupportingDocumentsUploadID = ids
+			SupportingDocuments:     input.SupportingDocuments,
 		}
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
@@ -1172,10 +1146,6 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, i
 			return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
 		}
 
-		if !input.Cadre.IsValid() {
-			return nil, fmt.Errorf("invalid `Cadre` provided : %v", input.Cadre.String())
-		}
-
 		for _, practiceService := range input.PracticeServices {
 			if !practiceService.IsValid() {
 				return nil, fmt.Errorf("invalid `PracticeService` provided : %v", practiceService.String())
@@ -1186,12 +1156,10 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, i
 			OrganizationTypeName:               input.OrganizationTypeName,
 			KRAPIN:                             input.KRAPIN,
 			KRAPINUploadID:                     input.KRAPINUploadID,
-			SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
 			RegistrationNumber:                 input.RegistrationNumber,
 			PracticeLicenseID:                  input.PracticeLicenseID,
 			PracticeLicenseUploadID:            input.PracticeLicenseUploadID,
 			PracticeServices:                   input.PracticeServices,
-			Cadre:                              input.Cadre,
 			CertificateOfIncorporation:         input.CertificateOfIncorporation,
 			CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
 			DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
@@ -1202,13 +1170,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, i
 				return pl
 			}(input.DirectorIdentifications),
 			OrganizationCertificate: input.OrganizationCertificate,
-		}
-
-		if len(input.SupportingDocumentsUploadID) != 0 {
-			ids := []string{}
-			ids = append(ids, input.SupportingDocumentsUploadID...)
-
-			kyc.SupportingDocumentsUploadID = ids
+			SupportingDocuments:     input.SupportingDocuments,
 		}
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
@@ -1247,19 +1209,12 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(ctx context.Contex
 			IdentificationDoc: func(p domain.Identification) domain.Identification {
 				return domain.Identification(p)
 			}(input.IdentificationDoc),
-			KRAPIN:                      input.KRAPIN,
-			KRAPINUploadID:              input.KRAPINUploadID,
-			SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-			RegistrationNumber:          input.RegistrationNumber,
-			PracticeLicenseID:           input.PracticeLicenseID,
-			PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
-		}
-
-		if len(input.SupportingDocumentsUploadID) != 0 {
-			ids := []string{}
-			ids = append(ids, input.SupportingDocumentsUploadID...)
-
-			kyc.SupportingDocumentsUploadID = ids
+			KRAPIN:                  input.KRAPIN,
+			KRAPINUploadID:          input.KRAPINUploadID,
+			RegistrationNumber:      input.RegistrationNumber,
+			PracticeLicenseID:       input.PracticeLicenseID,
+			PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+			SupportingDocuments:     input.SupportingDocuments,
 		}
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
@@ -1297,7 +1252,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Cont
 			OrganizationTypeName:               input.OrganizationTypeName,
 			KRAPIN:                             input.KRAPIN,
 			KRAPINUploadID:                     input.KRAPINUploadID,
-			SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+			SupportingDocuments:                input.SupportingDocuments,
 			CertificateOfIncorporation:         input.CertificateOfIncorporation,
 			CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
 			DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
@@ -1311,13 +1266,6 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Cont
 			RegistrationNumber:      input.RegistrationNumber,
 			PracticeLicenseID:       input.PracticeLicenseID,
 			PracticeLicenseUploadID: input.PracticeLicenseUploadID,
-		}
-
-		if len(input.SupportingDocumentsUploadID) != 0 {
-			ids := []string{}
-			ids = append(ids, input.SupportingDocumentsUploadID...)
-
-			kyc.SupportingDocumentsUploadID = ids
 		}
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
@@ -1355,18 +1303,12 @@ func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(ctx context.Context, input 
 			IdentificationDoc: func(p domain.Identification) domain.Identification {
 				return domain.Identification(p)
 			}(input.IdentificationDoc),
-			KRAPIN:                      input.KRAPIN,
-			KRAPINUploadID:              input.KRAPINUploadID,
-			SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-			PracticeLicenseID:           input.PracticeLicenseID,
-			PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
-		}
-
-		if len(input.SupportingDocumentsUploadID) != 0 {
-			ids := []string{}
-			ids = append(ids, input.SupportingDocumentsUploadID...)
-
-			kyc.SupportingDocumentsUploadID = ids
+			KRAPIN:                  input.KRAPIN,
+			KRAPINUploadID:          input.KRAPINUploadID,
+			SupportingDocuments:     input.SupportingDocuments,
+			PracticeLicenseID:       input.PracticeLicenseID,
+			PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+			AccreditationUploadID:   input.AccreditationUploadID,
 		}
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
@@ -1400,7 +1342,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(ctx context.Context, inpu
 			OrganizationTypeName:               input.OrganizationTypeName,
 			KRAPIN:                             input.KRAPIN,
 			KRAPINUploadID:                     input.KRAPINUploadID,
-			SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+			SupportingDocuments:                input.SupportingDocuments,
 			CertificateOfIncorporation:         input.CertificateOfIncorporation,
 			CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
 			DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
@@ -1413,13 +1355,6 @@ func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(ctx context.Context, inpu
 			OrganizationCertificate: input.OrganizationCertificate,
 			RegistrationNumber:      input.RegistrationNumber,
 			PracticeLicenseUploadID: input.PracticeLicenseUploadID,
-		}
-
-		if len(input.SupportingDocumentsUploadID) != 0 {
-			ids := []string{}
-			ids = append(ids, input.SupportingDocumentsUploadID...)
-
-			kyc.SupportingDocumentsUploadID = ids
 		}
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
@@ -1452,18 +1387,11 @@ func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(ctx context.Context, in
 			IdentificationDoc: func(p domain.Identification) domain.Identification {
 				return domain.Identification(p)
 			}(input.IdentificationDoc),
-			KRAPIN:                      input.KRAPIN,
-			KRAPINUploadID:              input.KRAPINUploadID,
-			SupportingDocumentsUploadID: input.SupportingDocumentsUploadID,
-			PracticeLicenseID:           input.PracticeLicenseID,
-			PracticeLicenseUploadID:     input.PracticeLicenseUploadID,
-		}
-
-		if len(input.SupportingDocumentsUploadID) != 0 {
-			ids := []string{}
-			ids = append(ids, input.SupportingDocumentsUploadID...)
-
-			kyc.SupportingDocumentsUploadID = ids
+			KRAPIN:                  input.KRAPIN,
+			KRAPINUploadID:          input.KRAPINUploadID,
+			SupportingDocuments:     input.SupportingDocuments,
+			PracticeLicenseID:       input.PracticeLicenseID,
+			PracticeLicenseUploadID: input.PracticeLicenseUploadID,
 		}
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
@@ -1497,7 +1425,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, 
 			OrganizationTypeName:               input.OrganizationTypeName,
 			KRAPIN:                             input.KRAPIN,
 			KRAPINUploadID:                     input.KRAPINUploadID,
-			SupportingDocumentsUploadID:        input.SupportingDocumentsUploadID,
+			SupportingDocuments:                input.SupportingDocuments,
 			CertificateOfIncorporation:         input.CertificateOfIncorporation,
 			CertificateOfInCorporationUploadID: input.CertificateOfInCorporationUploadID,
 			DirectorIdentifications: func(p []domain.Identification) []domain.Identification {
@@ -1511,13 +1439,6 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, 
 			RegistrationNumber:      input.RegistrationNumber,
 			PracticeLicenseID:       input.PracticeLicenseID,
 			PracticeLicenseUploadID: input.PracticeLicenseUploadID,
-		}
-
-		if len(input.SupportingDocumentsUploadID) != 0 {
-			ids := []string{}
-			ids = append(ids, input.SupportingDocumentsUploadID...)
-
-			kyc.SupportingDocumentsUploadID = ids
 		}
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
@@ -1556,6 +1477,17 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 	rejectionReason *string,
 ) (bool, error) {
 
+	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, exceptions.UserNotFoundError(err)
+	}
+
+	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
+	if err != nil {
+		// this is a wrapped error. No need to wrap it again
+		return false, err
+	}
+
 	req, err := s.repo.FetchKYCProcessingRequestByID(ctx, id)
 	if err != nil {
 		return false, err
@@ -1566,6 +1498,8 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 	if rejectionReason != nil {
 		req.RejectionReason = rejectionReason
 	}
+	req.ProcessedTimestamp = time.Now().In(domain.TimeLocation)
+	req.ProcessedBy = profile.ID
 
 	if err := s.repo.UpdateKYCProcessingRequest(ctx, req); err != nil {
 		return false, fmt.Errorf("unable to update KYC request record: %v", err)

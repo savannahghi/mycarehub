@@ -742,19 +742,23 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 	graphQLMutationPayload := `
 	mutation addIndividualPractitionerKYC($input:IndividualPractitionerInput!){
 		addIndividualPractitionerKYC(input:$input) {
-		identificationDoc {
-		  identificationDocType
-		  identificationDocNumber
-		  identificationDocNumberUploadID
-	}
-		registrationNumber
-		KRAPIN
-		KRAPINUploadID
-		practiceServices
-		practiceLicenseUploadID
-		supportingDocumentsUploadID
-		cadre
-	}
+			identificationDoc {
+				identificationDocType
+				identificationDocNumber
+				identificationDocNumberUploadID
+			}
+			registrationNumber
+			KRAPIN
+			KRAPINUploadID
+			practiceServices
+			practiceLicenseUploadID
+			cadre
+			supportingDocuments{
+				supportingDocumentTitle
+				supportingDocumentDescription
+				supportingDocumentUpload
+			}			
+		}
 	}`
 	type args struct {
 		query map[string]interface{}
@@ -778,14 +782,20 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 								"identificationDocNumber":         "12345",
 								"identificationDocNumberUploadID": "12345",
 							},
-							"registrationNumber":          "12345",
-							"KRAPIN":                      "12345",
-							"KRAPINUploadID":              "12345",
-							"practiceLicenseID":           "12345",
-							"practiceServices":            []string{"OUTPATIENT_SERVICES"},
-							"practiceLicenseUploadID":     "12345",
-							"cadre":                       "DOCTOR",
-							"supportingDocumentsUploadID": []string{"123456"},
+							"registrationNumber":      "12345",
+							"KRAPIN":                  "12345",
+							"KRAPINUploadID":          "12345",
+							"practiceLicenseID":       "12345",
+							"practiceServices":        []string{"OUTPATIENT_SERVICES"},
+							"practiceLicenseUploadID": "12345",
+							"cadre":                   "DOCTOR",
+							"supportingDocuments": []map[string]interface{}{
+								{
+									"supportingDocumentTitle":       "title",
+									"supportingDocumentDescription": "description",
+									"supportingDocumentUpload":      "upload",
+								},
+							},
 						},
 					},
 				},
@@ -805,19 +815,23 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 								"identificationDocNumber":         "12345",
 								"identificationDocNumberUploadID": "12345",
 							},
-							"registrationNumber":          "12345",
-							"KRAPIN":                      "12345",
-							"KRAPINUploadID":              "12345",
-							"practiceLicenseID":           "12345",
-							"practiceServices":            []string{"OUTPATIENT_SERVICES"},
-							"practiceLicenseUploadID":     12345,
-							"cadre":                       "DOCTOR",
-							"supportingDocumentsUploadID": []string{"123456"},
+							"registrationNumber":      "12345",
+							"KRAPIN":                  "12345",
+							"KRAPINUploadID":          "12345",
+							"practiceLicenseID":       "12345",
+							"practiceServices":        []string{"OUTPATIENT_SERVICES"},
+							"practiceLicenseUploadID": 12345,
+							"cadre":                   "DOCTOR",
+							"supportingDocuments": map[string]interface{}{
+								"supportingDocumentTitle":       "title",
+								"supportingDocumentDescription": "description",
+								"supportingDocumentUpload":      "upload",
+							},
 						},
 					},
 				},
 			},
-			wantStatus: http.StatusOK,
+			wantStatus: http.StatusUnprocessableEntity,
 			wantErr:    true,
 		},
 	}
@@ -885,9 +899,9 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 			}
 
 			if !tt.wantErr {
-				_, ok := data["errors"]
+				err, ok := data["errors"]
 				if ok {
-					t.Errorf("error not expected")
+					t.Errorf("error not expected %v", err)
 					return
 				}
 			}
@@ -935,13 +949,17 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 		practiceServices
 		practiceLicenseUploadID
 		practiceLicenseID
-		supportingDocumentsUploadID
+		supportingDocuments{
+			supportingDocumentTitle
+			supportingDocumentDescription
+			supportingDocumentUpload
+		}
 		directorIdentifications{
 		  identificationDocType
-				identificationDocNumber
-				identificationDocNumberUploadID
+		  identificationDocNumber
+		  identificationDocNumberUploadID
 		}
-		cadre
+		
 	}
 	}`
 
@@ -978,8 +996,13 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 							"practiceServices":                   []string{"OUTPATIENT_SERVICES"},
 							"practiceLicenseID":                  "PRAC-123456",
 							"practiceLicenseUploadID":            "PRAC-UPLOAD-123456",
-							"supportingDocumentsUploadID":        []string{"SUPP-UPLOAD-123456"},
-							"cadre":                              "DOCTOR",
+							"supportingDocuments": []map[string]interface{}{
+								{
+									"supportingDocumentTitle":       "title",
+									"supportingDocumentDescription": "description",
+									"supportingDocumentUpload":      "upload",
+								},
+							},
 						},
 					},
 				},
@@ -1010,13 +1033,16 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 							"practiceServices":                   []string{"OUTPATIENT_SERVICES"},
 							"practiceLicenseID":                  "PRAC-123456",
 							"practiceLicenseUploadID":            "PRAC-123456",
-							"supportingDocumentsUploadID":        []string{"SUPP-UPLOAD-123456"},
-							"cadre":                              "DOCTOR",
+							"supportingDocuments": map[string]interface{}{
+								"supportingDocumentTitle":       "title",
+								"supportingDocumentDescription": "description",
+								"supportingDocumentUpload":      "upload",
+							},
 						},
 					},
 				},
 			},
-			wantStatus: http.StatusOK,
+			wantStatus: http.StatusUnprocessableEntity,
 			wantErr:    true,
 		},
 	}
@@ -1136,7 +1162,11 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 		KRAPINUploadID
 		practiceLicenseID
 		practiceLicenseUploadID
-		supportingDocumentsUploadID
+		supportingDocuments{
+			supportingDocumentTitle
+			supportingDocumentDescription
+			supportingDocumentUpload
+		}
 	}
 	}`
 
@@ -1162,12 +1192,18 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 								"identificationDocNumber":         "ID-12345",
 								"identificationDocNumberUploadID": "ID-UPLOAD-12345",
 							},
-							"registrationNumber":          "REG-12345",
-							"KRAPIN":                      "KRA-12345",
-							"KRAPINUploadID":              "KRA-UPLOAD-12345",
-							"practiceLicenseUploadID":     "PRA-UPLOAD-12345",
-							"practiceLicenseID":           "PRA-12345",
-							"supportingDocumentsUploadID": []string{"SUPP-UPLOAD-123456"},
+							"registrationNumber":      "REG-12345",
+							"KRAPIN":                  "KRA-12345",
+							"KRAPINUploadID":          "KRA-UPLOAD-12345",
+							"practiceLicenseUploadID": "PRA-UPLOAD-12345",
+							"practiceLicenseID":       "PRA-12345",
+							"supportingDocuments": []map[string]interface{}{
+								{
+									"supportingDocumentTitle":       "title",
+									"supportingDocumentDescription": "description",
+									"supportingDocumentUpload":      "upload",
+								},
+							},
 						},
 					},
 				},
@@ -1187,17 +1223,21 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 								"identificationDocNumber":         "ID-12345",
 								"identificationDocNumberUploadID": "ID-12345",
 							},
-							"registrationNumber":          12345,
-							"KRAPIN":                      "KRA-12345",
-							"KRAPINUploadID":              "KRA-UPLOAD-12345",
-							"practiceLicenseUploadID":     "PRA-UPLOAD-12345",
-							"practiceLicenseID":           "PRA-12345",
-							"supportingDocumentsUploadID": []string{"SUPP-UPLOAD-123456"},
+							"registrationNumber":      12345,
+							"KRAPIN":                  "KRA-12345",
+							"KRAPINUploadID":          "KRA-UPLOAD-12345",
+							"practiceLicenseUploadID": "PRA-UPLOAD-12345",
+							"practiceLicenseID":       "PRA-12345",
+							"supportingDocuments": map[string]interface{}{
+								"supportingDocumentTitle":       "title",
+								"supportingDocumentDescription": "description",
+								"supportingDocumentUpload":      "upload",
+							},
 						},
 					},
 				},
 			},
-			wantStatus: http.StatusOK,
+			wantStatus: http.StatusUnprocessableEntity,
 			wantErr:    true,
 		},
 	}
@@ -1678,7 +1718,11 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 		  organizationCertificate
 		  KRAPIN
 		  KRAPINUploadID
-		  supportingDocumentsUploadID
+		  supportingDocuments{
+				supportingDocumentTitle
+				supportingDocumentDescription
+				supportingDocumentUpload
+			}
 		}
 	}`
 
@@ -1712,7 +1756,13 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 							"organizationCertificate":            "12345",
 							"KRAPIN":                             "12345",
 							"KRAPINUploadID":                     "12345",
-							"supportingDocumentsUploadID":        []string{"123456"},
+							"supportingDocuments": []map[string]interface{}{
+								{
+									"supportingDocumentTitle":       "title",
+									"supportingDocumentDescription": "description",
+									"supportingDocumentUpload":      "upload",
+								},
+							},
 						},
 					},
 				},
@@ -1740,12 +1790,16 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 							"organizationCertificate":            "12345",
 							"KRAPIN":                             "12345",
 							"KRAPINUploadID":                     "12345",
-							"supportingDocumentsUploadID":        []string{"123456"},
+							"supportingDocuments": map[string]interface{}{
+								"supportingDocumentTitle":       "title",
+								"supportingDocumentDescription": "description",
+								"supportingDocumentUpload":      "upload",
+							},
 						},
 					},
 				},
 			},
-			wantStatus: http.StatusOK,
+			wantStatus: http.StatusUnprocessableEntity,
 			wantErr:    true,
 		},
 	}
@@ -1864,7 +1918,11 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 		  drivingLicenseID
 		  drivingLicenseUploadID
 		  certificateGoodConductUploadID
-		  supportingDocumentsUploadID
+		  supportingDocuments{
+				supportingDocumentTitle
+				supportingDocumentDescription
+				supportingDocumentUpload
+			}
 		}
 	  }
 	`
@@ -1894,6 +1952,13 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 							"KRAPINUploadID":                 "12345678",
 							"drivingLicenseID":               "12345678",
 							"certificateGoodConductUploadID": "123456",
+							"supportingDocuments": []map[string]interface{}{
+								{
+									"supportingDocumentTitle":       "title",
+									"supportingDocumentDescription": "description",
+									"supportingDocumentUpload":      "upload",
+								},
+							},
 						},
 					},
 				},
@@ -1917,11 +1982,16 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 							"KRAPINUploadID":                 123456789,
 							"drivingLicenseID":               "678910",
 							"certificateGoodConductUploadID": "3458139",
+							"supportingDocuments": map[string]interface{}{
+								"supportingDocumentTitle":       "title",
+								"supportingDocumentDescription": "description",
+								"supportingDocumentUpload":      "upload",
+							},
 						},
 					},
 				},
 			},
-			wantStatus: http.StatusOK,
+			wantStatus: http.StatusUnprocessableEntity,
 			wantErr:    true,
 		},
 	}
@@ -2566,7 +2636,6 @@ func TestAddOrganizationCoachKYC(t *testing.T) {
 							"KRAPINUploadID":                     "KRA-UPLOAD-123456789",
 							"practiceLicenseUploadID":            "PRAC-UPLOAD-123456",
 							"practiceLicenseID":                  "PRACL",
-							"supportingDocumentsUploadID":        []string{"SUPP-UPLOAD-123456"},
 						},
 					},
 				},
@@ -2596,7 +2665,6 @@ func TestAddOrganizationCoachKYC(t *testing.T) {
 							"KRAPINUploadID":                     "KRA-UPLOAD-123456789",
 							"practiceLicenseID":                  "PRAC-123456",
 							"practiceLicenseUploadID":            "PRAC-123456",
-							"supportingDocumentsUploadID":        []string{"SUPP-UPLOAD-123456"},
 						},
 					},
 				},
@@ -2717,8 +2785,7 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 				identificationDocNumberUploadID
 		  	}
 			KRAPIN
-			KRAPINUploadID
-			supportingDocumentsUploadID             
+			KRAPINUploadID			           
 			practiceLicenseUploadID
 			practiceLicenseID
 	}
@@ -2746,11 +2813,10 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 								"identificationDocNumber":         "12345",
 								"identificationDocNumberUploadID": "12345",
 							},
-							"KRAPIN":                      "KRA-123456789",
-							"KRAPINUploadID":              "KRA-UPLOAD-123456789",
-							"practiceLicenseUploadID":     "PRAC-UPLOAD-123456",
-							"practiceLicenseID":           "PRACL",
-							"supportingDocumentsUploadID": []string{"SUPP-UPLOAD-123456"},
+							"KRAPIN":                  "KRA-123456789",
+							"KRAPINUploadID":          "KRA-UPLOAD-123456789",
+							"practiceLicenseUploadID": "PRAC-UPLOAD-123456",
+							"practiceLicenseID":       "PRACL",
 						},
 					},
 				},
@@ -2770,11 +2836,10 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 								"identificationDocNumber":         "12345",
 								"identificationDocNumberUploadID": "12345",
 							},
-							"KRAPIN":                      123456789,
-							"KRAPINUploadID":              "KRA-UPLOAD-123456789",
-							"practiceLicenseID":           "PRAC-123456",
-							"practiceLicenseUploadID":     "PRAC-123456",
-							"supportingDocumentsUploadID": []string{"SUPP-UPLOAD-123456"},
+							"KRAPIN":                  123456789,
+							"KRAPINUploadID":          "KRA-UPLOAD-123456789",
+							"practiceLicenseID":       "PRAC-123456",
+							"practiceLicenseUploadID": "PRAC-123456",
 						},
 					},
 				},
@@ -3167,8 +3232,7 @@ func TestAddOrganizationPractitionerKyc(t *testing.T) {
 		addOrganizationPractitionerKYC(input: $input) {
 		  organizationTypeName
 		  KRAPIN
-		  KRAPINUploadID
-		  supportingDocumentsUploadID
+		  KRAPINUploadID		  
 		  certificateOfIncorporation
 		  certificateOfInCorporationUploadID
 		  directorIdentifications {
@@ -3212,7 +3276,6 @@ func TestAddOrganizationPractitionerKyc(t *testing.T) {
 							"organizationTypeName":               "LIMITED_COMPANY",
 							"KRAPIN":                             "12345678",
 							"KRAPINUploadID":                     "12345678",
-							"supportingDocumentsUploadID":        []string{"123456"},
 							"certificateOfIncorporation":         "12345",
 							"certificateOfInCorporationUploadID": "12345",
 							"organizationCertificate":            "12345",
@@ -3229,7 +3292,7 @@ func TestAddOrganizationPractitionerKyc(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "Sad Case - Use invalid input",
+			name: "Sad Case - Use invalid input - missing KRA",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutationPayload,
@@ -3243,9 +3306,6 @@ func TestAddOrganizationPractitionerKyc(t *testing.T) {
 								},
 							},
 							"organizationTypeName":               "LIMITED_COMPANY",
-							"KRAPIN":                             "12345678",
-							"KRAPINUploadID":                     "12345678",
-							"supportingDocumentsUploadID":        []string{"123456"},
 							"certificateOfIncorporation":         12345,
 							"certificateOfInCorporationUploadID": 12345,
 							"organizationCertificate":            12345,
@@ -3258,7 +3318,7 @@ func TestAddOrganizationPractitionerKyc(t *testing.T) {
 					},
 				},
 			},
-			wantStatus: http.StatusOK,
+			wantStatus: http.StatusUnprocessableEntity,
 			wantErr:    true,
 		},
 	}

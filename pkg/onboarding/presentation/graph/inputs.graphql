@@ -58,6 +58,13 @@ input LocationInput {
   branchSladeCode: String
 }
 
+# used to add more documents when
+input SupportingDocumentInput {
+  supportingDocumentTitle: String!
+  supportingDocumentDescription: String!
+  supportingDocumentUpload: String!
+}
+
 input IdentificationInput {
   identificationDocType: IdentificationDocType!
   identificationDocNumber: String!
@@ -71,7 +78,7 @@ input IndividualRiderInput {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocumentInput]
 
   # unique to riders
   drivingLicenseID: String!
@@ -86,12 +93,12 @@ input IndividualPractitionerInput {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocumentInput]
 
   # unique to practitioner
   registrationNumber: String!
   practiceLicenseID: String!
-  practiceLicenseUploadID: String
+  practiceLicenseUploadID: String!
   practiceServices: [PractitionerService!]!
   cadre: PractitionerCadre!
 }
@@ -103,7 +110,7 @@ input IndividualPharmaceuticalInput {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocumentInput]
 
   # unique to practitioner
   registrationNumber: String!
@@ -117,7 +124,7 @@ input IndividualCoachInput {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocumentInput]
 
   # unique for coach
   practiceLicenseID: String!
@@ -131,7 +138,7 @@ input IndividualNutritionInput {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocumentInput]
 
   # unique for Nutrition
   practiceLicenseID: String!
@@ -145,14 +152,14 @@ input OrganizationRiderInput {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocumentInput]
 
   # common for organization : limited company
   certificateOfIncorporation: String
   certificateOfInCorporationUploadID: String
   directorIdentifications: [IdentificationInput]
 
-  # common for organization : others
+  # common for organization : others (trust or university)
   organizationCertificate: String
 }
 
@@ -163,14 +170,14 @@ input OrganizationPractitionerInput {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocumentInput]
 
   # common for organization : limited company
   certificateOfIncorporation: String!
   certificateOfInCorporationUploadID: String!
   directorIdentifications: [IdentificationInput]
 
-  # common for organization : others
+  # common for organization : others (trust or university)
   organizationCertificate: String
 
   # unique to practitioner
@@ -188,14 +195,14 @@ input OrganizationProviderInput {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocumentInput]
 
   # common for organization : limited company
   certificateOfIncorporation: String
   certificateOfInCorporationUploadID: String
   directorIdentifications: [IdentificationInput]
 
-  # common for organization : others
+  # common for organization : others (trust or university)
   organizationCertificate: String
 
   # unique to practitioner
@@ -203,7 +210,6 @@ input OrganizationProviderInput {
   practiceLicenseID: String!
   practiceLicenseUploadID: String
   practiceServices: [PractitionerService!]!
-  cadre: PractitionerCadre!
 }
 
 input OrganizationNutritionInput {
@@ -213,14 +219,14 @@ input OrganizationNutritionInput {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocumentInput]
 
   # common for organization : limited company
   certificateOfIncorporation: String
   certificateOfInCorporationUploadID: String
   directorIdentifications: [IdentificationInput]
 
-  # common for organization : others
+  # common for organization : others (trust or university)
   organizationCertificate: String
 
   # unique for nutrition
@@ -236,14 +242,14 @@ input OrganizationCoachInput {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocumentInput]
 
   # common for organization : limited company
   certificateOfIncorporation: String
   certificateOfInCorporationUploadID: String
   directorIdentifications: [IdentificationInput]
 
-  # common for organization : others
+  # common for organization : others (trust or university)
   organizationCertificate: String
 
   # unique for coach
@@ -259,14 +265,14 @@ input OrganizationPharmaceuticalInput {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocumentInput]
 
   # common for organization : limited company
   certificateOfIncorporation: String
   certificateOfInCorporationUploadID: String
   directorIdentifications: [IdentificationInput]
 
-  # common for organization : others
+  # common for organization : others (trust or university)
   organizationCertificate: String
 
   # unique for pharmaceutical
@@ -281,14 +287,14 @@ input UserAddressInput {
   locality: String
   name: String
   placeID: String
-  formattedAddress: String 
+  formattedAddress: String
 }
 
 input NHIFDetailsInput {
   membershipNumber: String!
   employment: EmploymentType!
   idDocType: IdentificationDocType!
-	idNumber: String!
-	identificationCardPhotoID: String!                     
-	NHIFCardPhotoID: String!                  
+  idNumber: String!
+  identificationCardPhotoID: String!
+  NHIFCardPhotoID: String!
 }

@@ -152,6 +152,13 @@ type Identification {
   identificationDocNumberUploadID: String!
 }
 
+# used to add more documents when
+type SupportingDocument {
+  supportingDocumentTitle: String!
+  supportingDocumentDescription: String!
+  supportingDocumentUpload: String!
+}
+
 type IndividualRider {
   identificationDoc: Identification!
 
@@ -161,7 +168,7 @@ type IndividualRider {
   drivingLicenseID: String!
   drivingLicenseUploadID: String
   certificateGoodConductUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocument]
 }
 
 type IndividualPractitioner {
@@ -171,12 +178,12 @@ type IndividualPractitioner {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocument]
 
   # unique to practitioner
   registrationNumber: String!
   practiceLicenseID: String!
-  practiceLicenseUploadID: String
+  practiceLicenseUploadID: String!
   practiceServices: [PractitionerService!]!
   cadre: PractitionerCadre!
 }
@@ -188,7 +195,7 @@ type IndividualPharmaceutical {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocument]
 
   # unique to practitioner
   registrationNumber: String!
@@ -203,11 +210,13 @@ type IndividualCoach {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocument]
 
   # unique for coach
   practiceLicenseID: String!
-  practiceLicenseUploadID: String
+  practiceLicenseUploadID: String!
+
+  accreditationUploadID: String!
 }
 
 type IndividualNutrition {
@@ -217,11 +226,11 @@ type IndividualNutrition {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocument]
 
   # unique for Nutrition
   practiceLicenseID: String!
-  practiceLicenseUploadID: String
+  practiceLicenseUploadID: String!
 }
 
 type OrganizationRider {
@@ -231,12 +240,14 @@ type OrganizationRider {
   certificateOfInCorporationUploadID: String
   directorIdentifications: [Identification]
 
+  # common for organization : others (trust or university)
   organizationCertificate: String
 
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+
+  supportingDocuments: [SupportingDocument]
 }
 
 type OrganizationPractitioner {
@@ -246,14 +257,14 @@ type OrganizationPractitioner {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocument]
 
   # common for organization : limited company
   certificateOfIncorporation: String
   certificateOfInCorporationUploadID: String
   directorIdentifications: [Identification]
 
-  # common for organization : others
+  # common for organization : others (trust or university)
   organizationCertificate: String
 
   # unique to practitioner
@@ -270,22 +281,21 @@ type OrganizationProvider {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocument]
 
   # common for organization : limited company
   certificateOfIncorporation: String
   certificateOfInCorporationUploadID: String
   directorIdentifications: [Identification]
 
-  # common for organization : others
+  # common for organization : others (trust or university)
   organizationCertificate: String
 
   # unique to practitioner
   registrationNumber: String!
   practiceLicenseID: String!
-  practiceLicenseUploadID: String
+  practiceLicenseUploadID: String!
   practiceServices: [PractitionerService!]!
-  cadre: PractitionerCadre!
 }
 
 type OrganizationNutrition {
@@ -295,20 +305,20 @@ type OrganizationNutrition {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocument]
 
   # common for organization : limited company
   certificateOfIncorporation: String
   certificateOfInCorporationUploadID: String
   directorIdentifications: [Identification]
 
-  # common for organization : others
+  # common for organization : others (trust or university)
   organizationCertificate: String
 
   # unique for nutrition
   registrationNumber: String!
   practiceLicenseID: String!
-  practiceLicenseUploadID: String
+  practiceLicenseUploadID: String!
 }
 
 type OrganizationCoach {
@@ -318,20 +328,20 @@ type OrganizationCoach {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocument]
 
   # common for organization : limited company
   certificateOfIncorporation: String
   certificateOfInCorporationUploadID: String
   directorIdentifications: [Identification]
 
-  # common for organization : others
+  # common for organization : others (trust or university)
   organizationCertificate: String
 
   # unique for coach
   registrationNumber: String!
   practiceLicenseID: String!
-  practiceLicenseUploadID: String
+  practiceLicenseUploadID: String!
 }
 
 type OrganizationPharmaceutical {
@@ -341,36 +351,37 @@ type OrganizationPharmaceutical {
   # common for all
   KRAPIN: String!
   KRAPINUploadID: String!
-  supportingDocumentsUploadID: [String]
+  supportingDocuments: [SupportingDocument]
 
   # common for organization : limited company
   certificateOfIncorporation: String
   certificateOfInCorporationUploadID: String
   directorIdentifications: [Identification]
 
-  # common for organization : others
+  # common for organization : others (trust or university)
   organizationCertificate: String
 
   # unique for pharmaceutical
   registrationNumber: String!
   practiceLicenseID: String!
-  practiceLicenseUploadID: String
+  practiceLicenseUploadID: String!
 }
 
 type KYCRequest {
   id: String!
   reqPartnerType: PartnerType!
-  reqOrganizationType: OrganizationType!
+  reqOrganizationType: OrganizationType
   reqRaw: Map!
   processed: Boolean!
   supplierRecord: Supplier!
   status: KYCProcessStatus
+  filedTimestamp: Date!
+  processedTimestamp: Date
 }
 
-
-type SupplierLogin{
-	branches:BranchConnection!
-	supplier:Supplier!
+type SupplierLogin {
+  branches: BranchConnection!
+  supplier: Supplier!
 }
 
 type Address {
@@ -398,7 +409,7 @@ type NHIFDetails {
   membershipNumber: String!
   employment: EmploymentType!
   idDocType: IdentificationDocType!
-	idNumber: String!
-	identificationCardPhotoID: String!                     
-	NHIFCardPhotoID: String! 
+  idNumber: String!
+  identificationCardPhotoID: String!
+  NHIFCardPhotoID: String!
 }

@@ -95,7 +95,13 @@ func TestParseKYCAsMap(t *testing.T) {
 				DrivingLicenseID:               "dlid",
 				DrivingLicenseUploadID:         "dliduploadid",
 				CertificateGoodConductUploadID: "cert",
-				SupportingDocumentsUploadID:    []string{"someID", "anotherID"},
+				SupportingDocuments: []domain.SupportingDocument{
+					{
+						SupportingDocumentTitle:       "support-title",
+						SupportingDocumentDescription: "support-description",
+						SupportingDocumentUpload:      "support-upload-id",
+					},
+				},
 			}
 
 			response, err := supplier.parseKYCAsMap(data)
@@ -157,16 +163,16 @@ func TestParseKYCAsMap(t *testing.T) {
 				return
 			}
 
-			supportingDocumentsUploadID, ok := response["supportingDocumentsUploadID"]
+			supportingDocumentsResp, ok := response["supportingDocuments"]
 			if !ok {
-				t.Errorf("supportingDocumentsUploadID is nil")
+				t.Errorf("supportingDocuments is nil")
 				return
 			}
 
 			if ok {
-				supportingDocumentsUploadID := supportingDocumentsUploadID.([]interface{})
-				if len(data.SupportingDocumentsUploadID) != len(supportingDocumentsUploadID) {
-					t.Errorf("wanted: %v, got: %v", len(data.SupportingDocumentsUploadID), len(supportingDocumentsUploadID))
+				supportingDocuments := supportingDocumentsResp.([]interface{})
+				if len(data.SupportingDocuments) != len(supportingDocuments) {
+					t.Errorf("wanted: %v, got: %v", len(data.SupportingDocuments), len(supportingDocuments))
 					return
 				}
 			}

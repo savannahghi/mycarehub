@@ -119,7 +119,13 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 		KRAPINUploadID:                 "KRAPINUploadID",
 		DrivingLicenseID:               "license",
 		CertificateGoodConductUploadID: "upload1",
-		SupportingDocumentsUploadID:    []string{"SupportingDocumentsUploadID", "Support"},
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
 	}
 
 	// submit first kyc. this should pass
@@ -230,11 +236,16 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	assert.Equal(t, false, spr2.Active)
 
 	validInput := domain.OrganizationRider{
-		KRAPIN:                      "someKRAPIN",
-		KRAPINUploadID:              "KRAPINUploadID",
-		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
-		OrganizationCertificate:     "org-cert",
-		OrganizationTypeName:        domain.OrganizationTypeLimitedCompany,
+		KRAPIN:         "someKRAPIN",
+		KRAPINUploadID: "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
 		DirectorIdentifications: []domain.Identification{
 			{
 				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
@@ -352,14 +363,20 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	assert.Equal(t, false, spr2.Active)
 
 	validInput := domain.IndividualPractitioner{
-		KRAPIN:                      "someKRAPIN",
-		KRAPINUploadID:              "KRAPINUploadID",
-		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
-		RegistrationNumber:          "reg-num",
-		PracticeLicenseID:           "PracticeLicenseID",
-		PracticeLicenseUploadID:     "PracticeLicenseUploadID",
-		PracticeServices:            []domain.PractitionerService{domain.PractitionerServiceOutpatientServices},
-		Cadre:                       domain.PractitionerCadreDoctor,
+		KRAPIN:         "someKRAPIN",
+		KRAPINUploadID: "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		RegistrationNumber:      "reg-num",
+		PracticeLicenseID:       "PracticeLicenseID",
+		PracticeLicenseUploadID: "PracticeLicenseUploadID",
+		PracticeServices:        []domain.PractitionerService{domain.PractitionerServiceOutpatientServices},
+		Cadre:                   domain.PractitionerCadreDoctor,
 	}
 
 	// submit first kyc. this should pass
@@ -470,16 +487,21 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	assert.Equal(t, false, spr2.Active)
 
 	validInput := domain.OrganizationPractitioner{
-		KRAPIN:                      "someKRAPIN",
-		KRAPINUploadID:              "KRAPINUploadID",
-		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
-		OrganizationCertificate:     "org-cert",
-		OrganizationTypeName:        domain.OrganizationTypeLimitedCompany,
-		RegistrationNumber:          "reg-num",
-		PracticeLicenseID:           "PracticeLicenseID",
-		PracticeLicenseUploadID:     "PracticeLicenseUploadID",
-		PracticeServices:            []domain.PractitionerService{domain.PractitionerServiceOutpatientServices},
-		Cadre:                       domain.PractitionerCadreDoctor,
+		KRAPIN:         "someKRAPIN",
+		KRAPINUploadID: "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		OrganizationTypeName:    domain.OrganizationTypeLimitedCompany,
+		RegistrationNumber:      "reg-num",
+		PracticeLicenseID:       "PracticeLicenseID",
+		PracticeLicenseUploadID: "PracticeLicenseUploadID",
+		PracticeServices:        []domain.PractitionerService{domain.PractitionerServiceOutpatientServices},
+		Cadre:                   domain.PractitionerCadreDoctor,
 		DirectorIdentifications: []domain.Identification{
 			{
 				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
@@ -597,16 +619,20 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	assert.Equal(t, false, spr2.Active)
 
 	validInput := domain.OrganizationProvider{
-		KRAPIN:                      "someKRAPIN",
-		KRAPINUploadID:              "KRAPINUploadID",
-		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
-		OrganizationCertificate:     "org-cert",
-		OrganizationTypeName:        domain.OrganizationTypeLimitedCompany,
-		RegistrationNumber:          "reg-num",
-		PracticeLicenseID:           "PracticeLicenseID",
-		PracticeLicenseUploadID:     "PracticeLicenseUploadID",
-		PracticeServices:            []domain.PractitionerService{domain.PractitionerServiceOutpatientServices},
-		Cadre:                       domain.PractitionerCadreDoctor,
+		KRAPIN:         "someKRAPIN",
+		KRAPINUploadID: "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		OrganizationTypeName:    domain.OrganizationTypeLimitedCompany,
+		RegistrationNumber:      "reg-num",
+		PracticeLicenseID:       "PracticeLicenseID",
+		PracticeLicenseUploadID: "PracticeLicenseUploadID",
+		PracticeServices:        []domain.PractitionerService{domain.PractitionerServiceOutpatientServices},
 		DirectorIdentifications: []domain.Identification{
 			{
 				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
@@ -729,12 +755,18 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 			IdentificationDocNumber:         "123456789",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
-		KRAPIN:                      "someKRAPIN",
-		KRAPINUploadID:              "KRAPINUploadID",
-		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
-		RegistrationNumber:          "reg-num",
-		PracticeLicenseID:           "PracticeLicenseID",
-		PracticeLicenseUploadID:     "PracticeLicenseUploadID",
+		KRAPIN:         "someKRAPIN",
+		KRAPINUploadID: "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		RegistrationNumber:      "reg-num",
+		PracticeLicenseID:       "PracticeLicenseID",
+		PracticeLicenseUploadID: "PracticeLicenseUploadID",
 	}
 
 	// submit first kyc. this should pass
@@ -845,10 +877,15 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	assert.Equal(t, false, spr2.Active)
 
 	validInput := domain.OrganizationPharmaceutical{
-		KRAPIN:                             "someKRAPIN",
-		KRAPINUploadID:                     "KRAPINUploadID",
-		SupportingDocumentsUploadID:        []string{"SupportingDocumentsUploadID", "Support"},
-		OrganizationCertificate:            "org-cert",
+		KRAPIN:         "someKRAPIN",
+		KRAPINUploadID: "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
 		OrganizationTypeName:               domain.OrganizationTypeLimitedCompany,
 		RegistrationNumber:                 "reg-num",
 		PracticeLicenseID:                  "PracticeLicenseID",
@@ -977,11 +1014,17 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 			IdentificationDocNumber:         "123456789",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
-		KRAPIN:                      "someKRAPIN",
-		KRAPINUploadID:              "KRAPINUploadID",
-		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
-		PracticeLicenseID:           "PracticeLicenseID",
-		PracticeLicenseUploadID:     "PracticeLicenseUploadID",
+		KRAPIN:         "someKRAPIN",
+		KRAPINUploadID: "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		PracticeLicenseID:       "PracticeLicenseID",
+		PracticeLicenseUploadID: "PracticeLicenseUploadID",
 	}
 
 	// submit first kyc. this should pass
@@ -1092,11 +1135,16 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	assert.Equal(t, false, spr2.Active)
 
 	validInput := domain.OrganizationCoach{
-		KRAPIN:                      "someKRAPIN",
-		KRAPINUploadID:              "KRAPINUploadID",
-		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
-		OrganizationCertificate:     "org-cert",
-		OrganizationTypeName:        domain.OrganizationTypeLimitedCompany,
+		KRAPIN:         "someKRAPIN",
+		KRAPINUploadID: "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
 		DirectorIdentifications: []domain.Identification{
 			{
 				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
@@ -1214,11 +1262,17 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	assert.Equal(t, false, spr2.Active)
 
 	validInput := domain.IndividualNutrition{
-		KRAPIN:                      "someKRAPIN",
-		KRAPINUploadID:              "KRAPINUploadID",
-		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
-		PracticeLicenseID:           "PracticeLicenseID",
-		PracticeLicenseUploadID:     "PracticeLicenseUploadID",
+		KRAPIN:         "someKRAPIN",
+		KRAPINUploadID: "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		PracticeLicenseID:       "PracticeLicenseID",
+		PracticeLicenseUploadID: "PracticeLicenseUploadID",
 	}
 
 	// submit first kyc. this should pass
@@ -1328,14 +1382,19 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	assert.Equal(t, false, spr2.Active)
 
 	validInput := domain.OrganizationNutrition{
-		KRAPIN:                      "someKRAPIN",
-		KRAPINUploadID:              "KRAPINUploadID",
-		SupportingDocumentsUploadID: []string{"SupportingDocumentsUploadID", "Support"},
-		OrganizationTypeName:        domain.OrganizationTypeLimitedCompany,
-		OrganizationCertificate:     "org-cert",
-		RegistrationNumber:          "org-reg-number",
-		PracticeLicenseID:           "org-practice-license",
-		PracticeLicenseUploadID:     "org-practice-license-upload",
+		KRAPIN:         "someKRAPIN",
+		KRAPINUploadID: "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		OrganizationTypeName:    domain.OrganizationTypeLimitedCompany,
+		RegistrationNumber:      "org-reg-number",
+		PracticeLicenseID:       "org-practice-license",
+		PracticeLicenseUploadID: "org-practice-license-upload",
 		DirectorIdentifications: []domain.Identification{
 			{
 				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
@@ -1790,7 +1849,13 @@ func TestSuspendSupplier(t *testing.T) {
 		KRAPINUploadID:                 "KRAPINUploadID",
 		DrivingLicenseID:               "license",
 		CertificateGoodConductUploadID: "upload1",
-		SupportingDocumentsUploadID:    []string{"SupportingDocumentsUploadID", "Support"},
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
 	}
 
 	// submit first kyc. this should pass

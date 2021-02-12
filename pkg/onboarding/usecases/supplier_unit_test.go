@@ -1053,9 +1053,12 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
 		KRAPIN:               "A0352HDAKCS",
 		KRAPINUploadID:       "kra-pin-upload-id",
-		SupportingDocumentsUploadID: []string{
-			"supporting_docs_upload_id",
-			"random_upload_id",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
 		},
 		CertificateOfIncorporation:         "certificate_of_incorporation",
 		CertificateOfInCorporationUploadID: "certificate_of_incorporation_upload_id",
@@ -1066,7 +1069,6 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 				IdentificationDocNumberUploadID: "upload_id",
 			},
 		},
-		OrganizationCertificate: "organization_certificate",
 		RegistrationNumber:      "registration_number",
 		PracticeLicenseID:       "license_id",
 		PracticeLicenseUploadID: "license_upload_id",
@@ -1583,10 +1585,15 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 		OrganizationTypeName:               domain.OrganizationTypeLimitedCompany,
 		CertificateOfIncorporation:         "some-incorp-certificate",
 		CertificateOfInCorporationUploadID: "some-incorp-certificate-uploadID",
-		OrganizationCertificate:            "some-org-cert",
 		KRAPIN:                             "some-someKRAPIN",
 		KRAPINUploadID:                     "some-KRAPINUploadID",
-		SupportingDocumentsUploadID:        []string{"SupportingDocumentsUploadID", "Support"},
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
 		DirectorIdentifications: []domain.Identification{
 			{
 				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
@@ -1887,10 +1894,16 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.OrganizationPractitioner{
-		OrganizationTypeName:               domain.OrganizationTypeLimitedCompany,
-		KRAPIN:                             "provider-random-kra-pin",
-		KRAPINUploadID:                     "provider-krapin-upload-id",
-		SupportingDocumentsUploadID:        []string{"uploadid-1", "uploadid-2"},
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		KRAPIN:               "provider-random-kra-pin",
+		KRAPINUploadID:       "provider-krapin-upload-id",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
 		CertificateOfIncorporation:         "provider-incorp-certificate",
 		CertificateOfInCorporationUploadID: "provider-incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
@@ -1900,7 +1913,6 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 				IdentificationDocNumberUploadID: "provider-id-upload",
 			},
 		},
-		OrganizationCertificate: "provider-organization-cert",
 		RegistrationNumber:      "provider-reg-no",
 		PracticeLicenseID:       "provider-practice-license-id",
 		PracticeLicenseUploadID: "provider-practice-license-uploadid",
@@ -2101,6 +2113,8 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
+				t.Logf("%v", got)
+				t.Logf("%v", tt.want)
 				t.Errorf("SupplierUseCasesImpl.AddOrganizationPractitionerKyc() = %v, want %v", got, tt.want)
 			}
 
@@ -2138,10 +2152,16 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.OrganizationProvider{
-		OrganizationTypeName:               domain.OrganizationTypeLimitedCompany,
-		KRAPIN:                             "random-kra-pin",
-		KRAPINUploadID:                     "krapin-upload-id",
-		SupportingDocumentsUploadID:        []string{"uploadid-1", "uploadid-2"},
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		KRAPIN:               "random-kra-pin",
+		KRAPINUploadID:       "krapin-upload-id",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
 		CertificateOfIncorporation:         "incorp-certificate",
 		CertificateOfInCorporationUploadID: "incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
@@ -2151,11 +2171,9 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 				IdentificationDocNumberUploadID: "id-upload",
 			},
 		},
-		OrganizationCertificate: "organization-cert",
 		RegistrationNumber:      "regn-no",
 		PracticeLicenseID:       "practice-license-id",
 		PracticeLicenseUploadID: "practice-license-uploadid",
-		Cadre:                   domain.PractitionerCadreDoctor,
 		PracticeServices:        domain.AllPractitionerService,
 	}
 	type args struct {
@@ -2388,10 +2406,16 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.OrganizationCoach{
-		OrganizationTypeName:               domain.OrganizationTypeLimitedCompany,
-		KRAPIN:                             "coach-random-kra-pin",
-		KRAPINUploadID:                     "coach-krapin-upload-id",
-		SupportingDocumentsUploadID:        []string{"uploadid-1", "uploadid-2"},
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		KRAPIN:               "coach-random-kra-pin",
+		KRAPINUploadID:       "coach-krapin-upload-id",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
 		CertificateOfIncorporation:         "incorp-certificate",
 		CertificateOfInCorporationUploadID: "incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
@@ -2401,7 +2425,6 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 				IdentificationDocNumberUploadID: "id-upload",
 			},
 		},
-		OrganizationCertificate: "coach-organization-cert",
 		RegistrationNumber:      "coach-reg-no",
 		PracticeLicenseUploadID: "coach-practice-license-uploadid",
 	}
@@ -2637,10 +2660,16 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.OrganizationNutrition{
-		OrganizationTypeName:               domain.OrganizationTypeLimitedCompany,
-		KRAPIN:                             "nutrition-random-kra-pin",
-		KRAPINUploadID:                     "nutrition-krapin-upload-id",
-		SupportingDocumentsUploadID:        []string{"uploadid-1", "uploadid-2"},
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		KRAPIN:               "nutrition-random-kra-pin",
+		KRAPINUploadID:       "nutrition-krapin-upload-id",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
 		CertificateOfIncorporation:         "incorp-certificate",
 		CertificateOfInCorporationUploadID: "incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
@@ -2650,7 +2679,6 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 				IdentificationDocNumberUploadID: "id-upload",
 			},
 		},
-		OrganizationCertificate: "nutrition-organization-cert",
 		RegistrationNumber:      "nutrition-reg-no",
 		PracticeLicenseUploadID: "nutrition-practice-license-uploadid",
 	}
@@ -3041,7 +3069,13 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 		DrivingLicenseID:               "driving-license-id",
 		DrivingLicenseUploadID:         "license-upload-id",
 		CertificateGoodConductUploadID: "good-conduct-upload-id",
-		SupportingDocumentsUploadID:    []string{"document1", "document2"},
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
 	}
 
 	type args struct {
@@ -3400,12 +3434,18 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
-		KRAPIN:                      "A034RND82",
-		KRAPINUploadID:              "kra-pin-upload-id",
-		SupportingDocumentsUploadID: []string{"document1", "document2"},
-		RegistrationNumber:          "123456",
-		PracticeLicenseID:           "license-id",
-		PracticeLicenseUploadID:     "practice-license-uploadID",
+		KRAPIN:         "A034RND82",
+		KRAPINUploadID: "kra-pin-upload-id",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		RegistrationNumber:      "123456",
+		PracticeLicenseID:       "license-id",
+		PracticeLicenseUploadID: "practice-license-uploadID",
 		PracticeServices: []domain.PractitionerService{
 			domain.PractitionerServiceInpatientServices,
 			domain.PractitionerServiceLabServices,
@@ -3768,12 +3808,18 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
-		KRAPIN:                      "A034RND82",
-		KRAPINUploadID:              "kra-pin-upload-id",
-		SupportingDocumentsUploadID: []string{"document1", "document2"},
-		RegistrationNumber:          "123456",
-		PracticeLicenseID:           "license-id",
-		PracticeLicenseUploadID:     "practice-license-uploadID",
+		KRAPIN:         "A034RND82",
+		KRAPINUploadID: "kra-pin-upload-id",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		RegistrationNumber:      "123456",
+		PracticeLicenseID:       "license-id",
+		PracticeLicenseUploadID: "practice-license-uploadID",
 	}
 
 	type args struct {
@@ -4130,11 +4176,17 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
-		KRAPIN:                      "A034RND82",
-		KRAPINUploadID:              "kra-pin-upload-id",
-		SupportingDocumentsUploadID: []string{"document1", "document2"},
-		PracticeLicenseID:           "license-id",
-		PracticeLicenseUploadID:     "practice-license-uploadID",
+		KRAPIN:         "A034RND82",
+		KRAPINUploadID: "kra-pin-upload-id",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		PracticeLicenseID:       "license-id",
+		PracticeLicenseUploadID: "practice-license-uploadID",
 	}
 
 	type args struct {
@@ -4490,11 +4542,17 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
-		KRAPIN:                      "A034RND82",
-		KRAPINUploadID:              "kra-pin-upload-id",
-		SupportingDocumentsUploadID: []string{"document1", "document2"},
-		PracticeLicenseID:           "license-id",
-		PracticeLicenseUploadID:     "practice-license-uploadID",
+		KRAPIN:         "A034RND82",
+		KRAPINUploadID: "kra-pin-upload-id",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		PracticeLicenseID:       "license-id",
+		PracticeLicenseUploadID: "practice-license-uploadID",
 	}
 
 	type args struct {

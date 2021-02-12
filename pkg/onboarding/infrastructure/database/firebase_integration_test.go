@@ -265,10 +265,16 @@ func TestRemoveKYCProcessingRequest(t *testing.T) {
 	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
 
 	input1 := domain.OrganizationNutrition{
-		OrganizationTypeName:               domain.OrganizationTypeLimitedCompany,
-		KRAPIN:                             "someKRAPIN",
-		KRAPINUploadID:                     "KRAPINUploadID",
-		SupportingDocumentsUploadID:        []string{"SupportingDocumentsUploadID", "Support"},
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		KRAPIN:               "someKRAPIN",
+		KRAPINUploadID:       "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
 		CertificateOfIncorporation:         "CertificateOfIncorporation",
 		CertificateOfInCorporationUploadID: "CertificateOfInCorporationUploadID",
 		DirectorIdentifications: []domain.Identification{
@@ -278,7 +284,6 @@ func TestRemoveKYCProcessingRequest(t *testing.T) {
 				IdentificationDocNumberUploadID: "IdentificationDocNumberUploadID",
 			},
 		},
-		OrganizationCertificate: "OrganizationCertificate",
 		RegistrationNumber:      "RegistrationNumber",
 		PracticeLicenseID:       "PracticeLicenseID",
 		PracticeLicenseUploadID: "PracticeLicenseUploadID",
