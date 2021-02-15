@@ -9,16 +9,17 @@ import (
 	"os"
 	"time"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -70,8 +71,13 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	if err != nil {
 		log.Panicf("can't initialize Firebase auth when setting up profile service: %s", err)
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+
+	var repo repository.OnboardingRepository
+
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+		repo = fb.NewFirebaseRepository(firestoreExtension, fbc)
+	}
 
 	// Initialize base (common) extension
 	baseExt := extension.NewBaseExtensionImpl()
@@ -91,16 +97,16 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	otp := otp.NewOTPService(otpClient, baseExt)
 
 	// Initialize the usecases
-	profile := usecases.NewProfileUseCase(fr, otp, baseExt, engage)
-	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, baseExt)
-	login := usecases.NewLoginUseCases(fr, profile, baseExt, pinExt)
-	survey := usecases.NewSurveyUseCases(fr, baseExt)
-	userpin := usecases.NewUserPinUseCase(fr, otp, profile, baseExt, pinExt)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, baseExt)
-	nhif := usecases.NewNHIFUseCases(fr, profile, baseExt, engage)
+	profile := usecases.NewProfileUseCase(repo, otp, baseExt, engage)
+	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mg, mes, baseExt)
+	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
+	survey := usecases.NewSurveyUseCases(repo, baseExt)
+	userpin := usecases.NewUserPinUseCase(repo, otp, profile, baseExt, pinExt)
+	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, otp, baseExt)
+	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
 
 	i, err := interactor.NewOnboardingInteractor(
-		fr, profile, su, otp, supplier, login, survey, userpin, erp, chrg, engage, mg, mes, nhif,
+		repo, profile, su, otp, supplier, login, survey, userpin, erp, chrg, engage, mg, mes, nhif,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

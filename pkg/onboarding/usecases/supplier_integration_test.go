@@ -9,7 +9,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 )
 
@@ -27,13 +27,19 @@ const (
 	testChargeMasterBranchID    = "94294577-6b27-4091-9802-1ce0f2ce4153"
 )
 
+func cleanUpFirebase(ctx context.Context, t *testing.T) {
+	r := fb.Repository{}
+	fsc, _ := InitializeTestFirebaseClient(ctx)
+	ref := fsc.Collection(r.GetKCYProcessCollectionName())
+	base.DeleteCollection(ctx, fsc, ref, 10)
+}
+
 func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -156,10 +162,9 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -283,10 +288,9 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -407,10 +411,9 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -539,10 +542,9 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -670,10 +672,9 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -797,10 +798,9 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -929,10 +929,9 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -1055,10 +1054,9 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -1182,10 +1180,9 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -1302,10 +1299,9 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
@@ -1430,10 +1426,9 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 func TestSupplierSetDefaultLocation(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	r := database.Repository{} // They are nil
-	fsc, _ := InitializeTestFirebaseClient(ctx1)
-	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx1, fsc, ref, 10)
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		cleanUpFirebase(ctx1, t)
+	}
 
 	s, err := InitializeTestService(context.Background())
 	if err != nil {

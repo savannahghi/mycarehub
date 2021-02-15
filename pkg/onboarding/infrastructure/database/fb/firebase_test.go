@@ -1,4 +1,4 @@
-package database_test
+package fb_test
 
 import (
 	"context"
@@ -11,19 +11,19 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
-	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/mock"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
+	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb/mock"
 )
 
 var fakeFireBaseClientExt extMock.FirebaseClientExtension
-var fireBaseClientExt database.FirebaseClientExtension = &fakeFireBaseClientExt
+var fireBaseClientExt fb.FirebaseClientExtension = &fakeFireBaseClientExt
 
 var fakeFireStoreClientExt extMock.FirestoreClientExtension
 
 func TestRepository_UpdateUserName(t *testing.T) {
 	ctx := context.Background()
-	var fireStoreClientExt database.FirestoreClientExtension = &fakeFireStoreClientExt
-	repo := database.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
 
 	type args struct {
 		ctx      context.Context
@@ -57,18 +57,18 @@ func TestRepository_UpdateUserName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:update_user_name_failed_to_get_a user_profile" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *database.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					docs := []*firestore.DocumentSnapshot{}
 					return docs, nil
 				}
 
-				fakeFireStoreClientExt.UpdateFn = func(ctx context.Context, command *database.UpdateCommand) error {
+				fakeFireStoreClientExt.UpdateFn = func(ctx context.Context, command *fb.UpdateCommand) error {
 					return nil
 				}
 			}
 
 			if tt.name == "invalid:user_name_already_exists" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *database.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					docs := []*firestore.DocumentSnapshot{
 						{
 							Ref: &firestore.DocumentRef{
@@ -79,7 +79,7 @@ func TestRepository_UpdateUserName(t *testing.T) {
 					return docs, nil
 				}
 
-				fakeFireStoreClientExt.UpdateFn = func(ctx context.Context, command *database.UpdateCommand) error {
+				fakeFireStoreClientExt.UpdateFn = func(ctx context.Context, command *fb.UpdateCommand) error {
 					return nil
 				}
 			}
@@ -105,8 +105,8 @@ func TestRepository_UpdateUserName(t *testing.T) {
 
 func TestRepository_CheckIfExperimentParticipant(t *testing.T) {
 	ctx := context.Background()
-	var fireStoreClientExt database.FirestoreClientExtension = &fakeFireStoreClientExt
-	repo := database.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
 
 	type args struct {
 		ctx context.Context
@@ -137,7 +137,7 @@ func TestRepository_CheckIfExperimentParticipant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:exists" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *database.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					docs := []*firestore.DocumentSnapshot{
 						{
 							Ref: &firestore.DocumentRef{
@@ -150,7 +150,7 @@ func TestRepository_CheckIfExperimentParticipant(t *testing.T) {
 			}
 
 			if tt.name == "valid:does_not_exist" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *database.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					docs := []*firestore.DocumentSnapshot{}
 					return docs, nil
 				}
@@ -165,8 +165,8 @@ func TestRepository_CheckIfExperimentParticipant(t *testing.T) {
 
 func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 	ctx := context.Background()
-	var fireStoreClientExt database.FirestoreClientExtension = &fakeFireStoreClientExt
-	repo := database.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
 
 	type args struct {
 		ctx     context.Context
@@ -226,12 +226,12 @@ func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:add" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *database.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					docs := []*firestore.DocumentSnapshot{}
 					return docs, nil
 				}
 
-				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *database.CreateCommand) (*firestore.DocumentRef, error) {
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
 					doc := firestore.DocumentRef{
 						ID: uuid.New().String(),
 					}
@@ -240,7 +240,7 @@ func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 			}
 
 			if tt.name == "valid:already_exists" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *database.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					docs := []*firestore.DocumentSnapshot{
 						{
 							Ref: &firestore.DocumentRef{
@@ -254,18 +254,18 @@ func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 			}
 
 			if tt.name == "invalid:throws_internal_server_error_while_checking_existence" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *database.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot"))
 				}
 			}
 
 			if tt.name == "invalid:throws_internal_server_error_while_creating" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *database.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					docs := []*firestore.DocumentSnapshot{}
 					return docs, nil
 				}
 
-				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *database.CreateCommand) (*firestore.DocumentRef, error) {
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
 					return nil, exceptions.InternalServerError(fmt.Errorf("unable to add user profile of ID in experiment_participant"))
 				}
 			}
@@ -283,8 +283,8 @@ func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 
 func TestRepository_RemoveUserAsExperimentParticipant(t *testing.T) {
 	ctx := context.Background()
-	var fireStoreClientExt database.FirestoreClientExtension = &fakeFireStoreClientExt
-	repo := database.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
 
 	type args struct {
 		ctx     context.Context
@@ -322,7 +322,7 @@ func TestRepository_RemoveUserAsExperimentParticipant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:remove_user_as_experiment_participant" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *database.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					docs := []*firestore.DocumentSnapshot{
 						{
 							Ref: &firestore.DocumentRef{
@@ -333,13 +333,13 @@ func TestRepository_RemoveUserAsExperimentParticipant(t *testing.T) {
 					return docs, nil
 				}
 
-				fakeFireStoreClientExt.DeleteFn = func(ctx context.Context, command *database.DeleteCommand) error {
+				fakeFireStoreClientExt.DeleteFn = func(ctx context.Context, command *fb.DeleteCommand) error {
 					return nil
 				}
 
 			}
 			if tt.name == "invalid:throws_internal_server_error_while_removing" {
-				fakeFireStoreClientExt.DeleteFn = func(ctx context.Context, command *database.DeleteCommand) error {
+				fakeFireStoreClientExt.DeleteFn = func(ctx context.Context, command *fb.DeleteCommand) error {
 					return exceptions.InternalServerError(fmt.Errorf("unable to remove user profile of ID  from experiment_participant"))
 				}
 			}
@@ -358,8 +358,8 @@ func TestRepository_RemoveUserAsExperimentParticipant(t *testing.T) {
 
 func TestRepository_StageProfileNudge(t *testing.T) {
 	ctx := context.Background()
-	var fireStoreClientExt database.FirestoreClientExtension = &fakeFireStoreClientExt
-	repo := database.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
 
 	type args struct {
 		ctx   context.Context
@@ -394,7 +394,7 @@ func TestRepository_StageProfileNudge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:create" {
-				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *database.CreateCommand) (*firestore.DocumentRef, error) {
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
 					doc := firestore.DocumentRef{
 						ID: uuid.New().String(),
 					}
@@ -403,7 +403,7 @@ func TestRepository_StageProfileNudge(t *testing.T) {
 			}
 
 			if tt.name == "valid:return_internal_server_error" {
-				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *database.CreateCommand) (*firestore.DocumentRef, error) {
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
 					return nil, fmt.Errorf("internal server error")
 				}
 			}
@@ -421,8 +421,8 @@ func TestRepository_StageProfileNudge(t *testing.T) {
 
 func TestRepository_StageKYCProcessingRequest(t *testing.T) {
 	ctx := context.Background()
-	var fireStoreClientExt database.FirestoreClientExtension = &fakeFireStoreClientExt
-	repo := database.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
 
 	type args struct {
 		ctx  context.Context
@@ -453,7 +453,7 @@ func TestRepository_StageKYCProcessingRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:create" {
-				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *database.CreateCommand) (*firestore.DocumentRef, error) {
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
 					doc := firestore.DocumentRef{
 						ID: uuid.New().String(),
 					}
@@ -462,7 +462,7 @@ func TestRepository_StageKYCProcessingRequest(t *testing.T) {
 			}
 
 			if tt.name == "valid:return_internal_server_error" {
-				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *database.CreateCommand) (*firestore.DocumentRef, error) {
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
 					return nil, fmt.Errorf("internal server error")
 				}
 			}

@@ -104,6 +104,8 @@ export FIREBASE_WEB_API_KEY="<an API key from the Firebase console for the proje
 # Go private modules
 export GOPRIVATE="gitlab.slade360emr.com/go/*,gitlab.slade360emr.com/optimalhealth/*"
 
+export REPOSITORY="firebase" # when we switch to PG the value will be `postgres`
+
 # Charge Master API settings
 export CHARGE_MASTER_API_HOST="<a charge master API host>"
 export CHARGE_MASTER_API_SCHEME=https

@@ -1,4 +1,4 @@
-package database_test
+package fb_test
 
 import (
 	"context"
@@ -21,7 +21,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
@@ -50,10 +50,11 @@ func TestMain(m *testing.M) {
 	os.Setenv("ENVIRONMENT", "staging")
 	debugEnvValue := os.Getenv("DEBUG")
 	os.Setenv("DEBUG", "true")
+	os.Setenv("REPOSITORY", "firebase")
 	collectionEnvValue := os.Getenv("ROOT_COLLECTION_SUFFIX")
 	os.Setenv("ROOT_COLLECTION_SUFFIX", fmt.Sprintf("onboarding_ci_%v", time.Now().Unix()))
 	ctx := context.Background()
-	r := database.Repository{} // They are nil
+	r := fb.Repository{} // They are nil
 	fsc, fbc := InitializeTestFirebaseClient(ctx)
 	if fsc == nil {
 		log.Panicf("failed to initialize test FireStore client")
@@ -116,8 +117,8 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 	otp := otp.NewOTPService(otpClient, ext)
 	profile := usecases.NewProfileUseCase(fr, otp, ext, engage)
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
@@ -261,8 +262,8 @@ func TestRemoveKYCProcessingRequest(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	input1 := domain.OrganizationNutrition{
 		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
@@ -346,8 +347,8 @@ func TestPurgeUserByPhoneNumber(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	assert.Nil(t, err)
 	assert.NotNil(t, profile)
@@ -429,8 +430,8 @@ func TestCreateEmptyCustomerProfile(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	firestoreDB := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	tests := []struct {
 		name      string
@@ -480,8 +481,8 @@ func TestGetCustomerProfileByProfileID(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	firestoreDB := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
 	tests := []struct {
 		name      string
 		profileID string
@@ -543,8 +544,8 @@ func TestRepository_GetCustomerOrSupplierProfileByProfileID(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	profileID := uuid.New().String()
 	_, err := fr.CreateEmptySupplierProfile(ctx, profileID)
@@ -635,8 +636,8 @@ func TestRepository_GetCustomerProfileByID(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	profileID := uuid.New().String()
 
@@ -698,8 +699,8 @@ func TestRepository_ExchangeRefreshTokenForIDToken(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	user, err := fr.GenerateAuthCredentials(ctx, base.TestUserPhoneNumber)
 	if err != nil {
@@ -776,8 +777,8 @@ func TestRepository_GetUserProfileByPhoneNumber(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	type args struct {
 		ctx         context.Context
@@ -834,8 +835,8 @@ func TestRepository_GetUserProfileByPrimaryPhoneNumber(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	type args struct {
 		ctx         context.Context
@@ -896,8 +897,8 @@ func TestRepository_GetSupplierProfileByProfileID(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	profileID := uuid.New().String()
 
@@ -962,8 +963,8 @@ func TestRepository_GetSupplierProfileByID(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	profileID := uuid.New().String()
 	supplier, err := fr.CreateEmptySupplierProfile(ctx, profileID)
@@ -1035,8 +1036,8 @@ func TestRepository_GetUserProfileByUID(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	type args struct {
 		ctx context.Context
@@ -1102,8 +1103,8 @@ func TestRepository_GetUserProfileByID(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -1175,8 +1176,8 @@ func TestRepository_CheckIfPhoneNumberExists(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -1255,8 +1256,8 @@ func TestRepository_CheckIfUsernameExists(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -1335,8 +1336,8 @@ func TestRepository_GetPINByProfileID(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -1429,8 +1430,8 @@ func TestRepository_SavePIN(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -1507,8 +1508,8 @@ func TestRepository_UpdatePIN(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -1585,8 +1586,8 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	profileID := uuid.New().String()
 
@@ -1651,8 +1652,8 @@ func TestRepository_AddPartnerType(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	testRiderName := "Test Rider"
 	rider := base.PartnerTypeRider
@@ -1767,8 +1768,8 @@ func TestRepository_RecordPostVisitSurvey(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	type args struct {
 		ctx   context.Context
@@ -1830,8 +1831,8 @@ func TestRepository_UpdateSuspended(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -1900,8 +1901,8 @@ func TestRepository_UpdateVerifiedUIDS(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	user, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -1961,8 +1962,8 @@ func TestRepository_UpdateVerifiedIdentifiers(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -2062,8 +2063,8 @@ func TestRepository_UpdateCovers(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -2139,8 +2140,8 @@ func TestRepository_UpdateSecondaryEmailAddresses(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -2196,8 +2197,8 @@ func TestRepository_UpdateSupplierProfile(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	profileID := uuid.New().String()
 
@@ -2265,8 +2266,8 @@ func TestRepositoryFetchKYCProcessingRequests(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	reqPartnerType := base.PartnerTypeCoach
 	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
@@ -2332,8 +2333,8 @@ func TestRepository_UpdatePrimaryEmailAddress(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -2402,8 +2403,8 @@ func TestRepository_UpdatePrimaryPhoneNumber(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -2471,8 +2472,8 @@ func TestRepository_UpdateSecondaryPhoneNumbers(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -2541,8 +2542,8 @@ func TestRepository_UpdateBioData(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -2668,8 +2669,8 @@ func TestRepositoryFetchKYCProcessingRequestByID(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	reqPartnerType := base.PartnerTypeCoach
 	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
@@ -2748,8 +2749,8 @@ func TestRepositoryUpdateKYCProcessingRequest(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	reqPartnerType := base.PartnerTypeCoach
 	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
@@ -2833,8 +2834,8 @@ func TestRepositoryGenerateAuthCredentialsForAnonymousUser(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	anonymousPhoneNumber := "+254700000000"
 
@@ -2925,8 +2926,8 @@ func TestRepositoryGenerateAuthCredentials(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -3031,8 +3032,8 @@ func TestRepositoryFetchAdminUsers(t *testing.T) {
 	if fbc == nil {
 		log.Panicf("failed to initialize test FireBase client")
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -3099,8 +3100,8 @@ func TestUpdateAddresses(t *testing.T) {
 		log.Panicf("failed to initialize test FireBase client")
 		return
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	userProfile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
 	if err != nil {
@@ -3187,8 +3188,8 @@ func TestAddNHIFDetails(t *testing.T) {
 		log.Panicf("failed to initialize test FireBase client")
 		return
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	photoID := uuid.New().String()
 	input := resources.NHIFDetailsInput{
@@ -3271,8 +3272,8 @@ func TestGetNHIFDetailsByProfileID(t *testing.T) {
 		log.Panicf("failed to initialize test FireBase client")
 		return
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	input := resources.NHIFDetailsInput{
 		MembershipNumber: "123456",

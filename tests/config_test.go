@@ -13,6 +13,8 @@ import (
 	"testing"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
@@ -22,7 +24,7 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/imroc/req"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
@@ -84,9 +86,13 @@ func initializeAcceptanceTestFirebaseClient(ctx context.Context) (*firestore.Cli
 }
 
 func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) {
-	fsc, fbc := initializeAcceptanceTestFirebaseClient(ctx)
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
+	var repo repository.OnboardingRepository
+
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		fsc, fbc := initializeAcceptanceTestFirebaseClient(ctx)
+		firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+		repo = fb.NewFirebaseRepository(firestoreExtension, fbc)
+	}
 
 	ext := extension.NewBaseExtensionImpl()
 
@@ -102,13 +108,13 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(iscClient, ext)
-	profile := usecases.NewProfileUseCase(fr, otp, ext, engage)
-	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
-	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
-	survey := usecases.NewSurveyUseCases(fr, ext)
-	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext, pinExt)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, ext)
-	nhif := usecases.NewNHIFUseCases(fr, profile, ext, engage)
+	profile := usecases.NewProfileUseCase(repo, otp, ext, engage)
+	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mg, mes, ext)
+	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
+	survey := usecases.NewSurveyUseCases(repo, ext)
+	userpin := usecases.NewUserPinUseCase(repo, otp, profile, ext, pinExt)
+	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, otp, ext)
+	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -323,6 +329,7 @@ func TestMain(m *testing.M) {
 	// setup
 	os.Setenv("ENVIRONMENT", "staging")
 	os.Setenv("ROOT_COLLECTION_SUFFIX", "onboarding_testing")
+	os.Setenv("REPOSITORY", "firebase")
 
 	ctx := context.Background()
 	srv, baseURL, serverErr = base.StartTestServer(
@@ -334,22 +341,27 @@ func TestMain(m *testing.M) {
 		log.Printf("unable to start test server: %s", serverErr)
 	}
 
-	r := database.Repository{} // They are nil
 	fsc, _ := initializeAcceptanceTestFirebaseClient(ctx)
 
 	purgeRecords := func() {
-		collections := []string{
-			r.GetCustomerProfileCollectionName(),
-			r.GetPINsCollectionName(),
-			r.GetUserProfileCollectionName(),
-			r.GetSupplierProfileCollectionName(),
-			r.GetSurveyCollectionName(),
+		if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+			r := fb.Repository{}
+			collections := []string{
+				r.GetCustomerProfileCollectionName(),
+				r.GetPINsCollectionName(),
+				r.GetUserProfileCollectionName(),
+				r.GetSupplierProfileCollectionName(),
+				r.GetSurveyCollectionName(),
+				r.GetKCYProcessCollectionName(),
+			}
+			for _, collection := range collections {
+				ref := fsc.Collection(collection)
+				base.DeleteCollection(ctx, fsc, ref, 10)
+			}
 		}
-		for _, collection := range collections {
-			ref := fsc.Collection(collection)
-			base.DeleteCollection(ctx, fsc, ref, 10)
-		}
+
 	}
+
 	purgeRecords()
 
 	// run the tests

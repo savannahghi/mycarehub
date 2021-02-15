@@ -13,7 +13,8 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
@@ -54,11 +55,12 @@ func TestMain(m *testing.M) {
 	os.Setenv("ENVIRONMENT", "staging")
 	debugEnvValue := os.Getenv("DEBUG")
 	os.Setenv("DEBUG", "true")
+	os.Setenv("REPOSITORY", "firebase")
 	collectionEnvValue := os.Getenv("ROOT_COLLECTION_SUFFIX")
 	os.Setenv("ROOT_COLLECTION_SUFFIX", fmt.Sprintf("onboarding_ci_%v", time.Now().Unix()))
 
 	ctx := context.Background()
-	r := database.Repository{} // They are nil
+
 	fsc, fbc := InitializeTestFirebaseClient(ctx)
 	if fsc == nil {
 		log.Panicf("failed to initialize test FireStore client")
@@ -68,18 +70,22 @@ func TestMain(m *testing.M) {
 	}
 
 	purgeRecords := func() {
-		collections := []string{
-			r.GetCustomerProfileCollectionName(),
-			r.GetPINsCollectionName(),
-			r.GetUserProfileCollectionName(),
-			r.GetSupplierProfileCollectionName(),
-			r.GetSurveyCollectionName(),
-			r.GetKCYProcessCollectionName(),
+		if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+			r := fb.Repository{}
+			collections := []string{
+				r.GetCustomerProfileCollectionName(),
+				r.GetPINsCollectionName(),
+				r.GetUserProfileCollectionName(),
+				r.GetSupplierProfileCollectionName(),
+				r.GetSurveyCollectionName(),
+				r.GetKCYProcessCollectionName(),
+			}
+			for _, collection := range collections {
+				ref := fsc.Collection(collection)
+				base.DeleteCollection(ctx, fsc, ref, 10)
+			}
 		}
-		for _, collection := range collections {
-			ref := fsc.Collection(collection)
-			base.DeleteCollection(ctx, fsc, ref, 10)
-		}
+
 	}
 
 	// try clean up first
@@ -136,10 +142,11 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		log.Panicf("can't initialize Firebase auth when setting up profile service: %s", err)
 	}
 
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
-	if err != nil {
-		return nil, err
+	var repo repository.OnboardingRepository
+
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+		repo = fb.NewFirebaseRepository(firestoreExtension, fbc)
 	}
 
 	ext := extension.NewBaseExtensionImpl()
@@ -156,13 +163,13 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(otpClient, ext)
-	profile := usecases.NewProfileUseCase(fr, otp, ext, engage)
-	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
-	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
-	survey := usecases.NewSurveyUseCases(fr, ext)
-	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext, pinExt)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, ext)
-	nhif := usecases.NewNHIFUseCases(fr, profile, ext, engage)
+	profile := usecases.NewProfileUseCase(repo, otp, ext, engage)
+	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mg, mes, ext)
+	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
+	survey := usecases.NewSurveyUseCases(repo, ext)
+	userpin := usecases.NewUserPinUseCase(repo, otp, profile, ext, pinExt)
+	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, otp, ext)
+	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,

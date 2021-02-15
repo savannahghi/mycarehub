@@ -8,9 +8,10 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
@@ -43,10 +44,12 @@ func TestParseKYCAsMap(t *testing.T) {
 	if err != nil {
 		log.Panicf("can't initialize Firebase auth when setting up profile service: %s", err)
 	}
-	firestoreExtension := database.NewFirestoreClientExtension(fsc)
-	fr := database.NewFirebaseRepository(firestoreExtension, fbc)
-	if err != nil {
-		return
+
+	var repo repository.OnboardingRepository
+
+	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+		repo = fb.NewFirebaseRepository(firestoreExtension, fbc)
 	}
 
 	ext := extension.NewBaseExtensionImpl()
@@ -61,10 +64,10 @@ func TestParseKYCAsMap(t *testing.T) {
 	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	otp := otp.NewOTPService(otpClient, ext)
-	profile := NewProfileUseCase(fr, otp, ext, engage)
+	profile := NewProfileUseCase(repo, otp, ext, engage)
 
 	supplier := SupplierUseCasesImpl{
-		repo:         fr,
+		repo:         repo,
 		profile:      profile,
 		erp:          erp,
 		chargemaster: chrg,

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/labstack/gommon/log"
+	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 )
@@ -10,13 +10,13 @@ import (
 func NewInterServiceClient(serviceName string, baseExt extension.BaseExtension) *base.InterServiceClient {
 	config, err := baseExt.LoadDepsFromYAML()
 	if err != nil {
-		log.Panicf("occurred while opening deps file %v", err)
+		logrus.Panicf("occurred while opening deps file %v", err)
 		return nil
 	}
 
 	client, err := baseExt.SetupISCclient(*config, serviceName)
 	if err != nil {
-		log.Panicf("unable to initialize inter service client for %v service: %s", err, serviceName)
+		logrus.Panicf("unable to initialize inter service client for %v service: %s", err, serviceName)
 		return nil
 	}
 	return client
