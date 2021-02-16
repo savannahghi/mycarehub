@@ -22,15 +22,16 @@ import (
 )
 
 const (
-	userProfileCollectionName           = "user_profiles"
-	supplierProfileCollectionName       = "supplier_profiles"
-	customerProfileCollectionName       = "customer_profiles"
-	pinsCollectionName                  = "pins"
-	surveyCollectionName                = "post_visit_survey"
-	profileNudgesCollectionName         = "profile_nudges"
-	kycProcessCollectionName            = "kyc_processing"
-	experimentParticipantCollectionName = "experiment_participants"
-	nhifDetailsCollectionName           = "nhif_details"
+	userProfileCollectionName            = "user_profiles"
+	supplierProfileCollectionName        = "supplier_profiles"
+	customerProfileCollectionName        = "customer_profiles"
+	pinsCollectionName                   = "pins"
+	surveyCollectionName                 = "post_visit_survey"
+	profileNudgesCollectionName          = "profile_nudges"
+	kycProcessCollectionName             = "kyc_processing"
+	experimentParticipantCollectionName  = "experiment_participants"
+	nhifDetailsCollectionName            = "nhif_details"
+	communicationsSettingsCollectionName = "communications_settings"
 
 	firebaseExchangeRefreshTokenURL = "https://securetoken.googleapis.com/v1/token?key="
 )
@@ -100,6 +101,12 @@ func (fr *Repository) GetExperimentParticipantCollectionName() string {
 // GetNHIFDetailsCollectionName ...
 func (fr Repository) GetNHIFDetailsCollectionName() string {
 	suffixed := base.SuffixCollection(nhifDetailsCollectionName)
+	return suffixed
+}
+
+// GetCommunicationsSettingsCollectionName ...
+func (fr Repository) GetCommunicationsSettingsCollectionName() string {
+	suffixed := base.SuffixCollection(communicationsSettingsCollectionName)
 	return suffixed
 }
 
@@ -2212,4 +2219,69 @@ func (fr *Repository) GetNHIFDetailsByProfileID(
 	}
 
 	return nhif, nil
+}
+
+// GetUserCommunicationsSettings fetches the communication settings of a specific user.
+func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profileID string) (*domain.UserCommunicationsSetting, error) {
+	query := &GetAllQuery{
+		CollectionName: fr.GetCommunicationsSettingsCollectionName(),
+		FieldName:      "profileID",
+		Value:          profileID,
+		Operator:       "==",
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	if len(docs) > 1 && base.IsDebug() {
+		log.Printf("> 1 communications settings with profile ID %s (count: %d)",
+			profileID,
+			len(docs),
+		)
+	}
+
+	if len(docs) == 0 {
+		return nil, nil
+	}
+
+	comms := &domain.UserCommunicationsSetting{}
+	err = docs[0].DataTo(comms)
+	if err != nil {
+		return nil, err
+	}
+	return comms, nil
+}
+
+// SetUserCommunicationsSettings sets communication settings for a specific user
+func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profileID string,
+	allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error) {
+
+	// get the previous communications_settings
+	comms, err := fr.GetUserCommunicationsSettings(ctx, profileID)
+	if err != nil {
+		return nil, err
+	}
+
+	setCommsSettings := domain.UserCommunicationsSetting{
+		ID:            uuid.New().String(),
+		ProfileID:     profileID,
+		AllowWhatsApp: utils.MatchAndReturn(comms.AllowWhatsApp, *allowWhatsApp),
+		AllowTextSMS:  utils.MatchAndReturn(comms.AllowWhatsApp, *allowTextSms),
+		AllowPush:     utils.MatchAndReturn(comms.AllowWhatsApp, *allowPush),
+		AllowEmail:    utils.MatchAndReturn(comms.AllowWhatsApp, *allowEmail),
+	}
+
+	createCommand := &CreateCommand{
+		CollectionName: fr.GetCommunicationsSettingsCollectionName(),
+		Data:           setCommsSettings,
+	}
+	_, err = fr.FirestoreClient.Create(ctx, createCommand)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	// fetch the now set communications_settings and return it
+	return fr.GetUserCommunicationsSettings(ctx, profileID)
 }

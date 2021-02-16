@@ -22,29 +22,30 @@ extend type Query {
   fetchKYCProcessingRequests: [KYCRequest!]
 
   getAddresses: UserAddresses!
-  
+
   NHIFDetails: NHIFDetails!
+
+  getUserCommunicationsSettings: UserCommunicationsSetting!
 }
 
 extend type Mutation {
- 
-  completeSignup(flavour:Flavour!): Boolean!
+  completeSignup(flavour: Flavour!): Boolean!
 
   updateUserProfile(input: UserProfileInput!): UserProfile!
-  
+
   updateUserPIN(phone: String!, pin: String!): Boolean!
 
-  setPrimaryPhoneNumber(phone: String!,otp:String!): Boolean!
+  setPrimaryPhoneNumber(phone: String!, otp: String!): Boolean!
 
-  setPrimaryEmailAddress(email: String!, otp:String!): Boolean!
+  setPrimaryEmailAddress(email: String!, otp: String!): Boolean!
 
   addSecondaryPhoneNumber(phone: [String!]): Boolean!
 
-  retireSecondaryPhoneNumbers(phones: [String!]): Boolean! 
+  retireSecondaryPhoneNumbers(phones: [String!]): Boolean!
 
-  addSecondaryEmailAddress(email: [String!]): Boolean!   
+  addSecondaryEmailAddress(email: [String!]): Boolean!
 
-  retireSecondaryEmailAddresses(emails: [String!]): Boolean! 
+  retireSecondaryEmailAddresses(emails: [String!]): Boolean!
 
   updateUserName(username: String!): Boolean!
 
@@ -105,18 +106,20 @@ extend type Mutation {
     rejectionReason: String
   ): Boolean!
 
-  recordPostVisitSurvey(
-    input: PostVisitSurveyInput!
-  ): Boolean!
+  recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
 
   retireKYCProcessingRequest: Boolean!
 
-  setupAsExperimentParticipant(participate:Boolean): Boolean!
+  setupAsExperimentParticipant(participate: Boolean): Boolean!
 
   addNHIFDetails(input: NHIFDetailsInput!): NHIFDetails!
 
-  addAddress(
-    input: UserAddressInput!
-    addressType: AddressType!
-  ): Address!
+  addAddress(input: UserAddressInput!, addressType: AddressType!): Address!
+
+  setUserCommunicationsSettings(
+    allowWhatsApp: Boolean
+    allowTextSMS: Boolean
+    allowPush: Boolean
+    allowEmail: Boolean
+  ): UserCommunicationsSetting!
 }

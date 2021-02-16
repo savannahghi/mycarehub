@@ -126,6 +126,11 @@ type FakeOnboardingRepository struct {
 		profileID string,
 	) (*domain.NHIFDetails, error)
 
+	GetUserCommunicationsSettingsFn func(ctx context.Context, profileID string) (*domain.UserCommunicationsSetting, error)
+
+	SetUserCommunicationsSettingsFn func(ctx context.Context, profileID string,
+		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error)
+
 	// Userprofile
 	UpdateUserNameFn                func(ctx context.Context, id string, phoneNumber string) error
 	UpdatePrimaryPhoneNumberFn      func(ctx context.Context, id string, phoneNumber string) error
@@ -453,4 +458,15 @@ func (f *FakeOnboardingRepository) GetNHIFDetailsByProfileID(
 	profileID string,
 ) (*domain.NHIFDetails, error) {
 	return f.GetNHIFDetailsByProfileIDFn(ctx, profileID)
+}
+
+// GetUserCommunicationsSettings ...
+func (f *FakeOnboardingRepository) GetUserCommunicationsSettings(ctx context.Context, profileID string) (*domain.UserCommunicationsSetting, error) {
+	return f.GetUserCommunicationsSettingsFn(ctx, profileID)
+}
+
+// SetUserCommunicationsSettings ...
+func (f *FakeOnboardingRepository) SetUserCommunicationsSettings(ctx context.Context, profileID string,
+	allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error) {
+	return f.SetUserCommunicationsSettingsFn(ctx, profileID, allowWhatsApp, allowTextSms, allowPush, allowEmail)
 }

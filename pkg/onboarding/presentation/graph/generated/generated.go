@@ -231,6 +231,7 @@ type ComplexityRoot struct {
 		SetPrimaryEmailAddress           func(childComplexity int, email string, otp string) int
 		SetPrimaryPhoneNumber            func(childComplexity int, phone string, otp string) int
 		SetUpSupplier                    func(childComplexity int, accountType base.AccountType) int
+		SetUserCommunicationsSettings    func(childComplexity int, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) int
 		SetupAsExperimentParticipant     func(childComplexity int, participate *bool) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
 		SupplierSetDefaultLocation       func(childComplexity int, locatonID string) int
@@ -356,6 +357,7 @@ type ComplexityRoot struct {
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) int
 		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) int
 		GetAddresses                  func(childComplexity int) int
+		GetUserCommunicationsSettings func(childComplexity int) int
 		NHIFDetails                   func(childComplexity int) int
 		ResumeWithPin                 func(childComplexity int, pin string) int
 		SupplierProfile               func(childComplexity int) int
@@ -417,6 +419,15 @@ type ComplexityRoot struct {
 	UserAddresses struct {
 		HomeAddress func(childComplexity int) int
 		WorkAddress func(childComplexity int) int
+	}
+
+	UserCommunicationsSetting struct {
+		AllowEmail    func(childComplexity int) int
+		AllowPush     func(childComplexity int) int
+		AllowTextSMS  func(childComplexity int) int
+		AllowWhatsApp func(childComplexity int) int
+		ID            func(childComplexity int) int
+		ProfileID     func(childComplexity int) int
 	}
 
 	UserProfile struct {
@@ -491,6 +502,7 @@ type MutationResolver interface {
 	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
 	AddNHIFDetails(ctx context.Context, input resources.NHIFDetailsInput) (*domain.NHIFDetails, error)
 	AddAddress(ctx context.Context, input resources.UserAddressInput, addressType base.AddressType) (*base.Address, error)
+	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -502,6 +514,7 @@ type QueryResolver interface {
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 	GetAddresses(ctx context.Context) (*domain.UserAddresses, error)
 	NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error)
+	GetUserCommunicationsSettings(ctx context.Context) (*domain.UserCommunicationsSetting, error)
 }
 type VerifiedIdentifierResolver interface {
 	Timestamp(ctx context.Context, obj *base.VerifiedIdentifier) (*base.Date, error)
@@ -1490,6 +1503,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetUpSupplier(childComplexity, args["accountType"].(base.AccountType)), true
 
+	case "Mutation.setUserCommunicationsSettings":
+		if e.complexity.Mutation.SetUserCommunicationsSettings == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setUserCommunicationsSettings_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetUserCommunicationsSettings(childComplexity, args["allowWhatsApp"].(*bool), args["allowTextSMS"].(*bool), args["allowPush"].(*bool), args["allowEmail"].(*bool)), true
+
 	case "Mutation.setupAsExperimentParticipant":
 		if e.complexity.Mutation.SetupAsExperimentParticipant == nil {
 			break
@@ -2195,6 +2220,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAddresses(childComplexity), true
 
+	case "Query.getUserCommunicationsSettings":
+		if e.complexity.Query.GetUserCommunicationsSettings == nil {
+			break
+		}
+
+		return e.complexity.Query.GetUserCommunicationsSettings(childComplexity), true
+
 	case "Query.NHIFDetails":
 		if e.complexity.Query.NHIFDetails == nil {
 			break
@@ -2484,6 +2516,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserAddresses.WorkAddress(childComplexity), true
+
+	case "UserCommunicationsSetting.allowEmail":
+		if e.complexity.UserCommunicationsSetting.AllowEmail == nil {
+			break
+		}
+
+		return e.complexity.UserCommunicationsSetting.AllowEmail(childComplexity), true
+
+	case "UserCommunicationsSetting.allowPush":
+		if e.complexity.UserCommunicationsSetting.AllowPush == nil {
+			break
+		}
+
+		return e.complexity.UserCommunicationsSetting.AllowPush(childComplexity), true
+
+	case "UserCommunicationsSetting.allowTextSMS":
+		if e.complexity.UserCommunicationsSetting.AllowTextSMS == nil {
+			break
+		}
+
+		return e.complexity.UserCommunicationsSetting.AllowTextSMS(childComplexity), true
+
+	case "UserCommunicationsSetting.allowWhatsApp":
+		if e.complexity.UserCommunicationsSetting.AllowWhatsApp == nil {
+			break
+		}
+
+		return e.complexity.UserCommunicationsSetting.AllowWhatsApp(childComplexity), true
+
+	case "UserCommunicationsSetting.id":
+		if e.complexity.UserCommunicationsSetting.ID == nil {
+			break
+		}
+
+		return e.complexity.UserCommunicationsSetting.ID(childComplexity), true
+
+	case "UserCommunicationsSetting.profileID":
+		if e.complexity.UserCommunicationsSetting.ProfileID == nil {
+			break
+		}
+
+		return e.complexity.UserCommunicationsSetting.ProfileID(childComplexity), true
 
 	case "UserProfile.covers":
 		if e.complexity.UserProfile.Covers == nil {
@@ -3238,29 +3312,30 @@ input NHIFDetailsInput {
   fetchKYCProcessingRequests: [KYCRequest!]
 
   getAddresses: UserAddresses!
-  
+
   NHIFDetails: NHIFDetails!
+
+  getUserCommunicationsSettings: UserCommunicationsSetting!
 }
 
 extend type Mutation {
- 
-  completeSignup(flavour:Flavour!): Boolean!
+  completeSignup(flavour: Flavour!): Boolean!
 
   updateUserProfile(input: UserProfileInput!): UserProfile!
-  
+
   updateUserPIN(phone: String!, pin: String!): Boolean!
 
-  setPrimaryPhoneNumber(phone: String!,otp:String!): Boolean!
+  setPrimaryPhoneNumber(phone: String!, otp: String!): Boolean!
 
-  setPrimaryEmailAddress(email: String!, otp:String!): Boolean!
+  setPrimaryEmailAddress(email: String!, otp: String!): Boolean!
 
   addSecondaryPhoneNumber(phone: [String!]): Boolean!
 
-  retireSecondaryPhoneNumbers(phones: [String!]): Boolean! 
+  retireSecondaryPhoneNumbers(phones: [String!]): Boolean!
 
-  addSecondaryEmailAddress(email: [String!]): Boolean!   
+  addSecondaryEmailAddress(email: [String!]): Boolean!
 
-  retireSecondaryEmailAddresses(emails: [String!]): Boolean! 
+  retireSecondaryEmailAddresses(emails: [String!]): Boolean!
 
   updateUserName(username: String!): Boolean!
 
@@ -3321,20 +3396,22 @@ extend type Mutation {
     rejectionReason: String
   ): Boolean!
 
-  recordPostVisitSurvey(
-    input: PostVisitSurveyInput!
-  ): Boolean!
+  recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
 
   retireKYCProcessingRequest: Boolean!
 
-  setupAsExperimentParticipant(participate:Boolean): Boolean!
+  setupAsExperimentParticipant(participate: Boolean): Boolean!
 
   addNHIFDetails(input: NHIFDetailsInput!): NHIFDetails!
 
-  addAddress(
-    input: UserAddressInput!
-    addressType: AddressType!
-  ): Address!
+  addAddress(input: UserAddressInput!, addressType: AddressType!): Address!
+
+  setUserCommunicationsSettings(
+    allowWhatsApp: Boolean
+    allowTextSMS: Boolean
+    allowPush: Boolean
+    allowEmail: Boolean
+  ): UserCommunicationsSetting!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -3751,6 +3828,15 @@ type NHIFDetails {
   idNumber: String!
   identificationCardPhotoID: String!
   NHIFCardPhotoID: String!
+}
+
+type UserCommunicationsSetting {
+  id: String!
+  profileID: String!
+  allowWhatsApp: Boolean!
+  allowTextSMS: Boolean!
+  allowPush: Boolean!
+  allowEmail: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -4246,6 +4332,48 @@ func (ec *executionContext) field_Mutation_setUpSupplier_args(ctx context.Contex
 		}
 	}
 	args["accountType"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setUserCommunicationsSettings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["allowWhatsApp"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allowWhatsApp"))
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["allowWhatsApp"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["allowTextSMS"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allowTextSMS"))
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["allowTextSMS"] = arg1
+	var arg2 *bool
+	if tmp, ok := rawArgs["allowPush"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allowPush"))
+		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["allowPush"] = arg2
+	var arg3 *bool
+	if tmp, ok := rawArgs["allowEmail"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allowEmail"))
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["allowEmail"] = arg3
 	return args, nil
 }
 
@@ -9057,6 +9185,48 @@ func (ec *executionContext) _Mutation_addAddress(ctx context.Context, field grap
 	return ec.marshalNAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_setUserCommunicationsSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setUserCommunicationsSettings_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetUserCommunicationsSettings(rctx, args["allowWhatsApp"].(*bool), args["allowTextSMS"].(*bool), args["allowPush"].(*bool), args["allowEmail"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.UserCommunicationsSetting)
+	fc.Result = res
+	return ec.marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserCommunicationsSetting(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NHIFDetails_id(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12199,6 +12369,41 @@ func (ec *executionContext) _Query_NHIFDetails(ctx context.Context, field graphq
 	return ec.marshalNNHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_getUserCommunicationsSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserCommunicationsSettings(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.UserCommunicationsSetting)
+	fc.Result = res
+	return ec.marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserCommunicationsSetting(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13520,6 +13725,216 @@ func (ec *executionContext) _UserAddresses_workAddress(ctx context.Context, fiel
 	res := resTmp.(domain.ThinAddress)
 	fc.Result = res
 	return ec.marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCommunicationsSetting_id(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserCommunicationsSetting",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCommunicationsSetting_profileID(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserCommunicationsSetting",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCommunicationsSetting_allowWhatsApp(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserCommunicationsSetting",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AllowWhatsApp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCommunicationsSetting_allowTextSMS(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserCommunicationsSetting",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AllowTextSMS, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCommunicationsSetting_allowPush(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserCommunicationsSetting",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AllowPush, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCommunicationsSetting_allowEmail(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserCommunicationsSetting",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AllowEmail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
@@ -17964,6 +18379,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "setUserCommunicationsSettings":
+			out.Values[i] = ec._Mutation_setUserCommunicationsSettings(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18630,6 +19050,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "getUserCommunicationsSettings":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserCommunicationsSettings(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "_entities":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -18968,6 +19402,58 @@ func (ec *executionContext) _UserAddresses(ctx context.Context, sel ast.Selectio
 			}
 		case "workAddress":
 			out.Values[i] = ec._UserAddresses_workAddress(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userCommunicationsSettingImplementors = []string{"UserCommunicationsSetting"}
+
+func (ec *executionContext) _UserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, obj *domain.UserCommunicationsSetting) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userCommunicationsSettingImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserCommunicationsSetting")
+		case "id":
+			out.Values[i] = ec._UserCommunicationsSetting_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "profileID":
+			out.Values[i] = ec._UserCommunicationsSetting_profileID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "allowWhatsApp":
+			out.Values[i] = ec._UserCommunicationsSetting_allowWhatsApp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "allowTextSMS":
+			out.Values[i] = ec._UserCommunicationsSetting_allowTextSMS(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "allowPush":
+			out.Values[i] = ec._UserCommunicationsSetting_allowPush(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "allowEmail":
+			out.Values[i] = ec._UserCommunicationsSetting_allowEmail(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -20151,6 +20637,20 @@ func (ec *executionContext) marshalNUserAddresses2ᚖgitlabᚗslade360emrᚗcom�
 		return graphql.Null
 	}
 	return ec._UserAddresses(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUserCommunicationsSetting2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, v domain.UserCommunicationsSetting) graphql.Marshaler {
+	return ec._UserCommunicationsSetting(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, v *domain.UserCommunicationsSetting) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UserCommunicationsSetting(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v base.UserProfile) graphql.Marshaler {

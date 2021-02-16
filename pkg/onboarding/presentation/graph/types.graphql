@@ -413,3 +413,12 @@ type NHIFDetails {
   identificationCardPhotoID: String!
   NHIFCardPhotoID: String!
 }
+
+type UserCommunicationsSetting {
+  id: String!
+  profileID: String!
+  allowWhatsApp: Boolean!
+  allowTextSMS: Boolean!
+  allowPush: Boolean!
+  allowEmail: Boolean!
+}

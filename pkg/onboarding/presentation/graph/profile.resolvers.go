@@ -168,6 +168,10 @@ func (r *mutationResolver) AddAddress(ctx context.Context, input resources.UserA
 	)
 }
 
+func (r *mutationResolver) SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error) {
+	return r.interactor.Onboarding.SetUserCommunicationsSettings(ctx, allowWhatsApp, allowTextSms, allowPush, allowEmail)
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	return r.interactor.Onboarding.UserProfile(ctx)
 }
@@ -202,6 +206,10 @@ func (r *queryResolver) GetAddresses(ctx context.Context) (*domain.UserAddresses
 
 func (r *queryResolver) NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error) {
 	return r.interactor.NHIF.NHIFDetails(ctx)
+}
+
+func (r *queryResolver) GetUserCommunicationsSettings(ctx context.Context) (*domain.UserCommunicationsSetting, error) {
+	return r.interactor.Onboarding.GetUserCommunicationsSettings(ctx)
 }
 
 // Mutation returns generated.MutationResolver implementation.

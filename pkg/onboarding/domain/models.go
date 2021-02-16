@@ -94,3 +94,14 @@ type NHIFDetails struct {
 	IdentificationCardPhotoID string                `json:"identificationCardPhotoID" firestore:"identificationCardPhotoID"`
 	NHIFCardPhotoID           string                `json:"nhifCardPhotoID" firestore:"nhifCardPhotoID"`
 }
+
+// UserCommunicationsSetting hold infomation about the user communication's channels.
+// if a channel is true, we will be able to send them marketing or promotional messages
+type UserCommunicationsSetting struct {
+	ID            string `json:"id" firestore:"id"`
+	ProfileID     string `json:"profileID" firestore:"profileID"`
+	AllowWhatsApp bool   `json:"allowWhatsApp" firestore:"allowWhatsApp"`
+	AllowTextSMS  bool   `json:"allowTextSMS" firestore:"allowTextSMS"`
+	AllowPush     bool   `json:"allowPush" firestore:"allowPush"`
+	AllowEmail    bool   `json:"allowEmail" firestore:"allowEmail"`
+}

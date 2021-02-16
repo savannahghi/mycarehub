@@ -9,6 +9,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
@@ -2752,6 +2753,218 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 			_, err := i.Onboarding.GetAddresses(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ProfileUseCaseImpl.GetAddresses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "valid: get comms settings",
+			args:    args{ctx: ctx},
+			wantErr: false,
+		},
+		{
+			name:    "invalid: failed to get logged in user",
+			args:    args{ctx: ctx},
+			wantErr: true,
+		},
+		{
+			name:    "invalid: failed to get user profile",
+			args:    args{ctx: ctx},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid: get comms settings" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*domain.UserCommunicationsSetting, error) {
+					return &domain.UserCommunicationsSetting{
+						ID:            uuid.New().String(),
+						AllowWhatsApp: true,
+						AllowTextSMS:  true,
+						AllowEmail:    true,
+						AllowPush:     true,
+					}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid: failed to get logged in user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occured")
+				}
+			}
+
+			if tt.name == "invalid: failed to get user profile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("an error ocurred")
+				}
+			}
+
+			_, err := i.Onboarding.GetUserCommunicationsSettings(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.GetUserCommunicationsSettings() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx           context.Context
+		allowWhatsApp bool
+		allowTextSms  bool
+		allowPush     bool
+		allowEmail    bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: set comms settings",
+			args: args{
+				ctx:           ctx,
+				allowWhatsApp: true,
+				allowTextSms:  true,
+				allowPush:     true,
+				allowEmail:    true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: failed to get logged in user",
+			args: args{
+				ctx:           ctx,
+				allowWhatsApp: true,
+				allowTextSms:  true,
+				allowPush:     true,
+				allowEmail:    true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: failed to get user profile",
+			args: args{
+				ctx:           ctx,
+				allowWhatsApp: true,
+				allowTextSms:  true,
+				allowPush:     true,
+				allowEmail:    true,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid: set comms settings" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.SetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string,
+					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error) {
+					return &domain.UserCommunicationsSetting{
+						ID:            uuid.New().String(),
+						AllowWhatsApp: true,
+						AllowTextSMS:  true,
+						AllowEmail:    true,
+						AllowPush:     true,
+					}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+			}
+
+			if tt.name == "invalid: failed to get logged in user" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occured")
+				}
+			}
+
+			if tt.name == "invalid: failed to get user profile" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("an error ocurred")
+				}
+			}
+
+			_, err := i.Onboarding.SetUserCommunicationsSettings(tt.args.ctx, &tt.args.allowWhatsApp,
+				&tt.args.allowTextSms, &tt.args.allowEmail, &tt.args.allowPush)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.SetUserCommunicationsSettings() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
