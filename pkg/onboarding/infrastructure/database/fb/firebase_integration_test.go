@@ -1591,23 +1591,25 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 
 	profileID := uuid.New().String()
 
-	supplier, err := fr.CreateEmptySupplierProfile(ctx, profileID)
+	_, err := fr.CreateEmptySupplierProfile(ctx, profileID)
 	if err != nil {
 		t.Errorf("failed to create an empty supplier: %v", err)
 	}
 
 	// Expected supplier after activation should be active
 	// want == Updated supplier
-	supplier.Active = true
+	sup := base.Supplier{
+		Active: true,
+	}
 
 	type args struct {
 		ctx       context.Context
 		profileID string
+		supplier  base.Supplier
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Supplier
 		wantErr bool
 	}{
 		{
@@ -1615,8 +1617,8 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				profileID: profileID,
+				supplier:  sup,
 			},
-			want:    supplier,
 			wantErr: false,
 		},
 		{
@@ -1624,19 +1626,21 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				profileID: "bogus",
+				supplier:  sup,
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := fr.ActivateSupplierProfile(tt.args.ctx, tt.args.profileID)
+			supp, err := fr.ActivateSupplierProfile(tt.args.ctx, tt.args.profileID, tt.args.supplier)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.ActivateSupplierProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Repository.ActivateSupplierProfile() = %v, want %v", got, tt.want)
+			if supp != nil && !supp.Active {
+				t.Errorf("expected an active supplier")
+				return
 			}
 		})
 	}

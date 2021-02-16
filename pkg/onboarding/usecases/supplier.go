@@ -182,9 +182,9 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context, name string, partnerType base.PartnerType) (*base.Supplier, error) {
 	profile, err := s.profile.UserProfile(ctx)
 	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
+
 	currency, err := s.baseExt.FetchDefaultCurrency(s.erp.FetchERPClient())
 	if err != nil {
 		return nil, exceptions.FetchDefaultCurrencyError(err)
@@ -192,13 +192,14 @@ func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context,
 
 	validPartnerType := partnerType.IsValid()
 	if !validPartnerType {
-		return nil, fmt.Errorf("%v is not an valid partner type choice", partnerType.String())
+		return nil, exceptions.WrongEnumTypeError(partnerType.String())
 	}
 
 	var payload map[string]interface{}
 	var endpoint string
 
 	if partnerType == base.PartnerTypeConsumer {
+		var customer base.Customer
 		endpoint = customerAPIPath
 		payload = map[string]interface{}{
 			"active":        active,
@@ -208,28 +209,45 @@ func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context,
 			"is_customer":   true,
 			"customer_type": partnerType,
 		}
-	} else {
-		endpoint = supplierAPIPath
-		payload = map[string]interface{}{
-			"active":        active,
-			"partner_name":  name,
-			"country":       country,
-			"currency":      *currency.ID,
-			"is_supplier":   true,
-			"supplier_type": partnerType,
+		if err := s.erp.CreateERPCustomer(
+			http.MethodPost,
+			endpoint,
+			payload,
+			customer,
+		); err != nil {
+			return nil, err
 		}
-	}
 
-	if err := s.erp.CreateERPSupplier(string(http.MethodPost), endpoint, payload, partnerType); err != nil {
-		return nil, err
-	}
+		err = s.repo.UpdateCustomerProfile(ctx, profile.ID, customer)
+		if err != nil {
+			return nil, err
+		}
 
-	// for customers, we don't return anything. So long as there is not error, we are good
-	if partnerType == base.PartnerTypeConsumer {
 		return nil, nil
 	}
 
-	return s.repo.ActivateSupplierProfile(ctx, profile.ID)
+	var supplier base.Supplier
+	endpoint = supplierAPIPath
+	payload = map[string]interface{}{
+		"active":        active,
+		"partner_name":  name,
+		"country":       country,
+		"currency":      *currency.ID,
+		"is_supplier":   true,
+		"supplier_type": partnerType,
+	}
+
+	if err := s.erp.CreateERPSupplier(
+		http.MethodPost,
+		endpoint,
+		payload,
+		supplier,
+	); err != nil {
+		return nil, err
+	}
+	supplier.Active = true
+
+	return s.repo.ActivateSupplierProfile(ctx, profile.ID, supplier)
 }
 
 // FindSupplierByID fetches a supplier by their id

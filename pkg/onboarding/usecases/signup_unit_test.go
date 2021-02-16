@@ -1244,7 +1244,20 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+				fakeEPRSvc.CreateERPCustomerFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					customer base.Customer,
+				) error {
+					return nil
+				}
+
+				fakeRepo.UpdateCustomerProfileFn = func(
+					ctx context.Context,
+					profileID string,
+					customer base.Customer,
+				) error {
 					return nil
 				}
 			}
@@ -1341,7 +1354,12 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+				fakeEPRSvc.CreateERPCustomerFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					customer base.Customer,
+				) error {
 					return fmt.Errorf("failed to add customer supplier ERP account")
 				}
 			}

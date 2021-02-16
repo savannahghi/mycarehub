@@ -4939,7 +4939,20 @@ func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+				fakeEPRSvc.CreateERPCustomerFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					customer base.Customer,
+				) error {
+					return nil
+				}
+
+				fakeRepo.UpdateCustomerProfileFn = func(
+					ctx context.Context,
+					profileID string,
+					customer base.Customer,
+				) error {
 					return nil
 				}
 			}
@@ -4971,11 +4984,16 @@ func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+				fakeEPRSvc.CreateERPSupplierFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					supplier base.Supplier,
+				) error {
 					return nil
 				}
 
-				fakeRepo.ActivateSupplierProfileFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+				fakeRepo.ActivateSupplierProfileFn = func(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
 					return &base.Supplier{
 						ProfileID: &profileID,
 					}, nil
@@ -5009,11 +5027,16 @@ func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+				fakeEPRSvc.CreateERPCustomerFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					customer base.Customer,
+				) error {
 					return nil
 				}
 
-				fakeRepo.ActivateSupplierProfileFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+				fakeRepo.ActivateSupplierProfileFn = func(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
 					return nil, fmt.Errorf("failed to activate supplier profile")
 				}
 			}
@@ -5080,7 +5103,12 @@ func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPSupplierFn = func(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+				fakeEPRSvc.CreateERPCustomerFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					customer base.Customer,
+				) error {
 					return fmt.Errorf("failed to create ERP supplier")
 				}
 			}

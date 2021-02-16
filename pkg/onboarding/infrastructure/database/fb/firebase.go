@@ -1554,14 +1554,18 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 }
 
 // ActivateSupplierProfile sets the active attribute of supplier profile to true
-func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error) {
-	// get the suppier profile
+func (fr *Repository) ActivateSupplierProfile(
+	ctx context.Context,
+	profileID string,
+	supplier base.Supplier,
+) (*base.Supplier, error) {
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	sup.Active = true
+	sup.Active = supplier.Active
+	sup.PayablesAccount = supplier.PayablesAccount
 
 	query := &GetAllQuery{
 		CollectionName: fr.GetSupplierProfileCollectionName(),
@@ -1578,7 +1582,7 @@ func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID str
 		updateCommand := &UpdateCommand{
 			CollectionName: fr.GetSupplierProfileCollectionName(),
 			ID:             docs[0].Ref.ID,
-			Data:           sup,
+			Data:           supplier,
 		}
 		err = fr.FirestoreClient.Update(ctx, updateCommand)
 		if err != nil {
@@ -1588,7 +1592,6 @@ func (fr *Repository) ActivateSupplierProfile(ctx context.Context, profileID str
 	}
 
 	return nil, exceptions.InternalServerError(fmt.Errorf("unexpected number of records: %v", len(docs)))
-
 }
 
 // StageProfileNudge ...
@@ -2284,4 +2287,42 @@ func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profile
 
 	// fetch the now set communications_settings and return it
 	return fr.GetUserCommunicationsSettings(ctx, profileID)
+}
+
+// UpdateCustomerProfile does a generic update of the customer profile.
+func (fr *Repository) UpdateCustomerProfile(
+	ctx context.Context,
+	profileID string,
+	cus base.Customer,
+) error {
+	customer, err := fr.GetCustomerProfileByProfileID(ctx, profileID)
+	if err != nil {
+		return err
+	}
+	collectionName := fr.GetCustomerProfileCollectionName()
+	query := &GetAllQuery{
+		CollectionName: collectionName,
+		FieldName:      "id",
+		Value:          customer.ID,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+
+	if len(docs) == 0 {
+		return exceptions.RecordExistsError(fmt.Errorf("customer profile not found"))
+	}
+
+	updateCommand := &UpdateCommand{
+		CollectionName: collectionName,
+		ID:             docs[0].Ref.ID,
+		Data:           cus,
+	}
+	err = fr.FirestoreClient.Update(ctx, updateCommand)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+	return nil
 }

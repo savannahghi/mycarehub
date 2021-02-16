@@ -3,6 +3,7 @@ package erp
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -12,7 +13,18 @@ import (
 // ServiceERP represents logic required to communicate with ERP
 type ServiceERP interface {
 	FetchERPClient() *base.ServerClient
-	CreateERPSupplier(method string, path string, payload map[string]interface{}, partner base.PartnerType) error
+	CreateERPCustomer(
+		method string,
+		path string,
+		payload map[string]interface{},
+		customer base.Customer,
+	) error
+	CreateERPSupplier(
+		method string,
+		path string,
+		payload map[string]interface{},
+		supplier base.Supplier,
+	) error
 }
 
 // ServiceERPImpl represents ERP usecases
@@ -36,19 +48,50 @@ func NewERPService() ServiceERP {
 	return &ServiceERPImpl{ERPClient: erpClient}
 }
 
+// CreateERPCustomer makes a call to create erp supplier
+func (e *ServiceERPImpl) CreateERPCustomer(
+	method string,
+	path string,
+	payload map[string]interface{},
+	customer base.Customer,
+) error {
+
+	content, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("unable to marshal to JSON: %v", err)
+	}
+
+	return base.ReadRequestToTarget(
+		e.ERPClient,
+		http.MethodPost,
+		path,
+		"",
+		content,
+		&customer,
+	)
+}
+
 // CreateERPSupplier makes a call to create erp supplier
-func (e *ServiceERPImpl) CreateERPSupplier(method string, path string, payload map[string]interface{}, partner base.PartnerType) error {
+func (e *ServiceERPImpl) CreateERPSupplier(
+	method string,
+	path string,
+	payload map[string]interface{},
+	supplier base.Supplier,
+) error {
 
-	content, marshalErr := json.Marshal(payload)
-	if marshalErr != nil {
-		return fmt.Errorf("unable to marshal to JSON: %v", marshalErr)
+	content, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("unable to marshal to JSON: %v", err)
 	}
 
-	if err := base.ReadRequestToTarget(e.ERPClient, "POST", path, "", content, &base.Supplier{PartnerType: partner}); err != nil {
-		return fmt.Errorf("unable to make request to the ERP: %v", err)
-	}
-
-	return nil
+	return base.ReadRequestToTarget(
+		e.ERPClient,
+		http.MethodPost,
+		path,
+		"",
+		content,
+		&supplier,
+	)
 }
 
 // FetchERPClient retrieves the erp client

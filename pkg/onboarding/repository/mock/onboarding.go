@@ -26,7 +26,7 @@ type FakeOnboardingRepository struct {
 	RemoveKYCProcessingRequestFn func(ctx context.Context, supplierProfileID string) error
 
 	// sets the active attribute of supplier profile to true
-	ActivateSupplierProfileFn func(ctx context.Context, profileID string) (*base.Supplier, error)
+	ActivateSupplierProfileFn func(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error)
 
 	FetchKYCProcessingRequestsFn func(ctx context.Context) ([]*domain.KYCRequest, error)
 
@@ -131,6 +131,12 @@ type FakeOnboardingRepository struct {
 	SetUserCommunicationsSettingsFn func(ctx context.Context, profileID string,
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error)
 
+	UpdateCustomerProfileFn func(
+		ctx context.Context,
+		profileID string,
+		customer base.Customer,
+	) error
+
 	// Userprofile
 	UpdateUserNameFn                func(ctx context.Context, id string, phoneNumber string) error
 	UpdatePrimaryPhoneNumberFn      func(ctx context.Context, id string, phoneNumber string) error
@@ -194,8 +200,8 @@ func (f *FakeOnboardingRepository) RemoveKYCProcessingRequest(ctx context.Contex
 }
 
 // ActivateSupplierProfile ...
-func (f *FakeOnboardingRepository) ActivateSupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error) {
-	return f.ActivateSupplierProfileFn(ctx, profileID)
+func (f *FakeOnboardingRepository) ActivateSupplierProfile(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
+	return f.ActivateSupplierProfileFn(ctx, profileID, supplier)
 }
 
 // FetchKYCProcessingRequests ...
@@ -469,4 +475,13 @@ func (f *FakeOnboardingRepository) GetUserCommunicationsSettings(ctx context.Con
 func (f *FakeOnboardingRepository) SetUserCommunicationsSettings(ctx context.Context, profileID string,
 	allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error) {
 	return f.SetUserCommunicationsSettingsFn(ctx, profileID, allowWhatsApp, allowTextSms, allowPush, allowEmail)
+}
+
+// UpdateCustomerProfile ...
+func (f *FakeOnboardingRepository) UpdateCustomerProfile(
+	ctx context.Context,
+	profileID string,
+	customer base.Customer,
+) error {
+	return f.UpdateCustomerProfileFn(ctx, profileID, customer)
 }

@@ -30,7 +30,7 @@ type SupplierRepository interface {
 	RemoveKYCProcessingRequest(ctx context.Context, supplierProfileID string) error
 
 	// sets the active attribute of supplier profile to true
-	ActivateSupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error)
+	ActivateSupplierProfile(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error)
 
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 
@@ -150,4 +150,10 @@ type OnboardingRepository interface {
 
 	SetUserCommunicationsSettings(ctx context.Context, profileID string,
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error)
+
+	UpdateCustomerProfile(
+		ctx context.Context,
+		profileID string,
+		cus base.Customer,
+	) error
 }
