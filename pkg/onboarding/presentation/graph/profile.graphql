@@ -23,7 +23,7 @@ extend type Query {
 
   getAddresses: UserAddresses!
 
-  NHIFDetails: NHIFDetails!
+  NHIFDetails: NHIFDetails
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
 }

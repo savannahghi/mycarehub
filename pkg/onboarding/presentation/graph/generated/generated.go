@@ -3313,7 +3313,7 @@ input NHIFDetailsInput {
 
   getAddresses: UserAddresses!
 
-  NHIFDetails: NHIFDetails!
+  NHIFDetails: NHIFDetails
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
 }
@@ -12359,14 +12359,11 @@ func (ec *executionContext) _Query_NHIFDetails(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*domain.NHIFDetails)
 	fc.Result = res
-	return ec.marshalNNHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx, field.Selections, res)
+	return ec.marshalONHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getUserCommunicationsSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19045,9 +19042,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_NHIFDetails(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "getUserCommunicationsSettings":
@@ -21534,6 +21528,13 @@ func (ec *executionContext) marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 		return graphql.Null
 	}
 	return ec._Location(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalONHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx context.Context, sel ast.SelectionSet, v *domain.NHIFDetails) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._NHIFDetails(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx context.Context, v interface{}) (domain.OrganizationType, error) {
