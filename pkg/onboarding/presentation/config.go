@@ -218,26 +218,33 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(h.ProfileAttributes(ctx))
 
+	// Interservice Authenticated routes
 	// The reason for the below endpoints to be used for interservice communication
 	// is to allow for the creation and deletion of internal `test` users that can be used
 	// to run tests in other services that require an authenticated user.
 	// These endpoint have been used in the `Base` lib to create and delete the test users
-	isc.Path("/verify_phone").Methods(
+	iscTesting := r.PathPrefix("/testing").Subrouter()
+	iscTesting.Use(base.InterServiceAuthenticationMiddleware())
+	iscTesting.Path("/verify_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.VerifySignUpPhoneNumber(ctx))
-	isc.Path("/create_user_by_phone").Methods(
+	iscTesting.Path("/create_user_by_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.CreateUserWithPhoneNumber(ctx))
-	isc.Path("/login_by_phone").Methods(
+	iscTesting.Path("/login_by_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.LoginByPhone(ctx))
-	isc.Path("/remove_user").Methods(
+	iscTesting.Path("/remove_user").Methods(
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.RemoveUserByPhoneNumber(ctx))
+	iscTesting.Path("/register_push_token").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.RegisterPushToken(ctx))
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()

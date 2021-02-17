@@ -225,3 +225,9 @@ type NHIFDetailsInput struct {
 	IdentificationCardPhotoID string                       `json:"identificationCardPhotoID"`
 	NHIFCardPhotoID           string                       `json:"nhifCardPhotoID"`
 }
+
+// PushTokenPayload represents user device push token
+type PushTokenPayload struct {
+	PushToken string `json:"pushTokens"`
+	UID       string `json:"uid"`
+}

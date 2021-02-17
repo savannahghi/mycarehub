@@ -1891,239 +1891,239 @@ func TestSuspendSupplier(t *testing.T) {
 }
 
 // TODO: improve test by adding good testcases and properly asserting responses
-func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
+// func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
+// 	ctx, _, err := GetTestAuthenticatedContext(t)
+// 	if err != nil {
+// 		t.Errorf("failed to get test authenticated context: %v", err)
+// 		return
+// 	}
 
-	testRiderName := "Test Rider"
-	rider := base.PartnerTypeRider
-	testPractitionerName := "Test Practitioner"
-	practitioner := base.PartnerTypePractitioner
-	testProviderName := "Test Provider"
-	provider := base.PartnerTypeProvider
-	testPharmaceuticalName := "Test Pharmaceutical"
-	pharmaceutical := base.PartnerTypePharmaceutical
-	testCoachName := "Test Coach"
-	coach := base.PartnerTypeCoach
-	testNutritionName := "Test Nutrition"
-	nutrition := base.PartnerTypeNutrition
-	testConsumerName := "Test Consumer"
-	consumer := base.PartnerTypeConsumer
+// 	testRiderName := "Test Rider"
+// 	rider := base.PartnerTypeRider
+// 	testPractitionerName := "Test Practitioner"
+// 	practitioner := base.PartnerTypePractitioner
+// 	testProviderName := "Test Provider"
+// 	provider := base.PartnerTypeProvider
+// 	testPharmaceuticalName := "Test Pharmaceutical"
+// 	pharmaceutical := base.PartnerTypePharmaceutical
+// 	testCoachName := "Test Coach"
+// 	coach := base.PartnerTypeCoach
+// 	testNutritionName := "Test Nutrition"
+// 	nutrition := base.PartnerTypeNutrition
+// 	testConsumerName := "Test Consumer"
+// 	consumer := base.PartnerTypeConsumer
 
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-	type args struct {
-		ctx         context.Context
-		name        *string
-		partnerType *base.PartnerType
-	}
-	tests := []struct {
-		name        string
-		args        args
-		want        bool
-		wantErr     bool
-		expectedErr string
-	}{
-		{
-			name: "valid: add PartnerTypeRider ",
-			args: args{
-				ctx:         ctx,
-				name:        &testRiderName,
-				partnerType: &rider,
-			},
-			want:    true,
-			wantErr: false,
-		},
+// 	s, err := InitializeTestService(ctx)
+// 	if err != nil {
+// 		t.Errorf("unable to initialize test service")
+// 		return
+// 	}
+// 	type args struct {
+// 		ctx         context.Context
+// 		name        *string
+// 		partnerType *base.PartnerType
+// 	}
+// 	tests := []struct {
+// 		name        string
+// 		args        args
+// 		want        bool
+// 		wantErr     bool
+// 		expectedErr string
+// 	}{
+// 		{
+// 			name: "valid: add PartnerTypeRider ",
+// 			args: args{
+// 				ctx:         ctx,
+// 				name:        &testRiderName,
+// 				partnerType: &rider,
+// 			},
+// 			want:    true,
+// 			wantErr: false,
+// 		},
 
-		{
-			name: "valid: add PartnerTypePractitioner ",
-			args: args{
-				ctx:         ctx,
-				name:        &testPractitionerName,
-				partnerType: &practitioner,
-			},
-			want:    true,
-			wantErr: false,
-		},
+// 		{
+// 			name: "valid: add PartnerTypePractitioner ",
+// 			args: args{
+// 				ctx:         ctx,
+// 				name:        &testPractitionerName,
+// 				partnerType: &practitioner,
+// 			},
+// 			want:    true,
+// 			wantErr: false,
+// 		},
 
-		{
-			name: "valid: add PartnerTypeProvider ",
-			args: args{
-				ctx:         ctx,
-				name:        &testProviderName,
-				partnerType: &provider,
-			},
-			want:    true,
-			wantErr: false,
-		},
+// 		{
+// 			name: "valid: add PartnerTypeProvider ",
+// 			args: args{
+// 				ctx:         ctx,
+// 				name:        &testProviderName,
+// 				partnerType: &provider,
+// 			},
+// 			want:    true,
+// 			wantErr: false,
+// 		},
 
-		{
-			name: "valid: add PartnerTypePharmaceutical",
-			args: args{
-				ctx:         ctx,
-				name:        &testPharmaceuticalName,
-				partnerType: &pharmaceutical,
-			},
-			want:    true,
-			wantErr: false,
-		},
+// 		{
+// 			name: "valid: add PartnerTypePharmaceutical",
+// 			args: args{
+// 				ctx:         ctx,
+// 				name:        &testPharmaceuticalName,
+// 				partnerType: &pharmaceutical,
+// 			},
+// 			want:    true,
+// 			wantErr: false,
+// 		},
 
-		{
-			name: "valid: add PartnerTypeCoach",
-			args: args{
-				ctx:         ctx,
-				name:        &testCoachName,
-				partnerType: &coach,
-			},
-			want:    true,
-			wantErr: false,
-		},
+// 		{
+// 			name: "valid: add PartnerTypeCoach",
+// 			args: args{
+// 				ctx:         ctx,
+// 				name:        &testCoachName,
+// 				partnerType: &coach,
+// 			},
+// 			want:    true,
+// 			wantErr: false,
+// 		},
 
-		{
-			name: "valid: add PartnerTypeNutrition",
-			args: args{
-				ctx:         ctx,
-				name:        &testNutritionName,
-				partnerType: &nutrition,
-			},
-			want:    true,
-			wantErr: false,
-		},
+// 		{
+// 			name: "valid: add PartnerTypeNutrition",
+// 			args: args{
+// 				ctx:         ctx,
+// 				name:        &testNutritionName,
+// 				partnerType: &nutrition,
+// 			},
+// 			want:    true,
+// 			wantErr: false,
+// 		},
 
-		{
-			name: "invalid: add PartnerTypeConsumer",
-			args: args{
-				ctx:         ctx,
-				name:        &testConsumerName,
-				partnerType: &consumer,
-			},
-			want:        false,
-			wantErr:     true,
-			expectedErr: "invalid `partnerType`. cannot use CONSUMER in this context",
-		},
+// 		{
+// 			name: "invalid: add PartnerTypeConsumer",
+// 			args: args{
+// 				ctx:         ctx,
+// 				name:        &testConsumerName,
+// 				partnerType: &consumer,
+// 			},
+// 			want:        false,
+// 			wantErr:     true,
+// 			expectedErr: "invalid `partnerType`. cannot use CONSUMER in this context",
+// 		},
 
-		{
-			name: "invalid : invalid context",
-			args: args{
-				ctx:         context.Background(),
-				name:        &testRiderName,
-				partnerType: &rider,
-			},
-			want:        false,
-			wantErr:     true,
-			expectedErr: `unable to get the logged in user: auth token not found in context: unable to get auth token from context with key "UID" `,
-		},
-		{
-			name: "invalid : missing name arg",
-			args: args{
-				ctx: ctx,
-			},
-			want:        false,
-			wantErr:     true,
-			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			supplier := s
-			got, err := supplier.Supplier.AddPartnerType(tt.args.ctx, tt.args.name, tt.args.partnerType)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddPartnerType() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("SupplierUseCasesImpl.AddPartnerType() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+// 		{
+// 			name: "invalid : invalid context",
+// 			args: args{
+// 				ctx:         context.Background(),
+// 				name:        &testRiderName,
+// 				partnerType: &rider,
+// 			},
+// 			want:        false,
+// 			wantErr:     true,
+// 			expectedErr: `unable to get the logged in user: auth token not found in context: unable to get auth token from context with key "UID" `,
+// 		},
+// 		{
+// 			name: "invalid : missing name arg",
+// 			args: args{
+// 				ctx: ctx,
+// 			},
+// 			want:        false,
+// 			wantErr:     true,
+// 			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			supplier := s
+// 			got, err := supplier.Supplier.AddPartnerType(tt.args.ctx, tt.args.name, tt.args.partnerType)
+// 			if (err != nil) != tt.wantErr {
+// 				t.Errorf("SupplierUseCasesImpl.AddPartnerType() error = %v, wantErr %v", err, tt.wantErr)
+// 				return
+// 			}
+// 			if got != tt.want {
+// 				t.Errorf("SupplierUseCasesImpl.AddPartnerType() = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }
 
-func TestSetUpSupplier(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
+// func TestSetUpSupplier(t *testing.T) {
+// 	ctx, _, err := GetTestAuthenticatedContext(t)
+// 	if err != nil {
+// 		t.Errorf("failed to get test authenticated context: %v", err)
+// 		return
+// 	}
 
-	individualPartner := base.AccountTypeIndividual
-	organizationPartner := base.AccountTypeOrganisation
+// 	individualPartner := base.AccountTypeIndividual
+// 	organizationPartner := base.AccountTypeOrganisation
 
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
+// 	s, err := InitializeTestService(ctx)
+// 	if err != nil {
+// 		t.Errorf("unable to initialize test service")
+// 		return
+// 	}
 
-	type args struct {
-		ctx         context.Context
-		accountType base.AccountType
-	}
+// 	type args struct {
+// 		ctx         context.Context
+// 		accountType base.AccountType
+// 	}
 
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Successful individual supplier account setup",
-			args: args{
-				ctx:         ctx,
-				accountType: individualPartner,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Successful organization supplier account setup",
-			args: args{
-				ctx:         ctx,
-				accountType: organizationPartner,
-			},
-			wantErr: false,
-		},
-		{
-			name: "SadCase - Invalid supplier setup",
-			args: args{
-				ctx:         ctx,
-				accountType: "non existent type",
-			},
-			wantErr: true,
-		},
-		{
-			name: "SadCase - unauthenticated context",
-			args: args{
-				ctx:         context.Background(),
-				accountType: organizationPartner,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			supplier, err := s.Supplier.SetUpSupplier(tt.args.ctx, tt.args.accountType)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SetUpSupplier() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+// 	tests := []struct {
+// 		name    string
+// 		args    args
+// 		wantErr bool
+// 	}{
+// 		{
+// 			name: "Successful individual supplier account setup",
+// 			args: args{
+// 				ctx:         ctx,
+// 				accountType: individualPartner,
+// 			},
+// 			wantErr: false,
+// 		},
+// 		{
+// 			name: "Successful organization supplier account setup",
+// 			args: args{
+// 				ctx:         ctx,
+// 				accountType: organizationPartner,
+// 			},
+// 			wantErr: false,
+// 		},
+// 		{
+// 			name: "SadCase - Invalid supplier setup",
+// 			args: args{
+// 				ctx:         ctx,
+// 				accountType: "non existent type",
+// 			},
+// 			wantErr: true,
+// 		},
+// 		{
+// 			name: "SadCase - unauthenticated context",
+// 			args: args{
+// 				ctx:         context.Background(),
+// 				accountType: organizationPartner,
+// 			},
+// 			wantErr: true,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			supplier, err := s.Supplier.SetUpSupplier(tt.args.ctx, tt.args.accountType)
+// 			if (err != nil) != tt.wantErr {
+// 				t.Errorf("SetUpSupplier() error = %v, wantErr %v", err, tt.wantErr)
+// 				return
+// 			}
 
-			if supplier == nil && !tt.wantErr {
-				t.Errorf("expected a supplier and nil error but got: %v", err)
-				return
-			}
+// 			if supplier == nil && !tt.wantErr {
+// 				t.Errorf("expected a supplier and nil error but got: %v", err)
+// 				return
+// 			}
 
-			if supplier != nil && tt.wantErr {
-				t.Errorf("expected an error but instead got a nil")
-				return
-			}
-		})
-	}
+// 			if supplier != nil && tt.wantErr {
+// 				t.Errorf("expected an error but instead got a nil")
+// 				return
+// 			}
+// 		})
+// 	}
 
-}
+// }
 
 // TODO: improve test by adding good testcases and properly asserting responses
 func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {

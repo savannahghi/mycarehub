@@ -134,6 +134,18 @@ func composeUIDPayload(t *testing.T, uid *string) *bytes.Buffer {
 	return bytes.NewBuffer(bs)
 }
 
+func composePushTokenPayload(t *testing.T, UID, token string) *bytes.Buffer {
+	payload := &resources.PushTokenPayload{
+		PushToken: token,
+		UID:       UID,
+	}
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("unable to marshal token string to JSON: %s", err)
+	}
+	return bytes.NewBuffer(bs)
+}
+
 func composeLoginPayload(t *testing.T, phone, pin string, flavour base.Flavour) *bytes.Buffer {
 	payload := resources.LoginPayload{
 		PhoneNumber: &phone,
@@ -2496,6 +2508,119 @@ func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 			response := httptest.NewRecorder()
 
 			svr := h.SetPrimaryPhoneNumber(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_RegisterPushToken(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+	uid := "5cf354a2-1d3e-400d-8716-7e2aead29f2c"
+	token := "10c17f3b-a9a9-431c-ad0a-94c684eccd85"
+	payload := composePushTokenPayload(t, token, uid)
+
+	token1 := ""
+	uid1 := "5cf354a2-1d3e-400d-8716-7e2aead29f2c"
+	invalidPayload := composePushTokenPayload(t, token1, uid1)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_successfully_register_push_token",
+			args: args{
+				url:        fmt.Sprintf("%s/register_push_token", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_unsuccessfully_register_push_token",
+			args: args{
+				url:        fmt.Sprintf("%s/register_push_token", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       invalidPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			if tt.name == "valid:_successfully_register_push_token" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:         "f4f39af7--91bd-42b3af315a4e",
+						PushTokens: []string{"token12", "token23", "token34"},
+					}, nil
+				}
+
+				fakeRepo.UpdatePushTokensFn = func(ctx context.Context, id string, pushToken []string) error {
+					return nil
+				}
+			}
+			if tt.name == "invalid:_unsuccessfully_register_push_token" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "400d-8716-7e2aead29f2c", nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:         "f4f39af7--91bd-42b3af315a4e",
+						PushTokens: []string{"token12", "token23", "token34"},
+					}, nil
+				}
+
+				fakeRepo.UpdatePushTokensFn = func(ctx context.Context, id string, pushToken []string) error {
+					return fmt.Errorf("failed to register push tokens")
+				}
+			}
+			response := httptest.NewRecorder()
+
+			svr := h.RegisterPushToken(ctx)
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {

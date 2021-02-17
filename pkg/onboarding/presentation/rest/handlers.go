@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 
 	"firebase.google.com/go/auth"
@@ -32,6 +33,7 @@ type HandlersInterfaces interface {
 	GetUserProfileByUID(ctx context.Context) http.HandlerFunc
 	UpdateCovers(ctx context.Context) http.HandlerFunc
 	ProfileAttributes(ctx context.Context) http.HandlerFunc
+	RegisterPushToken(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -381,9 +383,11 @@ func (h *HandlersInterfacesImpl) FindSupplierByUID(ctx context.Context) http.Han
 		}
 
 		var supplier *base.Supplier
-
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, s.UID)
+		authCred := &auth.Token{UID: *s.UID}
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, authCred)
 		supplier, err = h.interactor.Supplier.FindSupplierByUID(newContext)
+		log.Printf("the supplier is %v", supplier)
+		log.Printf("the err is %v", err)
 		if supplier == nil || err != nil {
 			err := fmt.Errorf("supplier profile not found")
 			base.WriteJSONResponse(w, err, http.StatusNotFound)
@@ -450,6 +454,29 @@ func (h *HandlersInterfacesImpl) GetUserProfileByUID(ctx context.Context) http.H
 		}
 
 		profile, err := h.interactor.Onboarding.GetUserProfileByUID(ctx, *p.UID)
+		if err != nil {
+			base.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, profile, http.StatusOK)
+	}
+}
+
+// RegisterPushToken adds a new push token in the users profile if the push token does not exist
+// via REST ISC
+func (h *HandlersInterfacesImpl) RegisterPushToken(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		t := &resources.PushTokenPayload{}
+		base.DecodeJSONToTargetStruct(w, r, t)
+		if t.PushToken == "" || t.UID == "" {
+			err := fmt.Errorf("expected `PushToken` or `UID` to be defined")
+			base.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+		authCred := &auth.Token{UID: t.UID}
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, authCred)
+		profile, err := h.interactor.Signup.RegisterPushToken(newContext, t.PushToken)
 		if err != nil {
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
