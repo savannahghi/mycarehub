@@ -1596,10 +1596,11 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 		t.Errorf("failed to create an empty supplier: %v", err)
 	}
 
-	// Expected supplier after activation should be active
-	// want == Updated supplier
 	sup := base.Supplier{
 		Active: true,
+		PayablesAccount: &base.PayablesAccount{
+			ID: uuid.New().String(),
+		},
 	}
 
 	type args struct {
@@ -1638,9 +1639,11 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 				t.Errorf("Repository.ActivateSupplierProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if supp != nil && !supp.Active {
-				t.Errorf("expected an active supplier")
-				return
+			if supp != nil {
+				if !supp.Active && supp.SupplierID == "" && supp.PayablesAccount.ID == "" {
+					t.Errorf("expected an active supplier")
+					return
+				}
 			}
 		})
 	}
@@ -3325,6 +3328,80 @@ func TestGetNHIFDetailsByProfileID(t *testing.T) {
 			if tt.wantErr && nhif != nil {
 				t.Errorf("the error was not expected")
 				return
+			}
+		})
+	}
+}
+
+func TestUpdateCustomerProfile(t *testing.T) {
+	ctx := context.Background()
+
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+		return
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+		return
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
+
+	profileID := uuid.New().String()
+	_, err := fr.CreateEmptyCustomerProfile(ctx, profileID)
+	if err != nil {
+		t.Errorf("failed to create test empty customer profile: %v", err)
+		return
+	}
+
+	customerData := base.Customer{
+		CustomerID: uuid.New().String(),
+		ReceivablesAccount: base.ReceivablesAccount{
+			ID: uuid.New().String(),
+		},
+	}
+	type args struct {
+		ctx       context.Context
+		profileID string
+		cus       base.Customer
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy:) update a customer",
+			args: args{
+				ctx:       ctx,
+				profileID: profileID,
+				cus:       customerData,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad:( failed update a customer",
+			args: args{
+				ctx:       ctx,
+				profileID: uuid.New().String(),
+				cus:       customerData,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			customer, err := fr.UpdateCustomerProfile(tt.args.ctx, tt.args.profileID, tt.args.cus)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateCustomerProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if customer != nil {
+				if customer.CustomerID == "" && customer.ReceivablesAccount.ID == "" {
+					t.Errorf("expected customer id and receivables account")
+					return
+				}
 			}
 		})
 	}

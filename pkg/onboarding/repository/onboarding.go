@@ -45,6 +45,12 @@ type CustomerRepository interface {
 	GetCustomerProfileByID(ctx context.Context, id string) (*base.Customer, error)
 
 	GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*base.Customer, error)
+
+	UpdateCustomerProfile(
+		ctx context.Context,
+		profileID string,
+		cus base.Customer,
+	) (*base.Customer, error)
 }
 
 // OnboardingRepository interface that provide access to all persistent storage operations
@@ -150,10 +156,4 @@ type OnboardingRepository interface {
 
 	SetUserCommunicationsSettings(ctx context.Context, profileID string,
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error)
-
-	UpdateCustomerProfile(
-		ctx context.Context,
-		profileID string,
-		cus base.Customer,
-	) error
 }

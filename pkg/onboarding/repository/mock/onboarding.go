@@ -135,7 +135,7 @@ type FakeOnboardingRepository struct {
 		ctx context.Context,
 		profileID string,
 		customer base.Customer,
-	) error
+	) (*base.Customer, error)
 
 	// Userprofile
 	UpdateUserNameFn                func(ctx context.Context, id string, phoneNumber string) error
@@ -482,6 +482,6 @@ func (f *FakeOnboardingRepository) UpdateCustomerProfile(
 	ctx context.Context,
 	profileID string,
 	customer base.Customer,
-) error {
+) (*base.Customer, error) {
 	return f.UpdateCustomerProfileFn(ctx, profileID, customer)
 }

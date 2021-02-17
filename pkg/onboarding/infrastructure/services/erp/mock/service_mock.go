@@ -12,13 +12,13 @@ type FakeServiceERP struct {
 		path string,
 		payload map[string]interface{},
 		customer base.Customer,
-	) error
+	) (interface{}, error)
 	CreateERPSupplierFn func(
 		method string,
 		path string,
 		payload map[string]interface{},
 		supplier base.Supplier,
-	) error
+	) (interface{}, error)
 }
 
 // FetchERPClient ...
@@ -32,7 +32,7 @@ func (f *FakeServiceERP) CreateERPCustomer(
 	path string,
 	payload map[string]interface{},
 	customer base.Customer,
-) error {
+) (interface{}, error) {
 	return f.CreateERPCustomerFn(method, path, payload, customer)
 }
 
@@ -42,6 +42,6 @@ func (f *FakeServiceERP) CreateERPSupplier(
 	path string,
 	payload map[string]interface{},
 	supplier base.Supplier,
-) error {
+) (interface{}, error) {
 	return f.CreateERPSupplierFn(method, path, payload, supplier)
 }

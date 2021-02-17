@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -219,25 +220,33 @@ func (s *SignUpUseCasesImpl) RegisterPushToken(ctx context.Context, token string
 // CompleteSignup called to create a customer account in the ERP. This API is only valid for `BEWELL CONSUMER`
 func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error) {
 
-	if flavour == base.FlavourConsumer {
-		pr, err := s.profileUsecase.UserProfile(ctx)
-		if err != nil {
-			// this is a wrapped error. No need to wrap it again
-			return false, err
-		}
-		if pr.UserBioData.FirstName == nil || pr.UserBioData.LastName == nil {
-			return false, exceptions.CompleteSignUpError(nil)
-		}
-		fullName := fmt.Sprintf("%v %v", *pr.UserBioData.FirstName, *pr.UserBioData.LastName)
-
-		// todo(dexter): replace this with pubsub
-		go func() {
-			_, _ = s.supplierUsecase.AddCustomerSupplierERPAccount(ctx, fullName, base.PartnerTypeConsumer)
-		}()
-
-		return true, nil
+	if flavour != base.FlavourConsumer {
+		return false, exceptions.InvalidFlavourDefinedError()
 	}
-	return false, exceptions.InvalidFlavourDefinedError()
+
+	profile, err := s.profileUsecase.UserProfile(ctx)
+	if err != nil {
+		return false, err
+	}
+	if profile.UserBioData.FirstName == nil || profile.UserBioData.LastName == nil {
+		return false, exceptions.CompleteSignUpError(nil)
+	}
+	fullName := fmt.Sprintf("%v %v",
+		*profile.UserBioData.FirstName,
+		*profile.UserBioData.LastName,
+	)
+
+	// todo(dexter): replace this with pubsub
+	_, err = s.supplierUsecase.CreateCustomerAccount(
+		ctx,
+		fullName,
+		base.PartnerTypeConsumer,
+	)
+	if err != nil {
+		logrus.Print(err)
+	}
+
+	return true, nil
 }
 
 // RetirePushToken removes a push token from the users profile

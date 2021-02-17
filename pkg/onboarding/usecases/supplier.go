@@ -51,8 +51,6 @@ const (
 type SupplierUseCases interface {
 	AddPartnerType(ctx context.Context, name *string, partnerType *base.PartnerType) (bool, error)
 
-	AddCustomerSupplierERPAccount(ctx context.Context, name string, partnerType base.PartnerType) (*base.Supplier, error)
-
 	FindSupplierByID(ctx context.Context, id string) (*base.Supplier, error)
 
 	FindSupplierByUID(ctx context.Context) (*base.Supplier, error)
@@ -106,6 +104,18 @@ type SupplierUseCases interface {
 	RetireKYCRequest(ctx context.Context) error
 
 	PublishKYCFeedItem(ctx context.Context, uids ...string) error
+
+	CreateCustomerAccount(
+		ctx context.Context,
+		name string,
+		partnerType base.PartnerType,
+	) (*base.Customer, error)
+
+	CreateSupplierAccount(
+		ctx context.Context,
+		name string,
+		partnerType base.PartnerType,
+	) (*base.Supplier, error)
 }
 
 // SupplierUseCasesImpl represents usecase implementation object
@@ -146,7 +156,7 @@ func NewSupplierUseCases(
 // AddPartnerType create the initial supplier record
 func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, partnerType *base.PartnerType) (bool, error) {
 
-	if name == nil || partnerType == nil || !partnerType.IsValid() {
+	if name == nil || partnerType == nil {
 		return false, fmt.Errorf("expected `name` to be defined and `partnerType` to be valid")
 	}
 
@@ -155,7 +165,7 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 	}
 
 	if *partnerType == base.PartnerTypeConsumer {
-		return false, fmt.Errorf("invalid `partnerType`. cannot use CONSUMER in this context")
+		return false, exceptions.WrongEnumTypeError(partnerType.String())
 	}
 
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
@@ -165,7 +175,6 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return false, err
 	}
 
@@ -177,9 +186,17 @@ func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, 
 	return true, nil
 }
 
-// AddCustomerSupplierERPAccount makes a call to our own ERP and creates a  customer account or supplier account  based
-// on the provided partnerType
-func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context, name string, partnerType base.PartnerType) (*base.Supplier, error) {
+// CreateCustomerAccount makes an external call to the Slade 360 ERP to create
+// a customer business partner account
+func (s SupplierUseCasesImpl) CreateCustomerAccount(
+	ctx context.Context,
+	name string,
+	partnerType base.PartnerType,
+) (*base.Customer, error) {
+	if partnerType != base.PartnerTypeConsumer {
+		return nil, exceptions.WrongEnumTypeError(partnerType.String())
+	}
+
 	profile, err := s.profile.UserProfile(ctx)
 	if err != nil {
 		return nil, err
@@ -190,45 +207,56 @@ func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context,
 		return nil, exceptions.FetchDefaultCurrencyError(err)
 	}
 
-	validPartnerType := partnerType.IsValid()
-	if !validPartnerType {
+	payload := map[string]interface{}{
+		"active":        active,
+		"partner_name":  name,
+		"country":       country,
+		"currency":      *currency.ID,
+		"is_customer":   true,
+		"customer_type": partnerType,
+	}
+
+	c, err := s.erp.CreateERPCustomer(
+		http.MethodPost,
+		customerAPIPath,
+		payload,
+		base.Customer{},
+	)
+	if err != nil {
+		return nil, err
+	}
+	customer := c.(*base.Customer)
+	customer.Active = true
+
+	return s.repo.UpdateCustomerProfile(
+		ctx,
+		profile.ID,
+		*customer,
+	)
+}
+
+// CreateSupplierAccount makes a call to our own ERP and creates a supplier account based
+// on the provided partnerType
+func (s SupplierUseCasesImpl) CreateSupplierAccount(
+	ctx context.Context,
+	name string,
+	partnerType base.PartnerType,
+) (*base.Supplier, error) {
+	if partnerType == base.PartnerTypeConsumer {
 		return nil, exceptions.WrongEnumTypeError(partnerType.String())
 	}
 
-	var payload map[string]interface{}
-	var endpoint string
-
-	if partnerType == base.PartnerTypeConsumer {
-		var customer base.Customer
-		endpoint = customerAPIPath
-		payload = map[string]interface{}{
-			"active":        active,
-			"partner_name":  name,
-			"country":       country,
-			"currency":      *currency.ID,
-			"is_customer":   true,
-			"customer_type": partnerType,
-		}
-		if err := s.erp.CreateERPCustomer(
-			http.MethodPost,
-			endpoint,
-			payload,
-			customer,
-		); err != nil {
-			return nil, err
-		}
-
-		err = s.repo.UpdateCustomerProfile(ctx, profile.ID, customer)
-		if err != nil {
-			return nil, err
-		}
-
-		return nil, nil
+	profile, err := s.profile.UserProfile(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	var supplier base.Supplier
-	endpoint = supplierAPIPath
-	payload = map[string]interface{}{
+	currency, err := s.baseExt.FetchDefaultCurrency(s.erp.FetchERPClient())
+	if err != nil {
+		return nil, exceptions.FetchDefaultCurrencyError(err)
+	}
+
+	payload := map[string]interface{}{
 		"active":        active,
 		"partner_name":  name,
 		"country":       country,
@@ -237,17 +265,23 @@ func (s SupplierUseCasesImpl) AddCustomerSupplierERPAccount(ctx context.Context,
 		"supplier_type": partnerType,
 	}
 
-	if err := s.erp.CreateERPSupplier(
+	sup, err := s.erp.CreateERPSupplier(
 		http.MethodPost,
-		endpoint,
+		supplierAPIPath,
 		payload,
-		supplier,
-	); err != nil {
+		base.Supplier{},
+	)
+	if err != nil {
 		return nil, err
 	}
+	supplier := sup.(*base.Supplier)
 	supplier.Active = true
 
-	return s.repo.ActivateSupplierProfile(ctx, profile.ID, supplier)
+	return s.repo.ActivateSupplierProfile(
+		ctx,
+		profile.ID,
+		*supplier,
+	)
 }
 
 // FindSupplierByID fetches a supplier by their id
@@ -1494,15 +1528,8 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 	status domain.KYCProcessStatus,
 	rejectionReason *string,
 ) (bool, error) {
-
-	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
+	profile, err := s.profile.UserProfile(ctx)
 	if err != nil {
-		return false, exceptions.UserNotFoundError(err)
-	}
-
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
-	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return false, err
 	}
 
@@ -1536,8 +1563,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 	switch status {
 	case domain.KYCProcessStatusApproved:
 		go func() {
-			// create supplier erp account
-			if _, err := s.AddCustomerSupplierERPAccount(
+			if _, err := s.CreateSupplierAccount(
 				ctx,
 				req.SupplierRecord.SupplierName,
 				req.ReqPartnerType,
@@ -1549,10 +1575,8 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		email = s.generateProcessKYCApprovalEmailTemplate()
 		message = "Your KYC details have been reviewed and approved. We look forward to working with you."
 
-		// fetch the supplier profile and update the active to true
 		sup, err := s.FindSupplierByUID(ctx)
 		if err != nil {
-			// this is a wrapped error. No need to wrap it again
 			return false, err
 		}
 

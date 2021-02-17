@@ -18,13 +18,13 @@ type ServiceERP interface {
 		path string,
 		payload map[string]interface{},
 		customer base.Customer,
-	) error
+	) (interface{}, error)
 	CreateERPSupplier(
 		method string,
 		path string,
 		payload map[string]interface{},
 		supplier base.Supplier,
-	) error
+	) (interface{}, error)
 }
 
 // ServiceERPImpl represents ERP usecases
@@ -54,14 +54,14 @@ func (e *ServiceERPImpl) CreateERPCustomer(
 	path string,
 	payload map[string]interface{},
 	customer base.Customer,
-) error {
+) (interface{}, error) {
 
 	content, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("unable to marshal to JSON: %v", err)
+		return nil, fmt.Errorf("unable to marshal to JSON: %v", err)
 	}
 
-	return base.ReadRequestToTarget(
+	return base.ReadWriteRequestToTarget(
 		e.ERPClient,
 		http.MethodPost,
 		path,
@@ -77,14 +77,14 @@ func (e *ServiceERPImpl) CreateERPSupplier(
 	path string,
 	payload map[string]interface{},
 	supplier base.Supplier,
-) error {
+) (interface{}, error) {
 
 	content, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("unable to marshal to JSON: %v", err)
+		return nil, fmt.Errorf("unable to marshal to JSON: %v", err)
 	}
 
-	return base.ReadRequestToTarget(
+	return base.ReadWriteRequestToTarget(
 		e.ERPClient,
 		http.MethodPost,
 		path,

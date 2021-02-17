@@ -1249,16 +1249,16 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 					path string,
 					payload map[string]interface{},
 					customer base.Customer,
-				) error {
-					return nil
+				) (interface{}, error) {
+					return &base.Customer{}, nil
 				}
 
 				fakeRepo.UpdateCustomerProfileFn = func(
 					ctx context.Context,
 					profileID string,
 					customer base.Customer,
-				) error {
-					return nil
+				) (*base.Customer, error) {
+					return &base.Customer{}, nil
 				}
 			}
 
@@ -1359,8 +1359,8 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 					path string,
 					payload map[string]interface{},
 					customer base.Customer,
-				) error {
-					return fmt.Errorf("failed to add customer supplier ERP account")
+				) (interface{}, error) {
+					return nil, fmt.Errorf("failed to add customer supplier ERP account")
 				}
 			}
 

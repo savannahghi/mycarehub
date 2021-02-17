@@ -1375,7 +1375,10 @@ func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profile
 
 // GetSupplierProfileByProfileID fetch the supplier profile by profile id.
 // since this same supplierProfile can be used for updating, a companion snapshot record is returned as well
-func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*base.Supplier, error) {
+func (fr *Repository) GetSupplierProfileByProfileID(
+	ctx context.Context,
+	profileID string,
+) (*base.Supplier, error) {
 	query := &GetAllQuery{
 		CollectionName: fr.GetSupplierProfileCollectionName(),
 		FieldName:      "profileID",
@@ -1397,7 +1400,7 @@ func (fr *Repository) GetSupplierProfileByProfileID(ctx context.Context, profile
 	sup := &base.Supplier{}
 	err = dsnap.DataTo(sup)
 	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier profile: %w", err))
+		return nil, exceptions.InternalServerError(err)
 	}
 	return sup, nil
 }
@@ -1561,37 +1564,35 @@ func (fr *Repository) ActivateSupplierProfile(
 ) (*base.Supplier, error) {
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 	if err != nil {
-		return nil, exceptions.InternalServerError(err)
+		return nil, err
 	}
 
-	sup.Active = supplier.Active
-	sup.PayablesAccount = supplier.PayablesAccount
-
+	collectionName := fr.GetSupplierProfileCollectionName()
 	query := &GetAllQuery{
-		CollectionName: fr.GetSupplierProfileCollectionName(),
+		CollectionName: collectionName,
 		FieldName:      "id",
 		Value:          sup.ID,
 		Operator:       "==",
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return nil, err
 	}
 
-	if len(docs) == 1 {
-		updateCommand := &UpdateCommand{
-			CollectionName: fr.GetSupplierProfileCollectionName(),
-			ID:             docs[0].Ref.ID,
-			Data:           supplier,
-		}
-		err = fr.FirestoreClient.Update(ctx, updateCommand)
-		if err != nil {
-			return nil, exceptions.InternalServerError(fmt.Errorf("unable to update user profile: %v", err))
-		}
-		return sup, nil
-	}
+	sup.Active = supplier.Active
+	sup.PayablesAccount = supplier.PayablesAccount
+	sup.SupplierID = supplier.SupplierID
 
-	return nil, exceptions.InternalServerError(fmt.Errorf("unexpected number of records: %v", len(docs)))
+	updateCommand := &UpdateCommand{
+		CollectionName: collectionName,
+		ID:             docs[0].Ref.ID,
+		Data:           sup,
+	}
+	err = fr.FirestoreClient.Update(ctx, updateCommand)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+	return sup, nil
 }
 
 // StageProfileNudge ...
@@ -2289,16 +2290,18 @@ func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profile
 	return fr.GetUserCommunicationsSettings(ctx, profileID)
 }
 
-// UpdateCustomerProfile does a generic update of the customer profile.
+// UpdateCustomerProfile does a generic update of the customer profile
+// to add the data recieved from the ERP.
 func (fr *Repository) UpdateCustomerProfile(
 	ctx context.Context,
 	profileID string,
 	cus base.Customer,
-) error {
+) (*base.Customer, error) {
 	customer, err := fr.GetCustomerProfileByProfileID(ctx, profileID)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
 	collectionName := fr.GetCustomerProfileCollectionName()
 	query := &GetAllQuery{
 		CollectionName: collectionName,
@@ -2308,21 +2311,21 @@ func (fr *Repository) UpdateCustomerProfile(
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
-		return exceptions.InternalServerError(err)
+		return nil, err
 	}
 
-	if len(docs) == 0 {
-		return exceptions.RecordExistsError(fmt.Errorf("customer profile not found"))
-	}
+	customer.CustomerID = cus.CustomerID
+	customer.ReceivablesAccount = cus.ReceivablesAccount
+	customer.Active = cus.Active
 
 	updateCommand := &UpdateCommand{
 		CollectionName: collectionName,
 		ID:             docs[0].Ref.ID,
-		Data:           cus,
+		Data:           customer,
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
-		return exceptions.InternalServerError(err)
+		return nil, exceptions.InternalServerError(err)
 	}
-	return nil
+	return customer, nil
 }

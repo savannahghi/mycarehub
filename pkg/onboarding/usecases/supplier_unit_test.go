@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -514,6 +515,21 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:_approved_a_kyc_request" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(
+					ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
 				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
 					ctx context.Context,
 					id string,
@@ -548,21 +564,6 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					}, nil
 				}
 
-				fakeBaseExt.GetLoggedInUserUIDFn = func(
-					ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(
-					ctx context.Context,
-					uid string,
-					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID: uuid.New().String(),
-					}, nil
-				}
-
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
 					return &base.ServerClient{}
 				}
@@ -573,6 +574,15 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					return &base.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
+				}
+
+				fakeEPRSvc.CreateERPSupplierFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					supplier base.Supplier,
+				) (interface{}, error) {
+					return &base.Supplier{}, nil
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
@@ -592,6 +602,14 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					return nil
 				}
 
+				fakeRepo.ActivateSupplierProfileFn = func(
+					ctx context.Context,
+					profileID string,
+					supplier base.Supplier,
+				) (*base.Supplier, error) {
+					return &base.Supplier{}, nil
+				}
+
 				fakeMailgunSvc.SendMailFn = func(
 					email string,
 					message string,
@@ -609,6 +627,21 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 			}
 
 			if tt.name == "valid:_rejected_a_kyc_request" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(
+					ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(
+					ctx context.Context,
+					uid string,
+					suspend bool,
+				) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
 				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
 					ctx context.Context,
 					id string,
@@ -640,21 +673,6 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &email,
 						PrimaryPhone:        &phone,
-					}, nil
-				}
-
-				fakeBaseExt.GetLoggedInUserUIDFn = func(
-					ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(
-					ctx context.Context,
-					uid string,
-					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID: uuid.New().String(),
 					}, nil
 				}
 
@@ -797,6 +815,15 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					}, nil
 				}
 
+				fakeEPRSvc.CreateERPSupplierFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					supplier base.Supplier,
+				) (interface{}, error) {
+					return &base.Supplier{}, nil
+				}
+
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
 					ctx context.Context,
 					profileID string,
@@ -865,6 +892,15 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					return &base.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
+				}
+
+				fakeEPRSvc.CreateERPSupplierFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					supplier base.Supplier,
+				) (interface{}, error) {
+					return &base.Supplier{}, nil
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
@@ -4828,18 +4864,13 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 	}
 }
 
-func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
+func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 	ctx := context.Background()
 
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
-	}
-
-	profileID := "93ca42bb-5cfc-4499-b137-2df4d67b4a21"
-	supplier := &base.Supplier{
-		ProfileID: &profileID,
 	}
 
 	type args struct {
@@ -4850,60 +4881,58 @@ func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Supplier
 		wantErr bool
 	}{
 		{
-			name: "valid:successfully_add_CustomerSupplierERPAccount",
+			name: "happy:)",
 			args: args{
 				ctx:         ctx,
-				name:        "partner1",
-				partnerType: base.PartnerTypeConsumer,
+				name:        *utils.GetRandomName(),
+				partnerType: base.PartnerTypeCoach,
 			},
 			wantErr: false,
 		},
 		{
-			name: "valid:successfully_add_CustomerSupplierERPAccount_using_PartnerTypeRider",
+			name: "sad:( logged in user not found",
 			args: args{
 				ctx:         ctx,
-				name:        "partner2",
-				partnerType: base.PartnerTypeRider,
-			},
-			want:    supplier,
-			wantErr: false,
-		},
-		{
-			name: "invalid:fail_to_activateSupplierProfile",
-			args: args{
-				ctx:         ctx,
-				name:        "partner3",
+				name:        *utils.GetRandomName(),
 				partnerType: base.PartnerTypeRider,
 			},
 			wantErr: true,
 		},
 		{
-			name: "invalid:fail_to_get_userProfile",
+			name: "sad:( user profile not found",
 			args: args{
 				ctx:         ctx,
-				name:        "partner4",
+				name:        *utils.GetRandomName(),
 				partnerType: base.PartnerTypeRider,
 			},
 			wantErr: true,
 		},
 		{
-			name: "invalid:fail_to_get_DefaultCurrency",
+			name: "sad:( currency not found",
 			args: args{
 				ctx:         ctx,
-				name:        "partner5",
+				name:        *utils.GetRandomName(),
 				partnerType: base.PartnerTypeRider,
 			},
 			wantErr: true,
 		},
 		{
-			name: "invalid:fail_to_createErpSupplier",
+			name: "sad:( failed to create ERP account",
 			args: args{
 				ctx:         ctx,
-				name:        "partner6",
+				name:        *utils.GetRandomName(),
+				partnerType: base.PartnerTypeRider,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad:( failed to activate account",
+			args: args{
+				ctx:         ctx,
+				name:        *utils.GetRandomName(),
 				partnerType: base.PartnerTypeRider,
 			},
 			wantErr: true,
@@ -4912,65 +4941,13 @@ func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if tt.name == "valid:successfully_add_CustomerSupplierERPAccount" {
+			if tt.name == "happy:)" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+					return uuid.New().String(), nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
-							{
-								UID: "f4f39af7-91bd-42b3af-315a4e",
-							},
-						},
-					}, nil
-				}
-
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
-					id := uuid.New().String()
-					return &base.FinancialYearAndCurrency{
-						ID: &id,
-					}, nil
-				}
-
-				fakeEPRSvc.CreateERPCustomerFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					customer base.Customer,
-				) error {
-					return nil
-				}
-
-				fakeRepo.UpdateCustomerProfileFn = func(
-					ctx context.Context,
-					profileID string,
-					customer base.Customer,
-				) error {
-					return nil
-				}
-			}
-
-			if tt.name == "valid:successfully_add_CustomerSupplierERPAccount_using_PartnerTypeRider" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
-							{
-								UID: uid,
-							},
-						},
-					}, nil
+					return &base.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
@@ -4989,8 +4966,8 @@ func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
 					path string,
 					payload map[string]interface{},
 					supplier base.Supplier,
-				) error {
-					return nil
+				) (interface{}, error) {
+					return &base.Supplier{}, nil
 				}
 
 				fakeRepo.ActivateSupplierProfileFn = func(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
@@ -5000,71 +4977,29 @@ func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
 				}
 			}
 
-			if tt.name == "invalid:fail_to_activateSupplierProfile" {
+			if tt.name == "sad:( logged in user not found" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
-							{
-								UID: uid,
-							},
-						},
-					}, nil
-				}
-
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
-					id := uuid.New().String()
-					return &base.FinancialYearAndCurrency{
-						ID: &id,
-					}, nil
-				}
-
-				fakeEPRSvc.CreateERPCustomerFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					customer base.Customer,
-				) error {
-					return nil
-				}
-
-				fakeRepo.ActivateSupplierProfileFn = func(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
-					return nil, fmt.Errorf("failed to activate supplier profile")
+					return "", fmt.Errorf("error")
 				}
 			}
 
-			if tt.name == "invalid:fail_to_get_userProfile" {
+			if tt.name == "sad:( user profile not found" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+					return uuid.New().String(), nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("failed to get user profile")
+					return nil, fmt.Errorf("error")
 				}
 			}
 
-			if tt.name == "invalid:fail_to_get_DefaultCurrency" {
+			if tt.name == "sad:( currency not found" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+					return uuid.New().String(), nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
-							{
-								UID: uid,
-							},
-						},
-					}, nil
+					return &base.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
@@ -5076,20 +5011,13 @@ func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
 				}
 			}
 
-			if tt.name == "invalid:fail_to_createErpSupplier" {
+			if tt.name == "sad:( failed to create ERP account" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+					return uuid.New().String(), nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
-							{
-								UID: "f4f39af7-91bd-42b3af-315a4e",
-							},
-						},
-					}, nil
+					return &base.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
@@ -5103,25 +5031,50 @@ func TestSupplierUseCasesImpl_AddCustomerSupplierERPAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPCustomerFn = func(
+				fakeEPRSvc.CreateERPSupplierFn = func(
 					method string,
 					path string,
 					payload map[string]interface{},
-					customer base.Customer,
-				) error {
-					return fmt.Errorf("failed to create ERP supplier")
+					supplier base.Supplier,
+				) (interface{}, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "sad:( failed to activate account" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: uuid.New().String()}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeEPRSvc.CreateERPSupplierFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					supplier base.Supplier,
+				) (interface{}, error) {
+					return &base.Supplier{}, nil
+				}
+
+				fakeRepo.ActivateSupplierProfileFn = func(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
+					return nil, fmt.Errorf("error")
 				}
 			}
 
-			got, err := i.Supplier.AddCustomerSupplierERPAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddCustomerSupplierERPAccount() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SupplierUseCasesImpl.AddCustomerSupplierERPAccount() = %v, want %v", got, tt.want)
-			}
-
+			_, err := i.Supplier.CreateSupplierAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("error expected got %v", err)
@@ -7385,6 +7338,234 @@ func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
 					return
 				}
 				if profile.Email != "juhakalulu@gmail.com" {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		name        string
+		partnerType base.PartnerType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy:)",
+			args: args{
+				ctx:         ctx,
+				name:        *utils.GetRandomName(),
+				partnerType: base.PartnerTypeConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad:( logged in user not found",
+			args: args{
+				ctx:         ctx,
+				name:        *utils.GetRandomName(),
+				partnerType: base.PartnerTypeConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad:( user profile not found",
+			args: args{
+				ctx:         ctx,
+				name:        *utils.GetRandomName(),
+				partnerType: base.PartnerTypeConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad:( currency not found",
+			args: args{
+				ctx:         ctx,
+				name:        *utils.GetRandomName(),
+				partnerType: base.PartnerTypeConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad:( failed to create ERP account",
+			args: args{
+				ctx:         ctx,
+				name:        *utils.GetRandomName(),
+				partnerType: base.PartnerTypeConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad:( failed to activate account",
+			args: args{
+				ctx:         ctx,
+				name:        *utils.GetRandomName(),
+				partnerType: base.PartnerTypeConsumer,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "happy:)" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: uuid.New().String()}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeEPRSvc.CreateERPCustomerFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					Customer base.Customer,
+				) (interface{}, error) {
+					return &base.Customer{}, nil
+				}
+
+				fakeRepo.UpdateCustomerProfileFn = func(ctx context.Context, profileID string, customer base.Customer) (*base.Customer, error) {
+					return &base.Customer{
+						ProfileID: &profileID,
+					}, nil
+				}
+			}
+
+			if tt.name == "sad:( logged in user not found" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("error")
+				}
+			}
+
+			if tt.name == "sad:( user profile not found" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+
+			if tt.name == "sad:( currency not found" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: uuid.New().String()}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					return nil, fmt.Errorf("fail to fetch default currency")
+				}
+			}
+
+			if tt.name == "sad:( failed to create ERP account" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: uuid.New().String()}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeEPRSvc.CreateERPCustomerFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					customer base.Customer,
+				) (interface{}, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "sad:( failed to activate account" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{ID: uuid.New().String()}, nil
+				}
+
+				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
+					return &base.ServerClient{}
+				}
+
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+					id := uuid.New().String()
+					return &base.FinancialYearAndCurrency{
+						ID: &id,
+					}, nil
+				}
+
+				fakeEPRSvc.CreateERPCustomerFn = func(
+					method string,
+					path string,
+					payload map[string]interface{},
+					Customer base.Customer,
+				) (interface{}, error) {
+					return &base.Customer{}, nil
+				}
+
+				fakeRepo.UpdateCustomerProfileFn = func(ctx context.Context, profileID string, customer base.Customer) (*base.Customer, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+
+			_, err := i.Supplier.CreateCustomerAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				if err != nil {
 					t.Errorf("error not expected got %v", err)
 					return
 				}
