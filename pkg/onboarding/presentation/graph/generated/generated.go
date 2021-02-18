@@ -502,7 +502,7 @@ type MutationResolver interface {
 	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
 	AddNHIFDetails(ctx context.Context, input resources.NHIFDetailsInput) (*domain.NHIFDetails, error)
 	AddAddress(ctx context.Context, input resources.UserAddressInput, addressType base.AddressType) (*base.Address, error)
-	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error)
+	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -514,7 +514,7 @@ type QueryResolver interface {
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 	GetAddresses(ctx context.Context) (*domain.UserAddresses, error)
 	NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error)
-	GetUserCommunicationsSettings(ctx context.Context) (*domain.UserCommunicationsSetting, error)
+	GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error)
 }
 type VerifiedIdentifierResolver interface {
 	Timestamp(ctx context.Context, obj *base.VerifiedIdentifier) (*base.Date, error)
@@ -9222,9 +9222,9 @@ func (ec *executionContext) _Mutation_setUserCommunicationsSettings(ctx context.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.UserCommunicationsSetting)
+	res := resTmp.(*base.UserCommunicationsSetting)
 	fc.Result = res
-	return ec.marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserCommunicationsSetting(ctx, field.Selections, res)
+	return ec.marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserCommunicationsSetting(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NHIFDetails_id(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
@@ -12396,9 +12396,9 @@ func (ec *executionContext) _Query_getUserCommunicationsSettings(ctx context.Con
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.UserCommunicationsSetting)
+	res := resTmp.(*base.UserCommunicationsSetting)
 	fc.Result = res
-	return ec.marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserCommunicationsSetting(ctx, field.Selections, res)
+	return ec.marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserCommunicationsSetting(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -13724,7 +13724,7 @@ func (ec *executionContext) _UserAddresses_workAddress(ctx context.Context, fiel
 	return ec.marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_id(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_id(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13759,7 +13759,7 @@ func (ec *executionContext) _UserCommunicationsSetting_id(ctx context.Context, f
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_profileID(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_profileID(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13794,7 +13794,7 @@ func (ec *executionContext) _UserCommunicationsSetting_profileID(ctx context.Con
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_allowWhatsApp(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_allowWhatsApp(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13829,7 +13829,7 @@ func (ec *executionContext) _UserCommunicationsSetting_allowWhatsApp(ctx context
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_allowTextSMS(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_allowTextSMS(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13864,7 +13864,7 @@ func (ec *executionContext) _UserCommunicationsSetting_allowTextSMS(ctx context.
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_allowPush(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_allowPush(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13899,7 +13899,7 @@ func (ec *executionContext) _UserCommunicationsSetting_allowPush(ctx context.Con
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_allowEmail(ctx context.Context, field graphql.CollectedField, obj *domain.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_allowEmail(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -19412,7 +19412,7 @@ func (ec *executionContext) _UserAddresses(ctx context.Context, sel ast.Selectio
 
 var userCommunicationsSettingImplementors = []string{"UserCommunicationsSetting"}
 
-func (ec *executionContext) _UserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, obj *domain.UserCommunicationsSetting) graphql.Marshaler {
+func (ec *executionContext) _UserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, obj *base.UserCommunicationsSetting) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userCommunicationsSettingImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -20633,11 +20633,11 @@ func (ec *executionContext) marshalNUserAddresses2ᚖgitlabᚗslade360emrᚗcom�
 	return ec._UserAddresses(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUserCommunicationsSetting2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, v domain.UserCommunicationsSetting) graphql.Marshaler {
+func (ec *executionContext) marshalNUserCommunicationsSetting2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, v base.UserCommunicationsSetting) graphql.Marshaler {
 	return ec._UserCommunicationsSetting(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, v *domain.UserCommunicationsSetting) graphql.Marshaler {
+func (ec *executionContext) marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, v *base.UserCommunicationsSetting) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")

@@ -87,11 +87,18 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, exceptions.RetrieveRecordError(err)
 	}
 
+	// fetch the user's communication settings
+	comms, err := l.onboardingRepository.GetUserCommunicationsSettings(ctx, profile.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &base.UserResponse{
-		Profile:         profile,
-		CustomerProfile: customer,
-		SupplierProfile: supplier,
-		Auth:            *auth,
+		Profile:               profile,
+		CustomerProfile:       customer,
+		SupplierProfile:       supplier,
+		Auth:                  *auth,
+		ComminicationSettings: comms,
 	}, nil
 }
 

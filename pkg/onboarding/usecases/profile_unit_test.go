@@ -9,7 +9,6 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
@@ -2811,8 +2810,8 @@ func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
 					return uuid.New().String(), nil
 				}
 
-				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*domain.UserCommunicationsSetting, error) {
-					return &domain.UserCommunicationsSetting{
+				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
+					return &base.UserCommunicationsSetting{
 						ID:            uuid.New().String(),
 						AllowWhatsApp: true,
 						AllowTextSMS:  true,
@@ -2928,8 +2927,8 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 				}
 
 				fakeRepo.SetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string,
-					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error) {
-					return &domain.UserCommunicationsSetting{
+					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
+					return &base.UserCommunicationsSetting{
 						ID:            uuid.New().String(),
 						AllowWhatsApp: true,
 						AllowTextSMS:  true,

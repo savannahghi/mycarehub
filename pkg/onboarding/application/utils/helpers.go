@@ -79,7 +79,7 @@ func AddHashToCovers(unHashedCovers []base.Cover) []base.Cover {
 // MatchAndReturn checks is the new is not equal to old and returns it. Otherwise the old
 // used when setting communication settings
 func MatchAndReturn(old bool, new bool) bool {
-	if new != old {
+	if (new && !old) || (!new && old) {
 		return new
 	}
 	return old

@@ -151,11 +151,20 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		return nil, exceptions.InternalServerError(err)
 	}
 
+	// set the user default communications settings
+	defaultCommunicationSetting := true
+	comms, err := s.onboardingRepository.SetUserCommunicationsSettings(ctx, profile.ID, &defaultCommunicationSetting,
+		&defaultCommunicationSetting, &defaultCommunicationSetting, &defaultCommunicationSetting)
+	if err != nil {
+		return nil, err
+	}
+
 	return &base.UserResponse{
-		Profile:         profile,
-		SupplierProfile: supplier,
-		CustomerProfile: customer,
-		Auth:            *auth,
+		Profile:               profile,
+		SupplierProfile:       supplier,
+		CustomerProfile:       customer,
+		ComminicationSettings: comms,
+		Auth:                  *auth,
 	}, nil
 }
 

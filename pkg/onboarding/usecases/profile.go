@@ -122,9 +122,9 @@ type ProfileUseCase interface {
 
 	GetAddresses(ctx context.Context) (*domain.UserAddresses, error)
 
-	GetUserCommunicationsSettings(ctx context.Context) (*domain.UserCommunicationsSetting, error)
+	GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error)
 
-	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error)
+	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -998,7 +998,7 @@ func (p *ProfileUseCaseImpl) GetAddresses(
 }
 
 // GetUserCommunicationsSettings  retrives the logged in user communications settings.
-func (p *ProfileUseCaseImpl) GetUserCommunicationsSettings(ctx context.Context) (*domain.UserCommunicationsSetting, error) {
+func (p *ProfileUseCaseImpl) GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error) {
 	pr, err := p.UserProfile(ctx)
 	if err != nil {
 		return nil, err
@@ -1007,7 +1007,7 @@ func (p *ProfileUseCaseImpl) GetUserCommunicationsSettings(ctx context.Context) 
 }
 
 // SetUserCommunicationsSettings sets the user communication settings
-func (p *ProfileUseCaseImpl) SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error) {
+func (p *ProfileUseCaseImpl) SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
 	pr, err := p.UserProfile(ctx)
 	if err != nil {
 		return nil, err

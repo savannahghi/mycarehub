@@ -152,8 +152,8 @@ type OnboardingRepository interface {
 		profileID string,
 	) (*domain.NHIFDetails, error)
 
-	GetUserCommunicationsSettings(ctx context.Context, profileID string) (*domain.UserCommunicationsSetting, error)
+	GetUserCommunicationsSettings(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error)
 
 	SetUserCommunicationsSettings(ctx context.Context, profileID string,
-		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error)
+		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
 }

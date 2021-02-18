@@ -240,3 +240,22 @@ func TestAddHashToCovers(t *testing.T) {
 	hashedCovers3 := utils.AddHashToCovers(hashedCovers2)
 	assert.Equal(t, 0, len(hashedCovers3))
 }
+
+func TestMatchAndReturn(t *testing.T) {
+	tests := []struct {
+		old  bool
+		new  bool
+		want bool
+	}{
+		{old: false, new: true, want: true},
+		{old: true, new: false, want: false},
+		{old: true, new: true, want: true},
+		{old: false, new: false, want: false},
+	}
+	for _, tt := range tests {
+		t.Run("", func(t *testing.T) {
+			resp := utils.MatchAndReturn(tt.old, tt.new)
+			assert.Equal(t, tt.want, resp)
+		})
+	}
+}

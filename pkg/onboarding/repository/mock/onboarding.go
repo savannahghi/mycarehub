@@ -126,10 +126,10 @@ type FakeOnboardingRepository struct {
 		profileID string,
 	) (*domain.NHIFDetails, error)
 
-	GetUserCommunicationsSettingsFn func(ctx context.Context, profileID string) (*domain.UserCommunicationsSetting, error)
+	GetUserCommunicationsSettingsFn func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error)
 
 	SetUserCommunicationsSettingsFn func(ctx context.Context, profileID string,
-		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error)
+		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
 
 	UpdateCustomerProfileFn func(
 		ctx context.Context,
@@ -467,13 +467,13 @@ func (f *FakeOnboardingRepository) GetNHIFDetailsByProfileID(
 }
 
 // GetUserCommunicationsSettings ...
-func (f *FakeOnboardingRepository) GetUserCommunicationsSettings(ctx context.Context, profileID string) (*domain.UserCommunicationsSetting, error) {
+func (f *FakeOnboardingRepository) GetUserCommunicationsSettings(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
 	return f.GetUserCommunicationsSettingsFn(ctx, profileID)
 }
 
 // SetUserCommunicationsSettings ...
 func (f *FakeOnboardingRepository) SetUserCommunicationsSettings(ctx context.Context, profileID string,
-	allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error) {
+	allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
 	return f.SetUserCommunicationsSettingsFn(ctx, profileID, allowWhatsApp, allowTextSms, allowPush, allowEmail)
 }
 

@@ -587,6 +587,16 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
 					return true, nil
 				}
+
+				fakeRepo.SetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string,
+					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
+					return &base.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+				}
+
+				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
+					return &base.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+				}
+
 			}
 
 			// mock VerifyOTP to return an error
@@ -1600,6 +1610,9 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				}
 				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour base.Flavour, profileID string) (*base.Customer, *base.Supplier, error) {
 					return &base.Customer{ID: "5550"}, &base.Supplier{ID: "5550"}, nil
+				}
+				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
+					return &base.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
 				}
 			}
 

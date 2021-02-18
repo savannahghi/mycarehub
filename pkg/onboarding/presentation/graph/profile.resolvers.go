@@ -168,7 +168,7 @@ func (r *mutationResolver) AddAddress(ctx context.Context, input resources.UserA
 	)
 }
 
-func (r *mutationResolver) SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error) {
+func (r *mutationResolver) SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
 	return r.interactor.Onboarding.SetUserCommunicationsSettings(ctx, allowWhatsApp, allowTextSms, allowPush, allowEmail)
 }
 
@@ -208,7 +208,7 @@ func (r *queryResolver) NHIFDetails(ctx context.Context) (*domain.NHIFDetails, e
 	return r.interactor.NHIF.NHIFDetails(ctx)
 }
 
-func (r *queryResolver) GetUserCommunicationsSettings(ctx context.Context) (*domain.UserCommunicationsSetting, error) {
+func (r *queryResolver) GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error) {
 	return r.interactor.Onboarding.GetUserCommunicationsSettings(ctx)
 }
 

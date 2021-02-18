@@ -329,6 +329,10 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour base.Flavour, profileID string) (*base.Customer, *base.Supplier, error) {
 					return &base.Customer{ID: "5550"}, &base.Supplier{ID: "5550"}, nil
 				}
+
+				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
+					return &base.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+				}
 			}
 
 			if tt.name == "invalid:fail_to_normalize_phone" {

@@ -267,6 +267,7 @@ func GetTestAuthenticatedContext(t *testing.T) (context.Context, *auth.Token, er
 	)
 	return authenticatedContext, auth, nil
 }
+
 func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {

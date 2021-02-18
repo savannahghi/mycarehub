@@ -26,7 +26,7 @@ require (
 	github.com/sirupsen/logrus v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/vektah/gqlparser/v2 v2.1.0
-	gitlab.slade360emr.com/go/base v0.0.119
+	gitlab.slade360emr.com/go/base v0.0.121
 	go.opencensus.io v0.22.6 // indirect
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/oauth2 v0.0.0-20210216194517-16ff1888fd2e // indirect

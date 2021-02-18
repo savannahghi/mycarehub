@@ -2226,7 +2226,7 @@ func (fr *Repository) GetNHIFDetailsByProfileID(
 }
 
 // GetUserCommunicationsSettings fetches the communication settings of a specific user.
-func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profileID string) (*domain.UserCommunicationsSetting, error) {
+func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
 	query := &GetAllQuery{
 		CollectionName: fr.GetCommunicationsSettingsCollectionName(),
 		FieldName:      "profileID",
@@ -2247,10 +2247,10 @@ func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profile
 	}
 
 	if len(docs) == 0 {
-		return nil, nil
+		return &base.UserCommunicationsSetting{ProfileID: profileID}, nil
 	}
 
-	comms := &domain.UserCommunicationsSetting{}
+	comms := &base.UserCommunicationsSetting{}
 	err = docs[0].DataTo(comms)
 	if err != nil {
 		return nil, err
@@ -2260,7 +2260,7 @@ func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profile
 
 // SetUserCommunicationsSettings sets communication settings for a specific user
 func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profileID string,
-	allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*domain.UserCommunicationsSetting, error) {
+	allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
 
 	// get the previous communications_settings
 	comms, err := fr.GetUserCommunicationsSettings(ctx, profileID)
@@ -2268,7 +2268,7 @@ func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profile
 		return nil, err
 	}
 
-	setCommsSettings := domain.UserCommunicationsSetting{
+	setCommsSettings := base.UserCommunicationsSetting{
 		ID:            uuid.New().String(),
 		ProfileID:     profileID,
 		AllowWhatsApp: utils.MatchAndReturn(comms.AllowWhatsApp, *allowWhatsApp),
