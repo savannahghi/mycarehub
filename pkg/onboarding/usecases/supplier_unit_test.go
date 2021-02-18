@@ -603,7 +603,6 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeRepo.ActivateSupplierProfileFn = func(
-					ctx context.Context,
 					profileID string,
 					supplier base.Supplier,
 				) (*base.Supplier, error) {
@@ -4970,7 +4969,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 					return &base.Supplier{}, nil
 				}
 
-				fakeRepo.ActivateSupplierProfileFn = func(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
+				fakeRepo.ActivateSupplierProfileFn = func(profileID string, supplier base.Supplier) (*base.Supplier, error) {
 					return &base.Supplier{
 						ProfileID: &profileID,
 					}, nil
@@ -5069,7 +5068,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 					return &base.Supplier{}, nil
 				}
 
-				fakeRepo.ActivateSupplierProfileFn = func(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
+				fakeRepo.ActivateSupplierProfileFn = func(profileID string, supplier base.Supplier) (*base.Supplier, error) {
 					return nil, fmt.Errorf("error")
 				}
 			}

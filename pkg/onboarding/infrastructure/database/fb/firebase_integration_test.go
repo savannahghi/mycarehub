@@ -1604,7 +1604,6 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 	}
 
 	type args struct {
-		ctx       context.Context
 		profileID string
 		supplier  base.Supplier
 	}
@@ -1616,7 +1615,6 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 		{
 			name: "Happy Case - Activate Supplier By Valid profile ID",
 			args: args{
-				ctx:       ctx,
 				profileID: profileID,
 				supplier:  sup,
 			},
@@ -1625,7 +1623,6 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 		{
 			name: "Sad Case - Activate Supplier By a non-existent profile ID",
 			args: args{
-				ctx:       ctx,
 				profileID: "bogus",
 				supplier:  sup,
 			},
@@ -1634,7 +1631,7 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			supp, err := fr.ActivateSupplierProfile(tt.args.ctx, tt.args.profileID, tt.args.supplier)
+			supp, err := fr.ActivateSupplierProfile(tt.args.profileID, tt.args.supplier)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.ActivateSupplierProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return

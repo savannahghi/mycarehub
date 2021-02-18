@@ -26,7 +26,7 @@ type FakeOnboardingRepository struct {
 	RemoveKYCProcessingRequestFn func(ctx context.Context, supplierProfileID string) error
 
 	// sets the active attribute of supplier profile to true
-	ActivateSupplierProfileFn func(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error)
+	ActivateSupplierProfileFn func(profileID string, supplier base.Supplier) (*base.Supplier, error)
 
 	FetchKYCProcessingRequestsFn func(ctx context.Context) ([]*domain.KYCRequest, error)
 
@@ -200,8 +200,8 @@ func (f *FakeOnboardingRepository) RemoveKYCProcessingRequest(ctx context.Contex
 }
 
 // ActivateSupplierProfile ...
-func (f *FakeOnboardingRepository) ActivateSupplierProfile(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
-	return f.ActivateSupplierProfileFn(ctx, profileID, supplier)
+func (f *FakeOnboardingRepository) ActivateSupplierProfile(profileID string, supplier base.Supplier) (*base.Supplier, error) {
+	return f.ActivateSupplierProfileFn(profileID, supplier)
 }
 
 // FetchKYCProcessingRequests ...

@@ -278,7 +278,6 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 	supplier.Active = true
 
 	return s.repo.ActivateSupplierProfile(
-		ctx,
 		profile.ID,
 		*supplier,
 	)

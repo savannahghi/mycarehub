@@ -30,7 +30,7 @@ type SupplierRepository interface {
 	RemoveKYCProcessingRequest(ctx context.Context, supplierProfileID string) error
 
 	// sets the active attribute of supplier profile to true
-	ActivateSupplierProfile(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error)
+	ActivateSupplierProfile(profileID string, supplier base.Supplier) (*base.Supplier, error)
 
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 

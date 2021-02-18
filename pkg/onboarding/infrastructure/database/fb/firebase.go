@@ -1558,10 +1558,10 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 
 // ActivateSupplierProfile sets the active attribute of supplier profile to true
 func (fr *Repository) ActivateSupplierProfile(
-	ctx context.Context,
 	profileID string,
 	supplier base.Supplier,
 ) (*base.Supplier, error) {
+	ctx := context.Background()
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 	if err != nil {
 		return nil, err
