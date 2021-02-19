@@ -1,39 +1,45 @@
 package erp
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
+)
+
+const (
+	supplierAPIPath = "/api/business_partners/suppliers/"
+	customerAPIPath = "/api/business_partners/customers/"
 )
 
 // ServiceERP represents logic required to communicate with ERP
 type ServiceERP interface {
 	FetchERPClient() *base.ServerClient
 	CreateERPCustomer(
-		method string,
-		path string,
-		payload map[string]interface{},
-		customer base.Customer,
-	) (interface{}, error)
+		ctx context.Context,
+		customerPayload resources.CustomerPayload,
+		UID string,
+	) (*base.Customer, error)
 	CreateERPSupplier(
-		method string,
-		path string,
-		payload map[string]interface{},
-		supplier base.Supplier,
-	) (interface{}, error)
+		ctx context.Context,
+		supplierPayload resources.SupplierPayload,
+		UID string,
+	) (*base.Supplier, error)
 }
 
 // ServiceERPImpl represents ERP usecases
 type ServiceERPImpl struct {
 	ERPClient *base.ServerClient
+	repo      repository.OnboardingRepository
 }
 
 // NewERPService returns new instance of ServiceImpl
-func NewERPService() ServiceERP {
+func NewERPService(r repository.OnboardingRepository) ServiceERP {
 
 	erpClient, err := base.NewERPClient()
 	if err != nil {
@@ -45,52 +51,88 @@ func NewERPService() ServiceERP {
 		os.Exit(1)
 	}
 
-	return &ServiceERPImpl{ERPClient: erpClient}
+	return &ServiceERPImpl{
+		ERPClient: erpClient,
+		repo:      r,
+	}
 }
 
 // CreateERPCustomer makes a call to create erp supplier
 func (e *ServiceERPImpl) CreateERPCustomer(
-	method string,
-	path string,
-	payload map[string]interface{},
-	customer base.Customer,
-) (interface{}, error) {
-
-	content, err := json.Marshal(payload)
+	ctx context.Context,
+	customerPayload resources.CustomerPayload,
+	UID string,
+) (*base.Customer, error) {
+	profile, err := e.repo.GetUserProfileByUID(
+		ctx,
+		UID,
+		false,
+	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to marshal to JSON: %v", err)
+		return nil, err
 	}
 
-	return base.ReadWriteRequestToTarget(
+	payload, err := json.Marshal(customerPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := base.ReadWriteRequestToTarget(
 		e.ERPClient,
 		http.MethodPost,
-		path,
+		customerAPIPath,
 		"",
-		content,
-		&customer,
+		payload,
+		&base.Customer{},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	customer := data.(*base.Customer)
+	customer.Active = true
+
+	return e.repo.UpdateCustomerProfile(
+		ctx,
+		profile.ID,
+		*customer,
 	)
 }
 
 // CreateERPSupplier makes a call to create erp supplier
 func (e *ServiceERPImpl) CreateERPSupplier(
-	method string,
-	path string,
-	payload map[string]interface{},
-	supplier base.Supplier,
-) (interface{}, error) {
-
-	content, err := json.Marshal(payload)
+	ctx context.Context,
+	supplierPayload resources.SupplierPayload,
+	UID string,
+) (*base.Supplier, error) {
+	profile, err := e.repo.GetUserProfileByUID(ctx, UID, false)
 	if err != nil {
-		return nil, fmt.Errorf("unable to marshal to JSON: %v", err)
+		return nil, err
 	}
 
-	return base.ReadWriteRequestToTarget(
+	payload, err := json.Marshal(supplierPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := base.ReadWriteRequestToTarget(
 		e.ERPClient,
 		http.MethodPost,
-		path,
+		supplierAPIPath,
 		"",
-		content,
-		&supplier,
+		payload,
+		&base.Supplier{},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	supplier := data.(*base.Supplier)
+	supplier.Active = true
+
+	return e.repo.ActivateSupplierProfile(
+		profile.ID,
+		*supplier,
 	)
 }
 

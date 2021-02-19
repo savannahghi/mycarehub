@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -19,6 +20,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 
@@ -88,7 +90,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	mailgunClient := utils.NewInterServiceClient(mailgunService, baseExt)
 
 	// Initialize new instance of our infrastructure services
-	erp := erp.NewERPService()
+	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
 	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
@@ -96,9 +98,30 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(otpClient, baseExt)
 
+	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"can't get projectID from env var `%s`: %w",
+			base.GoogleCloudProjectIDEnvVarName,
+			err,
+		)
+	}
+	pubSubClient, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
+	}
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(
+		pubSubClient,
+		baseExt,
+		erp,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
+	}
+
 	// Initialize the usecases
 	profile := usecases.NewProfileUseCase(repo, otp, baseExt, engage)
-	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mg, mes, baseExt)
+	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mg, mes, baseExt, pubSub)
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
 	userpin := usecases.NewUserPinUseCase(repo, otp, profile, baseExt, pinExt)
@@ -106,7 +129,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
 
 	i, err := interactor.NewOnboardingInteractor(
-		repo, profile, su, otp, supplier, login, survey, userpin, erp, chrg, engage, mg, mes, nhif,
+		repo, profile, su, otp, supplier, login, survey,
+		userpin, erp, chrg, engage, mg, mes, nhif, pubSub,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -124,6 +148,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Use(base.RequestDebugMiddleware())
 
 	// Unauthenticated routes
+	r.Path("/pubsub").Methods(
+		http.MethodPost).
+		HandlerFunc(pubSub.ReceivePubSubPushMessages)
 
 	// misc routes
 	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))

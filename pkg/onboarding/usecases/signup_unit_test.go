@@ -1202,7 +1202,7 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:successfully_complete_signup" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+					return uuid.New().String(), nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
@@ -1215,15 +1215,15 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 				}
 
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+					return uuid.New().String(), nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						ID: uuid.New().String(),
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
-								UID: "f4f39af7-91bd-42b3af-315a4e",
+								UID: uuid.New().String(),
 							},
 						},
 						UserBioData: base.BioData{
@@ -1244,27 +1244,26 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPCustomerFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					customer base.Customer,
-				) (interface{}, error) {
-					return &base.Customer{}, nil
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
 				}
 
-				fakeRepo.UpdateCustomerProfileFn = func(
-					ctx context.Context,
-					profileID string,
-					customer base.Customer,
-				) (*base.Customer, error) {
-					return &base.Customer{}, nil
+				fakePubSub.EnsureTopicsExistFn = func(ctx context.Context, topicIDs []string) error {
+					return nil
+				}
+
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
+					return nil
 				}
 			}
 
 			if tt.name == "invalid:fail_to_get_userProfile" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+					return uuid.New().String(), nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get user profile")
@@ -1279,7 +1278,7 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 
 			if tt.name == "invalid:missing_bioData" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+					return uuid.New().String(), nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
@@ -1288,15 +1287,15 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 				}
 
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+					return uuid.New().String(), nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						ID: uuid.New().String(),
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
-								UID: "f4f39af7-91bd-42b3af-315a4e",
+								UID: uuid.New().String(),
 							},
 						},
 					}, nil
@@ -1312,7 +1311,7 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 
 			if tt.name == "invalid:fail_to_AddCustomerSupplierERPAccount" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+					return uuid.New().String(), nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
@@ -1325,15 +1324,15 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 				}
 
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+					return uuid.New().String(), nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						ID: uuid.New().String(),
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
-								UID: "f4f39af7-91bd-42b3af-315a4e",
+								UID: uuid.New().String(),
 							},
 						},
 						UserBioData: base.BioData{
@@ -1355,18 +1354,17 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 				}
 
 				fakeEPRSvc.CreateERPCustomerFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					customer base.Customer,
-				) (interface{}, error) {
+					ctx context.Context,
+					customerPayload resources.CustomerPayload,
+					UID string,
+				) (*base.Customer, error) {
 					return nil, fmt.Errorf("failed to add customer supplier ERP account")
 				}
 			}
 
 			if tt.name == "invalid:fail_to_FetchDefaultCurrency" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+					return uuid.New().String(), nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
@@ -1379,15 +1377,15 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 				}
 
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+					return uuid.New().String(), nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
+						ID: uuid.New().String(),
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
-								UID: "f4f39af7-91bd-42b3af-315a4e",
+								UID: uuid.New().String(),
 							},
 						},
 						UserBioData: base.BioData{

@@ -24,6 +24,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 
 	"cloud.google.com/go/firestore"
+	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -34,6 +35,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
@@ -111,7 +113,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mailgunClient := utils.NewInterServiceClient(mailgunService, ext)
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
-	erp := erp.NewERPService()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
 	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
@@ -120,8 +121,30 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 	otp := otp.NewOTPService(otpClient, ext)
+	erp := erp.NewERPService(fr)
+
+	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"can't get projectID from env var `%s`: %w",
+			base.GoogleCloudProjectIDEnvVarName,
+			err,
+		)
+	}
+	pubSubClient, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
+	}
+	ps, err := pubsubmessaging.NewServicePubSubMessaging(
+		pubSubClient,
+		ext,
+		erp,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
+	}
 	profile := usecases.NewProfileUseCase(fr, otp, ext, engage)
-	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext)
+	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext, ps)
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
 	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext, pinExt)
@@ -138,6 +161,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		ERP:          erp,
 		ChargeMaster: chrg,
 		Engagement:   engage,
+		PubSub:       ps,
 	}, nil
 }
 

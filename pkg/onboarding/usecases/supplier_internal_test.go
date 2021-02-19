@@ -58,7 +58,7 @@ func TestParseKYCAsMap(t *testing.T) {
 	mailgunClient := utils.NewInterServiceClient(mailgunService, ext)
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
-	erp := erp.NewERPService()
+	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
 	mg := mailgun.NewServiceMailgunImpl(mailgunClient)

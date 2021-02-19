@@ -1,24 +1,25 @@
 package mock
 
 import (
+	"context"
+
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
 // FakeServiceERP is an `ERP` service mock .
 type FakeServiceERP struct {
 	FetchERPClientFn    func() *base.ServerClient
 	CreateERPCustomerFn func(
-		method string,
-		path string,
-		payload map[string]interface{},
-		customer base.Customer,
-	) (interface{}, error)
+		ctx context.Context,
+		customerPayload resources.CustomerPayload,
+		UID string,
+	) (*base.Customer, error)
 	CreateERPSupplierFn func(
-		method string,
-		path string,
-		payload map[string]interface{},
-		supplier base.Supplier,
-	) (interface{}, error)
+		ctx context.Context,
+		supplierPayload resources.SupplierPayload,
+		UID string,
+	) (*base.Supplier, error)
 }
 
 // FetchERPClient ...
@@ -28,20 +29,18 @@ func (f *FakeServiceERP) FetchERPClient() *base.ServerClient {
 
 // CreateERPCustomer ...
 func (f *FakeServiceERP) CreateERPCustomer(
-	method string,
-	path string,
-	payload map[string]interface{},
-	customer base.Customer,
-) (interface{}, error) {
-	return f.CreateERPCustomerFn(method, path, payload, customer)
+	ctx context.Context,
+	customerPayload resources.CustomerPayload,
+	UID string,
+) (*base.Customer, error) {
+	return f.CreateERPCustomerFn(ctx, customerPayload, UID)
 }
 
 // CreateERPSupplier ...
 func (f *FakeServiceERP) CreateERPSupplier(
-	method string,
-	path string,
-	payload map[string]interface{},
-	supplier base.Supplier,
-) (interface{}, error) {
-	return f.CreateERPSupplierFn(method, path, payload, supplier)
+	ctx context.Context,
+	supplierPayload resources.SupplierPayload,
+	UID string,
+) (*base.Supplier, error) {
+	return f.CreateERPSupplierFn(ctx, supplierPayload, UID)
 }

@@ -245,8 +245,7 @@ func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Fl
 		*profile.UserBioData.LastName,
 	)
 
-	// todo(dexter): replace this with pubsub
-	_, err = s.supplierUsecase.CreateCustomerAccount(
+	err = s.supplierUsecase.CreateCustomerAccount(
 		ctx,
 		fullName,
 		base.PartnerTypeConsumer,

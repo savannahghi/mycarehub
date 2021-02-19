@@ -28,12 +28,11 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 const (
-	supplierAPIPath        = "/api/business_partners/suppliers/"
-	customerAPIPath        = "/api/business_partners/customers/"
 	emailSignupSubject     = "Thank you for signing up"
 	active                 = true
 	country                = "KEN" // Anticipate worldwide expansion
@@ -109,13 +108,13 @@ type SupplierUseCases interface {
 		ctx context.Context,
 		name string,
 		partnerType base.PartnerType,
-	) (*base.Customer, error)
+	) error
 
 	CreateSupplierAccount(
 		ctx context.Context,
 		name string,
 		partnerType base.PartnerType,
-	) (*base.Supplier, error)
+	) error
 }
 
 // SupplierUseCasesImpl represents usecase implementation object
@@ -129,6 +128,7 @@ type SupplierUseCasesImpl struct {
 	mg           mailgun.ServiceMailgun
 	messaging    messaging.ServiceMessaging
 	baseExt      extension.BaseExtension
+	pubsub       pubsubmessaging.ServicePubSub
 }
 
 // NewSupplierUseCases returns a new a onboarding usecase
@@ -140,7 +140,9 @@ func NewSupplierUseCases(
 	eng engagement.ServiceEngagement,
 	mg mailgun.ServiceMailgun,
 	messaging messaging.ServiceMessaging,
-	ext extension.BaseExtension) SupplierUseCases {
+	ext extension.BaseExtension,
+	pubsub pubsubmessaging.ServicePubSub,
+) SupplierUseCases {
 
 	return &SupplierUseCasesImpl{
 		repo:         r,
@@ -150,7 +152,9 @@ func NewSupplierUseCases(
 		engagement:   eng,
 		mg:           mg,
 		messaging:    messaging,
-		baseExt:      ext}
+		baseExt:      ext,
+		pubsub:       pubsub,
+	}
 }
 
 // AddPartnerType create the initial supplier record
@@ -192,46 +196,45 @@ func (s SupplierUseCasesImpl) CreateCustomerAccount(
 	ctx context.Context,
 	name string,
 	partnerType base.PartnerType,
-) (*base.Customer, error) {
-	if partnerType != base.PartnerTypeConsumer {
-		return nil, exceptions.WrongEnumTypeError(partnerType.String())
+) error {
+	UID, err := s.baseExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return err
 	}
 
-	profile, err := s.profile.UserProfile(ctx)
-	if err != nil {
-		return nil, err
+	if partnerType != base.PartnerTypeConsumer {
+		return exceptions.WrongEnumTypeError(partnerType.String())
 	}
 
 	currency, err := s.baseExt.FetchDefaultCurrency(s.erp.FetchERPClient())
 	if err != nil {
-		return nil, exceptions.FetchDefaultCurrencyError(err)
+		return exceptions.FetchDefaultCurrencyError(err)
 	}
 
-	payload := map[string]interface{}{
-		"active":        active,
-		"partner_name":  name,
-		"country":       country,
-		"currency":      *currency.ID,
-		"is_customer":   true,
-		"customer_type": partnerType,
+	customerPayload := resources.CustomerPayload{
+		Active:       active,
+		PartnerName:  name,
+		Country:      country,
+		Currency:     *currency.ID,
+		IsCustomer:   true,
+		CustomerType: partnerType,
 	}
 
-	c, err := s.erp.CreateERPCustomer(
-		http.MethodPost,
-		customerAPIPath,
-		payload,
-		base.Customer{},
-	)
+	customerPubSubPayload := resources.CustomerPubSubMessage{
+		CustomerPayload: customerPayload,
+		UID:             UID,
+	}
+
+	bs, err := json.Marshal(customerPubSubPayload)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	customer := c.(*base.Customer)
-	customer.Active = true
 
-	return s.repo.UpdateCustomerProfile(
+	topicName := s.pubsub.AddPubSubNamespace(pubsubmessaging.CreateCustomerTopic)
+	return s.pubsub.PublishToPubsub(
 		ctx,
-		profile.ID,
-		*customer,
+		topicName,
+		bs,
 	)
 }
 
@@ -241,45 +244,45 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 	ctx context.Context,
 	name string,
 	partnerType base.PartnerType,
-) (*base.Supplier, error) {
-	if partnerType == base.PartnerTypeConsumer {
-		return nil, exceptions.WrongEnumTypeError(partnerType.String())
+) error {
+	UID, err := s.baseExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return err
 	}
 
-	profile, err := s.profile.UserProfile(ctx)
-	if err != nil {
-		return nil, err
+	if partnerType == base.PartnerTypeConsumer {
+		return exceptions.WrongEnumTypeError(partnerType.String())
 	}
 
 	currency, err := s.baseExt.FetchDefaultCurrency(s.erp.FetchERPClient())
 	if err != nil {
-		return nil, exceptions.FetchDefaultCurrencyError(err)
+		return exceptions.FetchDefaultCurrencyError(err)
 	}
 
-	payload := map[string]interface{}{
-		"active":        active,
-		"partner_name":  name,
-		"country":       country,
-		"currency":      *currency.ID,
-		"is_supplier":   true,
-		"supplier_type": partnerType,
+	supplierPayload := resources.SupplierPayload{
+		Active:       active,
+		PartnerName:  name,
+		Country:      country,
+		Currency:     *currency.ID,
+		IsSupplier:   true,
+		SupplierType: partnerType,
 	}
 
-	sup, err := s.erp.CreateERPSupplier(
-		http.MethodPost,
-		supplierAPIPath,
-		payload,
-		base.Supplier{},
-	)
+	supplierPubSubPayload := resources.SupplierPubSubMessage{
+		SupplierPayload: supplierPayload,
+		UID:             UID,
+	}
+
+	bs, err := json.Marshal(supplierPubSubPayload)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	supplier := sup.(*base.Supplier)
-	supplier.Active = true
 
-	return s.repo.ActivateSupplierProfile(
-		profile.ID,
-		*supplier,
+	topicName := s.pubsub.AddPubSubNamespace(pubsubmessaging.CreateSupplierTopic)
+	return s.pubsub.PublishToPubsub(
+		ctx,
+		topicName,
+		bs,
 	)
 }
 
@@ -1562,7 +1565,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 	switch status {
 	case domain.KYCProcessStatusApproved:
 		go func() {
-			if _, err := s.CreateSupplierAccount(
+			if err := s.CreateSupplierAccount(
 				ctx,
 				req.SupplierRecord.SupplierName,
 				req.ReqPartnerType,

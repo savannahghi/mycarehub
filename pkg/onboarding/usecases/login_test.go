@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -41,6 +42,8 @@ import (
 	mailgunMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun/mock"
 
 	messagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging/mock"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
+	pubsubmessagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub/mock"
 )
 
 const (
@@ -156,7 +159,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mailgunClient := utils.NewInterServiceClient(mailgunService, ext)
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
-	erp := erp.NewERPService()
+	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
 	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
@@ -164,7 +167,29 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(otpClient, ext)
 	profile := usecases.NewProfileUseCase(repo, otp, ext, engage)
-	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mg, mes, ext)
+
+	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"can't get projectID from env var `%s`: %w",
+			base.GoogleCloudProjectIDEnvVarName,
+			err,
+		)
+	}
+	pubSubClient, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
+	}
+	ps, err := pubsubmessaging.NewServicePubSubMessaging(
+		pubSubClient,
+		ext,
+		erp,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
+	}
+
+	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mg, mes, ext, ps)
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, ext)
 	userpin := usecases.NewUserPinUseCase(repo, otp, profile, ext, pinExt)
@@ -183,6 +208,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		ChargeMaster: chrg,
 		Engagement:   engage,
 		NHIF:         nhif,
+		PubSub:       ps,
 	}, nil
 }
 
@@ -371,6 +397,7 @@ var fakeEngagementSvs engagementMock.FakeServiceEngagement
 var fakeMessagingSvc messagingMock.FakeServiceMessaging
 var fakeEPRSvc erpMock.FakeServiceERP
 var fakeChargeMasterSvc chargemasterMock.FakeServiceChargeMaster
+var fakePubSub pubsubmessagingMock.FakeServicePubSub
 
 // InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
 func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
@@ -383,12 +410,13 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var messagingSvc messaging.ServiceMessaging = &fakeMessagingSvc
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
+	var ps pubsubmessaging.ServicePubSub = &fakePubSub
 
 	profile := usecases.NewProfileUseCase(r, otpSvc, ext, engagementSvc)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
-		r, profile, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, ext,
+		r, profile, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, ext, ps,
 	)
 	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
@@ -396,7 +424,8 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, otpSvc, supplier, login,
-		survey, userpin, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, nhif,
+		survey, userpin, erpSvc, chargemasterSvc,
+		engagementSvc, mailgunSvc, messagingSvc, nhif, ps,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

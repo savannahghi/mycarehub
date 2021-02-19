@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"cloud.google.com/go/pubsub"
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -12,7 +13,6 @@ import (
 // Our first step to making some functions are testable is to remove the base dependency.
 // This can be achieved with the below interface.
 type BaseExtension interface {
-	// functions that we use from base
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	NormalizeMSISDN(msisdn string) (*string, error)
 	FetchDefaultCurrency(c base.Client,
@@ -33,6 +33,49 @@ type BaseExtension interface {
 		password string,
 		extraHeaders map[string]string,
 	) (*base.ServerClient, error)
+
+	// PubSub
+	EnsureTopicsExist(
+		ctx context.Context,
+		pubsubClient *pubsub.Client,
+		topicIDs []string,
+	) error
+	GetRunningEnvironment() string
+	NamespacePubsubIdentifier(
+		serviceName string,
+		topicID string,
+		environment string,
+		version string,
+	) string
+	PublishToPubsub(
+		ctx context.Context,
+		pubsubClient *pubsub.Client,
+		topicID string,
+		environment string,
+		serviceName string,
+		version string,
+		payload []byte,
+	) error
+	GoogleCloudProjectIDEnvVarName() (string, error)
+	EnsureSubscriptionsExist(
+		ctx context.Context,
+		pubsubClient *pubsub.Client,
+		topicSubscriptionMap map[string]string,
+		callbackURL string,
+	) error
+	SubscriptionIDs(topicIDs []string) map[string]string
+	PubSubHandlerPath() string
+	VerifyPubSubJWTAndDecodePayload(
+		w http.ResponseWriter,
+		r *http.Request,
+	) (*base.PubSubPayload, error)
+	GetPubSubTopic(m *base.PubSubPayload) (string, error)
+	ErrorMap(err error) map[string]string
+	WriteJSONResponse(
+		w http.ResponseWriter,
+		source interface{},
+		status int,
+	)
 }
 
 // BaseExtensionImpl ...
@@ -100,6 +143,127 @@ func (b *BaseExtensionImpl) NewServerClient(
 ) (*base.ServerClient, error) {
 	return base.NewServerClient(
 		clientID, clientSecret, apiTokenURL, apiHost, apiScheme, grantType, username, password, extraHeaders)
+}
+
+// EnsureTopicsExist creates the topic(s) in the suppplied list if they do not
+// already exist.
+func (b *BaseExtensionImpl) EnsureTopicsExist(
+	ctx context.Context,
+	pubsubClient *pubsub.Client,
+	topicIDs []string,
+) error {
+	return base.EnsureTopicsExist(ctx, pubsubClient, topicIDs)
+}
+
+// GetRunningEnvironment returns the environment wheere the service is running. Importannt
+// so as to point to the correct deps
+func (b *BaseExtensionImpl) GetRunningEnvironment() string {
+	return base.GetRunningEnvironment()
+}
+
+// NamespacePubsubIdentifier uses the service name, environment and version to
+// create a "namespaced" pubsub identifier. This could be a topicID or
+// subscriptionID.
+func (b *BaseExtensionImpl) NamespacePubsubIdentifier(
+	serviceName string,
+	topicID string,
+	environment string,
+	version string,
+) string {
+	return base.NamespacePubsubIdentifier(
+		serviceName,
+		topicID,
+		environment,
+		version,
+	)
+}
+
+// PublishToPubsub sends the supplied payload to the indicated topic
+func (b *BaseExtensionImpl) PublishToPubsub(
+	ctx context.Context,
+	pubsubClient *pubsub.Client,
+	topicID string,
+	environment string,
+	serviceName string,
+	version string,
+	payload []byte,
+) error {
+	return base.PublishToPubsub(
+		ctx,
+		pubsubClient,
+		topicID,
+		environment,
+		serviceName,
+		version,
+		payload,
+	)
+}
+
+// GoogleCloudProjectIDEnvVarName returns `GOOGLE_CLOUD_PROJECT` env
+func (b *BaseExtensionImpl) GoogleCloudProjectIDEnvVarName() (string, error) {
+	return b.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+}
+
+// EnsureSubscriptionsExist ensures that the subscriptions named in the supplied
+// topic:subscription map exist. If any does not exist, it is created.
+func (b *BaseExtensionImpl) EnsureSubscriptionsExist(
+	ctx context.Context,
+	pubsubClient *pubsub.Client,
+	topicSubscriptionMap map[string]string,
+	callbackURL string,
+) error {
+	return base.EnsureSubscriptionsExist(
+		ctx,
+		pubsubClient,
+		topicSubscriptionMap,
+		callbackURL,
+	)
+}
+
+// SubscriptionIDs returns a map of topic IDs to subscription IDs
+func (b *BaseExtensionImpl) SubscriptionIDs(topicIDs []string) map[string]string {
+	return base.SubscriptionIDs(topicIDs)
+}
+
+// PubSubHandlerPath returns pubsub hander path `/pubsub`
+func (b *BaseExtensionImpl) PubSubHandlerPath() string {
+	return base.PubSubHandlerPath
+}
+
+// VerifyPubSubJWTAndDecodePayload confirms that there is a valid Google signed
+// JWT and decodes the pubsub message payload into a struct.
+//
+// It's use will simplify & shorten the handler funcs that process Cloud Pubsub
+// push notifications.
+func (b *BaseExtensionImpl) VerifyPubSubJWTAndDecodePayload(
+	w http.ResponseWriter,
+	r *http.Request,
+) (*base.PubSubPayload, error) {
+	return base.VerifyPubSubJWTAndDecodePayload(
+		w,
+		r,
+	)
+}
+
+// GetPubSubTopic retrieves a pubsub topic from a pubsub payload.
+func (b *BaseExtensionImpl) GetPubSubTopic(m *base.PubSubPayload) (string, error) {
+	return base.GetPubSubTopic(m)
+}
+
+// WriteJSONResponse writes the content supplied via the `source` parameter to
+// the supplied http ResponseWriter. The response is returned with the indicated
+// status.
+func (b *BaseExtensionImpl) WriteJSONResponse(
+	w http.ResponseWriter,
+	source interface{},
+	status int,
+) {
+	base.WriteJSONResponse(w, source, status)
+}
+
+// ErrorMap turns the supplied error into a map with "error" as the key
+func (b *BaseExtensionImpl) ErrorMap(err error) map[string]string {
+	return base.ErrorMap(err)
 }
 
 // ISCClientExtension represents the base ISC client

@@ -577,11 +577,10 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeEPRSvc.CreateERPSupplierFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					supplier base.Supplier,
-				) (interface{}, error) {
+					ctx context.Context,
+					supplierPayload resources.SupplierPayload,
+					UID string,
+				) (*base.Supplier, error) {
 					return &base.Supplier{}, nil
 				}
 
@@ -815,11 +814,10 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeEPRSvc.CreateERPSupplierFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					supplier base.Supplier,
-				) (interface{}, error) {
+					ctx context.Context,
+					supplierPayload resources.SupplierPayload,
+					UID string,
+				) (*base.Supplier, error) {
 					return &base.Supplier{}, nil
 				}
 
@@ -894,11 +892,10 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeEPRSvc.CreateERPSupplierFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					supplier base.Supplier,
-				) (interface{}, error) {
+					ctx context.Context,
+					supplierPayload resources.SupplierPayload,
+					UID string,
+				) (*base.Supplier, error) {
 					return &base.Supplier{}, nil
 				}
 
@@ -4892,16 +4889,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "sad:( logged in user not found",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeRider,
-			},
-			wantErr: true,
-		},
-		{
-			name: "sad:( user profile not found",
+			name: "sad:( can't get logged in user",
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
@@ -4919,16 +4907,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad:( failed to create ERP account",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeRider,
-			},
-			wantErr: true,
-		},
-		{
-			name: "sad:( failed to activate account",
+			name: "sad:( failed to publsih to PubSub",
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
@@ -4945,10 +4924,6 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 					return uuid.New().String(), nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: uuid.New().String()}, nil
-				}
-
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
 					return &base.ServerClient{}
 				}
@@ -4960,45 +4935,28 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPSupplierFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					supplier base.Supplier,
-				) (interface{}, error) {
-					return &base.Supplier{}, nil
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
 				}
 
-				fakeRepo.ActivateSupplierProfileFn = func(profileID string, supplier base.Supplier) (*base.Supplier, error) {
-					return &base.Supplier{
-						ProfileID: &profileID,
-					}, nil
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
+					return nil
 				}
 			}
 
-			if tt.name == "sad:( logged in user not found" {
+			if tt.name == "sad:( can't get logged in user" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("error")
-				}
-			}
-
-			if tt.name == "sad:( user profile not found" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("error")
 				}
 			}
 
 			if tt.name == "sad:( currency not found" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return uuid.New().String(), nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
@@ -5010,13 +4968,9 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 				}
 			}
 
-			if tt.name == "sad:( failed to create ERP account" {
+			if tt.name == "sad:( failed to publsih to PubSub" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return uuid.New().String(), nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
@@ -5030,50 +4984,20 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPSupplierFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					supplier base.Supplier,
-				) (interface{}, error) {
-					return nil, fmt.Errorf("error")
-				}
-			}
-			if tt.name == "sad:( failed to activate account" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: uuid.New().String()}, nil
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
-					id := uuid.New().String()
-					return &base.FinancialYearAndCurrency{
-						ID: &id,
-					}, nil
-				}
-
-				fakeEPRSvc.CreateERPSupplierFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					supplier base.Supplier,
-				) (interface{}, error) {
-					return &base.Supplier{}, nil
-				}
-
-				fakeRepo.ActivateSupplierProfileFn = func(profileID string, supplier base.Supplier) (*base.Supplier, error) {
-					return nil, fmt.Errorf("error")
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
+					return fmt.Errorf("error")
 				}
 			}
 
-			_, err := i.Supplier.CreateSupplierAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
+			err := i.Supplier.CreateSupplierAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("error expected got %v", err)
@@ -7374,24 +7298,6 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "sad:( logged in user not found",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeConsumer,
-			},
-			wantErr: true,
-		},
-		{
-			name: "sad:( user profile not found",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeConsumer,
-			},
-			wantErr: true,
-		},
-		{
 			name: "sad:( currency not found",
 			args: args{
 				ctx:         ctx,
@@ -7401,7 +7307,7 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad:( failed to create ERP account",
+			name: "sad:( can't get logged in user",
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
@@ -7410,7 +7316,7 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad:( failed to activate account",
+			name: "sad:( failed to publsih to PubSub",
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
@@ -7427,10 +7333,6 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 					return uuid.New().String(), nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: uuid.New().String()}, nil
-				}
-
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
 					return &base.ServerClient{}
 				}
@@ -7442,45 +7344,28 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPCustomerFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					Customer base.Customer,
-				) (interface{}, error) {
-					return &base.Customer{}, nil
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
 				}
 
-				fakeRepo.UpdateCustomerProfileFn = func(ctx context.Context, profileID string, customer base.Customer) (*base.Customer, error) {
-					return &base.Customer{
-						ProfileID: &profileID,
-					}, nil
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
+					return nil
 				}
 			}
 
-			if tt.name == "sad:( logged in user not found" {
+			if tt.name == "sad:( can't get logged in user" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("error")
-				}
-			}
-
-			if tt.name == "sad:( user profile not found" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("error")
 				}
 			}
 
 			if tt.name == "sad:( currency not found" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return uuid.New().String(), nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
@@ -7492,13 +7377,9 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 				}
 			}
 
-			if tt.name == "sad:( failed to create ERP account" {
+			if tt.name == "sad:( failed to publsih to PubSub" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return uuid.New().String(), nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
@@ -7512,50 +7393,20 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPCustomerFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					customer base.Customer,
-				) (interface{}, error) {
-					return nil, fmt.Errorf("error")
-				}
-			}
-			if tt.name == "sad:( failed to activate account" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: uuid.New().String()}, nil
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
-					id := uuid.New().String()
-					return &base.FinancialYearAndCurrency{
-						ID: &id,
-					}, nil
-				}
-
-				fakeEPRSvc.CreateERPCustomerFn = func(
-					method string,
-					path string,
-					payload map[string]interface{},
-					Customer base.Customer,
-				) (interface{}, error) {
-					return &base.Customer{}, nil
-				}
-
-				fakeRepo.UpdateCustomerProfileFn = func(ctx context.Context, profileID string, customer base.Customer) (*base.Customer, error) {
-					return nil, fmt.Errorf("error")
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
+					return fmt.Errorf("error")
 				}
 			}
 
-			_, err := i.Supplier.CreateCustomerAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
+			err := i.Supplier.CreateCustomerAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("error expected got %v", err)

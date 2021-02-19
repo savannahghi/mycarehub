@@ -21,6 +21,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 
 	"cloud.google.com/go/firestore"
+	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 	"github.com/imroc/req"
 	"github.com/sirupsen/logrus"
@@ -31,6 +32,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 
@@ -101,7 +103,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mailgunClient := utils.NewInterServiceClient(mailgunService, ext)
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
-	erp := erp.NewERPService()
+	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
 	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
@@ -109,7 +111,29 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(iscClient, ext)
 	profile := usecases.NewProfileUseCase(repo, otp, ext, engage)
-	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mg, mes, ext)
+
+	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"can't get projectID from env var `%s`: %w",
+			base.GoogleCloudProjectIDEnvVarName,
+			err,
+		)
+	}
+	pubSubClient, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
+	}
+	ps, err := pubsubmessaging.NewServicePubSubMessaging(
+		pubSubClient,
+		ext,
+		erp,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
+	}
+	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mg, mes, ext, ps)
+
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, ext)
 	userpin := usecases.NewUserPinUseCase(repo, otp, profile, ext, pinExt)
@@ -128,6 +152,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		ChargeMaster: chrg,
 		Engagement:   engage,
 		NHIF:         nhif,
+		PubSub:       ps,
 	}, nil
 }
 

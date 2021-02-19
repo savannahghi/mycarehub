@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.77.0 // indirect
 	cloud.google.com/go/firestore v1.4.0
 	cloud.google.com/go/logging v1.2.0 // indirect
-	cloud.google.com/go/pubsub v1.10.0 // indirect
+	cloud.google.com/go/pubsub v1.10.0
 	cloud.google.com/go/storage v1.13.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.5 // indirect
 	firebase.google.com/go v3.13.0+incompatible

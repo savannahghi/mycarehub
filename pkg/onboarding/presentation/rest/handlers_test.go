@@ -28,6 +28,8 @@ import (
 	messagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	otpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp/mock"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
+	pubsubmessagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/rest"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -52,12 +54,13 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var messagingSvc messaging.ServiceMessaging = &messagingMock.FakeServiceMessaging{}
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
+	var ps pubsubmessaging.ServicePubSub = &pubsubmessagingMock.FakeServicePubSub{}
 
 	profile := usecases.NewProfileUseCase(r, otpSvc, ext, engagementSvc)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
-		r, profile, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, ext,
+		r, profile, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, ext, ps,
 	)
 	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
@@ -65,7 +68,8 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, otpSvc, supplier, login,
-		survey, userpin, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, nhif,
+		survey, userpin, erpSvc, chargemasterSvc,
+		engagementSvc, mailgunSvc, messagingSvc, nhif, ps,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

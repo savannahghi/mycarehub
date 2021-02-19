@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"cloud.google.com/go/pubsub"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 )
@@ -29,6 +30,47 @@ type FakeBaseExtensionImpl struct {
 		password string,
 		extraHeaders map[string]string,
 	) (*base.ServerClient, error)
+	EnsureTopicsExistFn func(
+		ctx context.Context,
+		pubsubClient *pubsub.Client,
+		topicIDs []string,
+	) error
+	GetRunningEnvironmentFn     func() string
+	NamespacePubsubIdentifierFn func(
+		serviceName string,
+		topicID string,
+		environment string,
+		version string,
+	) string
+	PublishToPubsubFn func(
+		ctx context.Context,
+		pubsubClient *pubsub.Client,
+		topicID string,
+		environment string,
+		serviceName string,
+		version string,
+		payload []byte,
+	) error
+	GoogleCloudProjectIDEnvVarNameFn func() (string, error)
+	EnsureSubscriptionsExistFn       func(
+		ctx context.Context,
+		pubsubClient *pubsub.Client,
+		topicSubscriptionMap map[string]string,
+		callbackURL string,
+	) error
+	SubscriptionIDsFn                 func(topicIDs []string) map[string]string
+	PubSubHandlerPathFn               func() string
+	VerifyPubSubJWTAndDecodePayloadFn func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) (*base.PubSubPayload, error)
+	GetPubSubTopicFn    func(m *base.PubSubPayload) (string, error)
+	ErrorMapFn          func(err error) map[string]string
+	WriteJSONResponseFn func(
+		w http.ResponseWriter,
+		source interface{},
+		status int,
+	)
 }
 
 // GetLoggedInUserUID ...
@@ -85,6 +127,113 @@ func (b *FakeBaseExtensionImpl) NewServerClient(
 	extraHeaders map[string]string,
 ) (*base.ServerClient, error) {
 	return b.NewServerClientFn(clientID, clientSecret, apiTokenURL, apiHost, apiScheme, grantType, username, password, extraHeaders)
+}
+
+// EnsureTopicsExist ...
+func (b *FakeBaseExtensionImpl) EnsureTopicsExist(
+	ctx context.Context,
+	pubsubClient *pubsub.Client,
+	topicIDs []string,
+) error {
+	return b.EnsureTopicsExistFn(ctx, pubsubClient, topicIDs)
+}
+
+// GetRunningEnvironment ..
+func (b *FakeBaseExtensionImpl) GetRunningEnvironment() string {
+	return b.GetRunningEnvironmentFn()
+}
+
+// NamespacePubsubIdentifier ..
+func (b *FakeBaseExtensionImpl) NamespacePubsubIdentifier(
+	serviceName string,
+	topicID string,
+	environment string,
+	version string,
+) string {
+	return b.NamespacePubsubIdentifierFn(
+		serviceName,
+		topicID,
+		environment,
+		version,
+	)
+}
+
+// PublishToPubsub ..
+func (b *FakeBaseExtensionImpl) PublishToPubsub(
+	ctx context.Context,
+	pubsubClient *pubsub.Client,
+	topicID string,
+	environment string,
+	serviceName string,
+	version string,
+	payload []byte,
+) error {
+	return b.PublishToPubsubFn(
+		ctx,
+		pubsubClient,
+		topicID,
+		environment,
+		serviceName,
+		version,
+		payload,
+	)
+}
+
+// GoogleCloudProjectIDEnvVarName ..
+func (b *FakeBaseExtensionImpl) GoogleCloudProjectIDEnvVarName() (string, error) {
+	return b.GoogleCloudProjectIDEnvVarNameFn()
+}
+
+// EnsureSubscriptionsExist ...
+func (b *FakeBaseExtensionImpl) EnsureSubscriptionsExist(
+	ctx context.Context,
+	pubsubClient *pubsub.Client,
+	topicSubscriptionMap map[string]string,
+	callbackURL string,
+) error {
+	return b.EnsureSubscriptionsExistFn(
+		ctx,
+		pubsubClient,
+		topicSubscriptionMap,
+		callbackURL,
+	)
+}
+
+// SubscriptionIDs ..
+func (b *FakeBaseExtensionImpl) SubscriptionIDs(topicIDs []string) map[string]string {
+	return b.SubscriptionIDsFn(topicIDs)
+}
+
+// PubSubHandlerPath ..
+func (b *FakeBaseExtensionImpl) PubSubHandlerPath() string {
+	return b.PubSubHandlerPathFn()
+}
+
+// VerifyPubSubJWTAndDecodePayload ..
+func (b *FakeBaseExtensionImpl) VerifyPubSubJWTAndDecodePayload(
+	w http.ResponseWriter,
+	r *http.Request,
+) (*base.PubSubPayload, error) {
+	return b.VerifyPubSubJWTAndDecodePayloadFn(w, r)
+}
+
+// GetPubSubTopic ..
+func (b *FakeBaseExtensionImpl) GetPubSubTopic(m *base.PubSubPayload) (string, error) {
+	return b.GetPubSubTopicFn(m)
+}
+
+// ErrorMap ..
+func (b *FakeBaseExtensionImpl) ErrorMap(err error) map[string]string {
+	return b.ErrorMapFn(err)
+}
+
+// WriteJSONResponse ..
+func (b *FakeBaseExtensionImpl) WriteJSONResponse(
+	w http.ResponseWriter,
+	source interface{},
+	status int,
+) {
+	b.WriteJSONResponseFn(w, source, status)
 }
 
 // PINExtensionImpl is a `PIN` fake  .

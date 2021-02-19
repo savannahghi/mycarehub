@@ -2298,19 +2298,10 @@ func TestCreateCustomerAccount(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "sad:( fail to get user profile",
-			args: args{
-				ctx:         context.Background(),
-				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeConsumer,
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			customer, err := s.Supplier.CreateCustomerAccount(
+			err := s.Supplier.CreateCustomerAccount(
 				tt.args.ctx,
 				tt.args.name,
 				tt.args.partnerType,
@@ -2321,12 +2312,6 @@ func TestCreateCustomerAccount(t *testing.T) {
 					tt.wantErr,
 				)
 				return
-			}
-			if customer != nil {
-				if customer.CustomerID == "" && customer.ReceivablesAccount.ID == "" {
-					t.Errorf("expected customer id and receivables account")
-					return
-				}
 			}
 		})
 	}
@@ -2372,28 +2357,13 @@ func TestCreateSupplierAccount(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "sad:( fail to get user profile",
-			args: args{
-				ctx:         context.Background(),
-				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeConsumer,
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			supplier, err := s.Supplier.CreateSupplierAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
+			err := s.Supplier.CreateSupplierAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SupplierUseCasesImpl.CreateSupplierAccount() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if supplier != nil {
-				if !supplier.Active && supplier.SupplierID == "" && supplier.PayablesAccount.ID == "" {
-					t.Errorf("expected customer id and receivables account")
-					return
-				}
 			}
 		})
 	}

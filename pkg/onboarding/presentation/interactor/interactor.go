@@ -9,6 +9,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
@@ -29,6 +30,7 @@ type Interactor struct {
 	Mailgun      mailgun.ServiceMailgun
 	Messaging    messaging.ServiceMessaging
 	NHIF         usecases.NHIFUseCases
+	PubSub       pubsubmessaging.ServicePubSub
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -47,6 +49,7 @@ func NewOnboardingInteractor(
 	mg mailgun.ServiceMailgun,
 	mes messaging.ServiceMessaging,
 	nhif usecases.NHIFUseCases,
+	pubsub pubsubmessaging.ServicePubSub,
 ) (*Interactor, error) {
 
 	return &Interactor{
@@ -63,5 +66,6 @@ func NewOnboardingInteractor(
 		Mailgun:      mg,
 		Messaging:    mes,
 		NHIF:         nhif,
+		PubSub:       pubsub,
 	}, nil
 }
