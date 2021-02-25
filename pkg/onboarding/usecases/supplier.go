@@ -280,7 +280,7 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 
 	topicName := s.pubsub.AddPubSubNamespace(pubsubmessaging.CreateSupplierTopic)
 	return s.pubsub.PublishToPubsub(
-		ctx,
+		context.Background(),
 		topicName,
 		bs,
 	)
