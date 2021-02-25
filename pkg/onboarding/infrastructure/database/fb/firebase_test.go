@@ -363,7 +363,7 @@ func TestRepository_StageProfileNudge(t *testing.T) {
 
 	type args struct {
 		ctx   context.Context
-		nudge map[string]interface{}
+		nudge *base.Nudge
 	}
 	tests := []struct {
 		name    string
@@ -373,20 +373,16 @@ func TestRepository_StageProfileNudge(t *testing.T) {
 		{
 			name: "valid:create",
 			args: args{
-				ctx: ctx,
-				nudge: map[string]interface{}{
-					"name": "valid",
-				},
+				ctx:   ctx,
+				nudge: &base.Nudge{},
 			},
 			wantErr: false,
 		},
 		{
 			name: "valid:return_internal_server_error",
 			args: args{
-				ctx: ctx,
-				nudge: map[string]interface{}{
-					"name": "valid",
-				},
+				ctx:   ctx,
+				nudge: &base.Nudge{},
 			},
 			wantErr: true,
 		},

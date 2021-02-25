@@ -1595,8 +1595,11 @@ func (fr *Repository) ActivateSupplierProfile(
 	return sup, nil
 }
 
-// StageProfileNudge ...
-func (fr *Repository) StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error {
+// StageProfileNudge stages nudges published from this service.
+func (fr *Repository) StageProfileNudge(
+	ctx context.Context,
+	nudge *base.Nudge,
+) error {
 	command := &CreateCommand{
 		CollectionName: fr.GetProfileNudgesCollectionName(),
 		Data:           nudge,

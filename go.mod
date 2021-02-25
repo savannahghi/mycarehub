@@ -24,6 +24,7 @@ require (
 	github.com/imroc/req v0.3.0
 	github.com/magefile/mage v1.11.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
+	github.com/segmentio/ksuid v1.0.3
 	github.com/sirupsen/logrus v1.8.0
 	github.com/stretchr/testify v1.7.0
 	github.com/vektah/gqlparser/v2 v2.1.0

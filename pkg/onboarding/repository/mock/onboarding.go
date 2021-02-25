@@ -19,7 +19,7 @@ type FakeOnboardingRepository struct {
 	UpdateSupplierProfileFn  func(ctx context.Context, profileID string, data *base.Supplier) error
 	AddSupplierAccountTypeFn func(ctx context.Context, profileID string, accountType base.AccountType) (*base.Supplier, error)
 
-	StageProfileNudgeFn func(ctx context.Context, nudge map[string]interface{}) error
+	StageProfileNudgeFn func(ctx context.Context, nudge *base.Nudge) error
 
 	StageKYCProcessingRequestFn func(ctx context.Context, data *domain.KYCRequest) error
 
@@ -185,7 +185,7 @@ func (f *FakeOnboardingRepository) AddSupplierAccountType(ctx context.Context, p
 }
 
 // StageProfileNudge ...
-func (f *FakeOnboardingRepository) StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error {
+func (f *FakeOnboardingRepository) StageProfileNudge(ctx context.Context, nudge *base.Nudge) error {
 	return f.StageProfileNudgeFn(ctx, nudge)
 }
 

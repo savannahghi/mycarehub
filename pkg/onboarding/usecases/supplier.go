@@ -9,12 +9,12 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/google/uuid"
+	"github.com/segmentio/ksuid"
 
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
@@ -44,6 +44,10 @@ const (
 	// PartnerAccountSetupNudgeTitle is the title defined in the `engagement service`
 	// for the `PartnerAccountSetupNudge`
 	PartnerAccountSetupNudgeTitle = "Setup your partner account"
+
+	// PublishKYCNudgeTitle is the title for the PublishKYCNudge.
+	// It takes a partner type as an argument
+	PublishKYCNudgeTitle = "Complete your %s KYC"
 )
 
 // SupplierUseCases represent the business logic required for management of suppliers
@@ -732,32 +736,50 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context
 	return brs, nil
 }
 
-// PublishKYCNudge pushes a kyc nudge to the user feed
-func (s *SupplierUseCasesImpl) PublishKYCNudge(ctx context.Context, uid string, partner *base.PartnerType, account *base.AccountType) error {
-
-	if partner == nil || !partner.IsValid() {
-		return fmt.Errorf("expected `partner` to be defined and to be valid")
+// PublishKYCNudge pushes a KYC nudge to the user feed
+func (s *SupplierUseCasesImpl) PublishKYCNudge(
+	ctx context.Context,
+	uid string,
+	partner *base.PartnerType,
+	account *base.AccountType,
+) error {
+	if partner == nil || account == nil {
+		return exceptions.PublishKYCNudgeError(
+			fmt.Errorf("expected `partner` to be defined and to be valid"),
+		)
 	}
 
 	if *partner == base.PartnerTypeConsumer {
-		return fmt.Errorf("invalid `partner`. cannot use CONSUMER in this context")
+		return exceptions.WrongEnumTypeError(partner.String())
 	}
 
-	if !account.IsValid() {
-		return fmt.Errorf("provided `account` is not valid")
+	if !account.IsValid() || !partner.IsValid() {
+		return exceptions.WrongEnumTypeError(
+			fmt.Sprintf(
+				"%s, %s",
+				account.String(),
+				partner.String(),
+			),
+		)
 	}
 
-	payload := base.Nudge{
-		ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
-		SequenceNumber: int(time.Now().Unix()) + 20,               // add 20 to make it unique
-		Visibility:     "SHOW",
-		Status:         "PENDING",
+	title := fmt.Sprintf(
+		PublishKYCNudgeTitle,
+		strings.ToLower(partner.String()),
+	)
+	text := "Fill in your Be.Well business KYC in order to start transacting."
+
+	nudge := base.Nudge{
+		ID:             ksuid.New().String(),
+		SequenceNumber: int(time.Now().Unix()),
+		Visibility:     base.VisibilityShow,
+		Status:         base.StatusPending,
 		Expiry:         time.Now().Add(time.Hour * futureHours),
-		Title:          fmt.Sprintf("Complete your %v KYC", strings.ToLower(partner.String())),
-		Text:           "Fill in your Be.Well business KYC in order to start transacting",
+		Title:          title,
+		Text:           text,
 		Links: []base.Link{
 			{
-				ID:          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique,
+				ID:          ksuid.New().String(),
 				URL:         base.LogoURL,
 				LinkType:    base.LinkTypePngImage,
 				Title:       "KYC",
@@ -767,65 +789,53 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(ctx context.Context, uid string, 
 		},
 		Actions: []base.Action{
 			{
-				ID:             strconv.Itoa(int(time.Now().Unix()) + 40), // add 40 to make it unique
-				SequenceNumber: int(time.Now().Unix()) + 50,               // add 50 to make it unique
-				Name:           strings.ToUpper(fmt.Sprintf("COMPLETE_%v_%v_KYC", account.String(), partner.String())),
+				ID:             ksuid.New().String(),
+				SequenceNumber: int(time.Now().Unix()),
+				Name: strings.ToUpper(fmt.Sprintf(
+					"COMPLETE_%v_%v_KYC",
+					account.String(),
+					partner.String(),
+				),
+				),
 				ActionType:     base.ActionTypePrimary,
 				Handling:       base.HandlingFullPage,
 				AllowAnonymous: false,
 				Icon: base.Link{
-					ID:          strconv.Itoa(int(time.Now().Unix()) + 60), // add 60 to make it unique
+					ID:          ksuid.New().String(),
 					URL:         base.LogoURL,
 					LinkType:    base.LinkTypePngImage,
-					Title:       fmt.Sprintf("Complete your %v KYC", strings.ToLower(partner.String())),
-					Description: "Fill in your Be.Well business KYC in order to start transacting",
+					Title:       title,
+					Description: text,
 					Thumbnail:   base.LogoURL,
 				},
 			},
 		},
-		Users:                []string{uid},
-		Groups:               []string{uid},
-		NotificationChannels: []base.Channel{base.ChannelEmail, base.ChannelFcm},
+		Users:  []string{uid},
+		Groups: []string{uid},
+		NotificationChannels: []base.Channel{
+			base.ChannelEmail,
+			base.ChannelFcm,
+		},
 	}
 
-	resp, err := s.engagement.PublishKYCNudge(uid, payload)
+	// TODO: This call should be asynchronous (Pub/Sub)
+	resp, err := s.engagement.PublishKYCNudge(uid, nudge)
 	if err != nil {
 		return exceptions.PublishKYCNudgeError(err)
 	}
 
-	//TODO(dexter) to be removed. Just here for debug
-	res, _ := httputil.DumpResponse(resp, true)
-	log.Println(string(res))
-
 	if resp.StatusCode != http.StatusOK {
-		// stage the nudge
-		stage := func(pl base.Nudge) error {
-			k, err := json.Marshal(payload)
-			if err != nil {
-				return fmt.Errorf("cannot marshal payload to json")
-			}
-
-			var kMap map[string]interface{}
-			err = json.Unmarshal(k, &kMap)
-			if err != nil {
-				return fmt.Errorf("cannot unmarshal payload from json")
-			}
-
-			if err := s.SaveProfileNudge(ctx, kMap); err != nil {
-				logrus.Errorf("failed to stage nudge : %v", err)
-			}
-			return nil
-
-		}(payload)
-
-		if err := stage; err != nil {
+		if err := s.SaveProfileNudge(ctx, &nudge); err != nil {
 			logrus.Errorf("failed to stage nudge : %v", err)
 		}
-		return fmt.Errorf("unable to publish kyc nudge. unexpected status code  %v", resp.StatusCode)
+
+		return exceptions.PublishKYCNudgeError(
+			fmt.Errorf("unable to publish kyc nudge. unexpected status code  %v",
+				resp.StatusCode,
+			),
+		)
 	}
-
 	return nil
-
 }
 
 // PublishKYCFeedItem notifies admin users of a KYC approval request
@@ -833,8 +843,8 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 
 	for _, uid := range uids {
 		payload := base.Item{
-			ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
-			SequenceNumber: int(time.Now().Unix()) + 20,               // add 20 to make it unique
+			ID:             ksuid.New().String(),
+			SequenceNumber: int(time.Now().Unix()),
 			Expiry:         time.Now().Add(time.Hour * futureHours),
 			Persistent:     true,
 			Status:         base.StatusPending,
@@ -845,7 +855,7 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 			Text:           "Review KYC for the partner and either approve or reject",
 			TextType:       base.TextTypeMarkdown,
 			Icon: base.Link{
-				ID:          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique,
+				ID:          ksuid.New().String(),
 				URL:         base.LogoURL,
 				LinkType:    base.LinkTypePngImage,
 				Title:       "KYC Review",
@@ -855,11 +865,11 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 			Timestamp: time.Now(),
 			Actions: []base.Action{
 				{
-					ID:             strconv.Itoa(int(time.Now().Unix()) + 40), // add 40 to make it unique
-					SequenceNumber: int(time.Now().Unix()) + 50,               // add 50 to make it unique
+					ID:             ksuid.New().String(),
+					SequenceNumber: int(time.Now().Unix()),
 					Name:           "Review KYC details",
 					Icon: base.Link{
-						ID:          strconv.Itoa(int(time.Now().Unix()) + 60), // add 60 to make it unique
+						ID:          ksuid.New().String(),
 						URL:         base.LogoURL,
 						LinkType:    base.LinkTypePngImage,
 						Title:       "Review KYC details",
@@ -873,7 +883,7 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 			},
 			Links: []base.Link{
 				{
-					ID:          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique,
+					ID:          ksuid.New().String(),
 					URL:         base.LogoURL,
 					LinkType:    base.LinkTypePngImage,
 					Title:       "KYC process request",
@@ -911,7 +921,10 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 // SaveProfileNudge stages nudges published from this service. These nudges will be
 // referenced later to support some specialized use-case. A nudge will be uniquely
 // identified by its id and sequenceNumber
-func (s *SupplierUseCasesImpl) SaveProfileNudge(ctx context.Context, nudge map[string]interface{}) error {
+func (s *SupplierUseCasesImpl) SaveProfileNudge(
+	ctx context.Context,
+	nudge *base.Nudge,
+) error {
 	return s.repo.StageProfileNudge(ctx, nudge)
 }
 
@@ -1530,32 +1543,36 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 	status domain.KYCProcessStatus,
 	rejectionReason *string,
 ) (bool, error) {
-	profile, err := s.profile.UserProfile(ctx)
+	reviewerProfile, err := s.profile.UserProfile(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	req, err := s.repo.FetchKYCProcessingRequestByID(ctx, id)
+	KYCRequest, err := s.repo.FetchKYCProcessingRequestByID(ctx, id)
 	if err != nil {
 		return false, err
 	}
 
-	req.Status = status
-	req.Processed = true
+	KYCRequest.Status = status
+	KYCRequest.Processed = true
 	if rejectionReason != nil {
-		req.RejectionReason = rejectionReason
+		KYCRequest.RejectionReason = rejectionReason
 	}
-	req.ProcessedTimestamp = time.Now().In(domain.TimeLocation)
-	req.ProcessedBy = profile.ID
+	KYCRequest.ProcessedTimestamp = time.Now().In(domain.TimeLocation)
+	KYCRequest.ProcessedBy = reviewerProfile.ID
 
-	if err := s.repo.UpdateKYCProcessingRequest(ctx, req); err != nil {
+	if err := s.repo.UpdateKYCProcessingRequest(
+		ctx,
+		KYCRequest,
+	); err != nil {
 		return false, fmt.Errorf("unable to update KYC request record: %v", err)
 	}
 
-	// get user profile
-	pr, err := s.profile.GetProfileByID(ctx, req.SupplierRecord.ProfileID)
+	supplierProfile, err := s.profile.GetProfileByID(
+		ctx,
+		KYCRequest.SupplierRecord.ProfileID,
+	)
 	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return false, err
 	}
 
@@ -1567,8 +1584,8 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		go func() {
 			if err := s.CreateSupplierAccount(
 				ctx,
-				req.SupplierRecord.SupplierName,
-				req.ReqPartnerType,
+				KYCRequest.SupplierRecord.SupplierName,
+				KYCRequest.ReqPartnerType,
 			); err != nil {
 				logrus.Error(fmt.Errorf("unable to create erp supplier account: %v", err))
 			}
@@ -1577,14 +1594,18 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		email = s.generateProcessKYCApprovalEmailTemplate()
 		message = "Your KYC details have been reviewed and approved. We look forward to working with you."
 
-		sup, err := s.FindSupplierByUID(ctx)
+		supplier, err := s.FindSupplierByUID(ctx)
 		if err != nil {
 			return false, err
 		}
 
-		sup.Active = true
+		supplier.Active = true
 
-		if err := s.repo.UpdateSupplierProfile(ctx, pr.ID, sup); err != nil {
+		if err := s.repo.UpdateSupplierProfile(
+			ctx,
+			supplierProfile.ID,
+			supplier,
+		); err != nil {
 			return false, err
 		}
 
@@ -1594,6 +1615,23 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 
 	}
 
+	nudgeTitle := fmt.Sprintf(
+		PublishKYCNudgeTitle,
+		strings.ToLower(string(KYCRequest.ReqPartnerType)),
+	)
+	supplierVerifiedUIDs := supplierProfile.VerifiedUIDS
+	go func() {
+		for _, UID := range supplierVerifiedUIDs {
+			if err = s.engagement.ResolveDefaultNudgeByTitle(
+				UID,
+				base.FlavourPro,
+				nudgeTitle,
+			); err != nil {
+				logrus.Print(err)
+			}
+		}
+	}()
+
 	supplierEmails := func(profile *base.UserProfile) []string {
 		var emails []string
 		if profile.PrimaryEmailAddress != nil {
@@ -1601,7 +1639,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		}
 		emails = append(emails, profile.SecondaryEmailAddresses...)
 		return emails
-	}(pr)
+	}(supplierProfile)
 
 	for _, supplierEmail := range supplierEmails {
 		err = s.SendKYCEmail(ctx, email, supplierEmail)
@@ -1615,7 +1653,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		phones = append(phones, *profile.PrimaryPhone)
 		phones = append(phones, profile.SecondaryPhoneNumbers...)
 		return phones
-	}(pr)
+	}(supplierProfile)
 
 	if err := s.messaging.SendSMS(supplierPhones, message); err != nil {
 		return false, fmt.Errorf("unable to send KYC processing message: %w", err)

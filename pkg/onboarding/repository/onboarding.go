@@ -22,7 +22,7 @@ type SupplierRepository interface {
 
 	AddSupplierAccountType(ctx context.Context, profileID string, accountType base.AccountType) (*base.Supplier, error)
 
-	StageProfileNudge(ctx context.Context, nudge map[string]interface{}) error
+	StageProfileNudge(ctx context.Context, nudge *base.Nudge) error
 
 	StageKYCProcessingRequest(ctx context.Context, data *domain.KYCRequest) error
 
