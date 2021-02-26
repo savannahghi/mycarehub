@@ -96,11 +96,11 @@ func TestCreateUserWithPhoneNumber_Consumer(t *testing.T) {
 	assert.NotNil(t, resp.Profile)
 	assert.NotNil(t, resp.CustomerProfile)
 	assert.NotNil(t, resp.SupplierProfile)
-	assert.NotNil(t, resp.ComminicationSettings)
-	assert.Equal(t, true, resp.ComminicationSettings.AllowEmail)
-	assert.Equal(t, true, resp.ComminicationSettings.AllowPush)
-	assert.Equal(t, true, resp.ComminicationSettings.AllowTextSMS)
-	assert.Equal(t, true, resp.ComminicationSettings.AllowWhatsApp)
+	assert.NotNil(t, resp.CommunicationSettings)
+	assert.Equal(t, true, resp.CommunicationSettings.AllowEmail)
+	assert.Equal(t, true, resp.CommunicationSettings.AllowPush)
+	assert.Equal(t, true, resp.CommunicationSettings.AllowTextSMS)
+	assert.Equal(t, true, resp.CommunicationSettings.AllowWhatsApp)
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
@@ -136,11 +136,11 @@ func TestCreateUserWithPhoneNumber_Pro(t *testing.T) {
 	assert.NotNil(t, resp.Profile)
 	assert.NotNil(t, resp.CustomerProfile)
 	assert.NotNil(t, resp.SupplierProfile)
-	assert.NotNil(t, resp.ComminicationSettings)
-	assert.Equal(t, true, resp.ComminicationSettings.AllowEmail)
-	assert.Equal(t, true, resp.ComminicationSettings.AllowPush)
-	assert.Equal(t, true, resp.ComminicationSettings.AllowTextSMS)
-	assert.Equal(t, true, resp.ComminicationSettings.AllowWhatsApp)
+	assert.NotNil(t, resp.CommunicationSettings)
+	assert.Equal(t, true, resp.CommunicationSettings.AllowEmail)
+	assert.Equal(t, true, resp.CommunicationSettings.AllowPush)
+	assert.Equal(t, true, resp.CommunicationSettings.AllowTextSMS)
+	assert.Equal(t, true, resp.CommunicationSettings.AllowWhatsApp)
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), phone)
@@ -246,11 +246,11 @@ func TestCreateUserByPhone(t *testing.T) {
 	assert.NotNil(t, resp6.Profile.UserName)
 	assert.NotNil(t, resp6.CustomerProfile)
 	assert.NotNil(t, resp6.SupplierProfile)
-	assert.NotNil(t, resp6.ComminicationSettings)
-	assert.Equal(t, true, resp6.ComminicationSettings.AllowEmail)
-	assert.Equal(t, true, resp6.ComminicationSettings.AllowPush)
-	assert.Equal(t, true, resp6.ComminicationSettings.AllowTextSMS)
-	assert.Equal(t, true, resp6.ComminicationSettings.AllowWhatsApp)
+	assert.NotNil(t, resp6.CommunicationSettings)
+	assert.Equal(t, true, resp6.CommunicationSettings.AllowEmail)
+	assert.Equal(t, true, resp6.CommunicationSettings.AllowPush)
+	assert.Equal(t, true, resp6.CommunicationSettings.AllowTextSMS)
+	assert.Equal(t, true, resp6.CommunicationSettings.AllowWhatsApp)
 
 	// try registration again with the same phone number. This should fail
 	// this should pass

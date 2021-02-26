@@ -163,7 +163,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		Profile:               profile,
 		SupplierProfile:       supplier,
 		CustomerProfile:       customer,
-		ComminicationSettings: comms,
+		CommunicationSettings: comms,
 		Auth:                  *auth,
 	}, nil
 }

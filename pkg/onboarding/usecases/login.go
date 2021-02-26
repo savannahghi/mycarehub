@@ -98,7 +98,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		CustomerProfile:       customer,
 		SupplierProfile:       supplier,
 		Auth:                  *auth,
-		ComminicationSettings: comms,
+		CommunicationSettings: comms,
 	}, nil
 }
 
