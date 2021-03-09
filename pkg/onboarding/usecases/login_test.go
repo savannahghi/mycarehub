@@ -23,7 +23,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 
@@ -39,8 +38,6 @@ import (
 
 	erpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp/mock"
 
-	mailgunMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun/mock"
-
 	messagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging/mock"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	pubsubmessagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub/mock"
@@ -48,7 +45,6 @@ import (
 
 const (
 	otpService        = "otp"
-	mailgunService    = "mailgun"
 	engagementService = "engagement"
 )
 
@@ -156,13 +152,11 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 
 	// Initialize ISC clients
 	otpClient := utils.NewInterServiceClient(otpService, ext)
-	mailgunClient := utils.NewInterServiceClient(mailgunService, ext)
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
-	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(otpClient, ext)
@@ -189,7 +183,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
 	}
 
-	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mg, mes, ext, ps)
+	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, ext)
 	userpin := usecases.NewUserPinUseCase(repo, otp, profile, ext, pinExt)
@@ -392,7 +386,6 @@ var fakeRepo mockRepo.FakeOnboardingRepository
 var fakeOtp otpMock.FakeServiceOTP
 var fakeBaseExt extMock.FakeBaseExtensionImpl
 var fakePinExt extMock.PINExtensionImpl
-var fakeMailgunSvc mailgunMock.FakeServiceMailgun
 var fakeEngagementSvs engagementMock.FakeServiceEngagement
 var fakeMessagingSvc messagingMock.FakeServiceMessaging
 var fakeEPRSvc erpMock.FakeServiceERP
@@ -406,7 +399,6 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var erpSvc erp.ServiceERP = &fakeEPRSvc
 	var chargemasterSvc chargemaster.ServiceChargeMaster = &fakeChargeMasterSvc
 	var engagementSvc engagement.ServiceEngagement = &fakeEngagementSvs
-	var mailgunSvc mailgun.ServiceMailgun = &fakeMailgunSvc
 	var messagingSvc messaging.ServiceMessaging = &fakeMessagingSvc
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
@@ -416,7 +408,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
-		r, profile, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, ext, ps,
+		r, profile, erpSvc, chargemasterSvc, engagementSvc, messagingSvc, ext, ps,
 	)
 	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
@@ -425,7 +417,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, otpSvc, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, mailgunSvc, messagingSvc, nhif, ps,
+		engagementSvc, messagingSvc, nhif, ps,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

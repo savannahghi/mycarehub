@@ -10,11 +10,8 @@ import (
 type FakeServiceEngagement struct {
 	PublishKYCNudgeFn            func(uid string, payload base.Nudge) (*http.Response, error)
 	PublishKYCFeedItemFn         func(uid string, payload base.Item) (*http.Response, error)
-	ResolveDefaultNudgeByTitleFn func(
-		UID string,
-		flavour base.Flavour,
-		nudgeTitle string,
-	) error
+	ResolveDefaultNudgeByTitleFn func(UID string, flavour base.Flavour, nudgeTitle string) error
+	SendMailFn                   func(email string, message string, subject string) error
 }
 
 // PublishKYCNudge ...
@@ -44,4 +41,13 @@ func (f *FakeServiceEngagement) ResolveDefaultNudgeByTitle(
 		flavour,
 		nudgeTitle,
 	)
+}
+
+// SendMail ...
+func (f *FakeServiceEngagement) SendMail(
+	email string,
+	message string,
+	subject string,
+) error {
+	return f.SendMailFn(email, message, subject)
 }

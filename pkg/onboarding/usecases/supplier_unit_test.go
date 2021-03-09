@@ -133,14 +133,14 @@ func TestProfileUseCaseImpl_SendKYCEmail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:_send_kyc_mail" {
-				fakeMailgunSvc.SendMailFn = func(email string, message string, subject string) error {
+				fakeEngagementSvs.SendMailFn = func(email string, message string, subject string) error {
 					return nil
 				}
 
 			}
 
 			if tt.name == "invalid:_send_mail_fails" {
-				fakeMailgunSvc.SendMailFn = func(email string, message string, subject string) error {
+				fakeEngagementSvs.SendMailFn = func(email string, message string, subject string) error {
 					return fmt.Errorf("unable to send mail")
 				}
 
@@ -608,7 +608,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					return &base.Supplier{}, nil
 				}
 
-				fakeMailgunSvc.SendMailFn = func(
+				fakeEngagementSvs.SendMailFn = func(
 					email string,
 					message string,
 					subject string,
@@ -674,7 +674,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					}, nil
 				}
 
-				fakeMailgunSvc.SendMailFn = func(
+				fakeEngagementSvs.SendMailFn = func(
 					email string,
 					message string,
 					subject string,
@@ -967,7 +967,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					}, nil
 				}
 
-				fakeMailgunSvc.SendMailFn = func(
+				fakeEngagementSvs.SendMailFn = func(
 					email string,
 					message string,
 					subject string,
@@ -1026,7 +1026,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					}, nil
 				}
 
-				fakeMailgunSvc.SendMailFn = func(
+				fakeEngagementSvs.SendMailFn = func(
 					email string,
 					message string,
 					subject string,

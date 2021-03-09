@@ -26,7 +26,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -129,7 +128,6 @@ type SupplierUseCasesImpl struct {
 	erp          erp.ServiceERP
 	chargemaster chargemaster.ServiceChargeMaster
 	engagement   engagement.ServiceEngagement
-	mg           mailgun.ServiceMailgun
 	messaging    messaging.ServiceMessaging
 	baseExt      extension.BaseExtension
 	pubsub       pubsubmessaging.ServicePubSub
@@ -142,7 +140,6 @@ func NewSupplierUseCases(
 	er erp.ServiceERP,
 	chrg chargemaster.ServiceChargeMaster,
 	eng engagement.ServiceEngagement,
-	mg mailgun.ServiceMailgun,
 	messaging messaging.ServiceMessaging,
 	ext extension.BaseExtension,
 	pubsub pubsubmessaging.ServicePubSub,
@@ -154,7 +151,6 @@ func NewSupplierUseCases(
 		erp:          er,
 		chargemaster: chrg,
 		engagement:   eng,
-		mg:           mg,
 		messaging:    messaging,
 		baseExt:      ext,
 		pubsub:       pubsub,
@@ -1533,7 +1529,7 @@ func (s *SupplierUseCasesImpl) FetchKYCProcessingRequests(ctx context.Context) (
 
 // SendKYCEmail will send a KYC processing request email to the supplier
 func (s *SupplierUseCasesImpl) SendKYCEmail(ctx context.Context, text, emailaddress string) error {
-	return s.mg.SendMail(emailaddress, text, emailSignupSubject)
+	return s.engagement.SendMail(emailaddress, text, emailSignupSubject)
 }
 
 // ProcessKYCRequest transitions a kyc request to a given state

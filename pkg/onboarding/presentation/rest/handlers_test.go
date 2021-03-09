@@ -22,8 +22,6 @@ import (
 	engagementMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	erpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp/mock"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
-	mailgunMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	messagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
@@ -50,7 +48,6 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var erpSvc erp.ServiceERP = &erpMock.FakeServiceERP{}
 	var chargemasterSvc chargemaster.ServiceChargeMaster = &chargemasterMock.FakeServiceChargeMaster{}
 	var engagementSvc engagement.ServiceEngagement = &engagementMock.FakeServiceEngagement{}
-	var mailgunSvc mailgun.ServiceMailgun = &mailgunMock.FakeServiceMailgun{}
 	var messagingSvc messaging.ServiceMessaging = &messagingMock.FakeServiceMessaging{}
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
@@ -60,7 +57,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
-		r, profile, erpSvc, chargemasterSvc, engagementSvc, mailgunSvc, messagingSvc, ext, ps,
+		r, profile, erpSvc, chargemasterSvc, engagementSvc, messagingSvc, ext, ps,
 	)
 	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext, pinExt)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
@@ -69,7 +66,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, otpSvc, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, mailgunSvc, messagingSvc, nhif, ps,
+		engagementSvc, messagingSvc, nhif, ps,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

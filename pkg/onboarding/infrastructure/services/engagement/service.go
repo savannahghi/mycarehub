@@ -4,26 +4,44 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/asaskevich/govalidator"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 )
 
 const (
-	// engagement ISC paths
+	// Feed ISC paths
 	publishNudge         = "feed/%s/PRO/false/nudges/"
 	publishItem          = "feed/%s/PRO/false/items/"
 	resolveDefaultNudges = "feed/%s/%s/false/defaultnudges/%s/resolve/"
+
+	// Communication ISC paths
+	sendEmail = "internal/send_email"
 )
 
 // ServiceEngagement represents engagement usecases
 type ServiceEngagement interface {
-	PublishKYCNudge(uid string, payload base.Nudge) (*http.Response, error)
-	PublishKYCFeedItem(uid string, payload base.Item) (*http.Response, error)
+	PublishKYCNudge(
+		uid string,
+		payload base.Nudge,
+	) (*http.Response, error)
+
+	PublishKYCFeedItem(
+		uid string,
+		payload base.Item,
+	) (*http.Response, error)
+
 	ResolveDefaultNudgeByTitle(
 		UID string,
 		flavour base.Flavour,
 		nudgeTitle string,
+	) error
+
+	SendMail(
+		email string,
+		message string,
+		subject string,
 	) error
 }
 
@@ -96,6 +114,41 @@ func (en *ServiceEngagementImpl) ResolveDefaultNudgeByTitle(
 			flavour,
 			nudgeTitle,
 			&resp.StatusCode,
+		)
+	}
+
+	return nil
+}
+
+// SendMail sends emails to communicate to our users
+func (en *ServiceEngagementImpl) SendMail(
+	email string,
+	message string,
+	subject string,
+) error {
+	if !govalidator.IsEmail(email) {
+		return fmt.Errorf("invalid email address: %v", email)
+	}
+
+	body := map[string]interface{}{
+		"to":      []string{email},
+		"text":    message,
+		"subject": subject,
+	}
+
+	resp, err := en.Engage.MakeRequest(
+		http.MethodPost,
+		sendEmail,
+		body,
+	)
+	if err != nil {
+		return fmt.Errorf("unable to send email: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send email : %w, with status code %v",
+			err,
+			resp.StatusCode,
 		)
 	}
 

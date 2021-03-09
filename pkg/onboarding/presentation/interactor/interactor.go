@@ -6,7 +6,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
@@ -27,7 +26,6 @@ type Interactor struct {
 	ERP          erp.ServiceERP
 	ChargeMaster chargemaster.ServiceChargeMaster
 	Engagement   engagement.ServiceEngagement
-	Mailgun      mailgun.ServiceMailgun
 	Messaging    messaging.ServiceMessaging
 	NHIF         usecases.NHIFUseCases
 	PubSub       pubsubmessaging.ServicePubSub
@@ -46,7 +44,6 @@ func NewOnboardingInteractor(
 	erp erp.ServiceERP,
 	chrg chargemaster.ServiceChargeMaster,
 	engage engagement.ServiceEngagement,
-	mg mailgun.ServiceMailgun,
 	mes messaging.ServiceMessaging,
 	nhif usecases.NHIFUseCases,
 	pubsub pubsubmessaging.ServicePubSub,
@@ -63,7 +60,6 @@ func NewOnboardingInteractor(
 		ERP:          erp,
 		ChargeMaster: chrg,
 		Engagement:   engage,
-		Mailgun:      mg,
 		Messaging:    mes,
 		NHIF:         nhif,
 		PubSub:       pubsub,

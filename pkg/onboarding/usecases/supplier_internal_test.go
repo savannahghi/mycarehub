@@ -15,14 +15,12 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 )
 
 const (
 	otpService        = "otp"
-	mailgunService    = "mailgun"
 	engagementService = "engagement"
 )
 
@@ -55,13 +53,11 @@ func TestParseKYCAsMap(t *testing.T) {
 	ext := extension.NewBaseExtensionImpl()
 	// Initialize ISC clients
 	otpClient := utils.NewInterServiceClient(otpService, ext)
-	mailgunClient := utils.NewInterServiceClient(mailgunService, ext)
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
-	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	otp := otp.NewOTPService(otpClient, ext)
 	profile := NewProfileUseCase(repo, otp, ext, engage)
@@ -72,7 +68,6 @@ func TestParseKYCAsMap(t *testing.T) {
 		erp:          erp,
 		chargemaster: chrg,
 		engagement:   engage,
-		mg:           mg,
 		messaging:    mes,
 	}
 

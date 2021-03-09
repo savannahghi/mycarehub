@@ -32,7 +32,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
@@ -42,7 +41,6 @@ import (
 
 const (
 	otpService        = "otp"
-	mailgunService    = "mailgun"
 	engagementService = "engagement"
 )
 
@@ -110,12 +108,10 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 
 	// Initialize ISC clients
 	otpClient := utils.NewInterServiceClient(otpService, ext)
-	mailgunClient := utils.NewInterServiceClient(mailgunService, ext)
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
-	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
@@ -144,7 +140,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
 	}
 	profile := usecases.NewProfileUseCase(fr, otp, ext, engage)
-	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mg, mes, ext, ps)
+	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
 	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext, pinExt)

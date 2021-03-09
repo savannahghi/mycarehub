@@ -1,6 +1,4 @@
 staging:
-  - depName: mailgun
-    depRootDomain: https://mailgun-staging.healthcloud.co.ke
   - depName: otp
     depRootDomain: https://otp-staging.healthcloud.co.ke
   - depName: engagement
@@ -10,8 +8,6 @@ staging:
   - depName: twilio
     depRootDomain: https://twilio-staging.healthcloud.co.ke
 testing:
-  - depName: mailgun
-    depRootDomain: https://mailgun-testing.healthcloud.co.ke
   - depName: otp
     depRootDomain: https://otp-testing.healthcloud.co.ke
   - depName: engagement
@@ -21,8 +17,6 @@ testing:
   - depName: twilio
     depRootDomain: https://twilio-testing.healthcloud.co.ke
 demo:
-  - depName: mailgun
-    depRootDomain: https://mailgun-demo.healthcloud.co.ke
   - depName: otp
     depRootDomain: https://otp-demo.healthcloud.co.ke
   - depName: engagement
@@ -32,8 +26,6 @@ demo:
   - depName: twilio
     depRootDomain: https://twilio-demo.healthcloud.co.ke    
 production:
-  - depName: mailgun
-    depRootDomain: https://mailgun-prod.healthcloud.co.ke
   - depName: otp
     depRootDomain: https://otp-prod.healthcloud.co.ke
   - depName: engagement

@@ -17,7 +17,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/mailgun"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
@@ -41,7 +40,6 @@ const (
 	serverTimeoutSeconds = 120
 	otpService           = "otp"
 	engagementService    = "engagement"
-	mailgunService       = "mailgun"
 )
 
 // AllowedOrigins is list of CORS origins allowed to interact with
@@ -87,13 +85,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize ISC clients
 	otpClient := utils.NewInterServiceClient(otpService, baseExt)
 	engagementClient := utils.NewInterServiceClient(engagementService, baseExt)
-	mailgunClient := utils.NewInterServiceClient(mailgunService, baseExt)
 
 	// Initialize new instance of our infrastructure services
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient)
-	mg := mailgun.NewServiceMailgunImpl(mailgunClient)
 	mes := messaging.NewServiceMessagingImpl(baseExt)
 	pinExt := extension.NewPINExtensionImpl()
 	otp := otp.NewOTPService(otpClient, baseExt)
@@ -121,7 +117,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Initialize the usecases
 	profile := usecases.NewProfileUseCase(repo, otp, baseExt, engage)
-	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mg, mes, baseExt, pubSub)
+	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mes, baseExt, pubSub)
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
 	userpin := usecases.NewUserPinUseCase(repo, otp, profile, baseExt, pinExt)
@@ -130,7 +126,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	i, err := interactor.NewOnboardingInteractor(
 		repo, profile, su, otp, supplier, login, survey,
-		userpin, erp, chrg, engage, mg, mes, nhif, pubSub,
+		userpin, erp, chrg, engage, mes, nhif, pubSub,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
