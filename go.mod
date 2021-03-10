@@ -3,7 +3,6 @@ module gitlab.slade360emr.com/go/profile
 go 1.15
 
 require (
-	cloud.google.com/go v0.78.0 // indirect
 	cloud.google.com/go/firestore v1.5.0
 	cloud.google.com/go/logging v1.3.0 // indirect
 	cloud.google.com/go/pubsub v1.10.1
@@ -30,13 +29,9 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/vektah/gqlparser/v2 v2.1.0
 	gitlab.slade360emr.com/go/base v0.0.122
-	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
-	golang.org/x/oauth2 v0.0.0-20210220000619-9bb904979d93 // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20210309040221-94ec62e08169 // indirect
 	google.golang.org/genproto v0.0.0-20210303154014-9728d6b83eeb // indirect
-	google.golang.org/grpc v1.36.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
