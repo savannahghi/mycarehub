@@ -454,16 +454,39 @@ func (p *ProfileUseCaseImpl) UpdatePhotoUploadID(ctx context.Context, uploadID s
 
 // UpdateCovers updates primary covers of a specific user profile
 func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cover) error {
+	if len(covers) == 0 {
+		return fmt.Errorf("no covers to update found")
+	}
+
 	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
 	}
 	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-	return profile.UpdateProfileCovers(ctx, p.onboardingRepository, utils.AddHashToCovers(covers))
+
+	existingCovers := profile.Covers
+	if len(existingCovers) != 0 {
+		for _, existingCover := range existingCovers {
+			for _, cover := range covers {
+				if existingCover.MemberNumber == cover.MemberNumber {
+					return fmt.Errorf(
+						`an existing cover with member number %s 
+						exists on your user profile`,
+						cover.MemberNumber,
+					)
+				}
+			}
+		}
+	}
+
+	return profile.UpdateProfileCovers(
+		ctx,
+		p.onboardingRepository,
+		utils.AddHashToCovers(covers),
+	)
 }
 
 // UpdatePushTokens updates primary push tokens of a specific user profile.

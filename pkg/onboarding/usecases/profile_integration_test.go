@@ -6,9 +6,11 @@ import (
 	"testing"
 
 	"firebase.google.com/go/auth"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
 func TestUpdateUserProfileUserName(t *testing.T) {
@@ -369,110 +371,6 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 	// try adding secondaryemail3 again since secondaryemail3 is already in use
 	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail3})
 	assert.NotNil(t, err)
-
-}
-
-func TestUpdateUserProfileCovers(t *testing.T) {
-	s, err := InitializeTestService(context.Background())
-	if err != nil {
-		t.Error("failed to setup signup usecase")
-	}
-	primaryPhone := base.TestUserPhoneNumber
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
-
-	otp, err := generateTestOTP(t, primaryPhone)
-	if err != nil {
-		t.Errorf("failed to generate test OTP: %v", err)
-		return
-	}
-	pin := "1234"
-	resp, err := s.Signup.CreateUserByPhone(
-		context.Background(),
-		&resources.SignUpInput{
-			PhoneNumber: &primaryPhone,
-			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
-			OTP:         &otp.OTP,
-		},
-	)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
-
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
-	assert.Nil(t, err)
-	assert.NotNil(t, login1)
-
-	// create authenticated context
-	ctx := context.Background()
-	authCred := &auth.Token{UID: login1.Auth.UID}
-	authenticatedContext := context.WithValue(
-		ctx,
-		base.AuthTokenContextKey,
-		authCred,
-	)
-	s, _ = InitializeTestService(authenticatedContext)
-
-	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer1", PayerSladeCode: 1, MemberName: "name1", MemberNumber: "mem1"}})
-	assert.Nil(t, err)
-
-	pr, err := s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 1, len(pr.Covers))
-
-	// try adding the first cover again. This should add the cover because the cover already exists
-	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer1", PayerSladeCode: 1, MemberName: "name1", MemberNumber: "mem1"}})
-	assert.Nil(t, err)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 1, len(pr.Covers))
-
-	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer2", PayerSladeCode: 2, MemberName: "name2", MemberNumber: "mem2"}})
-	assert.Nil(t, err)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.Covers))
-
-	// try adding the second cover again. This should add the cover because the cover already exists
-	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer2", PayerSladeCode: 2, MemberName: "name2", MemberNumber: "mem2"}})
-	assert.Nil(t, err)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.Covers))
-
-	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer1", PayerSladeCode: 2, MemberName: "name11", MemberNumber: "mem22"}})
-	assert.Nil(t, err)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 3, len(pr.Covers))
-
-	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer1", PayerSladeCode: 2, MemberName: "name111", MemberNumber: "mem222"}})
-	assert.Nil(t, err)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 4, len(pr.Covers))
-
-	err = s.Onboarding.UpdateCovers(authenticatedContext, []base.Cover{{PayerName: "payer2", PayerSladeCode: 1, MemberName: "name2", MemberNumber: "mem2"}})
-	assert.Nil(t, err)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 5, len(pr.Covers))
 
 }
 
@@ -1710,5 +1608,82 @@ func TestIntegrationGetAddresses(t *testing.T) {
 	if err != nil {
 		t.Errorf("an error occurred: %v", err)
 		return
+	}
+}
+
+func TestProfileUseCaseImpl_UpdateCovers(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	p, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	memberNumber := uuid.New().String()
+	cover := base.Cover{
+		PayerName:      *utils.GetRandomName(),
+		PayerSladeCode: 123,
+		MemberNumber:   memberNumber,
+		MemberName:     *utils.GetRandomName(),
+	}
+
+	type args struct {
+		ctx    context.Context
+		covers []base.Cover
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case:) update covers",
+			args: args{
+				ctx:    ctx,
+				covers: []base.Cover{cover},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case:( update the same covers",
+			args: args{
+				ctx:    ctx,
+				covers: []base.Cover{cover},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case:( unauthenticated context",
+			args: args{
+				ctx:    context.Background(),
+				covers: []base.Cover{cover},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case:( update the nil covers",
+			args: args{
+				ctx:    ctx,
+				covers: []base.Cover{},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := p.Onboarding.UpdateCovers(
+				tt.args.ctx,
+				tt.args.covers,
+			); (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.UpdateCovers() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
+			}
+		})
 	}
 }
