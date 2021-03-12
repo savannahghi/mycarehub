@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
@@ -2651,6 +2652,168 @@ func TestHandlersInterfacesImpl_RegisterPushToken(t *testing.T) {
 				t.Errorf("nil response body data")
 				return
 			}
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_AddAdminPermsToUser(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	primaryPhone := "+254711445566"
+	validPayload := composeValidPhonePayload(t, primaryPhone)
+	validPayload1 := composeValidPhonePayload(t, "+254777882200")
+	validPayload2 := composeValidPhonePayload(t, "+")
+
+	invalidPayload := composeValidPhonePayload(t, " ")
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_Successfully_update_user_permissions",
+			args: args{
+				url:        fmt.Sprintf("%s/update_user_permissions", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_update_user_permissions",
+			args: args{
+				url:        fmt.Sprintf("%s/update_user_permissions", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload1,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+
+		{
+			name: "invalid:_empty_phonenumber",
+			args: args{
+				url:        fmt.Sprintf("%s/update_user_permissions", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       invalidPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_unable_to_check_if_phone_exists",
+			args: args{
+				url:        fmt.Sprintf("%s/update_user_permissions", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload2,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			response := httptest.NewRecorder()
+
+			if tt.name == "valid:_Successfully_update_user_permissions" {
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return true, nil
+				}
+
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721026491"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+					return nil
+				}
+
+			}
+
+			if tt.name == "invalid:_update_user_permissions" {
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return true, nil
+				}
+
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721026491"
+					return &phone, nil
+				}
+
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+					return fmt.Errorf("unable to update user permissions")
+				}
+
+			}
+
+			if tt.name == "invalid:_empty_phonenumber" {
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return true, nil
+				}
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("empty phone number")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_check_if_phone_exists" {
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, fmt.Errorf("the phone does not exist")
+				}
+
+			}
+
+			svr := h.AddAdminPermsToUser(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
 		})
 	}
 }

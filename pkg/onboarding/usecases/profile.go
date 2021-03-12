@@ -39,7 +39,7 @@ const VerifyEmailNudgeTitle = "Add Primary Email Address"
 
 // ProfileUseCase represents all the profile business logi
 type ProfileUseCase interface {
-	// profile releted
+	// profile related
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
 	GetProfileByID(ctx context.Context, id *string) (*base.UserProfile, error)
 	UpdateUserName(ctx context.Context, userName string) error
@@ -54,6 +54,7 @@ type ProfileUseCase interface {
 	UpdateCovers(ctx context.Context, covers []base.Cover) error
 	UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error
 	UpdatePermissions(ctx context.Context, perms []base.PermissionType) error
+	AddAdminPermsToUser(ctx context.Context, phone string) error
 	UpdateBioData(ctx context.Context, data base.BioData) error
 	GetUserProfileByUID(
 		ctx context.Context,
@@ -71,11 +72,11 @@ type ProfileUseCase interface {
 		otp string,
 	) error
 
-	// checks whether a phone number has been registred by another user. Checks both primary and
+	// checks whether a phone number has been registered by another user. Checks both primary and
 	// secondary phone numbers. If the the phone number is foreign, it returns false
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 
-	// check whether a email has been registred by another user. Checks both primary and
+	// check whether a email has been registered by another user. Checks both primary and
 	// secondary emails. If the the phone number is foreign, it returns false
 	CheckEmailExists(ctx context.Context, email string) (bool, error)
 
@@ -509,6 +510,22 @@ func (p *ProfileUseCaseImpl) UpdatePermissions(ctx context.Context, perms []base
 	return profile.UpdateProfilePermissions(ctx, p.onboardingRepository, perms)
 }
 
+// AddAdminPermsToUser updates the profiles permissions
+func (p *ProfileUseCaseImpl) AddAdminPermsToUser(ctx context.Context, phone string) error {
+	phoneNumber, err := p.baseExt.NormalizeMSISDN(phone)
+	if err != nil {
+		return exceptions.NormalizeMSISDNError(err)
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
+	if err != nil {
+		// this is a wrapped error. No need to wrap it again
+		return err
+	}
+	perms := base.DefaultSuperAdminPermissions
+	return profile.UpdateProfilePermissions(ctx, p.onboardingRepository, perms)
+}
+
 // UpdateBioData updates primary biodata of a specific user profile
 func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioData) error {
 
@@ -637,7 +654,7 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 	return nil
 }
 
-// CheckPhoneExists checks whether a phone number has been registred by another user.
+// CheckPhoneExists checks whether a phone number has been registered by another user.
 // Checks both primary and secondary phone numbers.
 func (p *ProfileUseCaseImpl) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
 	phoneNumber, err := p.baseExt.NormalizeMSISDN(phone)
@@ -651,7 +668,7 @@ func (p *ProfileUseCaseImpl) CheckPhoneExists(ctx context.Context, phone string)
 	return exists, nil
 }
 
-// CheckEmailExists checks whether a email has been registred by another user.
+// CheckEmailExists checks whether a email has been registered by another user.
 // Checks both primary and secondary emails.
 func (p *ProfileUseCaseImpl) CheckEmailExists(ctx context.Context, email string) (bool, error) {
 	exists, err := p.onboardingRepository.CheckIfEmailExists(ctx, email)

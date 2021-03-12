@@ -221,6 +221,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(h.RemoveUserByPhoneNumber(ctx))
 
+	r.Path("/update_user_permissions").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.AddAdminPermsToUser(ctx))
+
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()
 	isc.Use(base.InterServiceAuthenticationMiddleware())

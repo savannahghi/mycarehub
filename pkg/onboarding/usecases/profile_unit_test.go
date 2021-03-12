@@ -824,7 +824,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid: succefully updates permissions",
+			name: "valid: successfully updates permissions",
 			args: args{
 				ctx:   ctx,
 				perms: []base.PermissionType{base.PermissionTypeSuperAdmin},
@@ -859,7 +859,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if tt.name == "valid: succefully updates permissions" {
+			if tt.name == "valid: successfully updates permissions" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}

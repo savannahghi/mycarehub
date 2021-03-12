@@ -34,6 +34,7 @@ type HandlersInterfaces interface {
 	UpdateCovers(ctx context.Context) http.HandlerFunc
 	ProfileAttributes(ctx context.Context) http.HandlerFunc
 	RegisterPushToken(ctx context.Context) http.HandlerFunc
+	AddAdminPermsToUser(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -558,5 +559,49 @@ func (h *HandlersInterfacesImpl) ProfileAttributes(ctx context.Context) http.Han
 		}
 
 		base.WriteJSONResponse(w, output, http.StatusOK)
+	}
+}
+
+// AddAdminPermsToUser is authenticated endpoint that adds admin permissions to a
+// whose phone number, either PRIMARY PHONE NUMBER or SECONDARY PHONE NUMBERS,matches
+// the provided phone number in the request.
+func (h *HandlersInterfacesImpl) AddAdminPermsToUser(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		p := &resources.PhoneNumberPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.PhoneNumber == nil {
+			err := fmt.Errorf("expected `phoneNumber` to be defined")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		v, err := h.interactor.Onboarding.CheckPhoneExists(ctx, *p.PhoneNumber)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if v {
+			if err := h.interactor.Onboarding.AddAdminPermsToUser(ctx, *p.PhoneNumber); err != nil {
+				base.WriteJSONResponse(w, base.CustomError{
+					Err:     err,
+					Message: err.Error(),
+				}, http.StatusBadRequest)
+				return
+			}
+			base.WriteJSONResponse(w, resources.OKResp{Status: "OK"}, http.StatusOK)
+			return
+		}
+		err = fmt.Errorf("`phoneNumber` does not exist and not associated with any user ")
+		base.WriteJSONResponse(w, base.CustomError{
+			Err:     err,
+			Message: err.Error(),
+		}, http.StatusBadRequest)
 	}
 }
