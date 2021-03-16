@@ -37,6 +37,7 @@ type SupplierRepository interface {
 	FetchKYCProcessingRequestByID(ctx context.Context, id string) (*domain.KYCRequest, error)
 
 	UpdateKYCProcessingRequest(ctx context.Context, sup *domain.KYCRequest) error
+	CheckIfAdmin(profile *base.UserProfile) bool
 }
 
 // CustomerRepository  defines signatures that relate to customers

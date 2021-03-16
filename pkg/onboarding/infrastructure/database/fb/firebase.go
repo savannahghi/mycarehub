@@ -616,12 +616,13 @@ func (fr *Repository) GenerateAuthCredentials(
 		RefreshToken:  userTokens.RefreshToken,
 		UID:           resp.UID,
 		IsAnonymous:   false,
-		IsAdmin:       fr.checkIfAdmin(pr),
+		IsAdmin:       fr.CheckIfAdmin(pr),
 		CanExperiment: canExperiment,
 	}, nil
 }
 
-func (fr *Repository) checkIfAdmin(profile *base.UserProfile) bool {
+// CheckIfAdmin checks if a user has admin permissions
+func (fr *Repository) CheckIfAdmin(profile *base.UserProfile) bool {
 	if len(profile.Permissions) == 0 {
 		return false
 	}

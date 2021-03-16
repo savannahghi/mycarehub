@@ -1559,6 +1559,8 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		return false, err
 	}
 
+	s.repo.CheckIfAdmin(reviewerProfile)
+
 	KYCRequest, err := s.repo.FetchKYCProcessingRequestByID(ctx, id)
 	if err != nil {
 		return false, err

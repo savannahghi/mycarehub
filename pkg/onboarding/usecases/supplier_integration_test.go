@@ -87,6 +87,23 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
+
 	// add a partner type for the logged in user
 	partnerName := "rider"
 	partnerType := base.PartnerTypeRider
@@ -211,6 +228,23 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
+
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
@@ -338,6 +372,23 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
+
 	// add a partner type for the logged in user
 	partnerName := "rider"
 	partnerType := base.PartnerTypeRider
@@ -460,6 +511,23 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
+
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
@@ -592,6 +660,23 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
+
 	// add a partner type for the logged in user
 	partnerName := "rider"
 	partnerType := base.PartnerTypeRider
@@ -722,6 +807,23 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
+
 	// add a partner type for the logged in user
 	partnerName := "rider"
 	partnerType := base.PartnerTypeRider
@@ -847,6 +949,23 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
+
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
@@ -979,6 +1098,23 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
+
 	// add a partner type for the logged in user
 	partnerName := "rider"
 	partnerType := base.PartnerTypeRider
@@ -1103,6 +1239,23 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
+
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
@@ -1230,6 +1383,23 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
+
 	// add a partner type for the logged in user
 	partnerName := "nutrition"
 	partnerType := base.PartnerTypeNutrition
@@ -1349,6 +1519,22 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
 	// add a partner type for the logged in user
 	partnerName := "nutrition"
 	partnerType := base.PartnerTypeNutrition
@@ -1821,6 +2007,22 @@ func TestSuspendSupplier(t *testing.T) {
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
+	// fetch the profile and assert  the permissions slice is empty
+	pr, err := s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 0, len(pr.Permissions))
+
+	// now update the permissions
+	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
+	assert.Nil(t, err)
+
+	// fetch the profile and assert  the permissions slice is not empty
+	pr, err = s.Onboarding.UserProfile(authenticatedContext)
+	assert.Nil(t, err)
+	assert.NotNil(t, pr)
+	assert.Equal(t, 1, len(pr.Permissions))
 
 	name := "Makmende And Sons"
 	partnerPractitioner := base.PartnerTypePractitioner

@@ -70,6 +70,7 @@ type FakeOnboardingRepository struct {
 	GenerateAuthCredentialsFn func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error)
 
 	FetchAdminUsersFn func(ctx context.Context) ([]*base.UserProfile, error)
+	CheckIfAdminFn    func(profile *base.UserProfile) bool
 
 	// removes user completely. This should be used only under testing environment
 	PurgeUserByPhoneNumberFn func(ctx context.Context, phone string) error
@@ -157,6 +158,11 @@ type FakeOnboardingRepository struct {
 // GetSupplierProfileByID ...
 func (f *FakeOnboardingRepository) GetSupplierProfileByID(ctx context.Context, id string) (*base.Supplier, error) {
 	return f.GetSupplierProfileByIDFn(ctx, id)
+}
+
+// CheckIfAdmin ...
+func (f *FakeOnboardingRepository) CheckIfAdmin(profile *base.UserProfile) bool {
+	return f.CheckIfAdminFn(profile)
 }
 
 // GetSupplierProfileByUID ...

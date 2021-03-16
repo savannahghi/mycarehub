@@ -526,8 +526,12 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					suspend bool,
 				) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: uuid.New().String(),
+						ID:          uuid.New().String(),
+						Permissions: []base.PermissionType{base.PermissionTypeAdmin},
 					}, nil
+				}
+				fakeRepo.CheckIfAdminFn = func(profile *base.UserProfile) bool {
+					return true
 				}
 
 				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
@@ -576,12 +580,12 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPSupplierFn = func(
-					ctx context.Context,
-					supplierPayload resources.SupplierPayload,
-					UID string,
-				) (*base.Supplier, error) {
-					return &base.Supplier{}, nil
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return "supplier.topic"
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
+					return nil
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
@@ -636,8 +640,12 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					suspend bool,
 				) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: uuid.New().String(),
+						ID:          uuid.New().String(),
+						Permissions: []base.PermissionType{base.PermissionTypeAdmin},
 					}, nil
+				}
+				fakeRepo.CheckIfAdminFn = func(profile *base.UserProfile) bool {
+					return true
 				}
 
 				fakeRepo.FetchKYCProcessingRequestByIDFn = func(
