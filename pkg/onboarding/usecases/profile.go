@@ -467,21 +467,6 @@ func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cov
 		return err
 	}
 
-	existingCovers := profile.Covers
-	if len(existingCovers) != 0 {
-		for _, existingCover := range existingCovers {
-			for _, cover := range covers {
-				if existingCover.MemberNumber == cover.MemberNumber {
-					return fmt.Errorf(
-						`an existing cover with member number %s 
-						exists on your user profile`,
-						cover.MemberNumber,
-					)
-				}
-			}
-		}
-	}
-
 	return profile.UpdateProfileCovers(
 		ctx,
 		p.onboardingRepository,

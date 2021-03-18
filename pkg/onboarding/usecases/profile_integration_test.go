@@ -7,6 +7,7 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -1649,12 +1650,12 @@ func TestProfileUseCaseImpl_UpdateCovers(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "sad case:( update the same covers",
+			name: "happy case:) update the same covers",
 			args: args{
 				ctx:    ctx,
 				covers: []base.Cover{cover},
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "sad case:( unauthenticated context",
@@ -1683,6 +1684,18 @@ func TestProfileUseCaseImpl_UpdateCovers(t *testing.T) {
 					err,
 					tt.wantErr,
 				)
+			}
+			profile, err := p.Onboarding.UserProfile(ctx)
+			if err != nil {
+				t.Errorf("unable to get user profile")
+				return
+			}
+
+			covers := profile.Covers
+			logrus.Print(len(covers))
+			if len(covers) > 1 {
+				t.Errorf("expected just one cover")
+				return
 			}
 		})
 	}
