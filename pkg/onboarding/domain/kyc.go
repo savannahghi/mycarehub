@@ -14,7 +14,7 @@ type Identification struct {
 	IdentificationDocNumberUploadID string                `json:"identificationDocNumberUploadID" mapstructure:"identificationDocNumberUploadID"`
 }
 
-// IndividualRider holds the KYC for an individual rider
+// IndividualRider represents the KYC information required for an Individual Rider
 type IndividualRider struct {
 	IdentificationDoc              Identification       `json:"identificationDoc" mapstructure:"identificationDoc"`
 	KRAPIN                         string               `json:"KRAPIN" mapstructure:"KRAPIN"`
@@ -25,7 +25,7 @@ type IndividualRider struct {
 	SupportingDocuments            []SupportingDocument `json:"supportingDocuments" mapstructure:"supportingDocuments"`
 }
 
-// IndividualPractitioner ...
+// IndividualPractitioner represents the KYC information required for an Individual Rider
 type IndividualPractitioner struct {
 	IdentificationDoc       Identification        `json:"identificationDoc" mapstructure:"identificationDoc"`
 	KRAPIN                  string                `json:"KRAPIN" mapstructure:"KRAPIN"`
@@ -38,7 +38,7 @@ type IndividualPractitioner struct {
 	Cadre                   PractitionerCadre     `json:"cadre" mapstructure:"cadre"`
 }
 
-// IndividualPharmaceutical ...
+// IndividualPharmaceutical represents the KYC information required for an Individual Pharmaceutical
 type IndividualPharmaceutical struct {
 	IdentificationDoc       Identification       `json:"identificationDoc" mapstructure:"identificationDoc"`
 	KRAPIN                  string               `json:"KRAPIN" mapstructure:"KRAPIN"`
@@ -49,7 +49,7 @@ type IndividualPharmaceutical struct {
 	PracticeLicenseUploadID string               `json:"practiceLicenseUploadID" mapstructure:"practiceLicenseUploadID"`
 }
 
-// IndividualCoach ...
+// IndividualCoach represents the KYC information required for an Individual Coach
 type IndividualCoach struct {
 	IdentificationDoc       Identification       `json:"identificationDoc" mapstructure:"identificationDoc"`
 	KRAPIN                  string               `json:"KRAPIN" mapstructure:"KRAPIN"`
@@ -60,7 +60,7 @@ type IndividualCoach struct {
 	AccreditationUploadID   string               `json:"accreditationUploadID" mapstructure:"accreditationUploadID"`
 }
 
-// IndividualNutrition ...
+// IndividualNutrition represents the KYC information required for an Individual Nutrition
 type IndividualNutrition struct {
 	IdentificationDoc       Identification       `json:"identificationDoc" mapstructure:"identificationDoc"`
 	KRAPIN                  string               `json:"KRAPIN" mapstructure:"KRAPIN"`
@@ -70,9 +70,9 @@ type IndividualNutrition struct {
 	PracticeLicenseUploadID string               `json:"practiceLicenseUploadID" mapstructure:"practiceLicenseUploadID"`
 }
 
-// OrganizationRider ...
+// OrganizationRider represents the KYC information required for an Organization Rider
 type OrganizationRider struct {
-	OrganizationTypeName               OrganizationType     `json:"identificationDoc" mapstructure:"identificationDoc"`
+	OrganizationTypeName               OrganizationType     `json:"organizationTypeName" mapstructure:"organizationTypeName"`
 	CertificateOfIncorporation         string               `json:"certificateOfIncorporation" mapstructure:"certificateOfIncorporation"`
 	CertificateOfInCorporationUploadID string               `json:"certificateOfInCorporationUploadID" mapstructure:"certificateOfInCorporationUploadID"`
 	DirectorIdentifications            []Identification     `json:"directorIdentifications" mapstructure:"directorIdentifications"`
@@ -82,7 +82,7 @@ type OrganizationRider struct {
 	SupportingDocuments                []SupportingDocument `json:"supportingDocuments" mapstructure:"supportingDocuments"`
 }
 
-// OrganizationPractitioner ...
+// OrganizationPractitioner represents the KYC information required for an Organization Practitioner
 type OrganizationPractitioner struct {
 	OrganizationTypeName               OrganizationType      `json:"organizationTypeName" mapstructure:"organizationTypeName"`
 	KRAPIN                             string                `json:"KRAPIN" mapstructure:"KRAPIN"`
@@ -99,7 +99,7 @@ type OrganizationPractitioner struct {
 	Cadre                              PractitionerCadre     `json:"cadre" mapstructure:"cadre"`
 }
 
-// OrganizationProvider ...
+// OrganizationProvider represents the KYC information required for an Organization Provider
 type OrganizationProvider struct {
 	OrganizationTypeName               OrganizationType      `json:"organizationTypeName" mapstructure:"organizationTypeName"`
 	KRAPIN                             string                `json:"KRAPIN" mapstructure:"KRAPIN"`
@@ -115,7 +115,7 @@ type OrganizationProvider struct {
 	PracticeServices                   []PractitionerService `json:"practiceServices" mapstructure:"practiceServices"`
 }
 
-// OrganizationNutrition ...
+// OrganizationNutrition represents the KYC information required for an Organization Nutrition
 type OrganizationNutrition struct {
 	OrganizationTypeName               OrganizationType     `json:"organizationTypeName" mapstructure:"organizationTypeName"`
 	KRAPIN                             string               `json:"KRAPIN" mapstructure:"KRAPIN"`
@@ -130,7 +130,7 @@ type OrganizationNutrition struct {
 	PracticeLicenseUploadID            string               `json:"practiceLicenseUploadID" mapstructure:"practiceLicenseUploadID"`
 }
 
-// OrganizationCoach ...
+// OrganizationCoach represents the KYC information required for an Organization Coach
 type OrganizationCoach struct {
 	OrganizationTypeName               OrganizationType     `json:"organizationTypeName" mapstructure:"organizationTypeName"`
 	KRAPIN                             string               `json:"KRAPIN" mapstructure:"KRAPIN"`
@@ -145,7 +145,7 @@ type OrganizationCoach struct {
 	PracticeLicenseUploadID            string               `json:"practiceLicenseUploadID" mapstructure:"practiceLicenseUploadID"`
 }
 
-// OrganizationPharmaceutical ...
+// OrganizationPharmaceutical represents the KYC information required for an Organization Pharmaceutical
 type OrganizationPharmaceutical struct {
 	OrganizationTypeName               OrganizationType     `json:"organizationTypeName" mapstructure:"organizationTypeName"`
 	KRAPIN                             string               `json:"KRAPIN" mapstructure:"KRAPIN"`

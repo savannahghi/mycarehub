@@ -6,16 +6,16 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
-const smsService = "sms"
-const twilioService = "sms"
+// TODO: Move `messaging` service to engagement after complete Twilio's migration
 
-// twilio isc paths
 const (
+	smsService    = "engagement"
+	twilioService = "twilio"
+
+	// twilio isc paths
 	sendTwilioSMS = "internal/send_sms"
-)
 
-// sms isc paths
-const (
+	// engagement isc paths
 	sendSMS = "internal/send_sms"
 )
 
@@ -26,30 +26,30 @@ type ServiceMessaging interface {
 	SendSMS(phoneNumbers []string, message string) error
 }
 
-// ServiceMessagingImpl ...
+// ServiceMessagingImpl represents our messaging struct
 type ServiceMessagingImpl struct {
 	SMS    *base.InterServiceClient
 	Twilio *base.InterServiceClient
 }
 
-// NewServiceMessagingImpl ...
+// NewServiceMessagingImpl returns new initialized instance of ServiceOnboardingImpl
 func NewServiceMessagingImpl(baseExt extension.BaseExtension) ServiceMessaging {
 	sms := utils.NewInterServiceClient(smsService, baseExt)
 	tw := utils.NewInterServiceClient(twilioService, baseExt)
 	return &ServiceMessagingImpl{SMS: sms, Twilio: tw}
 }
 
-// FetchSMSClient ...
+// FetchSMSClient returns engagement's service SMS ISC
 func (s *ServiceMessagingImpl) FetchSMSClient() *base.InterServiceClient {
 	return s.SMS
 }
 
-// FetchTwilioClient ...
+// FetchTwilioClient returns twilio's service SMS ISC
 func (s *ServiceMessagingImpl) FetchTwilioClient() *base.InterServiceClient {
 	return s.Twilio
 }
 
-// SendSMS ...
+// SendSMS does the actual delvery of messages to the provided phone numbers
 func (s *ServiceMessagingImpl) SendSMS(phoneNumbers []string, message string) error {
 	smsISC := base.SmsISC{
 		Isc:      s.FetchSMSClient(),
