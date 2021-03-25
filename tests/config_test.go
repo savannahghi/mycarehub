@@ -183,7 +183,7 @@ func CreateTestUserByPhone(t *testing.T, phone string) (*base.UserResponse, erro
 	client := http.DefaultClient
 	validPayload, err := composeValidUserPayload(t, phone)
 	if err != nil {
-		return nil, fmt.Errorf("failed to compose a valid payload")
+		return nil, fmt.Errorf("failed to compose a valid payload: %v", err)
 	}
 	bs, err := json.Marshal(validPayload)
 	if err != nil {

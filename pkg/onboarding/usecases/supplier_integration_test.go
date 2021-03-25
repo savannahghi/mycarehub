@@ -110,7 +110,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual.String(), spr2.AccountType.String())
+	assert.Equal(t, base.AccountTypeIndividual, *spr2.AccountType)
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -1552,7 +1552,7 @@ func TestFindSupplierByUID(t *testing.T) {
 	assert.Equal(t, login1.SupplierProfile.ID, spr.ID)
 	assert.Equal(t, login1.SupplierProfile.ProfileID, spr.ProfileID)
 	assert.Equal(t, login1.SupplierProfile.Active, spr.Active)
-	assert.Equal(t, login1.SupplierProfile.AccountType.String(), spr.AccountType.String())
+	assert.Equal(t, login1.SupplierProfile.AccountType, spr.AccountType)
 
 	// try using the wrong context. shoild should fail
 	spr, err = s.Supplier.FindSupplierByUID(context.Background())
@@ -1617,7 +1617,7 @@ func TestFindSupplierByID(t *testing.T) {
 	assert.Equal(t, login1.SupplierProfile.ID, spr.ID)
 	assert.Equal(t, login1.SupplierProfile.ProfileID, spr.ProfileID)
 	assert.Equal(t, login1.SupplierProfile.Active, spr.Active)
-	assert.Equal(t, login1.SupplierProfile.AccountType.String(), spr.AccountType.String())
+	assert.Equal(t, login1.SupplierProfile.AccountType, spr.AccountType)
 
 	// try using the wrong context. shoild should not fail
 	spr, err = s.Supplier.FindSupplierByID(context.Background(), login1.SupplierProfile.ID)

@@ -90,7 +90,7 @@ type Supplier {
   supplierKYC: Map!
   active: Boolean!
 
-  accountType: AccountType!
+  accountType: AccountType
   underOrganization: Boolean!
   isOrganizationVerified: Boolean!
   partnerType: PartnerType!

@@ -5908,10 +5908,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
-						AccountType:       base.AccountTypeIndividual,
+						AccountType:       &accType,
 						UnderOrganization: true,
 					}, nil
 				}
@@ -6048,10 +6049,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
-						AccountType:       base.AccountTypeIndividual,
+						AccountType:       &accType,
 						UnderOrganization: true,
 					}, nil
 				}
@@ -6164,10 +6166,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
-						AccountType:       base.AccountTypeIndividual,
+						AccountType:       &accType,
 						UnderOrganization: true,
 					}, nil
 				}
@@ -6255,10 +6258,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
-						AccountType:       base.AccountTypeIndividual,
+						AccountType:       &accType,
 						UnderOrganization: true,
 					}, nil
 				}
@@ -6346,10 +6350,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
-						AccountType:       base.AccountTypeIndividual,
+						AccountType:       &accType,
 						UnderOrganization: true,
 					}, nil
 				}
@@ -6414,10 +6419,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
-						AccountType:       base.AccountTypeIndividual,
+						AccountType:       &accType,
 						UnderOrganization: true,
 					}, nil
 				}
@@ -6460,10 +6466,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
-						AccountType:       base.AccountTypeIndividual,
+						AccountType:       &accType,
 						UnderOrganization: true,
 					}, nil
 				}
@@ -6959,7 +6966,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 					accountType base.AccountType,
 				) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID: uuid.New().String(),
+						ID:          uuid.New().String(),
+						AccountType: &individualPartner,
 					}, nil
 				}
 
@@ -7009,7 +7017,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 					accountType base.AccountType,
 				) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID: uuid.New().String(),
+						ID:          uuid.New().String(),
+						AccountType: &organizationPartner,
 					}, nil
 				}
 
@@ -7120,7 +7129,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 					accountType base.AccountType,
 				) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID: uuid.New().String(),
+						ID:          uuid.New().String(),
+						AccountType: &individualPartner,
 					}, nil
 				}
 

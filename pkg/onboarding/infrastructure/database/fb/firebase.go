@@ -1487,7 +1487,7 @@ func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID stri
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	sup.AccountType = accountType
+	sup.AccountType = &accountType
 	sup.UnderOrganization = false
 	sup.IsOrganizationVerified = false
 	sup.HasBranches = false

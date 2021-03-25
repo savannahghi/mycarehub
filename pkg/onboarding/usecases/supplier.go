@@ -332,7 +332,7 @@ func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType bas
 		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
 			logrus.Error(err)
 		}
-	}(uid, sup.PartnerType, sup.AccountType)
+	}(uid, sup.PartnerType, *sup.AccountType)
 
 	go func() {
 		pro := func() error {
@@ -450,7 +450,8 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		return nil, err
 	}
 
-	supplier.AccountType = base.AccountTypeIndividual
+	accType := base.AccountTypeIndividual
+	supplier.AccountType = &accType
 	supplier.UnderOrganization = true
 
 	ediUserProfile, err := func(sladeCode string) (*base.EDIUserProfile, error) {
@@ -547,7 +548,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 
 	go func() {
 		op := func() error {
-			return s.PublishKYCNudge(ctx, uid, &supplier.PartnerType, &supplier.AccountType)
+			return s.PublishKYCNudge(ctx, uid, &supplier.PartnerType, supplier.AccountType)
 		}
 
 		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
@@ -983,14 +984,13 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(ctx context.Contex
 // StageKYCProcessingRequest saves kyc processing requests
 func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(ctx context.Context, sup *base.Supplier) error {
 	r := &domain.KYCRequest{
-		ID:                  uuid.New().String(),
-		ReqPartnerType:      sup.PartnerType,
-		ReqOrganizationType: domain.OrganizationType(sup.AccountType),
-		ReqRaw:              sup.SupplierKYC,
-		Processed:           false,
-		SupplierRecord:      sup,
-		Status:              domain.KYCProcessStatusPending,
-		FiledTimestamp:      time.Now().In(domain.TimeLocation),
+		ID:             uuid.New().String(),
+		ReqPartnerType: sup.PartnerType,
+		ReqRaw:         sup.SupplierKYC,
+		Processed:      false,
+		SupplierRecord: sup,
+		Status:         domain.KYCProcessStatusPending,
+		FiledTimestamp: time.Now().In(domain.TimeLocation),
 	}
 
 	return s.repo.StageKYCProcessingRequest(ctx, r)
@@ -1200,7 +1200,6 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, i
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
 

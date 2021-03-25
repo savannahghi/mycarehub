@@ -19,7 +19,7 @@ extend type Query {
 
   fetchSupplierAllowedLocations: BranchConnection!
 
-  fetchKYCProcessingRequests: [KYCRequest!]
+  fetchKYCProcessingRequests: [KYCRequest]
 
   getAddresses: UserAddresses!
 

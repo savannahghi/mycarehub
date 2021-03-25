@@ -335,13 +335,12 @@ func TestRemoveKYCProcessingRequest(t *testing.T) {
 
 	// now add the kyc processing request
 	req1 := &domain.KYCRequest{
-		ID:                  uuid.New().String(),
-		ReqPartnerType:      sup.PartnerType,
-		ReqOrganizationType: domain.OrganizationType(sup.AccountType),
-		ReqRaw:              sup.SupplierKYC,
-		Processed:           false,
-		SupplierRecord:      sup,
-		Status:              domain.KYCProcessStatusPending,
+		ID:             uuid.New().String(),
+		ReqPartnerType: sup.PartnerType,
+		ReqRaw:         sup.SupplierKYC,
+		Processed:      false,
+		SupplierRecord: sup,
+		Status:         domain.KYCProcessStatusPending,
 	}
 	err = fr.StageKYCProcessingRequest(ctx, req1)
 	assert.Nil(t, err)

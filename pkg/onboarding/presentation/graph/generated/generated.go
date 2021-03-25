@@ -3309,7 +3309,7 @@ input NHIFDetailsInput {
 
   fetchSupplierAllowedLocations: BranchConnection!
 
-  fetchKYCProcessingRequests: [KYCRequest!]
+  fetchKYCProcessingRequests: [KYCRequest]
 
   getAddresses: UserAddresses!
 
@@ -3506,7 +3506,7 @@ type Supplier {
   supplierKYC: Map!
   active: Boolean!
 
-  accountType: AccountType!
+  accountType: AccountType
   underOrganization: Boolean!
   isOrganizationVerified: Boolean!
   partnerType: PartnerType!
@@ -12296,7 +12296,7 @@ func (ec *executionContext) _Query_fetchKYCProcessingRequests(ctx context.Contex
 	}
 	res := resTmp.([]*domain.KYCRequest)
 	fc.Result = res
-	return ec.marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequestᚄ(ctx, field.Selections, res)
+	return ec.marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getAddresses(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -13064,14 +13064,11 @@ func (ec *executionContext) _Supplier_accountType(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(base.AccountType)
+	res := resTmp.(*base.AccountType)
 	fc.Result = res
-	return ec.marshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx, field.Selections, res)
+	return ec.marshalOAccountType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Supplier_underOrganization(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
@@ -19228,9 +19225,6 @@ func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "accountType":
 			out.Values[i] = ec._Supplier_accountType(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "underOrganization":
 			out.Values[i] = ec._Supplier_underOrganization(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -20173,16 +20167,6 @@ func (ec *executionContext) marshalNKYCProcessStatus2gitlabᚗslade360emrᚗcom�
 	return v
 }
 
-func (ec *executionContext) marshalNKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx context.Context, sel ast.SelectionSet, v *domain.KYCRequest) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._KYCRequest(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNLoginProviderType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLoginProviderType(ctx context.Context, v interface{}) (base.LoginProviderType, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := base.LoginProviderType(tmp)
@@ -21002,6 +20986,22 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
+func (ec *executionContext) unmarshalOAccountType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx context.Context, v interface{}) (*base.AccountType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(base.AccountType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOAccountType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx context.Context, sel ast.SelectionSet, v *base.AccountType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) marshalOAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx context.Context, sel ast.SelectionSet, v *base.Address) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -21483,7 +21483,7 @@ func (ec *executionContext) marshalOKYCProcessStatus2gitlabᚗslade360emrᚗcom�
 	return v
 }
 
-func (ec *executionContext) marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequestᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.KYCRequest) graphql.Marshaler {
+func (ec *executionContext) marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx context.Context, sel ast.SelectionSet, v []*domain.KYCRequest) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -21510,7 +21510,7 @@ func (ec *executionContext) marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcom�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx, sel, v[i])
+			ret[i] = ec.marshalOKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -21521,6 +21521,13 @@ func (ec *executionContext) marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcom�
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalOKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx context.Context, sel ast.SelectionSet, v *domain.KYCRequest) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._KYCRequest(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLocation(ctx context.Context, sel ast.SelectionSet, v *base.Location) graphql.Marshaler {
