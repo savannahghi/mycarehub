@@ -69,79 +69,193 @@ func (r *mutationResolver) UpdateUserName(ctx context.Context, username string) 
 }
 
 func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) (bool, error) {
-	return r.interactor.Signup.RegisterPushToken(ctx, token)
+	startTime := time.Now()
+
+	registerPushToken, err := r.interactor.Signup.RegisterPushToken(ctx, token)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "registerPushToken", err)
+
+	return registerPushToken, err
 }
 
 func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, partnerType base.PartnerType) (bool, error) {
-	return r.interactor.Supplier.AddPartnerType(ctx, &name, &partnerType)
+	startTime := time.Now()
+
+	addPartnerType, err := r.interactor.Supplier.AddPartnerType(ctx, &name, &partnerType)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addPartnerType", err)
+
+	return addPartnerType, err
 }
 
 func (r *mutationResolver) SuspendSupplier(ctx context.Context) (bool, error) {
-	return r.interactor.Supplier.SuspendSupplier(ctx)
+	startTime := time.Now()
+
+	suspendSupplier, err := r.interactor.Supplier.SuspendSupplier(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "suspendSupplier", err)
+
+	return suspendSupplier, err
 }
 
 func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error) {
-	return r.interactor.Supplier.SetUpSupplier(ctx, accountType)
+	startTime := time.Now()
+
+	supplier, err := r.interactor.Supplier.SetUpSupplier(ctx, accountType)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setUpSupplier", err)
+
+	return supplier, err
 }
 
 func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error) {
-	return r.interactor.Supplier.SupplierEDILogin(ctx, username, password, sladeCode)
+	startTime := time.Now()
+
+	supplierEDILogin, err := r.interactor.Supplier.SupplierEDILogin(ctx, username, password, sladeCode)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "supplierEDILogin", err)
+
+	return supplierEDILogin, err
 }
 
 func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locatonID string) (*base.Supplier, error) {
-	return r.interactor.Supplier.SupplierSetDefaultLocation(ctx, locatonID)
+	startTime := time.Now()
+
+	supplier, err := r.interactor.Supplier.SupplierSetDefaultLocation(ctx, locatonID)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "supplierSetDefaultLocation", err)
+
+	return supplier, err
 }
 
 func (r *mutationResolver) AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error) {
-	return r.interactor.Supplier.AddIndividualRiderKyc(ctx, input)
+	startTime := time.Now()
+
+	individualRider, err := r.interactor.Supplier.AddIndividualRiderKyc(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualRiderKYC", err)
+
+	return individualRider, err
 }
 
 func (r *mutationResolver) AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error) {
-	return r.interactor.Supplier.AddOrganizationRiderKyc(ctx, input)
+	startTime := time.Now()
+
+	organizationRider, err := r.interactor.Supplier.AddOrganizationRiderKyc(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationRiderKYC", err)
+
+	return organizationRider, err
 }
 
 func (r *mutationResolver) AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error) {
-	return r.interactor.Supplier.AddIndividualPractitionerKyc(ctx, input)
+	startTime := time.Now()
+
+	individualPractitioner, err := r.interactor.Supplier.AddIndividualPractitionerKyc(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualPractitionerKYC", err)
+
+	return individualPractitioner, err
 }
 
 func (r *mutationResolver) AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error) {
-	return r.interactor.Supplier.AddOrganizationPractitionerKyc(ctx, input)
+	startTime := time.Now()
+
+	organizationPractitioner, err := r.interactor.Supplier.AddOrganizationPractitionerKyc(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationPractitionerKYC", err)
+
+	return organizationPractitioner, err
 }
 
 func (r *mutationResolver) AddOrganizationProviderKyc(ctx context.Context, input domain.OrganizationProvider) (*domain.OrganizationProvider, error) {
-	return r.interactor.Supplier.AddOrganizationProviderKyc(ctx, input)
+	startTime := time.Now()
+
+	organizationProvider, err := r.interactor.Supplier.AddOrganizationProviderKyc(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationProviderKYC", err)
+
+	return organizationProvider, err
 }
 
 func (r *mutationResolver) AddIndividualPharmaceuticalKyc(ctx context.Context, input domain.IndividualPharmaceutical) (*domain.IndividualPharmaceutical, error) {
-	return r.interactor.Supplier.AddIndividualPharmaceuticalKyc(ctx, input)
+	startTime := time.Now()
+
+	individualPharmaceutical, err := r.interactor.Supplier.AddIndividualPharmaceuticalKyc(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualPharmaceuticalKYC", err)
+
+	return individualPharmaceutical, err
 }
 
 func (r *mutationResolver) AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error) {
-	return r.interactor.Supplier.AddOrganizationPharmaceuticalKyc(ctx, input)
+	startTime := time.Now()
+
+	organizationPharmaceutical, err := r.interactor.Supplier.AddOrganizationPharmaceuticalKyc(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationPharmaceuticalKYC", err)
+
+	return organizationPharmaceutical, err
 }
 
 func (r *mutationResolver) AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error) {
-	return r.interactor.Supplier.AddIndividualCoachKyc(ctx, input)
+	startTime := time.Now()
+
+	individualCoach, err := r.interactor.Supplier.AddIndividualCoachKyc(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualCoachKYC", err)
+
+	return individualCoach, err
 }
 
 func (r *mutationResolver) AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error) {
-	return r.interactor.Supplier.AddOrganizationCoachKyc(ctx, input)
+	startTime := time.Now()
+
+	organizationCoach, err := r.interactor.Supplier.AddOrganizationCoachKyc(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationCoachKYC", err)
+
+	return organizationCoach, err
 }
 
 func (r *mutationResolver) AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error) {
-	return r.interactor.Supplier.AddIndividualNutritionKyc(ctx, input)
+	startTime := time.Now()
+
+	individualNutrition, err := r.interactor.Supplier.AddIndividualNutritionKyc(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualNutritionKYC", err)
+
+	return individualNutrition, err
 }
 
 func (r *mutationResolver) AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error) {
-	return r.interactor.Supplier.AddOrganizationNutritionKyc(ctx, input)
+	startTime := time.Now()
+
+	organizationNutrition, err := r.interactor.Supplier.AddOrganizationNutritionKyc(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationNutritionKYC", err)
+
+	return organizationNutrition, err
 }
 
 func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error) {
-	return r.interactor.Supplier.ProcessKYCRequest(ctx, id, status, rejectionReason)
+	startTime := time.Now()
+
+	processKYCRequest, err := r.interactor.Supplier.ProcessKYCRequest(ctx, id, status, rejectionReason)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "processKYCRequest", err)
+
+	return processKYCRequest, err
 }
 
 func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input resources.PostVisitSurveyInput) (bool, error) {
-	return r.interactor.Survey.RecordPostVisitSurvey(ctx, input)
+	startTime := time.Now()
+
+	recordPostVisitSurvey, err := r.interactor.Survey.RecordPostVisitSurvey(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "recordPostVisitSurvey", err)
+
+	return recordPostVisitSurvey, err
 }
 
 func (r *mutationResolver) RetireKYCProcessingRequest(ctx context.Context) (bool, error) {
