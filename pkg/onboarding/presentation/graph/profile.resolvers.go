@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
@@ -53,7 +52,6 @@ func (r *mutationResolver) RetireSecondaryPhoneNumbers(ctx context.Context, phon
 
 func (r *mutationResolver) AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error) {
 	if err := r.interactor.Onboarding.UpdateSecondaryEmailAddresses(ctx, email); err != nil {
-		fmt.Println("VANT UPDATE", err)
 		return false, err
 	}
 	return true, nil
@@ -198,23 +196,53 @@ func (r *queryResolver) ResumeWithPin(ctx context.Context, pin string) (bool, er
 }
 
 func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
-	return r.interactor.ChargeMaster.FindProvider(ctx, pagination, filter, sort)
+	startTime := time.Now()
+
+	provider, err := r.interactor.ChargeMaster.FindProvider(ctx, pagination, filter, sort)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "findProvider", err)
+
+	return provider, err
 }
 
 func (r *queryResolver) FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
-	return r.interactor.ChargeMaster.FindBranch(ctx, pagination, filter, sort)
+	startTime := time.Now()
+
+	branch, err := r.interactor.ChargeMaster.FindBranch(ctx, pagination, filter, sort)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "findBranch", err)
+
+	return branch, err
 }
 
 func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error) {
-	return r.interactor.Supplier.FetchSupplierAllowedLocations(ctx)
+	startTime := time.Now()
+
+	supplierAllowedLocations, err := r.interactor.Supplier.FetchSupplierAllowedLocations(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "fetchSupplierAllowedLocations", err)
+
+	return supplierAllowedLocations, err
 }
 
 func (r *queryResolver) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
-	return r.interactor.Supplier.FetchKYCProcessingRequests(ctx)
+	startTime := time.Now()
+
+	kycProcessingRequests, err := r.interactor.Supplier.FetchKYCProcessingRequests(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "fetchKYCProcessingRequests", err)
+
+	return kycProcessingRequests, err
 }
 
 func (r *queryResolver) GetAddresses(ctx context.Context) (*domain.UserAddresses, error) {
-	return r.interactor.Onboarding.GetAddresses(ctx)
+	startTime := time.Now()
+
+	addresses, err := r.interactor.Onboarding.GetAddresses(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "getAddresses", err)
+
+	return addresses, err
 }
 
 func (r *queryResolver) NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error) {
