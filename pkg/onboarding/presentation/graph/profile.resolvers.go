@@ -14,57 +14,122 @@ import (
 )
 
 func (r *mutationResolver) CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error) {
-	return r.interactor.Signup.CompleteSignup(ctx, flavour)
+	startTime := time.Now()
+
+	completeSignup, err := r.interactor.Signup.CompleteSignup(ctx, flavour)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "completeSignup", err)
+
+	return completeSignup, err
 }
 
 func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input resources.UserProfileInput) (*base.UserProfile, error) {
-	return r.interactor.Signup.UpdateUserProfile(ctx, &input)
+	startTime := time.Now()
+
+	updateUserProfile, err := r.interactor.Signup.UpdateUserProfile(ctx, &input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "updateUserProfile", err)
+
+	return updateUserProfile, err
 }
 
 func (r *mutationResolver) UpdateUserPin(ctx context.Context, phone string, pin string) (bool, error) {
-	return r.interactor.UserPIN.ChangeUserPIN(ctx, phone, pin)
+	startTime := time.Now()
+
+	updateUserPIN, err := r.interactor.UserPIN.ChangeUserPIN(ctx, phone, pin)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "updateUserPIN", err)
+
+	return updateUserPIN, err
 }
 
 func (r *mutationResolver) SetPrimaryPhoneNumber(ctx context.Context, phone string, otp string) (bool, error) {
-	if err := r.interactor.Onboarding.SetPrimaryPhoneNumber(ctx, phone, otp, true); err != nil {
+	startTime := time.Now()
+
+	err := r.interactor.Onboarding.SetPrimaryPhoneNumber(ctx, phone, otp, true)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setPrimaryPhoneNumber", err)
+
+	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
 func (r *mutationResolver) SetPrimaryEmailAddress(ctx context.Context, email string, otp string) (bool, error) {
-	if err := r.interactor.Onboarding.SetPrimaryEmailAddress(ctx, email, otp); err != nil {
+	startTime := time.Now()
+
+	err := r.interactor.Onboarding.SetPrimaryEmailAddress(ctx, email, otp)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setPrimaryEmailAddress", err)
+
+	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
 func (r *mutationResolver) AddSecondaryPhoneNumber(ctx context.Context, phone []string) (bool, error) {
-	if err := r.interactor.Onboarding.UpdateSecondaryPhoneNumbers(ctx, phone); err != nil {
+	startTime := time.Now()
+
+	err := r.interactor.Onboarding.UpdateSecondaryPhoneNumbers(ctx, phone)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addSecondaryPhoneNumber", err)
+
+	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
 func (r *mutationResolver) RetireSecondaryPhoneNumbers(ctx context.Context, phones []string) (bool, error) {
-	return r.interactor.Onboarding.RetireSecondaryPhoneNumbers(ctx, phones)
+	startTime := time.Now()
+
+	retireSecondaryPhoneNumbers, err := r.interactor.Onboarding.RetireSecondaryPhoneNumbers(ctx, phones)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "retireSecondaryPhoneNumbers", err)
+
+	return retireSecondaryPhoneNumbers, err
 }
 
 func (r *mutationResolver) AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error) {
-	if err := r.interactor.Onboarding.UpdateSecondaryEmailAddresses(ctx, email); err != nil {
+	startTime := time.Now()
+
+	err := r.interactor.Onboarding.UpdateSecondaryEmailAddresses(ctx, email)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addSecondaryEmailAddress", err)
+
+	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
 func (r *mutationResolver) RetireSecondaryEmailAddresses(ctx context.Context, emails []string) (bool, error) {
-	return r.interactor.Onboarding.RetireSecondaryEmailAddress(ctx, emails)
+	startTime := time.Now()
+
+	retireSecondaryEmailAddresses, err := r.interactor.Onboarding.RetireSecondaryEmailAddress(ctx, emails)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "retireSecondaryEmailAddresses", err)
+
+	return retireSecondaryEmailAddresses, err
 }
 
 func (r *mutationResolver) UpdateUserName(ctx context.Context, username string) (bool, error) {
-	if err := r.interactor.Onboarding.UpdateUserName(ctx, username); err != nil {
+	startTime := time.Now()
+
+	err := r.interactor.Onboarding.UpdateUserName(ctx, username)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "updateUserName", err)
+
+	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
