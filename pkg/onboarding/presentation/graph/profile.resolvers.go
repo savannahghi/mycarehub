@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -173,11 +174,23 @@ func (r *mutationResolver) SetUserCommunicationsSettings(ctx context.Context, al
 }
 
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
-	return r.interactor.Onboarding.UserProfile(ctx)
+	startTime := time.Now()
+
+	userProfile, err := r.interactor.Onboarding.UserProfile(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "userProfile", err)
+
+	return userProfile, err
 }
 
 func (r *queryResolver) SupplierProfile(ctx context.Context) (*base.Supplier, error) {
-	return r.interactor.Supplier.FindSupplierByUID(ctx)
+	startTime := time.Now()
+
+	supplier, err := r.interactor.Supplier.FindSupplierByUID(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "supplierProfile", err)
+
+	return supplier, err
 }
 
 func (r *queryResolver) ResumeWithPin(ctx context.Context, pin string) (bool, error) {

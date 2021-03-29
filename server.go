@@ -8,6 +8,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"go.opencensus.io/stats/view"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation"
@@ -21,6 +22,18 @@ func main() {
 	if err != nil {
 		base.LogStartupError(ctx, err)
 	}
+
+	// Firstly, we'll register Server views.
+	// A service can declare it's own additional views
+	if err := view.Register(base.DefaultServiceViews...); err != nil {
+		base.LogStartupError(ctx, err)
+	}
+
+	deferFunc, err := base.EnableStatsAndTraceExporters(ctx, base.MetricsCollectorService("onboarding"))
+	if err != nil {
+		base.LogStartupError(ctx, err)
+	}
+	defer deferFunc()
 
 	port, err := strconv.Atoi(base.MustGetEnvVar(base.PortEnvVarName))
 	if err != nil {
