@@ -115,7 +115,7 @@ func (l *LoginUseCasesImpl) LoginAsAnonymous(ctx context.Context) (*base.AuthCre
 	return l.onboardingRepository.GenerateAuthCredentialsForAnonymousUser(ctx)
 }
 
-// ResumeWithPin called by the frontend check whether the currentlt logged in user is the once trying to get
+// ResumeWithPin called by the frontend check whether the currently logged in user is the one trying to get
 // access to app
 func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool, error) {
 	profile, err := l.profile.UserProfile(ctx)

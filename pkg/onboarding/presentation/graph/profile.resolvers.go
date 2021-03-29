@@ -145,30 +145,61 @@ func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input reso
 }
 
 func (r *mutationResolver) RetireKYCProcessingRequest(ctx context.Context) (bool, error) {
-	if err := r.interactor.Supplier.RetireKYCRequest(ctx); err != nil {
+	startTime := time.Now()
+
+	err := r.interactor.Supplier.RetireKYCRequest(ctx)
+
+	if err != nil {
 		return false, err
 	}
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "retireKYCProcessingRequest", err)
+
 	return true, nil
 }
 
 func (r *mutationResolver) SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error) {
-	return r.interactor.Onboarding.SetupAsExperimentParticipant(ctx, participate)
+	startTime := time.Now()
+
+	setupAsExperimentParticipant, err := r.interactor.Onboarding.SetupAsExperimentParticipant(ctx, participate)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setupAsExperimentParticipant", err)
+
+	return setupAsExperimentParticipant, err
 }
 
 func (r *mutationResolver) AddNHIFDetails(ctx context.Context, input resources.NHIFDetailsInput) (*domain.NHIFDetails, error) {
-	return r.interactor.NHIF.AddNHIFDetails(ctx, input)
+	startTime := time.Now()
+
+	addNHIFDetails, err := r.interactor.NHIF.AddNHIFDetails(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addNHIFDetails", err)
+
+	return addNHIFDetails, err
 }
 
 func (r *mutationResolver) AddAddress(ctx context.Context, input resources.UserAddressInput, addressType base.AddressType) (*base.Address, error) {
-	return r.interactor.Onboarding.AddAddress(
+	startTime := time.Now()
+
+	addAddress, err := r.interactor.Onboarding.AddAddress(
 		ctx,
 		input,
 		addressType,
 	)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addAddress", err)
+
+	return addAddress, err
 }
 
 func (r *mutationResolver) SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
-	return r.interactor.Onboarding.SetUserCommunicationsSettings(ctx, allowWhatsApp, allowTextSms, allowPush, allowEmail)
+	startTime := time.Now()
+
+	setUserCommunicationsSettings, err := r.interactor.Onboarding.SetUserCommunicationsSettings(ctx, allowWhatsApp, allowTextSms, allowPush, allowEmail)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setUserCommunicationsSettings", err)
+
+	return setUserCommunicationsSettings, err
 }
 
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
@@ -192,7 +223,13 @@ func (r *queryResolver) SupplierProfile(ctx context.Context) (*base.Supplier, er
 }
 
 func (r *queryResolver) ResumeWithPin(ctx context.Context, pin string) (bool, error) {
-	return r.interactor.Login.ResumeWithPin(ctx, pin)
+	startTime := time.Now()
+
+	resumeWithPin, err := r.interactor.Login.ResumeWithPin(ctx, pin)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "resumeWithPin", err)
+
+	return resumeWithPin, err
 }
 
 func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
@@ -246,11 +283,23 @@ func (r *queryResolver) GetAddresses(ctx context.Context) (*domain.UserAddresses
 }
 
 func (r *queryResolver) NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error) {
-	return r.interactor.NHIF.NHIFDetails(ctx)
+	startTime := time.Now()
+
+	NHIFDetails, err := r.interactor.NHIF.NHIFDetails(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "NHIFDetails", err)
+
+	return NHIFDetails, err
 }
 
 func (r *queryResolver) GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error) {
-	return r.interactor.Onboarding.GetUserCommunicationsSettings(ctx)
+	startTime := time.Now()
+
+	userCommunicationsSettings, err := r.interactor.Onboarding.GetUserCommunicationsSettings(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "getUserCommunicationsSettings", err)
+
+	return userCommunicationsSettings, err
 }
 
 // Mutation returns generated.MutationResolver implementation.
