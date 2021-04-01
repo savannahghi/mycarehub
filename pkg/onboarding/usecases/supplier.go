@@ -556,6 +556,22 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username str
 		}
 	}()
 
+	go func() {
+		pro := func() error {
+			return s.engagement.ResolveDefaultNudgeByTitle(
+				uid,
+				base.FlavourPro,
+				PartnerAccountSetupNudgeTitle,
+			)
+		}
+		if err := backoff.Retry(
+			pro,
+			backoff.NewExponentialBackOff(),
+		); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
 	if businessPartner.Parent != nil {
 		supplier.HasBranches = true
 		supplier.ParentOrganizationID = *businessPartner.Parent
