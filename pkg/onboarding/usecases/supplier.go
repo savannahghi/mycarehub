@@ -67,69 +67,31 @@ type SupplierUseCases interface {
 
 	FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error)
 
-	AddIndividualRiderKyc(
-		ctx context.Context,
-		input domain.IndividualRider,
-	) (*domain.IndividualRider, error)
+	AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
 
-	AddOrganizationRiderKyc(
-		ctx context.Context,
-		input domain.OrganizationRider,
-	) (*domain.OrganizationRider, error)
+	AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error)
 
-	AddIndividualPractitionerKyc(
-		ctx context.Context,
-		input domain.IndividualPractitioner,
-	) (*domain.IndividualPractitioner, error)
+	AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error)
 
-	AddOrganizationPractitionerKyc(
-		ctx context.Context,
-		input domain.OrganizationPractitioner,
-	) (*domain.OrganizationPractitioner, error)
+	AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error)
 
-	AddOrganizationProviderKyc(
-		ctx context.Context,
-		input domain.OrganizationProvider,
-	) (*domain.OrganizationProvider, error)
+	AddOrganizationProviderKyc(ctx context.Context, input domain.OrganizationProvider) (*domain.OrganizationProvider, error)
 
-	AddIndividualPharmaceuticalKyc(
-		ctx context.Context,
-		input domain.IndividualPharmaceutical,
-	) (*domain.IndividualPharmaceutical, error)
+	AddIndividualPharmaceuticalKyc(ctx context.Context, input domain.IndividualPharmaceutical) (*domain.IndividualPharmaceutical, error)
 
-	AddOrganizationPharmaceuticalKyc(
-		ctx context.Context,
-		input domain.OrganizationPharmaceutical,
-	) (*domain.OrganizationPharmaceutical, error)
+	AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error)
 
-	AddIndividualCoachKyc(
-		ctx context.Context,
-		input domain.IndividualCoach,
-	) (*domain.IndividualCoach, error)
+	AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error)
 
-	AddOrganizationCoachKyc(
-		ctx context.Context,
-		input domain.OrganizationCoach,
-	) (*domain.OrganizationCoach, error)
+	AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error)
 
-	AddIndividualNutritionKyc(
-		ctx context.Context,
-		input domain.IndividualNutrition,
-	) (*domain.IndividualNutrition, error)
+	AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error)
 
-	AddOrganizationNutritionKyc(
-		ctx context.Context,
-		input domain.OrganizationNutrition,
-	) (*domain.OrganizationNutrition, error)
+	AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error)
 
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 
-	SupplierEDILogin(
-		ctx context.Context,
-		username string,
-		password string,
-		sladeCode string,
-	) (*resources.SupplierLogin, error)
+	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error)
 
 	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error)
 
@@ -139,12 +101,7 @@ type SupplierUseCases interface {
 
 	StageKYCProcessingRequest(ctx context.Context, sup *base.Supplier) error
 
-	ProcessKYCRequest(
-		ctx context.Context,
-		id string,
-		status domain.KYCProcessStatus,
-		rejectionReason *string,
-	) (bool, error)
+	ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
 
 	RetireKYCRequest(ctx context.Context) error
 
@@ -201,11 +158,7 @@ func NewSupplierUseCases(
 }
 
 // AddPartnerType create the initial supplier record
-func (s SupplierUseCasesImpl) AddPartnerType(
-	ctx context.Context,
-	name *string,
-	partnerType *base.PartnerType,
-) (bool, error) {
+func (s SupplierUseCasesImpl) AddPartnerType(ctx context.Context, name *string, partnerType *base.PartnerType) (bool, error) {
 
 	if name == nil || partnerType == nil {
 		return false, fmt.Errorf("expected `name` to be defined and `partnerType` to be valid")
@@ -334,10 +287,7 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 }
 
 // FindSupplierByID fetches a supplier by their id
-func (s SupplierUseCasesImpl) FindSupplierByID(
-	ctx context.Context,
-	id string,
-) (*base.Supplier, error) {
+func (s SupplierUseCasesImpl) FindSupplierByID(ctx context.Context, id string) (*base.Supplier, error) {
 	return s.repo.GetSupplierProfileByID(ctx, id)
 }
 
@@ -351,10 +301,7 @@ func (s SupplierUseCasesImpl) FindSupplierByUID(ctx context.Context) (*base.Supp
 }
 
 // SetUpSupplier performs initial account set up during onboarding
-func (s SupplierUseCasesImpl) SetUpSupplier(
-	ctx context.Context,
-	accountType base.AccountType,
-) (*base.Supplier, error) {
+func (s SupplierUseCasesImpl) SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error) {
 
 	validAccountType := accountType.IsValid()
 	if !validAccountType {
@@ -375,6 +322,13 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 	sup, err := s.repo.AddSupplierAccountType(ctx, profile.ID, accountType)
 	if err != nil {
 		return nil, err
+	}
+	if *sup.AccountType == base.AccountTypeOrganisation || *sup.AccountType == base.AccountTypeIndividual {
+		sup.OrganizationName = sup.SupplierName
+		err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	go func(u string, pnt base.PartnerType, acnt base.AccountType) {
@@ -436,9 +390,7 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error)
 
 // EDIUserLogin used to login a user to EDI (Portal Authserver) and return their
 // EDI (Portal Authserver) profile
-func (s SupplierUseCasesImpl) EDIUserLogin(
-	username, password *string,
-) (*base.EDIUserProfile, error) {
+func (s SupplierUseCasesImpl) EDIUserLogin(username, password *string) (*base.EDIUserProfile, error) {
 	if username == nil || password == nil {
 		return nil, exceptions.InvalidCredentialsError()
 	}
@@ -459,9 +411,7 @@ func (s SupplierUseCasesImpl) EDIUserLogin(
 
 // CoreEDIUserLogin used to login a user to EDI (Core Authserver) and return their EDI
 // EDI (Core Authserver) profile
-func (s SupplierUseCasesImpl) CoreEDIUserLogin(
-	username, password string,
-) (*base.EDIUserProfile, error) {
+func (s SupplierUseCasesImpl) CoreEDIUserLogin(username, password string) (*base.EDIUserProfile, error) {
 
 	if username == "" || password == "" {
 		return nil, exceptions.InvalidCredentialsError()
@@ -487,12 +437,7 @@ func (s SupplierUseCasesImpl) CoreEDIUserLogin(
 // 2 . fetch the branches of the provider given the slade code which we have
 // 3 . update the user's supplier record
 // 4. return the list of branches to the frontend so that a default location can be set
-func (s SupplierUseCasesImpl) SupplierEDILogin(
-	ctx context.Context,
-	username string,
-	password string,
-	sladeCode string,
-) (*resources.SupplierLogin, error) {
+func (s SupplierUseCasesImpl) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error) {
 	var resp resources.SupplierLogin
 
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
@@ -701,10 +646,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 }
 
 // SupplierSetDefaultLocation updates the default location ot the supplier by the given location id
-func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
-	ctx context.Context,
-	locationID string,
-) (*base.Supplier, error) {
+func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error) {
 
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
@@ -764,9 +706,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
 }
 
 // FetchSupplierAllowedLocations retrieves all the locations that the user in context can work on.
-func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(
-	ctx context.Context,
-) (*resources.BranchConnection, error) {
+func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error) {
 
 	// fetch the supplier's profile
 	sup, err := s.FindSupplierByUID(ctx)
@@ -991,10 +931,7 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 		log.Println(string(res))
 
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf(
-				"unable to publish kyc admin notification feed item. unexpected status code  %v",
-				resp.StatusCode,
-			)
+			return fmt.Errorf("unable to publish kyc admin notification feed item. unexpected status code  %v", resp.StatusCode)
 		}
 	}
 
@@ -1028,10 +965,7 @@ func (s *SupplierUseCasesImpl) parseKYCAsMap(data interface{}) (map[string]inter
 
 // SaveKYCResponseAndNotifyAdmins saves the kyc information provided by the user
 // and sends a notification to all admins for a pending KYC review request
-func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
-	ctx context.Context,
-	sup *base.Supplier,
-) error {
+func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *base.Supplier) error {
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
@@ -1071,10 +1005,7 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 }
 
 // StageKYCProcessingRequest saves kyc processing requests
-func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(
-	ctx context.Context,
-	sup *base.Supplier,
-) error {
+func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(ctx context.Context, sup *base.Supplier) error {
 	r := &domain.KYCRequest{
 		ID:             uuid.New().String(),
 		ReqPartnerType: sup.PartnerType,
@@ -1089,10 +1020,7 @@ func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(
 }
 
 // AddIndividualRiderKyc adds KYC for an individual rider
-func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(
-	ctx context.Context,
-	input domain.IndividualRider,
-) (*domain.IndividualRider, error) {
+func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error) {
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
@@ -1101,9 +1029,7 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(
 	}
 	if !sup.KYCSubmitted {
 		if !input.IdentificationDoc.IdentificationDocType.IsValid() {
-			return nil, exceptions.WrongEnumTypeError(
-				input.IdentificationDoc.IdentificationDocType.String(),
-			)
+			return nil, exceptions.WrongEnumTypeError(input.IdentificationDoc.IdentificationDocType.String())
 		}
 
 		kyc := domain.IndividualRider{
@@ -1139,16 +1065,10 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(
 }
 
 // AddOrganizationRiderKyc adds KYC for an organization rider
-func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(
-	ctx context.Context,
-	input domain.OrganizationRider,
-) (*domain.OrganizationRider, error) {
+func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error) {
 
 	if !input.OrganizationTypeName.IsValid() {
-		return nil, fmt.Errorf(
-			"invalid `OrganizationTypeName` provided : %v",
-			input.OrganizationTypeName,
-		)
+		return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName)
 	}
 
 	sup, err := s.FindSupplierByUID(ctx)
@@ -1195,10 +1115,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(
 }
 
 // AddIndividualPractitionerKyc adds KYC for an individual practitioner
-func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(
-	ctx context.Context,
-	input domain.IndividualPractitioner,
-) (*domain.IndividualPractitioner, error) {
+func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error) {
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
@@ -1249,10 +1166,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(
 }
 
 // AddOrganizationPractitionerKyc adds KYC for an organization practitioner
-func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(
-	ctx context.Context,
-	input domain.OrganizationPractitioner,
-) (*domain.OrganizationPractitioner, error) {
+func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
@@ -1261,10 +1175,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(
 
 	if !sup.KYCSubmitted {
 		if !input.OrganizationTypeName.IsValid() {
-			return nil, fmt.Errorf(
-				"invalid `OrganizationTypeName` provided : %v",
-				input.OrganizationTypeName.String(),
-			)
+			return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
 		}
 
 		kyc := domain.OrganizationPractitioner{
@@ -1308,10 +1219,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(
 }
 
 // AddOrganizationProviderKyc adds KYC for an organization provider
-func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(
-	ctx context.Context,
-	input domain.OrganizationProvider,
-) (*domain.OrganizationProvider, error) {
+func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(ctx context.Context, input domain.OrganizationProvider) (*domain.OrganizationProvider, error) {
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
@@ -1320,18 +1228,12 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(
 
 	if !sup.KYCSubmitted {
 		if !input.OrganizationTypeName.IsValid() {
-			return nil, fmt.Errorf(
-				"invalid `OrganizationTypeName` provided : %v",
-				input.OrganizationTypeName.String(),
-			)
+			return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
 		}
 
 		for _, practiceService := range input.PracticeServices {
 			if !practiceService.IsValid() {
-				return nil, fmt.Errorf(
-					"invalid `PracticeService` provided : %v",
-					practiceService.String(),
-				)
+				return nil, fmt.Errorf("invalid `PracticeService` provided : %v", practiceService.String())
 			}
 		}
 
@@ -1375,10 +1277,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(
 }
 
 // AddIndividualPharmaceuticalKyc adds KYC for an individual Pharmaceutical kyc
-func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(
-	ctx context.Context,
-	input domain.IndividualPharmaceutical,
-) (*domain.IndividualPharmaceutical, error) {
+func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(ctx context.Context, input domain.IndividualPharmaceutical) (*domain.IndividualPharmaceutical, error) {
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
@@ -1388,10 +1287,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(
 
 	if !sup.KYCSubmitted {
 		if !input.IdentificationDoc.IdentificationDocType.IsValid() {
-			return nil, fmt.Errorf(
-				"invalid `IdentificationDocType` provided : %v",
-				input.IdentificationDoc.IdentificationDocType.String(),
-			)
+			return nil, fmt.Errorf("invalid `IdentificationDocType` provided : %v", input.IdentificationDoc.IdentificationDocType.String())
 		}
 
 		kyc := domain.IndividualPharmaceutical{
@@ -1425,10 +1321,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(
 }
 
 // AddOrganizationPharmaceuticalKyc adds KYC for a pharmacy organization
-func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(
-	ctx context.Context,
-	input domain.OrganizationPharmaceutical,
-) (*domain.OrganizationPharmaceutical, error) {
+func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
@@ -1437,10 +1330,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(
 
 	if !sup.KYCSubmitted {
 		if !input.OrganizationTypeName.IsValid() {
-			return nil, fmt.Errorf(
-				"invalid `OrganizationTypeName` provided : %v",
-				input.OrganizationTypeName.String(),
-			)
+			return nil, fmt.Errorf("invalid `OrganizationTypeName` provided : %v", input.OrganizationTypeName.String())
 		}
 
 		kyc := domain.OrganizationPharmaceutical{
@@ -1482,10 +1372,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(
 }
 
 // AddIndividualCoachKyc adds KYC for an individual coach
-func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(
-	ctx context.Context,
-	input domain.IndividualCoach,
-) (*domain.IndividualCoach, error) {
+func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
@@ -1494,10 +1381,7 @@ func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(
 
 	if !sup.KYCSubmitted {
 		if !input.IdentificationDoc.IdentificationDocType.IsValid() {
-			return nil, fmt.Errorf(
-				"invalid `IdentificationDocType` provided : %v",
-				input.IdentificationDoc.IdentificationDocType.String(),
-			)
+			return nil, fmt.Errorf("invalid `IdentificationDocType` provided : %v", input.IdentificationDoc.IdentificationDocType.String())
 		}
 
 		kyc := domain.IndividualCoach{
@@ -1531,10 +1415,7 @@ func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(
 }
 
 // AddOrganizationCoachKyc adds KYC for an organization coach
-func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(
-	ctx context.Context,
-	input domain.OrganizationCoach,
-) (*domain.OrganizationCoach, error) {
+func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
@@ -1580,10 +1461,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(
 }
 
 // AddIndividualNutritionKyc adds KYC for an individual nutritionist
-func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(
-	ctx context.Context,
-	input domain.IndividualNutrition,
-) (*domain.IndividualNutrition, error) {
+func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
@@ -1620,10 +1498,7 @@ func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(
 }
 
 // AddOrganizationNutritionKyc adds kyc for a nutritionist organisation
-func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(
-	ctx context.Context,
-	input domain.OrganizationNutrition,
-) (*domain.OrganizationNutrition, error) {
+func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error) {
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
@@ -1670,9 +1545,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(
 }
 
 // FetchKYCProcessingRequests fetches a list of all unprocessed kyc approval requests
-func (s *SupplierUseCasesImpl) FetchKYCProcessingRequests(
-	ctx context.Context,
-) ([]*domain.KYCRequest, error) {
+func (s *SupplierUseCasesImpl) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
 	return s.repo.FetchKYCProcessingRequests(ctx)
 }
 

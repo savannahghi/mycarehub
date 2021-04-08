@@ -26,7 +26,7 @@ type KYCRequest struct {
 	SupplierRecord      *base.Supplier         `json:"supplierRecord" firestore:"supplierRecord"`
 	Status              KYCProcessStatus       `json:"status" firestore:"status"`
 	RejectionReason     *string                `json:"rejectionRejection" firestore:"rejectionRejection"`
-	FiledTimestamp      time.Time              `json:"filesTimeStamp" firestore:"filedTimeStamp"`
+	FiledTimestamp      time.Time              `json:"filedTimeStamp" firestore:"filedTimeStamp"`
 	ProcessedTimestamp  time.Time              `json:"processedTimeStamp" firestore:"processedTimeStamp"`
 
 	// points to the userProfile id of the addmin that has processed the KYC

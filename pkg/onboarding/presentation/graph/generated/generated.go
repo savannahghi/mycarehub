@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -41,7 +42,6 @@ type Config struct {
 
 type ResolverRoot interface {
 	Entity() EntityResolver
-	KYCRequest() KYCRequestResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	VerifiedIdentifier() VerifiedIdentifierResolver
@@ -463,10 +463,6 @@ type ComplexityRoot struct {
 type EntityResolver interface {
 	FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*base.PageInfo, error)
 	FindUserProfileByID(ctx context.Context, id string) (*base.UserProfile, error)
-}
-type KYCRequestResolver interface {
-	FiledTimestamp(ctx context.Context, obj *domain.KYCRequest) (*base.Date, error)
-	ProcessedTimestamp(ctx context.Context, obj *domain.KYCRequest) (*base.Date, error)
 }
 type MutationResolver interface {
 	CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error)
@@ -3415,6 +3411,7 @@ extend type Mutation {
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
+scalar Time
 scalar Markdown
 scalar Any
 scalar Decimal
@@ -3791,8 +3788,8 @@ type KYCRequest {
   processed: Boolean!
   supplierRecord: Supplier!
   status: KYCProcessStatus
-  filedTimestamp: Date!
-  processedTimestamp: Date
+  filedTimestamp: Time!
+  processedTimestamp: Time
 }
 
 type SupplierLogin {
@@ -7658,14 +7655,14 @@ func (ec *executionContext) _KYCRequest_filedTimestamp(ctx context.Context, fiel
 		Object:     "KYCRequest",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.KYCRequest().FiledTimestamp(rctx, obj)
+		return obj.FiledTimestamp, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7677,9 +7674,9 @@ func (ec *executionContext) _KYCRequest_filedTimestamp(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.Date)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNDate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _KYCRequest_processedTimestamp(ctx context.Context, field graphql.CollectedField, obj *domain.KYCRequest) (ret graphql.Marshaler) {
@@ -7693,14 +7690,14 @@ func (ec *executionContext) _KYCRequest_processedTimestamp(ctx context.Context, 
 		Object:     "KYCRequest",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.KYCRequest().ProcessedTimestamp(rctx, obj)
+		return obj.ProcessedTimestamp, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7709,9 +7706,9 @@ func (ec *executionContext) _KYCRequest_processedTimestamp(ctx context.Context, 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*base.Date)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalODate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, field.Selections, res)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Location_id(ctx context.Context, field graphql.CollectedField, obj *base.Location) (ret graphql.Marshaler) {
@@ -18100,57 +18097,39 @@ func (ec *executionContext) _KYCRequest(ctx context.Context, sel ast.SelectionSe
 		case "id":
 			out.Values[i] = ec._KYCRequest_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "reqPartnerType":
 			out.Values[i] = ec._KYCRequest_reqPartnerType(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "reqOrganizationType":
 			out.Values[i] = ec._KYCRequest_reqOrganizationType(ctx, field, obj)
 		case "reqRaw":
 			out.Values[i] = ec._KYCRequest_reqRaw(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "processed":
 			out.Values[i] = ec._KYCRequest_processed(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "supplierRecord":
 			out.Values[i] = ec._KYCRequest_supplierRecord(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "status":
 			out.Values[i] = ec._KYCRequest_status(ctx, field, obj)
 		case "filedTimestamp":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._KYCRequest_filedTimestamp(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._KYCRequest_filedTimestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "processedTimestamp":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._KYCRequest_processedTimestamp(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._KYCRequest_processedTimestamp(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20598,6 +20577,21 @@ func (ec *executionContext) marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgo�
 	return ec._ThinAddress(ctx, sel, &v)
 }
 
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNUserAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐUserAddressInput(ctx context.Context, v interface{}) (resources.UserAddressInput, error) {
 	res, err := ec.unmarshalInputUserAddressInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -21852,6 +21846,15 @@ func (ec *executionContext) unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade3
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	return graphql.MarshalTime(v)
 }
 
 func (ec *executionContext) marshalOVerifiedIdentifier2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedIdentifier(ctx context.Context, sel ast.SelectionSet, v base.VerifiedIdentifier) graphql.Marshaler {

@@ -6978,7 +6978,13 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 						AccountType: &individualPartner,
 					}, nil
 				}
-
+				fakeRepo.UpdateSupplierProfileFn = func(
+					ctx context.Context,
+					profileID string,
+					data *base.Supplier,
+				) error {
+					return nil
+				}
 				fakeEngagementSvs.PublishKYCNudgeFn = func(
 					uid string,
 					payload base.Nudge,
@@ -7025,9 +7031,17 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 					accountType base.AccountType,
 				) (*base.Supplier, error) {
 					return &base.Supplier{
-						ID:          uuid.New().String(),
-						AccountType: &organizationPartner,
+						ID:           uuid.New().String(),
+						AccountType:  &organizationPartner,
+						SupplierName: "Juha Kalulu",
 					}, nil
+				}
+				fakeRepo.UpdateSupplierProfileFn = func(
+					ctx context.Context,
+					profileID string,
+					data *base.Supplier,
+				) error {
+					return nil
 				}
 
 				fakeEngagementSvs.PublishKYCNudgeFn = func(

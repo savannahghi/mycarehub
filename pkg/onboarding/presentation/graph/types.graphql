@@ -1,4 +1,5 @@
 scalar Date
+scalar Time
 scalar Markdown
 scalar Any
 scalar Decimal
@@ -375,8 +376,8 @@ type KYCRequest {
   processed: Boolean!
   supplierRecord: Supplier!
   status: KYCProcessStatus
-  filedTimestamp: Date!
-  processedTimestamp: Date
+  filedTimestamp: Time!
+  processedTimestamp: Time
 }
 
 type SupplierLogin {
