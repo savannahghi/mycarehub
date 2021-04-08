@@ -84,6 +84,34 @@ func NewSignUpUseCases(
 	}
 }
 
+// VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
+func (s *SignUpUseCasesImpl) VerifyPhoneNumber(
+	ctx context.Context,
+	phone string,
+) (*base.OtpResponse, error) {
+	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
+	if err != nil {
+		return nil, exceptions.NormalizeMSISDNError(err)
+	}
+	// check if phone number exists
+	exists, err := s.profileUsecase.CheckPhoneExists(ctx, *phoneNumber)
+	if err != nil {
+		return nil, err
+	}
+	// if phone exists return early
+	if exists {
+		return nil, exceptions.CheckPhoneNumberExistError()
+	}
+	// generate and send otp to the phone number
+	otpResp, err := s.otpUseCases.GenerateAndSendOTP(ctx, *phoneNumber)
+
+	if err != nil {
+		return nil, exceptions.GenerateAndSendOTPError(err)
+	}
+	// return the generated otp
+	return otpResp, nil
+}
+
 // CreateUserByPhone creates an account for the user, setting the provided phone number as the
 // PRIMARY PHONE NUMBER
 func (s *SignUpUseCasesImpl) CreateUserByPhone(
@@ -106,15 +134,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	if !verified {
 		return nil, exceptions.VerifyOTPError(nil)
 	}
-	// check if phone number is registered to another user
-	exists, err := s.profileUsecase.CheckPhoneExists(ctx, *userData.PhoneNumber)
-	if err != nil {
-		return nil, err
-	}
-	// if phone exists return early
-	if exists {
-		return nil, exceptions.CheckPhoneNumberExistError()
-	}
+
 	// get or create user via their phone number
 	user, err := s.onboardingRepository.GetOrCreatePhoneNumberUser(ctx, *userData.PhoneNumber)
 	if err != nil {
@@ -133,6 +153,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	auth, err := s.onboardingRepository.GenerateAuthCredentials(
 		ctx,
 		*userData.PhoneNumber,
+		profile,
 	)
 	if err != nil {
 		return nil, err
@@ -141,7 +162,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	_, err = s.pinUsecase.SetUserPIN(
 		ctx,
 		*userData.PIN,
-		*userData.PhoneNumber,
+		profile.ID,
 	)
 	if err != nil {
 		return nil, err
@@ -348,32 +369,4 @@ func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone 
 		return exceptions.NormalizeMSISDNError(err)
 	}
 	return s.onboardingRepository.PurgeUserByPhoneNumber(ctx, *phoneNumber)
-}
-
-// VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
-func (s *SignUpUseCasesImpl) VerifyPhoneNumber(
-	ctx context.Context,
-	phone string,
-) (*base.OtpResponse, error) {
-	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
-	if err != nil {
-		return nil, exceptions.NormalizeMSISDNError(err)
-	}
-	// check if phone number exists
-	exists, err := s.profileUsecase.CheckPhoneExists(ctx, *phoneNumber)
-	if err != nil {
-		return nil, err
-	}
-	// if phone exists return early
-	if exists {
-		return nil, exceptions.CheckPhoneNumberExistError()
-	}
-	// generate and send otp to the phone number
-	otpResp, err := s.otpUseCases.GenerateAndSendOTP(ctx, *phoneNumber)
-
-	if err != nil {
-		return nil, exceptions.GenerateAndSendOTPError(err)
-	}
-	// return the generated otp
-	return otpResp, nil
 }

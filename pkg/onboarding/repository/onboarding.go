@@ -93,7 +93,7 @@ type OnboardingRepository interface {
 
 	GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*base.AuthCredentialResponse, error)
 
-	GenerateAuthCredentials(ctx context.Context, phone string) (*base.AuthCredentialResponse, error)
+	GenerateAuthCredentials(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error)
 
 	FetchAdminUsers(ctx context.Context) ([]*base.UserProfile, error)
 

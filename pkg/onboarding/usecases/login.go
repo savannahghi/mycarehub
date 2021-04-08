@@ -78,7 +78,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 
 	}
 
-	auth, err := l.onboardingRepository.GenerateAuthCredentials(ctx, *phoneNumber)
+	auth, err := l.onboardingRepository.GenerateAuthCredentials(ctx, *phoneNumber, profile)
 	if err != nil {
 		return nil, err
 	}

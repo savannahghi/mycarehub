@@ -67,7 +67,7 @@ type FakeOnboardingRepository struct {
 
 	GenerateAuthCredentialsForAnonymousUserFn func(ctx context.Context) (*base.AuthCredentialResponse, error)
 
-	GenerateAuthCredentialsFn func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error)
+	GenerateAuthCredentialsFn func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error)
 
 	FetchAdminUsersFn func(ctx context.Context) ([]*base.UserProfile, error)
 	CheckIfAdminFn    func(profile *base.UserProfile) bool
@@ -291,8 +291,8 @@ func (f *FakeOnboardingRepository) GenerateAuthCredentialsForAnonymousUser(ctx c
 }
 
 // GenerateAuthCredentials ...
-func (f *FakeOnboardingRepository) GenerateAuthCredentials(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
-	return f.GenerateAuthCredentialsFn(ctx, phone)
+func (f *FakeOnboardingRepository) GenerateAuthCredentials(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
+	return f.GenerateAuthCredentialsFn(ctx, phone, profile)
 }
 
 // FetchAdminUsers ...

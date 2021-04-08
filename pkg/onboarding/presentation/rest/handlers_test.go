@@ -414,18 +414,7 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 	otp3 := "3000"
 	phoneNumber3 := "+254721100200"
 	payload3 := composeSignupPayload(t, phoneNumber3, pin3, otp3, flavour3)
-	// payload 4
-	pin4 := "1228"
-	flavour4 := base.FlavourConsumer
-	otp4 := "9652"
-	phoneNumber4 := "+254721410698"
-	payload4 := composeSignupPayload(t, phoneNumber4, pin4, otp4, flavour4)
-	// payload 5
-	pin5 := "0000"
-	flavour5 := base.FlavourConsumer
-	otp5 := "9520"
-	phoneNumber5 := "+254721410589"
-	payload5 := composeSignupPayload(t, phoneNumber5, pin5, otp5, flavour5) // payload6
+
 	// payload6
 	pin6 := "0000"
 	flavour6 := base.FlavourConsumer
@@ -471,26 +460,6 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				url:        fmt.Sprintf("%s/create_user_by_phone", serverUrl),
 				httpMethod: http.MethodPost,
 				body:       payload3,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-		{
-			name: "invalid_check_phone_exists_returns_error",
-			args: args{
-				url:        fmt.Sprintf("%s/create_user_by_phone", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       payload4,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-		{
-			name: "invalid_check_phone_exists_returns_true",
-			args: args{
-				url:        fmt.Sprintf("%s/create_user_by_phone", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       payload5,
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,
@@ -551,7 +520,7 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 						PrimaryPhone: &phoneNumber,
 					}, nil
 				}
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
 					return &base.AuthCredentialResponse{
 						UID:          "5550",
 						RefreshToken: "55550",
@@ -612,35 +581,6 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 			if tt.name == "invalid_verify_otp_returns_false" {
 				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, nil
-				}
-			}
-
-			// mock CheckPhoneExists to return an error
-			if tt.name == "invalid_check_phone_exists_returns_error" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
-					return true, nil
-				}
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254721123123"
-					return &phone, nil
-				}
-				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
-					return false, fmt.Errorf("unable to check phone")
-				}
-			}
-
-			// mock CheckPhoneExists to returns true for a number that exists
-			// also mocking CheckIfPhoneNumberExists is necessary to reach `CheckPhoneExists`
-			if tt.name == "invalid_check_phone_exists_returns_true" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
-					return true, nil
-				}
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254721123123"
-					return &phone, nil
-				}
-				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
-					return true, nil
 				}
 			}
 
@@ -1603,7 +1543,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				fakePinExt.ComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
 					return true
 				}
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
 					return &base.AuthCredentialResponse{
 						UID: "5550",
 						// IDToken:      "555",
@@ -1693,7 +1633,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				fakePinExt.ComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
 					return true
 				}
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("unable to generate auth credentials")
 				}
 			}

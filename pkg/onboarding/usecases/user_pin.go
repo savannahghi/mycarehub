@@ -15,7 +15,7 @@ import (
 
 // UserPINUseCases represents all the business logic that touch on user PIN Management
 type UserPINUseCases interface {
-	SetUserPIN(ctx context.Context, pin string, phone string) (bool, error)
+	SetUserPIN(ctx context.Context, pin string, profileID string) (bool, error)
 	ResetUserPIN(
 		ctx context.Context,
 		phone string,
@@ -54,32 +54,22 @@ func NewUserPinUseCase(
 func (u *UserPinUseCaseImpl) SetUserPIN(
 	ctx context.Context,
 	pin string,
-	phone string,
+	profileID string,
 ) (bool, error) {
-	phoneNumber, err := u.baseExt.NormalizeMSISDN(phone)
-	if err != nil {
-		return false, exceptions.NormalizeMSISDNError(err)
-	}
-
 	if err := extension.ValidatePINLength(pin); err != nil {
 		return false, exceptions.ValidatePINLengthError(err)
 	}
 
-	if err = extension.ValidatePINDigits(pin); err != nil {
+	if err := extension.ValidatePINDigits(pin); err != nil {
 		return false, exceptions.ValidatePINDigitsError(err)
 	}
 
-	pr, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
-	if err != nil {
-		// this is a wrapped error. No need to wrap it again
-		return false, err
-	}
 	// EncryptPIN the PIN
 	salt, encryptedPin := u.pinExt.EncryptPIN(pin, nil)
 
 	pinPayload := &domain.PIN{
 		ID:        uuid.New().String(),
-		ProfileID: pr.ID,
+		ProfileID: profileID,
 		PINNumber: encryptedPin,
 		Salt:      salt,
 	}

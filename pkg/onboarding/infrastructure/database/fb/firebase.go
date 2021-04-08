@@ -568,6 +568,7 @@ func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Contex
 func (fr *Repository) GenerateAuthCredentials(
 	ctx context.Context,
 	phone string,
+	profile *base.UserProfile,
 ) (*base.AuthCredentialResponse, error) {
 	resp, err := fr.GetOrCreatePhoneNumberUser(ctx, phone)
 	if err != nil {
@@ -585,13 +586,8 @@ func (fr *Repository) GenerateAuthCredentials(
 	if err != nil {
 		return nil, exceptions.AuthenticateTokenError(err)
 	}
-	pr, err := fr.GetUserProfileByPrimaryPhoneNumber(ctx, phone, false)
-	if err != nil {
-		// this is a wrapped error. No need to wrap it again
-		return nil, err
-	}
 
-	if err := fr.UpdateVerifiedIdentifiers(ctx, pr.ID, []base.VerifiedIdentifier{{
+	if err := fr.UpdateVerifiedIdentifiers(ctx, profile.ID, []base.VerifiedIdentifier{{
 		UID:           resp.UID,
 		LoginProvider: base.LoginProviderTypePhone,
 		Timestamp:     time.Now().In(base.TimeLocation),
@@ -599,11 +595,11 @@ func (fr *Repository) GenerateAuthCredentials(
 		return nil, exceptions.UpdateProfileError(err)
 	}
 
-	if err := fr.UpdateVerifiedUIDS(ctx, pr.ID, []string{resp.UID}); err != nil {
+	if err := fr.UpdateVerifiedUIDS(ctx, profile.ID, []string{resp.UID}); err != nil {
 		return nil, exceptions.UpdateProfileError(err)
 	}
 
-	canExperiment, err := fr.CheckIfExperimentParticipant(ctx, pr.ID)
+	canExperiment, err := fr.CheckIfExperimentParticipant(ctx, profile.ID)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
@@ -616,7 +612,7 @@ func (fr *Repository) GenerateAuthCredentials(
 		RefreshToken:  userTokens.RefreshToken,
 		UID:           resp.UID,
 		IsAnonymous:   false,
-		IsAdmin:       fr.CheckIfAdmin(pr),
+		IsAdmin:       fr.CheckIfAdmin(profile),
 		CanExperiment: canExperiment,
 	}, nil
 }

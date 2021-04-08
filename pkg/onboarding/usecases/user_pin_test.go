@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -20,9 +21,9 @@ func TestUserPinUseCaseUnitTest_SetUserPIN(t *testing.T) {
 		return
 	}
 	type args struct {
-		ctx   context.Context
-		pin   string
-		phone string
+		ctx       context.Context
+		pin       string
+		profileID string
 	}
 	tests := []struct {
 		name    string
@@ -33,9 +34,9 @@ func TestUserPinUseCaseUnitTest_SetUserPIN(t *testing.T) {
 		{
 			name: "valid:_set_user_pin",
 			args: args{
-				ctx:   ctx,
-				pin:   "1234",
-				phone: base.TestUserPhoneNumber,
+				ctx:       ctx,
+				pin:       "1234",
+				profileID: uuid.New().String(),
 			},
 			want:    true,
 			wantErr: false,
@@ -43,9 +44,9 @@ func TestUserPinUseCaseUnitTest_SetUserPIN(t *testing.T) {
 		{
 			name: "invalid:_non_digits_included",
 			args: args{
-				ctx:   ctx,
-				pin:   "12b4",
-				phone: base.TestUserPhoneNumber,
+				ctx:       ctx,
+				pin:       "12b4",
+				profileID: uuid.New().String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -53,19 +54,9 @@ func TestUserPinUseCaseUnitTest_SetUserPIN(t *testing.T) {
 		{
 			name: "invalid:_wrong_number_of_digits",
 			args: args{
-				ctx:   ctx,
-				pin:   "12",
-				phone: base.TestUserPhoneNumber,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:_unable_to_get_user_by_phone",
-			args: args{
-				ctx:   ctx,
-				pin:   "1234",
-				phone: base.TestUserPhoneNumber,
+				ctx:       ctx,
+				pin:       "12",
+				profileID: uuid.New().String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -73,19 +64,9 @@ func TestUserPinUseCaseUnitTest_SetUserPIN(t *testing.T) {
 		{
 			name: "invalid:_unable_to_save_pin",
 			args: args{
-				ctx:   ctx,
-				pin:   "1234",
-				phone: base.TestUserPhoneNumber,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:_unable_to_normalize_phone",
-			args: args{
-				ctx:   ctx,
-				pin:   "1234",
-				phone: base.TestUserPhoneNumber,
+				ctx:       ctx,
+				pin:       "1234",
+				profileID: uuid.New().String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -93,14 +74,6 @@ func TestUserPinUseCaseUnitTest_SetUserPIN(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			if tt.name == "invalid:_unable_to_normalize_phone" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					return nil, fmt.Errorf("unable to normalize phone")
-				}
-
-			}
-
 			if tt.name == "valid:_set_user_pin" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254721123123"
@@ -121,15 +94,6 @@ func TestUserPinUseCaseUnitTest_SetUserPIN(t *testing.T) {
 
 			}
 
-			if tt.name == "invalid:_unable_to_get_user_by_phone" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254721123123"
-					return &phone, nil
-				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("unable to fetch profile")
-				}
-			}
 			if tt.name == "invalid:_unable_to_save_pin" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254721123123"
@@ -149,7 +113,7 @@ func TestUserPinUseCaseUnitTest_SetUserPIN(t *testing.T) {
 				}
 			}
 
-			isSet, err := i.UserPIN.SetUserPIN(tt.args.ctx, tt.args.pin, tt.args.phone)
+			isSet, err := i.UserPIN.SetUserPIN(tt.args.ctx, tt.args.pin, tt.args.profileID)
 
 			if tt.wantErr {
 				if err == nil {

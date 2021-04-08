@@ -202,14 +202,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid:fail_to_check_ifPhoneNumberExists",
-			args: args{
-				ctx:   ctx,
-				input: validSignUpInput,
-			},
-			wantErr: true,
-		},
-		{
 			name: "invalid:fail_to_create_user_profile",
 			args: args{
 				ctx:   ctx,
@@ -258,10 +250,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
-					return false, nil
-				}
-
 				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
 					return &resources.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
@@ -277,7 +265,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
 					customToken := uuid.New().String()
 					idToken := uuid.New().String()
 					refreshToken := uuid.New().String()
@@ -350,10 +338,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
-					return false, nil
-				}
-
 				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
 					return &resources.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
@@ -373,10 +357,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
-					return false, nil
-				}
-
 				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
 					return &resources.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
@@ -392,7 +372,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("failed to generate auth credentials")
 				}
 			}
@@ -402,10 +382,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
-					return false, nil
-				}
-
 				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
 					return &resources.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
@@ -421,7 +397,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
 					customToken := uuid.New().String()
 					idToken := uuid.New().String()
 					refreshToken := uuid.New().String()
@@ -459,10 +435,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
-					return false, nil
-				}
-
 				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
 					return &resources.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
@@ -478,7 +450,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
 					customToken := uuid.New().String()
 					idToken := uuid.New().String()
 					refreshToken := uuid.New().String()
@@ -521,10 +493,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
-					return false, nil
-				}
-
 				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
 					return &resources.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
@@ -540,7 +508,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
 					customToken := uuid.New().String()
 					idToken := uuid.New().String()
 					refreshToken := uuid.New().String()

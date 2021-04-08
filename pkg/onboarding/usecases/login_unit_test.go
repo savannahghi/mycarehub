@@ -315,7 +315,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return true
 				}
 
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
 					customToken := uuid.New().String()
 					idToken := uuid.New().String()
 					refreshToken := uuid.New().String()
@@ -390,7 +390,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return true
 				}
 
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("failed to generate auth credentials")
 				}
 			}
@@ -415,7 +415,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return true
 				}
 
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
 					customToken := uuid.New().String()
 					idToken := uuid.New().String()
 					refreshToken := uuid.New().String()

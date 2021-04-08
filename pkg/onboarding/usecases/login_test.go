@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -228,49 +230,46 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	phone := base.TestUserPhoneNumber
 	flavour := base.FlavourConsumer
 	pin := base.TestUserPin
-	exists, err := s.Onboarding.CheckPhoneExists(ctx, phone)
+	otp, err := s.Signup.VerifyPhoneNumber(ctx, phone)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check if test phone exists: %v", err)
-	}
-	if !exists {
-		otp, err := generateTestOTP(t, phone)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate test OTP: %v", err)
+		if strings.Contains(err.Error(), exceptions.CheckPhoneNumberExistError().Error()) {
+			logInCreds, err := s.Login.LoginByPhone(
+				ctx,
+				phone,
+				base.TestUserPin,
+				flavour,
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to log in test user: %v", err)
+			}
+
+			return &auth.Token{
+				UID: logInCreds.Auth.UID,
+			}, nil
 		}
 
-		u, err := s.Signup.CreateUserByPhone(
-			ctx,
-			&resources.SignUpInput{
-				PhoneNumber: &phone,
-				PIN:         &pin,
-				Flavour:     flavour,
-				OTP:         &otp.OTP,
-			},
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create a test user: %v", err)
-		}
-		if u == nil {
-			return nil, fmt.Errorf("nil test user response")
-		}
-		authCred := &auth.Token{
-			UID: u.Auth.UID,
-		} // We add the test user UID to the expected auth.Token
-		return authCred, nil
+		return nil, fmt.Errorf("failed to check if test phone exists: %v", err)
 	}
-	logInCreds, err := s.Login.LoginByPhone(
+
+	u, err := s.Signup.CreateUserByPhone(
 		ctx,
-		phone,
-		base.TestUserPin,
-		flavour,
+		&resources.SignUpInput{
+			PhoneNumber: &phone,
+			PIN:         &pin,
+			Flavour:     flavour,
+			OTP:         &otp.OTP,
+		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to log in test user: %v", err)
+		return nil, fmt.Errorf("failed to create a test user: %v", err)
 	}
-	authCred := &auth.Token{
-		UID: logInCreds.Auth.UID,
+	if u == nil {
+		return nil, fmt.Errorf("nil test user response")
 	}
-	return authCred, nil
+
+	return &auth.Token{
+		UID: u.Auth.UID,
+	}, nil
 }
 
 // TestAuthenticatedContext returns a logged in context, useful for test purposes
@@ -286,6 +285,22 @@ func GetTestAuthenticatedContext(t *testing.T) (context.Context, *auth.Token, er
 		auth,
 	)
 	return authenticatedContext, auth, nil
+}
+
+func TestGetTestAuthenticatedContext(t *testing.T) {
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	if ctx == nil {
+		t.Errorf("nil context")
+		return
+	}
+	if auth == nil {
+		t.Errorf("nil auth data")
+		return
+	}
 }
 
 func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {

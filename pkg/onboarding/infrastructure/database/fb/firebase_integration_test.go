@@ -416,7 +416,7 @@ func TestPurgeUserByPhoneNumber(t *testing.T) {
 
 	// now set a  pin. this should not fail
 	userpin := "1234"
-	pset, err := s.UserPIN.SetUserPIN(ctx, userpin, base.TestUserPhoneNumber)
+	pset, err := s.UserPIN.SetUserPIN(ctx, userpin, invalidpr1.ID)
 	assert.Nil(t, err)
 	assert.NotNil(t, pset)
 	assert.Equal(t, true, pset)
@@ -721,7 +721,13 @@ func TestRepository_ExchangeRefreshTokenForIDToken(t *testing.T) {
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
-	user, err := fr.GenerateAuthCredentials(ctx, base.TestUserPhoneNumber)
+	userProfile, err := fr.GetUserProfileByUID(ctx, token.UID, false)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+
+	user, err := fr.GenerateAuthCredentials(ctx, base.TestUserPhoneNumber, userProfile)
 	if err != nil {
 		t.Errorf("failed to generate auth credentials: %v", err)
 		return
@@ -2981,8 +2987,9 @@ func TestRepositoryGenerateAuthCredentials(t *testing.T) {
 	}
 
 	type args struct {
-		ctx   context.Context
-		phone string
+		ctx     context.Context
+		phone   string
+		profile *base.UserProfile
 	}
 	tests := []struct {
 		name    string
@@ -2993,16 +3000,18 @@ func TestRepositoryGenerateAuthCredentials(t *testing.T) {
 		{
 			name: "Happy Case - Successfully generate valid auth credentials",
 			args: args{
-				ctx:   ctx,
-				phone: *userProfile.PrimaryPhone,
+				ctx:     ctx,
+				phone:   *userProfile.PrimaryPhone,
+				profile: userProfile,
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad Case - Use an invalid phonenumber",
 			args: args{
-				ctx:   ctx,
-				phone: "invalidphone",
+				ctx:     ctx,
+				phone:   "invalidphone",
+				profile: nil,
 			},
 			want:    validCredentials,
 			wantErr: true,
@@ -3010,7 +3019,7 @@ func TestRepositoryGenerateAuthCredentials(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			authResponse, err := fr.GenerateAuthCredentials(tt.args.ctx, tt.args.phone)
+			authResponse, err := fr.GenerateAuthCredentials(tt.args.ctx, tt.args.phone, tt.args.profile)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.GenerateAuthCredentials() error = %v, wantErr %v", err, tt.wantErr)
 				return
