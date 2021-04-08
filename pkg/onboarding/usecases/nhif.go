@@ -20,7 +20,10 @@ const AddNHIFNudgeTitle = "Add NHIF"
 
 // NHIFUseCases represents all the business logic involved in NHIF
 type NHIFUseCases interface {
-	AddNHIFDetails(ctx context.Context, input resources.NHIFDetailsInput) (*domain.NHIFDetails, error)
+	AddNHIFDetails(
+		ctx context.Context,
+		input resources.NHIFDetailsInput,
+	) (*domain.NHIFDetails, error)
 	NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error)
 }
 

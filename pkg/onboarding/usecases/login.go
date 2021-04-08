@@ -9,7 +9,8 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
-// LoginUseCases represents all the business logic involved in logging in a user and managing their authorization credentials.
+// LoginUseCases represents all the business logic involved in logging in a user and managing their
+// authorization credentials.
 type LoginUseCases interface {
 	LoginByPhone(
 		ctx context.Context,
@@ -55,7 +56,11 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
-	profile, err := l.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
+	profile, err := l.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(
+		ctx,
+		*phoneNumber,
+		false,
+	)
 	if err != nil {
 		// the error is wrapped already. No need to wrap it again
 		return nil, err
@@ -109,13 +114,17 @@ func (l *LoginUseCasesImpl) RefreshToken(token string) (*base.AuthCredentialResp
 	return l.onboardingRepository.ExchangeRefreshTokenForIDToken(token)
 }
 
-// LoginAsAnonymous logs in a user as anonymous. This anonymous user will not have a userProfile since we don't have
+// LoginAsAnonymous logs in a user as anonymous. This anonymous user will not have a userProfile
+// since we don't have
 // their phone number. All that we return is auth credentials and an error
-func (l *LoginUseCasesImpl) LoginAsAnonymous(ctx context.Context) (*base.AuthCredentialResponse, error) {
+func (l *LoginUseCasesImpl) LoginAsAnonymous(
+	ctx context.Context,
+) (*base.AuthCredentialResponse, error) {
 	return l.onboardingRepository.GenerateAuthCredentialsForAnonymousUser(ctx)
 }
 
-// ResumeWithPin called by the frontend check whether the currently logged in user is the one trying to get
+// ResumeWithPin called by the frontend check whether the currently logged in user is the one trying
+// to get
 // access to app
 func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool, error) {
 	profile, err := l.profile.UserProfile(ctx)

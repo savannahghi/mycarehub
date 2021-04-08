@@ -19,11 +19,15 @@ type SignUpUseCases interface {
 	// VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
 	VerifyPhoneNumber(ctx context.Context, phone string) (*base.OtpResponse, error)
 
-	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
+	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE
+	// NUMBER
 	CreateUserByPhone(ctx context.Context, input *resources.SignUpInput) (*base.UserResponse, error)
 
 	// updates the user profile of the currently logged in user
-	UpdateUserProfile(ctx context.Context, input *resources.UserProfileInput) (*base.UserProfile, error)
+	UpdateUserProfile(
+		ctx context.Context,
+		input *resources.UserProfileInput,
+	) (*base.UserProfile, error)
 
 	// adds a new push token in the users profile if the push token does not exist
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
@@ -38,9 +42,13 @@ type SignUpUseCases interface {
 
 	// fetches the phone numbers of a user for the purposes of recoverying an account.
 	// the returned phone numbers should be masked
-	GetUserRecoveryPhoneNumbers(ctx context.Context, phoneNumber string) (*resources.AccountRecoveryPhonesResponse, error)
+	GetUserRecoveryPhoneNumbers(
+		ctx context.Context,
+		phoneNumber string,
+	) (*resources.AccountRecoveryPhonesResponse, error)
 
-	// called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
+	// called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of
+	// the user
 	// where the phone number is associated with.
 	SetPhoneAsPrimary(ctx context.Context, phone, otp string) (bool, error)
 
@@ -76,7 +84,8 @@ func NewSignUpUseCases(
 	}
 }
 
-// CreateUserByPhone creates an account for the user, setting the provided phone number as the PRIMARY PHONE NUMBER
+// CreateUserByPhone creates an account for the user, setting the provided phone number as the
+// PRIMARY PHONE NUMBER
 func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	ctx context.Context,
 	input *resources.SignUpInput,
@@ -153,8 +162,14 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 
 	// set the user default communications settings
 	defaultCommunicationSetting := true
-	comms, err := s.onboardingRepository.SetUserCommunicationsSettings(ctx, profile.ID, &defaultCommunicationSetting,
-		&defaultCommunicationSetting, &defaultCommunicationSetting, &defaultCommunicationSetting)
+	comms, err := s.onboardingRepository.SetUserCommunicationsSettings(
+		ctx,
+		profile.ID,
+		&defaultCommunicationSetting,
+		&defaultCommunicationSetting,
+		&defaultCommunicationSetting,
+		&defaultCommunicationSetting,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +184,10 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 }
 
 // UpdateUserProfile  updates the user profile of the currently logged in user
-func (s *SignUpUseCasesImpl) UpdateUserProfile(ctx context.Context, input *resources.UserProfileInput) (*base.UserProfile, error) {
+func (s *SignUpUseCasesImpl) UpdateUserProfile(
+	ctx context.Context,
+	input *resources.UserProfileInput,
+) (*base.UserProfile, error) {
 
 	// get the old user profile
 	pr, err := s.profileUsecase.UserProfile(ctx)
@@ -226,8 +244,12 @@ func (s *SignUpUseCasesImpl) RegisterPushToken(ctx context.Context, token string
 	return true, nil
 }
 
-// CompleteSignup called to create a customer account in the ERP. This API is only valid for `BEWELL CONSUMER`
-func (s *SignUpUseCasesImpl) CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error) {
+// CompleteSignup called to create a customer account in the ERP. This API is only valid for `BEWELL
+// CONSUMER`
+func (s *SignUpUseCasesImpl) CompleteSignup(
+	ctx context.Context,
+	flavour base.Flavour,
+) (bool, error) {
 
 	if flavour != base.FlavourConsumer {
 		return false, exceptions.InvalidFlavourDefinedError()
@@ -268,8 +290,12 @@ func (s *SignUpUseCasesImpl) RetirePushToken(ctx context.Context, token string) 
 	return true, nil
 }
 
-// GetUserRecoveryPhoneNumbers fetches the phone numbers of a user for the purposes of recoverying an account.
-func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, phone string) (*resources.AccountRecoveryPhonesResponse, error) {
+// GetUserRecoveryPhoneNumbers fetches the phone numbers of a user for the purposes of recoverying
+// an account.
+func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(
+	ctx context.Context,
+	phone string,
+) (*resources.AccountRecoveryPhonesResponse, error) {
 	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
@@ -295,9 +321,13 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(ctx context.Context, ph
 	}, nil
 }
 
-// SetPhoneAsPrimary called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of the user
+// SetPhoneAsPrimary called to set the provided phone number as the PRIMARY PHONE NUMBER in the user
+// profile of the user
 // where the phone number is associated with.
-func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(ctx context.Context, phone, otp string) (bool, error) {
+func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(
+	ctx context.Context,
+	phone, otp string,
+) (bool, error) {
 	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
@@ -309,7 +339,8 @@ func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(ctx context.Context, phone, otp s
 	return true, nil
 }
 
-// RemoveUserByPhoneNumber removes the record of a user using the provided phone number. This method will ONLY be called
+// RemoveUserByPhoneNumber removes the record of a user using the provided phone number. This method
+// will ONLY be called
 // in testing environment.
 func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone string) error {
 	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
@@ -320,7 +351,10 @@ func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone 
 }
 
 // VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
-func (s *SignUpUseCasesImpl) VerifyPhoneNumber(ctx context.Context, phone string) (*base.OtpResponse, error) {
+func (s *SignUpUseCasesImpl) VerifyPhoneNumber(
+	ctx context.Context,
+	phone string,
+) (*base.OtpResponse, error) {
 	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)

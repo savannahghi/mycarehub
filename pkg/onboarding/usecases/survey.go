@@ -23,7 +23,10 @@ type SurveyUseCasesImpl struct {
 }
 
 // NewSurveyUseCases initializes a new sign up usecase
-func NewSurveyUseCases(r repository.OnboardingRepository, ext extension.BaseExtension) *SurveyUseCasesImpl {
+func NewSurveyUseCases(
+	r repository.OnboardingRepository,
+	ext extension.BaseExtension,
+) *SurveyUseCasesImpl {
 	return &SurveyUseCasesImpl{r, ext}
 }
 
@@ -33,7 +36,9 @@ func (rs *SurveyUseCasesImpl) RecordPostVisitSurvey(
 	input resources.PostVisitSurveyInput,
 ) (bool, error) {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
-		return false, exceptions.LikelyToRecommendError(fmt.Errorf(exceptions.LikelyToRecommendErrMsg))
+		return false, exceptions.LikelyToRecommendError(
+			fmt.Errorf(exceptions.LikelyToRecommendErrMsg),
+		)
 	}
 
 	UID, err := rs.baseExt.GetLoggedInUserUID(ctx)

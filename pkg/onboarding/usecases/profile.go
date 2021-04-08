@@ -65,7 +65,12 @@ type ProfileUseCase interface {
 	MaskPhoneNumbers(phones []string) []string
 	// called to set the primary phone number of a specific profile.
 	// useContext is used to mark under which scenario the method is been called.
-	SetPrimaryPhoneNumber(ctx context.Context, phoneNumber string, otp string, useContext bool) error
+	SetPrimaryPhoneNumber(
+		ctx context.Context,
+		phoneNumber string,
+		otp string,
+		useContext bool,
+	) error
 	SetPrimaryEmailAddress(
 		ctx context.Context,
 		emailAddress string,
@@ -125,7 +130,13 @@ type ProfileUseCase interface {
 
 	GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error)
 
-	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
+	SetUserCommunicationsSettings(
+		ctx context.Context,
+		allowWhatsApp *bool,
+		allowTextSms *bool,
+		allowPush *bool,
+		allowEmail *bool,
+	) (*base.UserCommunicationsSetting, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -166,7 +177,10 @@ func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile
 }
 
 // GetProfileByID returns the profile identified by the indicated ID
-func (p *ProfileUseCaseImpl) GetProfileByID(ctx context.Context, id *string) (*base.UserProfile, error) {
+func (p *ProfileUseCaseImpl) GetProfileByID(
+	ctx context.Context,
+	id *string,
+) (*base.UserProfile, error) {
 	profile, err := p.onboardingRepository.GetUserProfileByID(ctx, *id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
@@ -189,7 +203,11 @@ func (p *ProfileUseCaseImpl) UpdateUserName(ctx context.Context, userName string
 // this should be called after a prior check of uniqueness is done
 // We use `useContext` to determine
 // which mode to fetch the user profile
-func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone string, useContext bool) error {
+func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(
+	ctx context.Context,
+	phone string,
+	useContext bool,
+) error {
 
 	var profile *base.UserProfile
 
@@ -226,7 +244,8 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 		return err
 	}
 
-	// removes the new primary phone number from the list of secondary primary phones and adds the previous primary phone number
+	// removes the new primary phone number from the list of secondary primary phones and adds the
+	// previous primary phone number
 	// into the list of new secondary phone numbers
 	newSecPhones := func(oldSecondaryPhones []string, oldPrimaryPhone string, newPrimaryPhone string) []string {
 		secPhones := []string{}
@@ -238,7 +257,11 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 		secPhones = append(secPhones, oldPrimaryPhone)
 
 		return secPhones
-	}(previousSecondaryPhones, *previousPrimaryPhone, *phoneNumber)
+	}(
+		previousSecondaryPhones,
+		*previousPrimaryPhone,
+		*phoneNumber,
+	)
 
 	if len(newSecPhones) >= 1 {
 		if err := profile.UpdateProfileSecondaryPhoneNumbers(ctx, p.onboardingRepository, newSecPhones); err != nil {
@@ -251,7 +274,10 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(ctx context.Context, phone
 
 // UpdatePrimaryEmailAddress updates primary email address of a specific user profile
 // this should be called after a prior check of uniqueness is done
-func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emailAddress string) error {
+func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(
+	ctx context.Context,
+	emailAddress string,
+) error {
 	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
@@ -264,7 +290,8 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emai
 	if err := profile.UpdateProfilePrimaryEmailAddress(ctx, p.onboardingRepository, emailAddress); err != nil {
 		return err
 	}
-	// removes the new primary email from the list of secondary emails and adds the previous primary email
+	// removes the new primary email from the list of secondary emails and adds the previous primary
+	// email
 	// into the list of new secondary emails
 	previousPrimaryEmail := profile.PrimaryEmailAddress
 	previousSecondaryEmails := profile.SecondaryEmailAddresses
@@ -282,7 +309,11 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emai
 			}
 
 			return secEmails
-		}(previousSecondaryEmails, *previousPrimaryEmail, emailAddress)
+		}(
+			previousSecondaryEmails,
+			*previousPrimaryEmail,
+			emailAddress,
+		)
 
 		if len(newSecEmails) >= 1 {
 			if err := profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, newSecEmails); err != nil {
@@ -298,7 +329,10 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(ctx context.Context, emai
 
 // UpdateSecondaryPhoneNumbers updates secondary phone numbers of a specific user profile
 // this should be called after a prior check of uniqueness is done
-func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error {
+func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(
+	ctx context.Context,
+	phoneNumbers []string,
+) error {
 	uniquePhones := []string{}
 	// assert that the phone numbers are unique
 	for _, phone := range phoneNumbers {
@@ -334,7 +368,10 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(ctx context.Context, ph
 
 // UpdateSecondaryEmailAddresses updates secondary email address of a specific user profile
 // this should be called after a prior check of uniqueness is done
-func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(ctx context.Context, emailAddresses []string) error {
+func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(
+	ctx context.Context,
+	emailAddresses []string,
+) error {
 	uniqueEmails := []string{}
 	// assert that the phone numbers are unique
 	for _, email := range emailAddresses {
@@ -362,11 +399,20 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(ctx context.Context, 
 		}
 
 		if profile.PrimaryEmailAddress != nil {
-			return profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, uniqueEmails)
+			return profile.UpdateProfileSecondaryEmailAddresses(
+				ctx,
+				p.onboardingRepository,
+				uniqueEmails,
+			)
 		}
 
-		// internal error. primary email addresses must be present before addong secondary email addresses.
-		return exceptions.InternalServerError(fmt.Errorf("primary email addresses must be present before adding secondary email addresses"))
+		// internal error. primary email addresses must be present before addong secondary email
+		// addresses.
+		return exceptions.InternalServerError(
+			fmt.Errorf(
+				"primary email addresses must be present before adding secondary email addresses",
+			),
+		)
 
 	}
 
@@ -389,7 +435,10 @@ func (p *ProfileUseCaseImpl) UpdateVerifiedUIDS(ctx context.Context, uids []stri
 }
 
 // UpdateVerifiedIdentifiers updates the profile's verified identifiers
-func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(ctx context.Context, identifiers []base.VerifiedIdentifier) error {
+func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(
+	ctx context.Context,
+	identifiers []base.VerifiedIdentifier,
+) error {
 	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
@@ -405,7 +454,12 @@ func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(ctx context.Context, iden
 }
 
 // UpdateSuspended updates primary suspend attribute of a specific user profile
-func (p *ProfileUseCaseImpl) UpdateSuspended(ctx context.Context, status bool, phone string, useContext bool) error {
+func (p *ProfileUseCaseImpl) UpdateSuspended(
+	ctx context.Context,
+	status bool,
+	phone string,
+	useContext bool,
+) error {
 	var profile *base.UserProfile
 
 	phoneNumber, err := p.baseExt.NormalizeMSISDN(phone)
@@ -475,7 +529,11 @@ func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cov
 }
 
 // UpdatePushTokens updates primary push tokens of a specific user profile.
-func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error {
+func (p *ProfileUseCaseImpl) UpdatePushTokens(
+	ctx context.Context,
+	pushToken string,
+	retire bool,
+) error {
 	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
@@ -505,7 +563,10 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(ctx context.Context, pushToken str
 }
 
 // UpdatePermissions updates the profiles permissions
-func (p *ProfileUseCaseImpl) UpdatePermissions(ctx context.Context, perms []base.PermissionType) error {
+func (p *ProfileUseCaseImpl) UpdatePermissions(
+	ctx context.Context,
+	perms []base.PermissionType,
+) error {
 	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return exceptions.UserNotFoundError(err)
@@ -525,7 +586,11 @@ func (p *ProfileUseCaseImpl) AddAdminPermsToUser(ctx context.Context, phone stri
 		return exceptions.NormalizeMSISDNError(err)
 	}
 
-	profile, err := p.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
+	profile, err := p.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(
+		ctx,
+		*phoneNumber,
+		false,
+	)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -576,7 +641,12 @@ func (p *ProfileUseCaseImpl) GetUserProfileByUID(
 }
 
 // SetPrimaryPhoneNumber set the primary phone number of the user after verifying the otp code
-func (p *ProfileUseCaseImpl) SetPrimaryPhoneNumber(ctx context.Context, phoneNumber string, otp string, useContext bool) error {
+func (p *ProfileUseCaseImpl) SetPrimaryPhoneNumber(
+	ctx context.Context,
+	phoneNumber string,
+	otp string,
+	useContext bool,
+) error {
 	// verify otp code
 	verified, err := p.otpUseCases.VerifyOTP(
 		ctx,
@@ -687,7 +757,10 @@ func (p *ProfileUseCaseImpl) CheckEmailExists(ctx context.Context, email string)
 }
 
 // RetireSecondaryPhoneNumbers removes specific secondary phone numbers from the user's profile.'
-func (p *ProfileUseCaseImpl) RetireSecondaryPhoneNumbers(ctx context.Context, toRemovePhoneNumbers []string) (bool, error) {
+func (p *ProfileUseCaseImpl) RetireSecondaryPhoneNumbers(
+	ctx context.Context,
+	toRemovePhoneNumbers []string,
+) (bool, error) {
 	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return false, exceptions.UserNotFoundError(err)
@@ -722,7 +795,10 @@ func (p *ProfileUseCaseImpl) RetireSecondaryPhoneNumbers(ctx context.Context, to
 }
 
 // RetireSecondaryEmailAddress removes specific secondary email addresses from the user's profile.
-func (p *ProfileUseCaseImpl) RetireSecondaryEmailAddress(ctx context.Context, toRemoveEmails []string) (bool, error) {
+func (p *ProfileUseCaseImpl) RetireSecondaryEmailAddress(
+	ctx context.Context,
+	toRemoveEmails []string,
+) (bool, error) {
 	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return false, exceptions.UserNotFoundError(err)
@@ -906,8 +982,12 @@ func (p *ProfileUseCaseImpl) ProfileAttributes(
 }
 
 // SetupAsExperimentParticipant sets up the logged-in user as an experiment participant.
-// An experiment participant will be able to see unstable or otherwise flaged-feature in the UI of the app
-func (p *ProfileUseCaseImpl) SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error) {
+// An experiment participant will be able to see unstable or otherwise flaged-feature in the UI of
+// the app
+func (p *ProfileUseCaseImpl) SetupAsExperimentParticipant(
+	ctx context.Context,
+	participate *bool,
+) (bool, error) {
 	// fetch the user profile
 	pr, err := p.UserProfile(ctx)
 	if err != nil {
@@ -1023,7 +1103,9 @@ func (p *ProfileUseCaseImpl) GetAddresses(
 }
 
 // GetUserCommunicationsSettings  retrives the logged in user communications settings.
-func (p *ProfileUseCaseImpl) GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error) {
+func (p *ProfileUseCaseImpl) GetUserCommunicationsSettings(
+	ctx context.Context,
+) (*base.UserCommunicationsSetting, error) {
 	pr, err := p.UserProfile(ctx)
 	if err != nil {
 		return nil, err
@@ -1032,11 +1114,24 @@ func (p *ProfileUseCaseImpl) GetUserCommunicationsSettings(ctx context.Context) 
 }
 
 // SetUserCommunicationsSettings sets the user communication settings
-func (p *ProfileUseCaseImpl) SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
+func (p *ProfileUseCaseImpl) SetUserCommunicationsSettings(
+	ctx context.Context,
+	allowWhatsApp *bool,
+	allowTextSms *bool,
+	allowPush *bool,
+	allowEmail *bool,
+) (*base.UserCommunicationsSetting, error) {
 	pr, err := p.UserProfile(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return p.onboardingRepository.SetUserCommunicationsSettings(ctx, pr.ID, allowWhatsApp, allowTextSms, allowPush, allowEmail)
+	return p.onboardingRepository.SetUserCommunicationsSettings(
+		ctx,
+		pr.ID,
+		allowWhatsApp,
+		allowTextSms,
+		allowPush,
+		allowEmail,
+	)
 
 }

@@ -51,7 +51,11 @@ func NewUserPinUseCase(
 }
 
 // SetUserPIN receives phone number and pin from phonenumber sign up
-func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone string) (bool, error) {
+func (u *UserPinUseCaseImpl) SetUserPIN(
+	ctx context.Context,
+	pin string,
+	phone string,
+) (bool, error) {
 	phoneNumber, err := u.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
@@ -89,7 +93,10 @@ func (u *UserPinUseCaseImpl) SetUserPIN(ctx context.Context, pin string, phone s
 // RequestPINReset sends a request given an existing user's phone number,
 // sends an otp to the phone number that is then used in the process of
 // updating their old PIN to a new one
-func (u *UserPinUseCaseImpl) RequestPINReset(ctx context.Context, phone string) (*base.OtpResponse, error) {
+func (u *UserPinUseCaseImpl) RequestPINReset(
+	ctx context.Context,
+	phone string,
+) (*base.OtpResponse, error) {
 	phoneNumber, err := u.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
@@ -135,7 +142,11 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 		return false, exceptions.VerifyOTPError(nil)
 	}
 
-	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
+	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(
+		ctx,
+		*phoneNumber,
+		false,
+	)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return false, err
@@ -163,13 +174,21 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 }
 
 // ChangeUserPIN updates authenticated user's pin with the newly supplied pin
-func (u *UserPinUseCaseImpl) ChangeUserPIN(ctx context.Context, phone string, pin string) (bool, error) {
+func (u *UserPinUseCaseImpl) ChangeUserPIN(
+	ctx context.Context,
+	phone string,
+	pin string,
+) (bool, error) {
 	phoneNumber, err := u.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
-	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
+	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(
+		ctx,
+		*phoneNumber,
+		false,
+	)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return false, err
