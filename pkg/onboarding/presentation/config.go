@@ -143,6 +143,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	) // recover from panics by writing a HTTP error
 	r.Use(base.RequestDebugMiddleware())
 
+	// Add Middleware that records the metrics for HTTP routes
+	r.Use(base.CustomHTTPRequestMetricsMiddleware())
+
 	// Unauthenticated routes
 	r.Path("/pubsub").Methods(
 		http.MethodPost).
