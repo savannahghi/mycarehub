@@ -3788,7 +3788,7 @@ type KYCRequest {
   processed: Boolean!
   supplierRecord: Supplier!
   status: KYCProcessStatus
-  filedTimestamp: Time!
+  filedTimestamp: Time
   processedTimestamp: Time
 }
 
@@ -7669,14 +7669,11 @@ func (ec *executionContext) _KYCRequest_filedTimestamp(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _KYCRequest_processedTimestamp(ctx context.Context, field graphql.CollectedField, obj *domain.KYCRequest) (ret graphql.Marshaler) {
@@ -18125,9 +18122,6 @@ func (ec *executionContext) _KYCRequest(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._KYCRequest_status(ctx, field, obj)
 		case "filedTimestamp":
 			out.Values[i] = ec._KYCRequest_filedTimestamp(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "processedTimestamp":
 			out.Values[i] = ec._KYCRequest_processedTimestamp(ctx, field, obj)
 		default:
@@ -20575,21 +20569,6 @@ func (ec *executionContext) marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcom�
 
 func (ec *executionContext) marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx context.Context, sel ast.SelectionSet, v domain.ThinAddress) graphql.Marshaler {
 	return ec._ThinAddress(ctx, sel, &v)
-}
-
-func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
-	res, err := graphql.UnmarshalTime(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
-	res := graphql.MarshalTime(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
 }
 
 func (ec *executionContext) unmarshalNUserAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐUserAddressInput(ctx context.Context, v interface{}) (resources.UserAddressInput, error) {

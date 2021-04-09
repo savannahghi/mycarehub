@@ -376,7 +376,7 @@ type KYCRequest {
   processed: Boolean!
   supplierRecord: Supplier!
   status: KYCProcessStatus
-  filedTimestamp: Time!
+  filedTimestamp: Time
   processedTimestamp: Time
 }
 
