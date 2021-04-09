@@ -88,8 +88,8 @@ const (
 	// don't succeed e.g network latency
 	InternalServerErrorMsg = "server error! unable to perform operation"
 
-	// ValidatePuskTokenLengthErrMsg ...
-	ValidatePuskTokenLengthErrMsg = "invalid push token detected"
+	// ValidatePushTokenLengthErrMsg ...
+	ValidatePushTokenLengthErrMsg = "invalid push token detected"
 
 	// WrongEnumErrMsg is an error message returned when a wrong enum
 	// type is supplied

@@ -20,7 +20,7 @@ func ProfileSuspendFoundError() error {
 	return &base.CustomError{
 		Message: ProfileSuspenedFoundErrMsg,
 		// todo(dexter): this error warrants a correct error code in base
-		Code: int(base.ProfileNotFound),
+		Code: int(base.ProfileSuspended),
 	}
 }
 
@@ -182,8 +182,7 @@ func EncryptPINError(err error) error {
 	return &base.CustomError{
 		Err:     err,
 		Message: EncryptPINErrMsg,
-		// TODO: add correct error code
-		Code: int(base.Internal),
+		Code:    int(base.PINError),
 	}
 }
 
@@ -193,8 +192,7 @@ func ValidatePINDigitsError(err error) error {
 	return &base.CustomError{
 		Err:     err,
 		Message: ValidatePINDigitsErrMsg,
-		// TODO: a give a correct code
-		Code: int(base.UserNotFound),
+		Code:    int(base.PINError),
 	}
 
 }
@@ -205,8 +203,7 @@ func ValidatePINLengthError(err error) error {
 	return &base.CustomError{
 		Err:     err,
 		Message: ValidatePINLengthErrMsg,
-		// TODO: a give a correct code
-		Code: int(base.UserNotFound),
+		Code:    int(base.PINError),
 	}
 
 }
@@ -216,9 +213,8 @@ func ValidatePINLengthError(err error) error {
 func InValidPushTokenLengthError() error {
 	return &base.CustomError{
 		Err:     fmt.Errorf("invalid push token length"),
-		Message: ValidatePuskTokenLengthErrMsg,
-		// TODO: a give a correct code
-		Code: int(base.UndefinedArguments),
+		Message: ValidatePushTokenLengthErrMsg,
+		Code:    int(base.InvalidPushTokenLength),
 	}
 }
 
@@ -228,8 +224,7 @@ func WrongEnumTypeError(value string) error {
 	return &base.CustomError{
 		Err:     fmt.Errorf("%v", WrongEnumErrMsg),
 		Message: fmt.Sprintf(WrongEnumErrMsg, value),
-		// TODO: a give a correct code
-		Code: int(base.Internal),
+		Code:    int(base.InvalidEnum),
 	}
 
 }
@@ -239,8 +234,7 @@ func VerifyOTPError(err error) error {
 	return &base.CustomError{
 		Err:     err,
 		Message: OTPVerificationErrMsg,
-		// TODO: @salaton OTP verification error code
-		Code: int(base.Internal),
+		Code:    int(base.OTPVerificationFailed),
 	}
 }
 
@@ -249,8 +243,7 @@ func MissingInputError(value string) error {
 	return &base.CustomError{
 		Err:     nil,
 		Message: "expected `%s` to be defined",
-		// TODO: @salaton error code
-		Code: int(base.Internal),
+		Code:    int(base.OTPVerificationFailed),
 	}
 }
 
@@ -260,8 +253,7 @@ func InvalidFlavourDefinedError() error {
 	return &base.CustomError{
 		Err:     fmt.Errorf("invalid flavour defined"),
 		Message: InvalidFlavourDefinedErrMsg,
-		// TODO: a give a correct code
-		Code: int(base.UndefinedArguments),
+		Code:    int(base.InvalidFlavour),
 	}
 }
 
@@ -271,8 +263,7 @@ func AddPartnerTypeError(err error) error {
 	return &base.CustomError{
 		Err:     err,
 		Message: AddPartnerTypeErrMsg,
-		// TODO: provide a correct code
-		Code: int(base.Internal),
+		Code:    int(base.InvalidEnum),
 	}
 
 }
@@ -283,8 +274,7 @@ func InvalidPartnerTypeError() error {
 	return &base.CustomError{
 		Err:     fmt.Errorf("invalid `partnerType` provided"),
 		Message: InvalidPartnerTypeErrMsg,
-		// TODO: provide a correct code
-		Code: int(base.Internal),
+		Code:    int(base.InvalidEnum),
 	}
 }
 
@@ -294,8 +284,7 @@ func FetchDefaultCurrencyError(err error) error {
 	return &base.CustomError{
 		Err:     err,
 		Message: FetchDefaultCurrencyErrMsg,
-		// TODO: provide a correct code
-		Code: int(base.Internal),
+		Code:    int(base.RecordNotFound),
 	}
 }
 
@@ -331,8 +320,7 @@ func FindProviderError(err error) error {
 	return &base.CustomError{
 		Err:     err,
 		Message: FindProviderErrMsg,
-		// TODO: provide a correct code
-		Code: int(base.Internal),
+		Code:    int(base.UnableToFindProvider),
 	}
 }
 
@@ -342,8 +330,7 @@ func PublishKYCNudgeError(err error) error {
 	return &base.CustomError{
 		Err:     err,
 		Message: PublishKYCNudgeErrMsg,
-		// TODO: provide a correct code
-		Code: int(base.Internal),
+		Code:    int(base.PublishNudgeFailure),
 	}
 }
 
@@ -352,8 +339,7 @@ func InvalidCredentialsError() error {
 	return &base.CustomError{
 		Err:     fmt.Errorf("invalid credentials, expected a username AND password"),
 		Message: InvalidCredentialsErrMsg,
-		// TODO: provide a correct code
-		Code: int(base.Internal),
+		Code:    int(base.InvalidCredentials),
 	}
 }
 
@@ -362,8 +348,7 @@ func SaveUserPinError(err error) error {
 	return &base.CustomError{
 		Err:     err,
 		Message: SaveUserPinErrMsg,
-		// TODO: provide a correct code
-		Code: int(base.Internal),
+		Code:    int(base.PINError),
 	}
 }
 
@@ -373,8 +358,7 @@ func CompleteSignUpError(err error) error {
 	return &base.CustomError{
 		Err:     err,
 		Message: BioDataErrMsg,
-		// TODO: provide a correct code
-		Code: int(base.Internal),
+		Code:    int(base.AddNewRecordError),
 	}
 }
 
@@ -383,8 +367,7 @@ func CompleteSignUpError(err error) error {
 func UsernameInUseError() error {
 	return &base.CustomError{
 		Message: UsernameInUseErrMsg,
-		// TODO: provide a correct code
-		Code: int(base.UserNotFound),
+		Code:    int(base.UsernameInUse),
 	}
 }
 
@@ -401,8 +384,7 @@ func SecondaryResourceHardResetError() error {
 func InvalidSladeCodeError() error {
 	return &base.CustomError{
 		Message: InvalidSladeCodeErrMsg,
-		// TODO: provide a correct code
-		Code: int(base.Internal),
+		Code:    int(base.InvalidSladeCode),
 	}
 }
 

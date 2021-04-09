@@ -37,7 +37,7 @@ const (
 // for the `VerifyEmail` nudge
 const VerifyEmailNudgeTitle = "Add Primary Email Address"
 
-// ProfileUseCase represents all the profile business logi
+// ProfileUseCase represents all the profile business logic
 type ProfileUseCase interface {
 	// profile related
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
