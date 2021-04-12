@@ -1682,68 +1682,59 @@ func TestSupplierSetDefaultLocation(t *testing.T) {
 }
 
 func TestFindSupplierByUID(t *testing.T) {
-
-	s, err := InitializeTestService(context.Background())
+	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
-		t.Error("failed to setup signup usecase")
-	}
-
-	primaryPhone := base.TestUserPhoneNumber
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
-
-	otp, err := generateTestOTP(t, primaryPhone)
-	if err != nil {
-		t.Errorf("failed to generate test OTP: %v", err)
+		t.Errorf("failed to get test authenticated context: %v", err)
 		return
 	}
-	pin := "1234"
-	resp1, err := s.Signup.CreateUserByPhone(
-		context.Background(),
-		&resources.SignUpInput{
-			PhoneNumber: &primaryPhone,
-			PIN:         &pin,
-			Flavour:     base.FlavourPro,
-			OTP:         &otp.OTP,
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.Supplier
+		wantErr bool
+	}{
+		{
+			name: "happy :) find supplier by UID",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
 		},
-	)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp1)
-	assert.NotNil(t, resp1.Profile)
-	assert.NotNil(t, resp1.CustomerProfile)
-	assert.NotNil(t, resp1.SupplierProfile)
-
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourPro)
-	assert.Nil(t, err)
-	assert.NotNil(t, login1)
-	assert.NotNil(t, login1.SupplierProfile)
-	assert.Equal(t, resp1.SupplierProfile.ID, login1.SupplierProfile.ID)
-	assert.Equal(t, resp1.SupplierProfile.ProfileID, login1.SupplierProfile.ProfileID)
-
-	// create authenticated context
-	ctx := context.Background()
-	authCred := &auth.Token{UID: login1.Auth.UID}
-	authenticatedContext := context.WithValue(
-		ctx,
-		base.AuthTokenContextKey,
-		authCred,
-	)
-	s, _ = InitializeTestService(authenticatedContext)
-
-	// fetch the supplier profile with the uid
-	spr, err := s.Supplier.FindSupplierByUID(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, spr)
-	assert.Equal(t, login1.SupplierProfile.ID, spr.ID)
-	assert.Equal(t, login1.SupplierProfile.ProfileID, spr.ProfileID)
-	assert.Equal(t, login1.SupplierProfile.Active, spr.Active)
-	assert.Equal(t, login1.SupplierProfile.AccountType, spr.AccountType)
-
-	// try using the wrong context. shoild should fail
-	spr, err = s.Supplier.FindSupplierByUID(context.Background())
-	assert.NotNil(t, err)
-	assert.Nil(t, spr)
+		{
+			name: "sad :( fail to find supplier by UID",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			supplier, err := s.Supplier.FindSupplierByUID(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.FindSupplierByUID() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
+				return
+			}
+			if supplier != nil {
+				if supplier.ID == "" {
+					t.Errorf("expected a supplier.")
+					return
+				}
+			}
+		})
+	}
 }
 
 func TestFindSupplierByID(t *testing.T) {
