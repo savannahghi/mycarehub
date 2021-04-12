@@ -62,7 +62,7 @@ extend type Mutation {
     sladeCode: String!
   ): SupplierLogin!
 
-  supplierSetDefaultLocation(locatonID: String!): Supplier!
+  supplierSetDefaultLocation(locationID: String!): Supplier!
 
   addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
 

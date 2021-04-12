@@ -234,7 +234,7 @@ type ComplexityRoot struct {
 		SetUserCommunicationsSettings    func(childComplexity int, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) int
 		SetupAsExperimentParticipant     func(childComplexity int, participate *bool) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
-		SupplierSetDefaultLocation       func(childComplexity int, locatonID string) int
+		SupplierSetDefaultLocation       func(childComplexity int, locationID string) int
 		SuspendSupplier                  func(childComplexity int) int
 		UpdateUserName                   func(childComplexity int, username string) int
 		UpdateUserPin                    func(childComplexity int, phone string, pin string) int
@@ -480,7 +480,7 @@ type MutationResolver interface {
 	SuspendSupplier(ctx context.Context) (bool, error)
 	SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
 	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error)
-	SupplierSetDefaultLocation(ctx context.Context, locatonID string) (*base.Supplier, error)
+	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error)
 	AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
 	AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error)
 	AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error)
@@ -1545,7 +1545,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SupplierSetDefaultLocation(childComplexity, args["locatonID"].(string)), true
+		return e.complexity.Mutation.SupplierSetDefaultLocation(childComplexity, args["locationID"].(string)), true
 
 	case "Mutation.suspendSupplier":
 		if e.complexity.Mutation.SuspendSupplier == nil {
@@ -3348,7 +3348,7 @@ extend type Mutation {
     sladeCode: String!
   ): SupplierLogin!
 
-  supplierSetDefaultLocation(locatonID: String!): Supplier!
+  supplierSetDefaultLocation(locationID: String!): Supplier!
 
   addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
 
@@ -4426,14 +4426,14 @@ func (ec *executionContext) field_Mutation_supplierSetDefaultLocation_args(ctx c
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["locatonID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locatonID"))
+	if tmp, ok := rawArgs["locationID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locationID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["locatonID"] = arg0
+	args["locationID"] = arg0
 	return args, nil
 }
 
@@ -8455,7 +8455,7 @@ func (ec *executionContext) _Mutation_supplierSetDefaultLocation(ctx context.Con
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SupplierSetDefaultLocation(rctx, args["locatonID"].(string))
+		return ec.resolvers.Mutation().SupplierSetDefaultLocation(rctx, args["locationID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

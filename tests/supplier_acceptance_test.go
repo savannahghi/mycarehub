@@ -2431,7 +2431,7 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphqlMutation := `mutation SupplierSetDefaultLocation($input: String!){
-		supplierSetDefaultLocation(locatonID:$input){
+		supplierSetDefaultLocation(locationID:$input){
 			id
 		}
 	  }

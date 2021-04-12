@@ -183,10 +183,10 @@ func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string
 	return supplierEDILogin, err
 }
 
-func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locatonID string) (*base.Supplier, error) {
+func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error) {
 	startTime := time.Now()
 
-	supplier, err := r.interactor.Supplier.SupplierSetDefaultLocation(ctx, locatonID)
+	supplier, err := r.interactor.Supplier.SupplierSetDefaultLocation(ctx, locationID)
 
 	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "supplierSetDefaultLocation", err)
 
