@@ -1760,13 +1760,13 @@ func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile,
 
 // PurgeUserByPhoneNumber removes the record of a user given a phone number.
 func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) error {
-	pr, err := fr.GetUserProfileByPhoneNumber(ctx, phone, false)
+	profile, err := fr.GetUserProfileByPhoneNumber(ctx, phone, false)
 	if err != nil {
 		return exceptions.InternalServerError(err)
 	}
 
 	// delete pin of the user
-	pin, err := fr.GetPINByProfileID(ctx, pr.ID)
+	pin, err := fr.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
 		return exceptions.InternalServerError(err)
 	}
@@ -1787,15 +1787,24 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 		}
 	}
 	// delete user supplier profile
-	// some old profiles may not have a supplier profile since the original implementation created a supplier profile
-	// only for PRO. However the current and correct logic creates a supplier profile regardless of flavour. Hence, the deletion of supplier
+	// some old profiles may not have a supplier profile since the original implementation
+	// created a supplier profile only for PRO.
+	// However the current and correct logic creates a supplier profile regardless of flavour.
+	// Hence, the deletion of supplier
 	// profile should only occur if a supplier profile exists and not throw an error.
-	spr, err := fr.GetSupplierProfileByProfileID(ctx, pr.ID)
-	if err == nil {
+	supplier, err := fr.GetSupplierProfileByProfileID(ctx, profile.ID)
+	if err != nil {
+		log.Printf("Supplier record was not found: %v", err)
+	} else {
+		err = fr.RemoveKYCProcessingRequest(ctx, supplier.ID)
+		if err != nil {
+			log.Printf("KYC request information was not removed %v", err)
+		}
+
 		query := &GetAllQuery{
 			CollectionName: fr.GetSupplierProfileCollectionName(),
 			FieldName:      "id",
-			Value:          spr.ID,
+			Value:          supplier.ID,
 			Operator:       "==",
 		}
 		if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
@@ -1810,15 +1819,19 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	}
 
 	// delete user customer profile
-	// some old profiles may not have a customer profile since the original implementation created a customer profile
-	// only for CONSUMER. However the current and correct logic creates a customer profile regardless of flavour. Hence, the deletion of customer
+	// some old profiles may not have a customer profile since the original implementation
+	// created a customer profile only for CONSUMER.
+	// However the current and correct logic creates a customer profile regardless of flavour.
+	// Hence, the deletion of customer
 	// profile should only occur if a customer profile exists and not throw an error.
-	cpr, err := fr.GetCustomerProfileByProfileID(ctx, pr.ID)
-	if err == nil {
+	customer, err := fr.GetCustomerProfileByProfileID(ctx, profile.ID)
+	if err != nil {
+		log.Printf("Customer record was not found: %v", err)
+	} else {
 		query := &GetAllQuery{
 			CollectionName: fr.GetCustomerProfileCollectionName(),
 			FieldName:      "id",
-			Value:          cpr.ID,
+			Value:          customer.ID,
 			Operator:       "==",
 		}
 		if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
@@ -1836,7 +1849,7 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	query1 := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "id",
-		Value:          pr.ID,
+		Value:          profile.ID,
 		Operator:       "==",
 	}
 	if docs, err := fr.FirestoreClient.GetAll(ctx, query1); err == nil {
@@ -1859,7 +1872,6 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	}
 
 	return nil
-
 }
 
 // GetCustomerOrSupplierProfileByProfileID returns either a customer or supplier profile
