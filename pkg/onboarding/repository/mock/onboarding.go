@@ -28,6 +28,8 @@ type FakeOnboardingRepository struct {
 	// sets the active attribute of supplier profile to true
 	ActivateSupplierProfileFn func(profileID string, supplier base.Supplier) (*base.Supplier, error)
 
+	SetUpSupplierFn func(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
+
 	FetchKYCProcessingRequestsFn func(ctx context.Context) ([]*domain.KYCRequest, error)
 
 	FetchKYCProcessingRequestByIDFn func(ctx context.Context, id string) (*domain.KYCRequest, error)
@@ -213,6 +215,11 @@ func (f *FakeOnboardingRepository) ActivateSupplierProfile(profileID string, sup
 // FetchKYCProcessingRequests ...
 func (f *FakeOnboardingRepository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
 	return f.FetchKYCProcessingRequestsFn(ctx)
+}
+
+// SetUpSupplier ...
+func (f *FakeOnboardingRepository) SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error) {
+	return f.SetUpSupplierFn(ctx, accountType)
 }
 
 // FetchKYCProcessingRequestByID ...

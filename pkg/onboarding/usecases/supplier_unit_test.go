@@ -1193,27 +1193,35 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
 					return &base.UserProfile{
-						ID: "400d-8716--91bd-42b3af315a4e",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
@@ -1221,19 +1229,18 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 						},
 					}, nil
 				}
-
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
-					return adminUsers, nil
-				}
-
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-
+				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
 				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
@@ -1718,29 +1725,36 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 						ID: "f4f39af791bd-42b3af3-5b64-4c2f-15a4e",
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
 					return &base.UserProfile{
-						ID: "400d-8716--91bd-42b3af315a4e",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
@@ -1748,19 +1762,18 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 						},
 					}, nil
 				}
-
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
-					return adminUsers, nil
-				}
-
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-
+				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
 				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
@@ -2028,47 +2041,54 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
-						ID:           "42b3af315a4e-5b64-4c2f-91bd",
+						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
-						SupplierID:   "8716-7e2ae-ad29f2c-400d",
+						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c-42b3af315a4e", nil
+					return "7e2aea-d29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
 					return &base.UserProfile{
-						ID: "400d-8716--91bd",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
-								UID: "42b3af315a4e-91bd-42b3af-315a4e",
+								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
-					return adminUsers, nil
-				}
-
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-
+				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
 				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
@@ -2285,27 +2305,35 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
 					return &base.UserProfile{
-						ID: "400d-8716--91bd-42b3af315a4e",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
@@ -2313,19 +2341,18 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 						},
 					}, nil
 				}
-
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
-					return adminUsers, nil
-				}
-
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-
+				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
 				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
@@ -2537,27 +2564,35 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
 					return &base.UserProfile{
-						ID: "400d-8716--91bd-42b3af315a4e",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
@@ -2565,19 +2600,18 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 						},
 					}, nil
 				}
-
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
-					return adminUsers, nil
-				}
-
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-
+				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
 				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
@@ -2772,29 +2806,36 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accountType := base.AccountTypeOrganisation
 					return &base.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
 					return &base.UserProfile{
-						ID: "400d-8716--91bd-42b3af315a4e",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
@@ -2802,19 +2843,18 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 						},
 					}, nil
 				}
-
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
-					return adminUsers, nil
-				}
-
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-
+				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
 				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
@@ -3207,27 +3247,35 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					accountType := base.AccountTypeIndividual
 					return &base.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accountType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
 					return &base.UserProfile{
-						ID: "400d-8716--91bd-42b3af315a4e",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
@@ -3235,19 +3283,18 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 						},
 					}, nil
 				}
-
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
-					return adminUsers, nil
-				}
-
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-
+				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
 				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
@@ -3579,29 +3626,36 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					accountType := base.AccountTypeIndividual
 					return &base.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accountType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
 					return &base.UserProfile{
-						ID: "400d-8716--91bd-42b3af315a4e",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
@@ -3609,19 +3663,18 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 						},
 					}, nil
 				}
-
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
-					return adminUsers, nil
-				}
-
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-
+				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
 				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
@@ -3947,29 +4000,36 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					accountType := base.AccountTypeIndividual
 					return &base.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accountType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
 					return &base.UserProfile{
-						ID: "400d-8716--91bd-42b3af315a4e",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
@@ -3977,19 +4037,18 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 						},
 					}, nil
 				}
-
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
-					return adminUsers, nil
-				}
-
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-
+				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
 				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
@@ -4309,35 +4368,41 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					accountType := base.AccountTypeIndividual
 					return &base.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accountType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
 					return &base.UserProfile{
-						ID: "400d-8716--91bd-42b3af315a4e",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
@@ -4345,19 +4410,18 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 						},
 					}, nil
 				}
-
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
-					return adminUsers, nil
-				}
-
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-
+				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
 				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
@@ -4670,29 +4734,36 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+					accountType := base.AccountTypeIndividual
 					return &base.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+					accountType := base.AccountTypeIndividual
 					return &base.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
+						AccountType:  &accountType,
 					}, nil
 				}
-
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
 					return &base.UserProfile{
-						ID: "400d-8716--91bd-42b3af315a4e",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
@@ -4700,19 +4771,18 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 						},
 					}, nil
 				}
-
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
-					return adminUsers, nil
-				}
-
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-
+				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+					return nil
+				}
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return adminUsers, nil
+				}
 				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",

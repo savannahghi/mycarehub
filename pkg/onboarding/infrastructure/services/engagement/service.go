@@ -1,13 +1,16 @@
 package engagement
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
+	"text/template"
 
 	"github.com/asaskevich/govalidator"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
 const (
@@ -42,6 +45,14 @@ type ServiceEngagement interface {
 		email string,
 		message string,
 		subject string,
+	) error
+	SendAlertToSupplier(
+		supplierName string,
+		partnerType string,
+		accountType string,
+		subjectTitle string,
+		emailBody string,
+		emailAddress string,
 	) error
 }
 
@@ -150,6 +161,50 @@ func (en *ServiceEngagementImpl) SendMail(
 			err,
 			resp.StatusCode,
 		)
+	}
+
+	return nil
+}
+
+//SendAlertToSupplier send email to admin notifying them of them of new
+// KYC Request.
+func (en *ServiceEngagementImpl) SendAlertToSupplier(
+	supplierName string,
+	partnerType string,
+	accountType string,
+	subjectTitle string,
+	emailBody string,
+	emailAddress string,
+) error {
+	var writer bytes.Buffer
+	t := template.Must(template.New("profile").Parse(utils.AcknowledgementKYCEmail))
+	_ = t.Execute(&writer, struct {
+		SupplierName string
+		PartnerType  string
+		AccountType  string
+		EmailBody    string
+		EmailAddress string
+	}{
+		SupplierName: supplierName,
+		PartnerType:  partnerType,
+		AccountType:  accountType,
+		EmailBody:    emailBody,
+		EmailAddress: emailAddress,
+	})
+
+	body := map[string]interface{}{
+		"to":      []string{emailAddress},
+		"text":    writer.String(),
+		"subject": subjectTitle,
+	}
+
+	resp, err := en.Engage.MakeRequest(http.MethodPost, sendEmail, body)
+
+	if err != nil {
+		return fmt.Errorf("unable to send Alert to admin email: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send Alert to admin email: %w", err)
 	}
 
 	return nil

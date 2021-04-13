@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	emailSignupSubject     = "Thank you for signing up"
+	emailKYCSubject        = "KYC Request"
 	active                 = true
 	country                = "KEN" // Anticipate worldwide expansion
 	supplierCollectionName = "suppliers"
@@ -1049,7 +1049,30 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
 		return err
 	}
+
+	if err != nil {
+		// this is a wrapped error. No need to wrap it again
+		return err
+	}
 	if err := s.StageKYCProcessingRequest(ctx, sup); err != nil {
+		return err
+	}
+
+	// KYC Acknowledgement Email
+	subjectTitle := "KYC Acknowledgement Email"
+	emailBody := `
+	a new supplier KYC request has been submitted. 
+	Log in to Be.Well Professional to process the request.
+	`
+	err = s.engagement.SendAlertToSupplier(
+		*profile.UserBioData.FirstName,
+		string(sup.PartnerType),
+		string(*sup.AccountType),
+		subjectTitle,
+		emailBody,
+		*profile.PrimaryEmailAddress,
+	)
+	if err != nil {
 		return err
 	}
 
@@ -1098,7 +1121,6 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(
 	ctx context.Context,
 	input domain.IndividualRider,
 ) (*domain.IndividualRider, error) {
-
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
@@ -1133,6 +1155,7 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(
 		sup.SupplierKYC = kycAsMap
 		sup.KYCSubmitted = true
 
+		// Notify the supplier and admins
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
 			return nil, err
 		}
@@ -1684,7 +1707,7 @@ func (s *SupplierUseCasesImpl) FetchKYCProcessingRequests(
 
 // SendKYCEmail will send a KYC processing request email to the supplier
 func (s *SupplierUseCasesImpl) SendKYCEmail(ctx context.Context, text, emailaddress string) error {
-	return s.engagement.SendMail(emailaddress, text, emailSignupSubject)
+	return s.engagement.SendMail(emailaddress, text, emailKYCSubject)
 }
 
 // ProcessKYCRequest transitions a kyc request to a given state

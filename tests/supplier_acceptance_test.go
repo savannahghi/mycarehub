@@ -722,18 +722,63 @@ func TestSupplierEDILogin(t *testing.T) {
 
 func TestAddIndividualPractitionerKYC(t *testing.T) {
 
-	// create a user and their profile
+	ctx := context.Background()
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
+	log.Printf("the user is %v", user)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-
 	idToken := user.Auth.IDToken
 	headers, err := CreatedUserGraphQLHeaders(idToken)
 	if err != nil {
 		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "practitioner"
+	partnerType := base.PartnerTypePractitioner
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	account, err := setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	log.Printf("the account type for this supplier is %v:", account.AccountType)
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
 
@@ -920,18 +965,62 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 	}
 }
 func TestAddOrganizationProviderKYC(t *testing.T) {
-	// create a user and their profile
+	ctx := context.Background()
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
+	log.Printf("the user is %v", user)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-
 	idToken := user.Auth.IDToken
 	headers, err := CreatedUserGraphQLHeaders(idToken)
 	if err != nil {
 		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "provider"
+	partnerType := base.PartnerTypeProvider
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
 
@@ -1132,18 +1221,62 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 }
 
 func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
-	// create a user and their profile
+	ctx := context.Background()
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
+	log.Printf("the user is %v", user)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-
 	idToken := user.Auth.IDToken
 	headers, err := CreatedUserGraphQLHeaders(idToken)
 	if err != nil {
 		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "pharmaceutical"
+	partnerType := base.PartnerTypePharmaceutical
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
 
@@ -1326,18 +1459,62 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 }
 
 func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
-	// create a user and their profile
+	ctx := context.Background()
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
+	log.Printf("the user is %v", user)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-
 	idToken := user.Auth.IDToken
 	headers, err := CreatedUserGraphQLHeaders(idToken)
 	if err != nil {
 		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "pharmaceutical"
+	partnerType := base.PartnerTypePharmaceutical
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
 
@@ -1516,18 +1693,62 @@ func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
 }
 
 func TestAddIndividualCoachKYC(t *testing.T) {
-	// create a user and their profile
+	ctx := context.Background()
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
+	log.Printf("the user is %v", user)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-
 	idToken := user.Auth.IDToken
 	headers, err := CreatedUserGraphQLHeaders(idToken)
 	if err != nil {
 		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "coach"
+	partnerType := base.PartnerTypeCoach
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
 
@@ -1694,14 +1915,14 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 }
 
 func TestAddOrganizationRiderKYC(t *testing.T) {
-	// create a user and their profile
+	ctx := context.Background()
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
+	log.Printf("the user is %v", user)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-
 	idToken := user.Auth.IDToken
 	headers, err := CreatedUserGraphQLHeaders(idToken)
 	if err != nil {
@@ -1709,6 +1930,49 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 		return
 	}
 
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "rider"
+	partnerType := base.PartnerTypeRider
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
+		return
+	}
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphQLMutation := `
@@ -1896,18 +2160,62 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 }
 
 func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
-	// create a user and their profile
+	ctx := context.Background()
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
+	log.Printf("the user is %v", user)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-
 	idToken := user.Auth.IDToken
 	headers, err := CreatedUserGraphQLHeaders(idToken)
 	if err != nil {
 		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "rider"
+	partnerType := base.PartnerTypeRider
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
 
@@ -2580,18 +2888,62 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 }
 
 func TestAddOrganizationCoachKYC(t *testing.T) {
-	// create a user and their profile
+	ctx := context.Background()
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
+	log.Printf("the user is %v", user)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-
 	idToken := user.Auth.IDToken
 	headers, err := CreatedUserGraphQLHeaders(idToken)
 	if err != nil {
 		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "coach"
+	partnerType := base.PartnerTypeCoach
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
 
@@ -2766,18 +3118,62 @@ func TestAddOrganizationCoachKYC(t *testing.T) {
 }
 
 func TestAddIndividualNutritionKYC(t *testing.T) {
-	// create a user and their profile
+	ctx := context.Background()
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
+	log.Printf("the user is %v", user)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-
 	idToken := user.Auth.IDToken
 	headers, err := CreatedUserGraphQLHeaders(idToken)
 	if err != nil {
 		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "nutrition"
+	partnerType := base.PartnerTypeNutrition
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
 
@@ -2941,18 +3337,62 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 }
 
 func TestAddOrganizationNutritionKyc(t *testing.T) {
-	// create a user and their profile
+	ctx := context.Background()
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
+	log.Printf("the user is %v", user)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-
 	idToken := user.Auth.IDToken
 	headers, err := CreatedUserGraphQLHeaders(idToken)
 	if err != nil {
 		t.Errorf("error in getting headers: %w", err)
+		return
+	}
+
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "nutrition"
+	partnerType := base.PartnerTypeNutrition
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
 
@@ -3217,14 +3657,14 @@ func TestSetupAsExperimentParticipant(t *testing.T) {
 }
 
 func TestAddOrganizationPractitionerKyc(t *testing.T) {
-	// create a user and their profile
+	ctx := context.Background()
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
+	log.Printf("the user is %v", user)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-
 	idToken := user.Auth.IDToken
 	headers, err := CreatedUserGraphQLHeaders(idToken)
 	if err != nil {
@@ -3232,6 +3672,49 @@ func TestAddOrganizationPractitionerKyc(t *testing.T) {
 		return
 	}
 
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "nutrition"
+	partnerType := base.PartnerTypePractitioner
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
+		return
+	}
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 	graphqlMutationPayload := `mutation AddOrganizationPractitionerKyc(
 		$input: OrganizationPractitionerInput!

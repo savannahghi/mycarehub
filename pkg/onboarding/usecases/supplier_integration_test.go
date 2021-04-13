@@ -103,6 +103,27 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
@@ -245,6 +266,28 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
+
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
@@ -389,6 +432,28 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
+
 	// add a partner type for the logged in user
 	partnerName := "rider"
 	partnerType := base.PartnerTypeRider
@@ -528,6 +593,28 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
+
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
@@ -677,6 +764,28 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
+
 	// add a partner type for the logged in user
 	partnerName := "rider"
 	partnerType := base.PartnerTypeRider
@@ -824,6 +933,28 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
+
 	// add a partner type for the logged in user
 	partnerName := "rider"
 	partnerType := base.PartnerTypeRider
@@ -966,6 +1097,28 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
+
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
@@ -1115,6 +1268,28 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
+
 	// add a partner type for the logged in user
 	partnerName := "rider"
 	partnerType := base.PartnerTypeRider
@@ -1259,6 +1434,28 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
+
 	// add a partner type for the logged in user
 	partnerName := "rider"
 	partnerType := base.PartnerTypeCoach
@@ -1391,6 +1588,10 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 0, len(pr.Permissions))
 
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
 	// now update the permissions
 	perms := []base.PermissionType{base.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
@@ -1401,6 +1602,24 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
 
 	// add a partner type for the logged in user
 	partnerName := "nutrition"
@@ -1537,6 +1756,28 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
+
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
+	assert.Nil(t, err)
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(authenticatedContext, completeUserDetails)
+	assert.Nil(t, err)
 	// add a partner type for the logged in user
 	partnerName := "nutrition"
 	partnerType := base.PartnerTypeNutrition
@@ -1740,68 +1981,80 @@ func TestFindSupplierByUID(t *testing.T) {
 }
 
 func TestFindSupplierByID(t *testing.T) {
-
-	s, err := InitializeTestService(context.Background())
+	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
-		t.Error("failed to setup signup usecase")
-	}
-
-	primaryPhone := base.TestUserPhoneNumber
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
-
-	otp, err := generateTestOTP(t, primaryPhone)
-	if err != nil {
-		t.Errorf("failed to generate test OTP: %v", err)
+		t.Errorf("failed to get test authenticated context: %v", err)
 		return
 	}
-	pin := "1234"
-	resp1, err := s.Signup.CreateUserByPhone(
-		context.Background(),
-		&resources.SignUpInput{
-			PhoneNumber: &primaryPhone,
-			PIN:         &pin,
-			Flavour:     base.FlavourPro,
-			OTP:         &otp.OTP,
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	name := "Makmende And Sons"
+	partnerPractitioner := base.PartnerTypePractitioner
+	partnerType, err := s.Supplier.AddPartnerType(ctx, &name, &partnerPractitioner)
+	assert.Nil(t, err)
+	assert.NotNil(t, partnerType)
+	assert.Equal(t, true, partnerType)
+
+	supplier, err := s.Supplier.SetUpSupplier(ctx, base.AccountTypeOrganisation)
+	assert.Nil(t, err)
+
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.Supplier
+		wantErr bool
+	}{
+		{
+			name: "happy :) find supplier by ID",
+			args: args{
+				ctx: ctx,
+				id:  supplier.ID,
+			},
+			wantErr: false,
 		},
-	)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp1)
-	assert.NotNil(t, resp1.Profile)
-	assert.NotNil(t, resp1.CustomerProfile)
-	assert.NotNil(t, resp1.SupplierProfile)
-
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourPro)
-	assert.Nil(t, err)
-	assert.NotNil(t, login1)
-	assert.NotNil(t, login1.SupplierProfile)
-	assert.Equal(t, resp1.SupplierProfile.ID, login1.SupplierProfile.ID)
-	assert.Equal(t, resp1.SupplierProfile.ProfileID, login1.SupplierProfile.ProfileID)
-
-	// create authenticated context
-	ctx := context.Background()
-	authCred := &auth.Token{UID: login1.Auth.UID}
-	authenticatedContext := context.WithValue(
-		ctx,
-		base.AuthTokenContextKey,
-		authCred,
-	)
-	s, _ = InitializeTestService(authenticatedContext)
-
-	// fetch the supplier profile with the id
-	spr, err := s.Supplier.FindSupplierByID(authenticatedContext, login1.SupplierProfile.ID)
-	assert.Nil(t, err)
-	assert.NotNil(t, spr)
-	assert.Equal(t, login1.SupplierProfile.ID, spr.ID)
-	assert.Equal(t, login1.SupplierProfile.ProfileID, spr.ProfileID)
-	assert.Equal(t, login1.SupplierProfile.Active, spr.Active)
-	assert.Equal(t, login1.SupplierProfile.AccountType, spr.AccountType)
-
-	// try using the wrong context. shoild should not fail
-	spr, err = s.Supplier.FindSupplierByID(context.Background(), login1.SupplierProfile.ID)
-	assert.Nil(t, err)
-	assert.NotNil(t, spr)
+		{
+			name: "happy :) find supplier by ID using wrong context, should not fail",
+			args: args{
+				ctx: context.Background(),
+				id:  supplier.ID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad :( fail to find supplier by ID - wrong supplier ID",
+			args: args{
+				ctx: context.Background(),
+				id:  "",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			supplier, err := s.Supplier.FindSupplierByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.FindSupplierByID() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
+				return
+			}
+			if supplier != nil {
+				if supplier.ID == "" {
+					t.Errorf("expected a supplier.")
+					return
+				}
+			}
+		})
+	}
 }
 
 func TestSupplierEDIUserLogin(t *testing.T) {
@@ -2274,7 +2527,7 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case: Wrong userame and password",
+			name: "Sad Case: Wrong username and password",
 			args: args{
 				username: &invalidUsername,
 				password: &invalidPassword,

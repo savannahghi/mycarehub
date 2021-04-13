@@ -312,6 +312,41 @@ func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {
 	return s.Otp.GenerateAndSendOTP(ctx, phone)
 }
 
+func setPrimaryEmailAddress(ctx context.Context, t *testing.T, emailAddress string) error {
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to initialize test service: %v", err)
+	}
+
+	return s.Onboarding.UpdatePrimaryEmailAddress(ctx, emailAddress)
+}
+
+func updateBioData(ctx context.Context, t *testing.T, data base.BioData) error {
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to initialize test service: %v", err)
+	}
+
+	return s.Onboarding.UpdateBioData(ctx, data)
+}
+
+func addPartnerType(ctx context.Context, t *testing.T, name *string, partnerType base.PartnerType) (bool, error) {
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		return false, fmt.Errorf("unable to initialize test service: %v", err)
+	}
+
+	return s.Supplier.AddPartnerType(ctx, name, &partnerType)
+}
+
+func setUpSupplier(ctx context.Context, t *testing.T, accountType base.AccountType) (*base.Supplier, error) {
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize test service: %v", err)
+	}
+	return s.Supplier.SetUpSupplier(ctx, accountType)
+}
+
 func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {
 	// create a user and their profile
 	phoneNumber := base.TestUserPhoneNumber
