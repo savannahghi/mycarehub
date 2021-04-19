@@ -136,6 +136,7 @@ type ComplexityRoot struct {
 	}
 
 	IndividualCoach struct {
+		AccreditationID         func(childComplexity int) int
 		AccreditationUploadID   func(childComplexity int) int
 		IdentificationDoc       func(childComplexity int) int
 		KRAPIN                  func(childComplexity int) int
@@ -855,6 +856,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Identification.IdentificationDocType(childComplexity), true
+
+	case "IndividualCoach.accreditationID":
+		if e.complexity.IndividualCoach.AccreditationID == nil {
+			break
+		}
+
+		return e.complexity.IndividualCoach.AccreditationID(childComplexity), true
 
 	case "IndividualCoach.accreditationUploadID":
 		if e.complexity.IndividualCoach.AccreditationUploadID == nil {
@@ -3114,6 +3122,8 @@ input IndividualCoachInput {
   # unique for coach
   practiceLicenseID: String!
   practiceLicenseUploadID: String
+  accreditationID: String
+  accreditationUploadID: String
 }
 
 input IndividualNutritionInput {
@@ -3628,7 +3638,7 @@ type IndividualCoach {
   # unique for coach
   practiceLicenseID: String!
   practiceLicenseUploadID: String!
-
+  accreditationID: String
   accreditationUploadID: String!
 }
 
@@ -6371,6 +6381,38 @@ func (ec *executionContext) _IndividualCoach_practiceLicenseUploadID(ctx context
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IndividualCoach_accreditationID(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualCoach) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IndividualCoach",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AccreditationID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualCoach_accreditationUploadID(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualCoach) (ret graphql.Marshaler) {
@@ -16012,6 +16054,22 @@ func (ec *executionContext) unmarshalInputIndividualCoachInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "accreditationID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accreditationID"))
+			it.AccreditationID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "accreditationUploadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accreditationUploadID"))
+			it.AccreditationUploadID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -17849,6 +17907,8 @@ func (ec *executionContext) _IndividualCoach(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "accreditationID":
+			out.Values[i] = ec._IndividualCoach_accreditationID(ctx, field, obj)
 		case "accreditationUploadID":
 			out.Values[i] = ec._IndividualCoach_accreditationUploadID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

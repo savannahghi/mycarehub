@@ -1161,6 +1161,8 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 		},
 		PracticeLicenseID:       "PracticeLicenseID",
 		PracticeLicenseUploadID: "PracticeLicenseUploadID",
+		AccreditationID:         "ACR-12344568",
+		AccreditationUploadID:   "ACR-UPLOAD-12344568",
 	}
 
 	// submit first kyc. this should pass
@@ -1259,7 +1261,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
-	partnerType := base.PartnerTypeRider
+	partnerType := base.PartnerTypeCoach
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)

@@ -129,6 +129,8 @@ input IndividualCoachInput {
   # unique for coach
   practiceLicenseID: String!
   practiceLicenseUploadID: String
+  accreditationID: String
+  accreditationUploadID: String
 }
 
 input IndividualNutritionInput {

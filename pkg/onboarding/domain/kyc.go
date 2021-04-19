@@ -57,6 +57,7 @@ type IndividualCoach struct {
 	SupportingDocuments     []SupportingDocument `json:"supportingDocuments" mapstructure:"supportingDocuments"`
 	PracticeLicenseID       string               `json:"practiceLicenseID" mapstructure:"practiceLicenseID"`
 	PracticeLicenseUploadID string               `json:"practiceLicenseUploadID" mapstructure:"practiceLicenseUploadID"`
+	AccreditationID         string               `json:"accreditationID" mapstructure:"accreditationID"`
 	AccreditationUploadID   string               `json:"accreditationUploadID" mapstructure:"accreditationUploadID"`
 }
 

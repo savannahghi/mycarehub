@@ -216,7 +216,7 @@ type IndividualCoach {
   # unique for coach
   practiceLicenseID: String!
   practiceLicenseUploadID: String!
-
+  accreditationID: String
   accreditationUploadID: String!
 }
 

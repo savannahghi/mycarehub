@@ -1543,6 +1543,9 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 	  }
 		  KRAPIN
 		  KRAPINUploadID
+		  practiceLicenseID
+		  accreditationID
+		  accreditationUploadID
 		}
 	}
 	`
@@ -1569,9 +1572,11 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 								"identificationDocNumber":         "ID-12345678",
 								"identificationDocNumberUploadID": "ID-UPLOAD-12345678",
 							},
-							"KRAPIN":            "KRA-12345678",
-							"KRAPINUploadID":    "KRA-UPLOAD-12345678",
-							"practiceLicenseID": "PRA-12345678",
+							"KRAPIN":                "KRA-12345678",
+							"KRAPINUploadID":        "KRA-UPLOAD-12345678",
+							"practiceLicenseID":     "PRA-12345678",
+							"accreditationID":       "ACR-12345678",
+							"accreditationUploadID": "ACR-UPLOAD-12345678",
 						},
 					},
 				},
@@ -1591,9 +1596,11 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 								"identificationDocNumber":         "ID-12345678",
 								"identificationDocNumberUploadID": "ID-UPLOAD-12345678",
 							},
-							"KRAPIN":            12345678,
-							"KRAPINUploadID":    12345678,
-							"practiceLicenseID": "PRA-12345678",
+							"KRAPIN":                12345678,
+							"KRAPINUploadID":        12345678,
+							"practiceLicenseID":     "PRA-12345678",
+							"accreditationID":       "ACR-12345678",
+							"accreditationUploadID": "ACR-UPLOAD-12345678",
 						},
 					},
 				},

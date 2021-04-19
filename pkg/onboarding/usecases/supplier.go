@@ -1517,6 +1517,7 @@ func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(
 			SupportingDocuments:     input.SupportingDocuments,
 			PracticeLicenseID:       input.PracticeLicenseID,
 			PracticeLicenseUploadID: input.PracticeLicenseUploadID,
+			AccreditationID:         input.AccreditationID,
 			AccreditationUploadID:   input.AccreditationUploadID,
 		}
 

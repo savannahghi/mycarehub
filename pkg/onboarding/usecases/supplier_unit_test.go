@@ -4227,6 +4227,8 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 		},
 		PracticeLicenseID:       "license-id",
 		PracticeLicenseUploadID: "practice-license-uploadID",
+		AccreditationID:         "ACR-12345678",
+		AccreditationUploadID:   "ACR-UPLOAD-12345678",
 	}
 
 	type args struct {
