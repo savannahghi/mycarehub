@@ -1888,80 +1888,56 @@ func TestSupplierEDIUserLogin(t *testing.T) {
 }
 
 func TestFetchSupplierAllowedLocations(t *testing.T) {
-
-	s, err := InitializeTestService(context.Background())
+	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
-		t.Error("failed to setup signup usecase")
-	}
-
-	primaryPhone := base.TestUserPhoneNumber
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
-
-	otp, err := generateTestOTP(t, primaryPhone)
-	if err != nil {
-		t.Errorf("failed to generate test OTP: %v", err)
+		t.Errorf("failed to get test authenticated context: %v", err)
 		return
 	}
-	pin := "1234"
-	resp1, err := s.Signup.CreateUserByPhone(
-		context.Background(),
-		&resources.SignUpInput{
-			PhoneNumber: &primaryPhone,
-			PIN:         &pin,
-			Flavour:     base.FlavourPro,
-			OTP:         &otp.OTP,
+
+	s, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case :)",
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
 		},
-	)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp1)
-	assert.NotNil(t, resp1.Profile)
-	assert.NotNil(t, resp1.CustomerProfile)
-	assert.NotNil(t, resp1.SupplierProfile)
-
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourPro)
-	assert.Nil(t, err)
-	assert.NotNil(t, login1)
-	assert.NotNil(t, login1.SupplierProfile)
-	assert.Equal(t, resp1.SupplierProfile.ID, login1.SupplierProfile.ID)
-	assert.Equal(t, resp1.SupplierProfile.ProfileID, login1.SupplierProfile.ProfileID)
-
-	// create authenticated context
-	ctx := context.Background()
-	authCred := &auth.Token{UID: login1.Auth.UID}
-	authenticatedContext := context.WithValue(
-		ctx,
-		base.AuthTokenContextKey,
-		authCred,
-	)
-	s, _ = InitializeTestService(authenticatedContext)
-
-	name := "Makmende And Sons"
-	partnerPractitioner := base.PartnerTypePractitioner
-	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &name, &partnerPractitioner)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp2)
-	assert.Equal(t, true, resp2)
-
-	resp3, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeOrganisation)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp3)
-	assert.Equal(t, false, resp3.Active)
-	assert.Nil(t, resp3.EDIUserProfile)
-
-	resp4, err := s.Supplier.SupplierEDILogin(authenticatedContext, TestEDIPortalUsername, TestEDIPortalPassword, TestSladeCode)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp4)
-	assert.NotNil(t, resp4.Supplier)
-	assert.NotNil(t, resp4.Branches)
-
-	// fetch all AllowedLocations for the suppier
-	resp5, err := s.Supplier.FetchSupplierAllowedLocations(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp5)
-	assert.Equal(t, len(resp4.Branches.Edges), len(resp5.Edges))
-
+		{
+			name: "sad case :( unable to get supplier",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			branchConnection, err := s.Supplier.FetchSupplierAllowedLocations(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SupplierUseCasesImpl.FetchSupplierAllowedLocations() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil && !tt.wantErr {
+				if branchConnection == nil {
+					t.Errorf("expected branch connection")
+					return
+				}
+			}
+		})
+	}
 }
 
 func TestSuspendSupplier(t *testing.T) {

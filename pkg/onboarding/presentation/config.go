@@ -224,7 +224,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(h.RemoveUserByPhoneNumber(ctx))
 
-	r.Path("/update_user_permissions").Methods(
+	r.Path("/add_admin_permissions").Methods(
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.AddAdminPermsToUser(ctx))
@@ -276,6 +276,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.RegisterPushToken(ctx))
+	iscTesting.Path("/add_admin_permissions").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.AddAdminPermsToUser(ctx))
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()

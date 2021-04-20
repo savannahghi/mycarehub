@@ -534,7 +534,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 			ediUserProfile, err = s.CoreEDIUserLogin(username, password)
 			if err != nil {
 				supplier.IsOrganizationVerified = false
-				return nil, fmt.Errorf("cannot get edi user profile: %w", err)
+				return nil, fmt.Errorf("cannot get Core  user profile: %w", err)
 			}
 
 			if ediUserProfile == nil {
@@ -546,7 +546,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 			ediUserProfile, err = s.EDIUserLogin(&username, &password)
 			if err != nil {
 				supplier.IsOrganizationVerified = false
-				return nil, fmt.Errorf("cannot get edi user profile: %w", err)
+				return nil, fmt.Errorf("cannot get EDI user profile: %w", err)
 			}
 
 			if ediUserProfile == nil {
@@ -775,33 +775,30 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
 func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(
 	ctx context.Context,
 ) (*resources.BranchConnection, error) {
-
-	// fetch the supplier's profile
-	sup, err := s.FindSupplierByUID(ctx)
+	supplier, err := s.FindSupplierByUID(ctx)
 	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
 
 	// fetch the branches of the provider filtered by ParentOrganizationID
 	filter := []*resources.BranchFilterInput{
 		{
-			ParentOrganizationID: &sup.ParentOrganizationID,
+			ParentOrganizationID: &supplier.ParentOrganizationID,
 		},
 	}
 
-	brs, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
+	branchConnection, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
 	if err != nil {
 		return nil, exceptions.FindProviderError(err)
 	}
 
-	if sup.Location != nil {
+	if supplier.Location != nil {
 		var resp resources.BranchConnection
-		resp.PageInfo = brs.PageInfo
+		resp.PageInfo = branchConnection.PageInfo
 
 		newEdges := []*resources.BranchEdge{}
-		for _, edge := range brs.Edges {
-			if edge.Node.ID == sup.Location.ID {
+		for _, edge := range branchConnection.Edges {
+			if edge.Node.ID == supplier.Location.ID {
 				loc := &resources.BranchEdge{
 					Cursor: edge.Cursor,
 					Node: &domain.Branch{
@@ -821,7 +818,7 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(
 		resp.Edges = newEdges
 		return &resp, nil
 	}
-	return brs, nil
+	return branchConnection, nil
 }
 
 // PublishKYCNudge pushes a KYC nudge to the user feed
