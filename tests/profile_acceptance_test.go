@@ -595,12 +595,32 @@ func TestUpdateCovers(t *testing.T) {
 	payerSladeCode := 123
 	memberName := "Be.Well Member"
 	memberNumber := "123456"
+	beneficiaryID := 157858
+	effectivePolicyNumber := "14582"
+	validFromString := "2021-01-01T00:00:00+03:00"
+	validFrom, err := time.Parse(time.RFC3339, validFromString)
+	if err != nil {
+		t.Errorf("failed parse date string: %v", err)
+		return
+	}
+
+	validToString := "2022-01-01T00:00:00+03:00"
+	validTo, err := time.Parse(time.RFC3339, validToString)
+	if err != nil {
+		t.Errorf("failed parse date string: %v", err)
+		return
+	}
+
 	updateCoversPayload := &resources.UpdateCoversPayload{
-		UID:            &uid,
-		PayerName:      &payerName,
-		PayerSladeCode: &payerSladeCode,
-		MemberName:     &memberName,
-		MemberNumber:   &memberNumber,
+		UID:                   &uid,
+		PayerName:             &payerName,
+		PayerSladeCode:        &payerSladeCode,
+		MemberName:            &memberName,
+		MemberNumber:          &memberNumber,
+		BeneficiaryID:         &beneficiaryID,
+		EffectivePolicyNumber: &effectivePolicyNumber,
+		ValidFrom:             &validFrom,
+		ValidTo:               &validTo,
 	}
 	bs, err := json.Marshal(updateCoversPayload)
 	if err != nil {

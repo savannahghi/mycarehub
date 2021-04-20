@@ -2,6 +2,7 @@ package resources
 
 import (
 	"net/url"
+	"time"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -193,11 +194,15 @@ type UIDPayload struct {
 // UpdateCoversPayload is used to make a REST
 // request to update a user's covers in their user profile
 type UpdateCoversPayload struct {
-	UID            *string `json:"uid"`
-	PayerName      *string `json:"payerName"`
-	MemberName     *string `json:"memberName"`
-	MemberNumber   *string `json:"memberNumber"`
-	PayerSladeCode *int    `json:"payerSladeCode"`
+	UID                   *string    `json:"uid"`
+	PayerName             *string    `json:"payerName"`
+	MemberName            *string    `json:"memberName"`
+	MemberNumber          *string    `json:"memberNumber"`
+	PayerSladeCode        *int       `json:"payerSladeCode"`
+	BeneficiaryID         *int       `json:"beneficiaryID"`
+	EffectivePolicyNumber *string    `json:"effectivePolicyNumber"`
+	ValidFrom             *time.Time `json:"validFrom"`
+	ValidTo               *time.Time `json:"validTo"`
 }
 
 // UIDsPayload is an input of a slice of users' UIDs used

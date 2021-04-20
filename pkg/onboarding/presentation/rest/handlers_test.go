@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
@@ -176,13 +177,17 @@ func composeSendRetryOTPPayload(t *testing.T, phone string, retryStep int) *byte
 	return bytes.NewBuffer(bs)
 }
 
-func composeCoversUpdatePayload(t *testing.T, uid, payerName, memberName, memberNumber string, payerSladeCode int) *bytes.Buffer {
+func composeCoversUpdatePayload(t *testing.T, input *resources.UpdateCoversPayload) *bytes.Buffer {
 	payload := resources.UpdateCoversPayload{
-		UID:            &uid,
-		PayerName:      &payerName,
-		MemberName:     &memberName,
-		MemberNumber:   &memberNumber,
-		PayerSladeCode: &payerSladeCode,
+		UID:                   input.UID,
+		PayerName:             input.PayerName,
+		MemberName:            input.MemberName,
+		MemberNumber:          input.MemberNumber,
+		PayerSladeCode:        input.PayerSladeCode,
+		BeneficiaryID:         input.BeneficiaryID,
+		EffectivePolicyNumber: input.EffectivePolicyNumber,
+		ValidFrom:             input.ValidFrom,
+		ValidTo:               input.ValidTo,
 	}
 	bs, err := json.Marshal(payload)
 	if err != nil {
@@ -1914,9 +1919,49 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 	memberName := "Member Name"
 	memberNumber := "5678"
 	payerSladeCode := 1234
+	beneficiaryID := 15689
+	effectivePolicyNumber := "14582"
 
-	validPayload := composeCoversUpdatePayload(t, uid, payerName, memberName, memberNumber, payerSladeCode)
-	inValidPayload := composeCoversUpdatePayload(t, invalidUID, payerName, memberName, memberNumber, payerSladeCode)
+	validFromString := "2021-01-01T00:00:00+03:00"
+	validFrom, err := time.Parse(time.RFC3339, validFromString)
+	if err != nil {
+		t.Errorf("failed parse date string: %v", err)
+		return
+	}
+
+	validToString := "2022-01-01T00:00:00+03:00"
+	validTo, err := time.Parse(time.RFC3339, validToString)
+	if err != nil {
+		t.Errorf("failed parse date string: %v", err)
+		return
+	}
+
+	updateCoversPayloadValid := &resources.UpdateCoversPayload{
+		UID:                   &uid,
+		PayerName:             &payerName,
+		PayerSladeCode:        &payerSladeCode,
+		MemberName:            &memberName,
+		MemberNumber:          &memberNumber,
+		BeneficiaryID:         &beneficiaryID,
+		EffectivePolicyNumber: &effectivePolicyNumber,
+		ValidFrom:             &validFrom,
+		ValidTo:               &validTo,
+	}
+
+	updateCoversPayloadInValid := &resources.UpdateCoversPayload{
+		UID:                   &invalidUID,
+		PayerName:             &payerName,
+		PayerSladeCode:        &payerSladeCode,
+		MemberName:            &memberName,
+		MemberNumber:          &memberNumber,
+		BeneficiaryID:         &beneficiaryID,
+		EffectivePolicyNumber: &effectivePolicyNumber,
+		ValidFrom:             &validFrom,
+		ValidTo:               &validTo,
+	}
+
+	validPayload := composeCoversUpdatePayload(t, updateCoversPayloadValid)
+	inValidPayload := composeCoversUpdatePayload(t, updateCoversPayloadInValid)
 
 	type args struct {
 		url        string

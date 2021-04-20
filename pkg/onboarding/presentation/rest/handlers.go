@@ -502,10 +502,14 @@ func (h *HandlersInterfacesImpl) UpdateCovers(ctx context.Context) http.HandlerF
 		auth := &auth.Token{UID: *p.UID}
 		newContext := context.WithValue(ctx, base.AuthTokenContextKey, auth)
 		cover := base.Cover{
-			PayerName:      *p.PayerName,
-			MemberNumber:   *p.MemberNumber,
-			MemberName:     *p.MemberName,
-			PayerSladeCode: *p.PayerSladeCode,
+			PayerName:             *p.PayerName,
+			MemberNumber:          *p.MemberNumber,
+			MemberName:            *p.MemberName,
+			PayerSladeCode:        *p.PayerSladeCode,
+			BeneficiaryID:         *p.BeneficiaryID,
+			EffectivePolicyNumber: *p.EffectivePolicyNumber,
+			ValidFrom:             *p.ValidFrom,
+			ValidTo:               *p.ValidTo,
 		}
 		var covers []base.Cover
 		covers = append(covers, cover)
