@@ -61,15 +61,23 @@ func AddHashToCovers(unHashedCovers []base.Cover) []base.Cover {
 		if cvr.IdentifierHash == nil {
 			hashed = append(hashed, base.Cover{
 				IdentifierHash: base.CreateCoverHash(base.Cover{
-					PayerName:      cvr.PayerName,
-					PayerSladeCode: cvr.PayerSladeCode,
-					MemberNumber:   cvr.MemberNumber,
-					MemberName:     cvr.MemberName,
+					PayerName:             cvr.PayerName,
+					PayerSladeCode:        cvr.PayerSladeCode,
+					MemberNumber:          cvr.MemberNumber,
+					MemberName:            cvr.MemberName,
+					BeneficiaryID:         cvr.BeneficiaryID,
+					EffectivePolicyNumber: cvr.EffectivePolicyNumber,
+					ValidFrom:             cvr.ValidFrom,
+					ValidTo:               cvr.ValidTo,
 				}),
-				PayerName:      cvr.PayerName,
-				PayerSladeCode: cvr.PayerSladeCode,
-				MemberNumber:   cvr.MemberNumber,
-				MemberName:     cvr.MemberName,
+				PayerName:             cvr.PayerName,
+				PayerSladeCode:        cvr.PayerSladeCode,
+				MemberNumber:          cvr.MemberNumber,
+				MemberName:            cvr.MemberName,
+				BeneficiaryID:         cvr.BeneficiaryID,
+				EffectivePolicyNumber: cvr.EffectivePolicyNumber,
+				ValidFrom:             cvr.ValidFrom,
+				ValidTo:               cvr.ValidTo,
 			})
 		}
 	}
