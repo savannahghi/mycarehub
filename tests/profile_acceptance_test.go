@@ -617,10 +617,10 @@ func TestUpdateCovers(t *testing.T) {
 		PayerSladeCode:        &payerSladeCode,
 		MemberName:            &memberName,
 		MemberNumber:          &memberNumber,
-		BeneficiaryID:         beneficiaryID,
-		EffectivePolicyNumber: effectivePolicyNumber,
-		ValidFrom:             validFrom,
-		ValidTo:               validTo,
+		BeneficiaryID:         &beneficiaryID,
+		EffectivePolicyNumber: &effectivePolicyNumber,
+		ValidFrom:             &validFrom,
+		ValidTo:               &validTo,
 	}
 	bs, err := json.Marshal(updateCoversPayload)
 	if err != nil {
@@ -733,7 +733,6 @@ func TestUpdateCovers(t *testing.T) {
 
 		})
 	}
-	// perform tear down; remove user
 	_, err = RemoveTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)

@@ -499,6 +499,30 @@ func (h *HandlersInterfacesImpl) UpdateCovers(ctx context.Context) http.HandlerF
 			return
 		}
 
+		if p.BeneficiaryID == nil {
+			err := fmt.Errorf("expected `BeneficiaryID` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		if p.EffectivePolicyNumber == nil {
+			err := fmt.Errorf("expected `EffectivePolicyNumber` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		if p.ValidFrom == nil {
+			err := fmt.Errorf("expected `ValidFrom` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		if p.ValidTo == nil {
+			err := fmt.Errorf("expected `ValidTo` to be defined")
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
 		auth := &auth.Token{UID: *p.UID}
 		newContext := context.WithValue(ctx, base.AuthTokenContextKey, auth)
 		cover := base.Cover{
@@ -506,10 +530,10 @@ func (h *HandlersInterfacesImpl) UpdateCovers(ctx context.Context) http.HandlerF
 			MemberNumber:          *p.MemberNumber,
 			MemberName:            *p.MemberName,
 			PayerSladeCode:        *p.PayerSladeCode,
-			BeneficiaryID:         p.BeneficiaryID,
-			EffectivePolicyNumber: p.EffectivePolicyNumber,
-			ValidFrom:             p.ValidFrom,
-			ValidTo:               p.ValidTo,
+			BeneficiaryID:         *p.BeneficiaryID,
+			EffectivePolicyNumber: *p.EffectivePolicyNumber,
+			ValidFrom:             *p.ValidFrom,
+			ValidTo:               *p.ValidTo,
 		}
 		var covers []base.Cover
 		covers = append(covers, cover)

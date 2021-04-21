@@ -177,18 +177,8 @@ func composeSendRetryOTPPayload(t *testing.T, phone string, retryStep int) *byte
 	return bytes.NewBuffer(bs)
 }
 
-func composeCoversUpdatePayload(t *testing.T, input *resources.UpdateCoversPayload) *bytes.Buffer {
-	payload := resources.UpdateCoversPayload{
-		UID:                   input.UID,
-		PayerName:             input.PayerName,
-		MemberName:            input.MemberName,
-		MemberNumber:          input.MemberNumber,
-		PayerSladeCode:        input.PayerSladeCode,
-		BeneficiaryID:         input.BeneficiaryID,
-		EffectivePolicyNumber: input.EffectivePolicyNumber,
-		ValidFrom:             input.ValidFrom,
-		ValidTo:               input.ValidTo,
-	}
+func composeCoversUpdatePayload(t *testing.T, payload *resources.UpdateCoversPayload) *bytes.Buffer {
+
 	bs, err := json.Marshal(payload)
 	if err != nil {
 		t.Errorf("unable to marshal payload to JSON: %s", err)
@@ -1942,10 +1932,10 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 		PayerSladeCode:        &payerSladeCode,
 		MemberName:            &memberName,
 		MemberNumber:          &memberNumber,
-		BeneficiaryID:         beneficiaryID,
-		EffectivePolicyNumber: effectivePolicyNumber,
-		ValidFrom:             validFrom,
-		ValidTo:               validTo,
+		BeneficiaryID:         &beneficiaryID,
+		EffectivePolicyNumber: &effectivePolicyNumber,
+		ValidFrom:             &validFrom,
+		ValidTo:               &validTo,
 	}
 
 	updateCoversPayloadInValid := &resources.UpdateCoversPayload{
@@ -1954,10 +1944,10 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 		PayerSladeCode:        &payerSladeCode,
 		MemberName:            &memberName,
 		MemberNumber:          &memberNumber,
-		BeneficiaryID:         beneficiaryID,
-		EffectivePolicyNumber: effectivePolicyNumber,
-		ValidFrom:             validFrom,
-		ValidTo:               validTo,
+		BeneficiaryID:         &beneficiaryID,
+		EffectivePolicyNumber: &effectivePolicyNumber,
+		ValidFrom:             &validFrom,
+		ValidTo:               &validTo,
 	}
 
 	validPayload := composeCoversUpdatePayload(t, updateCoversPayloadValid)
@@ -1985,6 +1975,7 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 			wantStatus: http.StatusOK,
 			wantErr:    false,
 		},
+
 		{
 			name: "invalid:_update_covers_fails",
 			args: args{
