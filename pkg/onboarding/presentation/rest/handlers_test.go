@@ -1942,10 +1942,10 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 		PayerSladeCode:        &payerSladeCode,
 		MemberName:            &memberName,
 		MemberNumber:          &memberNumber,
-		BeneficiaryID:         &beneficiaryID,
-		EffectivePolicyNumber: &effectivePolicyNumber,
-		ValidFrom:             &validFrom,
-		ValidTo:               &validTo,
+		BeneficiaryID:         beneficiaryID,
+		EffectivePolicyNumber: effectivePolicyNumber,
+		ValidFrom:             validFrom,
+		ValidTo:               validTo,
 	}
 
 	updateCoversPayloadInValid := &resources.UpdateCoversPayload{
@@ -1954,10 +1954,10 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 		PayerSladeCode:        &payerSladeCode,
 		MemberName:            &memberName,
 		MemberNumber:          &memberNumber,
-		BeneficiaryID:         &beneficiaryID,
-		EffectivePolicyNumber: &effectivePolicyNumber,
-		ValidFrom:             &validFrom,
-		ValidTo:               &validTo,
+		BeneficiaryID:         beneficiaryID,
+		EffectivePolicyNumber: effectivePolicyNumber,
+		ValidFrom:             validFrom,
+		ValidTo:               validTo,
 	}
 
 	validPayload := composeCoversUpdatePayload(t, updateCoversPayloadValid)

@@ -617,10 +617,10 @@ func TestUpdateCovers(t *testing.T) {
 		PayerSladeCode:        &payerSladeCode,
 		MemberName:            &memberName,
 		MemberNumber:          &memberNumber,
-		BeneficiaryID:         &beneficiaryID,
-		EffectivePolicyNumber: &effectivePolicyNumber,
-		ValidFrom:             &validFrom,
-		ValidTo:               &validTo,
+		BeneficiaryID:         beneficiaryID,
+		EffectivePolicyNumber: effectivePolicyNumber,
+		ValidFrom:             validFrom,
+		ValidTo:               validTo,
 	}
 	bs, err := json.Marshal(updateCoversPayload)
 	if err != nil {

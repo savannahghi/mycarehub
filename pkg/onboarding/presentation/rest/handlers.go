@@ -506,10 +506,10 @@ func (h *HandlersInterfacesImpl) UpdateCovers(ctx context.Context) http.HandlerF
 			MemberNumber:          *p.MemberNumber,
 			MemberName:            *p.MemberName,
 			PayerSladeCode:        *p.PayerSladeCode,
-			BeneficiaryID:         *p.BeneficiaryID,
-			EffectivePolicyNumber: *p.EffectivePolicyNumber,
-			ValidFrom:             *p.ValidFrom,
-			ValidTo:               *p.ValidTo,
+			BeneficiaryID:         p.BeneficiaryID,
+			EffectivePolicyNumber: p.EffectivePolicyNumber,
+			ValidFrom:             p.ValidFrom,
+			ValidTo:               p.ValidTo,
 		}
 		var covers []base.Cover
 		covers = append(covers, cover)
