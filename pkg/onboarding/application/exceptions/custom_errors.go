@@ -19,8 +19,7 @@ func UserNotFoundError(err error) error {
 func ProfileSuspendFoundError() error {
 	return &base.CustomError{
 		Message: ProfileSuspenedFoundErrMsg,
-		// todo(dexter): this error warrants a correct error code in base
-		Code: int(base.ProfileSuspended),
+		Code:    int(base.ProfileSuspended),
 	}
 }
 
@@ -310,8 +309,7 @@ func CustomerNotFoundError() error {
 func SupplierKYCAlreadySubmittedNotFoundError() error {
 	return &base.CustomError{
 		Message: SupplierKYCAlreadySubmittedErrMsg,
-		// TODO: provide a correct code
-		Code: int(base.Internal),
+		Code:    int(base.KYCAlreadySubmitted),
 	}
 }
 
