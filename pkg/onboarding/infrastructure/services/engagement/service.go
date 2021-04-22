@@ -10,6 +10,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
@@ -46,14 +47,8 @@ type ServiceEngagement interface {
 		message string,
 		subject string,
 	) error
-	SendAlertToSupplier(
-		supplierName string,
-		partnerType string,
-		accountType string,
-		subjectTitle string,
-		emailBody string,
-		emailAddress string,
-	) error
+	SendAlertToSupplier(input resources.EmailNotificationPayload) error
+	NotifyAdmins(input resources.EmailNotificationPayload) error
 }
 
 // ServiceEngagementImpl represents engagement usecases
@@ -166,45 +161,70 @@ func (en *ServiceEngagementImpl) SendMail(
 	return nil
 }
 
-//SendAlertToSupplier send email to admin notifying them of them of new
-// KYC Request.
-func (en *ServiceEngagementImpl) SendAlertToSupplier(
-	supplierName string,
-	partnerType string,
-	accountType string,
-	subjectTitle string,
-	emailBody string,
-	emailAddress string,
-) error {
+//SendAlertToSupplier send email to supplier to acknowledgement receipt of
+// KYC request/documents.
+func (en *ServiceEngagementImpl) SendAlertToSupplier(input resources.EmailNotificationPayload) error {
 	var writer bytes.Buffer
-	t := template.Must(template.New("profile").Parse(utils.AcknowledgementKYCEmail))
-	_ = t.Execute(&writer, struct {
-		SupplierName string
-		PartnerType  string
-		AccountType  string
-		EmailBody    string
-		EmailAddress string
-	}{
-		SupplierName: supplierName,
-		PartnerType:  partnerType,
-		AccountType:  accountType,
-		EmailBody:    emailBody,
-		EmailAddress: emailAddress,
+	t := template.Must(template.New("acknowledgementKYCEmail").Parse(utils.AcknowledgementKYCEmail))
+	_ = t.Execute(&writer, resources.EmailNotificationPayload{
+		SupplierName: input.SupplierName,
+		PartnerType:  input.PartnerType,
+		AccountType:  input.AccountType,
+		EmailBody:    input.EmailBody,
+		EmailAddress: input.EmailAddress,
+		PrimaryPhone: input.PrimaryPhone,
 	})
 
 	body := map[string]interface{}{
-		"to":      []string{emailAddress},
+		"to":      []string{input.EmailAddress},
 		"text":    writer.String(),
-		"subject": subjectTitle,
+		"subject": input.SubjectTitle,
 	}
 
 	resp, err := en.Engage.MakeRequest(http.MethodPost, sendEmail, body)
 
 	if err != nil {
-		return fmt.Errorf("unable to send Alert to admin email: %w", err)
+		return fmt.Errorf("unable to send alert to supplier email: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unable to send Alert to admin email: %w", err)
+		return fmt.Errorf("unable to send alert to supplier email: %w", err)
+	}
+
+	return nil
+}
+
+//NotifyAdmins send email to admin notifying them of new
+// KYC Request.
+func (en *ServiceEngagementImpl) NotifyAdmins(input resources.EmailNotificationPayload) error {
+	adminEmail, err := base.GetEnvVar("SAVANNAH_ADMIN_EMAIL")
+	if err != nil {
+		return err
+	}
+
+	var writer bytes.Buffer
+	t := template.Must(template.New("adminKYCSubmittedEmail").Parse(utils.AdminKYCSubmittedEmail))
+	_ = t.Execute(&writer, resources.EmailNotificationPayload{
+		SupplierName: input.SupplierName,
+		PartnerType:  input.PartnerType,
+		AccountType:  input.AccountType,
+		EmailBody:    input.EmailBody,
+		EmailAddress: input.EmailAddress,
+		PrimaryPhone: input.PrimaryPhone,
+	})
+
+	body := map[string]interface{}{
+		"to":      []string{adminEmail},
+		"text":    writer.String(),
+		"subject": input.SubjectTitle,
+	}
+
+	resp, err := en.Engage.MakeRequest(http.MethodPost, sendEmail, body)
+
+	if err != nil {
+		return fmt.Errorf("unable to send alert to admin email: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send alert to admin email: %w", err)
 	}
 
 	return nil

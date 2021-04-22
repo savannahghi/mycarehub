@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
 // FakeServiceEngagement is an `engagement` service mock .
@@ -12,7 +13,8 @@ type FakeServiceEngagement struct {
 	PublishKYCFeedItemFn         func(uid string, payload base.Item) (*http.Response, error)
 	ResolveDefaultNudgeByTitleFn func(UID string, flavour base.Flavour, nudgeTitle string) error
 	SendMailFn                   func(email string, message string, subject string) error
-	SendAlertToSupplierFn        func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error
+	SendAlertToSupplierFn        func(input resources.EmailNotificationPayload) error
+	NotifyAdminsFn               func(input resources.EmailNotificationPayload) error
 }
 
 // PublishKYCNudge ...
@@ -54,13 +56,11 @@ func (f *FakeServiceEngagement) SendMail(
 }
 
 // SendAlertToSupplier ...
-func (f *FakeServiceEngagement) SendAlertToSupplier(
-	supplierName string,
-	partnerType string,
-	accountType string,
-	subjectTitle string,
-	emailBody string,
-	emailAddress string,
-) error {
-	return f.SendAlertToSupplierFn(supplierName, partnerType, accountType, subjectTitle, emailBody, emailAddress)
+func (f *FakeServiceEngagement) SendAlertToSupplier(input resources.EmailNotificationPayload) error {
+	return f.SendAlertToSupplierFn(input)
+}
+
+// NotifyAdmins ...
+func (f *FakeServiceEngagement) NotifyAdmins(input resources.EmailNotificationPayload) error {
+	return f.NotifyAdminsFn(input)
 }

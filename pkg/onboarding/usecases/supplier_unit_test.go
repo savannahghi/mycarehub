@@ -1215,8 +1215,10 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					email := "test@example.com"
 					firstName := "Makmende"
+					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
 						UserBioData: base.BioData{
 							FirstName: &firstName,
@@ -1235,7 +1237,10 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -1748,8 +1753,10 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					email := "test@example.com"
 					firstName := "Makmende"
+					primaryPhoneNumer := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumer,
 						PrimaryEmailAddress: &email,
 						UserBioData: base.BioData{
 							FirstName: &firstName,
@@ -1768,7 +1775,10 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -2063,8 +2073,10 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					email := "test@example.com"
 					firstName := "Makmende"
+					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
 						UserBioData: base.BioData{
 							FirstName: &firstName,
@@ -2083,7 +2095,10 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -2327,8 +2342,10 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					email := "test@example.com"
 					firstName := "Makmende"
+					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
 						UserBioData: base.BioData{
 							FirstName: &firstName,
@@ -2347,7 +2364,10 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -2586,8 +2606,10 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					email := "test@example.com"
 					firstName := "Makmende"
+					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
 						UserBioData: base.BioData{
 							FirstName: &firstName,
@@ -2606,7 +2628,10 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -2829,8 +2854,10 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					email := "test@example.com"
 					firstName := "Makmende"
+					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
 						UserBioData: base.BioData{
 							FirstName: &firstName,
@@ -2849,7 +2876,10 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -3269,8 +3299,10 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					email := "test@example.com"
 					firstName := "Makmende"
+					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
 						UserBioData: base.BioData{
 							FirstName: &firstName,
@@ -3289,7 +3321,10 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -3649,8 +3684,10 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					email := "test@example.com"
 					firstName := "Makmende"
+					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
 						UserBioData: base.BioData{
 							FirstName: &firstName,
@@ -3669,7 +3706,10 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -4023,8 +4063,10 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					email := "test@example.com"
 					firstName := "Makmende"
+					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
 						UserBioData: base.BioData{
 							FirstName: &firstName,
@@ -4043,7 +4085,10 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -4396,8 +4441,10 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					email := "test@example.com"
 					firstName := "Makmende"
+					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
 						UserBioData: base.BioData{
 							FirstName: &firstName,
@@ -4416,7 +4463,10 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -4757,8 +4807,10 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					email := "test@example.com"
 					firstName := "Makmende"
+					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
 						UserBioData: base.BioData{
 							FirstName: &firstName,
@@ -4777,7 +4829,10 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(supplierName string, partnerType string, accountType string, subjectTitle string, emailBody string, emailAddress string) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {

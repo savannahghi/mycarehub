@@ -39,6 +39,15 @@ const (
 	futureHours            = 878400
 	savannahSladeCode      = "1"
 	savannahOrgName        = "Savannah Informatics"
+	adminEemailBody        = `
+	a new supplier KYC request has been submitted. 
+	Log in to Be.Well Professional to process the request.
+	`
+	// KYC Acknowledgement Email
+	supplierEmailSubjectTitle = "KYC Acknowledgement Email"
+	supplierEmailBody         = `
+		we acknowledge receipt of your.
+		`
 
 	// PartnerAccountSetupNudgeTitle is the title defined in the `engagement service`
 	// for the `PartnerAccountSetupNudge`
@@ -1058,20 +1067,30 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 		return err
 	}
 
-	// KYC Acknowledgement Email
-	subjectTitle := "KYC Acknowledgement Email"
-	emailBody := `
-	a new supplier KYC request has been submitted. 
-	Log in to Be.Well Professional to process the request.
-	`
-	err = s.engagement.SendAlertToSupplier(
-		*profile.UserBioData.FirstName,
-		string(sup.PartnerType),
-		string(*sup.AccountType),
-		subjectTitle,
-		emailBody,
-		*profile.PrimaryEmailAddress,
-	)
+	supplierEmailPayload := resources.EmailNotificationPayload{
+		SupplierName: *profile.UserBioData.FirstName,
+		PartnerType:  string(sup.PartnerType),
+		AccountType:  string(*sup.AccountType),
+		SubjectTitle: supplierEmailSubjectTitle,
+		EmailBody:    supplierEmailBody,
+		EmailAddress: *profile.PrimaryEmailAddress,
+		PrimaryPhone: *profile.PrimaryPhone,
+	}
+	err = s.engagement.SendAlertToSupplier(supplierEmailPayload)
+	if err != nil {
+		return err
+	}
+
+	adminEmailPayload := resources.EmailNotificationPayload{
+		SupplierName: *profile.UserBioData.FirstName,
+		PartnerType:  string(sup.PartnerType),
+		AccountType:  string(*sup.AccountType),
+		SubjectTitle: emailKYCSubject,
+		EmailBody:    adminEemailBody,
+		EmailAddress: *profile.PrimaryEmailAddress,
+		PrimaryPhone: *profile.PrimaryPhone,
+	}
+	err = s.engagement.NotifyAdmins(adminEmailPayload)
 	if err != nil {
 		return err
 	}
