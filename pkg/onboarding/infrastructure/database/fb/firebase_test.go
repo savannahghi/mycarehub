@@ -52,6 +52,14 @@ func TestRepository_UpdateUserName(t *testing.T) {
 				userName: "mwas",
 			},
 			wantErr: true,
+		}, {
+			name: "valid:user_name_not_found",
+			args: args{
+				ctx:      ctx,
+				id:       "12333",
+				userName: "mwas",
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -84,6 +92,15 @@ func TestRepository_UpdateUserName(t *testing.T) {
 				}
 			}
 
+			if tt.name == "valid:user_name_not_found" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{}
+					return docs, nil
+				}
+				fakeFireStoreClientExt.UpdateFn = func(ctx context.Context, command *fb.UpdateCommand) error {
+					return nil
+				}
+			}
 			err := repo.UpdateUserName(tt.args.ctx, tt.args.id, tt.args.userName)
 
 			if tt.wantErr {

@@ -658,7 +658,10 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-	// TODO check if len(docs) is 0
+
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -693,7 +696,10 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
+
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -728,7 +734,9 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -776,7 +784,10 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-	// TODO check if len(docs) is 0
+
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -823,8 +834,9 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -856,8 +868,9 @@ func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status boo
 	if err != nil {
 		return exceptions.InternalServerError(err)
 	}
-
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -891,8 +904,9 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -940,8 +954,9 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -976,8 +991,9 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -1023,8 +1039,9 @@ func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -1081,8 +1098,9 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -1123,8 +1141,9 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 			if err != nil {
 				return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 			}
-
-			// TODO check if len(docs) is 0
+			if len(docs) == 0 {
+				return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+			}
 			updateCommand := &UpdateCommand{
 				CollectionName: fr.GetUserProfileCollectionName(),
 				ID:             docs[0].Ref.ID,
@@ -1170,8 +1189,9 @@ func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []
 			if err != nil {
 				return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 			}
-
-			// TODO check if len(docs) is 0
+			if len(docs) == 0 {
+				return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+			}
 			updateCommand := &UpdateCommand{
 				CollectionName: fr.GetUserProfileCollectionName(),
 				ID:             docs[0].Ref.ID,
@@ -1249,8 +1269,9 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 	if err != nil {
 		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user pin as firebase snapshot: %v", err))
 	}
-
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return false, exceptions.InternalServerError(fmt.Errorf("user pin not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetPINsCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -1461,7 +1482,9 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID strin
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetSupplierProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -1500,7 +1523,9 @@ func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID stri
 	if err != nil {
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return nil, exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetSupplierProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -1538,7 +1563,10 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 	if err != nil {
 		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return false, exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
+
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetSupplierProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -1721,7 +1749,9 @@ func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, kycRequest
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse kyc processing request as firebase snapshot: %v", err))
 	}
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("kyc processing request not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetKCYProcessCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -1970,7 +2000,9 @@ func (fr *Repository) HardResetSecondaryPhoneNumbers(ctx context.Context, id str
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
@@ -2006,7 +2038,9 @@ func (fr *Repository) HardResetSecondaryEmailAddress(ctx context.Context, id str
 	if err != nil {
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
-	// TODO check if len(docs) is 0
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		ID:             docs[0].Ref.ID,
