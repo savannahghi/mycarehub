@@ -917,14 +917,13 @@ const AdminKYCSubmittedEmail = `
                             <p style="margin: 0;">{{.EmailBody}}</p>
                             
 			    <br>
-                            <p style="margin: 0;">Supplier details</p>
+                            <p style="margin: 0;">Supplier details:</p>
                             <p></p>
                             <p style="margin: 0;">Partner Name: {{.SupplierName}} </p>
                             <p style="margin: 0;">Partner Type: {{.PartnerType}} </p>
                             <p style="margin: 0;">Account Type: {{.AccountType}} </p>
                             <p style="margin: 0;">Email: {{.EmailAddress}} </p>
                             <p style="margin: 0;">Phone Number: {{.PrimaryPhone}} </p>
-                            <p style="margin: 0;">Email: {{.EmailAddress}} </p>
                             <br>
                         </td>
                     </tr>

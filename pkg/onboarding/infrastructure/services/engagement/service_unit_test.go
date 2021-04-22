@@ -303,7 +303,7 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 		Visibility:     "SHOW",
 		Status:         "PENDING",
 		Expiry:         time.Now().Add(time.Hour * futureHours),
-		Title:          fmt.Sprintf("Complete your %v KYC", base.PartnerTypeRider),
+		Title:          "Complete your KYC",
 		Text:           "Fill in your Be.Well business KYC in order to start transacting",
 		Links: []base.Link{
 			{

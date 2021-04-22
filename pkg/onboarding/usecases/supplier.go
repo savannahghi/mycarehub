@@ -39,9 +39,9 @@ const (
 	futureHours            = 878400
 	savannahSladeCode      = "1"
 	savannahOrgName        = "Savannah Informatics"
-	adminEemailBody        = `
-	a new supplier KYC request has been submitted. 
-	Log in to Be.Well Professional to process the request.
+	adminEmailBody         = `
+	The below supplier KYC request has been made.
+	To view and process the request, please log in to Be.Well Professional.
 	`
 	// KYC Acknowledgement Email
 	supplierEmailSubjectTitle = "KYC Acknowledgement Email"
@@ -885,11 +885,8 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 			{
 				ID:             ksuid.New().String(),
 				SequenceNumber: int(time.Now().Unix()),
-				Name: strings.ToUpper(fmt.Sprintf(
-					"COMPLETE_%v_%v_KYC",
-					account.String(),
-					partner.String(),
-				),
+				Name: strings.ToUpper(
+					"Complete your KYC",
 				),
 				ActionType:     base.ActionTypePrimary,
 				Handling:       base.HandlingFullPage,
@@ -1086,7 +1083,7 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 		PartnerType:  string(sup.PartnerType),
 		AccountType:  string(*sup.AccountType),
 		SubjectTitle: emailKYCSubject,
-		EmailBody:    adminEemailBody,
+		EmailBody:    adminEmailBody,
 		EmailAddress: *profile.PrimaryEmailAddress,
 		PrimaryPhone: *profile.PrimaryPhone,
 	}
