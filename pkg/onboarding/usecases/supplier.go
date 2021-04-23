@@ -896,9 +896,11 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 			{
 				ID:             ksuid.New().String(),
 				SequenceNumber: int(time.Now().Unix()),
-				Name: strings.ToUpper(
-					"Complete your KYC",
-				),
+				Name: strings.ToUpper(fmt.Sprintf(
+					"COMPLETE_%v_%v_KYC",
+					account.String(),
+					partner.String(),
+				)),
 				ActionType:     base.ActionTypePrimary,
 				Handling:       base.HandlingFullPage,
 				AllowAnonymous: false,
