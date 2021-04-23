@@ -276,6 +276,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.AddAdminPermsToUser(ctx))
+	iscTesting.Path("/update_user_profile").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.UpdateUserProfile(ctx))
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()

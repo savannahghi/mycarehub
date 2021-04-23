@@ -35,6 +35,7 @@ type HandlersInterfaces interface {
 	ProfileAttributes(ctx context.Context) http.HandlerFunc
 	RegisterPushToken(ctx context.Context) http.HandlerFunc
 	AddAdminPermsToUser(ctx context.Context) http.HandlerFunc
+	UpdateUserProfile(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -631,5 +632,40 @@ func (h *HandlersInterfacesImpl) AddAdminPermsToUser(ctx context.Context) http.H
 			Err:     err,
 			Message: err.Error(),
 		}, http.StatusBadRequest)
+	}
+}
+
+// UpdateUserProfile is an unauthenticated REST endpoint to update a user's profile
+func (h *HandlersInterfacesImpl) UpdateUserProfile(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		payload := &resources.UserProfilePayload{}
+		base.DecodeJSONToTargetStruct(w, r, payload)
+		if payload.UID == nil {
+			err := fmt.Errorf("expected `uid` to be defined")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		authCred := &auth.Token{UID: *payload.UID}
+		newContext := context.WithValue(ctx, base.AuthTokenContextKey, authCred)
+
+		userProfile, err := h.interactor.Signup.UpdateUserProfile(
+			newContext,
+			&resources.UserProfileInput{
+				PhotoUploadID: payload.PhotoUploadID,
+				DateOfBirth:   payload.DateOfBirth,
+				FirstName:     payload.FirstName,
+				LastName:      payload.LastName,
+				Gender:        payload.Gender,
+			},
+		)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, userProfile, http.StatusOK)
 	}
 }

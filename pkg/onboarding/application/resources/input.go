@@ -282,3 +282,14 @@ type EmailNotificationPayload struct {
 	EmailAddress string `json:"email_address"`
 	PrimaryPhone string `json:"primary_phone"`
 }
+
+// UserProfilePayload is used to update a user's profile.
+// This payload is used for REST endpoints
+type UserProfilePayload struct {
+	UID           *string      `json:"uid"`
+	PhotoUploadID *string      `json:"photoUploadID"`
+	DateOfBirth   *base.Date   `json:"dateOfBirth,omitempty"`
+	Gender        *base.Gender `json:"gender,omitempty"`
+	FirstName     *string      `json:"lastName"`
+	LastName      *string      `json:"firstName"`
+}
