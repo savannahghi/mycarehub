@@ -15,6 +15,7 @@ type FakeServiceEngagement struct {
 	ResolveDefaultNudgeByTitleFn func(UID string, flavour base.Flavour, nudgeTitle string) error
 	SendMailFn                   func(email string, message string, subject string) error
 	SendAlertToSupplierFn        func(input resources.EmailNotificationPayload) error
+	NotifySupplierOnSuspensionFn func(input resources.EmailNotificationPayload) error
 	NotifyAdminsFn               func(input resources.EmailNotificationPayload) error
 	GenerateAndSendOTPFn         func(
 		ctx context.Context,
@@ -105,4 +106,9 @@ func (f *FakeServiceEngagement) VerifyOTP(ctx context.Context, phone, OTP string
 // VerifyEmailOTP ...
 func (f *FakeServiceEngagement) VerifyEmailOTP(ctx context.Context, email, OTP string) (bool, error) {
 	return f.VerifyEmailOTPFn(ctx, email, OTP)
+}
+
+// NotifySupplierOnSuspension ...
+func (f *FakeServiceEngagement) NotifySupplierOnSuspension(input resources.EmailNotificationPayload) error {
+	return f.NotifySupplierOnSuspensionFn(input)
 }

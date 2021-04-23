@@ -153,10 +153,10 @@ func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, part
 	return addPartnerType, err
 }
 
-func (r *mutationResolver) SuspendSupplier(ctx context.Context) (bool, error) {
+func (r *mutationResolver) SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error) {
 	startTime := time.Now()
 
-	suspendSupplier, err := r.interactor.Supplier.SuspendSupplier(ctx)
+	suspendSupplier, err := r.interactor.Supplier.SuspendSupplier(ctx, suspensionReason)
 
 	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "suspendSupplier", err)
 

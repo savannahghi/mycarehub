@@ -2205,6 +2205,30 @@ func TestSuspendSupplier(t *testing.T) {
 		t.Errorf("unable to initialize test service")
 		return
 	}
+	suspensionReason := `
+	"This email is to inform you that as a result of your actions on April 12th, 2021, you have been issued a suspension for 1 week (7 days)"
+	`
+	primaryEmail := "primary@example.com"
+	err = s.Onboarding.UpdatePrimaryEmailAddress(ctx, primaryEmail)
+	assert.Nil(t, err)
+
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+
+	// update biodata
+	err = s.Onboarding.UpdateBioData(ctx, completeUserDetails)
+	assert.Nil(t, err)
 
 	name := "Makmende And Sons"
 	partnerPractitioner := base.PartnerTypePractitioner
@@ -2215,7 +2239,8 @@ func TestSuspendSupplier(t *testing.T) {
 	assert.NotNil(t, resp2)
 	assert.Equal(t, true, resp2)
 	type args struct {
-		ctx context.Context
+		ctx              context.Context
+		suspensionReason *string
 	}
 	tests := []struct {
 		name    string
@@ -2226,7 +2251,8 @@ func TestSuspendSupplier(t *testing.T) {
 		{
 			name: "sad case: suspend a nonexisting supplier",
 			args: args{
-				ctx: context.Background(),
+				ctx:              context.Background(),
+				suspensionReason: &suspensionReason,
 			},
 			want:    false,
 			wantErr: true,
@@ -2234,7 +2260,8 @@ func TestSuspendSupplier(t *testing.T) {
 		{
 			name: "Happy case: suspend an existing supplier",
 			args: args{
-				ctx: ctx,
+				ctx:              ctx,
+				suspensionReason: &suspensionReason,
 			},
 			want:    true,
 			wantErr: false,
@@ -2242,7 +2269,7 @@ func TestSuspendSupplier(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.Supplier.SuspendSupplier(tt.args.ctx)
+			got, err := s.Supplier.SuspendSupplier(tt.args.ctx, tt.args.suspensionReason)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SupplierUseCasesImpl.SuspendSupplier() error = %v, wantErr %v", err, tt.wantErr)
 				return

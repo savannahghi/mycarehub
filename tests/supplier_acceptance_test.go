@@ -367,7 +367,7 @@ func TestSetUpSupplier_acceptance(t *testing.T) {
 }
 
 func TestSuspendSupplier_acceptance(t *testing.T) {
-
+	ctx := context.Background()
 	// create a user and their profile
 	phoneNumber := base.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
@@ -383,10 +383,58 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 		return
 	}
 
+	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	if err != nil {
+		t.Errorf("invalid token: %w", err)
+		return
+	}
+	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+
+	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	if err != nil {
+		t.Errorf("failed to set primary email address: %v", err)
+		return
+	}
+	dateOfBirth2 := base.Date{
+		Day:   12,
+		Year:  1995,
+		Month: 10,
+	}
+	firstName2 := "makmende"
+	lastName2 := "juha"
+
+	completeUserDetails := base.BioData{
+		DateOfBirth: &dateOfBirth2,
+		FirstName:   &firstName2,
+		LastName:    &lastName2,
+	}
+	partnerName := "practitioner"
+	partnerType := base.PartnerTypePractitioner
+
+	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	if err != nil {
+		t.Errorf("failed to add partnerType: %v", err)
+		return
+	}
+	account, err := setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	if err != nil {
+		t.Errorf("failed to setup supplier: %v", err)
+		return
+	}
+	log.Printf("the account type for this supplier is %v:", account.AccountType)
+	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	if err != nil {
+		t.Errorf("failed to update biodata: %v", err)
+		return
+	}
+	suspensionReason := `
+	"This email is to inform you that as a result of your actions on April 12th, 2021, you have been issued a suspension for 1 week (7 days)"
+	`
+
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
-	graphqlMutation := `mutation{
-		suspendSupplier
+	graphqlMutation := `mutation suspendSupplier($suspensionReason: String){
+		suspendSupplier(suspensionReason:$suspensionReason)
 	  }
 	`
 
@@ -405,6 +453,9 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"suspensionReason": suspensionReason,
+					},
 				},
 			},
 			wantStatus: http.StatusOK,
@@ -415,6 +466,9 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 			args: args{
 				query: map[string]interface{}{
 					"query": "invalid mutation",
+					"variables": map[string]interface{}{
+						"suspensionReason": suspensionReason,
+					},
 				},
 			},
 			wantStatus: http.StatusUnprocessableEntity,

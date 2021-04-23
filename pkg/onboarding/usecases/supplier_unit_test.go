@@ -1400,9 +1400,13 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
+	suspensionReason := `
+	"This email is to inform you that as a result of your actions on April 12th, 2021, you have been issued a suspension for 1 week (7 days)"
+	`
 
 	type args struct {
-		ctx context.Context
+		ctx              context.Context
+		suspensionReason *string
 	}
 	tests := []struct {
 		name    string
@@ -1413,7 +1417,8 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 		{
 			name: "valid:successfully_suspend_supplier",
 			args: args{
-				ctx: ctx,
+				ctx:              ctx,
+				suspensionReason: &suspensionReason,
 			},
 			want:    true,
 			wantErr: false,
@@ -1421,7 +1426,8 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 		{
 			name: "invalid:fail_to_suspend_supplier",
 			args: args{
-				ctx: ctx,
+				ctx:              ctx,
+				suspensionReason: &suspensionReason,
 			},
 			want:    false,
 			wantErr: true,
@@ -1429,7 +1435,8 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 		{
 			name: "invalid:fail_to_get_user_profile",
 			args: args{
-				ctx: ctx,
+				ctx:              ctx,
+				suspensionReason: &suspensionReason,
 			},
 			want:    false,
 			wantErr: true,
@@ -1437,7 +1444,8 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 		{
 			name: "invalid:fail_to_get_supplier_profile",
 			args: args{
-				ctx: ctx,
+				ctx:              ctx,
+				suspensionReason: &suspensionReason,
 			},
 			want:    false,
 			wantErr: true,
@@ -1445,7 +1453,8 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 		{
 			name: "invalid:fail_to_get_logged_in_user",
 			args: args{
-				ctx: ctx,
+				ctx:              ctx,
+				suspensionReason: &suspensionReason,
 			},
 			want:    false,
 			wantErr: true,
@@ -1470,8 +1479,17 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := "test@example.com"
+					firstName := "Makmende"
+					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
-						ID: "400d-8716--91bd-42b3af315a4e",
+						ID:                  "400d-8716--91bd-42b3af315a4e",
+						PrimaryPhone:        &primaryPhoneNumber,
+						PrimaryEmailAddress: &email,
+						UserBioData: base.BioData{
+							FirstName: &firstName,
+							LastName:  &firstName,
+						},
 						VerifiedIdentifiers: []base.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af315a4e",
@@ -1493,6 +1511,9 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 				}
 
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+				fakeEngagementSvs.NotifySupplierOnSuspensionFn = func(input resources.EmailNotificationPayload) error {
 					return nil
 				}
 			}
@@ -1591,7 +1612,7 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 				}
 			}
 
-			got, err := i.Supplier.SuspendSupplier(tt.args.ctx)
+			got, err := i.Supplier.SuspendSupplier(tt.args.ctx, tt.args.suspensionReason)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SupplierUseCasesImpl.SuspendSupplier() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -236,7 +236,7 @@ type ComplexityRoot struct {
 		SetupAsExperimentParticipant     func(childComplexity int, participate *bool) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
 		SupplierSetDefaultLocation       func(childComplexity int, locationID string) int
-		SuspendSupplier                  func(childComplexity int) int
+		SuspendSupplier                  func(childComplexity int, suspensionReason *string) int
 		UpdateUserName                   func(childComplexity int, username string) int
 		UpdateUserPin                    func(childComplexity int, phone string, pin string) int
 		UpdateUserProfile                func(childComplexity int, input resources.UserProfileInput) int
@@ -478,7 +478,7 @@ type MutationResolver interface {
 	UpdateUserName(ctx context.Context, username string) (bool, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
 	AddPartnerType(ctx context.Context, name string, partnerType base.PartnerType) (bool, error)
-	SuspendSupplier(ctx context.Context) (bool, error)
+	SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error)
 	SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
 	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error)
 	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error)
@@ -1560,7 +1560,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Mutation.SuspendSupplier(childComplexity), true
+		args, err := ec.field_Mutation_suspendSupplier_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SuspendSupplier(childComplexity, args["suspensionReason"].(*string)), true
 
 	case "Mutation.updateUserName":
 		if e.complexity.Mutation.UpdateUserName == nil {
@@ -3349,7 +3354,7 @@ extend type Mutation {
 
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
 
-  suspendSupplier: Boolean!
+  suspendSupplier(suspensionReason: String): Boolean!
 
   setUpSupplier(accountType: AccountType!): Supplier
   supplierEDILogin(
@@ -4444,6 +4449,21 @@ func (ec *executionContext) field_Mutation_supplierSetDefaultLocation_args(ctx c
 		}
 	}
 	args["locationID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_suspendSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["suspensionReason"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("suspensionReason"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["suspensionReason"] = arg0
 	return args, nil
 }
 
@@ -8372,9 +8392,16 @@ func (ec *executionContext) _Mutation_suspendSupplier(ctx context.Context, field
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_suspendSupplier_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SuspendSupplier(rctx)
+		return ec.resolvers.Mutation().SuspendSupplier(rctx, args["suspensionReason"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

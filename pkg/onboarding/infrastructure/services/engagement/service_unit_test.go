@@ -16,6 +16,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 )
 
@@ -1080,6 +1081,110 @@ func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 
 				if resp != tt.want {
 					t.Errorf("expected %v, got %v", tt.want, resp)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
+	type args struct {
+		input resources.EmailNotificationPayload
+	}
+	suspensionReason := `
+	"This email is to inform you that as a result of your actions on April 12th, 2021, you have been issued a suspension for 1 week (7 days)"
+	`
+	supplierName := "Akaku Danger"
+	subjectTitle := "Suspension from Be.Well"
+	emailBody := suspensionReason
+	emailAddress := base.TestUserEmail
+	primaryPhone := base.TestUserPhoneNumber
+	validInput := resources.EmailNotificationPayload{
+		SupplierName: supplierName,
+		SubjectTitle: subjectTitle,
+		EmailBody:    emailBody,
+		EmailAddress: emailAddress,
+		PrimaryPhone: primaryPhone,
+	}
+	invalidEmailAddress := "12345"
+	invalidInput := resources.EmailNotificationPayload{
+		SupplierName: supplierName,
+		SubjectTitle: subjectTitle,
+		EmailBody:    emailBody,
+		EmailAddress: invalidEmailAddress,
+		PrimaryPhone: primaryPhone,
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantErr    bool
+		wantStatus int
+	}{
+		{
+			name: "valid:successfully_send_email",
+			args: args{
+				input: validInput,
+			},
+			wantErr:    false,
+			wantStatus: http.StatusOK,
+		},
+		{
+			name: "invalid:wrong_email_address",
+			args: args{
+				input: invalidInput,
+			},
+			wantErr:    true,
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			name: "invalid:error_while_sending_request",
+			args: args{
+				input: invalidInput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:successfully_send_email" {
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{
+						Status:     "OK",
+						StatusCode: 200,
+						Body:       nil,
+					}, nil
+				}
+			}
+			if tt.name == "invalid:wrong_email_address" {
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{
+						Status:     "BAD REQUEST",
+						StatusCode: 400,
+						Body:       nil,
+					}, fmt.Errorf("an error occured! Invalid email address")
+				}
+			}
+			if tt.name == "invalid:error_while_sending_request" {
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("an error occured!")
+				}
+			}
+			err := e.NotifySupplierOnSuspension(tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ServiceEngagementImpl.SendMail() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
 					return
 				}
 			}

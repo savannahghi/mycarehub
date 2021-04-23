@@ -48,7 +48,8 @@ const (
 	supplierEmailBody         = `
 		we acknowledge receipt of your.
 		`
-
+	// Supplier Suspension EmailSubject Title
+	supplierSuspensionEmailSubjectTitle = "Suspension from Be.Well"
 	// PartnerAccountSetupNudgeTitle is the title defined in the `engagement service`
 	// for the `PartnerAccountSetupNudge`
 	PartnerAccountSetupNudgeTitle = "Setup your partner account"
@@ -68,7 +69,7 @@ type SupplierUseCases interface {
 
 	SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
 
-	SuspendSupplier(ctx context.Context) (bool, error)
+	SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error)
 
 	EDIUserLogin(username, password *string) (*base.EDIUserProfile, error)
 
@@ -424,7 +425,7 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 }
 
 // SuspendSupplier flips the active boolean on the erp partner from true to false
-func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error) {
+func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error) {
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return false, exceptions.UserNotFoundError(err)
@@ -445,7 +446,17 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context) (bool, error)
 		return false, err
 	}
 
-	//TODO(dexter) notify the supplier of the suspension
+	supplierEmailPayload := resources.EmailNotificationPayload{
+		SupplierName: *profile.UserBioData.FirstName,
+		SubjectTitle: supplierSuspensionEmailSubjectTitle,
+		EmailBody:    *suspensionReason,
+		EmailAddress: *profile.PrimaryEmailAddress,
+		PrimaryPhone: *profile.PrimaryPhone,
+	}
+	err = s.engagement.NotifySupplierOnSuspension(supplierEmailPayload)
+	if err != nil {
+		return false, err
+	}
 
 	return true, nil
 

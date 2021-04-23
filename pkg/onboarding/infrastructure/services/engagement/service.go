@@ -64,6 +64,8 @@ type ServiceEngagement interface {
 
 	NotifyAdmins(input resources.EmailNotificationPayload) error
 
+	NotifySupplierOnSuspension(input resources.EmailNotificationPayload) error
+
 	GenerateAndSendOTP(
 		ctx context.Context,
 		phone string,
@@ -416,4 +418,36 @@ func (en *ServiceEngagementImpl) VerifyEmailOTP(ctx context.Context, email, otp 
 
 	return r.IsVerified, nil
 
+}
+
+//NotifySupplierOnSuspension send email to supplier notifying him of the
+// suspension.
+func (en *ServiceEngagementImpl) NotifySupplierOnSuspension(input resources.EmailNotificationPayload) error {
+	var writer bytes.Buffer
+	t := template.Must(template.New("supplierSuspensionEmail").Parse(utils.SupplierSuspensionEmail))
+	_ = t.Execute(&writer, resources.EmailNotificationPayload{
+		SupplierName: input.SupplierName,
+		PartnerType:  input.PartnerType,
+		AccountType:  input.AccountType,
+		EmailBody:    input.EmailBody,
+		EmailAddress: input.EmailAddress,
+		PrimaryPhone: input.PrimaryPhone,
+	})
+
+	body := map[string]interface{}{
+		"to":      []string{input.EmailAddress},
+		"text":    writer.String(),
+		"subject": input.SubjectTitle,
+	}
+
+	resp, err := en.Engage.MakeRequest(http.MethodPost, sendEmail, body)
+
+	if err != nil {
+		return fmt.Errorf("unable to send alert to supplier email: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send alert to supplier email: %w", err)
+	}
+
+	return nil
 }

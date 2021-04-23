@@ -53,7 +53,7 @@ extend type Mutation {
 
   addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
 
-  suspendSupplier: Boolean!
+  suspendSupplier(suspensionReason: String): Boolean!
 
   setUpSupplier(accountType: AccountType!): Supplier
   supplierEDILogin(
