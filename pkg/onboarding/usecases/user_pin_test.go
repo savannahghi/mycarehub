@@ -234,7 +234,7 @@ func TestUserPinUseCaseUnitTest_ResetUserPIN(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
@@ -259,7 +259,7 @@ func TestUserPinUseCaseUnitTest_ResetUserPIN(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
@@ -284,7 +284,7 @@ func TestUserPinUseCaseUnitTest_ResetUserPIN(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, fmt.Errorf("unable to verify otp")
 				}
 			}
@@ -294,7 +294,7 @@ func TestUserPinUseCaseUnitTest_ResetUserPIN(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, nil
 				}
 			}
@@ -304,7 +304,7 @@ func TestUserPinUseCaseUnitTest_ResetUserPIN(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
@@ -317,7 +317,7 @@ func TestUserPinUseCaseUnitTest_ResetUserPIN(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
@@ -475,7 +475,7 @@ func TestUserPinUseCaseImpl_ChangeUserPINUnitTest(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
@@ -712,7 +712,7 @@ func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return &base.OtpResponse{OTP: "1234"}, nil
 				}
 			}
@@ -764,7 +764,7 @@ func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to generate and send otp")
 				}
 			}

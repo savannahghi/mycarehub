@@ -2,7 +2,10 @@ package engagement
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"text/template"
 
@@ -22,6 +25,15 @@ const (
 
 	// Communication ISC paths
 	sendEmail = "internal/send_email"
+
+	// SendRetryOtp ISC endpoint to send a retry OTP
+	SendRetryOtp = "internal/send_retry_otp/"
+	// SendOtp ISC endpoint to send OTP
+	SendOtp = "internal/send_otp/"
+	// VerifyEmailOtp ISC endpoint to verify email OTP
+	VerifyEmailOtp = "internal/verify_email_otp/"
+	// VerifyOTPEndPoint ISC endpoint to verify OTP
+	VerifyOTPEndPoint = "internal/verify_otp/"
 )
 
 // ServiceEngagement represents engagement usecases
@@ -47,18 +59,36 @@ type ServiceEngagement interface {
 		message string,
 		subject string,
 	) error
+
 	SendAlertToSupplier(input resources.EmailNotificationPayload) error
+
 	NotifyAdmins(input resources.EmailNotificationPayload) error
+
+	GenerateAndSendOTP(
+		ctx context.Context,
+		phone string,
+	) (*base.OtpResponse, error)
+
+	SendRetryOTP(
+		ctx context.Context,
+		msisdn string,
+		retryStep int,
+	) (*base.OtpResponse, error)
+
+	VerifyOTP(ctx context.Context, phone, OTP string) (bool, error)
+
+	VerifyEmailOTP(ctx context.Context, email, OTP string) (bool, error)
 }
 
 // ServiceEngagementImpl represents engagement usecases
 type ServiceEngagementImpl struct {
-	Engage extension.ISCClientExtension
+	Engage  extension.ISCClientExtension
+	baseExt extension.BaseExtension
 }
 
 // NewServiceEngagementImpl returns new instance of ServiceEngagementImpl
-func NewServiceEngagementImpl(eng extension.ISCClientExtension) ServiceEngagement {
-	return &ServiceEngagementImpl{Engage: eng}
+func NewServiceEngagementImpl(eng extension.ISCClientExtension, ext extension.BaseExtension) ServiceEngagement {
+	return &ServiceEngagementImpl{Engage: eng, baseExt: ext}
 }
 
 // PublishKYCNudge calls the `engagement service` to publish
@@ -228,4 +258,162 @@ func (en *ServiceEngagementImpl) NotifyAdmins(input resources.EmailNotificationP
 	}
 
 	return nil
+}
+
+// GenerateAndSendOTP creates a new otp and sends it to the provided phone number.
+func (en *ServiceEngagementImpl) GenerateAndSendOTP(
+	ctx context.Context,
+	phone string,
+) (*base.OtpResponse, error) {
+	body := map[string]interface{}{
+		"msisdn": phone,
+	}
+	resp, err := en.Engage.MakeRequest(http.MethodPost, SendOtp, body)
+	if err != nil {
+		return nil, exceptions.GenerateAndSendOTPError(err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf(
+			"unable to generate and send otp, with status code %v", resp.StatusCode,
+		)
+	}
+	code, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert response to string: %v", err)
+	}
+
+	var OTP string
+	err = json.Unmarshal(code, &OTP)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal OTP: %v", err)
+	}
+	return &base.OtpResponse{OTP: OTP}, nil
+}
+
+// SendRetryOTP generates fallback OTPs when Africa is talking sms fails
+func (en *ServiceEngagementImpl) SendRetryOTP(
+	ctx context.Context,
+	msisdn string,
+	retryStep int,
+) (*base.OtpResponse, error) {
+	phoneNumber, err := en.baseExt.NormalizeMSISDN(msisdn)
+	if err != nil {
+		return nil, exceptions.NormalizeMSISDNError(err)
+	}
+
+	body := map[string]interface{}{
+		"msisdn":    phoneNumber,
+		"retryStep": retryStep,
+	}
+	resp, err := en.Engage.MakeRequest(http.MethodPost, SendRetryOtp, body)
+	if err != nil {
+		return nil, exceptions.GenerateAndSendOTPError(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf(
+			"unable to generate and send fallback otp, with status code %v",
+			resp.StatusCode,
+		)
+	}
+
+	code, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert response to string: %v", err)
+	}
+
+	var RetryOTP string
+	err = json.Unmarshal(code, &RetryOTP)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal OTP: %v", err)
+	}
+
+	return &base.OtpResponse{OTP: RetryOTP}, nil
+}
+
+// VerifyOTP takes a phone number and an OTP and checks for the validity of the OTP code
+func (en *ServiceEngagementImpl) VerifyOTP(ctx context.Context, phone, otp string) (bool, error) {
+	normalized, err := en.baseExt.NormalizeMSISDN(phone)
+	if err != nil {
+		return false, fmt.Errorf("invalid phone format: %w", err)
+	}
+
+	type VerifyOTP struct {
+		Msisdn           string `json:"msisdn"`
+		VerificationCode string `json:"verificationCode"`
+	}
+
+	verifyPayload := VerifyOTP{
+		Msisdn:           *normalized,
+		VerificationCode: otp,
+	}
+
+	resp, err := en.Engage.MakeRequest(http.MethodPost, VerifyOTPEndPoint, verifyPayload)
+	if err != nil {
+		return false, fmt.Errorf(
+			"can't complete OTP verification request: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("unable to verify OTP : %w, with status code %v", err, resp.StatusCode)
+	}
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return false, fmt.Errorf("can't read OTP response data: %w", err)
+	}
+
+	type otpResponse struct {
+		IsVerified bool `json:"IsVerified"`
+	}
+
+	var r otpResponse
+	err = json.Unmarshal(data, &r)
+	if err != nil {
+		return false, fmt.Errorf(
+			"can't unmarshal OTP response data from JSON: %w", err)
+	}
+	return r.IsVerified, nil
+}
+
+// VerifyEmailOTP checks the otp provided matches the one sent to the user via email address
+func (en *ServiceEngagementImpl) VerifyEmailOTP(ctx context.Context, email, otp string) (bool, error) {
+
+	type VerifyOTP struct {
+		Email            string `json:"email"`
+		VerificationCode string `json:"verificationCode"`
+	}
+
+	verifyPayload := VerifyOTP{
+		Email:            email,
+		VerificationCode: otp,
+	}
+
+	resp, err := en.Engage.MakeRequest(http.MethodPost, VerifyEmailOtp, verifyPayload)
+	if err != nil {
+		return false, fmt.Errorf(
+			"can't complete OTP verification request: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("unable to verify OTP : %w, with status code %v", err, resp.StatusCode)
+	}
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return false, fmt.Errorf("can't read OTP response data: %w", err)
+	}
+
+	type otpResponse struct {
+		IsVerified bool `json:"IsVerified"`
+	}
+
+	var r otpResponse
+	err = json.Unmarshal(data, &r)
+	if err != nil {
+		return false, fmt.Errorf(
+			"can't unmarshal OTP response data from JSON: %w", err)
+	}
+
+	return r.IsVerified, nil
+
 }

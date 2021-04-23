@@ -9,7 +9,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -30,23 +30,26 @@ type UserPINUseCases interface {
 // UserPinUseCaseImpl represents usecase implementation object
 type UserPinUseCaseImpl struct {
 	onboardingRepository repository.OnboardingRepository
-	otpUseCases          otp.ServiceOTP
 	profileUseCases      ProfileUseCase
 	baseExt              extension.BaseExtension
 	pinExt               extension.PINExtension
+	engagement           engagement.ServiceEngagement
 }
 
 // NewUserPinUseCase returns a new UserPin usecase
 func NewUserPinUseCase(
 	r repository.OnboardingRepository,
-	otp otp.ServiceOTP, p ProfileUseCase,
-	ext extension.BaseExtension, pin extension.PINExtension) UserPINUseCases {
+	p ProfileUseCase,
+	ext extension.BaseExtension,
+	pin extension.PINExtension,
+	eng engagement.ServiceEngagement,
+) UserPINUseCases {
 	return &UserPinUseCaseImpl{
 		onboardingRepository: r,
-		otpUseCases:          otp,
 		profileUseCases:      p,
 		baseExt:              ext,
 		pinExt:               pin,
+		engagement:           eng,
 	}
 }
 
@@ -103,7 +106,7 @@ func (u *UserPinUseCaseImpl) RequestPINReset(
 		return nil, exceptions.ExistingPINError(err)
 	}
 	// generate and send otp to the phone number
-	otpResp, err := u.otpUseCases.GenerateAndSendOTP(ctx, phone)
+	otpResp, err := u.engagement.GenerateAndSendOTP(ctx, phone)
 	if err != nil {
 		return nil, exceptions.GenerateAndSendOTPError(err)
 	}
@@ -123,7 +126,7 @@ func (u *UserPinUseCaseImpl) ResetUserPIN(
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
-	verified, err := u.otpUseCases.VerifyOTP(ctx, phone, OTP)
+	verified, err := u.engagement.VerifyOTP(ctx, phone, OTP)
 	if err != nil {
 		return false, exceptions.VerifyOTPError(err)
 	}

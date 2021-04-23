@@ -7,7 +7,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 
@@ -18,7 +17,6 @@ import (
 type Interactor struct {
 	Onboarding   usecases.ProfileUseCase
 	Signup       usecases.SignUpUseCases
-	Otp          otp.ServiceOTP
 	Supplier     usecases.SupplierUseCases
 	Login        usecases.LoginUseCases
 	Survey       usecases.SurveyUseCases
@@ -36,7 +34,6 @@ func NewOnboardingInteractor(
 	fr repository.OnboardingRepository,
 	profile usecases.ProfileUseCase,
 	su usecases.SignUpUseCases,
-	otp otp.ServiceOTP,
 	supplier usecases.SupplierUseCases,
 	login usecases.LoginUseCases,
 	survey usecases.SurveyUseCases,
@@ -52,7 +49,6 @@ func NewOnboardingInteractor(
 	return &Interactor{
 		Onboarding:   profile,
 		Signup:       su,
-		Otp:          otp,
 		Supplier:     supplier,
 		Login:        login,
 		Survey:       survey,

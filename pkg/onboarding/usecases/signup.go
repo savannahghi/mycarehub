@@ -10,7 +10,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -61,8 +61,8 @@ type SignUpUseCasesImpl struct {
 	profileUsecase       ProfileUseCase
 	pinUsecase           UserPINUseCases
 	supplierUsecase      SupplierUseCases
-	otpUseCases          otp.ServiceOTP
 	baseExt              extension.BaseExtension
+	engagement           engagement.ServiceEngagement
 }
 
 // NewSignUpUseCases returns a new a onboarding usecase
@@ -71,16 +71,16 @@ func NewSignUpUseCases(
 	profile ProfileUseCase,
 	pin UserPINUseCases,
 	supplier SupplierUseCases,
-	otp otp.ServiceOTP,
 	ext extension.BaseExtension,
+	eng engagement.ServiceEngagement,
 ) SignUpUseCases {
 	return &SignUpUseCasesImpl{
 		onboardingRepository: r,
 		profileUsecase:       profile,
 		pinUsecase:           pin,
 		supplierUsecase:      supplier,
-		otpUseCases:          otp,
 		baseExt:              ext,
+		engagement:           eng,
 	}
 }
 
@@ -103,7 +103,7 @@ func (s *SignUpUseCasesImpl) VerifyPhoneNumber(
 		return nil, exceptions.CheckPhoneNumberExistError()
 	}
 	// generate and send otp to the phone number
-	otpResp, err := s.otpUseCases.GenerateAndSendOTP(ctx, *phoneNumber)
+	otpResp, err := s.engagement.GenerateAndSendOTP(ctx, *phoneNumber)
 
 	if err != nil {
 		return nil, exceptions.GenerateAndSendOTPError(err)
@@ -122,7 +122,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	if err != nil {
 		return nil, err
 	}
-	verified, err := s.otpUseCases.VerifyOTP(
+	verified, err := s.engagement.VerifyOTP(
 		ctx,
 		*userData.PhoneNumber,
 		*userData.OTP,

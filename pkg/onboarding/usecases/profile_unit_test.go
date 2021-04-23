@@ -624,7 +624,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
 				}
-				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
@@ -673,7 +673,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
 				}
-				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, fmt.Errorf("unable to verify email otp")
 				}
 			}
@@ -685,7 +685,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
 				}
-				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, nil
 				}
 			}
@@ -697,7 +697,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
 				}
-				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
@@ -715,7 +715,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
 				}
-				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
@@ -749,7 +749,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
 				}
-				fakeOtp.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {

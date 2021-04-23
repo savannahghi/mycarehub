@@ -1,27 +1,19 @@
 staging:
-  - depName: otp
-    depRootDomain: https://otp-staging.healthcloud.co.ke
   - depName: engagement
     depRootDomain: https://engagement-staging.healthcloud.co.ke 
   - depName: twilio
     depRootDomain: https://twilio-staging.healthcloud.co.ke
 testing:
-  - depName: otp
-    depRootDomain: https://otp-testing.healthcloud.co.ke
   - depName: engagement
     depRootDomain: https://engagement-testing.healthcloud.co.ke
   - depName: twilio
     depRootDomain: https://twilio-testing.healthcloud.co.ke
 demo:
-  - depName: otp
-    depRootDomain: https://otp-demo.healthcloud.co.ke
   - depName: engagement
     depRootDomain: https://engagement-demo.healthcloud.co.ke
   - depName: twilio
     depRootDomain: https://twilio-demo.healthcloud.co.ke    
 production:
-  - depName: otp
-    depRootDomain: https://otp-prod.healthcloud.co.ke
   - depName: engagement
     depRootDomain: https://engagement-prod.healthcloud.co.ke
   - depName: twilio

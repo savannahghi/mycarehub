@@ -15,7 +15,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -142,7 +141,6 @@ type ProfileUseCase interface {
 // ProfileUseCaseImpl represents usecase implementation object
 type ProfileUseCaseImpl struct {
 	onboardingRepository repository.OnboardingRepository
-	otpUseCases          otp.ServiceOTP
 	baseExt              extension.BaseExtension
 	engagement           engagement.ServiceEngagement
 }
@@ -150,13 +148,11 @@ type ProfileUseCaseImpl struct {
 // NewProfileUseCase returns a new a onboarding usecase
 func NewProfileUseCase(
 	r repository.OnboardingRepository,
-	otp otp.ServiceOTP,
 	ext extension.BaseExtension,
 	eng engagement.ServiceEngagement,
 ) ProfileUseCase {
 	return &ProfileUseCaseImpl{
 		onboardingRepository: r,
-		otpUseCases:          otp,
 		baseExt:              ext,
 		engagement:           eng,
 	}
@@ -648,7 +644,7 @@ func (p *ProfileUseCaseImpl) SetPrimaryPhoneNumber(
 	useContext bool,
 ) error {
 	// verify otp code
-	verified, err := p.otpUseCases.VerifyOTP(
+	verified, err := p.engagement.VerifyOTP(
 		ctx,
 		phoneNumber,
 		otp,
@@ -680,7 +676,7 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 		return exceptions.UserNotFoundError(err)
 	}
 	// verify otp code
-	verified, err := p.otpUseCases.VerifyEmailOTP(
+	verified, err := p.engagement.VerifyEmailOTP(
 		ctx,
 		emailAddress,
 		otp,

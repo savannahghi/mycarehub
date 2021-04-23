@@ -33,14 +33,12 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
 const (
-	otpService        = "otp"
 	engagementService = "engagement"
 )
 
@@ -107,16 +105,14 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	ext := extension.NewBaseExtensionImpl()
 
 	// Initialize ISC clients
-	otpClient := utils.NewInterServiceClient(otpService, ext)
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	engage := engagement.NewServiceEngagementImpl(engagementClient)
+	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
-	otp := otp.NewOTPService(otpClient, ext)
 	erp := erp.NewERPService(fr)
 
 	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
@@ -139,17 +135,16 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
 	}
-	profile := usecases.NewProfileUseCase(fr, otp, ext, engage)
+	profile := usecases.NewProfileUseCase(fr, ext, engage)
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
-	userpin := usecases.NewUserPinUseCase(fr, otp, profile, ext, pinExt)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, otp, ext)
+	userpin := usecases.NewUserPinUseCase(fr, profile, ext, pinExt, engage)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, ext, engage)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
 		Signup:       su,
-		Otp:          otp,
 		Supplier:     supplier,
 		Login:        login,
 		Survey:       survey,
@@ -167,7 +162,7 @@ func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize test service: %v", err)
 	}
-	return s.Otp.GenerateAndSendOTP(ctx, phone)
+	return s.Engagement.GenerateAndSendOTP(ctx, phone)
 }
 
 // CreateTestUserByPhone creates a user that is to be used in

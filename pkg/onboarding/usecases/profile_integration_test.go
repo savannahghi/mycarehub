@@ -155,7 +155,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	assert.Equal(t, 1, len(login3.Profile.SecondaryPhoneNumbers))
 
 	// send otp to the secondary phone number we intend to make primary
-	otpResp, err := s.Otp.GenerateAndSendOTP(context.Background(), secondaryPhone)
+	otpResp, err := s.Engagement.GenerateAndSendOTP(context.Background(), secondaryPhone)
 	assert.Nil(t, err)
 	assert.NotNil(t, otpResp)
 

@@ -16,7 +16,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 )
 
 const (
@@ -52,15 +51,13 @@ func TestParseKYCAsMap(t *testing.T) {
 
 	ext := extension.NewBaseExtensionImpl()
 	// Initialize ISC clients
-	otpClient := utils.NewInterServiceClient(otpService, ext)
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	engage := engagement.NewServiceEngagementImpl(engagementClient)
+	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
 	mes := messaging.NewServiceMessagingImpl(ext)
-	otp := otp.NewOTPService(otpClient, ext)
-	profile := NewProfileUseCase(repo, otp, ext, engage)
+	profile := NewProfileUseCase(repo, ext, engage)
 
 	supplier := SupplierUseCasesImpl{
 		repo:         repo,

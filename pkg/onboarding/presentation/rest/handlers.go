@@ -292,7 +292,7 @@ func (h *HandlersInterfacesImpl) SendOTP(ctx context.Context) http.HandlerFunc {
 			return
 		}
 
-		response, err := h.interactor.Otp.GenerateAndSendOTP(
+		response, err := h.interactor.Engagement.GenerateAndSendOTP(
 			ctx,
 			*payload.PhoneNumber,
 		)
@@ -321,7 +321,7 @@ func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerF
 			return
 		}
 
-		response, err := h.interactor.Otp.SendRetryOTP(
+		response, err := h.interactor.Engagement.SendRetryOTP(
 			ctx,
 			*retryPayload.Phone,
 			*retryPayload.RetryStep,

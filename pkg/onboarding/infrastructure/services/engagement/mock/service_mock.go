@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"context"
 	"net/http"
 
 	"gitlab.slade360emr.com/go/base"
@@ -15,6 +16,20 @@ type FakeServiceEngagement struct {
 	SendMailFn                   func(email string, message string, subject string) error
 	SendAlertToSupplierFn        func(input resources.EmailNotificationPayload) error
 	NotifyAdminsFn               func(input resources.EmailNotificationPayload) error
+	GenerateAndSendOTPFn         func(
+		ctx context.Context,
+		phone string,
+	) (*base.OtpResponse, error)
+
+	SendRetryOTPFn func(
+		ctx context.Context,
+		msisdn string,
+		retryStep int,
+	) (*base.OtpResponse, error)
+
+	VerifyOTPFn func(ctx context.Context, phone, OTP string) (bool, error)
+
+	VerifyEmailOTPFn func(ctx context.Context, email, OTP string) (bool, error)
 }
 
 // PublishKYCNudge ...
@@ -63,4 +78,31 @@ func (f *FakeServiceEngagement) SendAlertToSupplier(input resources.EmailNotific
 // NotifyAdmins ...
 func (f *FakeServiceEngagement) NotifyAdmins(input resources.EmailNotificationPayload) error {
 	return f.NotifyAdminsFn(input)
+}
+
+// GenerateAndSendOTP ...
+func (f *FakeServiceEngagement) GenerateAndSendOTP(
+	ctx context.Context,
+	phone string,
+) (*base.OtpResponse, error) {
+	return f.GenerateAndSendOTPFn(ctx, phone)
+}
+
+// SendRetryOTP ...
+func (f *FakeServiceEngagement) SendRetryOTP(
+	ctx context.Context,
+	msisdn string,
+	retryStep int,
+) (*base.OtpResponse, error) {
+	return f.SendRetryOTPFn(ctx, msisdn, retryStep)
+}
+
+// VerifyOTP ...
+func (f *FakeServiceEngagement) VerifyOTP(ctx context.Context, phone, OTP string) (bool, error) {
+	return f.VerifyOTPFn(ctx, phone, OTP)
+}
+
+// VerifyEmailOTP ...
+func (f *FakeServiceEngagement) VerifyEmailOTP(ctx context.Context, email, OTP string) (bool, error) {
+	return f.VerifyEmailOTPFn(ctx, email, OTP)
 }

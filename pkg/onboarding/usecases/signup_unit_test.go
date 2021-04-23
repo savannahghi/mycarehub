@@ -246,7 +246,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:successfully_create_user_by_phone" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 
@@ -312,19 +312,19 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 			}
 
 			if tt.name == "invalid:fail_to_verifyOTP" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, nil
 				}
 			}
 
 			if tt.name == "invalid:use_invalid_input" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, nil
 				}
 			}
 
 			if tt.name == "invalid:fail_to_check_ifPhoneNumberExists" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 
@@ -334,7 +334,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 			}
 
 			if tt.name == "invalid:fail_to_create_user_profile" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 
@@ -353,7 +353,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 			}
 
 			if tt.name == "invalid:fail_to_generate_auth_credentials" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 
@@ -378,7 +378,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 			}
 
 			if tt.name == "invalid:fail_to_set_userPin" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 
@@ -431,7 +431,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 			}
 
 			if tt.name == "invalid:fail_to_create_empty_supplier_profile" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 
@@ -489,7 +489,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 			}
 
 			if tt.name == "fail_to_create_empty_customer_profile" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 
@@ -645,7 +645,7 @@ func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
 					return false, nil
 				}
 
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return &base.OtpResponse{OTP: "1234"}, nil
 				}
 			}
@@ -688,7 +688,7 @@ func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
 					return false, nil
 				}
 
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return nil, fmt.Errorf("failed to generate and send otp")
 				}
 			}
@@ -869,7 +869,7 @@ func TestSignUpUseCasesImpl_SetPhoneAsPrimary(t *testing.T) {
 				}
 
 				// Begin Mocking SetPrimaryPhoneNumber
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 
@@ -911,7 +911,7 @@ func TestSignUpUseCasesImpl_SetPhoneAsPrimary(t *testing.T) {
 				}
 
 				// Begin Mocking SetPrimaryPhoneNumber
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 

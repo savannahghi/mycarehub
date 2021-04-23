@@ -26,11 +26,9 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
-	otpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp/mock"
 	mockRepo "gitlab.slade360emr.com/go/profile/pkg/onboarding/repository/mock"
 
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
@@ -153,16 +151,14 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	ext := extension.NewBaseExtensionImpl()
 
 	// Initialize ISC clients
-	otpClient := utils.NewInterServiceClient(otpService, ext)
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	engage := engagement.NewServiceEngagementImpl(engagementClient)
+	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
-	otp := otp.NewOTPService(otpClient, ext)
-	profile := usecases.NewProfileUseCase(repo, otp, ext, engage)
+	profile := usecases.NewProfileUseCase(repo, ext, engage)
 
 	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
 	if err != nil {
@@ -188,14 +184,13 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, ext)
-	userpin := usecases.NewUserPinUseCase(repo, otp, profile, ext, pinExt)
-	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, otp, ext)
+	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
+	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
 		Signup:       su,
-		Otp:          otp,
 		Supplier:     supplier,
 		Login:        login,
 		Survey:       survey,
@@ -214,7 +209,7 @@ func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize test service: %v", err)
 	}
-	return s.Otp.GenerateAndSendOTP(ctx, phone)
+	return s.Engagement.GenerateAndSendOTP(ctx, phone)
 }
 
 // CreateTestUserByPhone creates a user that is to be used in
@@ -398,7 +393,6 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 }
 
 var fakeRepo mockRepo.FakeOnboardingRepository
-var fakeOtp otpMock.FakeServiceOTP
 var fakeBaseExt extMock.FakeBaseExtensionImpl
 var fakePinExt extMock.PINExtensionImpl
 var fakeEngagementSvs engagementMock.FakeServiceEngagement
@@ -410,7 +404,6 @@ var fakePubSub pubsubmessagingMock.FakeServicePubSub
 // InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
 func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var r repository.OnboardingRepository = &fakeRepo
-	var otpSvc otp.ServiceOTP = &fakeOtp
 	var erpSvc erp.ServiceERP = &fakeEPRSvc
 	var chargemasterSvc chargemaster.ServiceChargeMaster = &fakeChargeMasterSvc
 	var engagementSvc engagement.ServiceEngagement = &fakeEngagementSvs
@@ -419,18 +412,18 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var pinExt extension.PINExtension = &fakePinExt
 	var ps pubsubmessaging.ServicePubSub = &fakePubSub
 
-	profile := usecases.NewProfileUseCase(r, otpSvc, ext, engagementSvc)
+	profile := usecases.NewProfileUseCase(r, ext, engagementSvc)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
 		r, profile, erpSvc, chargemasterSvc, engagementSvc, messagingSvc, ext, ps,
 	)
-	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext, pinExt)
-	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
+	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
+	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 
 	i, err := interactor.NewOnboardingInteractor(
-		r, profile, su, otpSvc, supplier, login,
+		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
 		engagementSvc, messagingSvc, nhif, ps,
 	)

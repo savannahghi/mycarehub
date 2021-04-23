@@ -18,7 +18,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
@@ -38,7 +37,6 @@ import (
 const (
 	mbBytes              = 1048576
 	serverTimeoutSeconds = 120
-	otpService           = "otp"
 	engagementService    = "engagement"
 )
 
@@ -83,16 +81,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	baseExt := extension.NewBaseExtensionImpl()
 
 	// Initialize ISC clients
-	otpClient := utils.NewInterServiceClient(otpService, baseExt)
 	engagementClient := utils.NewInterServiceClient(engagementService, baseExt)
 
 	// Initialize new instance of our infrastructure services
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	engage := engagement.NewServiceEngagementImpl(engagementClient)
+	engage := engagement.NewServiceEngagementImpl(engagementClient, baseExt)
 	mes := messaging.NewServiceMessagingImpl(baseExt)
 	pinExt := extension.NewPINExtensionImpl()
-	otp := otp.NewOTPService(otpClient, baseExt)
 
 	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
 	if err != nil {
@@ -116,16 +112,16 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	}
 
 	// Initialize the usecases
-	profile := usecases.NewProfileUseCase(repo, otp, baseExt, engage)
+	profile := usecases.NewProfileUseCase(repo, baseExt, engage)
 	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mes, baseExt, pubSub)
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
-	userpin := usecases.NewUserPinUseCase(repo, otp, profile, baseExt, pinExt)
-	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, otp, baseExt)
+	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
+	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage)
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
 
 	i, err := interactor.NewOnboardingInteractor(
-		repo, profile, su, otp, supplier, login, survey,
+		repo, profile, su, supplier, login, survey,
 		userpin, erp, chrg, engage, mes, nhif, pubSub,
 	)
 	if err != nil {

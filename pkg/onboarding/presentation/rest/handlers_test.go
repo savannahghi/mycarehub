@@ -26,8 +26,6 @@ import (
 	erpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	messagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging/mock"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
-	otpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp/mock"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	pubsubmessagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
@@ -38,7 +36,7 @@ import (
 )
 
 var fakeRepo mockRepo.FakeOnboardingRepository
-var fakeOtp otpMock.FakeServiceOTP
+var fakeEngagementSvs engagementMock.FakeServiceEngagement
 var fakeBaseExt extMock.FakeBaseExtensionImpl
 var fakePinExt extMock.PINExtensionImpl
 var serverUrl = "http://localhost:5000"
@@ -46,27 +44,26 @@ var serverUrl = "http://localhost:5000"
 // InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
 func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var r repository.OnboardingRepository = &fakeRepo
-	var otpSvc otp.ServiceOTP = &fakeOtp
 	var erpSvc erp.ServiceERP = &erpMock.FakeServiceERP{}
 	var chargemasterSvc chargemaster.ServiceChargeMaster = &chargemasterMock.FakeServiceChargeMaster{}
-	var engagementSvc engagement.ServiceEngagement = &engagementMock.FakeServiceEngagement{}
+	var engagementSvc engagement.ServiceEngagement = &fakeEngagementSvs
 	var messagingSvc messaging.ServiceMessaging = &messagingMock.FakeServiceMessaging{}
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
 	var ps pubsubmessaging.ServicePubSub = &pubsubmessagingMock.FakeServicePubSub{}
 
-	profile := usecases.NewProfileUseCase(r, otpSvc, ext, engagementSvc)
+	profile := usecases.NewProfileUseCase(r, ext, engagementSvc)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
 		r, profile, erpSvc, chargemasterSvc, engagementSvc, messagingSvc, ext, ps,
 	)
-	userpin := usecases.NewUserPinUseCase(r, otpSvc, profile, ext, pinExt)
-	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, otpSvc, ext)
+	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
+	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 
 	i, err := interactor.NewOnboardingInteractor(
-		r, profile, su, otpSvc, supplier, login,
+		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
 		engagementSvc, messagingSvc, nhif, ps,
 	)
@@ -313,7 +310,7 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
 				}
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return &base.OtpResponse{OTP: "1234"}, nil
 				}
 			}
@@ -335,7 +332,7 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
 				}
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return nil, fmt.Errorf("unable generate and send otp")
 				}
 			}
@@ -486,7 +483,7 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
 				}
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
@@ -567,21 +564,21 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 
 			// mock VerifyOTP to return an error
 			if tt.name == "invalid_unable_to_verify_otp" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, fmt.Errorf("unable to verify otp")
 				}
 			}
 
 			// mock VerifyOTP to return an false
 			if tt.name == "invalid_verify_otp_returns_false" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return false, nil
 				}
 			}
 
 			// mock `GetOrCreatePhoneNumberUser` to return an error
 			if tt.name == "invalid_get_or_create_phone_returns_error" {
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
@@ -865,7 +862,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return &base.OtpResponse{OTP: "1234"}, nil
 				}
 			}
@@ -880,7 +877,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to generate otp")
 				}
 			}
@@ -1032,7 +1029,7 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeRepo.UpdatePINFn = func(ctx context.Context, id string, pin *domain.PIN) (bool, error) {
@@ -1051,7 +1048,7 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 				fakeRepo.UpdatePINFn = func(ctx context.Context, id string, pin *domain.PIN) (bool, error) {
@@ -1354,13 +1351,13 @@ func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
 			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 			response := httptest.NewRecorder()
 			if tt.name == "valid:_successfully_send_otp" {
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return &base.OtpResponse{OTP: "1234"}, nil
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_send_otp" {
-				fakeOtp.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to send otp")
 				}
 			}
@@ -1744,7 +1741,7 @@ func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 			response := httptest.NewRecorder()
 
 			if tt.name == "valid:_successfully_send_retry_otp" {
-				fakeOtp.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
+				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
 					return &base.OtpResponse{
 						OTP: "123456",
 					}, nil
@@ -1752,13 +1749,13 @@ func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_send_otp" {
-				fakeOtp.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
+				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to send OTP")
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_send_otp_due_to_missing_msisdn" {
-				fakeOtp.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
+				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to send OTP")
 				}
 			}
@@ -2432,7 +2429,7 @@ func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 
@@ -2466,7 +2463,7 @@ func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeOtp.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
 					return true, nil
 				}
 
