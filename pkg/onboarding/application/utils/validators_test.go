@@ -20,8 +20,8 @@ func TestValidateSignUpInput(t *testing.T) {
 	flavour := base.FlavourConsumer
 	otp := "12345"
 
-	// alphanumericPhone := "+254-not-valid-123"
-	// badPhone := "+254712"
+	alphanumericPhone := "+254-not-valid-123"
+	badPhone := "+254712"
 	shortPin := "123"
 	longPin := "1234567"
 	alphabeticalPin := "abcd"
@@ -46,31 +46,30 @@ func TestValidateSignUpInput(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		// TODO: This will fail till @dexter comes up with the fix for it
-		// {
-		// 	name: "failure: bad phone number provided",
-		// 	args: args{
-		// 		input: &resources.SignUpInput{
-		// 			PhoneNumber: &badPhone,
-		// 			PIN:         &pin,
-		// 			Flavour:     flavour,
-		// 			OTP:         &otp,
-		// 		},
-		// 	},
-		// 	wantErr: true,
-		// },
-		// {
-		// 	name: "failure: alphanumeric phone number provided",
-		// 	args: args{
-		// 		input: &resources.SignUpInput{
-		// 			PhoneNumber: &alphanumericPhone,
-		// 			PIN:         &pin,
-		// 			Flavour:     flavour,
-		// 			OTP:         &otp,
-		// 		},
-		// 	},
-		// 	wantErr: true,
-		// },
+		{
+			name: "failure: bad phone number provided",
+			args: args{
+				input: &resources.SignUpInput{
+					PhoneNumber: &badPhone,
+					PIN:         &pin,
+					Flavour:     flavour,
+					OTP:         &otp,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "failure: alphanumeric phone number provided",
+			args: args{
+				input: &resources.SignUpInput{
+					PhoneNumber: &alphanumericPhone,
+					PIN:         &pin,
+					Flavour:     flavour,
+					OTP:         &otp,
+				},
+			},
+			wantErr: true,
+		},
 		{
 			name: "failure: short pin number provided",
 			args: args{
