@@ -8,7 +8,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"net/http/httputil"
 	"strings"
 	"time"
 
@@ -1028,11 +1027,6 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 		if err != nil {
 			return fmt.Errorf("unable to publish kyc admin notification feed item : %v", err)
 		}
-
-		//TODO(dexter) to be removed. Just here for debug
-		res, _ := httputil.DumpResponse(resp, true)
-		log.Println(string(res))
-
 		if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf(
 				"unable to publish kyc admin notification feed item. unexpected status code  %v",
