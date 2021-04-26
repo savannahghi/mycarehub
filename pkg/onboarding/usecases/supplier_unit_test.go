@@ -620,7 +620,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					return nil
 				}
 
-				fakeMessagingSvc.SendSMSFn = func(
+				fakeEngagementSvs.SendSMSFn = func(
 					phoneNumbers []string,
 					message string,
 				) error {
@@ -690,7 +690,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					return nil
 				}
 
-				fakeMessagingSvc.SendSMSFn = func(
+				fakeEngagementSvs.SendSMSFn = func(
 					phoneNumbers []string,
 					message string,
 				) error {
@@ -1042,7 +1042,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					return nil
 				}
 
-				fakeMessagingSvc.SendSMSFn = func(
+				fakeEngagementSvs.SendSMSFn = func(
 					phoneNumbers []string,
 					message string,
 				) error {

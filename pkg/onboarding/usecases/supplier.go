@@ -1860,7 +1860,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		return phones
 	}(supplierProfile)
 
-	if err := s.messaging.SendSMS(supplierPhones, message); err != nil {
+	if err := s.engagement.SendSMS(supplierPhones, message); err != nil {
 		return false, fmt.Errorf("unable to send KYC processing message: %w", err)
 	}
 

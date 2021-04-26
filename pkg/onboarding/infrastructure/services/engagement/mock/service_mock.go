@@ -31,6 +31,8 @@ type FakeServiceEngagement struct {
 	VerifyOTPFn func(ctx context.Context, phone, OTP string) (bool, error)
 
 	VerifyEmailOTPFn func(ctx context.Context, email, OTP string) (bool, error)
+
+	SendSMSFn func(phoneNumbers []string, message string) error
 }
 
 // PublishKYCNudge ...
@@ -111,4 +113,9 @@ func (f *FakeServiceEngagement) VerifyEmailOTP(ctx context.Context, email, OTP s
 // NotifySupplierOnSuspension ...
 func (f *FakeServiceEngagement) NotifySupplierOnSuspension(input resources.EmailNotificationPayload) error {
 	return f.NotifySupplierOnSuspensionFn(input)
+}
+
+// SendSMS ...
+func (f *FakeServiceEngagement) SendSMS(phoneNumbers []string, message string) error {
+	return f.SendSMSFn(phoneNumbers, message)
 }

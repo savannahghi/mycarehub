@@ -34,6 +34,8 @@ const (
 	VerifyEmailOtp = "internal/verify_email_otp/"
 	// VerifyOTPEndPoint ISC endpoint to verify OTP
 	VerifyOTPEndPoint = "internal/verify_otp/"
+
+	sendSMS = "internal/send_sms"
 )
 
 // ServiceEngagement represents engagement usecases
@@ -80,6 +82,8 @@ type ServiceEngagement interface {
 	VerifyOTP(ctx context.Context, phone, OTP string) (bool, error)
 
 	VerifyEmailOTP(ctx context.Context, email, OTP string) (bool, error)
+
+	SendSMS(phoneNumbers []string, message string) error
 }
 
 // ServiceEngagementImpl represents engagement usecases
@@ -447,6 +451,29 @@ func (en *ServiceEngagementImpl) NotifySupplierOnSuspension(input resources.Emai
 	}
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unable to send alert to supplier email: %w", err)
+	}
+
+	return nil
+}
+
+// SendSMS does the actual delivery of messages to the provided phone numbers
+func (en *ServiceEngagementImpl) SendSMS(phoneNumbers []string, message string) error {
+	type PayloadRequest struct {
+		To      []string `json:"to"`
+		Message string   `json:"message"`
+	}
+
+	requestPayload := PayloadRequest{
+		To:      phoneNumbers,
+		Message: message,
+	}
+
+	resp, err := en.Engage.MakeRequest(http.MethodPost, sendSMS, requestPayload)
+	if err != nil {
+		return fmt.Errorf("unable to send sms: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send sms, with status code %v", resp.StatusCode)
 	}
 
 	return nil
