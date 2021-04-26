@@ -1065,6 +1065,11 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
+
+	if profile.PrimaryEmailAddress == nil {
+		return fmt.Errorf("supplier does not have a primary email address")
+	}
+
 	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
 		return err
 	}
