@@ -70,6 +70,20 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		log.Panicf("can't initialize Firebase auth when setting up profile service: %s", err)
 	}
 
+	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"can't get projectID from env var `%s`: %w",
+			base.GoogleCloudProjectIDEnvVarName,
+			err,
+		)
+	}
+
+	pubSubClient, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
+	}
+
 	var repo repository.OnboardingRepository
 
 	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
@@ -86,22 +100,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize new instance of our infrastructure services
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	engage := engagement.NewServiceEngagementImpl(engagementClient, baseExt)
-	mes := messaging.NewServiceMessagingImpl(baseExt)
-	pinExt := extension.NewPINExtensionImpl()
-
-	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"can't get projectID from env var `%s`: %w",
-			base.GoogleCloudProjectIDEnvVarName,
-			err,
-		)
-	}
-	pubSubClient, err := pubsub.NewClient(ctx, projectID)
-	if err != nil {
-		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
-	}
 	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		baseExt,
@@ -110,6 +108,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
 	}
+	engage := engagement.NewServiceEngagementImpl(engagementClient, baseExt, pubSub)
+	mes := messaging.NewServiceMessagingImpl(baseExt)
+	pinExt := extension.NewPINExtensionImpl()
 
 	// Initialize the usecases
 	profile := usecases.NewProfileUseCase(repo, baseExt, engage)

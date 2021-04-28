@@ -383,7 +383,6 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 	ctx context.Context,
 	accountType base.AccountType,
 ) (*base.Supplier, error) {
-
 	validAccountType := accountType.IsValid()
 	if !validAccountType {
 		return nil, fmt.Errorf("%v is not an allowed AccountType choice", accountType.String())
@@ -940,22 +939,9 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 		},
 	}
 
-	// TODO: This call should be asynchronous (Pub/Sub)
-	resp, err := s.engagement.PublishKYCNudge(uid, nudge)
+	err := s.engagement.PublishKYCNudge(uid, nudge)
 	if err != nil {
 		return exceptions.PublishKYCNudgeError(err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		if err := s.SaveProfileNudge(ctx, &nudge); err != nil {
-			logrus.Errorf("failed to stage nudge : %v", err)
-		}
-
-		return exceptions.PublishKYCNudgeError(
-			fmt.Errorf("unable to publish kyc nudge. unexpected status code  %v",
-				resp.StatusCode,
-			),
-		)
 	}
 	return nil
 }

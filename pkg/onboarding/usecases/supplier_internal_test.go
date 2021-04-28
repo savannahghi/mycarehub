@@ -5,6 +5,7 @@ import (
 	"log"
 	"testing"
 
+	"cloud.google.com/go/pubsub"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -16,6 +17,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 )
 
 const (
@@ -48,6 +50,18 @@ func TestParseKYCAsMap(t *testing.T) {
 		firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 		repo = fb.NewFirebaseRepository(firestoreExtension, fbc)
 	}
+	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+	if err != nil {
+		t.Errorf("can't get projectID from env var `%s`: %w",
+			base.GoogleCloudProjectIDEnvVarName,
+			err)
+		return
+	}
+	pubSubClient, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		t.Errorf("unable to initialize pubsub client: %w", err)
+		return
+	}
 
 	ext := extension.NewBaseExtensionImpl()
 	// Initialize ISC clients
@@ -55,7 +69,16 @@ func TestParseKYCAsMap(t *testing.T) {
 
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
+	ps, err := pubsubmessaging.NewServicePubSubMessaging(
+		pubSubClient,
+		ext,
+		erp,
+	)
+	if err != nil {
+		t.Errorf("unable to initialize new pubsub messaging service: %w", err)
+		return
+	}
+	engage := engagement.NewServiceEngagementImpl(engagementClient, ext, ps)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	profile := NewProfileUseCase(repo, ext, engage)
 

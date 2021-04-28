@@ -10,7 +10,7 @@ import (
 
 // FakeServiceEngagement is an `engagement` service mock .
 type FakeServiceEngagement struct {
-	PublishKYCNudgeFn            func(uid string, payload base.Nudge) (*http.Response, error)
+	PublishKYCNudgeFn            func(uid string, payload base.Nudge) error
 	PublishKYCFeedItemFn         func(uid string, payload base.Item) (*http.Response, error)
 	ResolveDefaultNudgeByTitleFn func(UID string, flavour base.Flavour, nudgeTitle string) error
 	SendMailFn                   func(email string, message string, subject string) error
@@ -39,7 +39,7 @@ type FakeServiceEngagement struct {
 func (f *FakeServiceEngagement) PublishKYCNudge(
 	uid string,
 	payload base.Nudge,
-) (*http.Response, error) {
+) error {
 	return f.PublishKYCNudgeFn(uid, payload)
 }
 

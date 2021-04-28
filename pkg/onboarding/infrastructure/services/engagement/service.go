@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"text/template"
 
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
+
 	"github.com/asaskevich/govalidator"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -43,7 +45,7 @@ type ServiceEngagement interface {
 	PublishKYCNudge(
 		uid string,
 		payload base.Nudge,
-	) (*http.Response, error)
+	) error
 
 	PublishKYCFeedItem(
 		uid string,
@@ -90,11 +92,12 @@ type ServiceEngagement interface {
 type ServiceEngagementImpl struct {
 	Engage  extension.ISCClientExtension
 	baseExt extension.BaseExtension
+	pubsub  pubsubmessaging.ServicePubSub
 }
 
 // NewServiceEngagementImpl returns new instance of ServiceEngagementImpl
-func NewServiceEngagementImpl(eng extension.ISCClientExtension, ext extension.BaseExtension) ServiceEngagement {
-	return &ServiceEngagementImpl{Engage: eng, baseExt: ext}
+func NewServiceEngagementImpl(eng extension.ISCClientExtension, ext extension.BaseExtension, pubsub pubsubmessaging.ServicePubSub) ServiceEngagement {
+	return &ServiceEngagementImpl{Engage: eng, baseExt: ext, pubsub: pubsub}
 }
 
 // PublishKYCNudge calls the `engagement service` to publish
@@ -102,11 +105,36 @@ func NewServiceEngagementImpl(eng extension.ISCClientExtension, ext extension.Ba
 func (en *ServiceEngagementImpl) PublishKYCNudge(
 	uid string,
 	payload base.Nudge,
-) (*http.Response, error) {
-	return en.Engage.MakeRequest(
-		http.MethodPost,
-		fmt.Sprintf(publishNudge, uid),
-		payload,
+) error {
+	payloadRequest, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data: %v", err)
+	}
+
+	nudgeMessage := base.PubSubMessage{
+		Data: payloadRequest,
+		Attributes: map[string]string{
+			"topicID": "nudges.publish",
+		},
+	}
+
+	nudgePubSubPayload := &base.PubSubPayload{
+		Message: nudgeMessage,
+	}
+
+	nudgeData, err := json.Marshal(nudgePubSubPayload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data: %v", err)
+	}
+	topicName, err := en.baseExt.GetPubSubTopic(nudgePubSubPayload)
+	if err != nil {
+		return fmt.Errorf("failed to get topic name: %v", err)
+	}
+
+	return en.pubsub.PublishToPubsub(
+		context.Background(),
+		topicName,
+		nudgeData,
 	)
 }
 

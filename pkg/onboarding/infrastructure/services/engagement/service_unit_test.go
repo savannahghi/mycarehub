@@ -18,19 +18,23 @@ import (
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub/mock"
 )
 
 var fakeISCExt extMock.ISCClientExtension
 var engClient extension.ISCClientExtension = &fakeISCExt
 var fakeBaseExt extMock.FakeBaseExtensionImpl
 var baseExt extension.BaseExtension = &fakeBaseExt
+var fakePubSub mock.FakeServicePubSub
+var ps pubsubmessaging.ServicePubSub = &fakePubSub
 
 const (
 	futureHours = 878400
 )
 
 func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
 	type args struct {
 		UID        string
@@ -159,7 +163,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 }
 
 func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
 	payload := base.Item{
 		ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
@@ -301,7 +305,7 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 }
 
 func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
 	payload := base.Nudge{
 		ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
@@ -384,32 +388,37 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:successfully_publish_kyc_nudge" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: http.StatusOK,
-						Body:       nil,
-					}, nil
+				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
+					return "nudges.publish", nil
+				}
+
+				fakePubSub.PublishToPubsubFn = func(
+					ctx context.Context,
+					topicID string,
+					payload []byte,
+				) error {
+					return nil
 				}
 			}
 
 			if tt.name == "invalid:fail_to_publish_kyc_nudge" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
-					return &http.Response{
-						Status:     "BAD REQUEST",
-						StatusCode: http.StatusBadRequest,
-						Body:       nil,
-					}, fmt.Errorf("fail to publish kyc feed item")
+				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
+					return "nudges.publish", nil
+				}
+
+				fakePubSub.PublishToPubsubFn = func(
+					ctx context.Context,
+					topicID string,
+					payload []byte,
+				) error {
+					return fmt.Errorf("failed to publish kyc nudge")
 				}
 			}
 
-			resp, err := e.PublishKYCNudge(tt.args.uid, tt.args.payload)
+			err := e.PublishKYCNudge(tt.args.uid, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEngagementImpl.PublishKYCNudge() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if !reflect.DeepEqual(resp, tt.want) {
-				t.Errorf("ServiceEngagementImpl.PublishKYCNudge() = %v, want %v", resp, tt.want)
 			}
 
 			if tt.wantErr {
@@ -424,17 +433,13 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 					return
 				}
 
-				if resp.StatusCode != tt.want.StatusCode {
-					t.Errorf("expected status code 200 but got %v", resp.StatusCode)
-					return
-				}
 			}
 		})
 	}
 }
 
 func TestServiceEngagementImpl_SendMail(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
 	type args struct {
 		email   string
@@ -528,7 +533,7 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 
 func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 	ctx := context.Background()
-	p := engagement.NewServiceEngagementImpl(engClient, baseExt)
+	p := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
 	validRespPayload := `{"IsVerified":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
@@ -684,7 +689,7 @@ func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 
 func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 	ctx := context.Background()
-	p := engagement.NewServiceEngagementImpl(engClient, baseExt)
+	p := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
 	validRespPayload := `"234234"`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
@@ -807,7 +812,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 
 func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 	ctx := context.Background()
-	p := engagement.NewServiceEngagementImpl(engClient, baseExt)
+	p := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
 	validRespPayload := `"123123"`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
@@ -968,7 +973,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 
 func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 	ctx := context.Background()
-	p := engagement.NewServiceEngagementImpl(engClient, baseExt)
+	p := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
 	validRespPayload := `{"IsVerified":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
@@ -1089,7 +1094,7 @@ func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 }
 
 func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 	type args struct {
 		input resources.EmailNotificationPayload
 	}

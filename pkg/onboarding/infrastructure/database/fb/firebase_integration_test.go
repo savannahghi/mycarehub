@@ -102,19 +102,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		log.Panicf("failed to initialize test FireBase client")
 	}
 
-	ext := extension.NewBaseExtensionImpl()
-
-	// Initialize ISC clients
-	engagementClient := utils.NewInterServiceClient(engagementService, ext)
-
-	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
-	mes := messaging.NewServiceMessagingImpl(ext)
-	pinExt := extension.NewPINExtensionImpl()
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
-	erp := erp.NewERPService(fr)
-
 	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -127,6 +114,16 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
 	}
+
+	ext := extension.NewBaseExtensionImpl()
+
+	// Initialize ISC clients
+	engagementClient := utils.NewInterServiceClient(engagementService, ext)
+
+	chrg := chargemaster.NewChargeMasterUseCasesImpl()
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
+	erp := erp.NewERPService(fr)
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		ext,
@@ -135,6 +132,10 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
 	}
+	engage := engagement.NewServiceEngagementImpl(engagementClient, ext, ps)
+	mes := messaging.NewServiceMessagingImpl(ext)
+	pinExt := extension.NewPINExtensionImpl()
+
 	profile := usecases.NewProfileUseCase(fr, ext, engage)
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)

@@ -6113,12 +6113,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: http.StatusOK,
-						Body:       nil,
-					}, nil
+				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) error {
+					return nil
 				}
 
 				fakeChargeMasterSvc.FetchProviderByIDFn = func(ctx context.Context, id string) (*domain.BusinessPartner, error) {
@@ -6255,12 +6251,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: http.StatusOK,
-						Body:       nil,
-					}, nil
+				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) error {
+					return nil
 				}
 
 				fakeChargeMasterSvc.FetchProviderByIDFn = func(ctx context.Context, id string) (*domain.BusinessPartner, error) {
@@ -6372,12 +6364,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: http.StatusOK,
-						Body:       nil,
-					}, nil
+				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) error {
+					return nil
 				}
 
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
@@ -6464,12 +6452,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: http.StatusOK,
-						Body:       nil,
-					}, nil
+				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) error {
+					return nil
 				}
 
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
@@ -7136,8 +7120,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeEngagementSvs.PublishKYCNudgeFn = func(
 					uid string,
 					payload base.Nudge,
-				) (*http.Response, error) {
-					return &http.Response{StatusCode: 200}, nil
+				) error {
+					return nil
 				}
 
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
@@ -7195,8 +7179,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeEngagementSvs.PublishKYCNudgeFn = func(
 					uid string,
 					payload base.Nudge,
-				) (*http.Response, error) {
-					return &http.Response{StatusCode: 200}, nil
+				) error {
+					return nil
 				}
 
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
@@ -7307,8 +7291,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeEngagementSvs.PublishKYCNudgeFn = func(
 					uid string,
 					payload base.Nudge,
-				) (*http.Response, error) {
-					return &http.Response{StatusCode: 200}, nil
+				) error {
+					return nil
 				}
 
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
