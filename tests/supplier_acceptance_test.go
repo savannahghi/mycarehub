@@ -754,7 +754,7 @@ func TestSupplierEDILogin(t *testing.T) {
 				_, ok := data["errors"]
 				if ok {
 					logrus.Errorf("error not expected")
-					//t.Errorf("error not expected") //todo: restore this
+					t.Errorf("error not expected")
 					return
 				}
 			}

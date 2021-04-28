@@ -206,16 +206,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(h.SendRetryOTP(ctx))
 
-	// todo(dexter) : restore this after shikami fixes the iOS pipeline. Not my favorite thing but it had to be done
-	// env := os.Getenv(base.Environment)
-	// if env == base.TestingEnv || env == base.StagingEnv {
-	// 	r.Path("/remove_user").Methods(
-	// 		http.MethodPost,
-	// 		http.MethodOptions).
-	// 		HandlerFunc(h.RemoveUserByPhoneNumber(ctx))
-	// }
-
-	// todo(dexter): remove this after shikami fixes the iOS pipeline. This is temporarily
 	r.Path("/remove_user").Methods(
 		http.MethodPost,
 		http.MethodOptions).
@@ -225,6 +215,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.AddAdminPermsToUser(ctx))
+
+	env := os.Getenv(base.Environment)
+	if env == base.TestingEnv || env == base.StagingEnv {
+		r.Path("/remove_user").Methods(
+			http.MethodPost,
+			http.MethodOptions).
+			HandlerFunc(h.RemoveUserByPhoneNumber(ctx))
+	}
 
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()

@@ -2419,6 +2419,16 @@ func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 			wantErr:     true,
 			expectedErr: "expected `name` to be defined and `partnerType` to be valid",
 		},
+		{
+			name: "invalid: missing partnerType",
+			args: args{
+				ctx:  ctx,
+				name: &testPharmaceuticalName,
+			},
+			want:        false,
+			wantErr:     true,
+			expectedErr: "expected `partnerType` should be valid",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -2569,6 +2579,14 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case:valid username invalid password",
+			args: args{
+				username: &validUsername,
+				password: &invalidPassword,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -2609,8 +2627,7 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 				username: "bewell@slade360.co.ke",
 				password: "please change me",
 			},
-			wantErr: true, // TODO: switch to true when https://accounts-core.release.slade360.co.ke/
-			// comes back live
+			wantErr: true,
 		},
 		{
 			name: "Sad Case: Wrong userame and password",
@@ -2625,6 +2642,14 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 			args: args{
 				username: "",
 				password: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: valid username and wrong password",
+			args: args{
+				username: "bewell@slade360.co.ke",
+				password: "invalid Password",
 			},
 			wantErr: true,
 		},

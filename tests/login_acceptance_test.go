@@ -422,15 +422,15 @@ func TestLoginAsAnonymous(t *testing.T) {
 func TestRefreshToken(t *testing.T) {
 	client := http.DefaultClient
 	//todo(dexter) restore this after 11th release
-	// validToken := "AOvuKvSiBjrtQ6WRdTbRUFeGm4q6KbKg1kdwACot-zZFSqAwZtePlLKTT4U5Ew7C6UFcQsu6HQPAKD-1Hr_jTrtUtwTJ2mrqTBEW0oxtWImbB7fnPtNnl3mSBMpnVewbj14w_quNw_AkvBaQKu2vIR5tjATqYaPHCRMM1d-W7GMQUneKlJNz-JQ"
-	// validPayload := &resources.RefreshTokenPayload{
-	// 	RefreshToken: &validToken,
-	// }
-	// bs, err := json.Marshal(validPayload)
-	// if err != nil {
-	// 	t.Errorf("unable to marshal test item to JSON: %s", err)
-	// }
-	// payload := bytes.NewBuffer(bs)
+	//validToken := "AOvuKvSiBjrtQ6WRdTbRUFeGm4q6KbKg1kdwACot-zZFSqAwZtePlLKTT4U5Ew7C6UFcQsu6HQPAKD-1Hr_jTrtUtwTJ2mrqTBEW0oxtWImbB7fnPtNnl3mSBMpnVewbj14w_quNw_AkvBaQKu2vIR5tjATqYaPHCRMM1d-W7GMQUneKlJNz-JQ"
+	//validPayload := &resources.RefreshTokenPayload{
+	//	RefreshToken: &validToken,
+	//}
+	//bs, err := json.Marshal(validPayload)
+	//if err != nil {
+	//	t.Errorf("unable to marshal test item to JSON: %s", err)
+	//}
+	//payload := bytes.NewBuffer(bs)
 
 	inValidToken := "some-token"
 	inValidPayload := &resources.RefreshTokenPayload{
@@ -461,16 +461,16 @@ func TestRefreshToken(t *testing.T) {
 		wantErr    bool
 	}{
 		//todo(dexter) restore this after 11th release
-		// {
-		// 	name: "success: refresh a token",
-		// 	args: args{
-		// 		url:        fmt.Sprintf("%s/refresh_token", baseURL),
-		// 		httpMethod: http.MethodPost,
-		// 		body:       payload,
-		// 	},
-		// 	wantStatus: http.StatusOK,
-		// 	wantErr:    false,
-		// },
+		//{
+		//	name: "success: refresh a token",
+		//	args: args{
+		//		url:        fmt.Sprintf("%s/refresh_token", baseURL),
+		//		httpMethod: http.MethodPost,
+		//		body:       payload,
+		//	},
+		//	wantStatus: http.StatusOK,
+		//	wantErr:    false,
+		//},
 		{
 			name: "failure: refresh token with nil payload supplied",
 			args: args{
