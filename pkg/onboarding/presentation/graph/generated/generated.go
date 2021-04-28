@@ -353,6 +353,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		CheckSupplierKYCSubmitted     func(childComplexity int) int
 		FetchKYCProcessingRequests    func(childComplexity int) int
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) int
@@ -512,6 +513,7 @@ type QueryResolver interface {
 	GetAddresses(ctx context.Context) (*domain.UserAddresses, error)
 	NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error)
 	GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error)
+	CheckSupplierKYCSubmitted(ctx context.Context) (bool, error)
 }
 type VerifiedIdentifierResolver interface {
 	Timestamp(ctx context.Context, obj *base.VerifiedIdentifier) (*base.Date, error)
@@ -2184,6 +2186,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PayablesAccount.Tag(childComplexity), true
 
+	case "Query.checkSupplierKYCSubmitted":
+		if e.complexity.Query.CheckSupplierKYCSubmitted == nil {
+			break
+		}
+
+		return e.complexity.Query.CheckSupplierKYCSubmitted(childComplexity), true
+
 	case "Query.fetchKYCProcessingRequests":
 		if e.complexity.Query.FetchKYCProcessingRequests == nil {
 			break
@@ -3327,6 +3336,7 @@ input NHIFDetailsInput {
   NHIFDetails: NHIFDetails
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
+  checkSupplierKYCSubmitted: Boolean!
 }
 
 extend type Mutation {
@@ -12464,6 +12474,41 @@ func (ec *executionContext) _Query_getUserCommunicationsSettings(ctx context.Con
 	return ec.marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserCommunicationsSetting(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_checkSupplierKYCSubmitted(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckSupplierKYCSubmitted(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -19110,6 +19155,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getUserCommunicationsSettings(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "checkSupplierKYCSubmitted":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkSupplierKYCSubmitted(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

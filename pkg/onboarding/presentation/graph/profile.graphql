@@ -26,6 +26,7 @@ extend type Query {
   NHIFDetails: NHIFDetails
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
+  checkSupplierKYCSubmitted: Boolean!
 }
 
 extend type Mutation {

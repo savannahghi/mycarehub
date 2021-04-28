@@ -76,6 +76,7 @@ type SupplierUseCases interface {
 	CoreEDIUserLogin(username, password string) (*base.EDIUserProfile, error)
 
 	FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error)
+	CheckSupplierKYCSubmitted(ctx context.Context) (bool, error)
 
 	AddIndividualRiderKyc(
 		ctx context.Context,
@@ -358,6 +359,24 @@ func (s SupplierUseCasesImpl) FindSupplierByUID(ctx context.Context) (*base.Supp
 		return nil, err
 	}
 	return s.repo.GetSupplierProfileByProfileID(ctx, pr.ID)
+}
+
+// CheckSupplierKYCSubmitted checks if a supplier has submitted KYC already.
+func (s SupplierUseCasesImpl) CheckSupplierKYCSubmitted(ctx context.Context) (bool, error) {
+	sup, err := s.FindSupplierByUID(ctx)
+	if err != nil {
+		// this is a wrapped error. No need to wrap it again
+		return false, err
+	}
+	if !sup.KYCSubmitted {
+		return false, fmt.Errorf("the supplier has no KYC submitted")
+	}
+	exists := false
+	if sup.KYCSubmitted {
+		exists = true
+	}
+	return exists, nil
+
 }
 
 // SetUpSupplier performs initial account set up during onboarding

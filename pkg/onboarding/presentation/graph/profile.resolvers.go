@@ -481,6 +481,16 @@ func (r *queryResolver) GetUserCommunicationsSettings(ctx context.Context) (*bas
 	return userCommunicationsSettings, err
 }
 
+func (r *queryResolver) CheckSupplierKYCSubmitted(ctx context.Context) (bool, error) {
+	startTime := time.Now()
+
+	checkSupplierKYCSubmitted, err := r.interactor.Supplier.CheckSupplierKYCSubmitted(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "checkSupplierKYCSubmitted", err)
+
+	return checkSupplierKYCSubmitted, err
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
