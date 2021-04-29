@@ -1,11 +1,8 @@
 package usecases_test
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"reflect"
 	"testing"
 
@@ -172,9 +169,6 @@ func TestProfileUseCaseImpl_PublishKYCFeedItem(t *testing.T) {
 		return
 	}
 
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
-
 	type args struct {
 		ctx  context.Context
 		uids []string
@@ -214,28 +208,20 @@ func TestProfileUseCaseImpl_PublishKYCFeedItem(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:_publish_kyc_item" {
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_publish_kyc_item" {
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return nil, fmt.Errorf("unable to publish kyc item")
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return fmt.Errorf("unable to publish kyc item")
 				}
 			}
 
 			if tt.name == "invalid:_unexpected_status_code" {
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "",
-						StatusCode: 400,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return fmt.Errorf("unexpected status code returned")
 				}
 			}
 
@@ -1080,8 +1066,6 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
 	admin1 := &base.UserProfile{
 		ID: "VALID-ID-TYPE",
@@ -1246,12 +1230,8 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 
@@ -1645,9 +1625,6 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 		return
 	}
 
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
-
 	admin1 := &base.UserProfile{
 		ID: "VALID-ID-TYPE1",
 	}
@@ -1805,12 +1782,8 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 
@@ -1968,8 +1941,6 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
 	admin1 := &base.UserProfile{
 		ID: "91bd-42b3af315a5c-p4f39af7-5b64-4c2f",
@@ -2125,12 +2096,8 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 
@@ -2237,9 +2204,6 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
-
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
 	admin1 := &base.UserProfile{
 		ID: "8716-7e2aead29f2c-8716-7e2aead29f2c",
@@ -2394,12 +2358,8 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 
@@ -2503,9 +2463,6 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
-
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
 	admin1 := &base.UserProfile{
 		ID: "8716-7e2aead29f2c-8716-7e2aead29f2c",
@@ -2658,12 +2615,8 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 
@@ -2769,9 +2722,6 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
-
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
 	admin1 := &base.UserProfile{
 		ID: "8716-7e2aead29f2c-8716-7e2aead29f2c",
@@ -2906,12 +2856,8 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 
@@ -3180,9 +3126,6 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 		return
 	}
 
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
-
 	admin1 := &base.UserProfile{
 		ID: "8716-8716-7e2aead29f2c-7e2aead29f2c",
 	}
@@ -3351,12 +3294,8 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 
@@ -3562,9 +3501,6 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 		return
 	}
 
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
-
 	admin1 := &base.UserProfile{
 		ID: "8716-8716-7e2aead29f2c-7e2aead29f2c",
 	}
@@ -3736,12 +3672,8 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 
@@ -3947,9 +3879,6 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 		return
 	}
 
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
-
 	admin1 := &base.UserProfile{
 		ID: "8716-8716-7e2aead29f2c-7e2aead29f2c",
 	}
@@ -4115,12 +4044,8 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 
@@ -4326,9 +4251,6 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 		return
 	}
 
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
-
 	admin1 := &base.UserProfile{
 		ID: "8716-8716-7e2aead29f2c-7e2aead29f2c",
 	}
@@ -4493,12 +4415,8 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 
@@ -4704,9 +4622,6 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 		return
 	}
 
-	validRespPayload := `{"IsPublished":true}`
-	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
-
 	admin1 := &base.UserProfile{
 		ID: "8716-8716-7e2aead29f2c-7e2aead29f2c",
 	}
@@ -4859,12 +4774,8 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       respReader,
-					}, nil
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) error {
+					return nil
 				}
 			}
 

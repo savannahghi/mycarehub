@@ -50,7 +50,7 @@ type ServiceEngagement interface {
 	PublishKYCFeedItem(
 		uid string,
 		payload base.Item,
-	) (*http.Response, error)
+	) error
 
 	ResolveDefaultNudgeByTitle(
 		UID string,
@@ -112,7 +112,8 @@ func (en *ServiceEngagementImpl) PublishKYCNudge(
 	}
 
 	nudgeMessage := base.PubSubMessage{
-		Data: payloadRequest,
+		MessageID: uid,
+		Data:      payloadRequest,
 		Attributes: map[string]string{
 			"topicID": "nudges.publish",
 		},
@@ -143,11 +144,37 @@ func (en *ServiceEngagementImpl) PublishKYCNudge(
 func (en *ServiceEngagementImpl) PublishKYCFeedItem(
 	uid string,
 	payload base.Item,
-) (*http.Response, error) {
-	return en.Engage.MakeRequest(
-		http.MethodPost,
-		fmt.Sprintf(publishItem, uid),
-		payload,
+) error {
+	payloadData, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data %v", err)
+	}
+
+	pubSubMessage := &base.PubSubMessage{
+		MessageID: uid,
+		Data:      payloadData,
+		Attributes: map[string]string{
+			"topicID": "items.publish",
+		},
+	}
+
+	itemPubSubPayload := &base.PubSubPayload{
+		Message: *pubSubMessage,
+	}
+
+	itemData, err := json.Marshal(itemPubSubPayload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data: %v", err)
+	}
+
+	topicName, err := en.baseExt.GetPubSubTopic(itemPubSubPayload)
+	if err != nil {
+		return fmt.Errorf("failed to get a topic: %v", err)
+	}
+	return en.pubsub.PublishToPubsub(
+		context.Background(),
+		topicName,
+		itemData,
 	)
 }
 

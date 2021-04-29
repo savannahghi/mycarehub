@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"html/template"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
@@ -948,7 +947,6 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 
 // PublishKYCFeedItem notifies admin users of a KYC approval request
 func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...string) error {
-
 	for _, uid := range uids {
 		payload := base.Item{
 			ID:             ksuid.New().String(),
@@ -1008,16 +1006,9 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 				base.ChannelSms,
 			},
 		}
-
-		resp, err := s.engagement.PublishKYCFeedItem(uid, payload)
+		err := s.engagement.PublishKYCFeedItem(uid, payload)
 		if err != nil {
 			return fmt.Errorf("unable to publish kyc admin notification feed item : %v", err)
-		}
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf(
-				"unable to publish kyc admin notification feed item. unexpected status code  %v",
-				resp.StatusCode,
-			)
 		}
 	}
 
@@ -1260,7 +1251,6 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(
 	ctx context.Context,
 	input domain.IndividualPractitioner,
 ) (*domain.IndividualPractitioner, error) {
-
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again

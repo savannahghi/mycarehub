@@ -2,7 +2,6 @@ package mock
 
 import (
 	"context"
-	"net/http"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -11,7 +10,7 @@ import (
 // FakeServiceEngagement is an `engagement` service mock .
 type FakeServiceEngagement struct {
 	PublishKYCNudgeFn            func(uid string, payload base.Nudge) error
-	PublishKYCFeedItemFn         func(uid string, payload base.Item) (*http.Response, error)
+	PublishKYCFeedItemFn         func(uid string, payload base.Item) error
 	ResolveDefaultNudgeByTitleFn func(UID string, flavour base.Flavour, nudgeTitle string) error
 	SendMailFn                   func(email string, message string, subject string) error
 	SendAlertToSupplierFn        func(input resources.EmailNotificationPayload) error
@@ -47,7 +46,7 @@ func (f *FakeServiceEngagement) PublishKYCNudge(
 func (f *FakeServiceEngagement) PublishKYCFeedItem(
 	uid string,
 	payload base.Item,
-) (*http.Response, error) {
+) error {
 	return f.PublishKYCFeedItemFn(uid, payload)
 }
 

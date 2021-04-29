@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -255,32 +254,37 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:publish_kyc_feed_item" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: http.StatusOK,
-						Body:       nil,
-					}, nil
+				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
+					return "some.topic", nil
+				}
+
+				fakePubSub.PublishToPubsubFn = func(
+					ctx context.Context,
+					topicID string,
+					payload []byte,
+				) error {
+					return nil
 				}
 			}
 
 			if tt.name == "invalid:fail_to_publish_kyc_feed_item" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
-					return &http.Response{
-						Status:     "BAD REQUEST",
-						StatusCode: http.StatusBadRequest,
-						Body:       nil,
-					}, fmt.Errorf("fail to publish kyc feed item")
+				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
+					return "some.topic", nil
+				}
+
+				fakePubSub.PublishToPubsubFn = func(
+					ctx context.Context,
+					topicID string,
+					payload []byte,
+				) error {
+					return fmt.Errorf("failed to publish feed item")
 				}
 			}
 
-			resp, err := e.PublishKYCFeedItem(tt.args.uid, tt.args.payload)
+			err := e.PublishKYCFeedItem(tt.args.uid, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEngagementImpl.PublishKYCFeedItem() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if !reflect.DeepEqual(resp, tt.want) {
-				t.Errorf("ServiceEngagementImpl.PublishKYCFeedItem() = %v, want %v", resp, tt.want)
 			}
 
 			if tt.wantErr {
@@ -292,11 +296,6 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 			if !tt.wantErr {
 				if err != nil {
 					t.Errorf("error not expected got %v", err)
-					return
-				}
-
-				if resp.StatusCode != tt.want.StatusCode {
-					t.Errorf("expected status code 200 but got %v", resp.StatusCode)
 					return
 				}
 			}
