@@ -26,6 +26,8 @@ const (
 	CreateSupplierTopic = "suppliers.create"
 
 	hostNameEnvVarName = "SERVICE_HOST"
+
+	engagementService = "engagement"
 )
 
 // ServicePubSub represents logic required to communicate with pubsub
@@ -50,6 +52,7 @@ type ServicePubSub interface {
 		w http.ResponseWriter,
 		r *http.Request,
 	)
+	AddEngagementPubsubNameSpace(topic string) string
 }
 
 // ServicePubSubMessaging sends "real" (production) notifications
@@ -83,6 +86,20 @@ func NewServicePubSubMessaging(
 		return nil, err
 	}
 	return s, nil
+}
+
+// AddEngagementPubsubNameSpace creates a namespaced topic that resembles the one in
+// engagement service, which is prepended with the word "engagement". This solves the problem
+// where namespaced topics from "onboarding" are different from the ones in engagement.
+// This fix allows for uniformity of topic names between the engagement and onboarding services.
+func (ps ServicePubSubMessaging) AddEngagementPubsubNameSpace(topic string) string {
+	environment := ps.baseExt.GetRunningEnvironment()
+	return ps.baseExt.NamespacePubsubIdentifier(
+		engagementService,
+		topic,
+		environment,
+		TopicVersion,
+	)
 }
 
 // AddPubSubNamespace creates a namespaced topic name

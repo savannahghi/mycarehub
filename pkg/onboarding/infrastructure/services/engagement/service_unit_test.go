@@ -255,7 +255,11 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:publish_kyc_feed_item" {
 				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "some.topic", nil
+					return "", nil
+				}
+
+				fakePubSub.AddEngagementPubsubNameSpaceFn = func(topicName string) string {
+					return "some.topic"
 				}
 
 				fakePubSub.PublishToPubsubFn = func(
@@ -269,7 +273,11 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 
 			if tt.name == "invalid:fail_to_publish_kyc_feed_item" {
 				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "some.topic", nil
+					return "", nil
+				}
+
+				fakePubSub.AddEngagementPubsubNameSpaceFn = func(topicName string) string {
+					return "some.topic"
 				}
 
 				fakePubSub.PublishToPubsubFn = func(
@@ -462,9 +470,9 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 			wantStatus: http.StatusOK,
 		},
 		{
-			name: "invalid:use_an_invalid_email",
+			name: "invalid:fail_to_get_pubsub_topic",
 			args: args{
-				email:   "12345",
+				email:   "johndoe@gmail.com",
 				message: "This is an update of how things are",
 				subject: "update",
 			},
@@ -485,28 +493,40 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:successfully_send_email" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
-					return &http.Response{
-						Status:     "OK",
-						StatusCode: 200,
-						Body:       nil,
-					}, nil
+				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
+					return "", nil
+				}
+
+				fakePubSub.AddEngagementPubsubNameSpaceFn = func(topicName string) string {
+					return "some.topic"
+				}
+
+				fakePubSub.PublishToPubsubFn = func(
+					ctx context.Context,
+					topicID string,
+					payload []byte,
+				) error {
+					return nil
 				}
 			}
 
-			if tt.name == "invalid:use_an_invalid_email" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
-					return &http.Response{
-						Status:     "BAD REQUEST",
-						StatusCode: 400,
-						Body:       nil,
-					}, fmt.Errorf("an error occured! Invalid email address")
+			if tt.name == "invalid:fail_to_get_pubsub_topic" {
+				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
+					return "", fmt.Errorf("failed to get a pubsub topic")
 				}
 			}
 
 			if tt.name == "invalid:error_while_sending_request" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
-					return nil, fmt.Errorf("an error occured!")
+				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
+					return "nudges.publish", nil
+				}
+
+				fakePubSub.PublishToPubsubFn = func(
+					ctx context.Context,
+					topicID string,
+					payload []byte,
+				) error {
+					return fmt.Errorf("an error occured!")
 				}
 			}
 			err := e.SendMail(tt.args.email, tt.args.message, tt.args.subject)
@@ -1178,6 +1198,172 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 			err := e.NotifySupplierOnSuspension(tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEngagementImpl.SendMail() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	input := resources.EmailNotificationPayload{
+		SupplierName: "Supplier",
+		PartnerType:  "INDIVIDUAL",
+		AccountType:  "INDIVIDUAL",
+		SubjectTitle: "Test Subject Title",
+		EmailBody:    "This is the test email body",
+		EmailAddress: base.TestUserEmail,
+		PrimaryPhone: base.TestUserPhoneNumber,
+	}
+
+	type args struct {
+		input resources.EmailNotificationPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:successfully_send_email",
+			args: args{
+				input: input,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:fail_to_get_topic",
+			args: args{
+				input: input,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:successfully_send_email" {
+				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
+					return "", nil
+				}
+
+				fakePubSub.AddEngagementPubsubNameSpaceFn = func(topicName string) string {
+					return "some.topic"
+				}
+
+				fakePubSub.PublishToPubsubFn = func(
+					ctx context.Context,
+					topicID string,
+					payload []byte,
+				) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_topic" {
+				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
+					return "", fmt.Errorf("failed to get topic")
+				}
+			}
+
+			err := e.SendAlertToSupplier(tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ServiceEngagementImpl.SendAlertToSupplier() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	input := resources.EmailNotificationPayload{
+		SupplierName: "Supplier",
+		PartnerType:  "INDIVIDUAL",
+		AccountType:  "INDIVIDUAL",
+		SubjectTitle: "Test Subject Title",
+		EmailBody:    "This is the test email body",
+		EmailAddress: base.TestUserEmail,
+		PrimaryPhone: base.TestUserPhoneNumber,
+	}
+
+	type args struct {
+		input resources.EmailNotificationPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:successfully_send_email",
+			args: args{
+				input: input,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:fail_to_get_topic",
+			args: args{
+				input: input,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:successfully_send_email" {
+				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
+					return "", nil
+				}
+
+				fakePubSub.AddEngagementPubsubNameSpaceFn = func(topicName string) string {
+					return "some.topic"
+				}
+
+				fakePubSub.PublishToPubsubFn = func(
+					ctx context.Context,
+					topicID string,
+					payload []byte,
+				) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:fail_to_get_topic" {
+				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
+					return "", fmt.Errorf("failed to get topic")
+				}
+			}
+
+			err := e.NotifyAdmins(tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ServiceEngagementImpl.NotifyAdmins() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			if tt.wantErr {

@@ -26,6 +26,7 @@ type FakeServicePubSub struct {
 		w http.ResponseWriter,
 		r *http.Request,
 	)
+	AddEngagementPubsubNameSpaceFn func(topic string) string
 }
 
 // AddPubSubNamespace ...
@@ -77,4 +78,9 @@ func (m *FakeServicePubSub) ReceivePubSubPushMessages(
 	r *http.Request,
 ) {
 	m.ReceivePubSubPushMessagesFn(w, r)
+}
+
+// AddEngagementPubsubNameSpace ...
+func (m *FakeServicePubSub) AddEngagementPubsubNameSpace(topic string) string {
+	return m.AddEngagementPubsubNameSpaceFn(topic)
 }
