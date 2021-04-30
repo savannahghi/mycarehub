@@ -7,12 +7,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
@@ -230,8 +228,6 @@ func TestUpdateUserProfile(t *testing.T) {
 				t.Errorf("Bad status response returned. Expected %v, got %v", tt.wantStatus, resp.StatusCode)
 				return
 			}
-			res, _ := httputil.DumpResponse(resp, true)
-			logrus.Printf("%v", string(res))
 
 			dataResponse, err := ioutil.ReadAll(resp.Body)
 			if err != nil {

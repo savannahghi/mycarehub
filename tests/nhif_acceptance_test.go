@@ -11,7 +11,6 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -357,7 +356,6 @@ func TestGetNHIFDetails(t *testing.T) {
 			data := map[string]interface{}{}
 			err = json.Unmarshal(dataResponse, &data)
 
-			logrus.Printf("The data returned is %v", data)
 			if err != nil {
 				t.Errorf("bad data returned")
 				return

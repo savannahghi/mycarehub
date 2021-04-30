@@ -369,11 +369,9 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(
 	emailAddresses []string,
 ) error {
 	uniqueEmails := []string{}
-	// assert that the phone numbers are unique
 	for _, email := range emailAddresses {
 		exist, err := p.CheckEmailExists(ctx, email)
 		if err != nil {
-			// this is a wrapped error. No need to wrap it again
 			return err
 		}
 
@@ -390,7 +388,6 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(
 
 		profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
 		if err != nil {
-			// this is a wrapped error. No need to wrap it again
 			return err
 		}
 
@@ -752,78 +749,83 @@ func (p *ProfileUseCaseImpl) CheckEmailExists(ctx context.Context, email string)
 	return exists, nil
 }
 
-// RetireSecondaryPhoneNumbers removes specific secondary phone numbers from the user's profile.'
+// RetireSecondaryPhoneNumbers overwrites an existing secondary phone number,
+// if any, with the provided phone number.
 func (p *ProfileUseCaseImpl) RetireSecondaryPhoneNumbers(
 	ctx context.Context,
-	toRemovePhoneNumbers []string,
+	phoneNumbers []string,
 ) (bool, error) {
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	profile, err := p.UserProfile(ctx)
 	if err != nil {
-		return false, exceptions.UserNotFoundError(err)
-	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
-	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return false, err
 	}
 
-	// loop through the secondary phone numbers and remove the ones that need removing
-	newSecPhones := []string{}
-	if len(profile.SecondaryPhoneNumbers) >= 1 {
-		for _, toRemove := range toRemovePhoneNumbers {
-			for _, current := range profile.SecondaryPhoneNumbers {
-				if toRemove != current && !base.StringSliceContains(newSecPhones, current) {
-					newSecPhones = append(newSecPhones, current)
-				}
-			}
-		}
+	secondaryPhoneNumbers := profile.SecondaryPhoneNumbers
+	if len(secondaryPhoneNumbers) == 0 {
+		return false, exceptions.SecondaryResourceHardResetError()
 	}
 
-	if len(newSecPhones) >= 1 {
-		if err := p.onboardingRepository.HardResetSecondaryPhoneNumbers(ctx, profile.ID, newSecPhones); err != nil {
+	overwriteList := []string{}
+	for _, phoneNumber := range phoneNumbers {
+		exists, err := p.CheckPhoneExists(ctx, phoneNumber)
+		if err != nil {
 			return false, err
 		}
-		return true, nil
+		// Do not add an existing phone number as a secondary
+		if exists {
+			return false, exceptions.CheckPhoneNumberExistError()
+		}
+		overwriteList = append(overwriteList, phoneNumber)
 	}
 
-	return false, exceptions.SecondaryResourceHardResetError()
+	if err := p.onboardingRepository.HardResetSecondaryPhoneNumbers(
+		ctx,
+		profile,
+		overwriteList,
+	); err != nil {
+		return false, err
+	}
 
+	return true, nil
 }
 
 // RetireSecondaryEmailAddress removes specific secondary email addresses from the user's profile.
 func (p *ProfileUseCaseImpl) RetireSecondaryEmailAddress(
 	ctx context.Context,
-	toRemoveEmails []string,
+	emailAddresses []string,
 ) (bool, error) {
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	profile, err := p.UserProfile(ctx)
 	if err != nil {
-		return false, exceptions.UserNotFoundError(err)
-	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
-	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return false, err
 	}
 
-	// loop through the secondary emails and remove the ones that need removing
-	newSecEmails := []string{}
-	if len(profile.SecondaryEmailAddresses) >= 1 {
-		for _, toRemove := range toRemoveEmails {
-			for _, current := range profile.SecondaryEmailAddresses {
-				if toRemove != current && !base.StringSliceContains(newSecEmails, current) {
-					newSecEmails = append(newSecEmails, current)
-				}
-			}
-		}
+	secondaryEmails := profile.SecondaryEmailAddresses
+	if len(secondaryEmails) == 0 {
+		return false, exceptions.SecondaryResourceHardResetError()
 	}
 
-	if len(newSecEmails) >= 1 {
-		if err := p.onboardingRepository.HardResetSecondaryEmailAddress(ctx, profile.ID, newSecEmails); err != nil {
+	overwriteList := []string{}
+	for _, email := range emailAddresses {
+		exists, err := p.CheckEmailExists(ctx, email)
+		if err != nil {
 			return false, err
 		}
-		return true, nil
+		// Do not add an existing email as a secondary
+		if exists {
+			return false, exceptions.CheckEmailExistError()
+		}
+		overwriteList = append(overwriteList, email)
 	}
-	return false, exceptions.SecondaryResourceHardResetError()
+
+	if err := p.onboardingRepository.HardResetSecondaryEmailAddress(
+		ctx,
+		profile,
+		overwriteList,
+	); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // GetUserProfileAttributes takes a slice of UIDs and for each UID,

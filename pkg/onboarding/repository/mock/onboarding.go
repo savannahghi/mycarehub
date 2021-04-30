@@ -77,9 +77,9 @@ type FakeOnboardingRepository struct {
 	// removes user completely. This should be used only under testing environment
 	PurgeUserByPhoneNumberFn func(ctx context.Context, phone string) error
 
-	HardResetSecondaryPhoneNumbersFn func(ctx context.Context, id string, phoneNumbers []string) error
+	HardResetSecondaryPhoneNumbersFn func(ctx context.Context, profile *base.UserProfile, phoneNumbers []string) error
 
-	HardResetSecondaryEmailAddressFn func(ctx context.Context, id string, newSecondaryEmails []string) error
+	HardResetSecondaryEmailAddressFn func(ctx context.Context, profile *base.UserProfile, newSecondaryEmails []string) error
 
 	// PINs
 	GetPINByProfileIDFn func(ctx context.Context, ProfileID string) (*domain.PIN, error)
@@ -415,13 +415,13 @@ func (f *FakeOnboardingRepository) GetOrCreatePhoneNumberUser(ctx context.Contex
 }
 
 // HardResetSecondaryPhoneNumbers ...
-func (f *FakeOnboardingRepository) HardResetSecondaryPhoneNumbers(ctx context.Context, id string, phoneNumbers []string) error {
-	return f.HardResetSecondaryPhoneNumbersFn(ctx, id, phoneNumbers)
+func (f *FakeOnboardingRepository) HardResetSecondaryPhoneNumbers(ctx context.Context, profile *base.UserProfile, phoneNumbers []string) error {
+	return f.HardResetSecondaryPhoneNumbersFn(ctx, profile, phoneNumbers)
 }
 
 // HardResetSecondaryEmailAddress ...
-func (f *FakeOnboardingRepository) HardResetSecondaryEmailAddress(ctx context.Context, id string, newSecondaryEmails []string) error {
-	return f.HardResetSecondaryPhoneNumbersFn(ctx, id, newSecondaryEmails)
+func (f *FakeOnboardingRepository) HardResetSecondaryEmailAddress(ctx context.Context, profile *base.UserProfile, newSecondaryEmails []string) error {
+	return f.HardResetSecondaryEmailAddressFn(ctx, profile, newSecondaryEmails)
 }
 
 // GetUserProfileAttributes ...

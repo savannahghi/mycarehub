@@ -100,9 +100,9 @@ type OnboardingRepository interface {
 	// removes user completely. This should be used only under testing environment
 	PurgeUserByPhoneNumber(ctx context.Context, phone string) error
 
-	HardResetSecondaryPhoneNumbers(ctx context.Context, id string, newSecondaryPhones []string) error
+	HardResetSecondaryPhoneNumbers(ctx context.Context, profile *base.UserProfile, newSecondaryPhones []string) error
 
-	HardResetSecondaryEmailAddress(ctx context.Context, id string, newSecondaryEmails []string) error
+	HardResetSecondaryEmailAddress(ctx context.Context, profile *base.UserProfile, newSecondaryEmails []string) error
 
 	// PINs
 	GetPINByProfileID(

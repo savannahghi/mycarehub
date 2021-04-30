@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -465,221 +465,6 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.PushTokens))
-}
-
-func TestRetireSecondaryPhoneNumbers(t *testing.T) {
-	s, err := InitializeTestService(context.Background())
-	if err != nil {
-		t.Error("failed to setup signup usecase")
-	}
-	primaryPhone := base.TestUserPhoneNumber
-	secondaryPhone1 := base.TestUserPhoneNumberWithPin
-	secondaryPhone2 := "+25712345690"
-	secondaryPhone3 := "+25710375600"
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
-
-	otp, err := generateTestOTP(t, primaryPhone)
-	if err != nil {
-		t.Errorf("failed to generate test OTP: %v", err)
-		return
-	}
-	pin := "1234"
-	resp, err := s.Signup.CreateUserByPhone(
-		context.Background(),
-		&resources.SignUpInput{
-			PhoneNumber: &primaryPhone,
-			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
-			OTP:         &otp.OTP,
-		},
-	)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
-
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
-	assert.Nil(t, err)
-	assert.NotNil(t, login1)
-
-	// create authenticated context
-	ctx := context.Background()
-	authCred := &auth.Token{UID: login1.Auth.UID}
-	authenticatedContext := context.WithValue(
-		ctx,
-		base.AuthTokenContextKey,
-		authCred,
-	)
-	s, _ = InitializeTestService(authenticatedContext)
-
-	// try to retire a secondary phone number. This should fail since we have not added a secondary phone number yet
-	rm1, err := s.Onboarding.RetireSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone1})
-	assert.NotNil(t, err)
-	assert.NotNil(t, rm1)
-	assert.Equal(t, false, rm1)
-
-	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone1})
-	assert.Nil(t, err)
-
-	pr, err := s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 1, len(pr.SecondaryPhoneNumbers))
-
-	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone2})
-	assert.Nil(t, err)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.SecondaryPhoneNumbers))
-
-	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone3})
-	assert.Nil(t, err)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 3, len(pr.SecondaryPhoneNumbers))
-
-	// remove secondaryPhone3 and assert the length of new secondary phone numbers slice
-	rm2, err := s.Onboarding.RetireSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone3})
-	assert.Nil(t, err)
-	assert.NotNil(t, rm2)
-	assert.Equal(t, true, rm2)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.SecondaryPhoneNumbers))
-	assert.Equal(t, false, base.StringSliceContains(pr.SecondaryPhoneNumbers, secondaryPhone3))
-
-	// remove secondaryPhone2 and assert the length of new secondary phone numbers slice
-	rm3, err := s.Onboarding.RetireSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone2})
-	assert.Nil(t, err)
-	assert.NotNil(t, rm3)
-	assert.Equal(t, true, rm3)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 1, len(pr.SecondaryPhoneNumbers))
-	assert.Equal(t, false, base.StringSliceContains(pr.SecondaryPhoneNumbers, secondaryPhone2))
-}
-
-func TestRetireSecondaryEmailAddress(t *testing.T) {
-	s, err := InitializeTestService(context.Background())
-	if err != nil {
-		t.Error("failed to setup signup usecase")
-	}
-	primaryPhone := base.TestUserPhoneNumber
-	primaryEmail := "primary@example.com"
-	secondaryemail1 := "user1@gmail.com"
-	secondaryemail2 := "user2@gmail.com"
-	secondaryemail3 := "user3@gmail.com"
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
-
-	otp, err := generateTestOTP(t, primaryPhone)
-	if err != nil {
-		t.Errorf("failed to generate test OTP: %v", err)
-		return
-	}
-	pin := "1234"
-	resp, err := s.Signup.CreateUserByPhone(
-		context.Background(),
-		&resources.SignUpInput{
-			PhoneNumber: &primaryPhone,
-			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
-			OTP:         &otp.OTP,
-		},
-	)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
-
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
-	assert.Nil(t, err)
-	assert.NotNil(t, login1)
-
-	// create authenticated context
-	ctx := context.Background()
-	authCred := &auth.Token{UID: login1.Auth.UID}
-	authenticatedContext := context.WithValue(
-		ctx,
-		base.AuthTokenContextKey,
-		authCred,
-	)
-	s, _ = InitializeTestService(authenticatedContext)
-
-	// try adding a secondary email. this should fail because a primary email has not been added prior
-	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail1})
-	assert.NotNil(t, err)
-
-	// now add the profile's primary email address. This is necessary. primary email must first exist before adding secondary emails
-	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
-	assert.Nil(t, err)
-
-	// try to retire a secondary email. This should fail since we have not added a secondary email address yet
-	rm1, err := s.Onboarding.RetireSecondaryEmailAddress(authenticatedContext, []string{secondaryemail1})
-	assert.NotNil(t, err)
-	assert.NotNil(t, rm1)
-	assert.Equal(t, false, rm1)
-
-	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail1})
-	assert.Nil(t, err)
-
-	pr, err := s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 1, len(pr.SecondaryEmailAddresses))
-
-	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail2})
-	assert.Nil(t, err)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.SecondaryEmailAddresses))
-
-	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail3})
-	assert.Nil(t, err)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 3, len(pr.SecondaryEmailAddresses))
-
-	// remove secondaryemail3 and assert the length of new secondary phone numbers slice
-	rm2, err := s.Onboarding.RetireSecondaryEmailAddress(authenticatedContext, []string{secondaryemail3})
-	assert.Nil(t, err)
-	assert.NotNil(t, rm2)
-	assert.Equal(t, true, rm2)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.SecondaryEmailAddresses))
-	assert.Equal(t, false, base.StringSliceContains(pr.SecondaryEmailAddresses, secondaryemail3))
-
-	// remove secondaryemail2 and assert the length of new secondary phone numbers slice
-	rm3, err := s.Onboarding.RetireSecondaryEmailAddress(authenticatedContext, []string{secondaryemail2})
-	assert.Nil(t, err)
-	assert.NotNil(t, rm3)
-	assert.Equal(t, true, rm3)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 1, len(pr.SecondaryEmailAddresses))
-	assert.Equal(t, false, base.StringSliceContains(pr.SecondaryPhoneNumbers, secondaryemail2))
 }
 
 func TestCheckPhoneExists(t *testing.T) {
@@ -1692,10 +1477,357 @@ func TestProfileUseCaseImpl_UpdateCovers(t *testing.T) {
 			}
 
 			covers := profile.Covers
-			logrus.Print(len(covers))
 			if len(covers) > 1 {
 				t.Errorf("expected just one cover")
 				return
+			}
+		})
+	}
+}
+
+func TestRetireSecondaryPhoneNumbers(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	p, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	type args struct {
+		phoneNumbers []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "sad :( unable to get the user profile",
+			args: args{
+				phoneNumbers: []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad :( profile with no secondary phonenumbers",
+			args: args{
+				phoneNumbers: []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad :( adding an already existent phone number",
+			args: args{
+				phoneNumbers: []string{base.TestUserPhoneNumber},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "happy :) overwrite secondary phone numbers",
+			args: args{
+				phoneNumbers: []string{"+254700000002"},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "happy :) retire secondary phone numbers",
+			args: args{
+				phoneNumbers: []string{},
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad :( unable to get the user profile" {
+				got, err := p.Onboarding.RetireSecondaryPhoneNumbers(context.Background(), tt.args.phoneNumbers)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() = %v, want %v", got, tt.want)
+				}
+			}
+
+			if tt.name == "sad :( profile with no secondary phonenumbers" {
+				got, err := p.Onboarding.RetireSecondaryPhoneNumbers(ctx, tt.args.phoneNumbers)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() = %v, want %v", got, tt.want)
+				}
+			}
+
+			if tt.name == "sad :( adding an already existent phone number" {
+				err := p.Onboarding.UpdateSecondaryPhoneNumbers(ctx, []string{"+254700000001"})
+				if err != nil {
+					t.Errorf("unable to add secondary phone numbers: %v", err)
+					return
+				}
+
+				got, err := p.Onboarding.RetireSecondaryPhoneNumbers(ctx, tt.args.phoneNumbers)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() = %v, want %v", got, tt.want)
+				}
+				profile, err := p.Onboarding.UserProfile(ctx)
+				if err != nil {
+					t.Errorf("unable to get user profile")
+					return
+				}
+				if len(profile.SecondaryPhoneNumbers) > 1 {
+					t.Errorf("expected 1 secondary phone numbers")
+					return
+				}
+			}
+
+			if tt.name == "happy :) overwrite secondary phone numbers" {
+				err := p.Onboarding.UpdateSecondaryPhoneNumbers(ctx, []string{"+254700000003"})
+				if err != nil {
+					t.Errorf("unable to add secondary phone numbers: %v", err)
+					return
+				}
+
+				got, err := p.Onboarding.RetireSecondaryPhoneNumbers(ctx, tt.args.phoneNumbers)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() = %v, want %v", got, tt.want)
+				}
+				profile, err := p.Onboarding.UserProfile(ctx)
+				if err != nil {
+					t.Errorf("unable to get user profile")
+					return
+				}
+				if len(profile.SecondaryPhoneNumbers) < 1 {
+					t.Errorf("expected 1 secondary phone numbers")
+					return
+				}
+			}
+
+			if tt.name == "happy :) retire secondary phone numbers" {
+				err := p.Onboarding.UpdateSecondaryPhoneNumbers(ctx, []string{"+254700000003"})
+				if err != nil {
+					t.Errorf("unable to add secondary phone numbers: %v", err)
+					return
+				}
+
+				got, err := p.Onboarding.RetireSecondaryPhoneNumbers(ctx, tt.args.phoneNumbers)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() = %v, want %v", got, tt.want)
+				}
+				profile, err := p.Onboarding.UserProfile(ctx)
+				if err != nil {
+					t.Errorf("unable to get user profile")
+					return
+				}
+				if len(profile.SecondaryPhoneNumbers) > 0 {
+					t.Errorf("expected 0 secondary phone numbers")
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestRetireSecondaryEmailAddress(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	p, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+	type args struct {
+		emailAddresses []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "sad :( unable to get the user profile",
+			args: args{
+				emailAddresses: []string{base.GenerateRandomEmail()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad :( profile with no secondary email addresses",
+			args: args{
+				emailAddresses: []string{base.GenerateRandomEmail()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad :( adding an already existent email addresses",
+			args: args{
+				emailAddresses: []string{base.TestUserEmail},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "happy :) overwrite secondary email addresses",
+			args: args{
+				emailAddresses: []string{base.GenerateRandomEmail()},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "happy :) retire secondary email addresses",
+			args: args{
+				emailAddresses: []string{},
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad :( unable to get the user profile" {
+				got, err := p.Onboarding.RetireSecondaryEmailAddress(context.Background(), tt.args.emailAddresses)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() = %v, want %v", got, tt.want)
+				}
+			}
+
+			if tt.name == "sad :( profile with no secondary email addresses" {
+				got, err := p.Onboarding.RetireSecondaryEmailAddress(ctx, tt.args.emailAddresses)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() = %v, want %v", got, tt.want)
+				}
+			}
+
+			if tt.name == "sad :( adding an already existent email addresses" {
+				err := p.Onboarding.UpdatePrimaryEmailAddress(ctx, base.GenerateRandomEmail())
+				if err != nil {
+					t.Errorf("unable to set primary email address: %v", err)
+					return
+				}
+
+				got, err := p.Onboarding.RetireSecondaryEmailAddress(ctx, tt.args.emailAddresses)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() = %v, want %v", got, tt.want)
+				}
+				profile, err := p.Onboarding.UserProfile(ctx)
+				if err != nil {
+					t.Errorf("unable to get user profile")
+					return
+				}
+				if len(profile.SecondaryEmailAddresses) > 1 {
+					t.Errorf("expected 1 secondary email addresses")
+					return
+				}
+			}
+
+			if tt.name == "happy :) overwrite secondary email addresses" {
+				err := p.Onboarding.UpdatePrimaryEmailAddress(ctx, base.TestUserEmail)
+				if err != nil {
+					t.Errorf("unable to set primary email address: %v", err)
+					return
+				}
+
+				time.Sleep(2 * time.Second)
+
+				err = p.Onboarding.UpdateSecondaryEmailAddresses(ctx, []string{base.GenerateRandomEmail()})
+				if err != nil {
+					t.Errorf("unable to set secondary email address: %v", err)
+					return
+				}
+
+				got, err := p.Onboarding.RetireSecondaryEmailAddress(ctx, tt.args.emailAddresses)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() = %v, want %v", got, tt.want)
+				}
+				profile, err := p.Onboarding.UserProfile(ctx)
+				if err != nil {
+					t.Errorf("unable to get user profile")
+					return
+				}
+				if len(profile.SecondaryEmailAddresses) < 1 {
+					t.Errorf("expected 1 secondary email addresses")
+					return
+				}
+			}
+
+			if tt.name == "happy :) retire secondary email addresses" {
+				err := p.Onboarding.UpdatePrimaryEmailAddress(ctx, base.TestUserEmail)
+				if err != nil {
+					t.Errorf("unable to set primary email address: %v", err)
+					return
+				}
+
+				time.Sleep(2 * time.Second)
+
+				err = p.Onboarding.UpdateSecondaryEmailAddresses(ctx, []string{base.GenerateRandomEmail()})
+				if err != nil {
+					t.Errorf("unable to set secondary email address: %v", err)
+					return
+				}
+
+				got, err := p.Onboarding.RetireSecondaryEmailAddress(ctx, tt.args.emailAddresses)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() = %v, want %v", got, tt.want)
+				}
+				profile, err := p.Onboarding.UserProfile(ctx)
+				if err != nil {
+					t.Errorf("unable to get user profile")
+					return
+				}
+				if len(profile.SecondaryEmailAddresses) > 0 {
+					t.Errorf("expected 0 secondary email addresses")
+					return
+				}
 			}
 		})
 	}

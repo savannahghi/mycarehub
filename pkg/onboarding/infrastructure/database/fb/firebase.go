@@ -1978,16 +1978,14 @@ func (fr *Repository) GetOrCreatePhoneNumberUser(
 	}, nil
 }
 
-// HardResetSecondaryPhoneNumbers does a hard reset of user secondary phone numbers. This should be called when retiring specific
-// secondary phone number and passing in the new secondary phone numbers as an argument.
-func (fr *Repository) HardResetSecondaryPhoneNumbers(ctx context.Context, id string, newSecondaryPhoneNumbers []string) error {
-
-	profile, err := fr.GetUserProfileByID(ctx, id, false)
-	if err != nil {
-		// this is a wrapped error. No need to wrap it again
-		return err
-	}
-
+// HardResetSecondaryPhoneNumbers does a hard reset of user secondary phone numbers.
+// This should be called when retiring specific secondary phone number and passing in
+// the new secondary phone numbers as an argument.
+func (fr *Repository) HardResetSecondaryPhoneNumbers(
+	ctx context.Context,
+	profile *base.UserProfile,
+	newSecondaryPhoneNumbers []string,
+) error {
 	profile.SecondaryPhoneNumbers = newSecondaryPhoneNumbers
 
 	query := &GetAllQuery{
@@ -2018,14 +2016,11 @@ func (fr *Repository) HardResetSecondaryPhoneNumbers(ctx context.Context, id str
 
 // HardResetSecondaryEmailAddress does a hard reset of user secondary email addresses. This should be called when retiring specific
 // secondary email addresses and passing in the new secondary email address as an argument.
-func (fr *Repository) HardResetSecondaryEmailAddress(ctx context.Context, id string, newSecondaryEmails []string) error {
-
-	profile, err := fr.GetUserProfileByID(ctx, id, false)
-	if err != nil {
-		// this is a wrapped error. No need to wrap it again
-		return err
-	}
-
+func (fr *Repository) HardResetSecondaryEmailAddress(
+	ctx context.Context,
+	profile *base.UserProfile,
+	newSecondaryEmails []string,
+) error {
 	profile.SecondaryEmailAddresses = newSecondaryEmails
 
 	query := &GetAllQuery{
