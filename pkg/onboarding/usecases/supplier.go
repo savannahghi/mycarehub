@@ -936,6 +936,10 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 			base.ChannelEmail,
 			base.ChannelFcm,
 		},
+		NotificationBody: base.NotificationBody{
+			PublishMessage: "Kindly complete your KYC details and await approval.",
+			ResolveMessage: "Thank you for adding your KYC details.",
+		},
 	}
 
 	err := s.engagement.PublishKYCNudge(uid, nudge)
