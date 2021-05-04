@@ -424,7 +424,7 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 		return false, exceptions.InternalServerError(err)
 	}
 
-	if len(docs) == 1 {
+	if len(docs) > 0 {
 		return true, nil
 	}
 
@@ -439,7 +439,7 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 	if err != nil {
 		return false, exceptions.InternalServerError(err)
 	}
-	if len(docs1) == 1 {
+	if len(docs1) > 0 {
 		return true, nil
 	}
 
