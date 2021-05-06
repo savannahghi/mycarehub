@@ -114,15 +114,26 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 			OTP:         &otp.OTP,
 		},
 	)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
+	if err != nil {
+		t.Errorf("failed to create a user by phone")
+		return
+	}
+
+	if resp == nil {
+		t.Error("nil user response returned")
+		return
+	}
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
-	assert.Nil(t, err)
-	assert.NotNil(t, login1)
+	if err != nil {
+		t.Errorf("an error occured while logging in by phone")
+		return
+	}
+
+	if login1 == nil {
+		t.Errorf("nil response returned")
+		return
+	}
 
 	// create authenticated context
 	ctx := context.Background()
@@ -136,46 +147,119 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 
 	// try to login with secondaryPhone. This should fail because secondaryPhone != primaryPhone
 	login2, err := s.Login.LoginByPhone(context.Background(), secondaryPhone, pin, base.FlavourConsumer)
-	assert.NotNil(t, err)
-	assert.Nil(t, login2)
+	if err == nil {
+		t.Errorf("expected an error :%v", err)
+		return
+	}
+
+	if login2 != nil {
+		t.Errorf("the response was not expected")
+		return
+	}
 
 	// add a secondary phone number to the user
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone})
-	assert.Nil(t, err)
+	if err != nil {
+		t.Errorf("failed to add a secondary number to the user")
+		return
+	}
 
 	pr, err := s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 1, len(pr.SecondaryPhoneNumbers))
+	if err != nil {
+		t.Errorf("failed to retrieve the profile of the logged in user")
+		return
+	}
+
+	if pr == nil {
+		t.Errorf("nil response returned")
+		return
+	}
+	// check if the length of secondary number == 1
+	if len(pr.SecondaryPhoneNumbers) != 1 {
+		t.Errorf("expected the value to be equal to 1")
+		return
+	}
 
 	// login to add assert the secondary phone number has been added
 	login3, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
-	assert.Nil(t, err)
-	assert.NotNil(t, login3)
-	assert.Equal(t, 1, len(login3.Profile.SecondaryPhoneNumbers))
+	if err != nil {
+		t.Errorf("expected an error :%v", err)
+		return
+	}
+
+	if login3 == nil {
+		t.Errorf("the response was not expected")
+		return
+	}
+
+	// check if the length of secondary number == 1
+	if len(login3.Profile.SecondaryPhoneNumbers) != 1 {
+		t.Errorf("expected the value to be equal to 1")
+		return
+	}
 
 	// send otp to the secondary phone number we intend to make primary
 	otpResp, err := s.Engagement.GenerateAndSendOTP(context.Background(), secondaryPhone)
-	assert.Nil(t, err)
-	assert.NotNil(t, otpResp)
+	if err != nil {
+		t.Errorf("unable to send generate and send otp :%v", err)
+		return
+	}
+
+	if otpResp == nil {
+		t.Errorf("unexpected response")
+		return
+	}
 
 	// set the old secondary phone number as the new primary phone number
 	setResp, err := s.Signup.SetPhoneAsPrimary(context.Background(), secondaryPhone, otpResp.OTP)
-	assert.Nil(t, err)
-	assert.NotNil(t, setResp)
+	if err != nil {
+		t.Errorf("failed to set phone as primary: %v", err)
+		return
+	}
+
+	if setResp == false {
+		t.Errorf("unexpected response")
+		return
+	}
 
 	// login with the old primary phone number. This should fail
 	login4, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
-	assert.NotNil(t, err)
-	assert.Nil(t, login4)
+	if err == nil {
+		t.Errorf("unexpected error occured! :%v", err)
+		return
+	}
+
+	if login4 != nil {
+		t.Errorf("unexpected error occured! Expected this to fail")
+		return
+	}
 
 	// login with the new primary phone number. This should not fail. Assert that the primary phone number
 	// is the new one and the secondary phone slice contains the old primary phone number.
 	login5, err := s.Login.LoginByPhone(context.Background(), secondaryPhone, pin, base.FlavourConsumer)
-	assert.Nil(t, err)
-	assert.NotNil(t, login5)
-	assert.Equal(t, secondaryPhone, *login5.Profile.PrimaryPhone)
-	assert.Contains(t, login5.Profile.SecondaryPhoneNumbers, secondaryPhone)
+	if err != nil {
+		t.Errorf("failed to login by phone :%v", err)
+		return
+	}
+
+	if login5 == nil {
+		t.Errorf("the response was not expected")
+		return
+	}
+
+	if secondaryPhone != *login5.Profile.PrimaryPhone {
+		t.Errorf("expected %v and %v to be equal", secondaryPhone, *login5.Profile.PrimaryPhone)
+		return
+	}
+
+	_, exist := utils.FindItem(login5.Profile.SecondaryPhoneNumbers, secondaryPhone)
+	if exist {
+		t.Errorf("the secondary phonenumber slice %v, does not contain %v",
+			login5.Profile.SecondaryPhoneNumbers,
+			secondaryPhone,
+		)
+		return
+	}
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), secondaryPhone)

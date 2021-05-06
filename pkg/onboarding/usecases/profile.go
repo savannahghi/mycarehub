@@ -211,7 +211,6 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(
 	if err != nil {
 		return exceptions.NormalizeMSISDNError(err)
 	}
-
 	// fetch the user profile
 	if useContext {
 		uid, err := p.baseExt.GetLoggedInUserUID(ctx)
@@ -234,33 +233,22 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(
 	}
 
 	previousPrimaryPhone := profile.PrimaryPhone
-	previousSecondaryPhones := profile.SecondaryPhoneNumbers
-
+	secondaryPhones := profile.SecondaryPhoneNumbers
 	if err := profile.UpdateProfilePrimaryPhoneNumber(ctx, p.onboardingRepository, phone); err != nil {
 		return err
 	}
 
-	// removes the new primary phone number from the list of secondary primary phones and adds the
-	// previous primary phone number
-	// into the list of new secondary phone numbers
-	newSecPhones := func(oldSecondaryPhones []string, oldPrimaryPhone string, newPrimaryPhone string) []string {
-		secPhones := []string{}
-		for _, phone := range oldSecondaryPhones {
-			if phone != newPrimaryPhone && !base.StringSliceContains(secPhones, phone) {
-				secPhones = append(secPhones, phone)
-			}
-		}
-		secPhones = append(secPhones, oldPrimaryPhone)
+	// check if number to be set as primary exists in the list of secondary phones
+	index, exists := utils.FindItem(secondaryPhones, *phoneNumber)
+	if exists {
+		// remove the phoneNumber from the Secondary Phones slice
+		secondaryPhones = append(secondaryPhones[:index], secondaryPhones[index+1:]...)
+	}
 
-		return secPhones
-	}(
-		previousSecondaryPhones,
-		*previousPrimaryPhone,
-		*phoneNumber,
-	)
+	secondaryPhones = append(secondaryPhones, *previousPrimaryPhone)
 
-	if len(newSecPhones) >= 1 {
-		if err := profile.UpdateProfileSecondaryPhoneNumbers(ctx, p.onboardingRepository, newSecPhones); err != nil {
+	if len(secondaryPhones) >= 1 {
+		if err := profile.UpdateProfileSecondaryPhoneNumbers(ctx, p.onboardingRepository, secondaryPhones); err != nil {
 			return err
 		}
 	}

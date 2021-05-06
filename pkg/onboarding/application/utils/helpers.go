@@ -92,3 +92,15 @@ func MatchAndReturn(old bool, new bool) bool {
 	}
 	return old
 }
+
+// FindItem is a linear search implementation that checks if a string
+// is contained in a slice and returns its index and a boolean
+// The index can be used for slicing out an item from a slice.
+func FindItem(slice []string, value string) (int, bool) {
+	for index, val := range slice {
+		if val == value {
+			return index, true
+		}
+	}
+	return -1, false
+}

@@ -259,3 +259,48 @@ func TestMatchAndReturn(t *testing.T) {
 		})
 	}
 }
+
+func TestFindNumber(t *testing.T) {
+	type args struct {
+		slice []string
+		value string
+	}
+	tests := []struct {
+		name  string
+		args  args
+		want  int
+		want1 bool
+	}{
+		{
+			name: "happy case - Find existing number",
+			args: args{
+				slice: []string{base.TestUserPhoneNumber, "+254700998877"},
+				value: base.TestUserPhoneNumber,
+			},
+			// This is the index
+			want:  0,
+			want1: true,
+		},
+		{
+			name: "sad case - non existent number",
+			args: args{
+				slice: []string{base.TestUserPhoneNumber, "+254700998877"},
+				value: "invalid",
+			},
+			// This is the index
+			want:  -1,
+			want1: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 := utils.FindItem(tt.args.slice, tt.args.value)
+			if got != tt.want {
+				t.Errorf("FindNumber() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("FindNumber() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}

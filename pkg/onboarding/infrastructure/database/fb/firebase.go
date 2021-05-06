@@ -750,7 +750,7 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 	return nil
 }
 
-// UpdateSecondaryPhoneNumbers the secondary phone numbers of the profile that matches the id
+// UpdateSecondaryPhoneNumbers updates the secondary phone numbers of the profile that matches the id
 // this method should be called after asserting the phone numbers are unique and not associated with another userProfile
 func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string, phoneNumbers []string) error {
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
@@ -759,20 +759,14 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 		return err
 	}
 
-	// check the phone number been added are unique, does not currently existing the user's profile and is not the primary phone number
-	newPhones := []string{}
-	if len(profile.SecondaryPhoneNumbers) >= 1 {
-		for _, phone := range phoneNumbers {
-			if phone != *profile.PrimaryPhone && !base.StringSliceContains(newPhones, phone) && !base.StringSliceContains(profile.SecondaryPhoneNumbers, phone) {
-				newPhones = append(newPhones, phone)
-			}
-
-		}
-	} else {
-		newPhones = append(newPhones, phoneNumbers...)
+	// Check if the former primary phone exists in the phoneNumber list
+	index, exist := utils.FindItem(profile.SecondaryPhoneNumbers, *profile.PrimaryPhone)
+	if exist {
+		// Remove the former secondary phone from the list since it's now primary
+		profile.SecondaryPhoneNumbers = append(profile.SecondaryPhoneNumbers[:index], profile.SecondaryPhoneNumbers[index+1:]...)
 	}
 
-	profile.SecondaryPhoneNumbers = append(profile.SecondaryPhoneNumbers, newPhones...)
+	profile.SecondaryPhoneNumbers = append(profile.SecondaryPhoneNumbers, phoneNumbers...)
 
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
