@@ -759,14 +759,18 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 		return err
 	}
 
+	newSecondaryPhoneNumber := []string{}
 	// Check if the former primary phone exists in the phoneNumber list
 	index, exist := utils.FindItem(profile.SecondaryPhoneNumbers, *profile.PrimaryPhone)
 	if exist {
 		// Remove the former secondary phone from the list since it's now primary
-		profile.SecondaryPhoneNumbers = append(profile.SecondaryPhoneNumbers[:index], profile.SecondaryPhoneNumbers[index+1:]...)
+		profile.SecondaryPhoneNumbers = append(
+			profile.SecondaryPhoneNumbers[:index],
+			profile.SecondaryPhoneNumbers[index+1:]...,
+		)
 	}
 
-	profile.SecondaryPhoneNumbers = append(profile.SecondaryPhoneNumbers, phoneNumbers...)
+	profile.SecondaryPhoneNumbers = append(newSecondaryPhoneNumber, phoneNumbers...)
 
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
@@ -804,19 +808,21 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 		return err
 	}
 
-	// check the email addresses been added are unique , does not currently existing the user's profile and is not the primary email address
-	newEmails := []string{}
-	if len(profile.SecondaryEmailAddresses) >= 1 {
-		for _, email := range uniqueEmailAddresses {
-			if email != *profile.PrimaryEmailAddress && !base.StringSliceContains(newEmails, email) && !base.StringSliceContains(profile.SecondaryEmailAddresses, email) {
-				newEmails = append(newEmails, email)
-			}
+	newSecondaryEmail := []string{}
+	// check if former primary email still exists in the
+	// secondary emails list
+	if profile.PrimaryEmailAddress != nil {
+		index, exist := utils.FindItem(profile.SecondaryEmailAddresses, *profile.PrimaryEmailAddress)
+		if exist {
+			// remove the former secondary email from the list
+			profile.SecondaryEmailAddresses = append(
+				profile.SecondaryEmailAddresses[:index],
+				profile.SecondaryEmailAddresses[index+1:]...,
+			)
 		}
-	} else {
-		newEmails = append(newEmails, uniqueEmailAddresses...)
 	}
 
-	profile.SecondaryEmailAddresses = append(profile.SecondaryEmailAddresses, newEmails...)
+	profile.SecondaryEmailAddresses = append(newSecondaryEmail, uniqueEmailAddresses...)
 
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),

@@ -2205,7 +2205,8 @@ func TestRepository_UpdateSecondaryEmailAddresses(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := fr.UpdateSecondaryEmailAddresses(tt.args.ctx, tt.args.id, tt.args.emailAddresses); (err != nil) != tt.wantErr {
+			err := fr.UpdateSecondaryEmailAddresses(tt.args.ctx, tt.args.id, tt.args.emailAddresses)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.UpdateSecondaryEmailAddresses() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

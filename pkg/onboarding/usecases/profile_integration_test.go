@@ -293,15 +293,41 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 			OTP:         &otp.OTP,
 		},
 	)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
+	if err != nil {
+		t.Errorf("failed to create a user by phone")
+		return
+	}
+
+	if resp == nil {
+		t.Error("nil user response returned")
+		return
+	}
+
+	if resp.Profile == nil {
+		t.Error("nil profile response returned")
+		return
+	}
+
+	if resp.CustomerProfile == nil {
+		t.Error("nil customer profile response returned")
+		return
+	}
+
+	if resp.SupplierProfile == nil {
+		t.Error("nil supplier profile response returned")
+		return
+	}
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
-	assert.Nil(t, err)
-	assert.NotNil(t, login1)
+	if err != nil {
+		t.Errorf("an error occured while logging in by phone :%v", err)
+		return
+	}
+
+	if login1 == nil {
+		t.Errorf("nil response returned")
+		return
+	}
 
 	// create authenticated context
 	ctx := context.Background()
@@ -315,51 +341,92 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 
 	// add the first secondary phone number
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone1})
-	assert.Nil(t, err)
-
-	pr, err := s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 1, len(pr.SecondaryPhoneNumbers))
+	if err != nil {
+		t.Errorf("failed to add secondary phonenumber :%v", err)
+		return
+	}
 
 	// try adding secondaryPhone1 again. this should fail because secondaryPhone1 already exists
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone1})
-	assert.NotNil(t, err)
+	if err == nil {
+		t.Errorf("an error %v was expected", err)
+		return
+	}
 
 	// add the second secondary phone number
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone2})
-	assert.Nil(t, err)
-
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.SecondaryPhoneNumbers))
+	if err != nil {
+		t.Errorf("failed to add secondary phonenumber :%v", err)
+		return
+	}
 
 	// try adding secondaryPhone2 again. this should fail because secondaryPhone2 already exists
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone2})
-	assert.NotNil(t, err)
+	if err == nil {
+		t.Errorf("an error %v was expected", err)
+		return
+	}
 
 	// add the third secondary phone number
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone3})
-	assert.Nil(t, err)
+	if err != nil {
+		t.Errorf("failed to add secondary phonenumber :%v", err)
+		return
+	}
 
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 3, len(pr.SecondaryPhoneNumbers))
+	// try adding secondaryPhone3 again. this should fail because secondaryPhone3 already exists
+	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone3})
+	if err == nil {
+		t.Errorf("an error %v was expected", err)
+		return
+	}
+
+	userProfile, err := s.Onboarding.UserProfile(authenticatedContext)
+	if err != nil {
+		t.Errorf("failed to retrieve the profile of the logged in user :%v", err)
+		return
+	}
+
+	if userProfile == nil {
+		t.Errorf("nil response returned")
+		return
+	}
+	// check if the length of secondary number == 1
+	if len(userProfile.SecondaryPhoneNumbers) != 1 {
+		t.Errorf("expected the value to be equal to 1")
+		return
+	}
 
 	// try to login with each secondary phone number. This should fail
 	login2, err := s.Login.LoginByPhone(context.Background(), secondaryPhone1, pin, base.FlavourConsumer)
-	assert.NotNil(t, err)
-	assert.Nil(t, login2)
+	if err == nil {
+		t.Errorf("an error %v was expected ", err)
+		return
+	}
+
+	if login2 != nil {
+		t.Errorf("an unexpected error occured :%v", err)
+	}
 
 	login3, err := s.Login.LoginByPhone(context.Background(), secondaryPhone2, pin, base.FlavourConsumer)
-	assert.NotNil(t, err)
-	assert.Nil(t, login3)
+	if err == nil {
+		t.Errorf("an error %v was expected ", err)
+		return
+	}
+
+	if login3 != nil {
+		t.Errorf("an unexpected error occured :%v", err)
+	}
 
 	login4, err := s.Login.LoginByPhone(context.Background(), secondaryPhone3, pin, base.FlavourConsumer)
-	assert.NotNil(t, err)
-	assert.Nil(t, login4)
+	if err == nil {
+		t.Errorf("an error %v was expected ", err)
+		return
+	}
+
+	if login4 != nil {
+		t.Errorf("an unexpected error occured :%v", err)
+	}
 }
 
 func TestAddSecondaryEmailAddress(t *testing.T) {
@@ -391,15 +458,41 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 			OTP:         &otp.OTP,
 		},
 	)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
+	if err != nil {
+		t.Errorf("failed to create a user by phone")
+		return
+	}
+
+	if resp == nil {
+		t.Error("nil user response returned")
+		return
+	}
+
+	if resp.Profile == nil {
+		t.Error("nil profile response returned")
+		return
+	}
+
+	if resp.CustomerProfile == nil {
+		t.Error("nil customer profile response returned")
+		return
+	}
+
+	if resp.SupplierProfile == nil {
+		t.Error("nil supplier profile response returned")
+		return
+	}
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
-	assert.Nil(t, err)
-	assert.NotNil(t, login1)
+	if err != nil {
+		t.Errorf("an error occured while logging in by phone :%v", err)
+		return
+	}
+
+	if login1 == nil {
+		t.Errorf("nil response returned")
+		return
+	}
 
 	// create authenticated context
 	ctx := context.Background()
@@ -413,49 +506,105 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 
 	// try adding a secondary email address. This should fail because the profile does not have a primary email first
 	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail1})
-	assert.NotNil(t, err)
+	if err == nil {
+		t.Errorf("expected an error: %v", err)
+		return
+	}
 
 	// add the profile's primary email address. This is necessary. primary email must first exist before adding secondary emails
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
-	assert.Nil(t, err)
+	if err != nil {
+		t.Errorf("failed to add a primary email: %v", err)
+		return
+	}
 
 	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail1})
-	assert.Nil(t, err)
+	if err != nil {
+		t.Errorf("failed to add secondary email: %v", err)
+		return
+	}
 
-	pr, err := s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 1, len(pr.SecondaryEmailAddresses))
+	userProfile, err := s.Onboarding.UserProfile(authenticatedContext)
+	if err != nil {
+		t.Errorf("failed to retrieve the profile of the logged in user :%v", err)
+		return
+	}
+
+	if userProfile == nil {
+		t.Errorf("nil response returned")
+		return
+	}
+	// check if the length of secondary number == 1
+	if len(userProfile.SecondaryEmailAddresses) != 1 {
+		t.Errorf("expected the value to be equal to 1")
+		return
+	}
 
 	// try adding secondaryemail1 again since secondaryemail1 is already in use
 	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail1})
-	assert.NotNil(t, err)
+	if err == nil {
+		t.Errorf("an error %v was expected", err)
+		return
+	}
 
 	// now add secondaryemail2
 	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail2})
-	assert.Nil(t, err)
+	if err != nil {
+		t.Errorf("failed to add secondary email: %v", err)
+		return
+	}
 
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.SecondaryEmailAddresses))
+	userProfile, err = s.Onboarding.UserProfile(authenticatedContext)
+	if err != nil {
+		t.Errorf("failed to retrieve the profile of the logged in user :%v", err)
+		return
+	}
+
+	if userProfile == nil {
+		t.Errorf("nil response returned")
+		return
+	}
+	// check if the length of secondary number == 1
+	if len(userProfile.SecondaryEmailAddresses) != 1 {
+		t.Errorf("expected the value to be equal to 1")
+		return
+	}
 
 	// try adding secondaryemail2 again since secondaryemail1 is already in use
 	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail2})
-	assert.NotNil(t, err)
+	if err == nil {
+		t.Errorf("an error %v was expected", err)
+		return
+	}
 
 	// now add secondaryemail3
 	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail3})
-	assert.Nil(t, err)
+	if err != nil {
+		t.Errorf("failed to add secondary email: %v", err)
+		return
+	}
 
-	pr, err = s.Onboarding.UserProfile(authenticatedContext)
-	assert.Nil(t, err)
-	assert.NotNil(t, pr)
-	assert.Equal(t, 3, len(pr.SecondaryEmailAddresses))
+	userProfile, err = s.Onboarding.UserProfile(authenticatedContext)
+	if err != nil {
+		t.Errorf("failed to retrieve the profile of the logged in user :%v", err)
+		return
+	}
 
+	if userProfile == nil {
+		t.Errorf("nil response returned")
+		return
+	}
+	// check if the length of secondary number == 1
+	if len(userProfile.SecondaryEmailAddresses) != 1 {
+		t.Errorf("expected the value to be equal to 1")
+		return
+	}
 	// try adding secondaryemail3 again since secondaryemail3 is already in use
 	err = s.Onboarding.UpdateSecondaryEmailAddresses(authenticatedContext, []string{secondaryemail3})
-	assert.NotNil(t, err)
+	if err == nil {
+		t.Errorf("an error %v was expected", err)
+		return
+	}
 
 }
 

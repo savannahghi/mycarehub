@@ -274,37 +274,25 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(
 	if err := profile.UpdateProfilePrimaryEmailAddress(ctx, p.onboardingRepository, emailAddress); err != nil {
 		return err
 	}
-	// removes the new primary email from the list of secondary emails and adds the previous primary
-	// email
-	// into the list of new secondary emails
+
 	previousPrimaryEmail := profile.PrimaryEmailAddress
-	previousSecondaryEmails := profile.SecondaryEmailAddresses
+	secondaryEmails := profile.SecondaryEmailAddresses
 
 	if profile.PrimaryEmailAddress != nil {
-		newSecEmails := func(oldSecondaryEmails []string, oldPrimaryEmail string, newPrimaryEmail string) []string {
-			secEmails := []string{}
-			if len(oldSecondaryEmails) >= 1 {
-				for _, email := range oldSecondaryEmails {
-					if email != newPrimaryEmail {
-						secEmails = append(secEmails, email)
-					}
-				}
-				secEmails = append(secEmails, oldPrimaryEmail)
-			}
+		// Check if the email to be set as primary exists in the list
+		// of secondary emails.
+		index, exists := utils.FindItem(secondaryEmails, emailAddress)
+		if exists {
+			secondaryEmails = append(secondaryEmails[:index], secondaryEmails[index+1:]...)
+		}
 
-			return secEmails
-		}(
-			previousSecondaryEmails,
-			*previousPrimaryEmail,
-			emailAddress,
-		)
+		secondaryEmails = append(secondaryEmails, *previousPrimaryEmail)
 
-		if len(newSecEmails) >= 1 {
-			if err := profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, newSecEmails); err != nil {
+		if len(secondaryEmails) >= 1 {
+			if err := profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, secondaryEmails); err != nil {
 				return err
 			}
 		}
-		return nil
 	}
 
 	return nil
