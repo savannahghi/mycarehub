@@ -216,13 +216,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(h.AddAdminPermsToUser(ctx))
 
-	env := os.Getenv(base.Environment)
-	if env == base.TestingEnv || env == base.StagingEnv {
-		r.Path("/remove_user").Methods(
-			http.MethodPost,
-			http.MethodOptions).
-			HandlerFunc(h.RemoveUserByPhoneNumber(ctx))
-	}
+	r.Path("/remove_admin_permissions").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.RemoveAdminPermsToUser(ctx))
 
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()

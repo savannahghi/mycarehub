@@ -54,6 +54,7 @@ type ProfileUseCase interface {
 	UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error
 	UpdatePermissions(ctx context.Context, perms []base.PermissionType) error
 	AddAdminPermsToUser(ctx context.Context, phone string) error
+	RemoveAdminPermsToUser(ctx context.Context, phone string) error
 	UpdateBioData(ctx context.Context, data base.BioData) error
 	GetUserProfileByUID(
 		ctx context.Context,
@@ -561,11 +562,33 @@ func (p *ProfileUseCaseImpl) AddAdminPermsToUser(ctx context.Context, phone stri
 		false,
 	)
 	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return err
 	}
 	perms := base.DefaultSuperAdminPermissions
 	return profile.UpdateProfilePermissions(ctx, p.onboardingRepository, perms)
+}
+
+// RemoveAdminPermsToUser updates the profiles permissions by removing the admin permissions
+// This also flips back userProfile field IsAdmin to false
+func (p *ProfileUseCaseImpl) RemoveAdminPermsToUser(ctx context.Context, phone string) error {
+	phoneNumber, err := p.baseExt.NormalizeMSISDN(phone)
+	if err != nil {
+		return exceptions.NormalizeMSISDNError(err)
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(
+		ctx,
+		*phoneNumber,
+		false,
+	)
+	if err != nil {
+		return err
+	}
+	permissions := profile.Permissions
+	if len(permissions) >= 1 {
+		permissions = nil
+	}
+	return profile.UpdateProfilePermissions(ctx, p.onboardingRepository, permissions)
 }
 
 // UpdateBioData updates primary biodata of a specific user profile

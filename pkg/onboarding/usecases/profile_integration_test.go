@@ -2039,3 +2039,80 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 		})
 	}
 }
+
+func TestProfileUseCaseImpl_RemoveAdminPermsToUser(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+	p, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	phoneNumber := base.TestUserPhoneNumber
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup profile usecase")
+	}
+
+	_ = s.Signup.RemoveUserByPhoneNumber(
+		context.Background(),
+		phoneNumber,
+	)
+	phoneNumberWithNoUserProfile := "+2547898742"
+	otp, err := generateTestOTP(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to generate test OTP: %v", err)
+		return
+	}
+	pin := "1234"
+	_, err = p.Signup.CreateUserByPhone(
+		context.Background(),
+		&resources.SignUpInput{
+			PhoneNumber: &phoneNumber,
+			PIN:         &pin,
+			Flavour:     base.FlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+	if err != nil {
+		t.Errorf("failed to create a user by phone")
+		return
+	}
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case:) remove admin permissions ",
+			args: args{
+				ctx:   ctx,
+				phone: phoneNumber,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sade case:) remove admin permissions",
+			args: args{
+				ctx:   ctx,
+				phone: phoneNumberWithNoUserProfile,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := p.Onboarding.RemoveAdminPermsToUser(tt.args.ctx, tt.args.phone); (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.RemoveAdminPermsToUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
