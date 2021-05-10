@@ -59,8 +59,12 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:_update_profile_uids" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
@@ -77,14 +81,18 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_get_logged_in_user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("unable to get logged user")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("unable to get logged user")
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_get_profile_of_logged_in_user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
@@ -265,8 +273,12 @@ func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:_update_name_succeeds" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
@@ -279,8 +291,8 @@ func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_get_logged_in_user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("unable to get logged user")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("unable to get logged user")
 				}
 			}
 			err := i.Onboarding.UpdateUserName(tt.args.ctx, tt.args.userName)
@@ -361,8 +373,12 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:_update_name_succeeds" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
@@ -375,14 +391,24 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_get_logged_in_user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("unable to get logged user")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("unable to get logged user")
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_get_profile_of_logged_in_user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
@@ -469,8 +495,12 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:_update_email_succeeds" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
@@ -487,8 +517,12 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_update_primary_email_address" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
@@ -502,8 +536,12 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_update_secondary_email_address" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
@@ -523,14 +561,18 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_get_logged_in_user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("unable to get logged user")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("unable to get logged user")
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_get_profile_of_logged_in_user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
@@ -884,8 +926,12 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid: successfully updates permissions" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{ID: "12334"}, nil
@@ -896,14 +942,18 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 			}
 
 			if tt.name == "invalid: get logged in user uid fails" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("failed to get loggeg in user UID")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("failed to get loggeg in user UID")
 				}
 			}
 
 			if tt.name == "invalid: get user profile by UID fails" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get user profile by UID")
@@ -911,8 +961,12 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 			}
 
 			if tt.name == "invalid: update permissions fails" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{ID: "12334"}, nil
@@ -1860,8 +1914,12 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
@@ -1895,8 +1953,8 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("unable to get logged in user")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("unable to get logged in user")
 				}
 			}
 
@@ -1912,8 +1970,12 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_get_profile_of_logged_in_user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
@@ -2100,8 +2162,12 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid: update primary biodata of a specific user profile" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2116,8 +2182,12 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 			}
 			if tt.name == "valid: update primary biodata of a specific user profile - gender" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2132,8 +2202,12 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 			}
 			if tt.name == "valid: update primary biodata of a specific user profile - DOB" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2148,8 +2222,12 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 			}
 			if tt.name == "valid: update primary biodata of a specific user profile - First Name" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2164,8 +2242,12 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 			}
 			if tt.name == "valid: update primary biodata of a specific user profile - Last Name" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2180,22 +2262,31 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 			}
 			if tt.name == "invalid: get logged in user uid fails" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("failed to get loggeg in user UID")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("failed to get loggeg in user UID")
 				}
 			}
 
 			if tt.name == "invalid: get user profile by UID fails" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get user profile by UID")
 				}
 			}
 			if tt.name == "invalid: update primary biodata of a specific user profile" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2574,8 +2665,12 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "happy:) add home address" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2590,8 +2685,12 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 			}
 
 			if tt.name == "happy:) add work address" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2606,14 +2705,18 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 			}
 
 			if tt.name == "sad:( failed to get logged in user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occured")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("an error occured")
 				}
 			}
 
 			if tt.name == "sad:( failed to get user profile" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2622,8 +2725,12 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 			}
 
 			if tt.name == "sad:( failed to update user profile" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2704,8 +2811,12 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "happy:) get addresses" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2724,14 +2835,18 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 			}
 
 			if tt.name == "sad:( failed to get logged in user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occured")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("an error ocurred")
 				}
 			}
 
 			if tt.name == "sad:( failed to get user profile" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2740,8 +2855,12 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 			}
 
 			if tt.name == "sad:/ failed to get the home addresses" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2757,8 +2876,12 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 			}
 
 			if tt.name == "sad:/ failed to get the work addresses" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2830,8 +2953,12 @@ func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid: get comms settings" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
@@ -2852,14 +2979,18 @@ func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
 			}
 
 			if tt.name == "invalid: failed to get logged in user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occured")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("an error ocurred")
 				}
 			}
 
 			if tt.name == "invalid: failed to get user profile" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
@@ -2946,8 +3077,12 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid: set comms settings" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.SetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string,
@@ -2969,14 +3104,18 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 			}
 
 			if tt.name == "invalid: failed to get logged in user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occured")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("an error occured")
 				}
 			}
 
 			if tt.name == "invalid: failed to get user profile" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {

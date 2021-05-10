@@ -2136,8 +2136,12 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 			response := httptest.NewRecorder()
 
 			if tt.name == "valid:_successfully_get_supplier_by_uid" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "FSO798-AD3", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {

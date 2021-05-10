@@ -1,0 +1,17 @@
+p,254700000000,user_profile_view,view, deny
+p,254700000000,update_primary_phone,edit, deny
+p,254700000000,update_primary_email,edit, deny
+p,254700000000,update_secondary_phone,edit, deny
+p,254700000000,update_secondary_email,edit, deny
+p,254700000000,update_verified_uid,edit, deny
+p,254700000000,update_verified_identifiers,edit, deny
+p,254700000000,update_suspended,edit, deny
+p,254700000000,update_photo_upload_id,edit, deny
+p,254700000000,update_push_token,edit, deny
+p,254700000000,update_permissions,edit, deny
+p,254700000000,update_bio_data,edit, deny
+p,254700000000,add_partner_type,edit, deny
+p,254700000000,setup_supplier,edit, deny
+p,254700000000,create_customer_account,edit, deny
+p,254700000000,create_supplier_account,edit, deny
+p,254711223344,update_primary_phone,edit, allow

@@ -140,6 +140,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	if err != nil {
 		return nil, err
 	}
+
 	// create a user profile
 	profile, err := s.onboardingRepository.CreateUserProfile(
 		ctx,
@@ -170,7 +171,6 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 
 	var supplier *base.Supplier
 	var customer *base.Customer
-
 	supplier, err = s.onboardingRepository.CreateEmptySupplierProfile(ctx, profile.ID)
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
@@ -180,7 +180,6 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
-
 	// set the user default communications settings
 	defaultCommunicationSetting := true
 	comms, err := s.onboardingRepository.SetUserCommunicationsSettings(

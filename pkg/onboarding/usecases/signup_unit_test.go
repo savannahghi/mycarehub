@@ -63,8 +63,12 @@ func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:_successfully_retire_pushtoken" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
@@ -80,8 +84,12 @@ func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_fail_to_retire_pushtoken" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
@@ -97,8 +105,12 @@ func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_fail_to_retire_pushtoken_invalid_length" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "400d-8716-7e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
@@ -307,6 +319,16 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*base.Customer, error) {
 					return &base.Customer{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+				fakeRepo.SetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string,
+					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
+					return &base.UserCommunicationsSetting{
+						ID:            uuid.New().String(),
+						AllowWhatsApp: true,
+						AllowTextSMS:  true,
+						AllowEmail:    true,
+						AllowPush:     true,
 					}, nil
 				}
 			}

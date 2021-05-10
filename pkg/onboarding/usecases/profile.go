@@ -6,6 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization/permission"
+
 	"github.com/cenkalti/backoff"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
@@ -161,13 +164,20 @@ func NewProfileUseCase(
 
 // UserProfile retrieves the profile of the logged in user, if they have one
 func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile, error) {
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	user, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
-		return nil, exceptions.UserNotFoundError(err)
+		return nil, fmt.Errorf("can't get user: %w", err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+	isAuthorized, err := authorization.IsAuthorized(user, permission.UserProfileView)
 	if err != nil {
-		// this is a wrapped error. No need to wrap it again
+		return nil, err
+	}
+	if !isAuthorized {
+		return nil, fmt.Errorf("user not authorized to access this resource")
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
+	if err != nil {
 		return nil, err
 	}
 	return profile, nil
@@ -180,7 +190,6 @@ func (p *ProfileUseCaseImpl) GetProfileByID(
 ) (*base.UserProfile, error) {
 	profile, err := p.onboardingRepository.GetUserProfileByID(ctx, *id, false)
 	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
 	return profile, nil
@@ -190,7 +199,6 @@ func (p *ProfileUseCaseImpl) GetProfileByID(
 func (p *ProfileUseCaseImpl) UpdateUserName(ctx context.Context, userName string) error {
 	profile, err := p.UserProfile(ctx)
 	if err != nil {
-		// this is a wrapped error. No need to wrap it again
 		return err
 	}
 	return profile.UpdateProfileUserName(ctx, p.onboardingRepository, userName)
@@ -212,22 +220,31 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(
 	if err != nil {
 		return exceptions.NormalizeMSISDNError(err)
 	}
+
 	// fetch the user profile
 	if useContext {
-		uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+		user, err := p.baseExt.GetLoggedInUser(ctx)
 		if err != nil {
-			return exceptions.UserNotFoundError(err)
+			return fmt.Errorf("can't get user: %w", err)
 		}
-		profile, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+
+		isAuthorized, err := authorization.IsAuthorized(user, permission.PrimaryPhoneUpdate)
 		if err != nil {
-			// this is a wrapped error. No need to wrap it again
+			return err
+		}
+
+		if !isAuthorized {
+			return fmt.Errorf("user not authorized to access this resource")
+		}
+
+		profile, err = p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
+		if err != nil {
 			return err
 		}
 
 	} else {
 		profile, err = p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber, false)
 		if err != nil {
-			// this is a wrapped error. No need to wrap it again
 			return err
 		}
 
@@ -263,11 +280,19 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(
 	ctx context.Context,
 	emailAddress string,
 ) error {
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	user, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
-		return exceptions.UserNotFoundError(err)
+		return fmt.Errorf("can't get user: %w", err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+	isAuthorized, err := authorization.IsAuthorized(user, permission.PrimaryEmailUpdate)
+	if err != nil {
+		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -306,8 +331,20 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(
 	ctx context.Context,
 	phoneNumbers []string,
 ) error {
-	uniquePhones := []string{}
+	user, err := p.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		return fmt.Errorf("can't get user: %w", err)
+	}
+	isAuthorized, err := authorization.IsAuthorized(user, permission.SecondaryPhoneNumberUpdate)
+	if err != nil {
+		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
+	}
+
 	// assert that the phone numbers are unique
+	uniquePhones := []string{}
 	for _, phone := range phoneNumbers {
 		exist, err := p.CheckPhoneExists(ctx, phone)
 		if err != nil {
@@ -321,12 +358,7 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(
 	}
 
 	if len(uniquePhones) >= 1 {
-		uid, err := p.baseExt.GetLoggedInUserUID(ctx)
-		if err != nil {
-			return exceptions.UserNotFoundError(err)
-		}
-
-		profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+		profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
 		if err != nil {
 			// this is a wrapped error. No need to wrap it again
 			return err
@@ -345,6 +377,18 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(
 	ctx context.Context,
 	emailAddresses []string,
 ) error {
+	user, err := p.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		return fmt.Errorf("can't get user: %w", err)
+	}
+	isAuthorized, err := authorization.IsAuthorized(user, permission.SecondaryEmailAddressUpdate)
+	if err != nil {
+		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
+	}
+
 	uniqueEmails := []string{}
 	for _, email := range emailAddresses {
 		exist, err := p.CheckEmailExists(ctx, email)
@@ -358,12 +402,7 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(
 	}
 
 	if len(uniqueEmails) >= 1 {
-		uid, err := p.baseExt.GetLoggedInUserUID(ctx)
-		if err != nil {
-			return exceptions.UserNotFoundError(err)
-		}
-
-		profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+		profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
 		if err != nil {
 			return err
 		}
@@ -392,11 +431,18 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(
 
 // UpdateVerifiedUIDS updates the profile's verified uids
 func (p *ProfileUseCaseImpl) UpdateVerifiedUIDS(ctx context.Context, uids []string) error {
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	user, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
-		return exceptions.UserNotFoundError(err)
+		return fmt.Errorf("can't get user: %w", err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+	isAuthorized, err := authorization.IsAuthorized(user, permission.VerifiedUIDUpdate)
+	if err != nil {
+		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
+	}
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -409,12 +455,19 @@ func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(
 	ctx context.Context,
 	identifiers []base.VerifiedIdentifier,
 ) error {
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	user, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
-		return exceptions.UserNotFoundError(err)
+		return fmt.Errorf("can't get user: %w", err)
+	}
+	isAuthorized, err := authorization.IsAuthorized(user, permission.VerifiedIdentifiersUpdate)
+	if err != nil {
+		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
 	}
 
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -436,13 +489,21 @@ func (p *ProfileUseCaseImpl) UpdateSuspended(
 	if err != nil {
 		return exceptions.NormalizeMSISDNError(err)
 	}
+
+	user, err := p.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		return fmt.Errorf("can't get user: %w", err)
+	}
+	isAuthorized, err := authorization.IsAuthorized(user, permission.VerifiedIdentifiersUpdate)
+	if err != nil {
+		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
+	}
 	// fetch the user profile
 	if useContext {
-		uid, err := p.baseExt.GetLoggedInUserUID(ctx)
-		if err != nil {
-			return exceptions.UserNotFoundError(err)
-		}
-		profile, err = p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+		profile, err = p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
 		if err != nil {
 			// this is a wrapped error. No need to wrap it again
 			return err
@@ -461,12 +522,19 @@ func (p *ProfileUseCaseImpl) UpdateSuspended(
 // UpdatePhotoUploadID updates photouploadid attribute of a specific user profile
 func (p *ProfileUseCaseImpl) UpdatePhotoUploadID(ctx context.Context, uploadID string) error {
 
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	user, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
-		return exceptions.UserNotFoundError(err)
+		return fmt.Errorf("can't get user: %w", err)
+	}
+	isAuthorized, err := authorization.IsAuthorized(user, permission.PhotoUploadIDUpdate)
+	if err != nil {
+		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
 	}
 
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -504,11 +572,19 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(
 	pushToken string,
 	retire bool,
 ) error {
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	user, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
-		return exceptions.UserNotFoundError(err)
+		return fmt.Errorf("can't get user: %w", err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+	isAuthorized, err := authorization.IsAuthorized(user, permission.PushTokensUpdate)
+	if err != nil {
+		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -536,11 +612,19 @@ func (p *ProfileUseCaseImpl) UpdatePermissions(
 	ctx context.Context,
 	perms []base.PermissionType,
 ) error {
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	user, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
-		return exceptions.UserNotFoundError(err)
+		return fmt.Errorf("can't get user: %w", err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+	isAuthorized, err := authorization.IsAuthorized(user, permission.PermissionsUpdate)
+	if err != nil {
+		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err
@@ -593,11 +677,19 @@ func (p *ProfileUseCaseImpl) RemoveAdminPermsToUser(ctx context.Context, phone s
 // UpdateBioData updates primary biodata of a specific user profile
 func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioData) error {
 
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
+	user, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
-		return exceptions.UserNotFoundError(err)
+		return fmt.Errorf("can't get user: %w", err)
 	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
+	isAuthorized, err := authorization.IsAuthorized(user, permission.BioDataUpdate)
+	if err != nil {
+		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return err

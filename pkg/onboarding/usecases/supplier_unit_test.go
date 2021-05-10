@@ -4987,8 +4987,12 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "happy:)" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
@@ -5016,14 +5020,18 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 			}
 
 			if tt.name == "sad:( can't get logged in user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("error")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("fail to fetch default currency")
 				}
 			}
 
 			if tt.name == "sad:( currency not found" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
@@ -5036,8 +5044,12 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 			}
 
 			if tt.name == "sad:( failed to publsih to PubSub" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
@@ -6678,8 +6690,12 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:add_partner_type" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
@@ -6692,14 +6708,18 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 			}
 
 			if tt.name == "invalid:unable_to_login" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("unable to login")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("unable to login")
 				}
 			}
 
 			if tt.name == "invalid:unable_to_get_user_profile_by_id" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile by uid")
@@ -6708,8 +6728,12 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 			}
 
 			if tt.name == "invalid:unable_to_add_partner_type" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
 					return &base.UserProfile{

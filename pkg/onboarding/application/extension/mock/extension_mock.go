@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+
 	"cloud.google.com/go/pubsub"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -11,6 +13,7 @@ import (
 
 // FakeBaseExtensionImpl is a `base` library fake  .
 type FakeBaseExtensionImpl struct {
+	GetLoggedInUserFn      func(ctx context.Context) (*resources.UserInfo, error)
 	GetLoggedInUserUIDFn   func(ctx context.Context) (string, error)
 	NormalizeMSISDNFn      func(msisdn string) (*string, error)
 	FetchDefaultCurrencyFn func(c base.Client) (*base.FinancialYearAndCurrency, error)
@@ -71,6 +74,11 @@ type FakeBaseExtensionImpl struct {
 		source interface{},
 		status int,
 	)
+}
+
+// GetLoggedInUser retrieves logged in user information
+func (b *FakeBaseExtensionImpl) GetLoggedInUser(ctx context.Context) (*resources.UserInfo, error) {
+	return b.GetLoggedInUserFn(ctx)
 }
 
 // GetLoggedInUserUID ...

@@ -249,8 +249,12 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "happy:) successfully return NHIF details" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
@@ -275,8 +279,12 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 			}
 
 			if tt.name == "happy:) successfully return nil NHIF details" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
@@ -296,8 +304,12 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 			}
 
 			if tt.name == "happy:) fail to return NHIF Details" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
@@ -317,8 +329,12 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 			}
 
 			if tt.name == "sad:( fail to get user profile" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "7e2aea-d29f2c", nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return &resources.UserInfo{
+						UID:         "12233",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
@@ -327,8 +343,8 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 			}
 
 			if tt.name == "sad:( fail to get logged in user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("failed to get logged in user")
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+					return nil, fmt.Errorf("failed to get logged in user")
 				}
 			}
 

@@ -16,6 +16,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization/permission"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
@@ -228,12 +230,19 @@ func (s SupplierUseCasesImpl) AddPartnerType(
 		return false, exceptions.WrongEnumTypeError(partnerType.String())
 	}
 
-	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
+	user, err := s.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
-		return false, exceptions.UserNotFoundError(err)
+		return false, fmt.Errorf("can't get user: %w", err)
+	}
+	isAuthorized, err := authorization.IsAuthorized(user, permission.PartnerTypeCreate)
+	if err != nil {
+		return false, err
+	}
+	if !isAuthorized {
+		return false, fmt.Errorf("user not authorized to access this resource")
 	}
 
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
+	profile, err := s.repo.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
 		return false, err
 	}
@@ -253,9 +262,16 @@ func (s SupplierUseCasesImpl) CreateCustomerAccount(
 	name string,
 	partnerType base.PartnerType,
 ) error {
-	UID, err := s.baseExt.GetLoggedInUserUID(ctx)
+	user, err := s.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		return fmt.Errorf("can't get user: %w", err)
+	}
+	isAuthorized, err := authorization.IsAuthorized(user, permission.CustomerAccountCreate)
 	if err != nil {
 		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
 	}
 
 	if partnerType != base.PartnerTypeConsumer {
@@ -278,7 +294,7 @@ func (s SupplierUseCasesImpl) CreateCustomerAccount(
 
 	customerPubSubPayload := resources.CustomerPubSubMessage{
 		CustomerPayload: customerPayload,
-		UID:             UID,
+		UID:             user.UID,
 	}
 
 	bs, err := json.Marshal(customerPubSubPayload)
@@ -301,9 +317,16 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 	name string,
 	partnerType base.PartnerType,
 ) error {
-	UID, err := s.baseExt.GetLoggedInUserUID(ctx)
+	user, err := s.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		return fmt.Errorf("can't get user: %w", err)
+	}
+	isAuthorized, err := authorization.IsAuthorized(user, permission.SupplierAccountCreate)
 	if err != nil {
 		return err
+	}
+	if !isAuthorized {
+		return fmt.Errorf("user not authorized to access this resource")
 	}
 
 	if partnerType == base.PartnerTypeConsumer {
@@ -326,7 +349,7 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 
 	supplierPubSubPayload := resources.SupplierPubSubMessage{
 		SupplierPayload: supplierPayload,
-		UID:             UID,
+		UID:             user.UID,
 	}
 
 	bs, err := json.Marshal(supplierPubSubPayload)
@@ -387,12 +410,19 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 		return nil, fmt.Errorf("%v is not an allowed AccountType choice", accountType.String())
 	}
 
-	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
+	user, err := s.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
-		return nil, exceptions.UserNotFoundError(err)
+		return nil, fmt.Errorf("can't get user: %w", err)
+	}
+	isAuthorized, err := authorization.IsAuthorized(user, permission.SupplierCreate)
+	if err != nil {
+		return nil, err
+	}
+	if !isAuthorized {
+		return nil, fmt.Errorf("user not authorized to access this resource")
 	}
 
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
+	profile, err := s.repo.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
@@ -419,12 +449,12 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
 			logrus.Error(err)
 		}
-	}(uid, sup.PartnerType, *sup.AccountType)
+	}(user.UID, sup.PartnerType, *sup.AccountType)
 
 	go func() {
 		pro := func() error {
 			return s.engagement.ResolveDefaultNudgeByTitle(
-				uid,
+				user.UID,
 				base.FlavourPro,
 				PartnerAccountSetupNudgeTitle,
 			)

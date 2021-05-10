@@ -293,3 +293,9 @@ type UserProfilePayload struct {
 	FirstName     *string      `json:"lastName"`
 	LastName      *string      `json:"firstName"`
 }
+
+// PermissionInput input required to create a permission
+type PermissionInput struct {
+	Action   string
+	Resource string
+}

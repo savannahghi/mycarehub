@@ -2,7 +2,10 @@ package extension
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 
 	"cloud.google.com/go/pubsub"
 	"gitlab.slade360emr.com/go/base"
@@ -13,6 +16,7 @@ import (
 // Our first step to making some functions are testable is to remove the base dependency.
 // This can be achieved with the below interface.
 type BaseExtension interface {
+	GetLoggedInUser(ctx context.Context) (*resources.UserInfo, error)
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	NormalizeMSISDN(msisdn string) (*string, error)
 	FetchDefaultCurrency(c base.Client,
@@ -85,6 +89,33 @@ type BaseExtensionImpl struct {
 // NewBaseExtensionImpl ...
 func NewBaseExtensionImpl() BaseExtension {
 	return &BaseExtensionImpl{}
+}
+
+// GetLoggedInUser retrieves logged in user information
+func (b *BaseExtensionImpl) GetLoggedInUser(ctx context.Context) (*resources.UserInfo, error) {
+	authToken, err := base.GetUserTokenFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("user auth token not found in context: %w", err)
+	}
+
+	authClient, err := base.GetFirebaseAuthClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get or create Firebase client: %w", err)
+	}
+
+	user, err := authClient.GetUser(ctx, authToken.UID)
+	if err != nil {
+
+		return nil, fmt.Errorf("unable to get user: %w", err)
+	}
+	return &resources.UserInfo{
+		UID:         user.UID,
+		Email:       user.Email,
+		PhoneNumber: user.PhoneNumber,
+		DisplayName: user.DisplayName,
+		ProviderID:  user.ProviderID,
+		PhotoURL:    user.PhotoURL,
+	}, nil
 }
 
 // GetLoggedInUserUID get the logged in user uid

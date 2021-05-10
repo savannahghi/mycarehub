@@ -9,6 +9,7 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
+	github.com/casbin/casbin/v2 v2.30.0
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/handlers v1.5.1
