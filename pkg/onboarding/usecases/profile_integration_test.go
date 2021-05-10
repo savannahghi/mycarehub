@@ -346,6 +346,25 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 		return
 	}
 
+	userProfile, err := s.Onboarding.UserProfile(authenticatedContext)
+	if err != nil {
+		t.Errorf("failed to retrieve the profile of the logged in user :%v", err)
+		return
+	}
+
+	if userProfile == nil {
+		t.Errorf("nil response returned")
+		return
+	}
+
+	// check if the length of secondary number == 1
+	if len(userProfile.SecondaryPhoneNumbers) != 1 {
+		t.Errorf("expected the value to be equal to %v",
+			len(userProfile.SecondaryPhoneNumbers),
+		)
+		return
+	}
+
 	// try adding secondaryPhone1 again. this should fail because secondaryPhone1 already exists
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone1})
 	if err == nil {
@@ -357,6 +376,25 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone2})
 	if err != nil {
 		t.Errorf("failed to add secondary phonenumber :%v", err)
+		return
+	}
+
+	userProfile, err = s.Onboarding.UserProfile(authenticatedContext)
+	if err != nil {
+		t.Errorf("failed to retrieve the profile of the logged in user :%v", err)
+		return
+	}
+
+	if userProfile == nil {
+		t.Errorf("nil response returned")
+		return
+	}
+
+	// check if the length of secondary number == 2
+	if len(userProfile.SecondaryPhoneNumbers) != 2 {
+		t.Errorf("expected the value to be equal to %v",
+			len(userProfile.SecondaryPhoneNumbers),
+		)
 		return
 	}
 
@@ -374,14 +412,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 		return
 	}
 
-	// try adding secondaryPhone3 again. this should fail because secondaryPhone3 already exists
-	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone3})
-	if err == nil {
-		t.Errorf("an error %v was expected", err)
-		return
-	}
-
-	userProfile, err := s.Onboarding.UserProfile(authenticatedContext)
+	userProfile, err = s.Onboarding.UserProfile(authenticatedContext)
 	if err != nil {
 		t.Errorf("failed to retrieve the profile of the logged in user :%v", err)
 		return
@@ -391,9 +422,19 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 		t.Errorf("nil response returned")
 		return
 	}
-	// check if the length of secondary number == 1
-	if len(userProfile.SecondaryPhoneNumbers) != 1 {
-		t.Errorf("expected the value to be equal to 1")
+
+	// check if the length of secondary number == 3
+	if len(userProfile.SecondaryPhoneNumbers) != 3 {
+		t.Errorf("expected the value to be equal to %v",
+			len(userProfile.SecondaryPhoneNumbers),
+		)
+		return
+	}
+
+	// try adding secondaryPhone3 again. this should fail because secondaryPhone3 already exists
+	err = s.Onboarding.UpdateSecondaryPhoneNumbers(authenticatedContext, []string{secondaryPhone3})
+	if err == nil {
+		t.Errorf("an error %v was expected", err)
 		return
 	}
 
@@ -534,9 +575,11 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 		t.Errorf("nil response returned")
 		return
 	}
-	// check if the length of secondary number == 1
+	// check if the length of secondary email == 1
 	if len(userProfile.SecondaryEmailAddresses) != 1 {
-		t.Errorf("expected the value to be equal to 1")
+		t.Errorf("expected the value to be equal to %v",
+			len(userProfile.SecondaryEmailAddresses),
+		)
 		return
 	}
 
@@ -564,9 +607,11 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 		t.Errorf("nil response returned")
 		return
 	}
-	// check if the length of secondary number == 1
-	if len(userProfile.SecondaryEmailAddresses) != 1 {
-		t.Errorf("expected the value to be equal to 1")
+	// check if the length of secondary email == 2
+	if len(userProfile.SecondaryEmailAddresses) != 2 {
+		t.Errorf("expected the value to be equal to %v",
+			len(userProfile.SecondaryEmailAddresses),
+		)
 		return
 	}
 
@@ -594,9 +639,11 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 		t.Errorf("nil response returned")
 		return
 	}
-	// check if the length of secondary number == 1
-	if len(userProfile.SecondaryEmailAddresses) != 1 {
-		t.Errorf("expected the value to be equal to 1")
+	// check if the length of secondary email == 3
+	if len(userProfile.SecondaryEmailAddresses) != 3 {
+		t.Errorf("expected the value to be equal to %v",
+			len(userProfile.SecondaryEmailAddresses),
+		)
 		return
 	}
 	// try adding secondaryemail3 again since secondaryemail3 is already in use
@@ -1763,17 +1810,9 @@ func TestRetireSecondaryPhoneNumbers(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "happy :) overwrite secondary phone numbers",
-			args: args{
-				phoneNumbers: []string{"+254700000002"},
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
 			name: "happy :) retire secondary phone numbers",
 			args: args{
-				phoneNumbers: []string{},
+				phoneNumbers: []string{"+254700000003", "+254700000001"},
 			},
 			want:    true,
 			wantErr: false,
@@ -1829,32 +1868,6 @@ func TestRetireSecondaryPhoneNumbers(t *testing.T) {
 				}
 			}
 
-			if tt.name == "happy :) overwrite secondary phone numbers" {
-				err := p.Onboarding.UpdateSecondaryPhoneNumbers(ctx, []string{"+254700000003"})
-				if err != nil {
-					t.Errorf("unable to add secondary phone numbers: %v", err)
-					return
-				}
-
-				got, err := p.Onboarding.RetireSecondaryPhoneNumbers(ctx, tt.args.phoneNumbers)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if got != tt.want {
-					t.Errorf("ProfileUseCaseImpl.RetireSecondaryPhoneNumbers() = %v, want %v", got, tt.want)
-				}
-				profile, err := p.Onboarding.UserProfile(ctx)
-				if err != nil {
-					t.Errorf("unable to get user profile")
-					return
-				}
-				if len(profile.SecondaryPhoneNumbers) < 1 {
-					t.Errorf("expected 1 secondary phone numbers")
-					return
-				}
-			}
-
 			if tt.name == "happy :) retire secondary phone numbers" {
 				err := p.Onboarding.UpdateSecondaryPhoneNumbers(ctx, []string{"+254700000003"})
 				if err != nil {
@@ -1875,8 +1888,9 @@ func TestRetireSecondaryPhoneNumbers(t *testing.T) {
 					t.Errorf("unable to get user profile")
 					return
 				}
+
 				if len(profile.SecondaryPhoneNumbers) > 0 {
-					t.Errorf("expected 0 secondary phone numbers")
+					t.Errorf("expected 0 secondary phone numbers but got: %v", len(profile.SecondaryPhoneNumbers))
 					return
 				}
 			}
@@ -1895,6 +1909,7 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 		t.Errorf("unable to initialize test service")
 		return
 	}
+	testEmail := "randommail@gmail.com"
 	type args struct {
 		emailAddresses []string
 	}
@@ -1929,17 +1944,9 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "happy :) overwrite secondary email addresses",
-			args: args{
-				emailAddresses: []string{base.GenerateRandomEmail()},
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
 			name: "happy :) retire secondary email addresses",
 			args: args{
-				emailAddresses: []string{},
+				emailAddresses: []string{testEmail},
 			},
 			want:    true,
 			wantErr: false,
@@ -1995,42 +2002,14 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 				}
 			}
 
-			if tt.name == "happy :) overwrite secondary email addresses" {
-				err := p.Onboarding.UpdatePrimaryEmailAddress(ctx, base.TestUserEmail)
-				if err != nil {
-					t.Errorf("unable to set primary email address: %v", err)
-					return
-				}
-
-				time.Sleep(2 * time.Second)
-
-				err = p.Onboarding.UpdateSecondaryEmailAddresses(ctx, []string{base.GenerateRandomEmail()})
-				if err != nil {
-					t.Errorf("unable to set secondary email address: %v", err)
-					return
-				}
-
-				got, err := p.Onboarding.RetireSecondaryEmailAddress(ctx, tt.args.emailAddresses)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if got != tt.want {
-					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() = %v, want %v", got, tt.want)
-				}
-				profile, err := p.Onboarding.UserProfile(ctx)
-				if err != nil {
-					t.Errorf("unable to get user profile")
-					return
-				}
-				if len(profile.SecondaryEmailAddresses) < 1 {
-					t.Errorf("expected 1 secondary email addresses")
-					return
-				}
-			}
-
 			if tt.name == "happy :) retire secondary email addresses" {
-				err := p.Onboarding.UpdatePrimaryEmailAddress(ctx, base.TestUserEmail)
+				profile, err := p.Onboarding.UserProfile(ctx)
+				if err != nil {
+					t.Errorf("unable to get user profile")
+					return
+				}
+
+				err = p.Onboarding.UpdatePrimaryEmailAddress(ctx, base.TestUserEmail)
 				if err != nil {
 					t.Errorf("unable to set primary email address: %v", err)
 					return
@@ -2038,7 +2017,7 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 
 				time.Sleep(2 * time.Second)
 
-				err = p.Onboarding.UpdateSecondaryEmailAddresses(ctx, []string{base.GenerateRandomEmail()})
+				err = p.Onboarding.UpdateSecondaryEmailAddresses(ctx, []string{testEmail})
 				if err != nil {
 					t.Errorf("unable to set secondary email address: %v", err)
 					return
@@ -2051,14 +2030,9 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 				}
 				if got != tt.want {
 					t.Errorf("ProfileUseCaseImpl.RetireSecondaryEmailAddress() = %v, want %v", got, tt.want)
-				}
-				profile, err := p.Onboarding.UserProfile(ctx)
-				if err != nil {
-					t.Errorf("unable to get user profile")
-					return
 				}
 				if len(profile.SecondaryEmailAddresses) > 0 {
-					t.Errorf("expected 0 secondary email addresses")
+					t.Errorf("expected 0 secondary email addresses but got: %v", len(profile.SecondaryEmailAddresses))
 					return
 				}
 			}

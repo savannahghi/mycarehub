@@ -759,7 +759,6 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 		return err
 	}
 
-	newSecondaryPhoneNumber := []string{}
 	// Check if the former primary phone exists in the phoneNumber list
 	index, exist := utils.FindItem(profile.SecondaryPhoneNumbers, *profile.PrimaryPhone)
 	if exist {
@@ -770,7 +769,14 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 		)
 	}
 
-	profile.SecondaryPhoneNumbers = append(newSecondaryPhoneNumber, phoneNumbers...)
+	for _, phone := range phoneNumbers {
+		index, exist := utils.FindItem(profile.SecondaryPhoneNumbers, phone)
+		if exist {
+			profile.SecondaryPhoneNumbers = append(profile.SecondaryPhoneNumbers[:index], profile.SecondaryPhoneNumbers[index+1:]...)
+		}
+	}
+
+	profile.SecondaryPhoneNumbers = append(profile.SecondaryPhoneNumbers, phoneNumbers...)
 
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
@@ -808,7 +814,6 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 		return err
 	}
 
-	newSecondaryEmail := []string{}
 	// check if former primary email still exists in the
 	// secondary emails list
 	if profile.PrimaryEmailAddress != nil {
@@ -822,7 +827,15 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 		}
 	}
 
-	profile.SecondaryEmailAddresses = append(newSecondaryEmail, uniqueEmailAddresses...)
+	// Check to see whether the new emails exist in list of secondary emails
+	for _, email := range uniqueEmailAddresses {
+		index, exist := utils.FindItem(profile.SecondaryEmailAddresses, email)
+		if exist {
+			profile.SecondaryEmailAddresses = append(profile.SecondaryEmailAddresses[:index], profile.SecondaryEmailAddresses[index+1:]...)
+		}
+	}
+
+	profile.SecondaryEmailAddresses = append(profile.SecondaryEmailAddresses, uniqueEmailAddresses...)
 
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),

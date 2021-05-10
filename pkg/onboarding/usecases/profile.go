@@ -741,23 +741,21 @@ func (p *ProfileUseCaseImpl) RetireSecondaryPhoneNumbers(
 		return false, exceptions.SecondaryResourceHardResetError()
 	}
 
-	overwriteList := []string{}
-	for _, phoneNumber := range phoneNumbers {
-		exists, err := p.CheckPhoneExists(ctx, phoneNumber)
-		if err != nil {
-			return false, err
-		}
-		// Do not add an existing phone number as a secondary
+	for _, phoneNo := range phoneNumbers {
+		// Check if the passed number exists in the list of secondary numbers
+		index, exists := utils.FindItem(secondaryPhoneNumbers, phoneNo)
 		if exists {
-			return false, exceptions.CheckPhoneNumberExistError()
+			// remove the passed number from the list of secondary numbers
+			secondaryPhoneNumbers = append(secondaryPhoneNumbers[:index], secondaryPhoneNumbers[index+1:]...)
+		} else {
+			return false, fmt.Errorf("failed to remove the passed resource. It does not exist")
 		}
-		overwriteList = append(overwriteList, phoneNumber)
 	}
 
 	if err := p.onboardingRepository.HardResetSecondaryPhoneNumbers(
 		ctx,
 		profile,
-		overwriteList,
+		secondaryPhoneNumbers,
 	); err != nil {
 		return false, err
 	}
@@ -780,23 +778,21 @@ func (p *ProfileUseCaseImpl) RetireSecondaryEmailAddress(
 		return false, exceptions.SecondaryResourceHardResetError()
 	}
 
-	overwriteList := []string{}
 	for _, email := range emailAddresses {
-		exists, err := p.CheckEmailExists(ctx, email)
-		if err != nil {
-			return false, err
-		}
-		// Do not add an existing email as a secondary
+		// Check if the passed email exists in the list of secondary emails
+		index, exists := utils.FindItem(secondaryEmails, email)
 		if exists {
-			return false, exceptions.CheckEmailExistError()
+			// remove the passed email from the list of secondary emails
+			secondaryEmails = append(secondaryEmails[:index], secondaryEmails[index+1:]...)
+		} else {
+			return false, fmt.Errorf("failed to remove the passed resource. It does not exist")
 		}
-		overwriteList = append(overwriteList, email)
 	}
 
 	if err := p.onboardingRepository.HardResetSecondaryEmailAddress(
 		ctx,
 		profile,
-		overwriteList,
+		secondaryEmails,
 	); err != nil {
 		return false, err
 	}
