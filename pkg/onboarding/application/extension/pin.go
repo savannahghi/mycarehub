@@ -4,12 +4,12 @@ import (
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"strconv"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 
-	"gitlab.slade360emr.com/go/base"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -107,11 +107,7 @@ func ValidatePINDigits(pin string) error {
 func ValidatePINLength(pin string) error {
 	// make sure pin length is [4-6]
 	if len(pin) < minPinLength || len(pin) > maxPinLength {
-		return &base.CustomError{
-			Message: exceptions.ValidatePINLengthErrMsg,
-			// TODO: a give a correct code
-			Code: int(base.UserNotFound),
-		}
+		return exceptions.ValidatePINLengthError(fmt.Errorf("pin should be of 4,5, or six digits"))
 	}
 	return nil
 }

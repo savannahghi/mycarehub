@@ -128,7 +128,7 @@ func (fr *Repository) GetUserProfileByUID(
 	}
 
 	if len(docs) == 0 {
-		return nil, exceptions.ProfileNotFoundError()
+		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 	}
 
 	if len(docs) > 1 && base.IsDebug() {
@@ -177,7 +177,7 @@ func (fr *Repository) GetUserProfileByID(
 	}
 
 	if len(docs) == 0 {
-		return nil, exceptions.ProfileNotFoundError()
+		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 	}
 	dsnap := docs[0]
 	userProfile := &base.UserProfile{}
@@ -335,7 +335,7 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) == 0 {
-		return nil, exceptions.ProfileNotFoundError()
+		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 	}
 	dsnap := docs[0]
 	profile := &base.UserProfile{}
@@ -405,7 +405,7 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 		return pr, nil
 	}
 
-	return nil, exceptions.ProfileNotFoundError()
+	return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 
 }
 
@@ -1837,7 +1837,6 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	// profile should only occur if a supplier profile exists and not throw an error.
 	supplier, err := fr.GetSupplierProfileByProfileID(ctx, profile.ID)
 	if err != nil {
-		log.Printf("Supplier record was not found: %v", err)
 	} else {
 		err = fr.RemoveKYCProcessingRequest(ctx, supplier.ID)
 		if err != nil {
@@ -1869,7 +1868,6 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	// profile should only occur if a customer profile exists and not throw an error.
 	customer, err := fr.GetCustomerProfileByProfileID(ctx, profile.ID)
 	if err != nil {
-		log.Printf("Customer record was not found: %v", err)
 	} else {
 		query := &GetAllQuery{
 			CollectionName: fr.GetCustomerProfileCollectionName(),

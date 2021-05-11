@@ -14,7 +14,7 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	err = exceptions.ProfileSuspendFoundError()
 	assert.NotNil(t, err)
-	err = exceptions.ProfileNotFoundError()
+	err = exceptions.ProfileNotFoundError(fmt.Errorf("error"))
 	assert.NotNil(t, err)
 	err = exceptions.NormalizeMSISDNError(fmt.Errorf("error"))
 	assert.NotNil(t, err)

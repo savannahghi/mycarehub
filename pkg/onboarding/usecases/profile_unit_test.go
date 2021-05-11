@@ -132,7 +132,15 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 				ctx:            ctx,
 				emailAddresses: []string{"me4@gmail.com", "kalulu@gmail.com"},
 			},
-			wantErr: true, //todo : turn this back to false once a way is figured out to add primary email first
+			wantErr: false,
+		},
+		{
+			name: "invalid:_update_profile_secondary_email", // no primary email
+			args: args{
+				ctx:            ctx,
+				emailAddresses: []string{"me4@gmail.com", "kalulu@gmail.com"},
+			},
+			wantErr: true,
 		},
 		{
 			name: "invalid:_unable_to_get_logged_in_user",
@@ -158,8 +166,10 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					email := base.TestUserEmail
 					return &base.UserProfile{
-						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						PrimaryEmailAddress: &email,
 					}, nil
 				}
 				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, uids []string) error {
@@ -168,6 +178,20 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 
 				fakeRepo.CheckIfEmailExistsFn = func(ctx context.Context, email string) (bool, error) {
 					return false, nil
+				}
+			}
+
+			if tt.name == "invalid:_update_profile_secondary_email" {
+				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, uids []string) error {
+					return fmt.Errorf("unable to update secondary email")
 				}
 			}
 
@@ -1049,7 +1073,7 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 					uid string,
 					suspended bool,
 				) (*base.UserProfile, error) {
-					return nil, exceptions.ProfileNotFoundError()
+					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 				}
 			}
 
@@ -1135,7 +1159,7 @@ func TestProfileUseCaseImpl_ConfirmedEmailAddresses(t *testing.T) {
 					uid string,
 					suspended bool,
 				) (*base.UserProfile, error) {
-					return nil, exceptions.ProfileNotFoundError()
+					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 				}
 			}
 
@@ -1217,7 +1241,7 @@ func TestProfileUseCaseImpl_ConfirmedPhoneNumbers(t *testing.T) {
 					uid string,
 					suspended bool,
 				) (*base.UserProfile, error) {
-					return nil, exceptions.ProfileNotFoundError()
+					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 				}
 			}
 
@@ -1297,7 +1321,7 @@ func TestProfileUseCaseImpl_validFCM(t *testing.T) {
 					uid string,
 					suspended bool,
 				) (*base.UserProfile, error) {
-					return nil, exceptions.ProfileNotFoundError()
+					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 				}
 			}
 
@@ -1456,7 +1480,7 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 					uid string,
 					suspended bool,
 				) (*base.UserProfile, error) {
-					return nil, exceptions.ProfileNotFoundError()
+					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 				}
 			}
 

@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
@@ -28,7 +30,8 @@ func composeInvalidUserPINPayload(t *testing.T) *resources.LoginPayload {
 }
 
 func composeWrongUserPINPayload(t *testing.T) *resources.LoginPayload {
-	phone := base.TestUserPhoneNumberWithPin
+	phone := base.TestUserPhoneNumber // This number should be the same as the
+	// used to create the user
 	pin := "qwer"
 	flavour := base.FlavourPro
 	payload := &resources.LoginPayload{
@@ -265,20 +268,19 @@ func TestLoginInByPhone(t *testing.T) {
 			}
 
 			data := map[string]interface{}{}
+			log.Printf("the data is %v", data)
 			err = json.Unmarshal(dataResponse, &data)
 			if err != nil {
 				t.Errorf("bad data returned")
 				return
 			}
-			// TODO ! uncomment/ remove after error message format has been standardized
-			// TODO! assert some data
-			// if tt.wantErr {
-			// 	errMsg, ok := data["error"]
-			// 	if !ok {
-			// 		t.Errorf("Request error: %s", errMsg)
-			// 		return
-			// 	}
-			// }
+			if tt.wantErr {
+				errMsg, ok := data["error"]
+				if !ok {
+					t.Errorf("Request error: %s", errMsg)
+					return
+				}
+			}
 
 			if !tt.wantErr {
 				_, ok := data["error"]
@@ -421,16 +423,21 @@ func TestLoginAsAnonymous(t *testing.T) {
 
 func TestRefreshToken(t *testing.T) {
 	client := http.DefaultClient
-	//todo(dexter) restore this after 11th release
-	//validToken := "AOvuKvSiBjrtQ6WRdTbRUFeGm4q6KbKg1kdwACot-zZFSqAwZtePlLKTT4U5Ew7C6UFcQsu6HQPAKD-1Hr_jTrtUtwTJ2mrqTBEW0oxtWImbB7fnPtNnl3mSBMpnVewbj14w_quNw_AkvBaQKu2vIR5tjATqYaPHCRMM1d-W7GMQUneKlJNz-JQ"
-	//validPayload := &resources.RefreshTokenPayload{
-	//	RefreshToken: &validToken,
-	//}
-	//bs, err := json.Marshal(validPayload)
-	//if err != nil {
-	//	t.Errorf("unable to marshal test item to JSON: %s", err)
-	//}
-	//payload := bytes.NewBuffer(bs)
+	phoneNumber := base.TestUserPhoneNumberWithPin
+	user, err := CreateTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("failed to create a user by phone %v", err)
+		return
+	}
+	validToken := user.Auth.RefreshToken
+	validPayload := &resources.RefreshTokenPayload{
+		RefreshToken: &validToken,
+	}
+	bs, err := json.Marshal(validPayload)
+	if err != nil {
+		t.Errorf("unable to marshal test item to JSON: %s", err)
+	}
+	payload := bytes.NewBuffer(bs)
 
 	inValidToken := "some-token"
 	inValidPayload := &resources.RefreshTokenPayload{
@@ -460,17 +467,16 @@ func TestRefreshToken(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		//todo(dexter) restore this after 11th release
-		//{
-		//	name: "success: refresh a token",
-		//	args: args{
-		//		url:        fmt.Sprintf("%s/refresh_token", baseURL),
-		//		httpMethod: http.MethodPost,
-		//		body:       payload,
-		//	},
-		//	wantStatus: http.StatusOK,
-		//	wantErr:    false,
-		//},
+		{
+			name: "success: refresh a token",
+			args: args{
+				url:        fmt.Sprintf("%s/refresh_token", baseURL),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
 		{
 			name: "failure: refresh token with nil payload supplied",
 			args: args{
@@ -539,18 +545,18 @@ func TestRefreshToken(t *testing.T) {
 				t.Errorf("bad data returned")
 				return
 			}
-			// TODO ! uncomment/ remove after error message format has been standardized
-			// TODO! assert some data
-			// if tt.wantErr {
-			// 	errMsg, ok := data["error"]
-			// 	if !ok {
-			// 		t.Errorf("Request error: %s", errMsg)
-			// 		return
-			// 	}
-			// }
+			if tt.wantErr {
+				errMsg, ok := data["error"]
+				if !ok {
+					t.Errorf("Request error: %s", errMsg)
+					return
+				}
+			}
 
 			if !tt.wantErr {
 				_, ok := data["error"]
+				refreshToken := data["refresh_token"]
+				assert.NotNil(t, refreshToken)
 				if ok {
 					t.Errorf("error not expected")
 					return

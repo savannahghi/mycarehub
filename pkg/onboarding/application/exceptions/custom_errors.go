@@ -24,8 +24,9 @@ func ProfileSuspendFoundError() error {
 }
 
 // ProfileNotFoundError returns an error message when a profile is not found
-func ProfileNotFoundError() error {
+func ProfileNotFoundError(err error) error {
 	return &base.CustomError{
+		Err:     err,
 		Message: ProfileNotFoundErrMsg,
 		Code:    int(base.ProfileNotFound),
 	}

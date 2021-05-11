@@ -2281,7 +2281,6 @@ func TestSuspendSupplier(t *testing.T) {
 	}
 }
 
-// TODO: improve test by adding good testcases and properly asserting responses
 func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
@@ -2526,7 +2525,6 @@ func TestSetUpSupplier(t *testing.T) {
 
 }
 
-// TODO: improve test by adding good testcases and properly asserting responses
 func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
@@ -2600,7 +2598,6 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 	}
 }
 
-// TODO: improve test by adding good testcases and properly asserting responses
 func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {

@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -74,7 +75,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 
 	matched := l.pinExt.ComparePIN(PIN, PINData.Salt, PINData.PINNumber, nil)
 	if !matched {
-		return nil, exceptions.PinMismatchError(nil)
+		return nil, exceptions.PinMismatchError(fmt.Errorf("wrong PIN credentials supplied"))
 
 	}
 
@@ -133,7 +134,7 @@ func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool
 		return false, err
 	}
 	if profile == nil {
-		return false, exceptions.ProfileNotFoundError()
+		return false, exceptions.ProfileNotFoundError(err)
 	}
 	PINData, err := l.onboardingRepository.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
