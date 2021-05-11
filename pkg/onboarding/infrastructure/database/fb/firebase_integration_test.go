@@ -296,7 +296,7 @@ func TestRemoveKYCProcessingRequest(t *testing.T) {
 		CertificateOfInCorporationUploadID: "CertificateOfInCorporationUploadID",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeMilitary,
+				IdentificationDocType:           base.IdentificationDocTypeMilitary,
 				IdentificationDocNumber:         "IdentificationDocNumber",
 				IdentificationDocNumberUploadID: "IdentificationDocNumberUploadID",
 			},

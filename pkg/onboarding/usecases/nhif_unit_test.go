@@ -24,7 +24,7 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 		MembershipNumber:          "123456",
 		Employment:                domain.EmploymentTypeEmployed,
 		NHIFCardPhotoID:           uuid.New().String(),
-		IDDocType:                 domain.IdentificationDocTypeMilitary,
+		IDDocType:                 base.IdentificationDocTypeMilitary,
 		IdentificationCardPhotoID: uuid.New().String(),
 		IDNumber:                  "11111111",
 	}

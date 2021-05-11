@@ -1088,7 +1088,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "certificate_of_incorporation_upload_id",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345",
 				IdentificationDocNumberUploadID: "upload_id",
 			},
@@ -1646,7 +1646,7 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 		},
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345678910",
 				IdentificationDocNumberUploadID: "id-upload-id",
 			},
@@ -1963,7 +1963,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "provider-incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345678910",
 				IdentificationDocNumberUploadID: "provider-id-upload",
 			},
@@ -2226,7 +2226,7 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345678910",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -2485,7 +2485,7 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345678910",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -2744,7 +2744,7 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345678910",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -3134,7 +3134,7 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 
 	validInput := domain.IndividualRider{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+			IdentificationDocType:           base.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -3509,7 +3509,7 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 
 	validInput := domain.IndividualPractitioner{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+			IdentificationDocType:           base.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -3887,7 +3887,7 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 
 	validInput := domain.IndividualPharmaceutical{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+			IdentificationDocType:           base.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -4259,7 +4259,7 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 
 	validInput := domain.IndividualCoach{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+			IdentificationDocType:           base.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -4630,7 +4630,7 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 
 	validInput := domain.IndividualNutrition{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+			IdentificationDocType:           base.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},

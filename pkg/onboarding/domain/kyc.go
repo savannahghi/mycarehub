@@ -1,5 +1,9 @@
 package domain
 
+import (
+	"gitlab.slade360emr.com/go/base"
+)
+
 // SupportingDocument used to add more documents when
 type SupportingDocument struct {
 	SupportingDocumentTitle       string `json:"supportingDocumentTitle" mapstructure:"supportingDocumentTitle"`
@@ -9,9 +13,9 @@ type SupportingDocument struct {
 
 // Identification identify model
 type Identification struct {
-	IdentificationDocType           IdentificationDocType `json:"identificationDocType" mapstructure:"identificationDocType"`
-	IdentificationDocNumber         string                `json:"identificationDocNumber" mapstructure:"identificationDocNumber"`
-	IdentificationDocNumberUploadID string                `json:"identificationDocNumberUploadID" mapstructure:"identificationDocNumberUploadID"`
+	IdentificationDocType           base.IdentificationDocType `json:"identificationDocType" mapstructure:"identificationDocType"`
+	IdentificationDocNumber         string                     `json:"identificationDocNumber" mapstructure:"identificationDocNumber"`
+	IdentificationDocNumberUploadID string                     `json:"identificationDocNumberUploadID" mapstructure:"identificationDocNumberUploadID"`
 }
 
 // IndividualRider represents the KYC information required for an Individual Rider

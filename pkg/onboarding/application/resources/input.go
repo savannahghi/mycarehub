@@ -223,12 +223,12 @@ type UserAddressInput struct {
 
 // NHIFDetailsInput represents a user's thin NHIF input details
 type NHIFDetailsInput struct {
-	MembershipNumber          string                       `json:"membershipNumber"`
-	Employment                domain.EmploymentType        `json:"employmentType"`
-	IDDocType                 domain.IdentificationDocType `json:"IDDocType"`
-	IDNumber                  string                       `json:"IDNumber"`
-	IdentificationCardPhotoID string                       `json:"identificationCardPhotoID"`
-	NHIFCardPhotoID           string                       `json:"nhifCardPhotoID"`
+	MembershipNumber          string                     `json:"membershipNumber"`
+	Employment                domain.EmploymentType      `json:"employmentType"`
+	IDDocType                 base.IdentificationDocType `json:"IDDocType"`
+	IDNumber                  string                     `json:"IDNumber"`
+	IdentificationCardPhotoID string                     `json:"identificationCardPhotoID"`
+	NHIFCardPhotoID           string                     `json:"nhifCardPhotoID"`
 }
 
 // PushTokenPayload represents user device push token

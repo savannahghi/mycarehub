@@ -156,7 +156,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 
 	validInput := domain.IndividualRider{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+			IdentificationDocType:           base.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "123456789",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -331,7 +331,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -663,7 +663,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 		Cadre:                   domain.PractitionerCadreDoctor,
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -832,7 +832,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 		PracticeServices:        []domain.PractitionerService{domain.PractitionerServiceOutpatientServices},
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -986,7 +986,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 
 	validInput := domain.IndividualPharmaceutical{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+			IdentificationDocType:           base.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "123456789",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -1167,7 +1167,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "cert-org-upload",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -1321,7 +1321,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 
 	validInput := domain.IndividualCoach{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+			IdentificationDocType:           base.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "123456789",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -1498,7 +1498,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -1823,7 +1823,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 		PracticeLicenseUploadID: "org-practice-license-upload",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           domain.IdentificationDocTypeNationalid,
+				IdentificationDocType:           base.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},

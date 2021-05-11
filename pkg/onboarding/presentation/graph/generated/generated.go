@@ -6131,9 +6131,9 @@ func (ec *executionContext) _Identification_identificationDocType(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(domain.IdentificationDocType)
+	res := resTmp.(base.IdentificationDocType)
 	fc.Result = res
-	return ec.marshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentificationDocType(ctx, field.Selections, res)
+	return ec.marshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Identification_identificationDocNumber(ctx context.Context, field graphql.CollectedField, obj *domain.Identification) (ret graphql.Marshaler) {
@@ -9470,9 +9470,9 @@ func (ec *executionContext) _NHIFDetails_idDocType(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(domain.IdentificationDocType)
+	res := resTmp.(base.IdentificationDocType)
 	fc.Result = res
-	return ec.marshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentificationDocType(ctx, field.Selections, res)
+	return ec.marshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NHIFDetails_idNumber(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
@@ -16046,7 +16046,7 @@ func (ec *executionContext) unmarshalInputIdentificationInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDocType"))
-			it.IdentificationDocType, err = ec.unmarshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentificationDocType(ctx, v)
+			it.IdentificationDocType, err = ec.unmarshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16490,7 +16490,7 @@ func (ec *executionContext) unmarshalInputNHIFDetailsInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idDocType"))
-			it.IDDocType, err = ec.unmarshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentificationDocType(ctx, v)
+			it.IDDocType, err = ec.unmarshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20151,13 +20151,13 @@ func (ec *executionContext) marshalNIdentification2gitlabᚗslade360emrᚗcomᚋ
 	return ec._Identification(ctx, sel, &v)
 }
 
-func (ec *executionContext) unmarshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentificationDocType(ctx context.Context, v interface{}) (domain.IdentificationDocType, error) {
-	var res domain.IdentificationDocType
+func (ec *executionContext) unmarshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx context.Context, v interface{}) (base.IdentificationDocType, error) {
+	var res base.IdentificationDocType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentificationDocType(ctx context.Context, sel ast.SelectionSet, v domain.IdentificationDocType) graphql.Marshaler {
+func (ec *executionContext) marshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx context.Context, sel ast.SelectionSet, v base.IdentificationDocType) graphql.Marshaler {
 	return v
 }
 

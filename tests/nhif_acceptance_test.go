@@ -208,7 +208,7 @@ func AddTestNHIFDetails(t *testing.T, user *base.UserResponse) error {
 			MembershipNumber:          fmt.Sprintln(time.Now().Unix()),
 			Employment:                domain.EmploymentTypeEmployed,
 			NHIFCardPhotoID:           uuid.New().String(),
-			IDDocType:                 domain.IdentificationDocTypeMilitary,
+			IDDocType:                 base.IdentificationDocTypeMilitary,
 			IdentificationCardPhotoID: uuid.New().String(),
 			IDNumber:                  fmt.Sprintln(time.Now().Unix()),
 		},

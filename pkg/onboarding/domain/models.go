@@ -85,12 +85,12 @@ type ThinAddress struct {
 
 // NHIFDetails represents a user's thin NHIF details
 type NHIFDetails struct {
-	ID                        string                `json:"id" firestore:"id"`
-	ProfileID                 string                `json:"profileID" firestore:"profileID"`
-	MembershipNumber          string                `json:"membershipNumber" firestore:"membershipNumber"`
-	Employment                EmploymentType        `json:"employmentType"`
-	IDDocType                 IdentificationDocType `json:"IDDocType"`
-	IDNumber                  string                `json:"IDNumber" firestore:"IDNumber"`
-	IdentificationCardPhotoID string                `json:"identificationCardPhotoID" firestore:"identificationCardPhotoID"`
-	NHIFCardPhotoID           string                `json:"nhifCardPhotoID" firestore:"nhifCardPhotoID"`
+	ID                        string                     `json:"id" firestore:"id"`
+	ProfileID                 string                     `json:"profileID" firestore:"profileID"`
+	MembershipNumber          string                     `json:"membershipNumber" firestore:"membershipNumber"`
+	Employment                EmploymentType             `json:"employmentType"`
+	IDDocType                 base.IdentificationDocType `json:"IDDocType"`
+	IDNumber                  string                     `json:"IDNumber" firestore:"IDNumber"`
+	IdentificationCardPhotoID string                     `json:"identificationCardPhotoID" firestore:"identificationCardPhotoID"`
+	NHIFCardPhotoID           string                     `json:"nhifCardPhotoID" firestore:"nhifCardPhotoID"`
 }

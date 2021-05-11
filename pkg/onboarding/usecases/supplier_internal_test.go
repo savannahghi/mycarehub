@@ -104,7 +104,7 @@ func TestParseKYCAsMap(t *testing.T) {
 
 			data := domain.IndividualRider{
 				IdentificationDoc: domain.Identification{
-					IdentificationDocType:           domain.IdentificationDocTypeMilitary,
+					IdentificationDocType:           base.IdentificationDocTypeMilitary,
 					IdentificationDocNumber:         "11111111",
 					IdentificationDocNumberUploadID: "11111111",
 				},

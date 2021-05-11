@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
@@ -27,7 +28,7 @@ func TestAddNHIFDetails(t *testing.T) {
 		MembershipNumber:          "123456",
 		Employment:                domain.EmploymentTypeEmployed,
 		NHIFCardPhotoID:           uuid.New().String(),
-		IDDocType:                 domain.IdentificationDocTypeMilitary,
+		IDDocType:                 base.IdentificationDocTypeMilitary,
 		IdentificationCardPhotoID: uuid.New().String(),
 		IDNumber:                  "11111111",
 	}
@@ -102,7 +103,7 @@ func TestNHIFDetails(t *testing.T) {
 			MembershipNumber:          fmt.Sprintln(time.Now().Unix()),
 			Employment:                domain.EmploymentTypeEmployed,
 			NHIFCardPhotoID:           uuid.New().String(),
-			IDDocType:                 domain.IdentificationDocTypeMilitary,
+			IDDocType:                 base.IdentificationDocTypeMilitary,
 			IdentificationCardPhotoID: uuid.New().String(),
 			IDNumber:                  fmt.Sprintln(time.Now().Unix()),
 		},
