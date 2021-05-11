@@ -472,7 +472,7 @@ func TestRegisterPushToken(t *testing.T) {
 	pr, err = s.Onboarding.UserProfile(authenticatedContext)
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.PushTokens))
+	assert.Equal(t, 1, len(pr.PushTokens))
 
 	// invalid token length
 	respUpt, err = s.Signup.RegisterPushToken(authenticatedContext, "tok")
@@ -642,7 +642,7 @@ func TestRetirePushToken(t *testing.T) {
 	pr, err = s.Onboarding.UserProfile(authenticatedContext)
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.PushTokens))
+	assert.Equal(t, 1, len(pr.PushTokens))
 
 	// retire token1
 	respUpt, err = s.Signup.RetirePushToken(authenticatedContext, "token1")

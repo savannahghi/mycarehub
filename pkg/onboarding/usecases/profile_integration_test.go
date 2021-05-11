@@ -716,7 +716,7 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 	pr, err = s.Onboarding.UserProfile(authenticatedContext)
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.PushTokens))
+	assert.Equal(t, 1, len(pr.PushTokens))
 
 	err = s.Onboarding.UpdatePushTokens(authenticatedContext, "token3", false)
 	assert.Nil(t, err)
@@ -724,7 +724,7 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 	pr, err = s.Onboarding.UserProfile(authenticatedContext)
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
-	assert.Equal(t, 3, len(pr.PushTokens))
+	assert.Equal(t, 1, len(pr.PushTokens))
 
 	// remove the token and assert new length
 	err = s.Onboarding.UpdatePushTokens(context.Background(), "token2", true)
@@ -736,7 +736,7 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 	pr, err = s.Onboarding.UserProfile(authenticatedContext)
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
-	assert.Equal(t, 2, len(pr.PushTokens))
+	assert.Equal(t, 1, len(pr.PushTokens))
 
 	err = s.Onboarding.UpdatePushTokens(authenticatedContext, "token1", true)
 	assert.Nil(t, err)

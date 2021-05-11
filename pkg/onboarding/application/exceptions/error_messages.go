@@ -158,4 +158,8 @@ const (
 
 	// RecordExistsErrMsg is the error message displayed an existing record is found
 	RecordExistsErrMsg = "a similar record has been found in the database"
+
+	// RecordDoesNotExistErrMsg is the error message displayed when a record cannot be found in
+	// the database
+	RecordDoesNotExistErrMsg = "the record cannot be found in the database"
 )

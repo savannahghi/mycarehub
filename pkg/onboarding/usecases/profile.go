@@ -515,19 +515,18 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(
 	}
 
 	if retire {
-		// remove the supplied push token then update the profile
-		newTokens := []string{}
-		for _, token := range profile.PushTokens {
-			if token != pushToken && !base.StringSliceContains(newTokens, token) {
-				newTokens = append(newTokens, token)
-			}
+		// check if supplied push token exist in the list of pushtokens
+		index, exist := utils.FindItem(profile.PushTokens, pushToken)
+		if exist {
+			// remove it from the list of push tokens
+			profile.PushTokens = append(profile.PushTokens[:index], profile.PushTokens[index+1:]...)
 		}
 
-		return profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, newTokens)
+		return profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, profile.PushTokens)
 
 	}
-
-	newTokens := append(profile.PushTokens, pushToken)
+	newToken := []string{}
+	newTokens := append(newToken, pushToken)
 
 	return profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, newTokens)
 }
@@ -771,7 +770,7 @@ func (p *ProfileUseCaseImpl) RetireSecondaryPhoneNumbers(
 			// remove the passed number from the list of secondary numbers
 			secondaryPhoneNumbers = append(secondaryPhoneNumbers[:index], secondaryPhoneNumbers[index+1:]...)
 		} else {
-			return false, fmt.Errorf("failed to remove the passed resource. It does not exist")
+			return false, exceptions.RecordDoesNotExistError(fmt.Errorf("record does not exist"))
 		}
 	}
 
@@ -808,7 +807,7 @@ func (p *ProfileUseCaseImpl) RetireSecondaryEmailAddress(
 			// remove the passed email from the list of secondary emails
 			secondaryEmails = append(secondaryEmails[:index], secondaryEmails[index+1:]...)
 		} else {
-			return false, fmt.Errorf("failed to remove the passed resource. It does not exist")
+			return false, exceptions.RecordDoesNotExistError(fmt.Errorf("record does not exist"))
 		}
 	}
 

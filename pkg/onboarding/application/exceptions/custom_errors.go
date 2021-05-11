@@ -427,5 +427,14 @@ func RecordExistsError(err error) error {
 		Message: RecordExistsErrMsg,
 		Code:    int(base.Internal),
 	}
+}
 
+// RecordDoesNotExistError is the error message displayed when a
+// record is not found in the DB
+func RecordDoesNotExistError(err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: RecordDoesNotExistErrMsg,
+		Code:    int(base.Internal),
+	}
 }
