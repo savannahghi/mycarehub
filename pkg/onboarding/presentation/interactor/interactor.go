@@ -9,7 +9,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
-
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
@@ -27,6 +26,7 @@ type Interactor struct {
 	Messaging    messaging.ServiceMessaging
 	NHIF         usecases.NHIFUseCases
 	PubSub       pubsubmessaging.ServicePubSub
+	SMS          usecases.SMSUsecase
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -44,6 +44,7 @@ func NewOnboardingInteractor(
 	mes messaging.ServiceMessaging,
 	nhif usecases.NHIFUseCases,
 	pubsub pubsubmessaging.ServicePubSub,
+	sms usecases.SMSUsecase,
 ) (*Interactor, error) {
 
 	return &Interactor{
@@ -59,5 +60,6 @@ func NewOnboardingInteractor(
 		Messaging:    mes,
 		NHIF:         nhif,
 		PubSub:       pubsub,
+		SMS:          sms,
 	}, nil
 }

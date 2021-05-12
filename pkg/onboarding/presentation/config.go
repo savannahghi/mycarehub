@@ -121,10 +121,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage)
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
+	sms := usecases.NewSMSUsecase(repo, baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(
 		repo, profile, su, supplier, login, survey,
-		userpin, erp, chrg, engage, mes, nhif, pubSub,
+		userpin, erp, chrg, engage, mes, nhif, pubSub, sms,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -250,6 +251,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(h.RemoveAdminPermsToUser(ctx))
 
+	r.Path("/incoming_ait_messages").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.IncomingATSMS(ctx))
+
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()
 	isc.Use(base.InterServiceAuthenticationMiddleware())
@@ -335,7 +341,7 @@ func PrepareServer(ctx context.Context, port int, allowedOrigins []string) *http
 		handlers.AllowedMethods([]string{"OPTIONS", "GET", "POST"}),
 	)(h)
 	h = handlers.CombinedLoggingHandler(os.Stdout, h)
-	h = handlers.ContentTypeHandler(h, "application/json")
+	h = handlers.ContentTypeHandler(h, "application/json", "application/x-www-form-urlencoded")
 	srv := &http.Server{
 		Handler:      h,
 		Addr:         addr,

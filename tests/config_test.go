@@ -9,34 +9,31 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"testing"
-
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
-
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 	"github.com/imroc/req"
 	"github.com/sirupsen/logrus"
+	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
-
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation"
-
-	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
 const (
@@ -132,6 +129,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
+	sms := usecases.NewSMSUsecase(repo, ext)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -145,6 +143,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		Engagement:   engage,
 		NHIF:         nhif,
 		PubSub:       ps,
+		SMS:          sms,
 	}, nil
 }
 
@@ -173,6 +172,19 @@ func composeValidUserPayload(t *testing.T, phone string) (*resources.SignUpInput
 		Flavour:     flavour,
 		OTP:         &otp.OTP,
 	}, nil
+}
+
+func composeSMSMessageDataPayload(t *testing.T, payload *resources.AfricasTalkingMessage) *strings.Reader {
+	data := url.Values{}
+	data.Set("date", payload.Date)
+	data.Set("from", payload.From)
+	data.Set("id", payload.ID)
+	data.Set("linkId", payload.LinkID)
+	data.Set("text", payload.Text)
+	data.Set("to", payload.To)
+
+	smspayload := strings.NewReader(data.Encode())
+	return smspayload
 }
 
 func CreateTestUserByPhone(t *testing.T, phone string) (*base.UserResponse, error) {

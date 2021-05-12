@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -41,8 +43,8 @@ var fakeBaseExt extMock.FakeBaseExtensionImpl
 var fakePinExt extMock.PINExtensionImpl
 var serverUrl = "http://localhost:5000"
 
-// InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
-func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
+// InitializeFakeOnboardingInteractor represents a fakeonboarding interactor
+func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	var r repository.OnboardingRepository = &fakeRepo
 	var erpSvc erp.ServiceERP = &erpMock.FakeServiceERP{}
 	var chargemasterSvc chargemaster.ServiceChargeMaster = &chargemasterMock.FakeServiceChargeMaster{}
@@ -61,11 +63,12 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
+	sms := usecases.NewSMSUsecase(r, ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, messagingSvc, nhif, ps,
+		engagementSvc, messagingSvc, nhif, ps, sms,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -197,9 +200,22 @@ func composeSetPrimaryPhoneNumberPayload(t *testing.T, phone, otp string) *bytes
 	return bytes.NewBuffer(bs)
 }
 
+func composeSMSMessageDataPayload(t *testing.T, payload *resources.AfricasTalkingMessage) *strings.Reader {
+	data := url.Values{}
+	data.Set("date", payload.Date)
+	data.Set("from", payload.From)
+	data.Set("id", payload.ID)
+	data.Set("linkId", payload.LinkID)
+	data.Set("text", payload.Text)
+	data.Set("to", payload.To)
+
+	smspayload := strings.NewReader(data.Encode())
+	return smspayload
+}
+
 func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -378,7 +394,7 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 
 func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -626,7 +642,7 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 
 func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -751,7 +767,7 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 
 func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -941,7 +957,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 
 func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -1078,7 +1094,7 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 
 func TestHandlersInterfacesImpl_RefreshToken(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -1187,7 +1203,7 @@ func TestHandlersInterfacesImpl_RefreshToken(t *testing.T) {
 
 func TestHandlersInterfacesImpl_GetUserProfileByUID(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -1296,7 +1312,7 @@ func TestHandlersInterfacesImpl_GetUserProfileByUID(t *testing.T) {
 
 func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -1386,7 +1402,7 @@ func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
 
 func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -1675,7 +1691,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 
 func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -1783,7 +1799,7 @@ func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 
 func TestHandlersInterfacesImpl_LoginAnonymous(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -1892,7 +1908,7 @@ func TestHandlersInterfacesImpl_LoginAnonymous(t *testing.T) {
 
 func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -2065,7 +2081,7 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 
 func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -2204,7 +2220,7 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 
 func TestHandlersInterfacesImpl_RemoveUserByPhoneNumber(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -2356,7 +2372,7 @@ func TestHandlersInterfacesImpl_RemoveUserByPhoneNumber(t *testing.T) {
 
 func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -2522,7 +2538,7 @@ func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 
 func TestHandlersInterfacesImpl_RegisterPushToken(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -2635,7 +2651,7 @@ func TestHandlersInterfacesImpl_RegisterPushToken(t *testing.T) {
 
 func TestHandlersInterfacesImpl_AddAdminPermsToUser(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -2797,7 +2813,7 @@ func TestHandlersInterfacesImpl_AddAdminPermsToUser(t *testing.T) {
 
 func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
@@ -2953,6 +2969,151 @@ func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
 				return
 			}
 
+		})
+	}
+}
+
+func composeSMSMessageDataJSONPayload(t *testing.T, payload *resources.AfricasTalkingMessage) *bytes.Buffer {
+
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return nil
+	}
+	return bytes.NewBuffer(bs)
+}
+
+func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	invalidLinkId := ""
+	validLinkId := uuid.New().String()
+	text := "Test Covers"
+	to := "3601"
+	id := "60119"
+	from := "+254705385894"
+	date := "2021-05-17T13:20:04.490Z"
+
+	validSMSData := &resources.AfricasTalkingMessage{
+		LinkID: validLinkId,
+		Text:   text,
+		To:     to,
+		ID:     id,
+		Date:   date,
+		From:   from,
+	}
+
+	invalidSMSData := &resources.AfricasTalkingMessage{
+		LinkID: invalidLinkId,
+		Text:   text,
+		To:     to,
+		ID:     id,
+		Date:   date,
+		From:   from,
+	}
+
+	validPayload := composeSMSMessageDataPayload(t, validSMSData)
+	invalidPayload := composeSMSMessageDataPayload(t, invalidSMSData)
+	invalidJSONPayload := composeSMSMessageDataJSONPayload(t, validSMSData)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "VALID_CASE:Valid_incoming_sms",
+			args: args{
+				url:        fmt.Sprintf("%s/incoming_ait_sms", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+
+		{
+			name: "INVALID_CASE:Nil_incoming_sms_JSON",
+			args: args{
+				url:        fmt.Sprintf("%s/incoming_ait_sms", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       invalidJSONPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+
+		{
+			name: "INVALID_CASE:Invalid_incoming_sms",
+			args: args{
+				url:        fmt.Sprintf("%s/incoming_ait_sms", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       invalidPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+			response := httptest.NewRecorder()
+
+			if tt.name == "VALID_CASE:Valid_incoming_sms" {
+				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *resources.AfricasTalkingMessage) error {
+					return nil
+				}
+			}
+
+			if tt.name == "INVALID_CASE:Nil_incoming_sms_JSON" {
+				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *resources.AfricasTalkingMessage) error {
+					return fmt.Errorf("invalid sms")
+				}
+			}
+
+			if tt.name == "INVALID_CASE:Invalid_incoming_sms" {
+				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *resources.AfricasTalkingMessage) error {
+					return fmt.Errorf("invalid sms")
+				}
+			}
+
+			svr := h.IncomingATSMS(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+			}
+
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
 		})
 	}
 }

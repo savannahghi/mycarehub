@@ -54,3 +54,44 @@ func ValidateSignUpInput(input *resources.SignUpInput) (*resources.SignUpInput, 
 		OTP:         input.OTP,
 	}, nil
 }
+
+// ValidateAficasTalkingSMSData returns AIT validated SMS data
+func ValidateAficasTalkingSMSData(input *resources.AfricasTalkingMessage) (*resources.AfricasTalkingMessage, error) {
+	if input.LinkID == " " {
+		return nil, fmt.Errorf("message `linkID` cannot be empty")
+	}
+
+	if input.Text == " " {
+		return nil, fmt.Errorf("`text` message cannot be empty")
+	}
+
+	if input.To == " " {
+		return nil, fmt.Errorf("`to` cannot be empty")
+	}
+
+	if input.ID == " " {
+		return nil, fmt.Errorf("message `ID` cannot be empty")
+	}
+
+	if input.Date == " " {
+		return nil, fmt.Errorf("`date` of sending cannot be empty")
+	}
+
+	if input.From == " " {
+		return nil, fmt.Errorf("`phone` number cannot be empty")
+	}
+
+	_, err := base.NormalizeMSISDN(input.From)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resources.AfricasTalkingMessage{
+		Date:   input.Date,
+		From:   input.From,
+		ID:     input.ID,
+		LinkID: input.LinkID,
+		Text:   input.Text,
+		To:     input.To,
+	}, nil
+}

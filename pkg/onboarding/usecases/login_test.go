@@ -187,6 +187,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
+	sms := usecases.NewSMSUsecase(repo, ext)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -200,6 +201,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		Engagement:   engage,
 		NHIF:         nhif,
 		PubSub:       ps,
+		SMS:          sms,
 	}, nil
 }
 
@@ -421,11 +423,12 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
+	sms := usecases.NewSMSUsecase(r, ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, messagingSvc, nhif, ps,
+		engagementSvc, messagingSvc, nhif, ps, sms,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

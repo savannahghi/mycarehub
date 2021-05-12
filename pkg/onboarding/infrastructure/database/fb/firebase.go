@@ -32,6 +32,7 @@ const (
 	experimentParticipantCollectionName  = "experiment_participants"
 	nhifDetailsCollectionName            = "nhif_details"
 	communicationsSettingsCollectionName = "communications_settings"
+	smsCollectionName                    = "incoming_sms"
 
 	firebaseExchangeRefreshTokenURL = "https://securetoken.googleapis.com/v1/token?key="
 )
@@ -110,12 +111,14 @@ func (fr Repository) GetCommunicationsSettingsCollectionName() string {
 	return suffixed
 }
 
+// GetSMSCollectionName gets the collection name from firestore
+func (fr Repository) GetSMSCollectionName() string {
+	suffixed := base.SuffixCollection(smsCollectionName)
+	return suffixed
+}
+
 // GetUserProfileByUID retrieves the user profile by UID
-func (fr *Repository) GetUserProfileByUID(
-	ctx context.Context,
-	uid string,
-	suspended bool,
-) (*base.UserProfile, error) {
+func (fr *Repository) GetUserProfileByUID(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "verifiedUIDS",
@@ -2380,4 +2383,33 @@ func (fr *Repository) UpdateCustomerProfile(
 		return nil, exceptions.InternalServerError(err)
 	}
 	return customer, nil
+}
+
+// PersistIncomingSMSData persists SMS data
+func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *resources.AfricasTalkingMessage) error {
+	message := &resources.AfricasTalkingMessage{
+		Date:   input.Date,
+		From:   input.From,
+		ID:     input.ID,
+		LinkID: input.LinkID,
+		Text:   input.Text,
+		To:     input.To,
+	}
+
+	validatedMessage, err := utils.ValidateAficasTalkingSMSData(message)
+	if err != nil {
+		return err
+	}
+
+	createCommand := &CreateCommand{
+		CollectionName: fr.GetSMSCollectionName(),
+		Data:           validatedMessage,
+	}
+
+	_, err = fr.FirestoreClient.Create(ctx, createCommand)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+
+	return nil
 }

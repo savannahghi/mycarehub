@@ -131,10 +131,7 @@ type OnboardingRepository interface {
 		profileID string,
 	) (*base.Customer, *base.Supplier, error)
 
-	GetOrCreatePhoneNumberUser(
-		ctx context.Context,
-		phone string,
-	) (*resources.CreatedUserResponse, error)
+	GetOrCreatePhoneNumberUser(ctx context.Context, phone string) (*resources.CreatedUserResponse, error)
 
 	AddUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error)
 
@@ -157,4 +154,6 @@ type OnboardingRepository interface {
 
 	SetUserCommunicationsSettings(ctx context.Context, profileID string,
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
+
+	PersistIncomingSMSData(ctx context.Context, input *resources.AfricasTalkingMessage) error
 }

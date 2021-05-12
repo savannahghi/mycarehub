@@ -37,6 +37,7 @@ type HandlersInterfaces interface {
 	AddAdminPermsToUser(ctx context.Context) http.HandlerFunc
 	RemoveAdminPermsToUser(ctx context.Context) http.HandlerFunc
 	UpdateUserProfile(ctx context.Context) http.HandlerFunc
+	IncomingATSMS(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -712,5 +713,46 @@ func (h *HandlersInterfacesImpl) UpdateUserProfile(ctx context.Context) http.Han
 		}
 
 		base.WriteJSONResponse(w, userProfile, http.StatusOK)
+	}
+}
+
+// IncomingATSMS is an authenticated REST endpoint acting as a callback url for Africa's Talking incoming SMS
+func (h *HandlersInterfacesImpl) IncomingATSMS(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		payload := &resources.AfricasTalkingMessage{}
+
+		err := r.ParseForm()
+		if err != nil {
+			base.ReportErr(w, err, http.StatusUnsupportedMediaType)
+		}
+
+		payload.Date = r.PostForm.Get("date")
+		payload.From = r.PostForm.Get("from")
+		payload.ID = r.PostForm.Get("id")
+		payload.LinkID = r.PostForm.Get("linkId")
+		payload.Text = r.PostForm.Get("text")
+		payload.To = r.PostForm.Get("to")
+
+		validatedPayload, err := utils.ValidateAficasTalkingSMSData(payload)
+		if err != nil {
+			err := fmt.Errorf("input validation error occurred")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		err = h.interactor.SMS.CreateSMSData(ctx, validatedPayload)
+		if err != nil {
+			base.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w,
+			resources.OKResp{
+				Status: "Africa's Talking SMS data successfully created"},
+			http.StatusOK)
 	}
 }

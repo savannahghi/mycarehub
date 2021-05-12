@@ -3429,3 +3429,82 @@ func TestUpdateCustomerProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_PersistIncomingSMSData(t *testing.T) {
+	ctx := context.Background()
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
+
+	validLinkId := uuid.New().String()
+	text := "Test Covers"
+	to := "3601"
+	id := "60119"
+	from := "+254705385894"
+	date := "2021-05-17T13:20:04.490Z"
+
+	validData := &resources.AfricasTalkingMessage{
+		LinkID: validLinkId,
+		Text:   text,
+		To:     to,
+		ID:     id,
+		Date:   date,
+		From:   from,
+	}
+
+	invalidData := &resources.AfricasTalkingMessage{
+		LinkID: " ",
+		Text:   text,
+		To:     to,
+		ID:     id,
+		Date:   date,
+		From:   " ",
+	}
+
+	type args struct {
+		ctx   context.Context
+		input resources.AfricasTalkingMessage
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *resources.AfricasTalkingMessage
+		wantErr bool
+	}{
+		{
+			name: "Happy :) Successfully persist sms data",
+			args: args{
+				ctx:   ctx,
+				input: *validData,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad :) Unsuccessfully persist sms data",
+			args: args{
+				ctx:   ctx,
+				input: *invalidData,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := firestoreDB.PersistIncomingSMSData(tt.args.ctx, &tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.PersistIncomingSMSData() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("error was not expected but got error: %v", err)
+				return
+			}
+		})
+	}
+}
