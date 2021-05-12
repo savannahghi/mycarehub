@@ -7,7 +7,7 @@ stages:
 
 variables:
   GOOGLE_APPLICATION_CREDENTIALS: $CI_PROJECT_DIR/bewell-app-ci.json
-  BEWELL_CLI_VERSION: v0.0.142 #explicit version -> avoid breakages that might occur with different versions
+  BEWELL_CLI_VERSION: v0.0.6 #explicit version -> avoid breakages that might occur with different versions
 
 services:
   - name: docker:dind
@@ -20,7 +20,7 @@ lint_and_test:
     - bash decrypt_service_account.sh
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com" 
     - curl -L -o ./install-misspell.sh https://git.io/misspell && sh ./install-misspell.sh
-    - go install gitlab.slade360emr.com/go/base/cmd/bewell@$BEWELL_CLI_VERSION
+    - go install gitlab.slade360emr.com/go/admin/cmd/bewell@$BEWELL_CLI_VERSION
   script:
     - bewell service validate-schema --name onboarding --version $CI_COMMIT_SHA --url https://profile-testing.healthcloud.co.ke/graphql --registry-url $TEST_SCHEMA_REGISTRY_URL
     - staticcheck ./...
@@ -133,7 +133,7 @@ deploy_develop_to_test:
     - apk add go git --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community # has latest version of go
     - export PATH=$PATH:$(go env GOPATH)/bin
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
-    - go install gitlab.slade360emr.com/go/base/cmd/bewell@$BEWELL_CLI_VERSION
+    - go install gitlab.slade360emr.com/go/admin/cmd/bewell@$BEWELL_CLI_VERSION
   stage: deploy
   only:
     - develop    
@@ -187,7 +187,7 @@ deploy_master_to_demo:
     - apk add go git --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community # has latest version of go
     - export PATH=$PATH:$(go env GOPATH)/bin
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
-    - go install gitlab.slade360emr.com/go/base/cmd/bewell@$BEWELL_CLI_VERSION
+    - go install gitlab.slade360emr.com/go/admin/cmd/bewell@$BEWELL_CLI_VERSION
   stage: deploy
   only:
     - master   
@@ -219,7 +219,7 @@ deploy_master_to_prod:
     - apk add go git --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community # has latest version of go
     - export PATH=$PATH:$(go env GOPATH)/bin
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
-    - go install gitlab.slade360emr.com/go/base/cmd/bewell@$BEWELL_CLI_VERSION
+    - go install gitlab.slade360emr.com/go/admin/cmd/bewell@$BEWELL_CLI_VERSION
   stage: deploy
   only:
     - master
