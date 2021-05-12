@@ -13,7 +13,7 @@ import (
 
 func TestLoginClientMissingEnvs(t *testing.T) {
 
-	baseExt := extension.NewBaseExtensionImpl()
+	baseExt := extension.NewBaseExtensionImpl(&base.FirebaseClient{})
 
 	username := "username"
 	password := "password"

@@ -115,7 +115,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
 	}
 
-	ext := extension.NewBaseExtensionImpl()
+	ext := extension.NewBaseExtensionImpl(&base.FirebaseClient{})
 
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)

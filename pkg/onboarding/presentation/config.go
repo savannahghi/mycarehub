@@ -17,6 +17,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+	loginservice "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/login_service"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -92,7 +93,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	}
 
 	// Initialize base (common) extension
-	baseExt := extension.NewBaseExtensionImpl()
+	baseExt := extension.NewBaseExtensionImpl(fc)
 
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, baseExt)
@@ -130,6 +131,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	}
 
 	h := rest.NewHandlersInterfaces(i)
+	loginService := loginservice.NewServiceLogin(baseExt)
 
 	r := mux.NewRouter() // gorilla mux
 	r.Use(
@@ -144,6 +146,33 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Use(base.CustomHTTPRequestMetricsMiddleware())
 
 	// Unauthenticated routes
+
+	// login service routes
+	r.Path("/login").Methods(
+		http.MethodPost,
+		http.MethodOptions,
+	).HandlerFunc(
+		loginService.GetLoginFunc(ctx),
+	)
+	r.Path("/logout").Methods(
+		http.MethodPost,
+		http.MethodOptions,
+	).HandlerFunc(
+		loginService.GetLogoutFunc(ctx),
+	)
+	r.Path("/refresh").Methods(
+		http.MethodPost,
+		http.MethodOptions,
+	).HandlerFunc(
+		loginService.GetRefreshFunc(),
+	)
+	r.Path("/verify_access_token").Methods(
+		http.MethodPost,
+		http.MethodOptions,
+	).HandlerFunc(
+		loginService.GetVerifyTokenFunc(ctx),
+	)
+
 	r.Path("/pubsub").Methods(
 		http.MethodPost).
 		HandlerFunc(pubSub.ReceivePubSubPushMessages)

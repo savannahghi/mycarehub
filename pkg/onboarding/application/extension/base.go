@@ -80,15 +80,24 @@ type BaseExtension interface {
 		source interface{},
 		status int,
 	)
+
+	// Login
+	GetLoginFunc(ctx context.Context) http.HandlerFunc
+	GetLogoutFunc(ctx context.Context) http.HandlerFunc
+	GetRefreshFunc() http.HandlerFunc
+	GetVerifyTokenFunc(ctx context.Context) http.HandlerFunc
 }
 
 // BaseExtensionImpl ...
 type BaseExtensionImpl struct {
+	fc base.IFirebaseClient
 }
 
 // NewBaseExtensionImpl ...
-func NewBaseExtensionImpl() BaseExtension {
-	return &BaseExtensionImpl{}
+func NewBaseExtensionImpl(fc base.IFirebaseClient) BaseExtension {
+	return &BaseExtensionImpl{
+		fc: fc,
+	}
 }
 
 // GetLoggedInUser retrieves logged in user information
@@ -158,6 +167,27 @@ func (b *BaseExtensionImpl) SetupISCclient(config base.DepsConfig, serviceName s
 // GetEnvVar ...
 func (b *BaseExtensionImpl) GetEnvVar(envName string) (string, error) {
 	return base.GetEnvVar(envName)
+}
+
+// GetLoginFunc returns a function that can authenticate against both Slade 360 and Firebase
+func (b *BaseExtensionImpl) GetLoginFunc(ctx context.Context) http.HandlerFunc {
+	return base.GetLoginFunc(ctx, b.fc)
+}
+
+// GetLogoutFunc logs the user out of Firebase
+func (b *BaseExtensionImpl) GetLogoutFunc(ctx context.Context) http.HandlerFunc {
+	return base.GetLogoutFunc(ctx, b.fc)
+}
+
+// GetRefreshFunc is used to refresh OAuth tokens
+func (b *BaseExtensionImpl) GetRefreshFunc() http.HandlerFunc {
+	return base.GetRefreshFunc()
+}
+
+// GetVerifyTokenFunc confirms that an EDI access token (supplied) is valid.
+// If it is valid, it exchanges it for a Firebase ID token.
+func (b *BaseExtensionImpl) GetVerifyTokenFunc(ctx context.Context) http.HandlerFunc {
+	return base.GetVerifyTokenFunc(ctx, b.fc)
 }
 
 // NewServerClient ...

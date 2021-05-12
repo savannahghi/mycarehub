@@ -63,7 +63,7 @@ func TestParseKYCAsMap(t *testing.T) {
 		return
 	}
 
-	ext := extension.NewBaseExtensionImpl()
+	ext := extension.NewBaseExtensionImpl(&base.FirebaseClient{})
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 
