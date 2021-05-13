@@ -2302,6 +2302,7 @@ func TestRepositoryFetchKYCProcessingRequests(t *testing.T) {
 		ID:                  id,
 		ReqPartnerType:      reqPartnerType,
 		ReqOrganizationType: organizationTypeLimitedCompany,
+		Status:              domain.KYCProcessStatusApproved,
 	}
 
 	err := fr.StageKYCProcessingRequest(ctx, kycReq)

@@ -1705,9 +1705,9 @@ func (fr *Repository) RemoveKYCProcessingRequest(ctx context.Context, supplierPr
 func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
 	query := &GetAllQuery{
 		CollectionName: fr.GetKCYProcessCollectionName(),
-		FieldName:      "processed",
-		Value:          false,
-		Operator:       "==",
+		FieldName:      "status",
+		Value:          "",
+		Operator:       "!=",
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
