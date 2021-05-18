@@ -38,12 +38,6 @@ const (
 	VerifyOTPEndPoint = "internal/verify_otp/"
 
 	sendSMS = "internal/send_sms"
-
-	sendEmailTopic = "mails.inbox"
-
-	publishNudgeTopic = "nudges.publish"
-
-	publishItemTopic = "items.publish"
 )
 
 // ServiceEngagement represents engagement usecases
@@ -51,12 +45,12 @@ type ServiceEngagement interface {
 	PublishKYCNudge(
 		uid string,
 		payload base.Nudge,
-	) error
+	) (*http.Response, error)
 
 	PublishKYCFeedItem(
 		uid string,
 		payload base.Item,
-	) error
+	) (*http.Response, error)
 
 	ResolveDefaultNudgeByTitle(
 		UID string,
@@ -111,37 +105,11 @@ func NewServiceEngagementImpl(eng extension.ISCClientExtension, ext extension.Ba
 func (en *ServiceEngagementImpl) PublishKYCNudge(
 	uid string,
 	payload base.Nudge,
-) error {
-	payloadRequest, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
-	}
-
-	nudgeMessage := base.PubSubMessage{
-		MessageID: uid,
-		Data:      payloadRequest,
-		Attributes: map[string]string{
-			"topicID": en.pubsub.AddEngagementPubsubNameSpace(publishNudgeTopic),
-		},
-	}
-
-	nudgePubSubPayload := &base.PubSubPayload{
-		Message: nudgeMessage,
-	}
-
-	nudgeData, err := json.Marshal(nudgePubSubPayload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
-	}
-	topicName, err := en.baseExt.GetPubSubTopic(nudgePubSubPayload)
-	if err != nil {
-		return fmt.Errorf("failed to get topic name: %v", err)
-	}
-
-	return en.pubsub.PublishToPubsub(
-		context.Background(),
-		topicName,
-		nudgeData,
+) (*http.Response, error) {
+	return en.Engage.MakeRequest(
+		http.MethodPost,
+		fmt.Sprintf(publishNudge, uid),
+		payload,
 	)
 }
 
@@ -150,36 +118,11 @@ func (en *ServiceEngagementImpl) PublishKYCNudge(
 func (en *ServiceEngagementImpl) PublishKYCFeedItem(
 	uid string,
 	payload base.Item,
-) error {
-	payloadData, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data %v", err)
-	}
-	pubSubMessage := &base.PubSubMessage{
-		MessageID: uid,
-		Data:      payloadData,
-		Attributes: map[string]string{
-			"topicID": en.pubsub.AddEngagementPubsubNameSpace(publishItemTopic),
-		},
-	}
-
-	itemPubSubPayload := &base.PubSubPayload{
-		Message: *pubSubMessage,
-	}
-
-	itemData, err := json.Marshal(itemPubSubPayload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
-	}
-
-	topicName, err := en.baseExt.GetPubSubTopic(itemPubSubPayload)
-	if err != nil {
-		return fmt.Errorf("failed to get a topic: %v", err)
-	}
-	return en.pubsub.PublishToPubsub(
-		context.Background(),
-		topicName,
-		itemData,
+) (*http.Response, error) {
+	return en.Engage.MakeRequest(
+		http.MethodPost,
+		fmt.Sprintf(publishItem, uid),
+		payload,
 	)
 }
 
@@ -238,37 +181,23 @@ func (en *ServiceEngagementImpl) SendMail(
 		"subject": subject,
 	}
 
-	payloadData, err := json.Marshal(body)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
-	}
-
-	pubSubMessage := base.PubSubMessage{
-		Data: payloadData,
-		Attributes: map[string]string{
-			"topicID": en.pubsub.AddEngagementPubsubNameSpace(sendEmailTopic),
-		},
-	}
-
-	mailPubSubPayload := &base.PubSubPayload{
-		Message: pubSubMessage,
-	}
-
-	mailData, err := json.Marshal(mailPubSubPayload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
-	}
-
-	topicName, err := en.baseExt.GetPubSubTopic(mailPubSubPayload)
-	if err != nil {
-		return fmt.Errorf("failed to get a topic: %v", err)
-	}
-
-	return en.pubsub.PublishToPubsub(
-		context.Background(),
-		topicName,
-		mailData,
+	resp, err := en.Engage.MakeRequest(
+		http.MethodPost,
+		sendEmail,
+		body,
 	)
+	if err != nil {
+		return fmt.Errorf("unable to send email: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send email : %w, with status code %v",
+			err,
+			resp.StatusCode,
+		)
+	}
+
+	return nil
 }
 
 //SendAlertToSupplier send email to supplier to acknowledgement receipt of
@@ -290,37 +219,17 @@ func (en *ServiceEngagementImpl) SendAlertToSupplier(input resources.EmailNotifi
 		"text":    writer.String(),
 		"subject": input.SubjectTitle,
 	}
-	payloadData, err := json.Marshal(body)
+
+	resp, err := en.Engage.MakeRequest(http.MethodPost, sendEmail, body)
 	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
+		return fmt.Errorf("unable to send alert to supplier email: %w", err)
 	}
 
-	pubSubMessage := base.PubSubMessage{
-		Data: payloadData,
-		Attributes: map[string]string{
-			"topicID": en.pubsub.AddEngagementPubsubNameSpace(sendEmailTopic),
-		},
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send alert to supplier email: %w", err)
 	}
 
-	mailPubSubPayload := &base.PubSubPayload{
-		Message: pubSubMessage,
-	}
-
-	mailData, err := json.Marshal(mailPubSubPayload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
-	}
-
-	topicName, err := en.baseExt.GetPubSubTopic(mailPubSubPayload)
-	if err != nil {
-		return fmt.Errorf("failed to get a topic: %v", err)
-	}
-
-	return en.pubsub.PublishToPubsub(
-		context.Background(),
-		topicName,
-		mailData,
-	)
+	return nil
 }
 
 //NotifyAdmins send email to admin notifying them of new
@@ -348,37 +257,16 @@ func (en *ServiceEngagementImpl) NotifyAdmins(input resources.EmailNotificationP
 		"subject": input.SubjectTitle,
 	}
 
-	payloadData, err := json.Marshal(body)
+	resp, err := en.Engage.MakeRequest(http.MethodPost, sendEmail, body)
 	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
+		return fmt.Errorf("unable to send alert to admin email: %w", err)
 	}
 
-	pubSubMessage := base.PubSubMessage{
-		Data: payloadData,
-		Attributes: map[string]string{
-			"topicID": en.pubsub.AddEngagementPubsubNameSpace(sendEmailTopic),
-		},
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send alert to admin email: %w", err)
 	}
 
-	mailPubSubPayload := &base.PubSubPayload{
-		Message: pubSubMessage,
-	}
-
-	mailData, err := json.Marshal(mailPubSubPayload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
-	}
-
-	topicName, err := en.baseExt.GetPubSubTopic(mailPubSubPayload)
-	if err != nil {
-		return fmt.Errorf("failed to get a topic: %v", err)
-	}
-
-	return en.pubsub.PublishToPubsub(
-		context.Background(),
-		topicName,
-		mailData,
-	)
+	return nil
 }
 
 // GenerateAndSendOTP creates a new otp and sends it to the provided phone number.

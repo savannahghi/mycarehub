@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -972,10 +973,22 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 		},
 	}
 
-	err := s.engagement.PublishKYCNudge(uid, nudge)
+	resp, err := s.engagement.PublishKYCNudge(uid, nudge)
 	if err != nil {
 		return exceptions.PublishKYCNudgeError(err)
 	}
+	if resp.StatusCode != http.StatusOK {
+		if err := s.SaveProfileNudge(ctx, &nudge); err != nil {
+			logrus.Errorf("failed to stage nudge : %v", err)
+		}
+
+		return exceptions.PublishKYCNudgeError(
+			fmt.Errorf("unable to publish kyc nudge. unexpected status code  %v",
+				resp.StatusCode,
+			),
+		)
+	}
+
 	return nil
 }
 
@@ -1040,9 +1053,15 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 				base.ChannelSms,
 			},
 		}
-		err := s.engagement.PublishKYCFeedItem(uid, payload)
+		resp, err := s.engagement.PublishKYCFeedItem(uid, payload)
 		if err != nil {
 			return fmt.Errorf("unable to publish kyc admin notification feed item : %v", err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf(
+				"unable to publish kyc admin notification feed item. unexpected status code  %v",
+				resp.StatusCode,
+			)
 		}
 	}
 

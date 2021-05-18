@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -254,45 +255,33 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:publish_kyc_feed_item" {
-				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "", nil
-				}
-
-				fakePubSub.AddEngagementPubsubNameSpaceFn = func(topicName string) string {
-					return "some.topic"
-				}
-
-				fakePubSub.PublishToPubsubFn = func(
-					ctx context.Context,
-					topicID string,
-					payload []byte,
-				) error {
-					return nil
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{
+						Status:     "OK",
+						StatusCode: http.StatusOK,
+						Body:       nil,
+					}, nil
 				}
 			}
 
 			if tt.name == "invalid:fail_to_publish_kyc_feed_item" {
-				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "", nil
-				}
-
-				fakePubSub.AddEngagementPubsubNameSpaceFn = func(topicName string) string {
-					return "some.topic"
-				}
-
-				fakePubSub.PublishToPubsubFn = func(
-					ctx context.Context,
-					topicID string,
-					payload []byte,
-				) error {
-					return fmt.Errorf("failed to publish feed item")
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{
+						Status:     "BAD REQUEST",
+						StatusCode: http.StatusBadRequest,
+						Body:       nil,
+					}, fmt.Errorf("fail to publish kyc feed item")
 				}
 			}
 
-			err := e.PublishKYCFeedItem(tt.args.uid, tt.args.payload)
+			resp, err := e.PublishKYCFeedItem(tt.args.uid, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEngagementImpl.PublishKYCFeedItem() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+
+			if !reflect.DeepEqual(resp, tt.want) {
+				t.Errorf("ServiceEngagementImpl.PublishKYCFeedItem() = %v, want %v", resp, tt.want)
 			}
 
 			if tt.wantErr {
@@ -304,6 +293,11 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 			if !tt.wantErr {
 				if err != nil {
 					t.Errorf("error not expected got %v", err)
+					return
+				}
+
+				if resp.StatusCode != tt.want.StatusCode {
+					t.Errorf("expected status code 200 but got %v", resp.StatusCode)
 					return
 				}
 			}
@@ -395,37 +389,33 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:successfully_publish_kyc_nudge" {
-				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "nudges.publish", nil
-				}
-
-				fakePubSub.PublishToPubsubFn = func(
-					ctx context.Context,
-					topicID string,
-					payload []byte,
-				) error {
-					return nil
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{
+						Status:     "OK",
+						StatusCode: http.StatusOK,
+						Body:       nil,
+					}, nil
 				}
 			}
 
 			if tt.name == "invalid:fail_to_publish_kyc_nudge" {
-				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "nudges.publish", nil
-				}
-
-				fakePubSub.PublishToPubsubFn = func(
-					ctx context.Context,
-					topicID string,
-					payload []byte,
-				) error {
-					return fmt.Errorf("failed to publish kyc nudge")
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{
+						Status:     "BAD REQUEST",
+						StatusCode: http.StatusBadRequest,
+						Body:       nil,
+					}, fmt.Errorf("fail to publish kyc feed item")
 				}
 			}
 
-			err := e.PublishKYCNudge(tt.args.uid, tt.args.payload)
+			resp, err := e.PublishKYCNudge(tt.args.uid, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEngagementImpl.PublishKYCNudge() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+
+			if !reflect.DeepEqual(resp, tt.want) {
+				t.Errorf("ServiceEngagementImpl.PublishKYCNudge() = %v, want %v", resp, tt.want)
 			}
 
 			if tt.wantErr {
@@ -440,6 +430,10 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 					return
 				}
 
+				if resp.StatusCode != tt.want.StatusCode {
+					t.Errorf("expected status code 200 but got %v", resp.StatusCode)
+					return
+				}
 			}
 		})
 	}
@@ -470,9 +464,9 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 			wantStatus: http.StatusOK,
 		},
 		{
-			name: "invalid:fail_to_get_pubsub_topic",
+			name: "invalid:use_an_invalid_email",
 			args: args{
-				email:   "johndoe@gmail.com",
+				email:   "1234",
 				message: "This is an update of how things are",
 				subject: "update",
 			},
@@ -493,40 +487,28 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:successfully_send_email" {
-				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "", nil
-				}
-
-				fakePubSub.AddEngagementPubsubNameSpaceFn = func(topicName string) string {
-					return "some.topic"
-				}
-
-				fakePubSub.PublishToPubsubFn = func(
-					ctx context.Context,
-					topicID string,
-					payload []byte,
-				) error {
-					return nil
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{
+						Status:     "OK",
+						StatusCode: 200,
+						Body:       nil,
+					}, nil
 				}
 			}
 
-			if tt.name == "invalid:fail_to_get_pubsub_topic" {
-				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "", fmt.Errorf("failed to get a pubsub topic")
+			if tt.name == "invalid:use_an_invalid_email" {
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{
+						Status:     "BAD REQUEST",
+						StatusCode: 400,
+						Body:       nil,
+					}, fmt.Errorf("an error occured! Invalid email address")
 				}
 			}
 
 			if tt.name == "invalid:error_while_sending_request" {
-				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "nudges.publish", nil
-				}
-
-				fakePubSub.PublishToPubsubFn = func(
-					ctx context.Context,
-					topicID string,
-					payload []byte,
-				) error {
-					return fmt.Errorf("an error occured!")
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("an error occured!")
 				}
 			}
 			err := e.SendMail(tt.args.email, tt.args.message, tt.args.subject)
@@ -1244,7 +1226,7 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "invalid:fail_to_get_topic",
+			name: "invalid:error_while_sending_request",
 			args: args{
 				input: input,
 			},
@@ -1255,26 +1237,18 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:successfully_send_email" {
-				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "", nil
-				}
-
-				fakePubSub.AddEngagementPubsubNameSpaceFn = func(topicName string) string {
-					return "some.topic"
-				}
-
-				fakePubSub.PublishToPubsubFn = func(
-					ctx context.Context,
-					topicID string,
-					payload []byte,
-				) error {
-					return nil
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{
+						Status:     "OK",
+						StatusCode: 200,
+						Body:       nil,
+					}, nil
 				}
 			}
 
-			if tt.name == "invalid:fail_to_get_topic" {
-				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "", fmt.Errorf("failed to get topic")
+			if tt.name == "invalid:error_while_sending_request" {
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("an error occured!")
 				}
 			}
 
@@ -1327,7 +1301,7 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "invalid:fail_to_get_topic",
+			name: "invalid:error_while_sending_request",
 			args: args{
 				input: input,
 			},
@@ -1338,26 +1312,18 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:successfully_send_email" {
-				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "", nil
-				}
-
-				fakePubSub.AddEngagementPubsubNameSpaceFn = func(topicName string) string {
-					return "some.topic"
-				}
-
-				fakePubSub.PublishToPubsubFn = func(
-					ctx context.Context,
-					topicID string,
-					payload []byte,
-				) error {
-					return nil
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{
+						Status:     "OK",
+						StatusCode: 200,
+						Body:       nil,
+					}, nil
 				}
 			}
 
-			if tt.name == "invalid:fail_to_get_topic" {
-				fakeBaseExt.GetPubSubTopicFn = func(m *base.PubSubPayload) (string, error) {
-					return "", fmt.Errorf("failed to get topic")
+			if tt.name == "invalid:error_while_sending_request" {
+				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("an error occured!")
 				}
 			}
 
