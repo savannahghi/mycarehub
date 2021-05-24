@@ -112,6 +112,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	engage := engagement.NewServiceEngagementImpl(engagementClient, baseExt, pubSub)
 	mes := messaging.NewServiceMessagingImpl(baseExt)
 	pinExt := extension.NewPINExtensionImpl()
+	aitUssd := usecases.NewUssdUsecases(repo, baseExt)
 
 	// Initialize the usecases
 	profile := usecases.NewProfileUseCase(repo, baseExt, engage)
@@ -125,7 +126,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	i, err := interactor.NewOnboardingInteractor(
 		repo, profile, su, supplier, login, survey,
-		userpin, erp, chrg, engage, mes, nhif, pubSub, sms,
+		userpin, erp, chrg, engage, mes, nhif, pubSub, sms, aitUssd,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -145,6 +146,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Add Middleware that records the metrics for HTTP routes
 	r.Use(base.CustomHTTPRequestMetricsMiddleware())
+
+	//USSD routes
+	r.Path("/ait_ussd").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.IncomingUSSDHandler(ctx))
+	r.Path("/ait_end_note_ussd").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.USSDEndNotificationHandler(ctx))
 
 	// Unauthenticated routes
 

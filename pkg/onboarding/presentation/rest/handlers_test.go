@@ -64,11 +64,12 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
+	aitUssd := usecases.NewUssdUsecases(r, ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, messagingSvc, nhif, ps, sms,
+		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -211,6 +212,31 @@ func composeSMSMessageDataPayload(t *testing.T, payload *dto.AfricasTalkingMessa
 
 	smspayload := strings.NewReader(data.Encode())
 	return smspayload
+}
+
+func composeUssdPayload(t *testing.T, phone, sessionId, text string) *strings.Reader {
+	//https://stackoverflow.com/questions/19253469/make-a-url-encoded-post-request-using-http-newrequest
+	data := url.Values{}
+	data.Set("phoneNumber", phone)
+	data.Set("sessionId", sessionId)
+	data.Set("text", text)
+
+	payload := strings.NewReader(data.Encode())
+	return payload
+}
+
+func composeUssdJsonPayload(t *testing.T, phone, sessionId, text string) *bytes.Buffer {
+	payload := dto.SessionDetails{
+		PhoneNumber: &phone,
+		SessionID:   sessionId,
+		Text:        text,
+	}
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return nil
+	}
+	return bytes.NewBuffer(bs)
 }
 
 func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
@@ -2892,6 +2918,7 @@ func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
 			response := httptest.NewRecorder()
 
 			if tt.name == "valid:_Successfully_remove_admin_permissions" {
+
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return true, nil
 				}
@@ -2914,6 +2941,7 @@ func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_remove_admin_permissions" {
+
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return true, nil
 				}
@@ -2936,15 +2964,22 @@ func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_empty_phonenumber" {
+
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return true, nil
 				}
+
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					return nil, fmt.Errorf("empty phone number")
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_check_if_phone_exists" {
+
+				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return true, nil
+				}
+
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, fmt.Errorf("the phone does not exist")
 				}
@@ -2990,7 +3025,6 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
 		return
 	}
-
 	h := rest.NewHandlersInterfaces(i)
 
 	invalidLinkId := ""
@@ -3022,7 +3056,6 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 	validPayload := composeSMSMessageDataPayload(t, validSMSData)
 	invalidPayload := composeSMSMessageDataPayload(t, invalidSMSData)
 	invalidJSONPayload := composeSMSMessageDataJSONPayload(t, validSMSData)
-
 	type args struct {
 		url        string
 		httpMethod string
@@ -3044,7 +3077,6 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 			wantStatus: http.StatusOK,
 			wantErr:    false,
 		},
-
 		{
 			name: "INVALID_CASE:Nil_incoming_sms_JSON",
 			args: args{
@@ -3055,7 +3087,6 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,
 		},
-
 		{
 			name: "INVALID_CASE:Invalid_incoming_sms",
 			args: args{
@@ -3067,7 +3098,6 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 			wantErr:    true,
 		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
@@ -3075,7 +3105,6 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 				t.Errorf("can't create new request: %v", err)
 				return
 			}
-
 			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 			response := httptest.NewRecorder()
 
@@ -3109,7 +3138,210 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 			if err != nil {
 				t.Errorf("can't read response body: %v", err)
 			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+		})
+	}
+}
 
+func TestHandlersInterfacesImpl_USSDHandler(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+	h := rest.NewHandlersInterfaces(i)
+
+	USSDPhoneNumber := "+254711445566"
+	SessionId := "123456778"
+	text := "1"
+	validPayload := composeUssdPayload(t, USSDPhoneNumber, SessionId, text)
+	invalidPayload := composeUssdPayload(t, "", SessionId, text)
+	emptySessionIdPayload := composeUssdPayload(t, USSDPhoneNumber, "", text)
+	jsonPayload := composeUssdJsonPayload(t, USSDPhoneNumber, SessionId, text)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_successful USSD",
+			args: args{
+				url:        fmt.Sprintf("%s/ait_ussd", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_empty_phonenumber",
+			args: args{
+				url:        fmt.Sprintf("%s/ait_ussd", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       invalidPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_empty_sessionId",
+			args: args{
+				url:        fmt.Sprintf("%s/ait_ussd", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       emptySessionIdPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:_json_payload",
+			args: args{
+				url:        fmt.Sprintf("%s/ait_ussd", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       jsonPayload,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+			response := httptest.NewRecorder()
+			if tt.name == "valid:_Successfully_Send_USSD" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721026491"
+					return &phone, nil
+				}
+
+			}
+			if tt.name == "invalid:_empty_phonenumber" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("empty phone number")
+				}
+			}
+			if tt.name == "invalid:_empty_sessionId" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721026491"
+					return &phone, nil
+				}
+			}
+			svr := h.IncomingUSSDHandler(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_EndUSSDNotificationHandler(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+	h := rest.NewHandlersInterfaces(i)
+
+	USSDPhoneNumber := "+254711445566"
+	SessionId := "123456778"
+	text := "1"
+	validPayload := composeUssdPayload(t, USSDPhoneNumber, SessionId, text)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:_Successfully_Get_USSD_Response",
+			args: args{
+				url:        fmt.Sprintf("%s/ait_end_note_ussd", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       validPayload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:_Nil_USSD_Response",
+			args: args{
+				url:        fmt.Sprintf("%s/ait_end_note_ussd", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       nil,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+			response := httptest.NewRecorder()
+			if tt.name == "valid:_Successfully_Get_USSD_Response" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721026491"
+					return &phone, nil
+				}
+				fakeRepo.AddIncomingUSSDDataFn = func(ctx context.Context, input *dto.EndSessionDetails) error {
+					return nil
+				}
+
+			}
+			svr := h.USSDEndNotificationHandler(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
 			if dataResponse == nil {
 				t.Errorf("nil response body data")
 				return

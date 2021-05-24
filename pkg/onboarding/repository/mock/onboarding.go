@@ -157,6 +157,7 @@ type FakeOnboardingRepository struct {
 	UpdateVerifiedIdentifiersFn     func(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error
 	UpdateVerifiedUIDSFn            func(ctx context.Context, id string, uids []string) error
 	UpdateAddressesFn               func(ctx context.Context, id string, address base.Address, addressType base.AddressType) error
+	AddIncomingUSSDDataFn           func(ctx context.Context, input *dto.EndSessionDetails) error
 }
 
 // GetSupplierProfileByID ...
@@ -504,4 +505,9 @@ func (f *FakeOnboardingRepository) UpdateCustomerProfile(
 // PersistIncomingSMSData ensures Africa's Talking SMS data is persisted in the database
 func (f *FakeOnboardingRepository) PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error {
 	return f.PersistIncomingSMSDataFn(ctx, input)
+}
+
+//AddIncomingUSSDData ...
+func (f *FakeOnboardingRepository) AddIncomingUSSDData(ctx context.Context, input *dto.EndSessionDetails) error {
+	return f.AddIncomingUSSDDataFn(ctx, input)
 }

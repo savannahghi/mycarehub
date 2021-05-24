@@ -94,3 +94,11 @@ type NHIFDetails struct {
 	IdentificationCardPhotoID string                     `json:"identificationCardPhotoID" firestore:"identificationCardPhotoID"`
 	NHIFCardPhotoID           string                     `json:"nhifCardPhotoID" firestore:"nhifCardPhotoID"`
 }
+
+//USSDLeadDetails represents ussd details from AIT
+type USSDLeadDetails struct {
+	ID          string `json:"id" firestore:"id"`
+	Text        string `json:"text" firestore:"text"`
+	PhoneNumber string `json:"phoneNumber" firestore:"phoneNumber"`
+	SessionID   string `json:"sessionId" firestore:"sessionId"`
+}

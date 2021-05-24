@@ -27,6 +27,7 @@ type Interactor struct {
 	NHIF         usecases.NHIFUseCases
 	PubSub       pubsubmessaging.ServicePubSub
 	SMS          usecases.SMSUsecase
+	AITUSSD      usecases.UssdUsecase
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -45,6 +46,7 @@ func NewOnboardingInteractor(
 	nhif usecases.NHIFUseCases,
 	pubsub pubsubmessaging.ServicePubSub,
 	sms usecases.SMSUsecase,
+	aitussd usecases.UssdUsecase,
 ) (*Interactor, error) {
 
 	return &Interactor{
@@ -61,5 +63,6 @@ func NewOnboardingInteractor(
 		NHIF:         nhif,
 		PubSub:       pubsub,
 		SMS:          sms,
+		AITUSSD:      aitussd,
 	}, nil
 }

@@ -268,3 +268,139 @@ func TestValidateSMSData(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateUSSDDetails(t *testing.T) {
+	phone := "+254711223344"
+	sessionId := "1235678"
+	text := ""
+
+	alphanumericPhone := "+254-not-valid-123"
+	emptySessionId := ""
+	badPhone := "+254712"
+
+	type args struct {
+		input *dto.SessionDetails
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "success: return a valid output",
+			args: args{
+				input: &dto.SessionDetails{
+					PhoneNumber: &phone,
+					SessionID:   sessionId,
+					Text:        text,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "failure: bad phone number provided",
+			args: args{
+				input: &dto.SessionDetails{
+					PhoneNumber: &badPhone,
+					SessionID:   sessionId,
+					Text:        text,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "failure: alphanumeric phone number provided",
+			args: args{
+				input: &dto.SessionDetails{
+					PhoneNumber: &alphanumericPhone,
+					SessionID:   sessionId,
+					Text:        text,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "failure: empty Ussd SessionId",
+			args: args{
+				input: &dto.SessionDetails{
+					PhoneNumber: &phone,
+					SessionID:   emptySessionId,
+					Text:        text,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			validInput, err := utils.ValidateUSSDDetails(tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidateUSSDDetails() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil && validInput != nil {
+				t.Errorf("expected a nil valid input since an error :%v occurred", err)
+			}
+
+			if err == nil && validInput == nil {
+				t.Errorf("expected a valid input %v since no error occurred", validInput)
+			}
+		})
+	}
+}
+
+func TestValidateEndNoteUSSDDetails(t *testing.T) {
+	phone := "+254711223344"
+	sessionId := "1235678"
+	text := ""
+
+	emptySessionId := ""
+
+	type args struct {
+		input *dto.EndSessionDetails
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "success: return a valid output",
+			args: args{
+				input: &dto.EndSessionDetails{
+					PhoneNumber: &phone,
+					SessionID:   sessionId,
+					Input:       text,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "failure: empty Ussd SessionId",
+			args: args{
+				input: &dto.EndSessionDetails{
+					PhoneNumber: &phone,
+					SessionID:   emptySessionId,
+					Input:       text,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			validInput, err := utils.ValidateEndNoteUSSDDetails(tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidateEndNoteUSSDDetails() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil && validInput != nil {
+				t.Errorf("expected a nil valid input since an error :%v occurred", err)
+			}
+
+			if err == nil && validInput == nil {
+				t.Errorf("expected a valid input %v since no error occurred", validInput)
+			}
+		})
+	}
+}

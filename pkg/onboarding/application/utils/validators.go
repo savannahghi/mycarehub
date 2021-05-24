@@ -95,3 +95,36 @@ func ValidateAficasTalkingSMSData(input *dto.AfricasTalkingMessage) (*dto.Africa
 		To:     input.To,
 	}, nil
 }
+
+//ValidateUSSDDetails checks if the phonenumber supplied is valid , that a session ID is provided
+// and returns valid USSD session details.
+func ValidateUSSDDetails(payload *dto.SessionDetails) (*dto.SessionDetails, error) {
+	phone, err := base.NormalizeMSISDN(*payload.PhoneNumber)
+	if err != nil {
+		return nil, exceptions.NormalizeMSISDNError(err)
+	}
+	if payload.SessionID == "" {
+		err := fmt.Errorf("expected sessionid to be defined")
+		return nil, exceptions.SessionIDError(err)
+	}
+	return &dto.SessionDetails{
+		PhoneNumber: phone,
+		SessionID:   payload.SessionID,
+		Text:        payload.Text,
+	}, nil
+}
+
+//ValidateEndNoteUSSDDetails checks if   session ID is provided
+// and returns valid End USSD session details.
+func ValidateEndNoteUSSDDetails(payload *dto.EndSessionDetails) (*dto.EndSessionDetails, error) {
+	if payload.SessionID == "" {
+		err := fmt.Errorf("expected sessionid to be defined")
+		return nil, exceptions.SessionIDError(err)
+	}
+	return &dto.EndSessionDetails{
+		PhoneNumber: payload.PhoneNumber,
+		SessionID:   payload.SessionID,
+		Input:       payload.Input,
+		Status:      payload.Status,
+	}, nil
+}

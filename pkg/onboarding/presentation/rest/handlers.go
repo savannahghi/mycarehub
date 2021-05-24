@@ -8,11 +8,10 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/gorilla/mux"
+	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
-
-	"gitlab.slade360emr.com/go/base"
 )
 
 // HandlersInterfaces represents all the REST API logic
@@ -38,6 +37,8 @@ type HandlersInterfaces interface {
 	RemoveAdminPermsToUser(ctx context.Context) http.HandlerFunc
 	UpdateUserProfile(ctx context.Context) http.HandlerFunc
 	IncomingATSMS(ctx context.Context) http.HandlerFunc
+	IncomingUSSDHandler(ctx context.Context) http.HandlerFunc
+	USSDEndNotificationHandler(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -755,4 +756,59 @@ func (h *HandlersInterfacesImpl) IncomingATSMS(ctx context.Context) http.Handler
 				Status: "Africa's Talking SMS data successfully created"},
 			http.StatusOK)
 	}
+}
+
+//IncomingUSSDHandler is a REST endpoint that is ussd create USSD
+//The Content-Type from AIT is x-www-form-urlencoded
+//To get the x-www-form-urlencoded request body we need to first call the below function on the request object
+//It parses the query string present in the URL and populates the Form field of the request object
+//https://golangbyexample.com/url-encoded-body-golang/
+func (h *HandlersInterfacesImpl) IncomingUSSDHandler(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &dto.SessionDetails{}
+
+		err := r.ParseForm()
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		p.SessionID = r.PostForm.Get("sessionId")
+		phone := r.PostForm.Get("phoneNumber")
+		p.PhoneNumber = &phone
+		p.Text = r.PostForm.Get("text")
+		sessionDetails, err := utils.ValidateUSSDDetails(p)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+		resp := h.interactor.AITUSSD.GenerateUSSD(sessionDetails)
+		fmt.Fprintf(w, "%s", resp)
+	}
+}
+
+//USSDEndNotificationHandler gets details of just ended session and creates USSD data
+func (h *HandlersInterfacesImpl) USSDEndNotificationHandler(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+		sessionDet := &dto.EndSessionDetails{}
+		sessionDet.SessionID = r.PostForm.Get("sessionId")
+		phone := r.PostForm.Get("phoneNumber")
+		sessionDet.PhoneNumber = &phone
+		sessionDet.Input = r.PostForm.Get("input")
+		err = h.interactor.AITUSSD.CreateUSSDData(ctx, sessionDet)
+		if err != nil {
+			base.ReportErr(w, err, http.StatusBadRequest)
+			return
+		}
+
+		base.WriteJSONResponse(w, dto.OKResp{
+			Status: "USSD Details persisted successfully"}, http.StatusOK)
+
+	}
+
 }

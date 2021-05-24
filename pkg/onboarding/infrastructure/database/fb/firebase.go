@@ -33,6 +33,7 @@ const (
 	nhifDetailsCollectionName            = "nhif_details"
 	communicationsSettingsCollectionName = "communications_settings"
 	smsCollectionName                    = "incoming_sms"
+	ussdCollectioName                    = "ussd"
 
 	firebaseExchangeRefreshTokenURL = "https://securetoken.googleapis.com/v1/token?key="
 )
@@ -114,6 +115,12 @@ func (fr Repository) GetCommunicationsSettingsCollectionName() string {
 // GetSMSCollectionName gets the collection name from firestore
 func (fr Repository) GetSMSCollectionName() string {
 	suffixed := base.SuffixCollection(smsCollectionName)
+	return suffixed
+}
+
+//GetUSSDCollectionName ...
+func (fr Repository) GetUSSDCollectionName() string {
+	suffixed := base.SuffixCollection(ussdCollectioName)
 	return suffixed
 }
 
@@ -2404,6 +2411,33 @@ func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *dto.Afr
 	createCommand := &CreateCommand{
 		CollectionName: fr.GetSMSCollectionName(),
 		Data:           validatedMessage,
+	}
+
+	_, err = fr.FirestoreClient.Create(ctx, createCommand)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+
+	return nil
+
+}
+
+//AddIncomingUSSDData persists USSD details
+func (fr *Repository) AddIncomingUSSDData(ctx context.Context, input *dto.EndSessionDetails) error {
+	validDetails, err := utils.ValidateEndNoteUSSDDetails(input)
+	if err != nil {
+		return err
+	}
+	ussdDetails := domain.USSDLeadDetails{
+		ID:          uuid.New().String(),
+		Text:        validDetails.Input,
+		SessionID:   validDetails.SessionID,
+		PhoneNumber: *validDetails.PhoneNumber,
+	}
+
+	createCommand := &CreateCommand{
+		CollectionName: fr.GetUSSDCollectionName(),
+		Data:           ussdDetails,
 	}
 
 	_, err = fr.FirestoreClient.Create(ctx, createCommand)

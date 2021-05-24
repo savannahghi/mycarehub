@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 
 	"fmt"
@@ -26,8 +27,6 @@ import (
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
-
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
@@ -3503,6 +3502,70 @@ func TestRepository_PersistIncomingSMSData(t *testing.T) {
 			}
 			if !tt.wantErr && err != nil {
 				t.Errorf("error was not expected but got error: %v", err)
+				return
+			}
+		})
+	}
+}
+
+func TestAddIncomingUSSDData(t *testing.T) {
+	ctx := context.Background()
+
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+		return
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+		return
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
+
+	phone := "+254711445566"
+	input := dto.EndSessionDetails{
+		SessionID:   "1234567",
+		Input:       "Get Cover",
+		PhoneNumber: &phone,
+	}
+	invalidInput := dto.EndSessionDetails{
+		SessionID:   "",
+		Input:       "Get Cover",
+		PhoneNumber: &phone,
+	}
+
+	type args struct {
+		ctx   context.Context
+		input dto.EndSessionDetails
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy:) successfully add USSD details",
+			args: args{
+				ctx:   ctx,
+				input: input,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy:) unSuccessfully add USSD details",
+			args: args{
+				ctx:   ctx,
+				input: invalidInput,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := fr.AddIncomingUSSDData(tt.args.ctx, &tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.AddIncomingUSSDData error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

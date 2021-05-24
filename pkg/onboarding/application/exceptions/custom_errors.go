@@ -438,3 +438,12 @@ func RecordDoesNotExistError(err error) error {
 		Code:    int(base.Internal),
 	}
 }
+
+// SessionIDError return an error when a ussd sessionId is not provided
+func SessionIDError(err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: SessionIDErrMsg,
+		Code:    int(base.Internal),
+	}
+}

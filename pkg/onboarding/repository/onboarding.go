@@ -156,4 +156,5 @@ type OnboardingRepository interface {
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
 
 	PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error
+	AddIncomingUSSDData(ctx context.Context, input *dto.EndSessionDetails) error
 }

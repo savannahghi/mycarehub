@@ -162,4 +162,8 @@ const (
 	// RecordDoesNotExistErrMsg is the error message displayed when a record cannot be found in
 	// the database
 	RecordDoesNotExistErrMsg = "the record cannot be found in the database"
+
+	//SessionIDErrMsg is an error message displayed when a sessionId is not provided in
+	// in the USSD details
+	SessionIDErrMsg = "sessionID not provided"
 )

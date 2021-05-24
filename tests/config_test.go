@@ -187,6 +187,16 @@ func composeSMSMessageDataPayload(t *testing.T, payload *dto.AfricasTalkingMessa
 	return smspayload
 }
 
+func composeUssdPayload(t *testing.T, phone, sessionID, text string) *strings.Reader {
+	data := url.Values{}
+	data.Set("phoneNumber", phone)
+	data.Set("sessionId", sessionID)
+	data.Set("text", text)
+
+	payload := strings.NewReader(data.Encode())
+	return payload
+}
+
 func CreateTestUserByPhone(t *testing.T, phone string) (*base.UserResponse, error) {
 	client := http.DefaultClient
 	validPayload, err := composeValidUserPayload(t, phone)
