@@ -6,9 +6,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -21,12 +21,12 @@ type SignUpUseCases interface {
 
 	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE
 	// NUMBER
-	CreateUserByPhone(ctx context.Context, input *resources.SignUpInput) (*base.UserResponse, error)
+	CreateUserByPhone(ctx context.Context, input *dto.SignUpInput) (*base.UserResponse, error)
 
 	// updates the user profile of the currently logged in user
 	UpdateUserProfile(
 		ctx context.Context,
-		input *resources.UserProfileInput,
+		input *dto.UserProfileInput,
 	) (*base.UserProfile, error)
 
 	// adds a new push token in the users profile if the push token does not exist
@@ -45,7 +45,7 @@ type SignUpUseCases interface {
 	GetUserRecoveryPhoneNumbers(
 		ctx context.Context,
 		phoneNumber string,
-	) (*resources.AccountRecoveryPhonesResponse, error)
+	) (*dto.AccountRecoveryPhonesResponse, error)
 
 	// called to set the provided phone number as the PRIMARY PHONE NUMBER in the user profile of
 	// the user
@@ -116,7 +116,7 @@ func (s *SignUpUseCasesImpl) VerifyPhoneNumber(
 // PRIMARY PHONE NUMBER
 func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	ctx context.Context,
-	input *resources.SignUpInput,
+	input *dto.SignUpInput,
 ) (*base.UserResponse, error) {
 	userData, err := utils.ValidateSignUpInput(input)
 	if err != nil {
@@ -206,7 +206,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 // UpdateUserProfile  updates the user profile of the currently logged in user
 func (s *SignUpUseCasesImpl) UpdateUserProfile(
 	ctx context.Context,
-	input *resources.UserProfileInput,
+	input *dto.UserProfileInput,
 ) (*base.UserProfile, error) {
 
 	// get the old user profile
@@ -315,7 +315,7 @@ func (s *SignUpUseCasesImpl) RetirePushToken(ctx context.Context, token string) 
 func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(
 	ctx context.Context,
 	phone string,
-) (*resources.AccountRecoveryPhonesResponse, error) {
+) (*dto.AccountRecoveryPhonesResponse, error) {
 	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
@@ -335,7 +335,7 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(
 
 	}(pr)
 	masked := s.profileUsecase.MaskPhoneNumbers(phones)
-	return &resources.AccountRecoveryPhonesResponse{
+	return &dto.AccountRecoveryPhonesResponse{
 		MaskedPhoneNumbers:   masked,
 		UnMaskedPhoneNumbers: phones,
 	}, nil

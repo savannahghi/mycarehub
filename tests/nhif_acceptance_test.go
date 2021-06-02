@@ -12,7 +12,7 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -204,7 +204,7 @@ func AddTestNHIFDetails(t *testing.T, user *base.UserResponse) error {
 
 	_, err = i.NHIF.AddNHIFDetails(
 		authenticatedContext,
-		resources.NHIFDetailsInput{
+		dto.NHIFDetailsInput{
 			MembershipNumber:          fmt.Sprintln(time.Now().Unix()),
 			Employment:                domain.EmploymentTypeEmployed,
 			NHIFCardPhotoID:           uuid.New().String(),

@@ -1,4 +1,4 @@
-package resources
+package dto
 
 // AfricasTalkingMessage contains the SMS message data
 type AfricasTalkingMessage struct {

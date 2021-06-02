@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 )
 
@@ -212,7 +212,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 	ctx := r.Context()
 	switch topicID {
 	case ps.AddPubSubNamespace(CreateCustomerTopic):
-		var data resources.CustomerPubSubMessage
+		var data dto.CustomerPubSubMessage
 		err := json.Unmarshal(message.Message.Data, &data)
 		if err != nil {
 			ps.baseExt.WriteJSONResponse(
@@ -236,7 +236,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		}
 
 	case ps.AddPubSubNamespace(CreateSupplierTopic):
-		var data resources.SupplierPubSubMessage
+		var data dto.SupplierPubSubMessage
 		err := json.Unmarshal(message.Message.Data, &data)
 		if err != nil {
 			ps.baseExt.WriteJSONResponse(

@@ -12,7 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
@@ -29,7 +29,7 @@ func TestUpdateUserProfile(t *testing.T) {
 	firstName := "kamau"
 	lastName := "mwas"
 	uploadID := "photo-upload-id"
-	up := resources.UserProfileInput{
+	up := dto.UserProfileInput{
 		PhotoUploadID: &uploadID,
 		DateOfBirth:   &dateOfBirth,
 		FirstName:     &firstName,
@@ -607,7 +607,7 @@ func TestUpdateCovers(t *testing.T) {
 		return
 	}
 
-	updateCoversPayload := &resources.UpdateCoversPayload{
+	updateCoversPayload := &dto.UpdateCoversPayload{
 		UID:                   &uid,
 		PayerName:             &payerName,
 		PayerSladeCode:        &payerSladeCode,
@@ -624,7 +624,7 @@ func TestUpdateCovers(t *testing.T) {
 	}
 	payload := bytes.NewBuffer(bs)
 
-	emptyData := &resources.UpdateCoversPayload{}
+	emptyData := &dto.UpdateCoversPayload{}
 	emptyBs, err := json.Marshal(emptyData)
 	if err != nil {
 		t.Errorf("unable to marshal test item to JSON: %s", err)
@@ -747,7 +747,7 @@ func TestEmailsProfileAttributes(t *testing.T) {
 		t.Errorf("nil user found")
 		return
 	}
-	uids := &resources.UIDsPayload{
+	uids := &dto.UIDsPayload{
 		UIDs: []string{user.Auth.UID},
 	}
 	bs, err := json.Marshal(uids)
@@ -756,7 +756,7 @@ func TestEmailsProfileAttributes(t *testing.T) {
 	}
 	payload := bytes.NewBuffer(bs)
 
-	emptyData := &resources.UIDsPayload{
+	emptyData := &dto.UIDsPayload{
 		UIDs: []string{},
 	}
 	emptyBs, err := json.Marshal(emptyData)
@@ -880,7 +880,7 @@ func TestPhoneNumbersProfileAttributes(t *testing.T) {
 		t.Errorf("nil user found")
 		return
 	}
-	uids := &resources.UIDsPayload{
+	uids := &dto.UIDsPayload{
 		UIDs: []string{user.Auth.UID},
 	}
 	bs, err := json.Marshal(uids)
@@ -889,7 +889,7 @@ func TestPhoneNumbersProfileAttributes(t *testing.T) {
 	}
 	payload := bytes.NewBuffer(bs)
 
-	emptyData := &resources.UIDsPayload{
+	emptyData := &dto.UIDsPayload{
 		UIDs: []string{},
 	}
 	emptyBs, err := json.Marshal(emptyData)
@@ -1013,7 +1013,7 @@ func TestTokensProfileAttributes(t *testing.T) {
 		t.Errorf("nil user found")
 		return
 	}
-	uids := &resources.UIDsPayload{
+	uids := &dto.UIDsPayload{
 		UIDs: []string{user.Auth.UID},
 	}
 	bs, err := json.Marshal(uids)
@@ -1022,7 +1022,7 @@ func TestTokensProfileAttributes(t *testing.T) {
 	}
 	payload := bytes.NewBuffer(bs)
 
-	emptyData := &resources.UIDsPayload{
+	emptyData := &dto.UIDsPayload{
 		UIDs: []string{},
 	}
 	emptyBs, err := json.Marshal(emptyData)

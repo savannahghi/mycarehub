@@ -13,9 +13,9 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
@@ -64,11 +64,11 @@ type ServiceEngagement interface {
 		subject string,
 	) error
 
-	SendAlertToSupplier(input resources.EmailNotificationPayload) error
+	SendAlertToSupplier(input dto.EmailNotificationPayload) error
 
-	NotifyAdmins(input resources.EmailNotificationPayload) error
+	NotifyAdmins(input dto.EmailNotificationPayload) error
 
-	NotifySupplierOnSuspension(input resources.EmailNotificationPayload) error
+	NotifySupplierOnSuspension(input dto.EmailNotificationPayload) error
 
 	GenerateAndSendOTP(
 		ctx context.Context,
@@ -202,10 +202,10 @@ func (en *ServiceEngagementImpl) SendMail(
 
 //SendAlertToSupplier send email to supplier to acknowledgement receipt of
 // KYC request/documents.
-func (en *ServiceEngagementImpl) SendAlertToSupplier(input resources.EmailNotificationPayload) error {
+func (en *ServiceEngagementImpl) SendAlertToSupplier(input dto.EmailNotificationPayload) error {
 	var writer bytes.Buffer
 	t := template.Must(template.New("acknowledgementKYCEmail").Parse(utils.AcknowledgementKYCEmail))
-	_ = t.Execute(&writer, resources.EmailNotificationPayload{
+	_ = t.Execute(&writer, dto.EmailNotificationPayload{
 		SupplierName: input.SupplierName,
 		PartnerType:  input.PartnerType,
 		AccountType:  input.AccountType,
@@ -234,7 +234,7 @@ func (en *ServiceEngagementImpl) SendAlertToSupplier(input resources.EmailNotifi
 
 //NotifyAdmins send email to admin notifying them of new
 // KYC Request.
-func (en *ServiceEngagementImpl) NotifyAdmins(input resources.EmailNotificationPayload) error {
+func (en *ServiceEngagementImpl) NotifyAdmins(input dto.EmailNotificationPayload) error {
 	adminEmail, err := base.GetEnvVar("SAVANNAH_ADMIN_EMAIL")
 	if err != nil {
 		return err
@@ -242,7 +242,7 @@ func (en *ServiceEngagementImpl) NotifyAdmins(input resources.EmailNotificationP
 
 	var writer bytes.Buffer
 	t := template.Must(template.New("adminKYCSubmittedEmail").Parse(utils.AdminKYCSubmittedEmail))
-	_ = t.Execute(&writer, resources.EmailNotificationPayload{
+	_ = t.Execute(&writer, dto.EmailNotificationPayload{
 		SupplierName: input.SupplierName,
 		PartnerType:  input.PartnerType,
 		AccountType:  input.AccountType,
@@ -429,10 +429,10 @@ func (en *ServiceEngagementImpl) VerifyEmailOTP(ctx context.Context, email, otp 
 
 //NotifySupplierOnSuspension send email to supplier notifying him of the
 // suspension.
-func (en *ServiceEngagementImpl) NotifySupplierOnSuspension(input resources.EmailNotificationPayload) error {
+func (en *ServiceEngagementImpl) NotifySupplierOnSuspension(input dto.EmailNotificationPayload) error {
 	var writer bytes.Buffer
 	t := template.Must(template.New("supplierSuspensionEmail").Parse(utils.SupplierSuspensionEmail))
-	_ = t.Execute(&writer, resources.EmailNotificationPayload{
+	_ = t.Execute(&writer, dto.EmailNotificationPayload{
 		SupplierName: input.SupplierName,
 		PartnerType:  input.PartnerType,
 		AccountType:  input.AccountType,

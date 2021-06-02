@@ -11,32 +11,32 @@ import (
 	"testing"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
-func composeValidWARetryOTPPayload(t *testing.T) *resources.SendRetryOTPPayload {
+func composeValidWARetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {
 	phoneNumber := base.TestUserPhoneNumber
 	step := 1
-	return &resources.SendRetryOTPPayload{
+	return &dto.SendRetryOTPPayload{
 		Phone:     &phoneNumber,
 		RetryStep: &step,
 	}
 }
 
 // TODO: Restore this
-// func composeValidMessageRetryOTPPayload(t *testing.T) *resources.SendRetryOTPPayload {
+// func composeValidMessageRetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {
 // 	phoneNumber := base.TestUserPhoneNumber
 // 	step := 2
-// 	return &resources.SendRetryOTPPayload{
+// 	return &dto.SendRetryOTPPayload{
 // 		Phone:     &phoneNumber,
 // 		RetryStep: &step,
 // 	}
 // }
 
-func composeInvalidRetryOTPPayload(t *testing.T) *resources.SendRetryOTPPayload {
+func composeInvalidRetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {
 	phoneNumber := base.TestUserPhoneNumber
 	step := 3 // There is no retry step > 2
-	return &resources.SendRetryOTPPayload{
+	return &dto.SendRetryOTPPayload{
 		Phone:     &phoneNumber,
 		RetryStep: &step,
 	}
@@ -180,7 +180,7 @@ func TestSendOTP(t *testing.T) {
 	client := http.DefaultClient
 
 	phoneNumber := base.TestUserPhoneNumber
-	validPayload := &resources.PhoneNumberPayload{
+	validPayload := &dto.PhoneNumberPayload{
 		PhoneNumber: &phoneNumber,
 	}
 	bs1, err := json.Marshal(validPayload)
@@ -190,7 +190,7 @@ func TestSendOTP(t *testing.T) {
 	validReqPayload := bytes.NewBuffer(bs1)
 
 	invalidPhone := "+2547569"
-	invalidPayload := &resources.PhoneNumberPayload{
+	invalidPayload := &dto.PhoneNumberPayload{
 		PhoneNumber: &invalidPhone,
 	}
 	bs2, err := json.Marshal(invalidPayload)

@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -18,8 +18,8 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		pagination *base.PaginationInput
-		filter     []*resources.BusinessPartnerFilterInput
-		sort       []*resources.BusinessPartnerSortInput
+		filter     []*dto.BusinessPartnerFilterInput
+		sort       []*dto.BusinessPartnerSortInput
 	}
 	first := 10
 	after := "0"
@@ -44,8 +44,8 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				pagination: &base.PaginationInput{},
-				filter:     []*resources.BusinessPartnerFilterInput{},
-				sort:       []*resources.BusinessPartnerSortInput{},
+				filter:     []*dto.BusinessPartnerFilterInput{},
+				sort:       []*dto.BusinessPartnerSortInput{},
 			},
 		},
 		{
@@ -59,8 +59,8 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 					First: first,
 					After: after,
 				},
-				filter: []*resources.BusinessPartnerFilterInput{},
-				sort:   []*resources.BusinessPartnerSortInput{},
+				filter: []*dto.BusinessPartnerFilterInput{},
+				sort:   []*dto.BusinessPartnerSortInput{},
 			},
 		},
 		{
@@ -74,8 +74,8 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 					Last:   last,
 					Before: before,
 				},
-				filter: []*resources.BusinessPartnerFilterInput{},
-				sort:   []*resources.BusinessPartnerSortInput{},
+				filter: []*dto.BusinessPartnerFilterInput{},
+				sort:   []*dto.BusinessPartnerSortInput{},
 			},
 		},
 		{
@@ -86,12 +86,12 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				pagination: &base.PaginationInput{},
-				filter: []*resources.BusinessPartnerFilterInput{
+				filter: []*dto.BusinessPartnerFilterInput{
 					{
 						SladeCode: &testSladeCode,
 					},
 				},
-				sort: []*resources.BusinessPartnerSortInput{},
+				sort: []*dto.BusinessPartnerSortInput{},
 			},
 		},
 		{
@@ -102,8 +102,8 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				pagination: &base.PaginationInput{},
-				filter:     []*resources.BusinessPartnerFilterInput{},
-				sort: []*resources.BusinessPartnerSortInput{
+				filter:     []*dto.BusinessPartnerFilterInput{},
+				sort: []*dto.BusinessPartnerSortInput{
 					{
 						Name:      &ascSort,
 						SladeCode: &ascSort,
@@ -121,8 +121,8 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 				pagination: &base.PaginationInput{
 					After: invalidPage,
 				},
-				filter: []*resources.BusinessPartnerFilterInput{},
-				sort:   []*resources.BusinessPartnerSortInput{},
+				filter: []*dto.BusinessPartnerFilterInput{},
+				sort:   []*dto.BusinessPartnerSortInput{},
 			},
 		},
 	}
@@ -150,8 +150,8 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		pagination *base.PaginationInput
-		filter     []*resources.BranchFilterInput
-		sort       []*resources.BranchSortInput
+		filter     []*dto.BranchFilterInput
+		sort       []*dto.BranchSortInput
 	}
 	first := 10
 	after := "0"
@@ -176,8 +176,8 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				pagination: &base.PaginationInput{},
-				filter:     []*resources.BranchFilterInput{},
-				sort:       []*resources.BranchSortInput{},
+				filter:     []*dto.BranchFilterInput{},
+				sort:       []*dto.BranchSortInput{},
 			},
 		},
 		{
@@ -191,8 +191,8 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 					First: first,
 					After: after,
 				},
-				filter: []*resources.BranchFilterInput{},
-				sort:   []*resources.BranchSortInput{},
+				filter: []*dto.BranchFilterInput{},
+				sort:   []*dto.BranchSortInput{},
 			},
 		},
 		{
@@ -206,8 +206,8 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 					Last:   last,
 					Before: before,
 				},
-				filter: []*resources.BranchFilterInput{},
-				sort:   []*resources.BranchSortInput{},
+				filter: []*dto.BranchFilterInput{},
+				sort:   []*dto.BranchSortInput{},
 			},
 		},
 		{
@@ -218,12 +218,12 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				pagination: &base.PaginationInput{},
-				filter: []*resources.BranchFilterInput{
+				filter: []*dto.BranchFilterInput{
 					{
 						SladeCode: &testSladeCode,
 					},
 				},
-				sort: []*resources.BranchSortInput{},
+				sort: []*dto.BranchSortInput{},
 			},
 		},
 		{
@@ -234,8 +234,8 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				pagination: &base.PaginationInput{},
-				filter:     []*resources.BranchFilterInput{},
-				sort: []*resources.BranchSortInput{
+				filter:     []*dto.BranchFilterInput{},
+				sort: []*dto.BranchSortInput{
 					{
 						Name:      &ascSort,
 						SladeCode: &ascSort,
@@ -253,8 +253,8 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 				pagination: &base.PaginationInput{
 					After: invalidPage,
 				},
-				filter: []*resources.BranchFilterInput{},
-				sort:   []*resources.BranchSortInput{},
+				filter: []*dto.BranchFilterInput{},
+				sort:   []*dto.BranchSortInput{},
 			},
 		},
 	}
@@ -336,8 +336,8 @@ func TestServiceChargeMasterImpl_FetchProviderByID(t *testing.T) {
 	cm := NewChargeMasterUseCasesImpl()
 
 	pagination := &base.PaginationInput{}
-	filter := []*resources.BusinessPartnerFilterInput{}
-	sort := []*resources.BusinessPartnerSortInput{}
+	filter := []*dto.BusinessPartnerFilterInput{}
+	sort := []*dto.BusinessPartnerSortInput{}
 
 	partners, err := cm.FindProvider(ctx, pagination, filter, sort)
 	if err != nil {

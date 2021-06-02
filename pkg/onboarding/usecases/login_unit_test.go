@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -93,8 +93,8 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:_login_with_pin" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -115,14 +115,14 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_get_profile" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return nil, fmt.Errorf("unable to log in")
 				}
 			}
 
 			if tt.name == "invalid:_userprofile_returns_nil" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -135,8 +135,8 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_get_pin_by_profile_id" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -154,8 +154,8 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_pin_data_returns_nil" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -173,8 +173,8 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_pin_mismatch" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",

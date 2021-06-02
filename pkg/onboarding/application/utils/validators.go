@@ -7,13 +7,13 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 )
 
 // ValidateUID checks that the uid supplied in the indicated request is valid
-func ValidateUID(w http.ResponseWriter, r *http.Request) (*resources.UIDPayload, error) {
-	p := &resources.UIDPayload{}
+func ValidateUID(w http.ResponseWriter, r *http.Request) (*dto.UIDPayload, error) {
+	p := &dto.UIDPayload{}
 	base.DecodeJSONToTargetStruct(w, r, p)
 	if p.UID == nil {
 		err := fmt.Errorf("invalid credentials, expected a uid")
@@ -23,7 +23,7 @@ func ValidateUID(w http.ResponseWriter, r *http.Request) (*resources.UIDPayload,
 }
 
 // ValidateSignUpInput returns a valid sign up input
-func ValidateSignUpInput(input *resources.SignUpInput) (*resources.SignUpInput, error) {
+func ValidateSignUpInput(input *dto.SignUpInput) (*dto.SignUpInput, error) {
 	if !input.Flavour.IsValid() {
 		return nil, exceptions.WrongEnumTypeError(input.Flavour.String())
 	}
@@ -47,7 +47,7 @@ func ValidateSignUpInput(input *resources.SignUpInput) (*resources.SignUpInput, 
 		return nil, exceptions.MissingInputError("otp")
 	}
 
-	return &resources.SignUpInput{
+	return &dto.SignUpInput{
 		PhoneNumber: phone,
 		PIN:         input.PIN,
 		Flavour:     input.Flavour,
@@ -56,7 +56,7 @@ func ValidateSignUpInput(input *resources.SignUpInput) (*resources.SignUpInput, 
 }
 
 // ValidateAficasTalkingSMSData returns AIT validated SMS data
-func ValidateAficasTalkingSMSData(input *resources.AfricasTalkingMessage) (*resources.AfricasTalkingMessage, error) {
+func ValidateAficasTalkingSMSData(input *dto.AfricasTalkingMessage) (*dto.AfricasTalkingMessage, error) {
 	if input.LinkID == " " {
 		return nil, fmt.Errorf("message `linkID` cannot be empty")
 	}
@@ -86,7 +86,7 @@ func ValidateAficasTalkingSMSData(input *resources.AfricasTalkingMessage) (*reso
 		return nil, err
 	}
 
-	return &resources.AfricasTalkingMessage{
+	return &dto.AfricasTalkingMessage{
 		Date:   input.Date,
 		From:   input.From,
 		ID:     input.ID,

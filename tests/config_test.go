@@ -20,8 +20,8 @@ import (
 	"github.com/imroc/req"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
@@ -147,11 +147,11 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}, nil
 }
 
-func composeInValidUserPayload(t *testing.T) *resources.SignUpInput {
+func composeInValidUserPayload(t *testing.T) *dto.SignUpInput {
 	phone := base.TestUserPhoneNumber
 	pin := "" // empty string
 	flavour := base.FlavourPro
-	payload := &resources.SignUpInput{
+	payload := &dto.SignUpInput{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -159,14 +159,14 @@ func composeInValidUserPayload(t *testing.T) *resources.SignUpInput {
 	return payload
 }
 
-func composeValidUserPayload(t *testing.T, phone string) (*resources.SignUpInput, error) {
+func composeValidUserPayload(t *testing.T, phone string) (*dto.SignUpInput, error) {
 	pin := "2030"
 	flavour := base.FlavourPro
 	otp, err := generateTestOTP(t, phone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate test OTP: %v", err)
 	}
-	return &resources.SignUpInput{
+	return &dto.SignUpInput{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -174,7 +174,7 @@ func composeValidUserPayload(t *testing.T, phone string) (*resources.SignUpInput
 	}, nil
 }
 
-func composeSMSMessageDataPayload(t *testing.T, payload *resources.AfricasTalkingMessage) *strings.Reader {
+func composeSMSMessageDataPayload(t *testing.T, payload *dto.AfricasTalkingMessage) *strings.Reader {
 	data := url.Values{}
 	data.Set("date", payload.Date)
 	data.Set("from", payload.From)
@@ -252,7 +252,7 @@ func TestCreateTestUserByPhone(t *testing.T) {
 
 func RemoveTestUserByPhone(t *testing.T, phone string) (bool, error) {
 	client := http.DefaultClient
-	validPayload := &resources.PhoneNumberPayload{PhoneNumber: &phone}
+	validPayload := &dto.PhoneNumberPayload{PhoneNumber: &phone}
 	bs, err := json.Marshal(validPayload)
 	if err != nil {
 		return false, fmt.Errorf("unable to marshal test item to JSON: %s", err)

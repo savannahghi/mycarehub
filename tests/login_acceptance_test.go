@@ -14,14 +14,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
-func composeInvalidUserPINPayload(t *testing.T) *resources.LoginPayload {
+func composeInvalidUserPINPayload(t *testing.T) *dto.LoginPayload {
 	phone := base.TestUserPhoneNumberWithPin
 	pin := "" // empty pin
 	flavour := base.FlavourPro
-	payload := &resources.LoginPayload{
+	payload := &dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -29,12 +29,12 @@ func composeInvalidUserPINPayload(t *testing.T) *resources.LoginPayload {
 	return payload
 }
 
-func composeWrongUserPINPayload(t *testing.T) *resources.LoginPayload {
+func composeWrongUserPINPayload(t *testing.T) *dto.LoginPayload {
 	phone := base.TestUserPhoneNumber // This number should be the same as the
 	// used to create the user
 	pin := "qwer"
 	flavour := base.FlavourPro
-	payload := &resources.LoginPayload{
+	payload := &dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -42,11 +42,11 @@ func composeWrongUserPINPayload(t *testing.T) *resources.LoginPayload {
 	return payload
 }
 
-func composeWrongUserPhonePayload(t *testing.T) *resources.LoginPayload {
+func composeWrongUserPhonePayload(t *testing.T) *dto.LoginPayload {
 	phone := "+254700000000"
 	pin := base.TestUserPin
 	flavour := base.FlavourPro
-	payload := &resources.LoginPayload{
+	payload := &dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -54,11 +54,11 @@ func composeWrongUserPhonePayload(t *testing.T) *resources.LoginPayload {
 	return payload
 }
 
-func composeInvalidUserPhonePayload(t *testing.T) *resources.LoginPayload {
+func composeInvalidUserPhonePayload(t *testing.T) *dto.LoginPayload {
 	phone := "+254-not-a-number"
 	pin := base.TestUserPin
 	flavour := base.FlavourPro
-	payload := &resources.LoginPayload{
+	payload := &dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -66,10 +66,10 @@ func composeInvalidUserPhonePayload(t *testing.T) *resources.LoginPayload {
 	return payload
 }
 
-func composeWrongFlavourPayload(t *testing.T) *resources.LoginPayload {
+func composeWrongFlavourPayload(t *testing.T) *dto.LoginPayload {
 	phone := base.TestUserPhoneNumberWithPin
 	pin := base.TestUserPin
-	payload := &resources.LoginPayload{
+	payload := &dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     "bad-flavour-supplied",
@@ -130,7 +130,7 @@ func TestLoginInByPhone(t *testing.T) {
 	}
 	badInvalidPhonepayload := bytes.NewBuffer(invalidPhoneBs)
 
-	emptyData := &resources.LoginPayload{}
+	emptyData := &dto.LoginPayload{}
 	emptyBs, err := json.Marshal(emptyData)
 	if err != nil {
 		t.Errorf("unable to marshal test item to JSON: %s", err)
@@ -302,7 +302,7 @@ func TestLoginInByPhone(t *testing.T) {
 func TestLoginAsAnonymous(t *testing.T) {
 	client := http.DefaultClient
 
-	p1, err := json.Marshal(&resources.LoginPayload{
+	p1, err := json.Marshal(&dto.LoginPayload{
 		Flavour: base.FlavourConsumer,
 	})
 	if err != nil {
@@ -310,7 +310,7 @@ func TestLoginAsAnonymous(t *testing.T) {
 	}
 	validPayload := bytes.NewBuffer(p1)
 
-	p2, err := json.Marshal(&resources.LoginPayload{
+	p2, err := json.Marshal(&dto.LoginPayload{
 		Flavour: base.FlavourPro,
 	})
 	if err != nil {
@@ -430,7 +430,7 @@ func TestRefreshToken(t *testing.T) {
 		return
 	}
 	validToken := user.Auth.RefreshToken
-	validPayload := &resources.RefreshTokenPayload{
+	validPayload := &dto.RefreshTokenPayload{
 		RefreshToken: &validToken,
 	}
 	bs, err := json.Marshal(validPayload)
@@ -440,7 +440,7 @@ func TestRefreshToken(t *testing.T) {
 	payload := bytes.NewBuffer(bs)
 
 	inValidToken := "some-token"
-	inValidPayload := &resources.RefreshTokenPayload{
+	inValidPayload := &dto.RefreshTokenPayload{
 		RefreshToken: &inValidToken,
 	}
 	badBs, err := json.Marshal(inValidPayload)
@@ -449,7 +449,7 @@ func TestRefreshToken(t *testing.T) {
 	}
 	badPayload := bytes.NewBuffer(badBs)
 
-	emptyData := &resources.LoginPayload{}
+	emptyData := &dto.LoginPayload{}
 	emptyBs, err := json.Marshal(emptyData)
 	if err != nil {
 		t.Errorf("unable to marshal test item to JSON: %s", err)

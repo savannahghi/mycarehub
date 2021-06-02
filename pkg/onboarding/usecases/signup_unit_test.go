@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -63,8 +63,8 @@ func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:_successfully_retire_pushtoken" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "12233",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -84,8 +84,8 @@ func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_fail_to_retire_pushtoken" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "12233",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -105,8 +105,8 @@ func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_fail_to_retire_pushtoken_invalid_length" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "12233",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -162,7 +162,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 	pin := "1234"
 	otp := "678251"
 
-	validSignUpInput := &resources.SignUpInput{
+	validSignUpInput := &dto.SignUpInput{
 		PhoneNumber: &phoneNumber,
 		PIN:         &pin,
 		Flavour:     base.FlavourConsumer,
@@ -173,7 +173,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 	invalidPin := ""
 	invalidOTP := ""
 
-	invalidSignUpInput := &resources.SignUpInput{
+	invalidSignUpInput := &dto.SignUpInput{
 		PhoneNumber: &invalidPhoneNumber,
 		PIN:         &invalidPin,
 		Flavour:     base.FlavourConsumer,
@@ -182,7 +182,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 
 	type args struct {
 		ctx   context.Context
-		input *resources.SignUpInput
+		input *dto.SignUpInput
 	}
 	tests := []struct {
 		name    string
@@ -262,8 +262,8 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
-					return &resources.CreatedUserResponse{
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*dto.CreatedUserResponse, error) {
+					return &dto.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						DisplayName: "John Doe",
 						Email:       "johndoe@gmail.com",
@@ -360,8 +360,8 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
-					return &resources.CreatedUserResponse{
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*dto.CreatedUserResponse, error) {
+					return &dto.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						DisplayName: "John Doe",
 						Email:       "johndoe@gmail.com",
@@ -379,8 +379,8 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
-					return &resources.CreatedUserResponse{
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*dto.CreatedUserResponse, error) {
+					return &dto.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						DisplayName: "John Doe",
 						Email:       "johndoe@gmail.com",
@@ -404,8 +404,8 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
-					return &resources.CreatedUserResponse{
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*dto.CreatedUserResponse, error) {
+					return &dto.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						DisplayName: "John Doe",
 						Email:       "johndoe@gmail.com",
@@ -457,8 +457,8 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
-					return &resources.CreatedUserResponse{
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*dto.CreatedUserResponse, error) {
+					return &dto.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						DisplayName: "John Doe",
 						Email:       "johndoe@gmail.com",
@@ -515,8 +515,8 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 
-				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
-					return &resources.CreatedUserResponse{
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*dto.CreatedUserResponse, error) {
+					return &dto.CreatedUserResponse{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						DisplayName: "John Doe",
 						Email:       "johndoe@gmail.com",
@@ -1345,7 +1345,7 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 
 				fakeEPRSvc.CreateERPCustomerFn = func(
 					ctx context.Context,
-					customerPayload resources.CustomerPayload,
+					customerPayload dto.CustomerPayload,
 					UID string,
 				) (*base.Customer, error) {
 					return nil, fmt.Errorf("failed to add customer supplier ERP account")
@@ -1434,7 +1434,7 @@ func TestSignUpUseCasesImpl_GetUserRecoveryPhoneNumbers(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *resources.AccountRecoveryPhonesResponse
+		want    *dto.AccountRecoveryPhonesResponse
 		wantErr bool
 	}{
 		{
@@ -1542,14 +1542,14 @@ func TestSignUpUseCasesImpl_UpdateUserProfile(t *testing.T) {
 		Month: 3,
 		Day:   10,
 	}
-	validInput := &resources.UserProfileInput{
+	validInput := &dto.UserProfileInput{
 		PhotoUploadID: &photoUploadID,
 		DateOfBirth:   &dateOfBirth,
 		Gender:        &gender,
 		FirstName:     &firstName,
 		LastName:      &lastName,
 	}
-	invalidInput := &resources.UserProfileInput{
+	invalidInput := &dto.UserProfileInput{
 		PhotoUploadID: nil,
 		DateOfBirth:   nil,
 		Gender:        nil,
@@ -1558,7 +1558,7 @@ func TestSignUpUseCasesImpl_UpdateUserProfile(t *testing.T) {
 	}
 	type args struct {
 		ctx   context.Context
-		input *resources.UserProfileInput
+		input *dto.UserProfileInput
 	}
 	tests := []struct {
 		name    string

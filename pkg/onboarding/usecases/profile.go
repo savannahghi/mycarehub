@@ -12,9 +12,9 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
@@ -125,7 +125,7 @@ type ProfileUseCase interface {
 
 	AddAddress(
 		ctx context.Context,
-		input resources.UserAddressInput,
+		input dto.UserAddressInput,
 		addressType base.AddressType,
 	) (*base.Address, error)
 
@@ -1091,7 +1091,7 @@ func (p *ProfileUseCaseImpl) SetupAsExperimentParticipant(
 // AddAddress adds a user's home or work address to thir user's profile
 func (p *ProfileUseCaseImpl) AddAddress(
 	ctx context.Context,
-	input resources.UserAddressInput,
+	input dto.UserAddressInput,
 	addressType base.AddressType,
 ) (*base.Address, error) {
 	var address *base.Address

@@ -3,7 +3,7 @@ package mock
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 
 	"gitlab.slade360emr.com/go/base"
@@ -13,10 +13,10 @@ import (
 type FakeServiceChargeMaster struct {
 	FetchChargeMasterClientFn func() *base.ServerClient
 	FetchProviderByIDFn       func(ctx context.Context, id string) (*domain.BusinessPartner, error)
-	FindProviderFn            func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput,
-		sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error)
-	FindBranchFn func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-		sort []*resources.BranchSortInput) (*resources.BranchConnection, error)
+	FindProviderFn            func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+		sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error)
+	FindBranchFn func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+		sort []*dto.BranchSortInput) (*dto.BranchConnection, error)
 }
 
 // FetchChargeMasterClient ...
@@ -25,14 +25,14 @@ func (f *FakeServiceChargeMaster) FetchChargeMasterClient() *base.ServerClient {
 }
 
 // FindProvider ...
-func (f *FakeServiceChargeMaster) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput,
-	sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
+func (f *FakeServiceChargeMaster) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+	sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
 	return f.FindProviderFn(ctx, pagination, filter, sort)
 }
 
 // FindBranch ...
-func (f *FakeServiceChargeMaster) FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-	sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
+func (f *FakeServiceChargeMaster) FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+	sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 	return f.FindBranchFn(ctx, pagination, filter, sort)
 }
 

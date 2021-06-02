@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 
 	"firebase.google.com/go/auth"
@@ -1228,7 +1228,7 @@ func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []
 // RecordPostVisitSurvey records an end of visit survey
 func (fr *Repository) RecordPostVisitSurvey(
 	ctx context.Context,
-	input resources.PostVisitSurveyInput,
+	input dto.PostVisitSurveyInput,
 	UID string,
 ) error {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
@@ -1311,7 +1311,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*base.
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	payload := resources.RefreshTokenExchangePayload{
+	payload := dto.RefreshTokenExchangePayload{
 		GrantType:    "refresh_token",
 		RefreshToken: refreshToken,
 	}
@@ -1957,13 +1957,13 @@ func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
 func (fr *Repository) GetOrCreatePhoneNumberUser(
 	ctx context.Context,
 	phone string,
-) (*resources.CreatedUserResponse, error) {
+) (*dto.CreatedUserResponse, error) {
 	user, err := fr.FirebaseClient.GetUserByPhoneNumber(
 		ctx,
 		phone,
 	)
 	if err == nil {
-		return &resources.CreatedUserResponse{
+		return &dto.CreatedUserResponse{
 			UID:         user.UID,
 			DisplayName: user.DisplayName,
 			Email:       user.Email,
@@ -1982,7 +1982,7 @@ func (fr *Repository) GetOrCreatePhoneNumberUser(
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
-	return &resources.CreatedUserResponse{
+	return &dto.CreatedUserResponse{
 		UID:         newUser.UID,
 		DisplayName: newUser.DisplayName,
 		Email:       newUser.Email,
@@ -2186,7 +2186,7 @@ func (fr *Repository) UpdateAddresses(
 // AddNHIFDetails persists a user's NHIF details
 func (fr *Repository) AddNHIFDetails(
 	ctx context.Context,
-	input resources.NHIFDetailsInput,
+	input dto.NHIFDetailsInput,
 	profileID string,
 ) (*domain.NHIFDetails, error) {
 	// Do a check if the item exists
@@ -2386,8 +2386,8 @@ func (fr *Repository) UpdateCustomerProfile(
 }
 
 // PersistIncomingSMSData persists SMS data
-func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *resources.AfricasTalkingMessage) error {
-	message := &resources.AfricasTalkingMessage{
+func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error {
+	message := &dto.AfricasTalkingMessage{
 		Date:   input.Date,
 		From:   input.From,
 		ID:     input.ID,

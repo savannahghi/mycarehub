@@ -3,15 +3,15 @@ package usecases
 import (
 	"context"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 // SMSUsecase represent the logic involved in receiving an SMS
 type SMSUsecase interface {
-	CreateSMSData(ctx context.Context, input *resources.AfricasTalkingMessage) error
+	CreateSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error
 }
 
 //SMSImpl represents usecase implemenation object
@@ -32,7 +32,7 @@ func NewSMSUsecase(
 }
 
 // CreateSMSData adds SMS data of the message received
-func (s *SMSImpl) CreateSMSData(ctx context.Context, input *resources.AfricasTalkingMessage) error {
+func (s *SMSImpl) CreateSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error {
 	validatedInput, err := utils.ValidateAficasTalkingSMSData(input)
 	if err != nil {
 		return err

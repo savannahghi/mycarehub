@@ -1,101 +1,101 @@
 package permission
 
 import (
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 // UserProfileView describes read permissions on viewing a user profile
-var UserProfileView = resources.PermissionInput{
+var UserProfileView = dto.PermissionInput{
 	Resource: "user_profile_view",
 	Action:   "view",
 }
 
 // PrimaryPhoneUpdate describes update permissions on a user primary phonenumber
-var PrimaryPhoneUpdate = resources.PermissionInput{
+var PrimaryPhoneUpdate = dto.PermissionInput{
 	Resource: "update_primary_phone",
 	Action:   "edit",
 }
 
 // PrimaryEmailUpdate describes update permissions on a user's primary email address
-var PrimaryEmailUpdate = resources.PermissionInput{
+var PrimaryEmailUpdate = dto.PermissionInput{
 	Resource: "update_primary_email",
 	Action:   "edit",
 }
 
 // SecondaryPhoneNumberUpdate describes update permissions on the user secondary phonenumber
-var SecondaryPhoneNumberUpdate = resources.PermissionInput{
+var SecondaryPhoneNumberUpdate = dto.PermissionInput{
 	Resource: "update_secondary_phone",
 	Action:   "edit",
 }
 
 // SecondaryEmailAddressUpdate describes update permissions on the user secondary email address
-var SecondaryEmailAddressUpdate = resources.PermissionInput{
+var SecondaryEmailAddressUpdate = dto.PermissionInput{
 	Resource: "update_secondary_email",
 	Action:   "edit",
 }
 
 // VerifiedUIDUpdate describes update permissions on the user UID
-var VerifiedUIDUpdate = resources.PermissionInput{
+var VerifiedUIDUpdate = dto.PermissionInput{
 	Resource: "update_verified_uid",
 	Action:   "edit",
 }
 
 // VerifiedIdentifiersUpdate describes update permissions on a user verified identifiers
-var VerifiedIdentifiersUpdate = resources.PermissionInput{
+var VerifiedIdentifiersUpdate = dto.PermissionInput{
 	Resource: "update_verified_identifiers",
 	Action:   "edit",
 }
 
 // SuspendedUpdate describes update permissions on a user suspension status
-var SuspendedUpdate = resources.PermissionInput{
+var SuspendedUpdate = dto.PermissionInput{
 	Resource: "update_suspended",
 	Action:   "edit",
 }
 
 // PhotoUploadIDUpdate describes update permissions on a user photo upload
-var PhotoUploadIDUpdate = resources.PermissionInput{
+var PhotoUploadIDUpdate = dto.PermissionInput{
 	Resource: "update_photo_upload_id",
 	Action:   "edit",
 }
 
 // PushTokensUpdate describes update permissions on a user push tokens
-var PushTokensUpdate = resources.PermissionInput{
+var PushTokensUpdate = dto.PermissionInput{
 	Resource: "update_push_token",
 	Action:   "edit",
 }
 
 // PermissionsUpdate describes update permissions on a user permissions
-var PermissionsUpdate = resources.PermissionInput{
+var PermissionsUpdate = dto.PermissionInput{
 	Resource: "update_permissions",
 	Action:   "edit",
 }
 
 // BioDataUpdate describes update permissions on a user bio data
-var BioDataUpdate = resources.PermissionInput{
+var BioDataUpdate = dto.PermissionInput{
 	Resource: "update_bio_data",
 	Action:   "edit",
 }
 
 // PartnerTypeCreate describes write permissions on creating a user partner type
-var PartnerTypeCreate = resources.PermissionInput{
+var PartnerTypeCreate = dto.PermissionInput{
 	Resource: "add_partner_type",
 	Action:   "create",
 }
 
 // SupplierCreate describes write permissions on inital creation of a supplier
-var SupplierCreate = resources.PermissionInput{
+var SupplierCreate = dto.PermissionInput{
 	Resource: "setup_supplier",
 	Action:   "create",
 }
 
 // CustomerAccountCreate describes write permissions on inital creation of a customer account
-var CustomerAccountCreate = resources.PermissionInput{
+var CustomerAccountCreate = dto.PermissionInput{
 	Resource: "create_customer_account",
 	Action:   "create",
 }
 
 // SupplierAccountCreate describes write permissions on inital creation of a supplier account
-var SupplierAccountCreate = resources.PermissionInput{
+var SupplierAccountCreate = dto.PermissionInput{
 	Resource: "create_supplier_account",
 	Action:   "create",
 }

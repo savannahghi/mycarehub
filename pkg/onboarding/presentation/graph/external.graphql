@@ -14,7 +14,7 @@ enum Language {
 """
 PractitionerSpecialties is a list of recognised health worker specialties.
 
-See: https://medicalboard.co.ke/resources_page/gazetted-specialties/
+See: https://medicalboard.co.ke/dto_page/gazetted-specialties/
 """
 enum PractitionerSpecialty {
   UNSPECIFIED

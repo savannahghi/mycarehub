@@ -13,8 +13,8 @@ import (
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
@@ -250,7 +250,7 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 
 	u, err := s.Signup.CreateUserByPhone(
 		ctx,
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &phone,
 			PIN:         &pin,
 			Flavour:     flavour,

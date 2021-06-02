@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 func TestCreateUserWithPhoneNumber(t *testing.T) {
@@ -291,7 +291,7 @@ func TestUserRecoveryPhoneNumbers(t *testing.T) {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-	validPayload := resources.PhoneNumberPayload{
+	validPayload := dto.PhoneNumberPayload{
 		PhoneNumber: &validPhoneNumber,
 	}
 	bs, err := json.Marshal(validPayload)
@@ -302,7 +302,7 @@ func TestUserRecoveryPhoneNumbers(t *testing.T) {
 
 	// phone number not registered
 	inValidNumber := base.TestUserPhoneNumberWithPin
-	badPayload := resources.PhoneNumberPayload{
+	badPayload := dto.PhoneNumberPayload{
 		PhoneNumber: &inValidNumber,
 	}
 	bs2, err := json.Marshal(badPayload)

@@ -14,9 +14,9 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub/mock"
@@ -1097,7 +1097,7 @@ func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 	type args struct {
-		input resources.EmailNotificationPayload
+		input dto.EmailNotificationPayload
 	}
 	suspensionReason := `
 	"This email is to inform you that as a result of your actions on April 12th, 2021, you have been issued a suspension for 1 week (7 days)"
@@ -1107,7 +1107,7 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 	emailBody := suspensionReason
 	emailAddress := base.TestUserEmail
 	primaryPhone := base.TestUserPhoneNumber
-	validInput := resources.EmailNotificationPayload{
+	validInput := dto.EmailNotificationPayload{
 		SupplierName: supplierName,
 		SubjectTitle: subjectTitle,
 		EmailBody:    emailBody,
@@ -1115,7 +1115,7 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 		PrimaryPhone: primaryPhone,
 	}
 	invalidEmailAddress := "12345"
-	invalidInput := resources.EmailNotificationPayload{
+	invalidInput := dto.EmailNotificationPayload{
 		SupplierName: supplierName,
 		SubjectTitle: subjectTitle,
 		EmailBody:    emailBody,
@@ -1200,7 +1200,7 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 
 func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
-	input := resources.EmailNotificationPayload{
+	input := dto.EmailNotificationPayload{
 		SupplierName: "Supplier",
 		PartnerType:  "INDIVIDUAL",
 		AccountType:  "INDIVIDUAL",
@@ -1211,7 +1211,7 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 	}
 
 	type args struct {
-		input resources.EmailNotificationPayload
+		input dto.EmailNotificationPayload
 	}
 	tests := []struct {
 		name    string
@@ -1275,7 +1275,7 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 
 func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
-	input := resources.EmailNotificationPayload{
+	input := dto.EmailNotificationPayload{
 		SupplierName: "Supplier",
 		PartnerType:  "INDIVIDUAL",
 		AccountType:  "INDIVIDUAL",
@@ -1286,7 +1286,7 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 	}
 
 	type args struct {
-		input resources.EmailNotificationPayload
+		input dto.EmailNotificationPayload
 	}
 	tests := []struct {
 		name    string

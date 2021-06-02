@@ -35,7 +35,7 @@ resolver:
 # if they match it will use them, otherwise it will generate them.
 autobind:
   - "gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-  - "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+  - "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
   - "gitlab.slade360emr.com/go/base"
 
 # This section declares type mapping between the GraphQL and go type systems

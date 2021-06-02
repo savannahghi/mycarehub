@@ -3,7 +3,7 @@ package mock
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 
 	"gitlab.slade360emr.com/go/base"
@@ -85,7 +85,7 @@ type FakeOnboardingRepository struct {
 	GetPINByProfileIDFn func(ctx context.Context, ProfileID string) (*domain.PIN, error)
 
 	// Record post visit survey
-	RecordPostVisitSurveyFn func(ctx context.Context, input resources.PostVisitSurveyInput, UID string) error
+	RecordPostVisitSurveyFn func(ctx context.Context, input dto.PostVisitSurveyInput, UID string) error
 
 	// User Pin methods
 	SavePINFn   func(ctx context.Context, pin *domain.PIN) (bool, error)
@@ -104,7 +104,7 @@ type FakeOnboardingRepository struct {
 	GetOrCreatePhoneNumberUserFn func(
 		ctx context.Context,
 		phone string,
-	) (*resources.CreatedUserResponse, error)
+	) (*dto.CreatedUserResponse, error)
 
 	GetUserProfileAttributesFn func(
 		ctx context.Context,
@@ -120,7 +120,7 @@ type FakeOnboardingRepository struct {
 
 	AddNHIFDetailsFn func(
 		ctx context.Context,
-		input resources.NHIFDetailsInput,
+		input dto.NHIFDetailsInput,
 		profileID string,
 	) (*domain.NHIFDetails, error)
 
@@ -134,7 +134,7 @@ type FakeOnboardingRepository struct {
 	SetUserCommunicationsSettingsFn func(ctx context.Context, profileID string,
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
 
-	PersistIncomingSMSDataFn func(ctx context.Context, input *resources.AfricasTalkingMessage) error
+	PersistIncomingSMSDataFn func(ctx context.Context, input *dto.AfricasTalkingMessage) error
 
 	UpdateCustomerProfileFn func(
 		ctx context.Context,
@@ -320,7 +320,7 @@ func (f *FakeOnboardingRepository) GetPINByProfileID(ctx context.Context, Profil
 }
 
 //RecordPostVisitSurvey Record post visit survey
-func (f *FakeOnboardingRepository) RecordPostVisitSurvey(ctx context.Context, input resources.PostVisitSurveyInput, UID string) error {
+func (f *FakeOnboardingRepository) RecordPostVisitSurvey(ctx context.Context, input dto.PostVisitSurveyInput, UID string) error {
 	return f.RecordPostVisitSurveyFn(ctx, input, UID)
 }
 
@@ -412,7 +412,7 @@ func (f *FakeOnboardingRepository) UpdateVerifiedUIDS(ctx context.Context, id st
 // GetOrCreatePhoneNumberUser ...
 func (f *FakeOnboardingRepository) GetOrCreatePhoneNumberUser(ctx context.Context,
 	phone string,
-) (*resources.CreatedUserResponse, error) {
+) (*dto.CreatedUserResponse, error) {
 	return f.GetOrCreatePhoneNumberUserFn(ctx, phone)
 }
 
@@ -467,7 +467,7 @@ func (f *FakeOnboardingRepository) UpdateAddresses(
 // AddNHIFDetails ...
 func (f *FakeOnboardingRepository) AddNHIFDetails(
 	ctx context.Context,
-	input resources.NHIFDetailsInput,
+	input dto.NHIFDetailsInput,
 	profileID string,
 ) (*domain.NHIFDetails, error) {
 	return f.AddNHIFDetailsFn(ctx, input, profileID)
@@ -502,6 +502,6 @@ func (f *FakeOnboardingRepository) UpdateCustomerProfile(
 }
 
 // PersistIncomingSMSData ensures Africa's Talking SMS data is persisted in the database
-func (f *FakeOnboardingRepository) PersistIncomingSMSData(ctx context.Context, input *resources.AfricasTalkingMessage) error {
+func (f *FakeOnboardingRepository) PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error {
 	return f.PersistIncomingSMSDataFn(ctx, input)
 }

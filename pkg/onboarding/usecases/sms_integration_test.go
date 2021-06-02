@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 func TestSMSImpl_CreateSMSData_integration(t *testing.T) {
@@ -24,7 +24,7 @@ func TestSMSImpl_CreateSMSData_integration(t *testing.T) {
 	from := "+254705385894"
 	date := "2021-05-17T13:20:04.490Z"
 
-	validData := &resources.AfricasTalkingMessage{
+	validData := &dto.AfricasTalkingMessage{
 		LinkID: validLinkId,
 		Text:   text,
 		To:     to,
@@ -33,7 +33,7 @@ func TestSMSImpl_CreateSMSData_integration(t *testing.T) {
 		From:   from,
 	}
 
-	invalidData := &resources.AfricasTalkingMessage{
+	invalidData := &dto.AfricasTalkingMessage{
 		LinkID: " ",
 		Text:   text,
 		To:     to,
@@ -44,7 +44,7 @@ func TestSMSImpl_CreateSMSData_integration(t *testing.T) {
 
 	type args struct {
 		ctx   context.Context
-		input resources.AfricasTalkingMessage
+		input dto.AfricasTalkingMessage
 	}
 	tests := []struct {
 		name    string
@@ -63,7 +63,7 @@ func TestSMSImpl_CreateSMSData_integration(t *testing.T) {
 			name: "Sad :( fail to persist sms data with empty sms data",
 			args: args{
 				ctx:   ctx,
-				input: resources.AfricasTalkingMessage{},
+				input: dto.AfricasTalkingMessage{},
 			},
 			wantErr: true,
 		},

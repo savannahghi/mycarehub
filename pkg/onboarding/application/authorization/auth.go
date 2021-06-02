@@ -7,7 +7,7 @@ import (
 	"runtime"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"gitlab.slade360emr.com/go/base"
 
@@ -37,7 +37,7 @@ func initEnforcer() {
 }
 
 // CheckPemissions is used to check whether the permissions of a subject are set
-func CheckPemissions(subject string, input resources.PermissionInput) (bool, error) {
+func CheckPemissions(subject string, input dto.PermissionInput) (bool, error) {
 
 	ok, err := enforcer.Enforce(subject, input.Resource, input.Action)
 	if err != nil {
@@ -50,7 +50,7 @@ func CheckPemissions(subject string, input resources.PermissionInput) (bool, err
 }
 
 // CheckAuthorization is used to check the user permissions
-func CheckAuthorization(subject string, permission resources.PermissionInput) (bool, error) {
+func CheckAuthorization(subject string, permission dto.PermissionInput) (bool, error) {
 	isAuthorized, err := CheckPemissions(subject, permission)
 	if err != nil {
 		return false, fmt.Errorf("internal server error: can't authorize user: %w", err)
@@ -68,7 +68,7 @@ func CheckAuthorization(subject string, permission resources.PermissionInput) (b
 // currently only known internal anonymous users and external API Integrations emails are checked, internal and default logged in users
 // have access by default.
 // for subjects identified by their phone number normalize the phone and omit the first (+) character
-func IsAuthorized(user *resources.UserInfo, permission resources.PermissionInput) (bool, error) {
+func IsAuthorized(user *dto.UserInfo, permission dto.PermissionInput) (bool, error) {
 	if user.PhoneNumber != "" && base.StringSliceContains(common.AuthorizedPhones, user.PhoneNumber) {
 		return CheckAuthorization(user.PhoneNumber[1:], permission)
 	}

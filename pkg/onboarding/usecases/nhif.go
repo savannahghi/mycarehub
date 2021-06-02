@@ -6,9 +6,9 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -22,7 +22,7 @@ const AddNHIFNudgeTitle = "Add NHIF"
 type NHIFUseCases interface {
 	AddNHIFDetails(
 		ctx context.Context,
-		input resources.NHIFDetailsInput,
+		input dto.NHIFDetailsInput,
 	) (*domain.NHIFDetails, error)
 	NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error)
 }
@@ -53,7 +53,7 @@ func NewNHIFUseCases(
 // AddNHIFDetails adds NHIF details of a user
 func (n NHIFUseCaseImpl) AddNHIFDetails(
 	ctx context.Context,
-	input resources.NHIFDetailsInput,
+	input dto.NHIFDetailsInput,
 ) (*domain.NHIFDetails, error) {
 	UID, err := n.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {

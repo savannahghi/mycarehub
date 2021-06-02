@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"cloud.google.com/go/pubsub"
 	"gitlab.slade360emr.com/go/base"
@@ -16,7 +16,7 @@ import (
 // Our first step to making some functions are testable is to remove the base dependency.
 // This can be achieved with the below interface.
 type BaseExtension interface {
-	GetLoggedInUser(ctx context.Context) (*resources.UserInfo, error)
+	GetLoggedInUser(ctx context.Context) (*dto.UserInfo, error)
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	NormalizeMSISDN(msisdn string) (*string, error)
 	FetchDefaultCurrency(c base.Client,
@@ -101,7 +101,7 @@ func NewBaseExtensionImpl(fc base.IFirebaseClient) BaseExtension {
 }
 
 // GetLoggedInUser retrieves logged in user information
-func (b *BaseExtensionImpl) GetLoggedInUser(ctx context.Context) (*resources.UserInfo, error) {
+func (b *BaseExtensionImpl) GetLoggedInUser(ctx context.Context) (*dto.UserInfo, error) {
 	authToken, err := base.GetUserTokenFromContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("user auth token not found in context: %w", err)
@@ -117,7 +117,7 @@ func (b *BaseExtensionImpl) GetLoggedInUser(ctx context.Context) (*resources.Use
 
 		return nil, fmt.Errorf("unable to get user: %w", err)
 	}
-	return &resources.UserInfo{
+	return &dto.UserInfo{
 		UID:         user.UID,
 		Email:       user.Email,
 		PhoneNumber: user.PhoneNumber,

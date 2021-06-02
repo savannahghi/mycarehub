@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 func TestCreateSMSData_acceptance(t *testing.T) {
@@ -23,7 +23,7 @@ func TestCreateSMSData_acceptance(t *testing.T) {
 	date := "2021-05-17T13:20:04.490Z"
 
 	// valid payload
-	validSMSData := &resources.AfricasTalkingMessage{
+	validSMSData := &dto.AfricasTalkingMessage{
 		LinkID: validLinkID,
 		Text:   text,
 		To:     to,

@@ -27,7 +27,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
@@ -192,7 +192,7 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 
 		u, err := s.Signup.CreateUserByPhone(
 			ctx,
-			&resources.SignUpInput{
+			&dto.SignUpInput{
 				PhoneNumber: &phone,
 				PIN:         &pin,
 				Flavour:     flavour,
@@ -1798,7 +1798,7 @@ func TestRepository_RecordPostVisitSurvey(t *testing.T) {
 
 	type args struct {
 		ctx   context.Context
-		input resources.PostVisitSurveyInput
+		input dto.PostVisitSurveyInput
 		UID   string
 	}
 	tests := []struct {
@@ -1810,7 +1810,7 @@ func TestRepository_RecordPostVisitSurvey(t *testing.T) {
 			name: "Happy Case - Successfully record a post visit survey",
 			args: args{
 				ctx: ctx,
-				input: resources.PostVisitSurveyInput{
+				input: dto.PostVisitSurveyInput{
 					LikelyToRecommend: 10,
 					Criticism:         "Nothing at all. Good job.",
 					Suggestions:       "Can't think of anything.",
@@ -1823,7 +1823,7 @@ func TestRepository_RecordPostVisitSurvey(t *testing.T) {
 			name: "Sad Case - Invalid input",
 			args: args{
 				ctx: ctx,
-				input: resources.PostVisitSurveyInput{
+				input: dto.PostVisitSurveyInput{
 					LikelyToRecommend: 100,
 					Criticism:         "Nothing at all. Good job.",
 					Suggestions:       "Can't think of anything.",
@@ -3222,7 +3222,7 @@ func TestAddNHIFDetails(t *testing.T) {
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	photoID := uuid.New().String()
-	input := resources.NHIFDetailsInput{
+	input := dto.NHIFDetailsInput{
 		MembershipNumber: "12345",
 		IDNumber:         "12345",
 		NHIFCardPhotoID:  photoID,
@@ -3230,7 +3230,7 @@ func TestAddNHIFDetails(t *testing.T) {
 
 	type args struct {
 		ctx       context.Context
-		input     resources.NHIFDetailsInput
+		input     dto.NHIFDetailsInput
 		profileID string
 	}
 	tests := []struct {
@@ -3305,7 +3305,7 @@ func TestGetNHIFDetailsByProfileID(t *testing.T) {
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
-	input := resources.NHIFDetailsInput{
+	input := dto.NHIFDetailsInput{
 		MembershipNumber: "123456",
 		IDNumber:         "11111111",
 	}
@@ -3449,7 +3449,7 @@ func TestRepository_PersistIncomingSMSData(t *testing.T) {
 	from := "+254705385894"
 	date := "2021-05-17T13:20:04.490Z"
 
-	validData := &resources.AfricasTalkingMessage{
+	validData := &dto.AfricasTalkingMessage{
 		LinkID: validLinkId,
 		Text:   text,
 		To:     to,
@@ -3458,7 +3458,7 @@ func TestRepository_PersistIncomingSMSData(t *testing.T) {
 		From:   from,
 	}
 
-	invalidData := &resources.AfricasTalkingMessage{
+	invalidData := &dto.AfricasTalkingMessage{
 		LinkID: " ",
 		Text:   text,
 		To:     to,
@@ -3469,12 +3469,12 @@ func TestRepository_PersistIncomingSMSData(t *testing.T) {
 
 	type args struct {
 		ctx   context.Context
-		input resources.AfricasTalkingMessage
+		input dto.AfricasTalkingMessage
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *resources.AfricasTalkingMessage
+		want    *dto.AfricasTalkingMessage
 		wantErr bool
 	}{
 		{

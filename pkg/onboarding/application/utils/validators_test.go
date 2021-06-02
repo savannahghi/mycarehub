@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
@@ -27,7 +27,7 @@ func TestValidateSignUpInput(t *testing.T) {
 	alphabeticalPin := "abcd"
 
 	type args struct {
-		input *resources.SignUpInput
+		input *dto.SignUpInput
 	}
 	tests := []struct {
 		name    string
@@ -37,7 +37,7 @@ func TestValidateSignUpInput(t *testing.T) {
 		{
 			name: "success: return a valid output",
 			args: args{
-				input: &resources.SignUpInput{
+				input: &dto.SignUpInput{
 					PhoneNumber: &phone,
 					PIN:         &pin,
 					Flavour:     flavour,
@@ -49,7 +49,7 @@ func TestValidateSignUpInput(t *testing.T) {
 		{
 			name: "failure: bad phone number provided",
 			args: args{
-				input: &resources.SignUpInput{
+				input: &dto.SignUpInput{
 					PhoneNumber: &badPhone,
 					PIN:         &pin,
 					Flavour:     flavour,
@@ -61,7 +61,7 @@ func TestValidateSignUpInput(t *testing.T) {
 		{
 			name: "failure: alphanumeric phone number provided",
 			args: args{
-				input: &resources.SignUpInput{
+				input: &dto.SignUpInput{
 					PhoneNumber: &alphanumericPhone,
 					PIN:         &pin,
 					Flavour:     flavour,
@@ -73,7 +73,7 @@ func TestValidateSignUpInput(t *testing.T) {
 		{
 			name: "failure: short pin number provided",
 			args: args{
-				input: &resources.SignUpInput{
+				input: &dto.SignUpInput{
 					PhoneNumber: &phone,
 					PIN:         &shortPin,
 					Flavour:     flavour,
@@ -85,7 +85,7 @@ func TestValidateSignUpInput(t *testing.T) {
 		{
 			name: "failure: long pin number provided",
 			args: args{
-				input: &resources.SignUpInput{
+				input: &dto.SignUpInput{
 					PhoneNumber: &phone,
 					PIN:         &longPin,
 					Flavour:     flavour,
@@ -97,7 +97,7 @@ func TestValidateSignUpInput(t *testing.T) {
 		{
 			name: "failure: alphabetical pin number provided",
 			args: args{
-				input: &resources.SignUpInput{
+				input: &dto.SignUpInput{
 					PhoneNumber: &phone,
 					PIN:         &alphabeticalPin,
 					Flavour:     flavour,
@@ -109,7 +109,7 @@ func TestValidateSignUpInput(t *testing.T) {
 		{
 			name: "failure: bad flavour provided",
 			args: args{
-				input: &resources.SignUpInput{
+				input: &dto.SignUpInput{
 					PhoneNumber: &phone,
 					PIN:         &pin,
 					Flavour:     "not-a-flavour",
@@ -121,7 +121,7 @@ func TestValidateSignUpInput(t *testing.T) {
 		{
 			name: "failure: no OTP provided",
 			args: args{
-				input: &resources.SignUpInput{
+				input: &dto.SignUpInput{
 					PhoneNumber: &phone,
 					PIN:         &pin,
 					Flavour:     flavour,
@@ -209,7 +209,7 @@ func TestValidateSMSData(t *testing.T) {
 	date := "2021-05-17T13:20:04.490Z"
 
 	// valid payload
-	validSMSData := &resources.AfricasTalkingMessage{
+	validSMSData := &dto.AfricasTalkingMessage{
 		LinkID: validLinkID,
 		Text:   text,
 		To:     to,
@@ -218,7 +218,7 @@ func TestValidateSMSData(t *testing.T) {
 		From:   from,
 	}
 
-	invalidData := &resources.AfricasTalkingMessage{
+	invalidData := &dto.AfricasTalkingMessage{
 		LinkID: " ",
 		Text:   text,
 		To:     to,
@@ -228,7 +228,7 @@ func TestValidateSMSData(t *testing.T) {
 	}
 
 	type args struct {
-		input *resources.AfricasTalkingMessage
+		input *dto.AfricasTalkingMessage
 	}
 	tests := []struct {
 		name    string

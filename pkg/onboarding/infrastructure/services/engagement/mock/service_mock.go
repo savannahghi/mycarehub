@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 // FakeServiceEngagement is an `engagement` service mock .
@@ -14,9 +14,9 @@ type FakeServiceEngagement struct {
 	PublishKYCFeedItemFn         func(uid string, payload base.Item) (*http.Response, error)
 	ResolveDefaultNudgeByTitleFn func(UID string, flavour base.Flavour, nudgeTitle string) error
 	SendMailFn                   func(email string, message string, subject string) error
-	SendAlertToSupplierFn        func(input resources.EmailNotificationPayload) error
-	NotifySupplierOnSuspensionFn func(input resources.EmailNotificationPayload) error
-	NotifyAdminsFn               func(input resources.EmailNotificationPayload) error
+	SendAlertToSupplierFn        func(input dto.EmailNotificationPayload) error
+	NotifySupplierOnSuspensionFn func(input dto.EmailNotificationPayload) error
+	NotifyAdminsFn               func(input dto.EmailNotificationPayload) error
 	GenerateAndSendOTPFn         func(
 		ctx context.Context,
 		phone string,
@@ -74,12 +74,12 @@ func (f *FakeServiceEngagement) SendMail(
 }
 
 // SendAlertToSupplier ...
-func (f *FakeServiceEngagement) SendAlertToSupplier(input resources.EmailNotificationPayload) error {
+func (f *FakeServiceEngagement) SendAlertToSupplier(input dto.EmailNotificationPayload) error {
 	return f.SendAlertToSupplierFn(input)
 }
 
 // NotifyAdmins ...
-func (f *FakeServiceEngagement) NotifyAdmins(input resources.EmailNotificationPayload) error {
+func (f *FakeServiceEngagement) NotifyAdmins(input dto.EmailNotificationPayload) error {
 	return f.NotifyAdminsFn(input)
 }
 
@@ -111,7 +111,7 @@ func (f *FakeServiceEngagement) VerifyEmailOTP(ctx context.Context, email, OTP s
 }
 
 // NotifySupplierOnSuspension ...
-func (f *FakeServiceEngagement) NotifySupplierOnSuspension(input resources.EmailNotificationPayload) error {
+func (f *FakeServiceEngagement) NotifySupplierOnSuspension(input dto.EmailNotificationPayload) error {
 	return f.NotifySupplierOnSuspensionFn(input)
 }
 

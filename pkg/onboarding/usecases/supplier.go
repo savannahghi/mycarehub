@@ -19,9 +19,9 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization/permission"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
@@ -76,7 +76,7 @@ type SupplierUseCases interface {
 
 	CoreEDIUserLogin(username, password string) (*base.EDIUserProfile, error)
 
-	FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error)
+	FetchSupplierAllowedLocations(ctx context.Context) (*dto.BranchConnection, error)
 	CheckSupplierKYCSubmitted(ctx context.Context) (bool, error)
 
 	AddIndividualRiderKyc(
@@ -141,7 +141,7 @@ type SupplierUseCases interface {
 		username string,
 		password string,
 		sladeCode string,
-	) (*resources.SupplierLogin, error)
+	) (*dto.SupplierLogin, error)
 
 	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error)
 
@@ -284,7 +284,7 @@ func (s SupplierUseCasesImpl) CreateCustomerAccount(
 		return exceptions.FetchDefaultCurrencyError(err)
 	}
 
-	customerPayload := resources.CustomerPayload{
+	customerPayload := dto.CustomerPayload{
 		Active:       active,
 		PartnerName:  name,
 		Country:      country,
@@ -293,7 +293,7 @@ func (s SupplierUseCasesImpl) CreateCustomerAccount(
 		CustomerType: partnerType,
 	}
 
-	customerPubSubPayload := resources.CustomerPubSubMessage{
+	customerPubSubPayload := dto.CustomerPubSubMessage{
 		CustomerPayload: customerPayload,
 		UID:             user.UID,
 	}
@@ -339,7 +339,7 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 		return exceptions.FetchDefaultCurrencyError(err)
 	}
 
-	supplierPayload := resources.SupplierPayload{
+	supplierPayload := dto.SupplierPayload{
 		Active:       active,
 		PartnerName:  name,
 		Country:      country,
@@ -348,7 +348,7 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 		SupplierType: partnerType,
 	}
 
-	supplierPubSubPayload := resources.SupplierPubSubMessage{
+	supplierPubSubPayload := dto.SupplierPubSubMessage{
 		SupplierPayload: supplierPayload,
 		UID:             user.UID,
 	}
@@ -493,7 +493,7 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context, suspensionRea
 		return false, err
 	}
 
-	supplierEmailPayload := resources.EmailNotificationPayload{
+	supplierEmailPayload := dto.EmailNotificationPayload{
 		SupplierName: *profile.UserBioData.FirstName,
 		SubjectTitle: supplierSuspensionEmailSubjectTitle,
 		EmailBody:    *suspensionReason,
@@ -567,8 +567,8 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 	username string,
 	password string,
 	sladeCode string,
-) (*resources.SupplierLogin, error) {
-	var resp resources.SupplierLogin
+) (*dto.SupplierLogin, error) {
+	var resp dto.SupplierLogin
 
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
@@ -667,7 +667,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 	supplier.IsOrganizationVerified = true
 	supplier.SladeCode = sladeCode
 
-	filter := []*resources.BusinessPartnerFilterInput{
+	filter := []*dto.BusinessPartnerFilterInput{
 		{
 			SladeCode: &sladeCode,
 		},
@@ -725,7 +725,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 		}
 
 		// fetch all locations of the business partner
-		filter := []*resources.BranchFilterInput{
+		filter := []*dto.BranchFilterInput{
 			{
 				ParentOrganizationID: &supplier.ParentOrganizationID,
 			},
@@ -799,7 +799,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
 	}
 
 	// fetch the branches of the provider filtered by ParentOrganizationID
-	filter := []*resources.BranchFilterInput{
+	filter := []*dto.BranchFilterInput{
 		{
 			ParentOrganizationID: &sup.ParentOrganizationID,
 		},
@@ -810,7 +810,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
 		return nil, exceptions.FindProviderError(err)
 	}
 
-	branch := func(brs *resources.BranchConnection, location string) *resources.BranchEdge {
+	branch := func(brs *dto.BranchConnection, location string) *dto.BranchEdge {
 		for _, b := range brs.Edges {
 			if b.Node.ID == location {
 				return b
@@ -841,14 +841,14 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
 // FetchSupplierAllowedLocations retrieves all the locations that the user in context can work on.
 func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(
 	ctx context.Context,
-) (*resources.BranchConnection, error) {
+) (*dto.BranchConnection, error) {
 	supplier, err := s.FindSupplierByUID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// fetch the branches of the provider filtered by ParentOrganizationID
-	filter := []*resources.BranchFilterInput{
+	filter := []*dto.BranchFilterInput{
 		{
 			ParentOrganizationID: &supplier.ParentOrganizationID,
 		},
@@ -860,13 +860,13 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(
 	}
 
 	if supplier.Location != nil {
-		var resp resources.BranchConnection
+		var resp dto.BranchConnection
 		resp.PageInfo = branchConnection.PageInfo
 
-		newEdges := []*resources.BranchEdge{}
+		newEdges := []*dto.BranchEdge{}
 		for _, edge := range branchConnection.Edges {
 			if edge.Node.ID == supplier.Location.ID {
-				loc := &resources.BranchEdge{
+				loc := &dto.BranchEdge{
 					Cursor: edge.Cursor,
 					Node: &domain.Branch{
 						ID:                    edge.Node.ID,
@@ -1125,7 +1125,7 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 		return err
 	}
 
-	supplierEmailPayload := resources.EmailNotificationPayload{
+	supplierEmailPayload := dto.EmailNotificationPayload{
 		SupplierName: *profile.UserBioData.FirstName,
 		PartnerType:  string(sup.PartnerType),
 		AccountType:  string(*sup.AccountType),
@@ -1139,7 +1139,7 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 		return err
 	}
 
-	adminEmailPayload := resources.EmailNotificationPayload{
+	adminEmailPayload := dto.EmailNotificationPayload{
 		SupplierName: *profile.UserBioData.FirstName,
 		PartnerType:  string(sup.PartnerType),
 		AccountType:  string(*sup.AccountType),

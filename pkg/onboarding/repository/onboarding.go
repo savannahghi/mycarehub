@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -113,7 +113,7 @@ type OnboardingRepository interface {
 	// Record post visit survey
 	RecordPostVisitSurvey(
 		ctx context.Context,
-		input resources.PostVisitSurveyInput,
+		input dto.PostVisitSurveyInput,
 		UID string,
 	) error
 
@@ -131,7 +131,7 @@ type OnboardingRepository interface {
 		profileID string,
 	) (*base.Customer, *base.Supplier, error)
 
-	GetOrCreatePhoneNumberUser(ctx context.Context, phone string) (*resources.CreatedUserResponse, error)
+	GetOrCreatePhoneNumberUser(ctx context.Context, phone string) (*dto.CreatedUserResponse, error)
 
 	AddUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error)
 
@@ -141,7 +141,7 @@ type OnboardingRepository interface {
 
 	AddNHIFDetails(
 		ctx context.Context,
-		input resources.NHIFDetailsInput,
+		input dto.NHIFDetailsInput,
 		profileID string,
 	) (*domain.NHIFDetails, error)
 
@@ -155,5 +155,5 @@ type OnboardingRepository interface {
 	SetUserCommunicationsSettings(ctx context.Context, profileID string,
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
 
-	PersistIncomingSMSData(ctx context.Context, input *resources.AfricasTalkingMessage) error
+	PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error
 }

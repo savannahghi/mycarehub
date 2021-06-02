@@ -1,4 +1,4 @@
-package resources
+package dto
 
 import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"

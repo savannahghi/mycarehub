@@ -7,7 +7,7 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
@@ -60,7 +60,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -223,7 +223,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -388,7 +388,7 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -550,7 +550,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -720,7 +720,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -889,7 +889,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -1054,7 +1054,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -1224,7 +1224,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -1390,7 +1390,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -1555,7 +1555,7 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -1713,7 +1713,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -1878,7 +1878,7 @@ func TestSupplierSetDefaultLocation(t *testing.T) {
 	pin := "1234"
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -1906,7 +1906,7 @@ func TestSupplierSetDefaultLocation(t *testing.T) {
 	s, _ = InitializeTestService(authenticatedContext)
 
 	cmParentOrgId := testChargeMasterParentOrgId
-	filter := []*resources.BranchFilterInput{
+	filter := []*dto.BranchFilterInput{
 		{
 			ParentOrganizationID: &cmParentOrgId,
 		},

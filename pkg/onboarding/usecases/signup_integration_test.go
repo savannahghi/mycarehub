@@ -7,7 +7,7 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 func TestVerifyPhoneNumber(t *testing.T) {
@@ -45,7 +45,7 @@ func TestVerifyPhoneNumber(t *testing.T) {
 
 	resp1, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &validPIN,
 			Flavour:     base.FlavourPro,
@@ -83,7 +83,7 @@ func TestCreateUserWithPhoneNumber_Consumer(t *testing.T) {
 
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &phone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -123,7 +123,7 @@ func TestCreateUserWithPhoneNumber_Pro(t *testing.T) {
 
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &phone,
 			PIN:         &pin,
 			Flavour:     base.FlavourPro,
@@ -180,7 +180,7 @@ func TestCreateUserByPhone(t *testing.T) {
 	// try registration with invalid phone number. This should fail
 	resp2, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &invalidPhoneNumber,
 			PIN:         &validPIN,
 			Flavour:     validFlavourConsumer,
@@ -193,7 +193,7 @@ func TestCreateUserByPhone(t *testing.T) {
 	// try registration with invalidPinLength1. this should fail
 	resp3, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &invalidPinLength1,
 			Flavour:     validFlavourConsumer,
@@ -206,7 +206,7 @@ func TestCreateUserByPhone(t *testing.T) {
 	// try registration with invalidPinLength2. this should fail
 	resp4, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &invalidPinLength2,
 			Flavour:     validFlavourConsumer,
@@ -219,7 +219,7 @@ func TestCreateUserByPhone(t *testing.T) {
 	// try registration with invalidOtp. this should fail
 	resp5, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &invalidPinLength2,
 			Flavour:     validFlavourConsumer,
@@ -232,7 +232,7 @@ func TestCreateUserByPhone(t *testing.T) {
 	// this should pass
 	resp6, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &validPIN,
 			Flavour:     validFlavourConsumer,
@@ -256,7 +256,7 @@ func TestCreateUserByPhone(t *testing.T) {
 	// this should pass
 	resp7, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &validPIN,
 			Flavour:     validFlavourConsumer,
@@ -292,7 +292,7 @@ func TestUpdateUserProfile(t *testing.T) {
 	// this should pass
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &validPIN,
 			Flavour:     validFlavourConsumer,
@@ -336,23 +336,23 @@ func TestUpdateUserProfile(t *testing.T) {
 	uploadID1 := "photo-url1"
 	uploadID2 := "photo-url2"
 
-	justUploadID := &resources.UserProfileInput{
+	justUploadID := &dto.UserProfileInput{
 		PhotoUploadID: &uploadID1,
 	}
 
-	justDOB := &resources.UserProfileInput{
+	justDOB := &dto.UserProfileInput{
 		DateOfBirth: &dateOfBirth1,
 	}
 
-	justFirstName := &resources.UserProfileInput{
+	justFirstName := &dto.UserProfileInput{
 		FirstName: &firstName1,
 	}
 
-	justLastName := &resources.UserProfileInput{
+	justLastName := &dto.UserProfileInput{
 		LastName: &lastName1,
 	}
 
-	completeUserDetails := &resources.UserProfileInput{
+	completeUserDetails := &dto.UserProfileInput{
 		PhotoUploadID: &uploadID2,
 		DateOfBirth:   &dateOfBirth2,
 		FirstName:     &firstName2,
@@ -419,7 +419,7 @@ func TestRegisterPushToken(t *testing.T) {
 
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -501,7 +501,7 @@ func TestCompleteSignup(t *testing.T) {
 
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -550,7 +550,7 @@ func TestCompleteSignup(t *testing.T) {
 	firstName := "makmende1"
 	lastName := "Omera1"
 	uploadID := "photo-url1"
-	completeUserDetails := &resources.UserProfileInput{
+	completeUserDetails := &dto.UserProfileInput{
 		PhotoUploadID: &uploadID,
 		DateOfBirth:   &dateOfBirth,
 		FirstName:     &firstName,
@@ -590,7 +590,7 @@ func TestRetirePushToken(t *testing.T) {
 
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -689,7 +689,7 @@ func TestGetUserRecoveryPhoneNumbers(t *testing.T) {
 
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -736,7 +736,7 @@ func TestRemoveUserByPhoneNumber(t *testing.T) {
 
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &phone,
 			PIN:         &pin,
 			Flavour:     base.FlavourPro,

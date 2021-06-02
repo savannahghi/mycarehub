@@ -8,7 +8,7 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/gorilla/mux"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 
@@ -56,7 +56,7 @@ func NewHandlersInterfaces(i *interactor.Interactor) HandlersInterfaces {
 // If the phone number does not exist, it sends the OTP to the phone number
 func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &resources.PhoneNumberPayload{}
+		p := &dto.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
@@ -76,7 +76,7 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) ht
 // CreateUserWithPhoneNumber is an unauthenticated endpoint that is called to create
 func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &resources.SignUpInput{}
+		p := &dto.SignUpInput{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 
 		response, err := h.interactor.Signup.CreateUserByPhone(ctx, p)
@@ -94,7 +94,7 @@ func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) 
 func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		p := &resources.PhoneNumberPayload{}
+		p := &dto.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
@@ -122,7 +122,7 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) h
 func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		p := &resources.SetPrimaryPhoneNumberPayload{}
+		p := &dto.SetPrimaryPhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil || p.OTP == nil {
 			err := fmt.Errorf("expected `phoneNumber` and `otp` to be defined")
@@ -143,7 +143,7 @@ func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
 		}
-		base.WriteJSONResponse(w, resources.NewOKResp(response), http.StatusOK)
+		base.WriteJSONResponse(w, dto.NewOKResp(response), http.StatusOK)
 	}
 }
 
@@ -153,7 +153,7 @@ func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http
 // belongs to the profile and returns auth credentials to allow the user to login
 func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &resources.LoginPayload{}
+		p := &dto.LoginPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil || p.PIN == nil {
 			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
@@ -191,7 +191,7 @@ func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerF
 // LoginAnonymous is an unauthenticated endpoint that returns only auth credentials for anonymous users
 func (h *HandlersInterfacesImpl) LoginAnonymous(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &resources.LoginPayload{}
+		p := &dto.LoginPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.Flavour.String() == "" {
 			err := fmt.Errorf("expected `flavour` to be defined")
@@ -225,7 +225,7 @@ func (h *HandlersInterfacesImpl) LoginAnonymous(ctx context.Context) http.Handle
 // sends an otp to an msisdn that requests a PIN reset request during login
 func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &resources.PhoneNumberPayload{}
+		p := &dto.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
@@ -248,7 +248,7 @@ func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.Handl
 // ResetPin used to change/update a user's PIN
 func (h *HandlersInterfacesImpl) ResetPin(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		pin := &resources.ChangePINRequest{}
+		pin := &dto.ChangePINRequest{}
 		base.DecodeJSONToTargetStruct(w, r, pin)
 		if pin.PhoneNumber == "" || pin.PIN == "" || pin.OTP == "" {
 			err := fmt.Errorf(
@@ -284,7 +284,7 @@ func (h *HandlersInterfacesImpl) ResetPin(ctx context.Context) http.HandlerFunc 
 // during account recovery workflow
 func (h *HandlersInterfacesImpl) SendOTP(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		payload := &resources.PhoneNumberPayload{}
+		payload := &dto.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, payload)
 		if payload.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
@@ -313,7 +313,7 @@ func (h *HandlersInterfacesImpl) SendOTP(ctx context.Context) http.HandlerFunc {
 // and generates and sends a valid OTP to the phone number
 func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		retryPayload := &resources.SendRetryOTPPayload{}
+		retryPayload := &dto.SendRetryOTPPayload{}
 		base.DecodeJSONToTargetStruct(w, r, retryPayload)
 		if retryPayload.Phone == nil || retryPayload.RetryStep == nil {
 			err := fmt.Errorf("expected `phoneNumber`, `retryStep` to be defined")
@@ -344,7 +344,7 @@ func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerF
 // Otherwise, an error is returned
 func (h *HandlersInterfacesImpl) RefreshToken(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &resources.RefreshTokenPayload{}
+		p := &dto.RefreshTokenPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.RefreshToken == nil {
 			err := fmt.Errorf("expected `refreshToken` to be defined")
@@ -408,7 +408,7 @@ func (h *HandlersInterfacesImpl) FindSupplierByUID(ctx context.Context) http.Han
 func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		p := &resources.PhoneNumberPayload{}
+		p := &dto.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
@@ -435,7 +435,7 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) ht
 				}, http.StatusBadRequest)
 				return
 			}
-			base.WriteJSONResponse(w, resources.OKResp{Status: "OK"}, http.StatusOK)
+			base.WriteJSONResponse(w, dto.OKResp{Status: "OK"}, http.StatusOK)
 			return
 		}
 		err = fmt.Errorf("`phoneNumber` does not exist and not associated with any user ")
@@ -449,7 +449,7 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) ht
 // GetUserProfileByUID fetches and returns a user profile via REST ISC
 func (h *HandlersInterfacesImpl) GetUserProfileByUID(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &resources.UIDPayload{}
+		p := &dto.UIDPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.UID == nil {
 			err := fmt.Errorf("expected `UID` to be defined")
@@ -471,7 +471,7 @@ func (h *HandlersInterfacesImpl) GetUserProfileByUID(ctx context.Context) http.H
 // via REST ISC
 func (h *HandlersInterfacesImpl) RegisterPushToken(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		t := &resources.PushTokenPayload{}
+		t := &dto.PushTokenPayload{}
 		base.DecodeJSONToTargetStruct(w, r, t)
 		if t.PushToken == "" || t.UID == "" {
 			err := fmt.Errorf("expected `PushToken` or `UID` to be defined")
@@ -494,7 +494,7 @@ func (h *HandlersInterfacesImpl) RegisterPushToken(ctx context.Context) http.Han
 // a given user given their UID and cover details
 func (h *HandlersInterfacesImpl) UpdateCovers(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &resources.UpdateCoversPayload{}
+		p := &dto.UpdateCoversPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.UID == nil {
 			err := fmt.Errorf("expected `UID` to be defined")
@@ -548,7 +548,7 @@ func (h *HandlersInterfacesImpl) UpdateCovers(ctx context.Context) http.HandlerF
 
 		base.WriteJSONResponse(
 			w,
-			resources.OKResp{
+			dto.OKResp{
 				Status: "Covers successfully updated",
 			},
 			http.StatusOK,
@@ -571,7 +571,7 @@ func (h *HandlersInterfacesImpl) ProfileAttributes(ctx context.Context) http.Han
 			return
 		}
 
-		p := &resources.UIDsPayload{}
+		p := &dto.UIDsPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if len(p.UIDs) == 0 {
 			err := fmt.Errorf("expected a `UID` to be defined")
@@ -599,7 +599,7 @@ func (h *HandlersInterfacesImpl) ProfileAttributes(ctx context.Context) http.Han
 func (h *HandlersInterfacesImpl) AddAdminPermsToUser(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		p := &resources.PhoneNumberPayload{}
+		p := &dto.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
@@ -626,7 +626,7 @@ func (h *HandlersInterfacesImpl) AddAdminPermsToUser(ctx context.Context) http.H
 				}, http.StatusBadRequest)
 				return
 			}
-			base.WriteJSONResponse(w, resources.OKResp{Status: "OK"}, http.StatusOK)
+			base.WriteJSONResponse(w, dto.OKResp{Status: "OK"}, http.StatusOK)
 			return
 		}
 		err = fmt.Errorf("`phoneNumber` does not exist and not associated with any user ")
@@ -643,7 +643,7 @@ func (h *HandlersInterfacesImpl) AddAdminPermsToUser(ctx context.Context) http.H
 func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		p := &resources.PhoneNumberPayload{}
+		p := &dto.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
@@ -670,7 +670,7 @@ func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(ctx context.Context) htt
 				}, http.StatusBadRequest)
 				return
 			}
-			base.WriteJSONResponse(w, resources.OKResp{Status: "OK"}, http.StatusOK)
+			base.WriteJSONResponse(w, dto.OKResp{Status: "OK"}, http.StatusOK)
 			return
 		}
 		err = fmt.Errorf("`phoneNumber` does not exist and not associated with any user ")
@@ -684,7 +684,7 @@ func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(ctx context.Context) htt
 // UpdateUserProfile is an unauthenticated REST endpoint to update a user's profile
 func (h *HandlersInterfacesImpl) UpdateUserProfile(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		payload := &resources.UserProfilePayload{}
+		payload := &dto.UserProfilePayload{}
 		base.DecodeJSONToTargetStruct(w, r, payload)
 		if payload.UID == nil {
 			err := fmt.Errorf("expected `uid` to be defined")
@@ -699,7 +699,7 @@ func (h *HandlersInterfacesImpl) UpdateUserProfile(ctx context.Context) http.Han
 
 		userProfile, err := h.interactor.Signup.UpdateUserProfile(
 			newContext,
-			&resources.UserProfileInput{
+			&dto.UserProfileInput{
 				PhotoUploadID: payload.PhotoUploadID,
 				DateOfBirth:   payload.DateOfBirth,
 				FirstName:     payload.FirstName,
@@ -720,7 +720,7 @@ func (h *HandlersInterfacesImpl) UpdateUserProfile(ctx context.Context) http.Han
 func (h *HandlersInterfacesImpl) IncomingATSMS(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		payload := &resources.AfricasTalkingMessage{}
+		payload := &dto.AfricasTalkingMessage{}
 
 		err := r.ParseForm()
 		if err != nil {
@@ -751,7 +751,7 @@ func (h *HandlersInterfacesImpl) IncomingATSMS(ctx context.Context) http.Handler
 		}
 
 		base.WriteJSONResponse(w,
-			resources.OKResp{
+			dto.OKResp{
 				Status: "Africa's Talking SMS data successfully created"},
 			http.StatusOK)
 	}

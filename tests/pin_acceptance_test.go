@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -54,17 +54,17 @@ func composeInValidChangePinPayload(t *testing.T, otp string) *domain.ChangePINR
 // 	}
 // }
 
-func composeInValidPinResetPayload(t *testing.T) *resources.PhoneNumberPayload {
+func composeInValidPinResetPayload(t *testing.T) *dto.PhoneNumberPayload {
 	emptyString := ""
-	return &resources.PhoneNumberPayload{
+	return &dto.PhoneNumberPayload{
 		PhoneNumber: &emptyString,
 	}
 
 }
 
-func composeValidPinResetPayload(t *testing.T) *resources.PhoneNumberPayload {
+func composeValidPinResetPayload(t *testing.T) *dto.PhoneNumberPayload {
 	validNumber := base.TestUserPhoneNumberWithPin
-	return &resources.PhoneNumberPayload{
+	return &dto.PhoneNumberPayload{
 		PhoneNumber: &validNumber,
 	}
 }

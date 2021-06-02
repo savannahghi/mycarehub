@@ -16,9 +16,9 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	chargemasterMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster/mock"
@@ -91,7 +91,7 @@ func composeValidPhonePayload(t *testing.T, phone string) *bytes.Buffer {
 }
 
 func composeSignupPayload(t *testing.T, phone, pin, otp string, flavour base.Flavour) *bytes.Buffer {
-	payload := resources.SignUpInput{
+	payload := dto.SignUpInput{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -120,7 +120,7 @@ func composeChangePinPayload(t *testing.T, phone, pin, otp string) *bytes.Buffer
 }
 
 func composeRefreshTokenPayload(t *testing.T, token *string) *bytes.Buffer {
-	refreshToken := &resources.RefreshTokenPayload{RefreshToken: token}
+	refreshToken := &dto.RefreshTokenPayload{RefreshToken: token}
 	bs, err := json.Marshal(refreshToken)
 	if err != nil {
 		t.Errorf("unable to marshal token string to JSON: %s", err)
@@ -129,7 +129,7 @@ func composeRefreshTokenPayload(t *testing.T, token *string) *bytes.Buffer {
 }
 
 func composeUIDPayload(t *testing.T, uid *string) *bytes.Buffer {
-	uidPayload := &resources.UIDPayload{UID: uid}
+	uidPayload := &dto.UIDPayload{UID: uid}
 	bs, err := json.Marshal(uidPayload)
 	if err != nil {
 		t.Errorf("unable to marshal token string to JSON: %s", err)
@@ -138,7 +138,7 @@ func composeUIDPayload(t *testing.T, uid *string) *bytes.Buffer {
 }
 
 func composePushTokenPayload(t *testing.T, UID, token string) *bytes.Buffer {
-	payload := &resources.PushTokenPayload{
+	payload := &dto.PushTokenPayload{
 		PushToken: token,
 		UID:       UID,
 	}
@@ -150,7 +150,7 @@ func composePushTokenPayload(t *testing.T, UID, token string) *bytes.Buffer {
 }
 
 func composeLoginPayload(t *testing.T, phone, pin string, flavour base.Flavour) *bytes.Buffer {
-	payload := resources.LoginPayload{
+	payload := dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
 		Flavour:     flavour,
@@ -164,7 +164,7 @@ func composeLoginPayload(t *testing.T, phone, pin string, flavour base.Flavour) 
 }
 
 func composeSendRetryOTPPayload(t *testing.T, phone string, retryStep int) *bytes.Buffer {
-	payload := resources.SendRetryOTPPayload{
+	payload := dto.SendRetryOTPPayload{
 		Phone:     &phone,
 		RetryStep: &retryStep,
 	}
@@ -177,7 +177,7 @@ func composeSendRetryOTPPayload(t *testing.T, phone string, retryStep int) *byte
 	return bytes.NewBuffer(bs)
 }
 
-func composeCoversUpdatePayload(t *testing.T, payload *resources.UpdateCoversPayload) *bytes.Buffer {
+func composeCoversUpdatePayload(t *testing.T, payload *dto.UpdateCoversPayload) *bytes.Buffer {
 
 	bs, err := json.Marshal(payload)
 	if err != nil {
@@ -188,7 +188,7 @@ func composeCoversUpdatePayload(t *testing.T, payload *resources.UpdateCoversPay
 }
 
 func composeSetPrimaryPhoneNumberPayload(t *testing.T, phone, otp string) *bytes.Buffer {
-	payload := resources.SetPrimaryPhoneNumberPayload{
+	payload := dto.SetPrimaryPhoneNumberPayload{
 		PhoneNumber: &phone,
 		OTP:         &otp,
 	}
@@ -200,7 +200,7 @@ func composeSetPrimaryPhoneNumberPayload(t *testing.T, phone, otp string) *bytes
 	return bytes.NewBuffer(bs)
 }
 
-func composeSMSMessageDataPayload(t *testing.T, payload *resources.AfricasTalkingMessage) *strings.Reader {
+func composeSMSMessageDataPayload(t *testing.T, payload *dto.AfricasTalkingMessage) *strings.Reader {
 	data := url.Values{}
 	data.Set("date", payload.Date)
 	data.Set("from", payload.From)
@@ -506,8 +506,8 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
-					return &resources.CreatedUserResponse{
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*dto.CreatedUserResponse, error) {
+					return &dto.CreatedUserResponse{
 						UID:         "1106f10f-bea6-4fa3-bdba-16b1e39bd318",
 						DisplayName: "kalulu juha",
 						Email:       "juha@gmail.com",
@@ -604,7 +604,7 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
 				}
-				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*resources.CreatedUserResponse, error) {
+				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*dto.CreatedUserResponse, error) {
 					return nil, fmt.Errorf("unable to create user")
 				}
 			}
@@ -1939,7 +1939,7 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 		return
 	}
 
-	updateCoversPayloadValid := &resources.UpdateCoversPayload{
+	updateCoversPayloadValid := &dto.UpdateCoversPayload{
 		UID:                   &uid,
 		PayerName:             &payerName,
 		PayerSladeCode:        &payerSladeCode,
@@ -1951,7 +1951,7 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 		ValidTo:               &validTo,
 	}
 
-	updateCoversPayloadInValid := &resources.UpdateCoversPayload{
+	updateCoversPayloadInValid := &dto.UpdateCoversPayload{
 		UID:                   &invalidUID,
 		PayerName:             &payerName,
 		PayerSladeCode:        &payerSladeCode,
@@ -2152,8 +2152,8 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 			response := httptest.NewRecorder()
 
 			if tt.name == "valid:_successfully_get_supplier_by_uid" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "12233",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -2973,7 +2973,7 @@ func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
 	}
 }
 
-func composeSMSMessageDataJSONPayload(t *testing.T, payload *resources.AfricasTalkingMessage) *bytes.Buffer {
+func composeSMSMessageDataJSONPayload(t *testing.T, payload *dto.AfricasTalkingMessage) *bytes.Buffer {
 
 	bs, err := json.Marshal(payload)
 	if err != nil {
@@ -3001,7 +3001,7 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 	from := "+254705385894"
 	date := "2021-05-17T13:20:04.490Z"
 
-	validSMSData := &resources.AfricasTalkingMessage{
+	validSMSData := &dto.AfricasTalkingMessage{
 		LinkID: validLinkId,
 		Text:   text,
 		To:     to,
@@ -3010,7 +3010,7 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 		From:   from,
 	}
 
-	invalidSMSData := &resources.AfricasTalkingMessage{
+	invalidSMSData := &dto.AfricasTalkingMessage{
 		LinkID: invalidLinkId,
 		Text:   text,
 		To:     to,
@@ -3080,19 +3080,19 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 			response := httptest.NewRecorder()
 
 			if tt.name == "VALID_CASE:Valid_incoming_sms" {
-				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *resources.AfricasTalkingMessage) error {
+				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *dto.AfricasTalkingMessage) error {
 					return nil
 				}
 			}
 
 			if tt.name == "INVALID_CASE:Nil_incoming_sms_JSON" {
-				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *resources.AfricasTalkingMessage) error {
+				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *dto.AfricasTalkingMessage) error {
 					return fmt.Errorf("invalid sms")
 				}
 			}
 
 			if tt.name == "INVALID_CASE:Invalid_incoming_sms" {
-				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *resources.AfricasTalkingMessage) error {
+				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *dto.AfricasTalkingMessage) error {
 					return fmt.Errorf("invalid sms")
 				}
 			}

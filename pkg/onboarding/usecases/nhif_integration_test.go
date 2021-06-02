@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -24,7 +24,7 @@ func TestAddNHIFDetails(t *testing.T) {
 		return
 	}
 
-	validInput := resources.NHIFDetailsInput{
+	validInput := dto.NHIFDetailsInput{
 		MembershipNumber:          "123456",
 		Employment:                domain.EmploymentTypeEmployed,
 		NHIFCardPhotoID:           uuid.New().String(),
@@ -34,7 +34,7 @@ func TestAddNHIFDetails(t *testing.T) {
 	}
 	type args struct {
 		ctx   context.Context
-		input resources.NHIFDetailsInput
+		input dto.NHIFDetailsInput
 	}
 	tests := []struct {
 		name    string
@@ -99,7 +99,7 @@ func TestNHIFDetails(t *testing.T) {
 	}
 	_, err = s.NHIF.AddNHIFDetails(
 		ctx,
-		resources.NHIFDetailsInput{
+		dto.NHIFDetailsInput{
 			MembershipNumber:          fmt.Sprintln(time.Now().Unix()),
 			Employment:                domain.EmploymentTypeEmployed,
 			NHIFCardPhotoID:           uuid.New().String(),

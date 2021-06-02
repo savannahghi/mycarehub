@@ -8,7 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -22,12 +22,12 @@ type ServiceERP interface {
 	FetchERPClient() *base.ServerClient
 	CreateERPCustomer(
 		ctx context.Context,
-		customerPayload resources.CustomerPayload,
+		customerPayload dto.CustomerPayload,
 		UID string,
 	) (*base.Customer, error)
 	CreateERPSupplier(
 		ctx context.Context,
-		supplierPayload resources.SupplierPayload,
+		supplierPayload dto.SupplierPayload,
 		UID string,
 	) (*base.Supplier, error)
 }
@@ -60,7 +60,7 @@ func NewERPService(r repository.OnboardingRepository) ServiceERP {
 // CreateERPCustomer makes a call to create erp supplier
 func (e *ServiceERPImpl) CreateERPCustomer(
 	ctx context.Context,
-	customerPayload resources.CustomerPayload,
+	customerPayload dto.CustomerPayload,
 	UID string,
 ) (*base.Customer, error) {
 	profile, err := e.repo.GetUserProfileByUID(
@@ -102,7 +102,7 @@ func (e *ServiceERPImpl) CreateERPCustomer(
 // CreateERPSupplier makes a call to create erp supplier
 func (e *ServiceERPImpl) CreateERPSupplier(
 	ctx context.Context,
-	supplierPayload resources.SupplierPayload,
+	supplierPayload dto.SupplierPayload,
 	UID string,
 ) (*base.Supplier, error) {
 	profile, err := e.repo.GetUserProfileByUID(ctx, UID, false)

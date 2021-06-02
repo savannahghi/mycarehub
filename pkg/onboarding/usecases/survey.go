@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 // SurveyUseCases represents all the business logic involved in user post visit surveys.
 type SurveyUseCases interface {
-	RecordPostVisitSurvey(ctx context.Context, input resources.PostVisitSurveyInput) (bool, error)
+	RecordPostVisitSurvey(ctx context.Context, input dto.PostVisitSurveyInput) (bool, error)
 }
 
 // SurveyUseCasesImpl represents the usecase implementation object
@@ -33,7 +33,7 @@ func NewSurveyUseCases(
 // RecordPostVisitSurvey records the survey input supplied by the user
 func (rs *SurveyUseCasesImpl) RecordPostVisitSurvey(
 	ctx context.Context,
-	input resources.PostVisitSurveyInput,
+	input dto.PostVisitSurveyInput,
 ) (bool, error) {
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
 		return false, exceptions.LikelyToRecommendError(

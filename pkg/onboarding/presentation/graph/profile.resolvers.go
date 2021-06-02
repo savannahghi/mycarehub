@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
 )
@@ -23,7 +23,7 @@ func (r *mutationResolver) CompleteSignup(ctx context.Context, flavour base.Flav
 	return completeSignup, err
 }
 
-func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input resources.UserProfileInput) (*base.UserProfile, error) {
+func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input dto.UserProfileInput) (*base.UserProfile, error) {
 	startTime := time.Now()
 
 	updateUserProfile, err := r.interactor.Signup.UpdateUserProfile(ctx, &input)
@@ -173,7 +173,7 @@ func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType base.A
 	return supplier, err
 }
 
-func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error) {
+func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*dto.SupplierLogin, error) {
 	startTime := time.Now()
 
 	supplierEDILogin, err := r.interactor.Supplier.SupplierEDILogin(ctx, username, password, sladeCode)
@@ -313,7 +313,7 @@ func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, sta
 	return processKYCRequest, err
 }
 
-func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input resources.PostVisitSurveyInput) (bool, error) {
+func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input dto.PostVisitSurveyInput) (bool, error) {
 	startTime := time.Now()
 
 	recordPostVisitSurvey, err := r.interactor.Survey.RecordPostVisitSurvey(ctx, input)
@@ -347,7 +347,7 @@ func (r *mutationResolver) SetupAsExperimentParticipant(ctx context.Context, par
 	return setupAsExperimentParticipant, err
 }
 
-func (r *mutationResolver) AddNHIFDetails(ctx context.Context, input resources.NHIFDetailsInput) (*domain.NHIFDetails, error) {
+func (r *mutationResolver) AddNHIFDetails(ctx context.Context, input dto.NHIFDetailsInput) (*domain.NHIFDetails, error) {
 	startTime := time.Now()
 
 	addNHIFDetails, err := r.interactor.NHIF.AddNHIFDetails(ctx, input)
@@ -357,7 +357,7 @@ func (r *mutationResolver) AddNHIFDetails(ctx context.Context, input resources.N
 	return addNHIFDetails, err
 }
 
-func (r *mutationResolver) AddAddress(ctx context.Context, input resources.UserAddressInput, addressType base.AddressType) (*base.Address, error) {
+func (r *mutationResolver) AddAddress(ctx context.Context, input dto.UserAddressInput, addressType base.AddressType) (*base.Address, error) {
 	startTime := time.Now()
 
 	addAddress, err := r.interactor.Onboarding.AddAddress(
@@ -411,7 +411,7 @@ func (r *queryResolver) ResumeWithPin(ctx context.Context, pin string) (bool, er
 	return resumeWithPin, err
 }
 
-func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
+func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
 	startTime := time.Now()
 
 	provider, err := r.interactor.ChargeMaster.FindProvider(ctx, pagination, filter, sort)
@@ -421,7 +421,7 @@ func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.Pagin
 	return provider, err
 }
 
-func (r *queryResolver) FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
+func (r *queryResolver) FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 	startTime := time.Now()
 
 	branch, err := r.interactor.ChargeMaster.FindBranch(ctx, pagination, filter, sort)
@@ -431,7 +431,7 @@ func (r *queryResolver) FindBranch(ctx context.Context, pagination *base.Paginat
 	return branch, err
 }
 
-func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error) {
+func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*dto.BranchConnection, error) {
 	startTime := time.Now()
 
 	supplierAllowedLocations, err := r.interactor.Supplier.FetchSupplierAllowedLocations(ctx)

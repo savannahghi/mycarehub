@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
@@ -822,7 +822,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 
 				fakeEPRSvc.CreateERPSupplierFn = func(
 					ctx context.Context,
-					supplierPayload resources.SupplierPayload,
+					supplierPayload dto.SupplierPayload,
 					UID string,
 				) (*base.Supplier, error) {
 					return &base.Supplier{}, nil
@@ -900,7 +900,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 
 				fakeEPRSvc.CreateERPSupplierFn = func(
 					ctx context.Context,
-					supplierPayload resources.SupplierPayload,
+					supplierPayload dto.SupplierPayload,
 					UID string,
 				) (*base.Supplier, error) {
 					return &base.Supplier{}, nil
@@ -1236,10 +1236,10 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -1512,7 +1512,7 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifySupplierOnSuspensionFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifySupplierOnSuspensionFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 			}
@@ -1795,10 +1795,10 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -2115,10 +2115,10 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -2383,10 +2383,10 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -2646,10 +2646,10 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -2893,10 +2893,10 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -3337,10 +3337,10 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -3721,10 +3721,10 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -4099,10 +4099,10 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -4476,10 +4476,10 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -4841,10 +4841,10 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input resources.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
@@ -5067,8 +5067,8 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "happy:)" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -5100,14 +5100,14 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 			}
 
 			if tt.name == "sad:( can't get logged in user" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return nil, fmt.Errorf("fail to fetch default currency")
 				}
 			}
 
 			if tt.name == "sad:( currency not found" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -5124,8 +5124,8 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 			}
 
 			if tt.name == "sad:( failed to publsih to PubSub" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -5185,7 +5185,7 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 	testChargeMasterBranchID := "94294577-6b27-4091-9802-1ce0f2ce4153"
 
 	cursor := "1234"
-	edges := &resources.BranchEdge{
+	edges := &dto.BranchEdge{
 		Cursor: &cursor,
 		Node: &domain.Branch{
 			ID:                    testChargeMasterBranchID,
@@ -5195,7 +5195,7 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 		},
 	}
 
-	newEdges := []*resources.BranchEdge{}
+	newEdges := []*dto.BranchEdge{}
 	newEdges = append(newEdges, edges)
 
 	type args struct {
@@ -5302,9 +5302,9 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-					sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
-					return &resources.BranchConnection{
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
+					return &dto.BranchConnection{
 						Edges: newEdges,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -5390,9 +5390,9 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-					sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
-					return &resources.BranchConnection{
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
+					return &dto.BranchConnection{
 						Edges: newEdges,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -5502,8 +5502,8 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-					sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 					return nil, fmt.Errorf("unable to find branch")
 				}
 			}
@@ -5545,7 +5545,7 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 
 	sladeCode := "1"
 	cursor := "4567"
-	edges := &resources.BranchEdge{
+	edges := &dto.BranchEdge{
 		Cursor: &cursor,
 		Node: &domain.Branch{
 			ID:                    testChargeMasterParentOrgId,
@@ -5554,12 +5554,12 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 			BranchSladeCode:       sladeCode,
 		},
 	}
-	newEdges := []*resources.BranchEdge{}
+	newEdges := []*dto.BranchEdge{}
 	newEdges = append(newEdges, edges)
 
 	// The Node ID is different from the supplier Location ID
 	// This helps to test all cases
-	payload2 := &resources.BranchEdge{
+	payload2 := &dto.BranchEdge{
 		Cursor: &cursor,
 		Node: &domain.Branch{
 			ID:                    testChargeMasterBranchID,
@@ -5568,7 +5568,7 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 			BranchSladeCode:       sladeCode,
 		},
 	}
-	newPayload := []*resources.BranchEdge{}
+	newPayload := []*dto.BranchEdge{}
 	newPayload = append(newPayload, payload2)
 
 	type args struct {
@@ -5657,9 +5657,9 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-					sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
-					return &resources.BranchConnection{
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
+					return &dto.BranchConnection{
 						Edges: newEdges,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -5707,9 +5707,9 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-					sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
-					return &resources.BranchConnection{
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
+					return &dto.BranchConnection{
 						Edges: newPayload,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -5748,9 +5748,9 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-					sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
-					return &resources.BranchConnection{
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
+					return &dto.BranchConnection{
 						Edges: newPayload,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -5798,9 +5798,9 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-					sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
-					return &resources.BranchConnection{
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
+					return &dto.BranchConnection{
 						Edges: newEdges,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -5850,7 +5850,7 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 	savannahOrgName := "Savannah Informatics"
 	cursor := "8765"
 	parent := "parent"
-	edges := &resources.BusinessPartnerEdge{
+	edges := &dto.BusinessPartnerEdge{
 		Cursor: &cursor,
 		Node: &domain.BusinessPartner{
 			ID:        "BUS1N3SS-P123-1D",
@@ -5860,10 +5860,10 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 		},
 	}
 
-	newEdges := []*resources.BusinessPartnerEdge{}
+	newEdges := []*dto.BusinessPartnerEdge{}
 	newEdges = append(newEdges, edges)
 
-	payload2 := &resources.BranchEdge{
+	payload2 := &dto.BranchEdge{
 		Cursor: &cursor,
 		Node: &domain.Branch{
 			ID:                    "BUS1N3SS-P123-1D",
@@ -5872,10 +5872,10 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 			BranchSladeCode:       sladeCode,
 		},
 	}
-	newPayload := []*resources.BranchEdge{}
+	newPayload := []*dto.BranchEdge{}
 	newPayload = append(newPayload, payload2)
 
-	payload3 := &resources.BusinessPartnerEdge{
+	payload3 := &dto.BusinessPartnerEdge{
 		Cursor: &cursor,
 		Node: &domain.BusinessPartner{
 			ID:        "BUS1N3SS-P123",
@@ -5885,10 +5885,10 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 		},
 	}
 
-	newPayload3 := []*resources.BusinessPartnerEdge{}
+	newPayload3 := []*dto.BusinessPartnerEdge{}
 	newPayload3 = append(newPayload3, payload3)
 
-	payload4 := &resources.BranchEdge{
+	payload4 := &dto.BranchEdge{
 		Cursor: &cursor,
 		Node: &domain.Branch{
 			ID:                    "BUS1N3SS-P123",
@@ -5897,11 +5897,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 			BranchSladeCode:       "PRO-1234",
 		},
 	}
-	newPayload4 := []*resources.BranchEdge{}
+	newPayload4 := []*dto.BranchEdge{}
 	newPayload4 = append(newPayload4, payload4)
 
 	// This will help test the case where a parent is nil
-	payload5 := &resources.BusinessPartnerEdge{
+	payload5 := &dto.BusinessPartnerEdge{
 		Cursor: &cursor,
 		Node: &domain.BusinessPartner{
 			ID:        "BUS1N3SS-P123",
@@ -5910,7 +5910,7 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 		},
 	}
 
-	newPayload5 := []*resources.BusinessPartnerEdge{}
+	newPayload5 := []*dto.BusinessPartnerEdge{}
 	newPayload5 = append(newPayload5, payload5)
 
 	type args struct {
@@ -6106,9 +6106,9 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput,
-					sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
-					return &resources.BusinessPartnerConnection{
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+					sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
+					return &dto.BusinessPartnerConnection{
 						Edges: newEdges,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -6137,9 +6137,9 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-					sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
-					return &resources.BranchConnection{
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
+					return &dto.BranchConnection{
 						Edges: newPayload,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -6248,9 +6248,9 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput,
-					sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
-					return &resources.BusinessPartnerConnection{
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+					sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
+					return &dto.BusinessPartnerConnection{
 						Edges: newPayload3,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -6280,9 +6280,9 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-					sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
-					return &resources.BranchConnection{
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
+					return &dto.BranchConnection{
 						Edges: newPayload4,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -6365,9 +6365,9 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput,
-					sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
-					return &resources.BusinessPartnerConnection{
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+					sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
+					return &dto.BusinessPartnerConnection{
 						Edges: newPayload5,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -6457,9 +6457,9 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput,
-					sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
-					return &resources.BusinessPartnerConnection{
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+					sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
+					return &dto.BusinessPartnerConnection{
 						Edges: newPayload5,
 						PageInfo: &base.PageInfo{
 							HasNextPage: false,
@@ -6786,8 +6786,8 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:add_partner_type" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -6804,14 +6804,14 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 			}
 
 			if tt.name == "invalid:unable_to_login" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return nil, fmt.Errorf("unable to login")
 				}
 			}
 
 			if tt.name == "invalid:unable_to_get_user_profile_by_id" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",
@@ -6824,8 +6824,8 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 			}
 
 			if tt.name == "invalid:unable_to_add_partner_type" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*resources.UserInfo, error) {
-					return &resources.UserInfo{
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
 						Email:       "test@example.com",
 						PhoneNumber: "0721568526",

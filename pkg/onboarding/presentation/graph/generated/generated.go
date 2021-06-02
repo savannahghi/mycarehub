@@ -18,7 +18,7 @@ import (
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain/model"
 )
@@ -206,13 +206,13 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAddress                       func(childComplexity int, input resources.UserAddressInput, addressType base.AddressType) int
+		AddAddress                       func(childComplexity int, input dto.UserAddressInput, addressType base.AddressType) int
 		AddIndividualCoachKyc            func(childComplexity int, input domain.IndividualCoach) int
 		AddIndividualNutritionKyc        func(childComplexity int, input domain.IndividualNutrition) int
 		AddIndividualPharmaceuticalKyc   func(childComplexity int, input domain.IndividualPharmaceutical) int
 		AddIndividualPractitionerKyc     func(childComplexity int, input domain.IndividualPractitioner) int
 		AddIndividualRiderKyc            func(childComplexity int, input domain.IndividualRider) int
-		AddNHIFDetails                   func(childComplexity int, input resources.NHIFDetailsInput) int
+		AddNHIFDetails                   func(childComplexity int, input dto.NHIFDetailsInput) int
 		AddOrganizationCoachKyc          func(childComplexity int, input domain.OrganizationCoach) int
 		AddOrganizationNutritionKyc      func(childComplexity int, input domain.OrganizationNutrition) int
 		AddOrganizationPharmaceuticalKyc func(childComplexity int, input domain.OrganizationPharmaceutical) int
@@ -224,7 +224,7 @@ type ComplexityRoot struct {
 		AddSecondaryPhoneNumber          func(childComplexity int, phone []string) int
 		CompleteSignup                   func(childComplexity int, flavour base.Flavour) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
-		RecordPostVisitSurvey            func(childComplexity int, input resources.PostVisitSurveyInput) int
+		RecordPostVisitSurvey            func(childComplexity int, input dto.PostVisitSurveyInput) int
 		RegisterPushToken                func(childComplexity int, token string) int
 		RetireKYCProcessingRequest       func(childComplexity int) int
 		RetireSecondaryEmailAddresses    func(childComplexity int, emails []string) int
@@ -239,7 +239,7 @@ type ComplexityRoot struct {
 		SuspendSupplier                  func(childComplexity int, suspensionReason *string) int
 		UpdateUserName                   func(childComplexity int, username string) int
 		UpdateUserPin                    func(childComplexity int, phone string, pin string) int
-		UpdateUserProfile                func(childComplexity int, input resources.UserProfileInput) int
+		UpdateUserProfile                func(childComplexity int, input dto.UserProfileInput) int
 	}
 
 	NHIFDetails struct {
@@ -356,8 +356,8 @@ type ComplexityRoot struct {
 		CheckSupplierKYCSubmitted     func(childComplexity int) int
 		FetchKYCProcessingRequests    func(childComplexity int) int
 		FetchSupplierAllowedLocations func(childComplexity int) int
-		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) int
-		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) int
+		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) int
+		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) int
 		GetAddresses                  func(childComplexity int) int
 		GetUserCommunicationsSettings func(childComplexity int) int
 		NHIFDetails                   func(childComplexity int) int
@@ -468,7 +468,7 @@ type EntityResolver interface {
 }
 type MutationResolver interface {
 	CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error)
-	UpdateUserProfile(ctx context.Context, input resources.UserProfileInput) (*base.UserProfile, error)
+	UpdateUserProfile(ctx context.Context, input dto.UserProfileInput) (*base.UserProfile, error)
 	UpdateUserPin(ctx context.Context, phone string, pin string) (bool, error)
 	SetPrimaryPhoneNumber(ctx context.Context, phone string, otp string) (bool, error)
 	SetPrimaryEmailAddress(ctx context.Context, email string, otp string) (bool, error)
@@ -481,7 +481,7 @@ type MutationResolver interface {
 	AddPartnerType(ctx context.Context, name string, partnerType base.PartnerType) (bool, error)
 	SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error)
 	SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
-	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*resources.SupplierLogin, error)
+	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*dto.SupplierLogin, error)
 	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error)
 	AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
 	AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error)
@@ -495,20 +495,20 @@ type MutationResolver interface {
 	AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error)
 	AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error)
 	ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error)
-	RecordPostVisitSurvey(ctx context.Context, input resources.PostVisitSurveyInput) (bool, error)
+	RecordPostVisitSurvey(ctx context.Context, input dto.PostVisitSurveyInput) (bool, error)
 	RetireKYCProcessingRequest(ctx context.Context) (bool, error)
 	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
-	AddNHIFDetails(ctx context.Context, input resources.NHIFDetailsInput) (*domain.NHIFDetails, error)
-	AddAddress(ctx context.Context, input resources.UserAddressInput, addressType base.AddressType) (*base.Address, error)
+	AddNHIFDetails(ctx context.Context, input dto.NHIFDetailsInput) (*domain.NHIFDetails, error)
+	AddAddress(ctx context.Context, input dto.UserAddressInput, addressType base.AddressType) (*base.Address, error)
 	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
 	SupplierProfile(ctx context.Context) (*base.Supplier, error)
 	ResumeWithPin(ctx context.Context, pin string) (bool, error)
-	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error)
-	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) (*resources.BranchConnection, error)
-	FetchSupplierAllowedLocations(ctx context.Context) (*resources.BranchConnection, error)
+	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error)
+	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) (*dto.BranchConnection, error)
+	FetchSupplierAllowedLocations(ctx context.Context) (*dto.BranchConnection, error)
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 	GetAddresses(ctx context.Context) (*domain.UserAddresses, error)
 	NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error)
@@ -1212,7 +1212,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddAddress(childComplexity, args["input"].(resources.UserAddressInput), args["addressType"].(base.AddressType)), true
+		return e.complexity.Mutation.AddAddress(childComplexity, args["input"].(dto.UserAddressInput), args["addressType"].(base.AddressType)), true
 
 	case "Mutation.addIndividualCoachKYC":
 		if e.complexity.Mutation.AddIndividualCoachKyc == nil {
@@ -1284,7 +1284,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddNHIFDetails(childComplexity, args["input"].(resources.NHIFDetailsInput)), true
+		return e.complexity.Mutation.AddNHIFDetails(childComplexity, args["input"].(dto.NHIFDetailsInput)), true
 
 	case "Mutation.addOrganizationCoachKYC":
 		if e.complexity.Mutation.AddOrganizationCoachKyc == nil {
@@ -1428,7 +1428,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RecordPostVisitSurvey(childComplexity, args["input"].(resources.PostVisitSurveyInput)), true
+		return e.complexity.Mutation.RecordPostVisitSurvey(childComplexity, args["input"].(dto.PostVisitSurveyInput)), true
 
 	case "Mutation.registerPushToken":
 		if e.complexity.Mutation.RegisterPushToken == nil {
@@ -1603,7 +1603,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUserProfile(childComplexity, args["input"].(resources.UserProfileInput)), true
+		return e.complexity.Mutation.UpdateUserProfile(childComplexity, args["input"].(dto.UserProfileInput)), true
 
 	case "NHIFDetails.employment":
 		if e.complexity.NHIFDetails.Employment == nil {
@@ -2217,7 +2217,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindBranch(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*resources.BranchFilterInput), args["sort"].([]*resources.BranchSortInput)), true
+		return e.complexity.Query.FindBranch(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*dto.BranchFilterInput), args["sort"].([]*dto.BranchSortInput)), true
 
 	case "Query.findProvider":
 		if e.complexity.Query.FindProvider == nil {
@@ -2229,7 +2229,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindProvider(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*resources.BusinessPartnerFilterInput), args["sort"].([]*resources.BusinessPartnerSortInput)), true
+		return e.complexity.Query.FindProvider(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*dto.BusinessPartnerFilterInput), args["sort"].([]*dto.BusinessPartnerSortInput)), true
 
 	case "Query.getAddresses":
 		if e.complexity.Query.GetAddresses == nil {
@@ -2910,7 +2910,7 @@ enum Language {
 """
 PractitionerSpecialties is a list of recognised health worker specialties.
 
-See: https://medicalboard.co.ke/resources_page/gazetted-specialties/
+See: https://medicalboard.co.ke/dto_page/gazetted-specialties/
 """
 enum PractitionerSpecialty {
   UNSPECIFIED
@@ -3931,10 +3931,10 @@ func (ec *executionContext) field_Entity_findUserProfileByID_args(ctx context.Co
 func (ec *executionContext) field_Mutation_addAddress_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 resources.UserAddressInput
+	var arg0 dto.UserAddressInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUserAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐUserAddressInput(ctx, tmp)
+		arg0, err = ec.unmarshalNUserAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserAddressInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4030,10 +4030,10 @@ func (ec *executionContext) field_Mutation_addIndividualRiderKYC_args(ctx contex
 func (ec *executionContext) field_Mutation_addNHIFDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 resources.NHIFDetailsInput
+	var arg0 dto.NHIFDetailsInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNHIFDetailsInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐNHIFDetailsInput(ctx, tmp)
+		arg0, err = ec.unmarshalNNHIFDetailsInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐNHIFDetailsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4237,10 +4237,10 @@ func (ec *executionContext) field_Mutation_processKYCRequest_args(ctx context.Co
 func (ec *executionContext) field_Mutation_recordPostVisitSurvey_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 resources.PostVisitSurveyInput
+	var arg0 dto.PostVisitSurveyInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNPostVisitSurveyInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐPostVisitSurveyInput(ctx, tmp)
+		arg0, err = ec.unmarshalNPostVisitSurveyInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐPostVisitSurveyInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4519,10 +4519,10 @@ func (ec *executionContext) field_Mutation_updateUserPIN_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_updateUserProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 resources.UserProfileInput
+	var arg0 dto.UserProfileInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUserProfileInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐUserProfileInput(ctx, tmp)
+		arg0, err = ec.unmarshalNUserProfileInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserProfileInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4573,19 +4573,19 @@ func (ec *executionContext) field_Query_findBranch_args(ctx context.Context, raw
 		}
 	}
 	args["pagination"] = arg0
-	var arg1 []*resources.BranchFilterInput
+	var arg1 []*dto.BranchFilterInput
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg1, err = ec.unmarshalOBranchFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchFilterInput(ctx, tmp)
+		arg1, err = ec.unmarshalOBranchFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["filter"] = arg1
-	var arg2 []*resources.BranchSortInput
+	var arg2 []*dto.BranchSortInput
 	if tmp, ok := rawArgs["sort"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
-		arg2, err = ec.unmarshalOBranchSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchSortInput(ctx, tmp)
+		arg2, err = ec.unmarshalOBranchSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4606,19 +4606,19 @@ func (ec *executionContext) field_Query_findProvider_args(ctx context.Context, r
 		}
 	}
 	args["pagination"] = arg0
-	var arg1 []*resources.BusinessPartnerFilterInput
+	var arg1 []*dto.BusinessPartnerFilterInput
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg1, err = ec.unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerFilterInput(ctx, tmp)
+		arg1, err = ec.unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["filter"] = arg1
-	var arg2 []*resources.BusinessPartnerSortInput
+	var arg2 []*dto.BusinessPartnerSortInput
 	if tmp, ok := rawArgs["sort"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
-		arg2, err = ec.unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerSortInput(ctx, tmp)
+		arg2, err = ec.unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5315,7 +5315,7 @@ func (ec *executionContext) _Branch_branchSladeCode(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BranchConnection_edges(ctx context.Context, field graphql.CollectedField, obj *resources.BranchConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _BranchConnection_edges(ctx context.Context, field graphql.CollectedField, obj *dto.BranchConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5342,12 +5342,12 @@ func (ec *executionContext) _BranchConnection_edges(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*resources.BranchEdge)
+	res := resTmp.([]*dto.BranchEdge)
 	fc.Result = res
-	return ec.marshalOBranchEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchEdge(ctx, field.Selections, res)
+	return ec.marshalOBranchEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BranchConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *resources.BranchConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _BranchConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *dto.BranchConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5382,7 +5382,7 @@ func (ec *executionContext) _BranchConnection_pageInfo(ctx context.Context, fiel
 	return ec.marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BranchEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *resources.BranchEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _BranchEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *dto.BranchEdge) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5414,7 +5414,7 @@ func (ec *executionContext) _BranchEdge_cursor(ctx context.Context, field graphq
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BranchEdge_node(ctx context.Context, field graphql.CollectedField, obj *resources.BranchEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _BranchEdge_node(ctx context.Context, field graphql.CollectedField, obj *dto.BranchEdge) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5583,7 +5583,7 @@ func (ec *executionContext) _BusinessPartner_parent(ctx context.Context, field g
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BusinessPartnerConnection_edges(ctx context.Context, field graphql.CollectedField, obj *resources.BusinessPartnerConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _BusinessPartnerConnection_edges(ctx context.Context, field graphql.CollectedField, obj *dto.BusinessPartnerConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5610,12 +5610,12 @@ func (ec *executionContext) _BusinessPartnerConnection_edges(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*resources.BusinessPartnerEdge)
+	res := resTmp.([]*dto.BusinessPartnerEdge)
 	fc.Result = res
-	return ec.marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerEdge(ctx, field.Selections, res)
+	return ec.marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BusinessPartnerConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *resources.BusinessPartnerConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _BusinessPartnerConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *dto.BusinessPartnerConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5650,7 +5650,7 @@ func (ec *executionContext) _BusinessPartnerConnection_pageInfo(ctx context.Cont
 	return ec.marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BusinessPartnerEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *resources.BusinessPartnerEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _BusinessPartnerEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *dto.BusinessPartnerEdge) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5682,7 +5682,7 @@ func (ec *executionContext) _BusinessPartnerEdge_cursor(ctx context.Context, fie
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BusinessPartnerEdge_node(ctx context.Context, field graphql.CollectedField, obj *resources.BusinessPartnerEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _BusinessPartnerEdge_node(ctx context.Context, field graphql.CollectedField, obj *dto.BusinessPartnerEdge) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7949,7 +7949,7 @@ func (ec *executionContext) _Mutation_updateUserProfile(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserProfile(rctx, args["input"].(resources.UserProfileInput))
+		return ec.resolvers.Mutation().UpdateUserProfile(rctx, args["input"].(dto.UserProfileInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8504,9 +8504,9 @@ func (ec *executionContext) _Mutation_supplierEDILogin(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*resources.SupplierLogin)
+	res := resTmp.(*dto.SupplierLogin)
 	fc.Result = res
-	return ec.marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐSupplierLogin(ctx, field.Selections, res)
+	return ec.marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐSupplierLogin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_supplierSetDefaultLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -9080,7 +9080,7 @@ func (ec *executionContext) _Mutation_recordPostVisitSurvey(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RecordPostVisitSurvey(rctx, args["input"].(resources.PostVisitSurveyInput))
+		return ec.resolvers.Mutation().RecordPostVisitSurvey(rctx, args["input"].(dto.PostVisitSurveyInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9199,7 +9199,7 @@ func (ec *executionContext) _Mutation_addNHIFDetails(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddNHIFDetails(rctx, args["input"].(resources.NHIFDetailsInput))
+		return ec.resolvers.Mutation().AddNHIFDetails(rctx, args["input"].(dto.NHIFDetailsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9241,7 +9241,7 @@ func (ec *executionContext) _Mutation_addAddress(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddAddress(rctx, args["input"].(resources.UserAddressInput), args["addressType"].(base.AddressType))
+		return ec.resolvers.Mutation().AddAddress(rctx, args["input"].(dto.UserAddressInput), args["addressType"].(base.AddressType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12246,7 +12246,7 @@ func (ec *executionContext) _Query_findProvider(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindProvider(rctx, args["pagination"].(*base.PaginationInput), args["filter"].([]*resources.BusinessPartnerFilterInput), args["sort"].([]*resources.BusinessPartnerSortInput))
+		return ec.resolvers.Query().FindProvider(rctx, args["pagination"].(*base.PaginationInput), args["filter"].([]*dto.BusinessPartnerFilterInput), args["sort"].([]*dto.BusinessPartnerSortInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12258,9 +12258,9 @@ func (ec *executionContext) _Query_findProvider(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*resources.BusinessPartnerConnection)
+	res := resTmp.(*dto.BusinessPartnerConnection)
 	fc.Result = res
-	return ec.marshalNBusinessPartnerConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerConnection(ctx, field.Selections, res)
+	return ec.marshalNBusinessPartnerConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_findBranch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12288,7 +12288,7 @@ func (ec *executionContext) _Query_findBranch(ctx context.Context, field graphql
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindBranch(rctx, args["pagination"].(*base.PaginationInput), args["filter"].([]*resources.BranchFilterInput), args["sort"].([]*resources.BranchSortInput))
+		return ec.resolvers.Query().FindBranch(rctx, args["pagination"].(*base.PaginationInput), args["filter"].([]*dto.BranchFilterInput), args["sort"].([]*dto.BranchSortInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12300,9 +12300,9 @@ func (ec *executionContext) _Query_findBranch(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*resources.BranchConnection)
+	res := resTmp.(*dto.BranchConnection)
 	fc.Result = res
-	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchConnection(ctx, field.Selections, res)
+	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_fetchSupplierAllowedLocations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12335,9 +12335,9 @@ func (ec *executionContext) _Query_fetchSupplierAllowedLocations(ctx context.Con
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*resources.BranchConnection)
+	res := resTmp.(*dto.BranchConnection)
 	fc.Result = res
-	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchConnection(ctx, field.Selections, res)
+	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_fetchKYCProcessingRequests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -13514,7 +13514,7 @@ func (ec *executionContext) _Supplier_location(ctx context.Context, field graphq
 	return ec.marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLocation(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SupplierLogin_branches(ctx context.Context, field graphql.CollectedField, obj *resources.SupplierLogin) (ret graphql.Marshaler) {
+func (ec *executionContext) _SupplierLogin_branches(ctx context.Context, field graphql.CollectedField, obj *dto.SupplierLogin) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -13544,12 +13544,12 @@ func (ec *executionContext) _SupplierLogin_branches(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*resources.BranchConnection)
+	res := resTmp.(*dto.BranchConnection)
 	fc.Result = res
-	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchConnection(ctx, field.Selections, res)
+	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SupplierLogin_supplier(ctx context.Context, field graphql.CollectedField, obj *resources.SupplierLogin) (ret graphql.Marshaler) {
+func (ec *executionContext) _SupplierLogin_supplier(ctx context.Context, field graphql.CollectedField, obj *dto.SupplierLogin) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15836,8 +15836,8 @@ func (ec *executionContext) unmarshalInputBeneficiaryInput(ctx context.Context, 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputBranchFilterInput(ctx context.Context, obj interface{}) (resources.BranchFilterInput, error) {
-	var it resources.BranchFilterInput
+func (ec *executionContext) unmarshalInputBranchFilterInput(ctx context.Context, obj interface{}) (dto.BranchFilterInput, error) {
+	var it dto.BranchFilterInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -15872,8 +15872,8 @@ func (ec *executionContext) unmarshalInputBranchFilterInput(ctx context.Context,
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputBranchSortInput(ctx context.Context, obj interface{}) (resources.BranchSortInput, error) {
-	var it resources.BranchSortInput
+func (ec *executionContext) unmarshalInputBranchSortInput(ctx context.Context, obj interface{}) (dto.BranchSortInput, error) {
+	var it dto.BranchSortInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -15900,8 +15900,8 @@ func (ec *executionContext) unmarshalInputBranchSortInput(ctx context.Context, o
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputBusinessPartnerFilterInput(ctx context.Context, obj interface{}) (resources.BusinessPartnerFilterInput, error) {
-	var it resources.BusinessPartnerFilterInput
+func (ec *executionContext) unmarshalInputBusinessPartnerFilterInput(ctx context.Context, obj interface{}) (dto.BusinessPartnerFilterInput, error) {
+	var it dto.BusinessPartnerFilterInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -15936,8 +15936,8 @@ func (ec *executionContext) unmarshalInputBusinessPartnerFilterInput(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputBusinessPartnerSortInput(ctx context.Context, obj interface{}) (resources.BusinessPartnerSortInput, error) {
-	var it resources.BusinessPartnerSortInput
+func (ec *executionContext) unmarshalInputBusinessPartnerSortInput(ctx context.Context, obj interface{}) (dto.BusinessPartnerSortInput, error) {
+	var it dto.BusinessPartnerSortInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -16464,8 +16464,8 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNHIFDetailsInput(ctx context.Context, obj interface{}) (resources.NHIFDetailsInput, error) {
-	var it resources.NHIFDetailsInput
+func (ec *executionContext) unmarshalInputNHIFDetailsInput(ctx context.Context, obj interface{}) (dto.NHIFDetailsInput, error) {
+	var it dto.NHIFDetailsInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17188,8 +17188,8 @@ func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, o
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputPostVisitSurveyInput(ctx context.Context, obj interface{}) (resources.PostVisitSurveyInput, error) {
-	var it resources.PostVisitSurveyInput
+func (ec *executionContext) unmarshalInputPostVisitSurveyInput(ctx context.Context, obj interface{}) (dto.PostVisitSurveyInput, error) {
+	var it dto.PostVisitSurveyInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17328,8 +17328,8 @@ func (ec *executionContext) unmarshalInputSupportingDocumentInput(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUserAddressInput(ctx context.Context, obj interface{}) (resources.UserAddressInput, error) {
-	var it resources.UserAddressInput
+func (ec *executionContext) unmarshalInputUserAddressInput(ctx context.Context, obj interface{}) (dto.UserAddressInput, error) {
+	var it dto.UserAddressInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17388,8 +17388,8 @@ func (ec *executionContext) unmarshalInputUserAddressInput(ctx context.Context, 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUserProfileInput(ctx context.Context, obj interface{}) (resources.UserProfileInput, error) {
-	var it resources.UserProfileInput
+func (ec *executionContext) unmarshalInputUserProfileInput(ctx context.Context, obj interface{}) (dto.UserProfileInput, error) {
+	var it dto.UserProfileInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17626,7 +17626,7 @@ func (ec *executionContext) _Branch(ctx context.Context, sel ast.SelectionSet, o
 
 var branchConnectionImplementors = []string{"BranchConnection"}
 
-func (ec *executionContext) _BranchConnection(ctx context.Context, sel ast.SelectionSet, obj *resources.BranchConnection) graphql.Marshaler {
+func (ec *executionContext) _BranchConnection(ctx context.Context, sel ast.SelectionSet, obj *dto.BranchConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, branchConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -17655,7 +17655,7 @@ func (ec *executionContext) _BranchConnection(ctx context.Context, sel ast.Selec
 
 var branchEdgeImplementors = []string{"BranchEdge"}
 
-func (ec *executionContext) _BranchEdge(ctx context.Context, sel ast.SelectionSet, obj *resources.BranchEdge) graphql.Marshaler {
+func (ec *executionContext) _BranchEdge(ctx context.Context, sel ast.SelectionSet, obj *dto.BranchEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, branchEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -17720,7 +17720,7 @@ func (ec *executionContext) _BusinessPartner(ctx context.Context, sel ast.Select
 
 var businessPartnerConnectionImplementors = []string{"BusinessPartnerConnection"}
 
-func (ec *executionContext) _BusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, obj *resources.BusinessPartnerConnection) graphql.Marshaler {
+func (ec *executionContext) _BusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, obj *dto.BusinessPartnerConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, businessPartnerConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -17749,7 +17749,7 @@ func (ec *executionContext) _BusinessPartnerConnection(ctx context.Context, sel 
 
 var businessPartnerEdgeImplementors = []string{"BusinessPartnerEdge"}
 
-func (ec *executionContext) _BusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, obj *resources.BusinessPartnerEdge) graphql.Marshaler {
+func (ec *executionContext) _BusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, obj *dto.BusinessPartnerEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, businessPartnerEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -19392,7 +19392,7 @@ func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet,
 
 var supplierLoginImplementors = []string{"SupplierLogin"}
 
-func (ec *executionContext) _SupplierLogin(ctx context.Context, sel ast.SelectionSet, obj *resources.SupplierLogin) graphql.Marshaler {
+func (ec *executionContext) _SupplierLogin(ctx context.Context, sel ast.SelectionSet, obj *dto.SupplierLogin) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, supplierLoginImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -20033,11 +20033,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNBranchConnection2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchConnection(ctx context.Context, sel ast.SelectionSet, v resources.BranchConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNBranchConnection2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx context.Context, sel ast.SelectionSet, v dto.BranchConnection) graphql.Marshaler {
 	return ec._BranchConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchConnection(ctx context.Context, sel ast.SelectionSet, v *resources.BranchConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx context.Context, sel ast.SelectionSet, v *dto.BranchConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -20047,11 +20047,11 @@ func (ec *executionContext) marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗc
 	return ec._BranchConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBusinessPartnerConnection2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, v resources.BusinessPartnerConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNBusinessPartnerConnection2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, v dto.BusinessPartnerConnection) graphql.Marshaler {
 	return ec._BusinessPartnerConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBusinessPartnerConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, v *resources.BusinessPartnerConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNBusinessPartnerConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, v *dto.BusinessPartnerConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -20337,7 +20337,7 @@ func (ec *executionContext) marshalNNHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋ
 	return ec._NHIFDetails(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNNHIFDetailsInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐNHIFDetailsInput(ctx context.Context, v interface{}) (resources.NHIFDetailsInput, error) {
+func (ec *executionContext) unmarshalNNHIFDetailsInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐNHIFDetailsInput(ctx context.Context, v interface{}) (dto.NHIFDetailsInput, error) {
 	res, err := ec.unmarshalInputNHIFDetailsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -20526,7 +20526,7 @@ func (ec *executionContext) marshalNPermissionType2gitlabᚗslade360emrᚗcomᚋ
 	return res
 }
 
-func (ec *executionContext) unmarshalNPostVisitSurveyInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐPostVisitSurveyInput(ctx context.Context, v interface{}) (resources.PostVisitSurveyInput, error) {
+func (ec *executionContext) unmarshalNPostVisitSurveyInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐPostVisitSurveyInput(ctx context.Context, v interface{}) (dto.PostVisitSurveyInput, error) {
 	res, err := ec.unmarshalInputPostVisitSurveyInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -20699,11 +20699,11 @@ func (ec *executionContext) marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 	return ec._Supplier(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSupplierLogin2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐSupplierLogin(ctx context.Context, sel ast.SelectionSet, v resources.SupplierLogin) graphql.Marshaler {
+func (ec *executionContext) marshalNSupplierLogin2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐSupplierLogin(ctx context.Context, sel ast.SelectionSet, v dto.SupplierLogin) graphql.Marshaler {
 	return ec._SupplierLogin(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐSupplierLogin(ctx context.Context, sel ast.SelectionSet, v *resources.SupplierLogin) graphql.Marshaler {
+func (ec *executionContext) marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐSupplierLogin(ctx context.Context, sel ast.SelectionSet, v *dto.SupplierLogin) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -20717,7 +20717,7 @@ func (ec *executionContext) marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgo�
 	return ec._ThinAddress(ctx, sel, &v)
 }
 
-func (ec *executionContext) unmarshalNUserAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐUserAddressInput(ctx context.Context, v interface{}) (resources.UserAddressInput, error) {
+func (ec *executionContext) unmarshalNUserAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserAddressInput(ctx context.Context, v interface{}) (dto.UserAddressInput, error) {
 	res, err := ec.unmarshalInputUserAddressInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -20764,7 +20764,7 @@ func (ec *executionContext) marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋ
 	return ec._UserProfile(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUserProfileInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐUserProfileInput(ctx context.Context, v interface{}) (resources.UserProfileInput, error) {
+func (ec *executionContext) unmarshalNUserProfileInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserProfileInput(ctx context.Context, v interface{}) (dto.UserProfileInput, error) {
 	res, err := ec.unmarshalInputUserProfileInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -21163,7 +21163,7 @@ func (ec *executionContext) marshalOBranch2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋ
 	return ec._Branch(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOBranchEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchEdge(ctx context.Context, sel ast.SelectionSet, v []*resources.BranchEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOBranchEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx context.Context, sel ast.SelectionSet, v []*dto.BranchEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -21190,7 +21190,7 @@ func (ec *executionContext) marshalOBranchEdge2ᚕᚖgitlabᚗslade360emrᚗcom�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOBranchEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalOBranchEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -21203,14 +21203,14 @@ func (ec *executionContext) marshalOBranchEdge2ᚕᚖgitlabᚗslade360emrᚗcom�
 	return ret
 }
 
-func (ec *executionContext) marshalOBranchEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchEdge(ctx context.Context, sel ast.SelectionSet, v *resources.BranchEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOBranchEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx context.Context, sel ast.SelectionSet, v *dto.BranchEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._BranchEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOBranchFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchFilterInput(ctx context.Context, v interface{}) ([]*resources.BranchFilterInput, error) {
+func (ec *executionContext) unmarshalOBranchFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx context.Context, v interface{}) ([]*dto.BranchFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -21223,10 +21223,10 @@ func (ec *executionContext) unmarshalOBranchFilterInput2ᚕᚖgitlabᚗslade360e
 		}
 	}
 	var err error
-	res := make([]*resources.BranchFilterInput, len(vSlice))
+	res := make([]*dto.BranchFilterInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOBranchFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchFilterInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOBranchFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -21234,7 +21234,7 @@ func (ec *executionContext) unmarshalOBranchFilterInput2ᚕᚖgitlabᚗslade360e
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOBranchFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchFilterInput(ctx context.Context, v interface{}) (*resources.BranchFilterInput, error) {
+func (ec *executionContext) unmarshalOBranchFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx context.Context, v interface{}) (*dto.BranchFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -21242,7 +21242,7 @@ func (ec *executionContext) unmarshalOBranchFilterInput2ᚖgitlabᚗslade360emr�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOBranchSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchSortInput(ctx context.Context, v interface{}) ([]*resources.BranchSortInput, error) {
+func (ec *executionContext) unmarshalOBranchSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx context.Context, v interface{}) ([]*dto.BranchSortInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -21255,10 +21255,10 @@ func (ec *executionContext) unmarshalOBranchSortInput2ᚕᚖgitlabᚗslade360emr
 		}
 	}
 	var err error
-	res := make([]*resources.BranchSortInput, len(vSlice))
+	res := make([]*dto.BranchSortInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOBranchSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchSortInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOBranchSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -21266,7 +21266,7 @@ func (ec *executionContext) unmarshalOBranchSortInput2ᚕᚖgitlabᚗslade360emr
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOBranchSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBranchSortInput(ctx context.Context, v interface{}) (*resources.BranchSortInput, error) {
+func (ec *executionContext) unmarshalOBranchSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx context.Context, v interface{}) (*dto.BranchSortInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -21281,7 +21281,7 @@ func (ec *executionContext) marshalOBusinessPartner2ᚖgitlabᚗslade360emrᚗco
 	return ec._BusinessPartner(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, v []*resources.BusinessPartnerEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, v []*dto.BusinessPartnerEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -21308,7 +21308,7 @@ func (ec *executionContext) marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360e
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOBusinessPartnerEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalOBusinessPartnerEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -21321,14 +21321,14 @@ func (ec *executionContext) marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360e
 	return ret
 }
 
-func (ec *executionContext) marshalOBusinessPartnerEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, v *resources.BusinessPartnerEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOBusinessPartnerEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, v *dto.BusinessPartnerEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._BusinessPartnerEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerFilterInput(ctx context.Context, v interface{}) ([]*resources.BusinessPartnerFilterInput, error) {
+func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx context.Context, v interface{}) ([]*dto.BusinessPartnerFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -21341,10 +21341,10 @@ func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗ
 		}
 	}
 	var err error
-	res := make([]*resources.BusinessPartnerFilterInput, len(vSlice))
+	res := make([]*dto.BusinessPartnerFilterInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOBusinessPartnerFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerFilterInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOBusinessPartnerFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -21352,7 +21352,7 @@ func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerFilterInput(ctx context.Context, v interface{}) (*resources.BusinessPartnerFilterInput, error) {
+func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx context.Context, v interface{}) (*dto.BusinessPartnerFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -21360,7 +21360,7 @@ func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚖgitlabᚗsla
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerSortInput(ctx context.Context, v interface{}) ([]*resources.BusinessPartnerSortInput, error) {
+func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx context.Context, v interface{}) ([]*dto.BusinessPartnerSortInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -21373,10 +21373,10 @@ func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗsl
 		}
 	}
 	var err error
-	res := make([]*resources.BusinessPartnerSortInput, len(vSlice))
+	res := make([]*dto.BusinessPartnerSortInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOBusinessPartnerSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerSortInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOBusinessPartnerSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -21384,7 +21384,7 @@ func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗsl
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋresourcesᚐBusinessPartnerSortInput(ctx context.Context, v interface{}) (*resources.BusinessPartnerSortInput, error) {
+func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx context.Context, v interface{}) (*dto.BusinessPartnerSortInput, error) {
 	if v == nil {
 		return nil, nil
 	}

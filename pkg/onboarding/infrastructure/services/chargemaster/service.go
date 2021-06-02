@@ -9,7 +9,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -57,10 +57,10 @@ const (
 // ServiceChargeMaster represents logic required to communicate with chargemaster
 type ServiceChargeMaster interface {
 	FetchChargeMasterClient() *base.ServerClient
-	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BusinessPartnerFilterInput,
-		sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error)
-	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*resources.BranchFilterInput,
-		sort []*resources.BranchSortInput) (*resources.BranchConnection, error)
+	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+		sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error)
+	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+		sort []*dto.BranchSortInput) (*dto.BranchConnection, error)
 	FetchProviderByID(ctx context.Context, id string) (*domain.BusinessPartner, error)
 }
 
@@ -100,7 +100,7 @@ func (chr ServiceChargeMasterImpl) FetchChargeMasterClient() *base.ServerClient 
 //
 // Example https://base.chargemaster.slade360emr.com/v1/business_partners/?bp_type=PROVIDER&search={name}
 func (chr ServiceChargeMasterImpl) FindProvider(ctx context.Context, pagination *base.PaginationInput,
-	filter []*resources.BusinessPartnerFilterInput, sort []*resources.BusinessPartnerSortInput) (*resources.BusinessPartnerConnection, error) {
+	filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
 
 	paginationParams, err := base.GetAPIPaginationParams(pagination)
 	if err != nil {
@@ -140,9 +140,9 @@ func (chr ServiceChargeMasterImpl) FindProvider(ctx context.Context, pagination 
 	hasNextPage := r.Next != ""
 	hasPreviousPage := r.Previous != ""
 
-	edges := []*resources.BusinessPartnerEdge{}
+	edges := []*dto.BusinessPartnerEdge{}
 	for pos, org := range r.Results {
-		edge := &resources.BusinessPartnerEdge{
+		edge := &dto.BusinessPartnerEdge{
 			Node: &domain.BusinessPartner{
 				ID:        org.ID,
 				Name:      org.Name,
@@ -159,7 +159,7 @@ func (chr ServiceChargeMasterImpl) FindProvider(ctx context.Context, pagination 
 		StartCursor:     startOffset,
 		EndCursor:       endOffset,
 	}
-	connection := &resources.BusinessPartnerConnection{
+	connection := &dto.BusinessPartnerConnection{
 		Edges:    edges,
 		PageInfo: pageInfo,
 	}
@@ -188,7 +188,7 @@ func (chr ServiceChargeMasterImpl) FetchProviderByID(ctx context.Context, id str
 // FindBranch lists all locations known to Slade 360 Charge Master
 // Example URL: https://base.chargemaster.slade360emr.com/v1/business_partners/?format=json&page_size=100&parent=6ba48d97-93d2-4815-a447-f51240cbcab8&fields=id,name,slade_code
 func (chr ServiceChargeMasterImpl) FindBranch(ctx context.Context, pagination *base.PaginationInput,
-	filter []*resources.BranchFilterInput, sort []*resources.BranchSortInput) (*resources.BranchConnection, error) {
+	filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 
 	paginationParams, err := base.GetAPIPaginationParams(pagination)
 	if err != nil {
@@ -225,14 +225,14 @@ func (chr ServiceChargeMasterImpl) FindBranch(ctx context.Context, pagination *b
 	hasNextPage := r.Next != ""
 	hasPreviousPage := r.Previous != ""
 
-	edges := []*resources.BranchEdge{}
+	edges := []*dto.BranchEdge{}
 	for pos, branch := range r.Results {
 		orgSladeCode, err := parentOrgSladeCodeFromBranch(branch)
 		if err != nil {
 			return nil, err
 		}
 
-		edge := &resources.BranchEdge{
+		edge := &dto.BranchEdge{
 			Node: &domain.Branch{
 				ID:                    branch.ID,
 				Name:                  branch.Name,
@@ -249,7 +249,7 @@ func (chr ServiceChargeMasterImpl) FindBranch(ctx context.Context, pagination *b
 		StartCursor:     startOffset,
 		EndCursor:       endOffset,
 	}
-	connection := &resources.BranchConnection{
+	connection := &dto.BranchConnection{
 		Edges:    edges,
 		PageInfo: pageInfo,
 	}

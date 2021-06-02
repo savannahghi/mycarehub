@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
@@ -31,7 +31,7 @@ func TestUpdateUserProfileUserName(t *testing.T) {
 	pin := "1234"
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -107,7 +107,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	pin := "1234"
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -286,7 +286,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	pin := "1234"
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -492,7 +492,7 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 	pin := "1234"
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -672,7 +672,7 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 	pin := "1234"
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -767,7 +767,7 @@ func TestCheckPhoneExists(t *testing.T) {
 	pin := base.TestUserPin
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &phone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -804,7 +804,7 @@ func TestGetUserProfileByUID(t *testing.T) {
 
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -863,7 +863,7 @@ func TestUserProfile(t *testing.T) {
 
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -921,7 +921,7 @@ func TestGetProfileByID(t *testing.T) {
 
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,
@@ -986,7 +986,7 @@ func TestUpdateBioData(t *testing.T) {
 	// this should pass
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &validPIN,
 			Flavour:     validFlavourConsumer,
@@ -1120,7 +1120,7 @@ func TestUpdatePhotoUploadID(t *testing.T) {
 	// this should pass
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &validPIN,
 			Flavour:     validFlavourConsumer,
@@ -1193,7 +1193,7 @@ func TestUpdateSuspended(t *testing.T) {
 	// this should pass
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &validPIN,
 			Flavour:     validFlavourConsumer,
@@ -1257,7 +1257,7 @@ func TestUpdatePermissions(t *testing.T) {
 	// this should pass
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &validPIN,
 			Flavour:     validFlavourConsumer,
@@ -1331,7 +1331,7 @@ func TestSetupAsExperimentParticipant(t *testing.T) {
 	// this should pass
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &validPIN,
 			Flavour:     validFlavourConsumer,
@@ -1461,14 +1461,14 @@ func TestAddAddress(t *testing.T) {
 		return
 	}
 
-	addr := resources.UserAddressInput{
+	addr := dto.UserAddressInput{
 		Latitude:  1.2,
 		Longitude: -34.001,
 	}
 
 	type args struct {
 		ctx         context.Context
-		input       resources.UserAddressInput
+		input       dto.UserAddressInput
 		addressType base.AddressType
 	}
 	tests := []struct {
@@ -1527,7 +1527,7 @@ func TestGetAddresses(t *testing.T) {
 		return
 	}
 
-	addr := resources.UserAddressInput{
+	addr := dto.UserAddressInput{
 		Latitude:  1.2,
 		Longitude: -34.001,
 	}
@@ -1591,7 +1591,7 @@ func TestIntegrationGetAddresses(t *testing.T) {
 
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &validPIN,
 			Flavour:     validFlavourConsumer,
@@ -1625,7 +1625,7 @@ func TestIntegrationGetAddresses(t *testing.T) {
 
 	addr, err := s.Onboarding.AddAddress(
 		authenticatedContext,
-		resources.UserAddressInput{
+		dto.UserAddressInput{
 			Latitude:  lat,
 			Longitude: long,
 		},
@@ -2071,7 +2071,7 @@ func TestProfileUseCaseImpl_RemoveAdminPermsToUser(t *testing.T) {
 	pin := "1234"
 	_, err = p.Signup.CreateUserByPhone(
 		context.Background(),
-		&resources.SignUpInput{
+		&dto.SignUpInput{
 			PhoneNumber: &phoneNumber,
 			PIN:         &pin,
 			Flavour:     base.FlavourConsumer,

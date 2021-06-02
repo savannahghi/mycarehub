@@ -3,13 +3,13 @@ package authorization
 import (
 	"testing"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/resources"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 func TestCheckPemissions(t *testing.T) {
 	type args struct {
 		subject string
-		input   resources.PermissionInput
+		input   dto.PermissionInput
 	}
 	tests := []struct {
 		name    string
@@ -21,7 +21,7 @@ func TestCheckPemissions(t *testing.T) {
 			name: "valid: permission is set and subject has permission",
 			args: args{
 				subject: "254711223344",
-				input: resources.PermissionInput{
+				input: dto.PermissionInput{
 					Resource: "update_primary_phone",
 					Action:   "edit",
 				},
@@ -33,7 +33,7 @@ func TestCheckPemissions(t *testing.T) {
 			name: "valid: unknown subject with unkown resource",
 			args: args{
 				subject: "mail@example.com",
-				input: resources.PermissionInput{
+				input: dto.PermissionInput{
 					Resource: "unknown_resource",
 					Action:   "edit",
 				},
@@ -59,7 +59,7 @@ func TestCheckPemissions(t *testing.T) {
 func TestCheckAuthorization(t *testing.T) {
 	type args struct {
 		subject    string
-		permission resources.PermissionInput
+		permission dto.PermissionInput
 	}
 	tests := []struct {
 		name    string
@@ -71,7 +71,7 @@ func TestCheckAuthorization(t *testing.T) {
 			name: "valid: permission is set and subject has permission",
 			args: args{
 				subject: "254711223344",
-				permission: resources.PermissionInput{
+				permission: dto.PermissionInput{
 					Resource: "update_primary_phone",
 					Action:   "edit",
 				},
@@ -83,7 +83,7 @@ func TestCheckAuthorization(t *testing.T) {
 			name: "valid: unknown subject with unkown resource",
 			args: args{
 				subject: "mail@example.com",
-				permission: resources.PermissionInput{
+				permission: dto.PermissionInput{
 					Resource: "unknown_resource",
 					Action:   "edit",
 				},
