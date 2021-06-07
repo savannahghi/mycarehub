@@ -1,4 +1,3 @@
-
 # supported content types
 enum ContentType {
   PNG
@@ -14,7 +13,7 @@ enum Language {
 """
 PractitionerSpecialties is a list of recognised health worker specialties.
 
-See: https://medicalboard.co.ke/dto_page/gazetted-specialties/
+See: https://medicalboard.co.ke/resources_page/gazetted-specialties/
 """
 enum PractitionerSpecialty {
   UNSPECIFIED
@@ -51,7 +50,11 @@ enum PractitionerSpecialty {
   UROLOGY
 }
 
-type PageInfo @key(fields: "hasNextPage") @key(fields: "hasPreviousPage") {
+type PageInfo
+  @key(fields: "hasNextPage")
+  @key(fields: "hasPreviousPage")
+  @key(fields: "startCursor")
+  @key(fields: "endCursor") {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   startCursor: String
