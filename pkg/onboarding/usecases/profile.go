@@ -201,7 +201,7 @@ func (p *ProfileUseCaseImpl) UpdateUserName(ctx context.Context, userName string
 	if err != nil {
 		return err
 	}
-	return profile.UpdateProfileUserName(ctx, p.onboardingRepository, userName)
+	return p.onboardingRepository.UpdateUserName(ctx, profile.ID, userName)
 }
 
 // UpdatePrimaryPhoneNumber updates the primary phone number of a specific user profile
@@ -252,10 +252,9 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(
 
 	previousPrimaryPhone := profile.PrimaryPhone
 	secondaryPhones := profile.SecondaryPhoneNumbers
-	if err := profile.UpdateProfilePrimaryPhoneNumber(ctx, p.onboardingRepository, phone); err != nil {
+	if err := p.onboardingRepository.UpdatePrimaryPhoneNumber(ctx, profile.ID, phone); err != nil {
 		return err
 	}
-
 	// check if number to be set as primary exists in the list of secondary phones
 	index, exists := utils.FindItem(secondaryPhones, *phoneNumber)
 	if exists {
@@ -266,7 +265,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(
 	secondaryPhones = append(secondaryPhones, *previousPrimaryPhone)
 
 	if len(secondaryPhones) >= 1 {
-		if err := profile.UpdateProfileSecondaryPhoneNumbers(ctx, p.onboardingRepository, secondaryPhones); err != nil {
+		if err := p.onboardingRepository.UpdateSecondaryPhoneNumbers(ctx, profile.ID, secondaryPhones); err != nil {
 			return err
 		}
 	}
@@ -297,7 +296,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-	if err := profile.UpdateProfilePrimaryEmailAddress(ctx, p.onboardingRepository, emailAddress); err != nil {
+	if err := p.onboardingRepository.UpdatePrimaryEmailAddress(ctx, profile.ID, emailAddress); err != nil {
 		return err
 	}
 
@@ -315,7 +314,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(
 		secondaryEmails = append(secondaryEmails, *previousPrimaryEmail)
 
 		if len(secondaryEmails) >= 1 {
-			if err := profile.UpdateProfileSecondaryEmailAddresses(ctx, p.onboardingRepository, secondaryEmails); err != nil {
+			if err := p.onboardingRepository.UpdateSecondaryEmailAddresses(ctx, profile.ID, secondaryEmails); err != nil {
 				return err
 			}
 		}
@@ -364,7 +363,7 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryPhoneNumbers(
 			return err
 		}
 
-		return profile.UpdateProfileSecondaryPhoneNumbers(ctx, p.onboardingRepository, phoneNumbers)
+		return p.onboardingRepository.UpdateSecondaryPhoneNumbers(ctx, profile.ID, phoneNumbers)
 	}
 
 	// throw an error indicating the phone number(s) is/are already in the use
@@ -408,9 +407,9 @@ func (p *ProfileUseCaseImpl) UpdateSecondaryEmailAddresses(
 		}
 
 		if profile.PrimaryEmailAddress != nil {
-			return profile.UpdateProfileSecondaryEmailAddresses(
+			return p.onboardingRepository.UpdateSecondaryEmailAddresses(
 				ctx,
-				p.onboardingRepository,
+				profile.ID,
 				uniqueEmails,
 			)
 		}
@@ -447,7 +446,7 @@ func (p *ProfileUseCaseImpl) UpdateVerifiedUIDS(ctx context.Context, uids []stri
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-	return profile.UpdateProfileVerifiedUIDS(ctx, p.onboardingRepository, uids)
+	return p.onboardingRepository.UpdateVerifiedUIDS(ctx, profile.ID, uids)
 }
 
 // UpdateVerifiedIdentifiers updates the profile's verified identifiers
@@ -473,7 +472,7 @@ func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(
 		return err
 	}
 
-	return profile.UpdateProfileVerifiedIdentifiers(ctx, p.onboardingRepository, identifiers)
+	return p.onboardingRepository.UpdateVerifiedIdentifiers(ctx, profile.ID, identifiers)
 }
 
 // UpdateSuspended updates primary suspend attribute of a specific user profile
@@ -516,7 +515,7 @@ func (p *ProfileUseCaseImpl) UpdateSuspended(
 		}
 
 	}
-	return profile.UpdateProfileSuspended(ctx, p.onboardingRepository, status)
+	return p.onboardingRepository.UpdateSuspended(ctx, profile.ID, status)
 }
 
 // UpdatePhotoUploadID updates photouploadid attribute of a specific user profile
@@ -540,7 +539,7 @@ func (p *ProfileUseCaseImpl) UpdatePhotoUploadID(ctx context.Context, uploadID s
 		return err
 	}
 
-	return profile.UpdateProfilePhotoUploadID(ctx, p.onboardingRepository, uploadID)
+	return p.onboardingRepository.UpdatePhotoUploadID(ctx, profile.ID, uploadID)
 
 }
 
@@ -559,9 +558,9 @@ func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cov
 		return err
 	}
 
-	return profile.UpdateProfileCovers(
+	return p.onboardingRepository.UpdateCovers(
 		ctx,
-		p.onboardingRepository,
+		profile.ID,
 		utils.AddHashToCovers(covers),
 	)
 }
@@ -598,13 +597,13 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(
 			profile.PushTokens = append(profile.PushTokens[:index], profile.PushTokens[index+1:]...)
 		}
 
-		return profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, profile.PushTokens)
+		return p.onboardingRepository.UpdatePushTokens(ctx, profile.ID, profile.PushTokens)
 
 	}
 	newToken := []string{}
 	newTokens := append(newToken, pushToken)
 
-	return profile.UpdateProfilePushTokens(ctx, p.onboardingRepository, newTokens)
+	return p.onboardingRepository.UpdatePushTokens(ctx, profile.ID, newTokens)
 }
 
 // UpdatePermissions updates the profiles permissions
@@ -629,7 +628,7 @@ func (p *ProfileUseCaseImpl) UpdatePermissions(
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-	return profile.UpdateProfilePermissions(ctx, p.onboardingRepository, perms)
+	return p.onboardingRepository.UpdatePermissions(ctx, profile.ID, perms)
 }
 
 // AddAdminPermsToUser updates the profiles permissions
@@ -648,7 +647,7 @@ func (p *ProfileUseCaseImpl) AddAdminPermsToUser(ctx context.Context, phone stri
 		return err
 	}
 	perms := base.DefaultSuperAdminPermissions
-	return profile.UpdateProfilePermissions(ctx, p.onboardingRepository, perms)
+	return p.onboardingRepository.UpdatePermissions(ctx, profile.ID, perms)
 }
 
 // RemoveAdminPermsToUser updates the profiles permissions by removing the admin permissions
@@ -671,7 +670,7 @@ func (p *ProfileUseCaseImpl) RemoveAdminPermsToUser(ctx context.Context, phone s
 	if len(permissions) >= 1 {
 		permissions = nil
 	}
-	return profile.UpdateProfilePermissions(ctx, p.onboardingRepository, permissions)
+	return p.onboardingRepository.UpdatePermissions(ctx, profile.ID, permissions)
 }
 
 // UpdateBioData updates primary biodata of a specific user profile
@@ -694,7 +693,7 @@ func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioDat
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-	return profile.UpdateProfileBioData(ctx, p.onboardingRepository, data)
+	return p.onboardingRepository.UpdateBioData(ctx, profile.ID, data)
 }
 
 // MaskPhoneNumbers masks phone number. the masked phone numbers will be in the form +254700***123

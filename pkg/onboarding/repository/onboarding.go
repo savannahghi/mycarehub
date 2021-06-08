@@ -56,7 +56,7 @@ type CustomerRepository interface {
 
 // OnboardingRepository interface that provide access to all persistent storage operations
 type OnboardingRepository interface {
-	base.UserProfileRepository
+	UserProfileRepository
 
 	SupplierRepository
 
@@ -157,4 +157,22 @@ type OnboardingRepository interface {
 
 	PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error
 	AddIncomingUSSDData(ctx context.Context, input *dto.EndSessionDetails) error
+}
+
+// UserProfileRepository interface that provide access to all persistent storage operations for user profile
+type UserProfileRepository interface {
+	UpdateUserName(ctx context.Context, id string, userName string) error
+	UpdatePrimaryPhoneNumber(ctx context.Context, id string, phoneNumber string) error
+	UpdatePrimaryEmailAddress(ctx context.Context, id string, emailAddress string) error
+	UpdateSecondaryPhoneNumbers(ctx context.Context, id string, phoneNumbers []string) error
+	UpdateSecondaryEmailAddresses(ctx context.Context, id string, emailAddresses []string) error
+	UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error
+	UpdateVerifiedUIDS(ctx context.Context, id string, uids []string) error
+	UpdateSuspended(ctx context.Context, id string, status bool) error
+	UpdatePhotoUploadID(ctx context.Context, id string, uploadID string) error
+	UpdateCovers(ctx context.Context, id string, covers []base.Cover) error
+	UpdatePushTokens(ctx context.Context, id string, pushToken []string) error
+	UpdatePermissions(ctx context.Context, id string, perms []base.PermissionType) error
+	UpdateBioData(ctx context.Context, id string, data base.BioData) error
+	UpdateAddresses(ctx context.Context, id string, address base.Address, addressType base.AddressType) error
 }
