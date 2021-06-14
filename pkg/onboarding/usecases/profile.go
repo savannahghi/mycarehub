@@ -58,6 +58,8 @@ type ProfileUseCase interface {
 	UpdatePermissions(ctx context.Context, perms []base.PermissionType) error
 	AddAdminPermsToUser(ctx context.Context, phone string) error
 	RemoveAdminPermsToUser(ctx context.Context, phone string) error
+	AddRoleToUser(ctx context.Context, phone string, role base.RoleType) error
+	RemoveRoleToUser(ctx context.Context, phone string) error
 	UpdateBioData(ctx context.Context, data base.BioData) error
 	GetUserProfileByUID(
 		ctx context.Context,
@@ -671,6 +673,51 @@ func (p *ProfileUseCaseImpl) RemoveAdminPermsToUser(ctx context.Context, phone s
 		permissions = nil
 	}
 	return p.onboardingRepository.UpdatePermissions(ctx, profile.ID, permissions)
+}
+
+// AddRoleToUser updates the profiles role and permissions
+func (p *ProfileUseCaseImpl) AddRoleToUser(ctx context.Context, phone string, role base.RoleType) error {
+	phoneNumber, err := p.baseExt.NormalizeMSISDN(phone)
+	if err != nil {
+		return exceptions.NormalizeMSISDNError(err)
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(
+		ctx,
+		*phoneNumber,
+		false,
+	)
+	if err != nil {
+		return err
+	}
+	if !role.IsValid() {
+		return &base.CustomError{
+			Message: fmt.Sprintf("Invalid role `%v` not available", role),
+		}
+	}
+	return p.onboardingRepository.UpdateRole(ctx, profile.ID, role)
+}
+
+// RemoveRoleToUser updates the profiles role and permissions by setting roles to default
+func (p *ProfileUseCaseImpl) RemoveRoleToUser(ctx context.Context, phone string) error {
+	phoneNumber, err := p.baseExt.NormalizeMSISDN(phone)
+	if err != nil {
+		return exceptions.NormalizeMSISDNError(err)
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(
+		ctx,
+		*phoneNumber,
+		false,
+	)
+	if err != nil {
+		return err
+	}
+	perms := profile.Permissions
+	if len(perms) >= 1 {
+		perms = nil
+	}
+	return p.onboardingRepository.UpdateRole(ctx, profile.ID, "")
 }
 
 // UpdateBioData updates primary biodata of a specific user profile

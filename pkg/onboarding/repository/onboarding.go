@@ -80,7 +80,7 @@ type OnboardingRepository interface {
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error)
 
 	// fetches a user profile by primary phone number
-	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error)
+	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspend bool) (*base.UserProfile, error)
 
 	// checks if a specific phone number has already been registered to another user
 	CheckIfPhoneNumberExists(ctx context.Context, phone string) (bool, error)
@@ -173,6 +173,7 @@ type UserProfileRepository interface {
 	UpdateCovers(ctx context.Context, id string, covers []base.Cover) error
 	UpdatePushTokens(ctx context.Context, id string, pushToken []string) error
 	UpdatePermissions(ctx context.Context, id string, perms []base.PermissionType) error
+	UpdateRole(ctx context.Context, id string, role base.RoleType) error
 	UpdateBioData(ctx context.Context, id string, data base.BioData) error
 	UpdateAddresses(ctx context.Context, id string, address base.Address, addressType base.AddressType) error
 }

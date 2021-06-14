@@ -993,6 +993,95 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 	}
 }
 
+func TestProfileUseCaseImpl_AddRoleToUser(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx   context.Context
+		phone string
+		role  base.RoleType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: successfully updates role",
+			args: args{
+				ctx:   ctx,
+				phone: "+254721123123",
+				role:  base.RoleTypeEmployee,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: get profile by primary phone number failed",
+			args: args{
+				ctx:   ctx,
+				phone: "+254721123123",
+				role:  base.RoleTypeEmployee,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid: successfully updates role" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+						SecondaryPhoneNumbers: []string{
+							"0721521456", "0721856741",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid: get profile by primary phone number failed" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+				fakeBaseExt.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phone string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("UserProfile matching PhoneNumber not found")
+				}
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+					return fmt.Errorf("User Roles not updated")
+				}
+			}
+
+			err := i.Onboarding.AddRoleToUser(tt.args.ctx, tt.args.phone, tt.args.role)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
 func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()

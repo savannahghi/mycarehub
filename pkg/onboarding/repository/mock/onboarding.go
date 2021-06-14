@@ -17,6 +17,7 @@ type FakeOnboardingRepository struct {
 	AddPartnerTypeFn                func(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error)
 
 	UpdateSupplierProfileFn  func(ctx context.Context, profileID string, data *base.Supplier) error
+	AddRoleToUserfn          func(ctx context.Context, phone string, role base.RoleType) error
 	AddSupplierAccountTypeFn func(ctx context.Context, profileID string, accountType base.AccountType) (*base.Supplier, error)
 
 	StageProfileNudgeFn func(ctx context.Context, nudge *base.Nudge) error
@@ -153,6 +154,7 @@ type FakeOnboardingRepository struct {
 	UpdateCoversFn                  func(ctx context.Context, id string, covers []base.Cover) error
 	UpdatePushTokensFn              func(ctx context.Context, id string, pushToken []string) error
 	UpdatePermissionsFn             func(ctx context.Context, id string, perms []base.PermissionType) error
+	UpdateRoleFn                    func(ctx context.Context, id string, role base.RoleType) error
 	UpdateBioDataFn                 func(ctx context.Context, id string, data base.BioData) error
 	UpdateVerifiedIdentifiersFn     func(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error
 	UpdateVerifiedUIDSFn            func(ctx context.Context, id string, uids []string) error
@@ -188,6 +190,11 @@ func (f *FakeOnboardingRepository) AddPartnerType(ctx context.Context, profileID
 // UpdateSupplierProfile ...
 func (f *FakeOnboardingRepository) UpdateSupplierProfile(ctx context.Context, profileID string, data *base.Supplier) error {
 	return f.UpdateSupplierProfileFn(ctx, profileID, data)
+}
+
+// AddRoleToUser ...
+func (f *FakeOnboardingRepository) AddRoleToUser(ctx context.Context, phone string, role base.RoleType) error {
+	return f.AddRoleToUserfn(ctx, phone, role)
 }
 
 // AddSupplierAccountType ...
@@ -393,6 +400,11 @@ func (f *FakeOnboardingRepository) UpdatePushTokens(ctx context.Context, id stri
 // UpdatePermissions ...
 func (f *FakeOnboardingRepository) UpdatePermissions(ctx context.Context, id string, perms []base.PermissionType) error {
 	return f.UpdatePermissionsFn(ctx, id, perms)
+}
+
+// UpdateRole ...
+func (f *FakeOnboardingRepository) UpdateRole(ctx context.Context, id string, role base.RoleType) error {
+	return f.UpdateRoleFn(ctx, id, role)
 }
 
 // UpdateBioData ...

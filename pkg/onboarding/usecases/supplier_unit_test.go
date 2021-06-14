@@ -5054,7 +5054,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad:( failed to publsih to PubSub",
+			name: "sad:( failed to publish to PubSub",
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
@@ -5123,7 +5123,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 				}
 			}
 
-			if tt.name == "sad:( failed to publsih to PubSub" {
+			if tt.name == "sad:( failed to publish to PubSub" {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
@@ -6094,6 +6094,10 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return nil
 				}
 
+				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role base.RoleType) error {
+					return nil
+				}
+
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
@@ -6236,6 +6240,10 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return nil
 				}
 
+				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role base.RoleType) error {
+					return nil
+				}
+
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
@@ -6353,6 +6361,10 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return nil
 				}
 
+				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role base.RoleType) error {
+					return nil
+				}
+
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
@@ -6445,6 +6457,10 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return nil
 				}
 
+				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role base.RoleType) error {
+					return nil
+				}
+
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
@@ -6533,6 +6549,10 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 				}
 
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+					return nil
+				}
+
+				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role base.RoleType) error {
 					return nil
 				}
 
@@ -7511,7 +7531,7 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad:( failed to publsih to PubSub",
+			name: "sad:( failed to publish to PubSub",
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
@@ -7572,7 +7592,7 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 				}
 			}
 
-			if tt.name == "sad:( failed to publsih to PubSub" {
+			if tt.name == "sad:( failed to publish to PubSub" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return uuid.New().String(), nil
 				}

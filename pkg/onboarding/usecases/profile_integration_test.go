@@ -2108,10 +2108,66 @@ func TestProfileUseCaseImpl_RemoveAdminPermsToUser(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := p.Onboarding.RemoveAdminPermsToUser(tt.args.ctx, tt.args.phone); (err != nil) != tt.wantErr {
 				t.Errorf("ProfileUseCaseImpl.RemoveAdminPermsToUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestAddRoleToUser(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	p, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		phone *string
+		role  *base.RoleType
+	}
+	validPhone := base.TestUserPhoneNumber
+	invalidPhone := "+2547000"
+	validRole := base.RoleTypeEmployee
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: add role to user",
+			args: args{
+				ctx:   ctx,
+				phone: &validPhone,
+				role:  &validRole,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: add role to user failed",
+			args: args{
+				ctx:   ctx,
+				phone: &invalidPhone,
+				role:  &validRole,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := p.Onboarding.AddRoleToUser(tt.args.ctx, *tt.args.phone, *tt.args.role); (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.AddRoleToUser() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

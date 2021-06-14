@@ -74,10 +74,11 @@ type FakeBaseExtensionImpl struct {
 		source interface{},
 		status int,
 	)
-	GetLoginFuncFn       func(ctx context.Context) http.HandlerFunc
-	GetLogoutFuncFn      func(ctx context.Context) http.HandlerFunc
-	GetRefreshFuncFn     func() http.HandlerFunc
-	GetVerifyTokenFuncFn func(ctx context.Context) http.HandlerFunc
+	GetLoginFuncFn                       func(ctx context.Context) http.HandlerFunc
+	GetLogoutFuncFn                      func(ctx context.Context) http.HandlerFunc
+	GetRefreshFuncFn                     func() http.HandlerFunc
+	GetVerifyTokenFuncFn                 func(ctx context.Context) http.HandlerFunc
+	GetUserProfileByPrimaryPhoneNumberFn func(ctx context.Context, phone string, suspended bool) (*base.UserProfile, error)
 }
 
 // GetLoggedInUser retrieves logged in user information
@@ -292,4 +293,9 @@ type ISCClientExtension struct {
 // MakeRequest ...
 func (i *ISCClientExtension) MakeRequest(method string, path string, body interface{}) (*http.Response, error) {
 	return i.MakeRequestFn(method, path, body)
+}
+
+// GetUserProfileByPrimaryPhoneNumber ..
+func (b *FakeBaseExtensionImpl) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phone string, suspended bool) (*base.UserProfile, error) {
+	return b.GetUserProfileByPrimaryPhoneNumberFn(ctx, phone, suspended)
 }

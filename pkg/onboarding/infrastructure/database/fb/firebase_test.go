@@ -490,3 +490,60 @@ func TestRepository_StageKYCProcessingRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_UpdateRole(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	type args struct {
+		ctx  context.Context
+		id   string
+		role base.RoleType
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:update_user_role_successful",
+			args: args{
+				ctx:  ctx,
+				id:   "12333",
+				role: base.RoleTypeEmployee,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:update_user_role_failed_userprofile_not_found",
+			args: args{
+				ctx:  ctx,
+				id:   "12333",
+				role: base.RoleTypeAgent,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := repo.UpdateRole(tt.args.ctx, tt.args.id, tt.args.role)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+
+		})
+	}
+}
