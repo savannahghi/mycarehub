@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
+	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -298,4 +299,10 @@ type UserProfilePayload struct {
 type PermissionInput struct {
 	Action   string
 	Resource string
+}
+
+// UpdateContactPSMessage represents CRM update contact Pub/Sub message
+type UpdateContactPSMessage struct {
+	Properties CRMDomain.ContactProperties `json:"properties"`
+	Phone      string                      `json:"phone"`
 }

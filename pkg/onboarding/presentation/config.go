@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -101,10 +102,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize new instance of our infrastructure services
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
+	crm := hubspot.NewHubSpotService()
 	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		baseExt,
 		erp,
+		crm,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
@@ -115,18 +118,18 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	aitUssd := usecases.NewUssdUsecases(repo, baseExt)
 
 	// Initialize the usecases
-	profile := usecases.NewProfileUseCase(repo, baseExt, engage)
+	profile := usecases.NewProfileUseCase(repo, baseExt, engage, pubSub)
 	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mes, baseExt, pubSub)
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
-	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage)
+	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage, pubSub)
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
 	sms := usecases.NewSMSUsecase(repo, baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(
 		repo, profile, su, supplier, login, survey,
-		userpin, erp, chrg, engage, mes, nhif, pubSub, sms, aitUssd,
+		userpin, erp, chrg, engage, mes, nhif, pubSub, sms, aitUssd, crm,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

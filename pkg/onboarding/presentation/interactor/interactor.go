@@ -3,6 +3,7 @@
 package interactor
 
 import (
+	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
@@ -28,6 +29,7 @@ type Interactor struct {
 	PubSub       pubsubmessaging.ServicePubSub
 	SMS          usecases.SMSUsecase
 	AITUSSD      usecases.UssdUsecase
+	CRM          hubspot.ServiceHubSpotInterface
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -47,6 +49,7 @@ func NewOnboardingInteractor(
 	pubsub pubsubmessaging.ServicePubSub,
 	sms usecases.SMSUsecase,
 	aitussd usecases.UssdUsecase,
+	crm hubspot.ServiceHubSpotInterface,
 ) (*Interactor, error) {
 
 	return &Interactor{
@@ -64,5 +67,6 @@ func NewOnboardingInteractor(
 		PubSub:       pubsub,
 		SMS:          sms,
 		AITUSSD:      aitussd,
+		CRM:          crm,
 	}, nil
 }

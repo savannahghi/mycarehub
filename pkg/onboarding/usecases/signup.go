@@ -2,15 +2,19 @@ package usecases
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -63,6 +67,7 @@ type SignUpUseCasesImpl struct {
 	supplierUsecase      SupplierUseCases
 	baseExt              extension.BaseExtension
 	engagement           engagement.ServiceEngagement
+	pubsub               pubsubmessaging.ServicePubSub
 }
 
 // NewSignUpUseCases returns a new a onboarding usecase
@@ -73,6 +78,7 @@ func NewSignUpUseCases(
 	supplier SupplierUseCases,
 	ext extension.BaseExtension,
 	eng engagement.ServiceEngagement,
+	pubsub pubsubmessaging.ServicePubSub,
 ) SignUpUseCases {
 	return &SignUpUseCasesImpl{
 		onboardingRepository: r,
@@ -81,6 +87,7 @@ func NewSignUpUseCases(
 		supplierUsecase:      supplier,
 		baseExt:              ext,
 		engagement:           eng,
+		pubsub:               pubsub,
 	}
 }
 
@@ -192,6 +199,26 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	CRMContact := domain.CRMContact{
+		Properties: domain.ContactProperties{
+			Phone: *profile.PrimaryPhone,
+		},
+	}
+
+	bs, err := json.Marshal(CRMContact)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.pubsub.PublishToPubsub(
+		ctx,
+		s.pubsub.AddPubSubNamespace(pubsubmessaging.CreateCRMContact),
+		bs,
+	)
+	if err != nil {
+		log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
 	}
 
 	return &base.UserResponse{

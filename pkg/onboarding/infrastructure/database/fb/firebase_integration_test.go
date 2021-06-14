@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 
@@ -123,10 +124,12 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 	erp := erp.NewERPService(fr)
+	crm := hubspot.NewHubSpotService()
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		ext,
 		erp,
+		crm,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
@@ -135,12 +138,12 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 
-	profile := usecases.NewProfileUseCase(fr, ext, engage)
+	profile := usecases.NewProfileUseCase(fr, ext, engage, ps)
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
 	userpin := usecases.NewUserPinUseCase(fr, profile, ext, pinExt, engage)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, ext, engage)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, ext, engage, ps)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -153,6 +156,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		ChargeMaster: chrg,
 		Engagement:   engage,
 		PubSub:       ps,
+		CRM:          crm,
 	}, nil
 }
 

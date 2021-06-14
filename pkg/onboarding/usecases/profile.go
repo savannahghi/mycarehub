@@ -2,7 +2,9 @@ package usecases
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -14,12 +16,14 @@ import (
 	"github.com/segmentio/ksuid"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -156,6 +160,7 @@ type ProfileUseCaseImpl struct {
 	onboardingRepository repository.OnboardingRepository
 	baseExt              extension.BaseExtension
 	engagement           engagement.ServiceEngagement
+	pubsub               pubsubmessaging.ServicePubSub
 }
 
 // NewProfileUseCase returns a new a onboarding usecase
@@ -163,11 +168,13 @@ func NewProfileUseCase(
 	r repository.OnboardingRepository,
 	ext extension.BaseExtension,
 	eng engagement.ServiceEngagement,
+	pubsub pubsubmessaging.ServicePubSub,
 ) ProfileUseCase {
 	return &ProfileUseCaseImpl{
 		onboardingRepository: r,
 		baseExt:              ext,
 		engagement:           eng,
+		pubsub:               pubsub,
 	}
 }
 
@@ -747,7 +754,46 @@ func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioDat
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-	return p.onboardingRepository.UpdateBioData(ctx, profile.ID, data)
+	if err = p.onboardingRepository.UpdateBioData(ctx, profile.ID, data); err != nil {
+		return err
+	}
+
+	var CRMContactProperties CRMDomain.ContactProperties
+	if data.FirstName != nil {
+		CRMContactProperties.FirstName = *data.FirstName
+	}
+
+	if data.LastName != nil {
+		CRMContactProperties.LastName = *data.LastName
+	}
+
+	if data.DateOfBirth != nil {
+		dob := data.DateOfBirth.AsTime()
+		CRMContactProperties.DateOfBirth = &dob
+	}
+
+	if data.Gender != "" {
+		CRMContactProperties.Gender = data.Gender.String()
+	}
+
+	bs, err := json.Marshal(dto.UpdateContactPSMessage{
+		Properties: CRMContactProperties,
+		Phone:      *profile.PrimaryPhone,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = p.pubsub.PublishToPubsub(
+		ctx,
+		p.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
+		bs,
+	)
+	if err != nil {
+		log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
+	}
+
+	return nil
 }
 
 // MaskPhoneNumbers masks phone number. the masked phone numbers will be in the form +254700***123
@@ -829,6 +875,31 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 	}
 	if err := p.UpdatePrimaryEmailAddress(ctx, emailAddress); err != nil {
 		return err
+	}
+
+	profile, err := p.UserProfile(ctx)
+	if err != nil {
+		return err
+	}
+
+	CRMContactProperties := CRMDomain.ContactProperties{
+		Email: emailAddress,
+	}
+	bs, err := json.Marshal(dto.UpdateContactPSMessage{
+		Properties: CRMContactProperties,
+		Phone:      *profile.PrimaryPhone,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = p.pubsub.PublishToPubsub(
+		ctx,
+		p.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
+		bs,
+	)
+	if err != nil {
+		log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
 	}
 
 	// The `VerifyEmail` nudge is by default created for both flavours, `PRO`

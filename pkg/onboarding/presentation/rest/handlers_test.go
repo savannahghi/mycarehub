@@ -16,6 +16,7 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
@@ -42,6 +43,7 @@ var fakeEngagementSvs engagementMock.FakeServiceEngagement
 var fakeBaseExt extMock.FakeBaseExtensionImpl
 var fakePinExt extMock.PINExtensionImpl
 var serverUrl = "http://localhost:5000"
+var fakePubSub pubsubmessagingMock.FakeServicePubSub
 
 // InitializeFakeOnboardingInteractor represents a fakeonboarding interactor
 func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
@@ -52,16 +54,17 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	var messagingSvc messaging.ServiceMessaging = &messagingMock.FakeServiceMessaging{}
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
-	var ps pubsubmessaging.ServicePubSub = &pubsubmessagingMock.FakeServicePubSub{}
+	var ps pubsubmessaging.ServicePubSub = &fakePubSub
 
-	profile := usecases.NewProfileUseCase(r, ext, engagementSvc)
+	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
 		r, profile, erpSvc, chargemasterSvc, engagementSvc, messagingSvc, ext, ps,
 	)
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
-	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc)
+	crm := hubspot.NewHubSpotService()
+	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
 	aitUssd := usecases.NewUssdUsecases(r, ext)
@@ -69,7 +72,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd,
+		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, crm,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -600,6 +603,18 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 
 				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
 					return &base.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+				}
+
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
+				}
+
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
+					return nil
 				}
 
 			}

@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
+	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
+	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
@@ -24,6 +26,12 @@ const (
 
 	// CreateSupplierTopic is the TopicID for supplier creation Topic
 	CreateSupplierTopic = "suppliers.create"
+
+	// CreateCRMContact is the TopicID for CRM contact creation
+	CreateCRMContact = "crm.contact.create"
+
+	// UpdateCRMContact is the topicID for CRM contact updates
+	UpdateCRMContact = "crm.contact.update"
 
 	hostNameEnvVarName = "SERVICE_HOST"
 
@@ -60,6 +68,7 @@ type ServicePubSubMessaging struct {
 	client  *pubsub.Client
 	baseExt extension.BaseExtension
 	erp     erp.ServiceERP
+	crm     hubspot.ServiceHubSpotInterface
 }
 
 // NewServicePubSubMessaging ...
@@ -67,11 +76,13 @@ func NewServicePubSubMessaging(
 	client *pubsub.Client,
 	ext extension.BaseExtension,
 	erp erp.ServiceERP,
+	crm hubspot.ServiceHubSpotInterface,
 ) (*ServicePubSubMessaging, error) {
 	s := &ServicePubSubMessaging{
 		client:  client,
 		baseExt: ext,
 		erp:     erp,
+		crm:     crm,
 	}
 
 	ctx := context.Background()
@@ -118,6 +129,8 @@ func (ps ServicePubSubMessaging) TopicIDs() []string {
 	return []string{
 		ps.AddPubSubNamespace(CreateCustomerTopic),
 		ps.AddPubSubNamespace(CreateSupplierTopic),
+		ps.AddPubSubNamespace(CreateCRMContact),
+		ps.AddPubSubNamespace(UpdateCRMContact),
 	}
 }
 
@@ -250,6 +263,49 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			ctx,
 			data.SupplierPayload,
 			data.UID,
+		); err != nil {
+			ps.baseExt.WriteJSONResponse(
+				w,
+				ps.baseExt.ErrorMap(err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+
+	case ps.AddPubSubNamespace(CreateCRMContact):
+		var CRMContact domain.CRMContact
+		err := json.Unmarshal(message.Message.Data, &CRMContact)
+		if err != nil {
+			ps.baseExt.WriteJSONResponse(
+				w,
+				ps.baseExt.ErrorMap(err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+		if _, err = ps.crm.CreateContact(CRMContact); err != nil {
+			ps.baseExt.WriteJSONResponse(
+				w,
+				ps.baseExt.ErrorMap(err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+
+	case ps.AddPubSubNamespace(UpdateCRMContact):
+		var contactProperties dto.UpdateContactPSMessage
+		err := json.Unmarshal(message.Message.Data, &contactProperties)
+		if err != nil {
+			ps.baseExt.WriteJSONResponse(
+				w,
+				ps.baseExt.ErrorMap(err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+		if _, err = ps.crm.UpdateContact(
+			contactProperties.Phone,
+			contactProperties.Properties,
 		); err != nil {
 			ps.baseExt.WriteJSONResponse(
 				w,

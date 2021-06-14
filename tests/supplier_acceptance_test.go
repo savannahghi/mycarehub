@@ -906,28 +906,8 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 			name: "invalid mutation request - wrong input",
 			args: args{
 				query: map[string]interface{}{
-					"query": graphQLMutationPayload,
-					"variables": map[string]interface{}{
-						"input": map[string]interface{}{
-							"identificationDoc": map[string]interface{}{
-								"identificationDocType":           "NATIONALID",
-								"identificationDocNumber":         "12345",
-								"identificationDocNumberUploadID": "12345",
-							},
-							"registrationNumber":      "12345",
-							"KRAPIN":                  "12345",
-							"KRAPINUploadID":          "12345",
-							"practiceLicenseID":       "12345",
-							"practiceServices":        []string{"OUTPATIENT_SERVICES"},
-							"practiceLicenseUploadID": 12345,
-							"cadre":                   "DOCTOR",
-							"supportingDocuments": map[string]interface{}{
-								"supportingDocumentTitle":       "title",
-								"supportingDocumentDescription": "description",
-								"supportingDocumentUpload":      "upload",
-							},
-						},
-					},
+					"query":     graphQLMutationPayload,
+					"variables": map[string]interface{}{},
 				},
 			},
 			wantStatus: http.StatusUnprocessableEntity,
@@ -1157,32 +1137,8 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 			name: "invalid mutation request",
 			args: args{
 				query: map[string]interface{}{
-					"query": graphqlMutation,
-					"variables": map[string]interface{}{
-						"input": map[string]interface{}{
-							"directorIdentifications": []map[string]interface{}{
-								{
-									"identificationDocType":           "NATIONALID",
-									"identificationDocNumber":         "12345678",
-									"identificationDocNumberUploadID": "12345678",
-								},
-							},
-							"organizationTypeName":               "LIMITED_COMPANY",
-							"certificateOfIncorporation":         "CERT-123456",
-							"certificateOfInCorporationUploadID": "CERT-UPLOAD-123456",
-							"registrationNumber":                 "REG-123456",
-							"KRAPIN":                             123456789,
-							"KRAPINUploadID":                     "KRA-UPLOAD-123456789",
-							"practiceServices":                   []string{"OUTPATIENT_SERVICES"},
-							"practiceLicenseID":                  "PRAC-123456",
-							"practiceLicenseUploadID":            "PRAC-123456",
-							"supportingDocuments": map[string]interface{}{
-								"supportingDocumentTitle":       "title",
-								"supportingDocumentDescription": "description",
-								"supportingDocumentUpload":      "upload",
-							},
-						},
-					},
+					"query":     graphqlMutation,
+					"variables": map[string]interface{}{},
 				},
 			},
 			wantStatus: http.StatusUnprocessableEntity,
@@ -1402,26 +1358,8 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 			name: "invalid mutation request - wrong input",
 			args: args{
 				query: map[string]interface{}{
-					"query": graphQLMutation,
-					"variables": map[string]interface{}{
-						"input": map[string]interface{}{
-							"identificationDoc": map[string]interface{}{
-								"identificationDocType":           "NATIONALID",
-								"identificationDocNumber":         "ID-12345",
-								"identificationDocNumberUploadID": "ID-12345",
-							},
-							"registrationNumber":      12345,
-							"KRAPIN":                  "KRA-12345",
-							"KRAPINUploadID":          "KRA-UPLOAD-12345",
-							"practiceLicenseUploadID": "PRA-UPLOAD-12345",
-							"practiceLicenseID":       "PRA-12345",
-							"supportingDocuments": map[string]interface{}{
-								"supportingDocumentTitle":       "title",
-								"supportingDocumentDescription": "description",
-								"supportingDocumentUpload":      "upload",
-							},
-						},
-					},
+					"query":     graphQLMutation,
+					"variables": map[string]interface{}{},
 				},
 			},
 			wantStatus: http.StatusUnprocessableEntity,
@@ -2099,29 +2037,8 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 			name: "invalid mutation request - wrong input",
 			args: args{
 				query: map[string]interface{}{
-					"query": graphQLMutation,
-					"variables": map[string]interface{}{
-						"input": map[string]interface{}{
-							"directorIdentifications": []map[string]interface{}{
-								{
-									"identificationDocType":           "NATIONALID",
-									"identificationDocNumber":         "12345678",
-									"identificationDocNumberUploadID": "12345678",
-								},
-							},
-							"organizationTypeName":               "LIMITED_COMPANY",
-							"certificateOfIncorporation":         12345,
-							"certificateOfInCorporationUploadID": 12345,
-							"organizationCertificate":            "12345",
-							"KRAPIN":                             "12345",
-							"KRAPINUploadID":                     "12345",
-							"supportingDocuments": map[string]interface{}{
-								"supportingDocumentTitle":       "title",
-								"supportingDocumentDescription": "description",
-								"supportingDocumentUpload":      "upload",
-							},
-						},
-					},
+					"query":     graphQLMutation,
+					"variables": map[string]interface{}{},
 				},
 			},
 			wantStatus: http.StatusUnprocessableEntity,
@@ -2339,25 +2256,8 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 			name: "Sad Case - Add individual rider kyc using invalid payload",
 			args: args{
 				query: map[string]interface{}{
-					"query": graphqlMutationPayload,
-					"variables": map[string]interface{}{
-						"input": map[string]interface{}{
-							"identificationDoc": map[string]interface{}{
-								"identificationDocType":           "PASSPORT",
-								"identificationDocNumber":         "12345678",
-								"identificationDocNumberUploadID": "12345678",
-							},
-							"KRAPIN":                         123456789,
-							"KRAPINUploadID":                 123456789,
-							"drivingLicenseID":               "678910",
-							"certificateGoodConductUploadID": "3458139",
-							"supportingDocuments": map[string]interface{}{
-								"supportingDocumentTitle":       "title",
-								"supportingDocumentDescription": "description",
-								"supportingDocumentUpload":      "upload",
-							},
-						},
-					},
+					"query":     graphqlMutationPayload,
+					"variables": map[string]interface{}{},
 				},
 			},
 			wantStatus: http.StatusUnprocessableEntity,
@@ -2434,6 +2334,7 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 					return
 				}
 			}
+			logrus.Print(resp.StatusCode)
 			if tt.wantStatus != resp.StatusCode {
 				b, _ := httputil.DumpResponse(resp, true)
 				t.Errorf("Bad status response returned; %v ", string(b))

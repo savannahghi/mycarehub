@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/segmentio/ksuid"
 	"gitlab.slade360emr.com/go/base"
@@ -608,6 +609,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 		return
 	}
 	primaryEmail := "juha@gmail.com"
+	phone := gofakeit.Phone()
 
 	type args struct {
 		ctx          context.Context
@@ -687,30 +689,60 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:_set_primary_address_succeeds" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:                  uuid.New().String(),
-						PrimaryEmailAddress: &primaryEmail,
-					}, nil
-				}
-				fakeEngagementSvs.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
-					return true, nil
-				}
-				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
-					return nil
-				}
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return uuid.New().String(), nil
 				}
+
+				fakeEngagementSvs.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
+					return true, nil
+				}
+
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
+						PrimaryPhone:        &phone,
 					}, nil
 				}
-				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
+
+				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
 					return nil
 				}
+
+				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddress []string) error {
+					return nil
+				}
+
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
+						UID: uuid.NewString(),
+					}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:                  uuid.New().String(),
+						PrimaryEmailAddress: &primaryEmail,
+						PrimaryPhone:        &phone,
+					}, nil
+				}
+
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
+				}
+
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
+					return nil
+				}
+
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					UID string,
 					flavour base.Flavour,
@@ -782,6 +814,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					return &base.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
+						PrimaryPhone:        &phone,
 					}, nil
 				}
 				fakeEngagementSvs.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
@@ -797,11 +830,25 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					return &base.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
+						PrimaryPhone:        &phone,
 					}, nil
 				}
 				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
 					return nil
 				}
+
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
+				}
+
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
+					return nil
+				}
+
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					UID string,
 					flavour base.Flavour,
@@ -816,6 +863,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					return &base.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
+						PrimaryPhone:        &phone,
 					}, nil
 				}
 				fakeEngagementSvs.VerifyEmailOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
@@ -831,11 +879,25 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					return &base.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
+						PrimaryPhone:        &phone,
 					}, nil
 				}
 				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
 					return nil
 				}
+
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
+				}
+
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
+					return nil
+				}
+
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					UID string,
 					flavour base.Flavour,
@@ -2147,6 +2209,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 		)
 		return
 	}
+	phone := gofakeit.Phone()
 	dateOfBirth := base.Date{
 		Day:   12,
 		Year:  2000,
@@ -2264,11 +2327,24 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						PrimaryPhone: &phone,
 					}, nil
 				}
 
 				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return nil
+				}
+
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
+				}
+
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
 					return nil
 				}
 
@@ -2284,11 +2360,24 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						PrimaryPhone: &phone,
 					}, nil
 				}
 
 				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return nil
+				}
+
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
+				}
+
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
 					return nil
 				}
 
@@ -2304,7 +2393,8 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						PrimaryPhone: &phone,
 					}, nil
 				}
 
@@ -2324,11 +2414,24 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						PrimaryPhone: &phone,
 					}, nil
 				}
 
 				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return nil
+				}
+
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
+				}
+
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
 					return nil
 				}
 
@@ -2344,11 +2447,24 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						PrimaryPhone: &phone,
 					}, nil
 				}
 
 				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+					return nil
+				}
+
+				fakePubSub.TopicIDsFn = func() []string {
+					return []string{uuid.New().String()}
+				}
+
+				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
+					return uuid.New().String()
+				}
+
+				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
 					return nil
 				}
 
@@ -2383,7 +2499,8 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+						PrimaryPhone: &phone,
 					}, nil
 				}
 
