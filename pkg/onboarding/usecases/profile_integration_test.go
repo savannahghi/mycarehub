@@ -2172,3 +2172,54 @@ func TestAddRoleToUser(t *testing.T) {
 		})
 	}
 }
+
+func TestRemoveRoleToUser(t *testing.T) {
+	ctx, _, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	p, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize test service")
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		phone *string
+	}
+	validPhone := base.TestUserPhoneNumber
+	invalidPhone := "+2547000"
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid: add role to user",
+			args: args{
+				ctx:   ctx,
+				phone: &validPhone,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid: add role to user failed",
+			args: args{
+				ctx:   ctx,
+				phone: &invalidPhone,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := p.Onboarding.RemoveRoleToUser(tt.args.ctx, *tt.args.phone); (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.RemoveRoleToUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

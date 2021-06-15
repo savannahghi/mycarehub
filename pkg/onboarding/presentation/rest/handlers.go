@@ -35,6 +35,8 @@ type HandlersInterfaces interface {
 	RegisterPushToken(ctx context.Context) http.HandlerFunc
 	AddAdminPermsToUser(ctx context.Context) http.HandlerFunc
 	RemoveAdminPermsToUser(ctx context.Context) http.HandlerFunc
+	AddRoleToUser(ctx context.Context) http.HandlerFunc
+	RemoveRoleToUser(ctx context.Context) http.HandlerFunc
 	UpdateUserProfile(ctx context.Context) http.HandlerFunc
 	IncomingATSMS(ctx context.Context) http.HandlerFunc
 	IncomingUSSDHandler(ctx context.Context) http.HandlerFunc
@@ -679,6 +681,66 @@ func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(ctx context.Context) htt
 			Err:     err,
 			Message: err.Error(),
 		}, http.StatusBadRequest)
+	}
+}
+
+// AddRoleToUser is authenticated endpoint that adds role and role based permissions to a user
+// whose PRIMARY PHONE NUMBER matches the provided phone number in the request.
+func (h *HandlersInterfacesImpl) AddRoleToUser(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &dto.RolePayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.PhoneNumber == nil {
+			err := fmt.Errorf("expected `phoneNumber` to be defined")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		if p.Role == nil {
+			err := fmt.Errorf("expected `roles` to be defined")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		err := h.interactor.Onboarding.AddRoleToUser(ctx, *p.PhoneNumber, *p.Role)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		base.WriteJSONResponse(w, dto.OKResp{Status: "OK"}, http.StatusOK)
+	}
+}
+
+// RemoveRoleToUser is authenticated endpoint that removes role and role based permissions to a user
+// whose PRIMARY PHONE NUMBER matches the provided phone number in the request.
+func (h *HandlersInterfacesImpl) RemoveRoleToUser(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &dto.PhoneNumberPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.PhoneNumber == nil {
+			err := fmt.Errorf("expected `phoneNumber` to be defined")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		err := h.interactor.Onboarding.RemoveRoleToUser(ctx, *p.PhoneNumber)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		base.WriteJSONResponse(w, dto.OKResp{Status: "OK"}, http.StatusOK)
 	}
 }
 

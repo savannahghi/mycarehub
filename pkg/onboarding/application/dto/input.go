@@ -306,3 +306,9 @@ type UpdateContactPSMessage struct {
 	Properties CRMDomain.ContactProperties `json:"properties"`
 	Phone      string                      `json:"phone"`
 }
+
+// RolePayload used when adding roles to a user
+type RolePayload struct {
+	PhoneNumber *string        `json:"phoneNumber"`
+	Role        *base.RoleType `json:"role"`
+}

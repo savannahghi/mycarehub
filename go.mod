@@ -24,9 +24,9 @@ require (
 	github.com/segmentio/ksuid v1.0.3
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	github.com/vektah/gqlparser/v2 v2.2.0
+	github.com/vektah/gqlparser/v2 v2.1.0
 	gitlab.slade360emr.com/go/base v0.0.149
-	gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210615070826-3ee8bef26650
+	gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210615134106-9e1d67184499
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect

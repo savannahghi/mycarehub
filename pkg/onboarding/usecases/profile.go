@@ -727,10 +727,6 @@ func (p *ProfileUseCaseImpl) RemoveRoleToUser(ctx context.Context, phone string)
 	if err != nil {
 		return err
 	}
-	perms := profile.Permissions
-	if len(perms) >= 1 {
-		perms = nil
-	}
 	return p.onboardingRepository.UpdateRole(ctx, profile.ID, "")
 }
 

@@ -1146,6 +1146,92 @@ func TestProfileUseCaseImpl_AddRoleToUser(t *testing.T) {
 	}
 }
 
+func TestProfileUseCaseImpl_RemoveRoleToUser(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "valid:succesfully_removed_role",
+			args: args{
+				ctx:   ctx,
+				phone: "+254721123123",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:failed_to_remove_role_invalid_profile",
+			args: args{
+				ctx:   ctx,
+				phone: "+254721123123",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:succesfully_removed_role" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:           "123",
+						PrimaryPhone: &phoneNumber,
+						SecondaryPhoneNumbers: []string{
+							"0721521456", "0721856741",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:failed_to_remove_role_invalid_profile" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721123123"
+					return &phone, nil
+				}
+				fakeBaseExt.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phone string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("UserProfile matching PhoneNumber not found")
+				}
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+					return fmt.Errorf("User Roles not updated")
+				}
+			}
+
+			err := i.Onboarding.RemoveRoleToUser(tt.args.ctx, tt.args.phone)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
 func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()

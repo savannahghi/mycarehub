@@ -264,6 +264,19 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions).
 		HandlerFunc(h.IncomingATSMS(ctx))
 
+	// Authenticated routes
+	rs := r.PathPrefix("/roles").Subrouter()
+	rs.Use(base.AuthenticationMiddleware(firebaseApp))
+	rs.Path("/add_user_role").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.AddRoleToUser(ctx))
+
+	rs.Path("/remove_user_role").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.RemoveRoleToUser(ctx))
+
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()
 	isc.Use(base.InterServiceAuthenticationMiddleware())
@@ -315,6 +328,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.AddAdminPermsToUser(ctx))
+	iscTesting.Path("/add_user_role").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.AddRoleToUser(ctx))
+	iscTesting.Path("/remove_user_role").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.RemoveRoleToUser(ctx))
 	iscTesting.Path("/update_user_profile").Methods(
 		http.MethodPost,
 		http.MethodOptions).

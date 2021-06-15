@@ -94,6 +94,18 @@ func composeValidPhonePayload(t *testing.T, phone string) *bytes.Buffer {
 	return bytes.NewBuffer(bs)
 }
 
+func composeValidRolePayload(t *testing.T, phone string, role base.RoleType) *bytes.Buffer {
+	payload := &dto.RolePayload{
+		PhoneNumber: &phone,
+		Role:        &role,
+	}
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		t.Errorf("unable to marshal token string to JSON: %s", err)
+	}
+	return bytes.NewBuffer(bs)
+}
+
 func composeSignupPayload(t *testing.T, phone, pin, otp string, flavour base.Flavour) *bytes.Buffer {
 	payload := dto.SignUpInput{
 		PhoneNumber: &phone,
@@ -3003,6 +3015,238 @@ func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
 
 			svr := h.RemoveAdminPermsToUser(ctx)
 			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_AddRoleToUser(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	validPhone := "+254711445566"
+	invalidPhone := "+254777882200"
+	validRole := base.RoleTypeEmployee
+	var invalidRole base.RoleType = "STANGER"
+	payload := composeValidRolePayload(t, validPhone, validRole)
+	payload1 := composeValidRolePayload(t, invalidPhone, validRole)
+	payload2 := composeValidRolePayload(t, validPhone, invalidRole)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:successful_added_user_role",
+			args: args{
+				url:        fmt.Sprintf("%s/add_user_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:failed_to_find_user",
+			args: args{
+				url:        fmt.Sprintf("%s/add_user_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload1,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "invalid:failed_invalid_role",
+			args: args{
+				url:        fmt.Sprintf("%s/add_user_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload2,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			response := httptest.NewRecorder()
+
+			if tt.name == "valid:successful_added_user_role" {
+
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721026491"
+					return &phone, nil
+				}
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:failed_to_find_user" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("Invalid phone number provided")
+				}
+			}
+
+			if tt.name == "invalid:failed_invalid_role" {
+
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721026491"
+					return &phone, nil
+				}
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+					return fmt.Errorf("Invalid role provided")
+				}
+			}
+
+			serverResponse := h.AddRoleToUser(ctx)
+			serverResponse.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+		})
+	}
+}
+
+func TestHandlersInterfacesImpl_RemoveRoleToUser(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	validPhone := "+254711445566"
+	payload := composeValidPhonePayload(t, validPhone)
+	payload1 := composeValidPhonePayload(t, validPhone)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:successful_removed_user_role",
+			args: args{
+				url:        fmt.Sprintf("%s/remove_user_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid:failed_to_find_user",
+			args: args{
+				url:        fmt.Sprintf("%s/remove_user_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload1,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			response := httptest.NewRecorder()
+
+			if tt.name == "valid:successful_removed_user_role" {
+
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					phone := "+254721026491"
+					return &phone, nil
+				}
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+					return nil
+				}
+			}
+
+			if tt.name == "invalid:failed_to_find_user" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("Invalid phone number provided")
+				}
+			}
+
+			serverResponse := h.RemoveRoleToUser(ctx)
+			serverResponse.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
 				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
