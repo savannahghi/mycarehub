@@ -132,6 +132,8 @@ type FakeOnboardingRepository struct {
 
 	GetUserCommunicationsSettingsFn func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error)
 
+	GetNavActionsFn func(ctx context.Context, role base.RoleType) (*base.NavigationActions, error)
+
 	SetUserCommunicationsSettingsFn func(ctx context.Context, profileID string,
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
 
@@ -497,6 +499,11 @@ func (f *FakeOnboardingRepository) GetNHIFDetailsByProfileID(
 // GetUserCommunicationsSettings ...
 func (f *FakeOnboardingRepository) GetUserCommunicationsSettings(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
 	return f.GetUserCommunicationsSettingsFn(ctx, profileID)
+}
+
+// GetNavActions ...
+func (f *FakeOnboardingRepository) GetNavActions(ctx context.Context, role base.RoleType) (*base.NavigationActions, error) {
+	return f.GetNavActionsFn(ctx, role)
 }
 
 // SetUserCommunicationsSettings ...

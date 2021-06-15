@@ -149,10 +149,10 @@ type ProfileUseCase interface {
 		allowEmail *bool,
 	) (*base.UserCommunicationsSetting, error)
 
-	GetNavActions(ctx context.Context, role base.RoleType) (*domain.NavActions, error)
-	GenerateDefaultNavActions(ctx context.Context) (domain.NavActions, error)
-	GenerateAgentNavActions(ctx context.Context) (domain.NavActions, error)
-	GenerateEmployeeNavActions(ctx context.Context) (domain.NavActions, error)
+	GetNavActions(ctx context.Context, role base.RoleType) (*base.NavigationActions, error)
+	GenerateDefaultNavActions(ctx context.Context) (base.NavigationActions, error)
+	GenerateAgentNavActions(ctx context.Context) (base.NavigationActions, error)
+	GenerateEmployeeNavActions(ctx context.Context) (base.NavigationActions, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -1345,7 +1345,7 @@ func (p *ProfileUseCaseImpl) SetUserCommunicationsSettings(
 }
 
 // GetNavActions Generates and returns the navigation actions for a user based on their role
-func (p *ProfileUseCaseImpl) GetNavActions(ctx context.Context, role base.RoleType) (*domain.NavActions, error) {
+func (p *ProfileUseCaseImpl) GetNavActions(ctx context.Context, role base.RoleType) (*base.NavigationActions, error) {
 	switch role {
 	case base.RoleTypeEmployee:
 		actions, err := p.GenerateEmployeeNavActions(ctx)
@@ -1372,10 +1372,10 @@ func (p *ProfileUseCaseImpl) GetNavActions(ctx context.Context, role base.RoleTy
 }
 
 //GenerateEmployeeNavActions generates the navigation actions for a SIL employee
-func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (domain.NavActions, error) {
+func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (base.NavigationActions, error) {
 
-	actions := domain.NavActions{
-		Primary: []domain.NavAction{
+	actions := base.NavigationActions{
+		Primary: []base.NavAction{
 			{
 				Title:      common.HomeNavActionTitle,
 				OnTapRoute: common.HomeRoute,
@@ -1432,7 +1432,7 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (do
 				Favourite: false,
 			},
 		},
-		Secondary: []domain.NavAction{
+		Secondary: []base.NavAction{
 			{
 				Title:      common.AgentNavActionTitle,
 				OnTapRoute: "",
@@ -1459,7 +1459,7 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (do
 					Thumbnail:   common.PatientNavActionURL,
 				},
 				Favourite: false,
-				Nested: []domain.NestedNavAction{
+				Nested: []base.NestedNavAction{
 					{
 						Title:      common.PatientRegistrationActionTitle,
 						OnTapRoute: common.PatientRegistrationRoute,
@@ -1490,9 +1490,9 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (do
 }
 
 //GenerateAgentNavActions generates the navigation actions for a SIL employee
-func (p *ProfileUseCaseImpl) GenerateAgentNavActions(ctx context.Context) (domain.NavActions, error) {
-	actions := domain.NavActions{
-		Primary: []domain.NavAction{
+func (p *ProfileUseCaseImpl) GenerateAgentNavActions(ctx context.Context) (base.NavigationActions, error) {
+	actions := base.NavigationActions{
+		Primary: []base.NavAction{
 			{
 				Title:      common.HomeNavActionTitle,
 				OnTapRoute: common.HomeRoute,
@@ -1551,9 +1551,9 @@ func (p *ProfileUseCaseImpl) GenerateAgentNavActions(ctx context.Context) (domai
 }
 
 //GenerateDefaultNavActions generates the navigation actions for a SIL employee
-func (p *ProfileUseCaseImpl) GenerateDefaultNavActions(ctx context.Context) (domain.NavActions, error) {
-	actions := domain.NavActions{
-		Primary: []domain.NavAction{
+func (p *ProfileUseCaseImpl) GenerateDefaultNavActions(ctx context.Context) (base.NavigationActions, error) {
+	actions := base.NavigationActions{
+		Primary: []base.NavAction{
 			{
 				Title:      common.HomeNavActionTitle,
 				OnTapRoute: common.HomeRoute,

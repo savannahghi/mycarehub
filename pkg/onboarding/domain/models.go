@@ -102,39 +102,3 @@ type USSDLeadDetails struct {
 	PhoneNumber string `json:"phoneNumber" firestore:"phoneNumber"`
 	SessionID   string `json:"sessionId" firestore:"sessionId"`
 }
-
-//NavAction represents a  Navigation Action that a user can perform on the app
-type NavAction struct {
-	//  The name of the action
-	Title string `json:"title"`
-
-	// How the action is handled when tapped
-	OnTapRoute string `json:"onTapRoute"`
-
-	// A link to a PNG image that would serve as an avatar
-	Icon base.Link `json:"icon"`
-
-	// Whether the user has marked the action as a favourite
-	Favourite bool `json:"favourite"`
-
-	// Sub menus in a navigation action
-	Nested []NestedNavAction `json:"nested"`
-}
-
-//NestedNavAction is a nested navigation action which  is a sub menu
-type NestedNavAction struct {
-	//  The name of the action
-	Title string `json:"title"`
-
-	// How the action is handled when tapped
-	OnTapRoute string `json:"onTapRoute"`
-}
-
-//NavActions are Role based Navigation Actions for a User
-type NavActions struct {
-	// The primary actions the user can perform
-	Primary []NavAction `json:"primary"`
-
-	// The secondary action the user can perform
-	Secondary []NavAction `json:"secondary"`
-}

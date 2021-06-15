@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"github.com/google/uuid"
+	"github.com/segmentio/ksuid"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
 	"gitlab.slade360emr.com/go/base"
@@ -355,6 +357,42 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
 					return &base.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
 				}
+
+				fakeRepo.GetNavActionsFn = func(ctx context.Context, role base.RoleType) (*base.NavigationActions, error) {
+					navs := base.NavigationActions{
+						Primary: []base.NavAction{
+							{
+								Title:      common.HomeNavActionTitle,
+								OnTapRoute: common.HomeRoute,
+								Icon: base.Link{
+									ID:          ksuid.New().String(),
+									URL:         common.HomeNavActionURL,
+									LinkType:    base.LinkTypeSvgImage,
+									Title:       common.HomeNavActionTitle,
+									Description: common.HomeNavActionDescription,
+									Thumbnail:   common.HomeNavActionURL,
+								},
+								Favourite: false,
+							},
+							{
+								Title:      common.HelpNavActionTitle,
+								OnTapRoute: common.GetHelpRouteRoute,
+								Icon: base.Link{
+									ID:          ksuid.New().String(),
+									URL:         common.HelpNavActionURL,
+									LinkType:    base.LinkTypeSvgImage,
+									Title:       common.HelpNavActionTitle,
+									Description: common.HelpNavActionDescription,
+									Thumbnail:   common.HelpNavActionURL,
+								},
+								Favourite: false,
+							},
+						},
+						Secondary: []base.NavAction{},
+					}
+					return &navs, nil
+				}
+
 			}
 
 			if tt.name == "invalid:fail_to_normalize_phone" {

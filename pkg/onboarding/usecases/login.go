@@ -99,12 +99,20 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, err
 	}
 
+	// get navigation actions
+	navActions, err := l.profile.GetNavActions(ctx, profile.Role)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &base.UserResponse{
 		Profile:               profile,
 		CustomerProfile:       customer,
 		SupplierProfile:       supplier,
 		Auth:                  *auth,
 		CommunicationSettings: comms,
+		NavActions:            navActions,
 	}, nil
 }
 

@@ -12,7 +12,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
@@ -3364,8 +3363,8 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 		return
 	}
 
-	defaultActions := &domain.NavActions{
-		Primary: []domain.NavAction{
+	defaultActions := &base.NavigationActions{
+		Primary: []base.NavAction{
 			{
 				Title:      "Home",
 				OnTapRoute: "",
@@ -3396,8 +3395,8 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 	}
 
 	employee := base.RoleTypeEmployee
-	employeeActions := &domain.NavActions{
-		Primary: []domain.NavAction{
+	employeeActions := &base.NavigationActions{
+		Primary: []base.NavAction{
 			{
 				Title:      "Home",
 				OnTapRoute: "",
@@ -3451,7 +3450,7 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 				Favourite: false,
 			},
 		},
-		Secondary: []domain.NavAction{
+		Secondary: []base.NavAction{
 			{
 				Title:      "Agent",
 				OnTapRoute: "",
@@ -3477,7 +3476,7 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 					Thumbnail:   common.PatientNavActionURL,
 				},
 				Favourite: false,
-				Nested: []domain.NestedNavAction{
+				Nested: []base.NestedNavAction{
 					{
 						Title:      "Patient Registration",
 						OnTapRoute: "",
@@ -3505,8 +3504,8 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 	}
 
 	agent := base.RoleTypeAgent
-	agentActions := &domain.NavActions{
-		Primary: []domain.NavAction{
+	agentActions := &base.NavigationActions{
+		Primary: []base.NavAction{
 			{
 				Title:      "Home",
 				OnTapRoute: "",
@@ -3568,7 +3567,7 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *domain.NavActions
+		want    *base.NavigationActions
 		wantErr bool
 	}{
 		{
