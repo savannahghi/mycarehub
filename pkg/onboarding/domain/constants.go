@@ -9,7 +9,6 @@ var (
 	// TimeFormatStr date time string format
 	TimeFormatStr = "2006-01-02T15:04:05+03:00"
 
-
 	// Repo the env to identify which repo to use
 	Repo = "REPOSITORY"
 
@@ -18,5 +17,4 @@ var (
 
 	//PostgresRepository is the value of the env when using postgres
 	PostgresRepository = "postgres"
-
 )

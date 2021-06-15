@@ -6,9 +6,12 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/segmentio/ksuid"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
@@ -3230,6 +3233,264 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 					t.Errorf("error not expected got %v", err)
 					return
 				}
+			}
+		})
+	}
+}
+
+func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	defaultActions := &domain.NavActions{
+		Primary: []domain.NavAction{
+			{
+				Title:      "Home",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HomeNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Home",
+					Description: "Home Navigation action",
+					Thumbnail:   common.HomeNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      "Help",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HelpNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Help",
+					Description: "Help Navigation action",
+					Thumbnail:   common.HelpNavActionURL,
+				},
+				Favourite: false,
+			},
+		},
+	}
+
+	employee := base.RoleTypeEmployee
+	employeeActions := &domain.NavActions{
+		Primary: []domain.NavAction{
+			{
+				Title:      "Home",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HomeNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Home",
+					Description: "Home Navigation action",
+					Thumbnail:   common.HomeNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      "KYC",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.KYCNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "KYC",
+					Description: "KYC Navigation action",
+					Thumbnail:   common.KYCNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      "Partner",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.PartnerNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Partner",
+					Description: "Partner Navigation action",
+					Thumbnail:   common.PartnerNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      "Consumer",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.ConsumerNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Consumer",
+					Description: "Consumer Navigation action",
+					Thumbnail:   common.ConsumerNavActionURL,
+				},
+				Favourite: false,
+			},
+		},
+		Secondary: []domain.NavAction{
+			{
+				Title:      "Agent",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.AgentNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Agent",
+					Description: "Agent Navigation action",
+					Thumbnail:   common.AgentNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      "Patient",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.PatientNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Patient",
+					Description: "Patient Navigation action",
+					Thumbnail:   common.PatientNavActionURL,
+				},
+				Favourite: false,
+				Nested: []domain.NestedNavAction{
+					{
+						Title:      "Patient Registration",
+						OnTapRoute: "",
+					},
+					{
+						Title:      "Patient Identification",
+						OnTapRoute: "",
+					},
+				},
+			},
+			{
+				Title:      "Help",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HelpNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Help",
+					Description: "Help Navigation action",
+					Thumbnail:   common.HelpNavActionURL,
+				},
+				Favourite: false,
+			},
+		},
+	}
+
+	agent := base.RoleTypeAgent
+	agentActions := &domain.NavActions{
+		Primary: []domain.NavAction{
+			{
+				Title:      "Home",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HomeNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Home",
+					Description: "Home Navigation action",
+					Thumbnail:   common.HomeNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      "Partner",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.PartnerNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Partner",
+					Description: "Partner Navigation action",
+					Thumbnail:   common.PartnerNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      "Consumer",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.ConsumerNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Consumer",
+					Description: "Consumer Navigation action",
+					Thumbnail:   common.ConsumerNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      "Help",
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HelpNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       "Help",
+					Description: "Help Navigation action",
+					Thumbnail:   common.HelpNavActionURL,
+				},
+				Favourite: false,
+			},
+		},
+	}
+	type args struct {
+		ctx  context.Context
+		role base.RoleType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.NavActions
+		wantErr bool
+	}{
+		{
+			name: "valid:success_no_role_default_action",
+			args: args{
+				ctx:  ctx,
+				role: "",
+			},
+			want:    defaultActions,
+			wantErr: false,
+		},
+		{
+			name: "valid:success_employee_role_actions",
+			args: args{
+				ctx:  ctx,
+				role: employee,
+			},
+			want:    employeeActions,
+			wantErr: false,
+		},
+		{
+			name: "valid:success_agent_role_actions",
+			args: args{
+				ctx:  ctx,
+				role: agent,
+			},
+			want:    agentActions,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := i.Onboarding.GetNavActions(tt.args.ctx, tt.args.role)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FeedUseCaseImpl.GetNavActions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got == nil {
+				t.Errorf("FeedUseCaseImpl.GetNavActions() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -8,8 +8,10 @@ import (
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization/permission"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
 
 	"github.com/cenkalti/backoff"
+	"github.com/segmentio/ksuid"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
@@ -142,6 +144,11 @@ type ProfileUseCase interface {
 		allowPush *bool,
 		allowEmail *bool,
 	) (*base.UserCommunicationsSetting, error)
+
+	GetNavActions(ctx context.Context, role base.RoleType) (*domain.NavActions, error)
+	GenerateDefaultNavActions(ctx context.Context) (domain.NavActions, error)
+	GenerateAgentNavActions(ctx context.Context) (domain.NavActions, error)
+	GenerateEmployeeNavActions(ctx context.Context) (domain.NavActions, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -1264,4 +1271,246 @@ func (p *ProfileUseCaseImpl) SetUserCommunicationsSettings(
 		allowEmail,
 	)
 
+}
+
+// GetNavActions Generates and returns the navigation actions for a user based on their role
+func (p *ProfileUseCaseImpl) GetNavActions(ctx context.Context, role base.RoleType) (*domain.NavActions, error) {
+	switch role {
+	case base.RoleTypeEmployee:
+		actions, err := p.GenerateEmployeeNavActions(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &actions, nil
+
+	case base.RoleTypeAgent:
+		actions, err := p.GenerateAgentNavActions(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &actions, nil
+
+	default:
+		actions, err := p.GenerateDefaultNavActions(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &actions, nil
+	}
+
+}
+
+//GenerateEmployeeNavActions generates the navigation actions for a SIL employee
+func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (domain.NavActions, error) {
+
+	actions := domain.NavActions{
+		Primary: []domain.NavAction{
+			{
+				Title:      common.HomeNavActionTitle,
+				OnTapRoute: common.HomeRoute,
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HomeNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.HomeNavActionTitle,
+					Description: common.HomeNavActionDescription,
+					Thumbnail:   common.HomeNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title: common.RequestsNavActionTitle,
+				// Not provided yet
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.KYCNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.RequestsNavActionTitle,
+					Description: common.RequestsNavActionDescription,
+					Thumbnail:   common.KYCNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title: common.PartnerNavActionTitle,
+				// Not provided yet
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.PartnerNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.PartnerNavActionTitle,
+					Description: common.PartnerNavActionDescription,
+					Thumbnail:   common.PartnerNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title: common.ConsumerNavActionTitle,
+				// Not provided yet
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.ConsumerNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.ConsumerNavActionTitle,
+					Description: common.ConsumerNavActionDescription,
+					Thumbnail:   common.ConsumerNavActionURL,
+				},
+				Favourite: false,
+			},
+		},
+		Secondary: []domain.NavAction{
+			{
+				Title:      common.AgentNavActionTitle,
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.AgentNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.AgentNavActionTitle,
+					Description: common.AgentNavActionDescription,
+					Thumbnail:   common.AgentNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title: common.PatientNavActionTitle,
+				// Empty string for parent with nested actions
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.PatientNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.PatientNavActionTitle,
+					Description: common.PatientNavActionDescription,
+					Thumbnail:   common.PatientNavActionURL,
+				},
+				Favourite: false,
+				Nested: []domain.NestedNavAction{
+					{
+						Title:      common.PatientRegistrationActionTitle,
+						OnTapRoute: common.PatientRegistrationRoute,
+					},
+					{
+						Title:      common.PatientIdentificationActionTitle,
+						OnTapRoute: common.PatientIdentificationRoute,
+					},
+				},
+			},
+			{
+				Title:      common.HelpNavActionTitle,
+				OnTapRoute: common.GetHelpRouteRoute,
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HelpNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.HelpNavActionTitle,
+					Description: common.HelpNavActionDescription,
+					Thumbnail:   common.HelpNavActionURL,
+				},
+				Favourite: false,
+			},
+		},
+	}
+
+	return actions, nil
+}
+
+//GenerateAgentNavActions generates the navigation actions for a SIL employee
+func (p *ProfileUseCaseImpl) GenerateAgentNavActions(ctx context.Context) (domain.NavActions, error) {
+	actions := domain.NavActions{
+		Primary: []domain.NavAction{
+			{
+				Title:      common.HomeNavActionTitle,
+				OnTapRoute: common.HomeRoute,
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HomeNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.HomeNavActionTitle,
+					Description: common.HomeNavActionDescription,
+					Thumbnail:   common.HomeNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      common.PartnerNavActionTitle,
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.PartnerNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.PartnerNavActionTitle,
+					Description: common.PartnerNavActionDescription,
+					Thumbnail:   common.PartnerNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      common.ConsumerNavActionTitle,
+				OnTapRoute: "",
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.ConsumerNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.ConsumerNavActionTitle,
+					Description: common.ConsumerNavActionDescription,
+					Thumbnail:   common.ConsumerNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      common.HelpNavActionTitle,
+				OnTapRoute: common.GetHelpRouteRoute,
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HelpNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.HelpNavActionTitle,
+					Description: common.HelpNavActionDescription,
+					Thumbnail:   common.HelpNavActionURL,
+				},
+				Favourite: false,
+			},
+		},
+	}
+	return actions, nil
+}
+
+//GenerateDefaultNavActions generates the navigation actions for a SIL employee
+func (p *ProfileUseCaseImpl) GenerateDefaultNavActions(ctx context.Context) (domain.NavActions, error) {
+	actions := domain.NavActions{
+		Primary: []domain.NavAction{
+			{
+				Title:      common.HomeNavActionTitle,
+				OnTapRoute: common.HomeRoute,
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HomeNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.HomeNavActionTitle,
+					Description: common.HomeNavActionDescription,
+					Thumbnail:   common.HomeNavActionURL,
+				},
+				Favourite: false,
+			},
+			{
+				Title:      common.HelpNavActionTitle,
+				OnTapRoute: common.GetHelpRouteRoute,
+				Icon: base.Link{
+					ID:          ksuid.New().String(),
+					URL:         common.HelpNavActionURL,
+					LinkType:    base.LinkTypeSvgImage,
+					Title:       common.HelpNavActionTitle,
+					Description: common.HelpNavActionDescription,
+					Thumbnail:   common.HelpNavActionURL,
+				},
+				Favourite: false,
+			},
+		},
+	}
+
+	return actions, nil
 }
