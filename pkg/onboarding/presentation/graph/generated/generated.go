@@ -2916,9 +2916,10 @@ enum ChannelOfContact {
   SHORTCODE
 }
 
-enum CRMBoolValue {
+enum GeneralOptionType {
   YES
   NO
+  NOT_GIVEN
 }
 
 enum SortType {

@@ -203,7 +203,10 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 
 	CRMContact := domain.CRMContact{
 		Properties: domain.ContactProperties{
-			Phone: *profile.PrimaryPhone,
+			Phone:                 *profile.PrimaryPhone,
+			FirstChannelOfContact: domain.ChannelOfContactApp,
+			BeWellEnrolled:        domain.GeneralOptionTypeYes,
+			BeWellAware:           domain.GeneralOptionTypeYes,
 		},
 	}
 
