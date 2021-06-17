@@ -2893,9 +2893,35 @@ enum EmploymentType {
   EMPLOYED
   SELF_EMPLOYED
 }
+
+enum Persona {
+  ALICE
+  JUMA
+  BOB
+  ANDREW
+}
+
+enum Payor {
+  APA
+  JUBILEE
+  RESOLUTION
+  BRITAM
+  MINET
+  MADISON
+}
+
+enum ChannelOfContact {
+  APP
+  USSD
+  SHORTCODE
+}
+
+enum CRMBoolValue {
+  YES
+  NO
+}
 `, BuiltIn: false},
-	{Name: "pkg/onboarding/presentation/graph/external.graphql", Input: `
-# supported content types
+	{Name: "pkg/onboarding/presentation/graph/external.graphql", Input: `# supported content types
 enum ContentType {
   PNG
   JPG
@@ -2910,7 +2936,7 @@ enum Language {
 """
 PractitionerSpecialties is a list of recognised health worker specialties.
 
-See: https://medicalboard.co.ke/dto_page/gazetted-specialties/
+See: https://medicalboard.co.ke/resources_page/gazetted-specialties/
 """
 enum PractitionerSpecialty {
   UNSPECIFIED
@@ -2947,7 +2973,11 @@ enum PractitionerSpecialty {
   UROLOGY
 }
 
-type PageInfo @key(fields: "hasNextPage") @key(fields: "hasPreviousPage") {
+type PageInfo
+  @key(fields: "hasNextPage")
+  @key(fields: "hasPreviousPage")
+  @key(fields: "startCursor")
+  @key(fields: "endCursor") {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   startCursor: String

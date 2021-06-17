@@ -110,3 +110,30 @@ enum EmploymentType {
   EMPLOYED
   SELF_EMPLOYED
 }
+
+enum Persona {
+  ALICE
+  JUMA
+  BOB
+  ANDREW
+}
+
+enum Payor {
+  APA
+  JUBILEE
+  RESOLUTION
+  BRITAM
+  MINET
+  MADISON
+}
+
+enum ChannelOfContact {
+  APP
+  USSD
+  SHORTCODE
+}
+
+enum CRMBoolValue {
+  YES
+  NO
+}
