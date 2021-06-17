@@ -46,6 +46,184 @@ type ServicesOffered struct {
 	OtherServices []string                     `json:"otherServices"`
 }
 
+type CRMBoolValue string
+
+const (
+	CRMBoolValueYes CRMBoolValue = "YES"
+	CRMBoolValueNo  CRMBoolValue = "NO"
+)
+
+var AllCRMBoolValue = []CRMBoolValue{
+	CRMBoolValueYes,
+	CRMBoolValueNo,
+}
+
+func (e CRMBoolValue) IsValid() bool {
+	switch e {
+	case CRMBoolValueYes, CRMBoolValueNo:
+		return true
+	}
+	return false
+}
+
+func (e CRMBoolValue) String() string {
+	return string(e)
+}
+
+func (e *CRMBoolValue) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CRMBoolValue(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CRMBoolValue", str)
+	}
+	return nil
+}
+
+func (e CRMBoolValue) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ChannelOfContact string
+
+const (
+	ChannelOfContactApp       ChannelOfContact = "APP"
+	ChannelOfContactUssd      ChannelOfContact = "USSD"
+	ChannelOfContactShortcode ChannelOfContact = "SHORTCODE"
+)
+
+var AllChannelOfContact = []ChannelOfContact{
+	ChannelOfContactApp,
+	ChannelOfContactUssd,
+	ChannelOfContactShortcode,
+}
+
+func (e ChannelOfContact) IsValid() bool {
+	switch e {
+	case ChannelOfContactApp, ChannelOfContactUssd, ChannelOfContactShortcode:
+		return true
+	}
+	return false
+}
+
+func (e ChannelOfContact) String() string {
+	return string(e)
+}
+
+func (e *ChannelOfContact) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ChannelOfContact(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ChannelOfContact", str)
+	}
+	return nil
+}
+
+func (e ChannelOfContact) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type Payor string
+
+const (
+	PayorApa        Payor = "APA"
+	PayorJubilee    Payor = "JUBILEE"
+	PayorResolution Payor = "RESOLUTION"
+	PayorBritam     Payor = "BRITAM"
+	PayorMinet      Payor = "MINET"
+	PayorMadison    Payor = "MADISON"
+)
+
+var AllPayor = []Payor{
+	PayorApa,
+	PayorJubilee,
+	PayorResolution,
+	PayorBritam,
+	PayorMinet,
+	PayorMadison,
+}
+
+func (e Payor) IsValid() bool {
+	switch e {
+	case PayorApa, PayorJubilee, PayorResolution, PayorBritam, PayorMinet, PayorMadison:
+		return true
+	}
+	return false
+}
+
+func (e Payor) String() string {
+	return string(e)
+}
+
+func (e *Payor) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Payor(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Payor", str)
+	}
+	return nil
+}
+
+func (e Payor) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type Persona string
+
+const (
+	PersonaAlice  Persona = "ALICE"
+	PersonaJuma   Persona = "JUMA"
+	PersonaBob    Persona = "BOB"
+	PersonaAndrew Persona = "ANDREW"
+)
+
+var AllPersona = []Persona{
+	PersonaAlice,
+	PersonaJuma,
+	PersonaBob,
+	PersonaAndrew,
+}
+
+func (e Persona) IsValid() bool {
+	switch e {
+	case PersonaAlice, PersonaJuma, PersonaBob, PersonaAndrew:
+		return true
+	}
+	return false
+}
+
+func (e Persona) String() string {
+	return string(e)
+}
+
+func (e *Persona) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Persona(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Persona", str)
+	}
+	return nil
+}
+
+func (e Persona) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type SignUpMethod string
 
 const (
@@ -92,3 +270,4 @@ func (e *SignUpMethod) UnmarshalGQL(v interface{}) error {
 func (e SignUpMethod) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
+

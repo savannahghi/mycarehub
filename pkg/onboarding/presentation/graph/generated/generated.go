@@ -2920,6 +2920,24 @@ enum CRMBoolValue {
   YES
   NO
 }
+
+enum SortType {
+  ASCENDING
+  DESCENDING
+}
+
+enum FilterOperatorType {
+  EQ
+  NEQ
+  LT
+  LTE
+  GT
+  GTE
+  HAS_PROPERTY
+  NOT_HAS_PROPERTY
+  CONTAINS_TOKEN
+  NOT_CONTAINS_TOKEN
+}
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/external.graphql", Input: `# supported content types
 enum ContentType {
