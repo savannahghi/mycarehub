@@ -32,14 +32,15 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
+// Supplier constants
 const (
 	emailKYCSubject        = "KYC Request"
 	active                 = true
 	country                = "KEN" // Anticipate worldwide expansion
 	supplierCollectionName = "suppliers"
 	futureHours            = 878400
-	savannahSladeCode      = "1"
-	savannahOrgName        = "Savannah Informatics"
+	SavannahSladeCode      = "1"
+	SavannahOrgName        = "Savannah Informatics"
 	adminEmailBody         = `
 	The below supplier KYC request has been made.
 	To view and process the request, please log in to Be.Well Professional.
@@ -596,7 +597,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 		var err error
 
 		switch sladeCode {
-		case savannahSladeCode:
+		case SavannahSladeCode:
 			// login to core
 			ediUserProfile, err = s.CoreEDIUserLogin(username, password)
 			if err != nil {
@@ -639,14 +640,14 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 		orgSladeCode = sladeCode
 	}
 
-	if orgSladeCode == savannahSladeCode {
+	if orgSladeCode == SavannahSladeCode {
 		supplier.EDIUserProfile = ediUserProfile
 		supplier.IsOrganizationVerified = true
 		supplier.SladeCode = sladeCode
 		supplier.Active = true
 		supplier.KYCSubmitted = true
 		supplier.PartnerSetupComplete = true
-		supplier.OrganizationName = savannahOrgName
+		supplier.OrganizationName = SavannahOrgName
 
 		if err := s.repo.UpdateSupplierProfile(ctx, *supplier.ProfileID, supplier); err != nil {
 			return nil, err

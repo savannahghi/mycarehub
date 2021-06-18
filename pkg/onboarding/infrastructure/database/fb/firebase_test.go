@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"cloud.google.com/go/firestore"
+	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
@@ -544,6 +545,333 @@ func TestRepository_UpdateRole(t *testing.T) {
 				}
 			}
 
+		})
+	}
+}
+
+func TestRepository_CreateDetailedSupplierProfile(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	prID := "c9d62c7e-93e5-44a6-b503-6fc159c1782f"
+
+	type args struct {
+		ctx       context.Context
+		profileID string
+		supplier  base.Supplier
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.Supplier
+		wantErr bool
+	}{
+		{
+			name: "valid:create_supplier_profile",
+			args: args{
+				ctx:       ctx,
+				profileID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+				supplier: base.Supplier{
+					ProfileID: &prID,
+				},
+			},
+			want: &base.Supplier{
+				ID:        "5e6e41f4-846b-4ba5-ae3f-a92cc7a997ba",
+				ProfileID: &prID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:create_supplier_profile_firestore_error",
+			args: args{
+				ctx:       ctx,
+				profileID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+				supplier: base.Supplier{
+					ProfileID: &prID,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "invalid:create_supplier_profile_firestore_error",
+			args: args{
+				ctx:       ctx,
+				profileID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+				supplier: base.Supplier{
+					ProfileID: &prID,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:create_supplier_profile" {
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}, nil
+				}
+			}
+
+			if tt.name == "invalid:create_supplier_profile_firestore_error" {
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return nil, fmt.Errorf("cannot create supplier in firestore")
+				}
+			}
+
+			got, err := repo.CreateDetailedSupplierProfile(tt.args.ctx, tt.args.profileID, tt.args.supplier)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.CreateDetailedSupplierProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("Repository.CreateDetailedSupplierProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_CreateDetailedUserProfile(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	// agent 47
+	fName := "Tobias"
+	lName := "Rieper"
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+		profile     base.UserProfile
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *base.UserProfile
+		wantErr bool
+	}{
+		{
+			name: "valid:create_user_profile",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: base.TestUserPhoneNumber,
+				profile: base.UserProfile{
+					UserBioData: base.BioData{
+						FirstName: &fName,
+						LastName:  &lName,
+						Gender:    base.GenderMale,
+					},
+					Role: base.RoleTypeAgent,
+				},
+			},
+			want: &base.UserProfile{
+				ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+				VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
+				UserBioData: base.BioData{
+					FirstName: &fName,
+					LastName:  &lName,
+					Gender:    base.GenderMale,
+				},
+				Role: base.RoleTypeAgent,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:create_user_profile_phone_exists_error",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: base.TestUserPhoneNumber,
+				profile: base.UserProfile{
+					UserBioData: base.BioData{
+						FirstName: &fName,
+						LastName:  &lName,
+						Gender:    base.GenderMale,
+					},
+					Role: base.RoleTypeAgent,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "invalid:create_user_profile_phone_exists",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: base.TestUserPhoneNumber,
+				profile: base.UserProfile{
+					UserBioData: base.BioData{
+						FirstName: &fName,
+						LastName:  &lName,
+						Gender:    base.GenderMale,
+					},
+					Role: base.RoleTypeAgent,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "invalid:create_firebase_user_error",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: base.TestUserPhoneNumber,
+				profile: base.UserProfile{
+					UserBioData: base.BioData{
+						FirstName: &fName,
+						LastName:  &lName,
+						Gender:    base.GenderMale,
+					},
+					Role: base.RoleTypeAgent,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "invalid:create_user_profile_firestore_error",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: base.TestUserPhoneNumber,
+				profile: base.UserProfile{
+					UserBioData: base.BioData{
+						FirstName: &fName,
+						LastName:  &lName,
+						Gender:    base.GenderMale,
+					},
+					Role: base.RoleTypeAgent,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "valid:create_user_profile" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{}
+					return docs, nil
+				}
+
+				fakeFireBaseClientExt.GetUserByPhoneNumberFn = func(ctx context.Context, phone string) (*auth.UserRecord, error) {
+					return nil, nil
+				}
+
+				fakeFireBaseClientExt.CreateUserFn = func(ctx context.Context, user *auth.UserToCreate) (*auth.UserRecord, error) {
+					return &auth.UserRecord{
+						UserInfo: &auth.UserInfo{
+							UID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+						},
+					}, nil
+				}
+
+				fakeFireBaseClientExt.GetUserByPhoneNumberFn = func(ctx context.Context, phone string) (*auth.UserRecord, error) {
+					return &auth.UserRecord{
+						UserInfo: &auth.UserInfo{
+							UID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+						},
+					}, nil
+				}
+
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}, nil
+				}
+			}
+
+			if tt.name == "invalid:create_user_profile_phone_exists" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{
+						{
+							Ref: &firestore.DocumentRef{
+								ID: uuid.New().String(),
+							},
+						},
+					}
+					return docs, nil
+				}
+
+				fakeFireBaseClientExt.GetUserByPhoneNumberFn = func(ctx context.Context, phone string) (*auth.UserRecord, error) {
+					return &auth.UserRecord{
+						UserInfo: &auth.UserInfo{
+							UID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+						},
+					}, nil
+				}
+
+			}
+
+			if tt.name == "invalid:create_user_profile_phone_exists_error" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{}
+					return docs, fmt.Errorf("cannot profiles matching phone number")
+				}
+			}
+
+			if tt.name == "invalid:create_firebase_user_error" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{}
+					return docs, nil
+				}
+
+				fakeFireBaseClientExt.GetUserByPhoneNumberFn = func(ctx context.Context, phone string) (*auth.UserRecord, error) {
+					return nil, nil
+				}
+
+				fakeFireBaseClientExt.CreateUserFn = func(ctx context.Context, user *auth.UserToCreate) (*auth.UserRecord, error) {
+					return nil, fmt.Errorf("cannot create user on firebase")
+				}
+
+				fakeFireBaseClientExt.GetUserByPhoneNumberFn = func(ctx context.Context, phone string) (*auth.UserRecord, error) {
+					return nil, fmt.Errorf("user doesn't exist")
+				}
+
+				fakeFireBaseClientExt.CreateUserFn = func(ctx context.Context, user *auth.UserToCreate) (*auth.UserRecord, error) {
+					return nil, fmt.Errorf("cannot create user on firebase")
+				}
+
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}, nil
+				}
+			}
+
+			if tt.name == "invalid:create_user_profile_firestore_error" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{}
+					return docs, nil
+				}
+
+				fakeFireBaseClientExt.GetUserByPhoneNumberFn = func(ctx context.Context, phone string) (*auth.UserRecord, error) {
+					return nil, nil
+				}
+
+				fakeFireBaseClientExt.CreateUserFn = func(ctx context.Context, user *auth.UserToCreate) (*auth.UserRecord, error) {
+					return nil, fmt.Errorf("cannot create user on firebase")
+				}
+
+				fakeFireBaseClientExt.GetUserByPhoneNumberFn = func(ctx context.Context, phone string) (*auth.UserRecord, error) {
+					return &auth.UserRecord{
+						UserInfo: &auth.UserInfo{
+							UID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+						},
+					}, nil
+				}
+
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return nil, fmt.Errorf("cannot create user on firestore")
+				}
+			}
+
+			got, err := repo.CreateDetailedUserProfile(tt.args.ctx, tt.args.phoneNumber, tt.args.profile)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.CreateDetailedUserProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("Repository.CreateDetailedUserProfile() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

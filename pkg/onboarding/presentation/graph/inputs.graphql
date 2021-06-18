@@ -302,7 +302,9 @@ input NHIFDetailsInput {
 }
 
 input RegisterAgentInput {
-  gender: Gender
-  firstName: String
-  lastName: String
+  firstName: String!
+  lastName: String!
+  gender: Gender!
+  phoneNumber: String!
+  email: String!
 }

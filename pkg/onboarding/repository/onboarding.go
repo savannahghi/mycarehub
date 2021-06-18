@@ -61,11 +61,20 @@ type OnboardingRepository interface {
 	SupplierRepository
 
 	CustomerRepository
+
+	AgentRepository
+
 	// creates a user profile of using the provided phone number and uid
 	CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error)
 
+	// creates a new user profile that is pre-filled using the provided phone number
+	CreateDetailedUserProfile(ctx context.Context, phoneNumber string, profile base.UserProfile) (*base.UserProfile, error)
+
 	// creates an empty supplier profile
 	CreateEmptySupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error)
+
+	// create a new supplier profile that is pre-filled using the provided profile ID
+	CreateDetailedSupplierProfile(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error)
 
 	// creates an empty customer profile
 	CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*base.Customer, error)
@@ -176,4 +185,9 @@ type UserProfileRepository interface {
 	UpdateRole(ctx context.Context, id string, role base.RoleType) error
 	UpdateBioData(ctx context.Context, id string, data base.BioData) error
 	UpdateAddresses(ctx context.Context, id string, address base.Address, addressType base.AddressType) error
+}
+
+// AgentRepository  defines signatures that relate to agents
+type AgentRepository interface {
+	CreateAgentUserProfile(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
 }

@@ -42,8 +42,12 @@ type FakeOnboardingRepository struct {
 
 	CreateUserProfileFn func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error)
 
+	CreateDetailedUserProfileFn func(ctx context.Context, phoneNumber string, profile base.UserProfile) (*base.UserProfile, error)
+
 	// creates an empty supplier profile
 	CreateEmptySupplierProfileFn func(ctx context.Context, profileID string) (*base.Supplier, error)
+
+	CreateDetailedSupplierProfileFn func(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error)
 
 	// creates an empty customer profile
 	CreateEmptyCustomerProfileFn func(ctx context.Context, profileID string) (*base.Customer, error)
@@ -162,6 +166,7 @@ type FakeOnboardingRepository struct {
 	UpdateVerifiedUIDSFn            func(ctx context.Context, id string, uids []string) error
 	UpdateAddressesFn               func(ctx context.Context, id string, address base.Address, addressType base.AddressType) error
 	AddIncomingUSSDDataFn           func(ctx context.Context, input *dto.EndSessionDetails) error
+	CreateAgentUserProfileFn        func(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
 }
 
 // GetSupplierProfileByID ...
@@ -529,4 +534,19 @@ func (f *FakeOnboardingRepository) PersistIncomingSMSData(ctx context.Context, i
 //AddIncomingUSSDData ...
 func (f *FakeOnboardingRepository) AddIncomingUSSDData(ctx context.Context, input *dto.EndSessionDetails) error {
 	return f.AddIncomingUSSDDataFn(ctx, input)
+}
+
+// CreateAgentUserProfile ...
+func (f *FakeOnboardingRepository) CreateAgentUserProfile(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+	return f.CreateAgentUserProfileFn(ctx, phoneNumber)
+}
+
+// CreateDetailedUserProfile ...
+func (f *FakeOnboardingRepository) CreateDetailedUserProfile(ctx context.Context, phoneNumber string, profile base.UserProfile) (*base.UserProfile, error) {
+	return f.CreateDetailedUserProfileFn(ctx, phoneNumber, profile)
+}
+
+// CreateDetailedSupplierProfile ...
+func (f *FakeOnboardingRepository) CreateDetailedSupplierProfile(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
+	return f.CreateDetailedSupplierProfileFn(ctx, profileID, supplier)
 }

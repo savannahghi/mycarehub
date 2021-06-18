@@ -3372,9 +3372,11 @@ input NHIFDetailsInput {
 }
 
 input RegisterAgentInput {
-  gender: Gender
-  firstName: String
-  lastName: String
+  firstName: String!
+  lastName: String!
+  gender: Gender!
+  phoneNumber: String!
+  email: String!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
@@ -17378,19 +17380,11 @@ func (ec *executionContext) unmarshalInputRegisterAgentInput(ctx context.Context
 
 	for k, v := range asMap {
 		switch k {
-		case "gender":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
-			it.Gender, err = ec.unmarshalOGender2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "firstName":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
-			it.FirstName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17398,7 +17392,31 @@ func (ec *executionContext) unmarshalInputRegisterAgentInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
-			it.LastName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.LastName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gender":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
+			it.Gender, err = ec.unmarshalNGender2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phoneNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+			it.PhoneNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20299,6 +20317,16 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNGender2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx context.Context, v interface{}) (base.Gender, error) {
+	var res base.Gender
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNGender2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx context.Context, sel ast.SelectionSet, v base.Gender) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {

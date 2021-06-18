@@ -267,6 +267,53 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 
 }
 
+// CreateDetailedUserProfile creates a new user profile that is pre-filled using the provided phone number
+func (fr *Repository) CreateDetailedUserProfile(ctx context.Context, phoneNumber string, profile base.UserProfile) (*base.UserProfile, error) {
+	exists, err := fr.CheckIfPhoneNumberExists(ctx, phoneNumber)
+	if err != nil {
+		return nil, exceptions.InternalServerError(fmt.Errorf("failed to check the phone number: %v", err))
+	}
+
+	if exists {
+		// this phone is number is associated with another user profile, hence can not create an profile with the same phone number
+		return nil, exceptions.CheckPhoneNumberExistError()
+	}
+
+	// create user via their phone number on firebase
+	user, err := fr.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	phoneIdentifier := base.VerifiedIdentifier{
+		UID:           user.UID,
+		LoginProvider: base.LoginProviderTypePhone,
+		Timestamp:     time.Now().In(base.TimeLocation),
+	}
+
+	profile.VerifiedIdentifiers = append(profile.VerifiedIdentifiers, phoneIdentifier)
+	profile.VerifiedUIDS = append(profile.VerifiedUIDS, user.UID)
+
+	profileID := uuid.New().String()
+	profile.ID = profileID
+	profile.PrimaryPhone = &phoneNumber
+	profile.UserName = fr.fetchUserRandomName(ctx)
+	profile.TermsAccepted = true
+	profile.Suspended = false
+
+	command := &CreateCommand{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		Data:           profile,
+	}
+
+	_, err = fr.FirestoreClient.Create(ctx, command)
+	if err != nil {
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new user profile: %w", err))
+	}
+
+	return &profile, nil
+}
+
 // CreateEmptySupplierProfile creates an empty supplier profile
 func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error) {
 	sup := &base.Supplier{
@@ -298,6 +345,26 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 	}
 	return supplier, nil
 
+}
+
+// CreateDetailedSupplierProfile create a new supplier profile that is pre-filled using the provided profile ID
+func (fr *Repository) CreateDetailedSupplierProfile(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
+	supplierID := uuid.New().String()
+	supplier.ID = supplierID
+	supplier.ProfileID = &profileID
+	supplier.Active = true
+
+	createCommand := &CreateCommand{
+		CollectionName: fr.GetSupplierProfileCollectionName(),
+		Data:           supplier,
+	}
+
+	_, err := fr.FirestoreClient.Create(ctx, createCommand)
+	if err != nil {
+		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new supplier empty profile: %w", err))
+	}
+
+	return &supplier, nil
 }
 
 // CreateEmptyCustomerProfile creates an empty customer profile
@@ -2483,4 +2550,9 @@ func (fr *Repository) AddIncomingUSSDData(ctx context.Context, input *dto.EndSes
 	}
 
 	return nil
+}
+
+// CreateAgentUserProfile creates an agent on firebase
+func (fr *Repository) CreateAgentUserProfile(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
+	return nil, nil
 }
