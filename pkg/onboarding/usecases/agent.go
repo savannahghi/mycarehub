@@ -71,17 +71,18 @@ func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.Register
 		return nil, err
 	}
 
-	if usp.Role != base.RoleTypeEmployee {
-		return nil, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have `EMPLOYEE` role"))
+	if !usp.HasPermission(base.PermissionTypeRegisterAgent) {
+		return nil, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to create agent"))
 	}
 
 	timestamp := time.Now().In(base.TimeLocation)
 	agentProfile := base.UserProfile{
 		PrimaryEmailAddress: &input.Email,
 		UserBioData: base.BioData{
-			FirstName: &input.FirstName,
-			LastName:  &input.LastName,
-			Gender:    input.Gender,
+			FirstName:   &input.FirstName,
+			LastName:    &input.LastName,
+			Gender:      input.Gender,
+			DateOfBirth: &input.DateOfBirth,
 		},
 		Role:        base.RoleTypeAgent,
 		Permissions: base.RoleTypeAgent.Permissions(),

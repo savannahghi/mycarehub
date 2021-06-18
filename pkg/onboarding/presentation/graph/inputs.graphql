@@ -307,4 +307,5 @@ input RegisterAgentInput {
   gender: Gender!
   phoneNumber: String!
   email: String!
+  dateOfBirth: Date!
 }

@@ -25,12 +25,18 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 	// agent 47
 	fName := "Tobias"
 	lName := "Rieper"
+	dob := base.Date{
+		Year:  1995,
+		Month: 6,
+		Day:   1,
+	}
 	agent := dto.RegisterAgentInput{
 		FirstName:   fName,
 		LastName:    lName,
 		Gender:      base.GenderMale,
 		PhoneNumber: base.TestUserEmail,
 		Email:       base.TestUserEmail,
+		DateOfBirth: dob,
 	}
 
 	type args struct {
@@ -53,9 +59,10 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 				ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 				VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 				UserBioData: base.BioData{
-					FirstName: &fName,
-					LastName:  &lName,
-					Gender:    base.GenderMale,
+					FirstName:   &fName,
+					LastName:    &lName,
+					Gender:      base.GenderMale,
+					DateOfBirth: &dob,
 				},
 				Role: base.RoleTypeAgent,
 			},
@@ -213,12 +220,13 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 						UserBioData: base.BioData{
-							FirstName: &fName,
-							LastName:  &lName,
-							Gender:    base.GenderMale,
+							FirstName:   &fName,
+							LastName:    &lName,
+							Gender:      base.GenderMale,
+							DateOfBirth: &dob,
 						},
-						Role: base.RoleTypeAgent,
-					}, nil
+						Permissions: base.DefaultAgentPermissions,
+					}, fmt.Errorf("user do not have required permissions")
 				}
 			}
 
@@ -242,7 +250,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							LastName:  &lName,
 							Gender:    base.GenderMale,
 						},
-						Role: base.RoleTypeEmployee,
+						Permissions: base.DefaultEmployeePermissions,
 					}, nil
 				}
 
@@ -251,9 +259,10 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 						UserBioData: base.BioData{
-							FirstName: &fName,
-							LastName:  &lName,
-							Gender:    base.GenderMale,
+							FirstName:   &fName,
+							LastName:    &lName,
+							Gender:      base.GenderMale,
+							DateOfBirth: &dob,
 						},
 						Role: base.RoleTypeAgent,
 					}, nil
@@ -318,7 +327,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							LastName:  &lName,
 							Gender:    base.GenderMale,
 						},
-						Role: base.RoleTypeEmployee,
+						Permissions: base.DefaultEmployeePermissions,
 					}, nil
 				}
 
@@ -327,9 +336,10 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 						UserBioData: base.BioData{
-							FirstName: &fName,
-							LastName:  &lName,
-							Gender:    base.GenderMale,
+							FirstName:   &fName,
+							LastName:    &lName,
+							Gender:      base.GenderMale,
+							DateOfBirth: &dob,
 						},
 						Role: base.RoleTypeAgent,
 					}, nil
@@ -395,7 +405,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							LastName:  &lName,
 							Gender:    base.GenderMale,
 						},
-						Role: base.RoleTypeEmployee,
+						Permissions: base.DefaultEmployeePermissions,
 					}, nil
 				}
 
@@ -404,9 +414,10 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 						UserBioData: base.BioData{
-							FirstName: &fName,
-							LastName:  &lName,
-							Gender:    base.GenderMale,
+							FirstName:   &fName,
+							LastName:    &lName,
+							Gender:      base.GenderMale,
+							DateOfBirth: &dob,
 						},
 						Role: base.RoleTypeAgent,
 					}, nil
@@ -461,7 +472,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							LastName:  &lName,
 							Gender:    base.GenderMale,
 						},
-						Role: base.RoleTypeEmployee,
+						Permissions: base.DefaultEmployeePermissions,
 					}, nil
 				}
 				fakeRepo.CreateDetailedUserProfileFn = func(ctx context.Context, phoneNumber string, profile base.UserProfile) (*base.UserProfile, error) {
@@ -469,9 +480,10 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 						UserBioData: base.BioData{
-							FirstName: &fName,
-							LastName:  &lName,
-							Gender:    base.GenderMale,
+							FirstName:   &fName,
+							LastName:    &lName,
+							Gender:      base.GenderMale,
+							DateOfBirth: &dob,
 						},
 						Role: base.RoleTypeAgent,
 					}, nil
@@ -541,7 +553,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							LastName:  &lName,
 							Gender:    base.GenderMale,
 						},
-						Role: base.RoleTypeEmployee,
+						Permissions: base.DefaultEmployeePermissions,
 					}, nil
 				}
 				fakeRepo.CreateDetailedUserProfileFn = func(ctx context.Context, phoneNumber string, profile base.UserProfile) (*base.UserProfile, error) {
@@ -549,9 +561,10 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 						UserBioData: base.BioData{
-							FirstName: &fName,
-							LastName:  &lName,
-							Gender:    base.GenderMale,
+							FirstName:   &fName,
+							LastName:    &lName,
+							Gender:      base.GenderMale,
+							DateOfBirth: &dob,
 						},
 						Role: base.RoleTypeAgent,
 					}, nil
@@ -598,7 +611,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							LastName:  &lName,
 							Gender:    base.GenderMale,
 						},
-						Role: base.RoleTypeEmployee,
+						Permissions: base.DefaultEmployeePermissions,
 					}, nil
 				}
 				fakeRepo.CreateDetailedUserProfileFn = func(ctx context.Context, phoneNumber string, profile base.UserProfile) (*base.UserProfile, error) {
@@ -606,9 +619,10 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 						UserBioData: base.BioData{
-							FirstName: &fName,
-							LastName:  &lName,
-							Gender:    base.GenderMale,
+							FirstName:   &fName,
+							LastName:    &lName,
+							Gender:      base.GenderMale,
+							DateOfBirth: &dob,
 						},
 						Role: base.RoleTypeAgent,
 					}, nil
@@ -648,7 +662,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							LastName:  &lName,
 							Gender:    base.GenderMale,
 						},
-						Role: base.RoleTypeEmployee,
+						Permissions: base.DefaultEmployeePermissions,
 					}, nil
 				}
 				fakeRepo.CreateDetailedUserProfileFn = func(ctx context.Context, phoneNumber string, profile base.UserProfile) (*base.UserProfile, error) {
@@ -656,9 +670,10 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 						UserBioData: base.BioData{
-							FirstName: &fName,
-							LastName:  &lName,
-							Gender:    base.GenderMale,
+							FirstName:   &fName,
+							LastName:    &lName,
+							Gender:      base.GenderMale,
+							DateOfBirth: &dob,
 						},
 						Role: base.RoleTypeAgent,
 					}, nil
@@ -690,7 +705,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							LastName:  &lName,
 							Gender:    base.GenderMale,
 						},
-						Role: base.RoleTypeEmployee,
+						Permissions: base.DefaultEmployeePermissions,
 					}, nil
 				}
 				fakeRepo.CreateDetailedUserProfileFn = func(ctx context.Context, phoneNumber string, profile base.UserProfile) (*base.UserProfile, error) {

@@ -326,4 +326,5 @@ type RegisterAgentInput struct {
 	Gender      base.Gender `json:"gender"`
 	PhoneNumber string      `json:"phoneNumber"`
 	Email       string      `json:"email"`
+	DateOfBirth base.Date   `json:"dateOfBirth"`
 }
