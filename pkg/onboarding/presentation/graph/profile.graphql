@@ -126,4 +126,8 @@ extend type Mutation {
   ): UserCommunicationsSetting!
 
   registerAgent(input: RegisterAgentInput!): UserProfile!
+
+  activateAgent(phoneNumber: String!): Boolean!
+
+  deactivateAgent(phoneNumber: String!): Boolean!
 }

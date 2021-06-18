@@ -25,6 +25,8 @@ const (
 // AgentUseCase represent the business logic required for management of agents
 type AgentUseCase interface {
 	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error)
+	ActivateAgent(ctx context.Context, phone string) (bool, error)
+	DeactivateAgent(ctx context.Context, phone string) (bool, error)
 }
 
 // AgentUseCaseImpl  represents usecase implementation object
@@ -169,4 +171,80 @@ func (a *AgentUseCaseImpl) notifyNewAgent(emails []string, phoneNumbers []string
 	}
 
 	return nil
+}
+
+// ActivateAgent activates/unsuspends the agent profile
+func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, phone string) (bool, error) {
+
+	phoneNumber, err := a.baseExt.NormalizeMSISDN(phone)
+	if err != nil {
+		return false, exceptions.NormalizeMSISDNError(err)
+	}
+
+	// Check logged in user has permissions/role of employee
+	p, err := a.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	usp, err := a.repo.GetUserProfileByUID(ctx, p.UID, false)
+	if err != nil {
+		return false, err
+	}
+
+	if usp.Role != base.RoleTypeEmployee {
+		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have `EMPLOYEE` role"))
+	}
+
+	// Get agent profile using phoneNumber
+	agent, err := a.repo.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, true)
+	if err != nil {
+		return false, exceptions.InternalServerError(err)
+	}
+
+	err = a.repo.UpdateSuspended(ctx, agent.ID, false)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// DeactivateAgent deacivates/suspends the agent profile
+func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, phone string) (bool, error) {
+
+	phoneNumber, err := a.baseExt.NormalizeMSISDN(phone)
+	if err != nil {
+		return false, exceptions.NormalizeMSISDNError(err)
+	}
+
+	// Check logged in user has permissions/role of employee
+	p, err := a.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	usp, err := a.repo.GetUserProfileByUID(ctx, p.UID, false)
+	if err != nil {
+		return false, err
+	}
+
+	if usp.Role != base.RoleTypeEmployee {
+		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have `EMPLOYEE` role"))
+	}
+
+	// Get agent profile using phoneNumber
+	agent, err := a.repo.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
+	if err != nil {
+		return false, exceptions.InternalServerError(err)
+	}
+
+	if agent.Role != base.RoleTypeAgent {
+		return false, exceptions.InternalServerError(fmt.Errorf("this user is not an agent"))
+	}
+
+	err = a.repo.UpdateSuspended(ctx, agent.ID, true)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

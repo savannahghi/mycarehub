@@ -206,6 +206,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		ActivateAgent                    func(childComplexity int, phoneNumber string) int
 		AddAddress                       func(childComplexity int, input dto.UserAddressInput, addressType base.AddressType) int
 		AddIndividualCoachKyc            func(childComplexity int, input domain.IndividualCoach) int
 		AddIndividualNutritionKyc        func(childComplexity int, input domain.IndividualNutrition) int
@@ -223,6 +224,7 @@ type ComplexityRoot struct {
 		AddSecondaryEmailAddress         func(childComplexity int, email []string) int
 		AddSecondaryPhoneNumber          func(childComplexity int, phone []string) int
 		CompleteSignup                   func(childComplexity int, flavour base.Flavour) int
+		DeactivateAgent                  func(childComplexity int, phoneNumber string) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
 		RecordPostVisitSurvey            func(childComplexity int, input dto.PostVisitSurveyInput) int
 		RegisterAgent                    func(childComplexity int, input dto.RegisterAgentInput) int
@@ -230,6 +232,7 @@ type ComplexityRoot struct {
 		RetireKYCProcessingRequest       func(childComplexity int) int
 		RetireSecondaryEmailAddresses    func(childComplexity int, emails []string) int
 		RetireSecondaryPhoneNumbers      func(childComplexity int, phones []string) int
+		SetOptOut                        func(childComplexity int, option string, phoneNumber string) int
 		SetPrimaryEmailAddress           func(childComplexity int, email string, otp string) int
 		SetPrimaryPhoneNumber            func(childComplexity int, phone string, otp string) int
 		SetUpSupplier                    func(childComplexity int, accountType base.AccountType) int
@@ -473,6 +476,7 @@ type MutationResolver interface {
 	UpdateUserPin(ctx context.Context, phone string, pin string) (bool, error)
 	SetPrimaryPhoneNumber(ctx context.Context, phone string, otp string) (bool, error)
 	SetPrimaryEmailAddress(ctx context.Context, email string, otp string) (bool, error)
+	SetOptOut(ctx context.Context, option string, phoneNumber string) (bool, error)
 	AddSecondaryPhoneNumber(ctx context.Context, phone []string) (bool, error)
 	RetireSecondaryPhoneNumbers(ctx context.Context, phones []string) (bool, error)
 	AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error)
@@ -503,6 +507,8 @@ type MutationResolver interface {
 	AddAddress(ctx context.Context, input dto.UserAddressInput, addressType base.AddressType) (*base.Address, error)
 	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
 	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error)
+	ActivateAgent(ctx context.Context, phoneNumber string) (bool, error)
+	DeactivateAgent(ctx context.Context, phoneNumber string) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -1204,6 +1210,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Location.Name(childComplexity), true
 
+	case "Mutation.activateAgent":
+		if e.complexity.Mutation.ActivateAgent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_activateAgent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ActivateAgent(childComplexity, args["phoneNumber"].(string)), true
+
 	case "Mutation.addAddress":
 		if e.complexity.Mutation.AddAddress == nil {
 			break
@@ -1408,6 +1426,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CompleteSignup(childComplexity, args["flavour"].(base.Flavour)), true
 
+	case "Mutation.deactivateAgent":
+		if e.complexity.Mutation.DeactivateAgent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deactivateAgent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeactivateAgent(childComplexity, args["phoneNumber"].(string)), true
+
 	case "Mutation.processKYCRequest":
 		if e.complexity.Mutation.ProcessKYCRequest == nil {
 			break
@@ -1486,6 +1516,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RetireSecondaryPhoneNumbers(childComplexity, args["phones"].([]string)), true
+
+	case "Mutation.setOptOut":
+		if e.complexity.Mutation.SetOptOut == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setOptOut_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetOptOut(childComplexity, args["option"].(string), args["phoneNumber"].(string)), true
 
 	case "Mutation.setPrimaryEmailAddress":
 		if e.complexity.Mutation.SetPrimaryEmailAddress == nil {
@@ -3377,6 +3419,7 @@ input RegisterAgentInput {
   gender: Gender!
   phoneNumber: String!
   email: String!
+  dateOfBirth: Date!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
@@ -3420,6 +3463,7 @@ extend type Mutation {
   setPrimaryPhoneNumber(phone: String!, otp: String!): Boolean!
 
   setPrimaryEmailAddress(email: String!, otp: String!): Boolean!
+  setOptOut(option:String!, phoneNumber:String!):Boolean!
 
   addSecondaryPhoneNumber(phone: [String!]): Boolean!
 
@@ -3506,6 +3550,10 @@ extend type Mutation {
   ): UserCommunicationsSetting!
 
   registerAgent(input: RegisterAgentInput!): UserProfile!
+
+  activateAgent(phoneNumber: String!): Boolean!
+
+  deactivateAgent(phoneNumber: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -4001,6 +4049,21 @@ func (ec *executionContext) field_Entity_findUserProfileByID_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_activateAgent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addAddress_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4274,6 +4337,21 @@ func (ec *executionContext) field_Mutation_completeSignup_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deactivateAgent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_processKYCRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4379,6 +4457,30 @@ func (ec *executionContext) field_Mutation_retireSecondaryPhoneNumbers_args(ctx 
 		}
 	}
 	args["phones"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setOptOut_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["option"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("option"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["option"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg1
 	return args, nil
 }
 
@@ -8180,6 +8282,48 @@ func (ec *executionContext) _Mutation_setPrimaryEmailAddress(ctx context.Context
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_setOptOut(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setOptOut_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetOptOut(rctx, args["option"].(string), args["phoneNumber"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_addSecondaryPhoneNumber(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9428,6 +9572,90 @@ func (ec *executionContext) _Mutation_registerAgent(ctx context.Context, field g
 	res := resTmp.(*base.UserProfile)
 	fc.Result = res
 	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_activateAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_activateAgent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ActivateAgent(rctx, args["phoneNumber"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deactivateAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deactivateAgent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeactivateAgent(rctx, args["phoneNumber"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NHIFDetails_id(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
@@ -17420,6 +17648,14 @@ func (ec *executionContext) unmarshalInputRegisterAgentInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
+		case "dateOfBirth":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
+			it.DateOfBirth, err = ec.unmarshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -18523,6 +18759,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "setOptOut":
+			out.Values[i] = ec._Mutation_setOptOut(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addSecondaryPhoneNumber":
 			out.Values[i] = ec._Mutation_addSecondaryPhoneNumber(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -18667,6 +18908,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "registerAgent":
 			out.Values[i] = ec._Mutation_registerAgent(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "activateAgent":
+			out.Values[i] = ec._Mutation_activateAgent(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deactivateAgent":
+			out.Values[i] = ec._Mutation_deactivateAgent(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

@@ -253,3 +253,345 @@ func TestRegisterAgent(t *testing.T) {
 	// 	t.Errorf("unable to remove test user agent: %s", err)
 	// }
 }
+
+func TestActivateAgent(t *testing.T) {
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers := setUpLoggedInTestUserGraphHeaders(t)
+
+	up := "0700011122"
+
+	graphqlMutation := `
+	mutation activateAgent($phoneNumber: String!) {
+		activateAgent(phoneNumber: $phoneNumber)
+	  }`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "success: activate agent profile",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"phoneNumber": up,
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+		{
+			name: "invalid : wrong phoneNumber",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"phoneNumber": "07256",
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+		{
+			name: "invalid : should not update when inputs are empty ",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"phoneNumber": "",
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := mapToJSONReader(tt.args.query)
+
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status response returned. Expected %v, got %v", tt.wantStatus, resp.StatusCode)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+			if tt.wantErr {
+				errMsg, ok := data["errors"]
+				if !ok {
+					t.Errorf("GraphQL error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				v, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected %v", v)
+					return
+				}
+				// check/assert the returned data/response
+				for key := range data {
+					nestedMap, ok := data[key].(map[string]interface{})
+					if !ok {
+						t.Errorf("cannot cast key value of %v to type map[string]interface{}", key)
+						return
+					}
+					for nestedKey := range nestedMap {
+						if nestedKey == "activateAgent" {
+							output, ok := nestedMap[nestedKey].(map[string]interface{})
+							if !ok {
+								t.Errorf("can't cast nestedKey to map[string]interface{}")
+								return
+							}
+							_, present := output["userBioData"].(map[string]interface{})
+							if !present {
+								t.Errorf("Biodata not present in output")
+								return
+							}
+						}
+					}
+				}
+			}
+
+		})
+	}
+	// perform tear down; remove user
+	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user employee: %s", err)
+	}
+
+	// _, err = RemoveTestUserByPhone(t, up)
+	// if err != nil {
+	// 	t.Errorf("unable to remove test user agent: %s", err)
+	// }
+}
+
+func TestDeactivateAgent(t *testing.T) {
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers := setUpLoggedInTestUserGraphHeaders(t)
+
+	up := "0700011122"
+
+	graphqlMutation := `
+	mutation deactivateAgent($phoneNumber: String!) {
+		deactivateAgent(phoneNumber: $phoneNumber) 
+	  }`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "success: deactivate agent profile",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"phoneNumber": up,
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+		{
+			name: "invalid : wrong phoneNumber",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"phoneNumber": "07256",
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+		{
+			name: "invalid : should not update when inputs are empty ",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"phoneNumber": "",
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := mapToJSONReader(tt.args.query)
+
+			if err != nil {
+				t.Errorf("unable to get GQL JSON io Reader: %s", err)
+				return
+			}
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				graphQLURL,
+				body,
+			)
+
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			for k, v := range headers {
+				r.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("Bad status response returned. Expected %v, got %v", tt.wantStatus, resp.StatusCode)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if err != nil {
+				t.Errorf("bad data returned")
+				return
+			}
+			if tt.wantErr {
+				errMsg, ok := data["errors"]
+				if !ok {
+					t.Errorf("GraphQL error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				v, ok := data["errors"]
+				if ok {
+					t.Errorf("error not expected %v", v)
+					return
+				}
+				// check/assert the returned data/response
+				for key := range data {
+					nestedMap, ok := data[key].(map[string]interface{})
+					if !ok {
+						t.Errorf("cannot cast key value of %v to type map[string]interface{}", key)
+						return
+					}
+					for nestedKey := range nestedMap {
+						if nestedKey == "deactivateAgent" {
+							output, ok := nestedMap[nestedKey].(map[string]interface{})
+							if !ok {
+								t.Errorf("can't cast nestedKey to map[string]interface{}")
+								return
+							}
+							_, present := output["userBioData"].(map[string]interface{})
+							if !present {
+								t.Errorf("Biodata not present in output")
+								return
+							}
+						}
+					}
+				}
+			}
+
+		})
+	}
+	// perform tear down; remove user
+	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user employee: %s", err)
+	}
+
+	// _, err = RemoveTestUserByPhone(t, up)
+	// if err != nil {
+	// 	t.Errorf("unable to remove test user agent: %s", err)
+	// }
+}

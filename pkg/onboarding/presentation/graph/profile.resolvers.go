@@ -71,7 +71,7 @@ func (r *mutationResolver) SetPrimaryEmailAddress(ctx context.Context, email str
 	return true, nil
 }
 
-func (r *mutationResolver) SetOptOut(ctx context.Context, option string, phoneNumber string) error {
+func (r *mutationResolver) SetOptOut(ctx context.Context, option string, phoneNumber string) (bool, error) {
 	startTime := time.Now()
 
 	err := r.interactor.Onboarding.SetOptOut(ctx, option, phoneNumber)
@@ -79,10 +79,10 @@ func (r *mutationResolver) SetOptOut(ctx context.Context, option string, phoneNu
 	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setOptOut", err)
 
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return true, nil
 }
 
 func (r *mutationResolver) AddSecondaryPhoneNumber(ctx context.Context, phone []string) (bool, error) {
@@ -403,6 +403,26 @@ func (r *mutationResolver) RegisterAgent(ctx context.Context, input dto.Register
 	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "registerAgent", err)
 
 	return userProfile, err
+}
+
+func (r *mutationResolver) ActivateAgent(ctx context.Context, phoneNumber string) (bool, error) {
+	startTime := time.Now()
+
+	success, err := r.interactor.Agent.ActivateAgent(ctx, phoneNumber)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "activateAgent", err)
+
+	return success, err
+}
+
+func (r *mutationResolver) DeactivateAgent(ctx context.Context, phoneNumber string) (bool, error) {
+	startTime := time.Now()
+
+	success, err := r.interactor.Agent.DeactivateAgent(ctx, phoneNumber)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "deactivateAgent", err)
+
+	return success, err
 }
 
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
