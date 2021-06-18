@@ -225,6 +225,7 @@ type ComplexityRoot struct {
 		CompleteSignup                   func(childComplexity int, flavour base.Flavour) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
 		RecordPostVisitSurvey            func(childComplexity int, input dto.PostVisitSurveyInput) int
+		RegisterAgent                    func(childComplexity int, input dto.RegisterAgentInput) int
 		RegisterPushToken                func(childComplexity int, token string) int
 		RetireKYCProcessingRequest       func(childComplexity int) int
 		RetireSecondaryEmailAddresses    func(childComplexity int, emails []string) int
@@ -501,6 +502,7 @@ type MutationResolver interface {
 	AddNHIFDetails(ctx context.Context, input dto.NHIFDetailsInput) (*domain.NHIFDetails, error)
 	AddAddress(ctx context.Context, input dto.UserAddressInput, addressType base.AddressType) (*base.Address, error)
 	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
+	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -1429,6 +1431,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RecordPostVisitSurvey(childComplexity, args["input"].(dto.PostVisitSurveyInput)), true
+
+	case "Mutation.registerAgent":
+		if e.complexity.Mutation.RegisterAgent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_registerAgent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegisterAgent(childComplexity, args["input"].(dto.RegisterAgentInput)), true
 
 	case "Mutation.registerPushToken":
 		if e.complexity.Mutation.RegisterPushToken == nil {
@@ -3356,6 +3370,12 @@ input NHIFDetailsInput {
   identificationCardPhotoID: String!
   NHIFCardPhotoID: String!
 }
+
+input RegisterAgentInput {
+  gender: Gender
+  firstName: String
+  lastName: String
+}
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
   userProfile: UserProfile!
@@ -3482,6 +3502,8 @@ extend type Mutation {
     allowPush: Boolean
     allowEmail: Boolean
   ): UserCommunicationsSetting!
+
+  registerAgent(input: RegisterAgentInput!): UserProfile!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -4290,6 +4312,21 @@ func (ec *executionContext) field_Mutation_recordPostVisitSurvey_args(ctx contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNPostVisitSurveyInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐPostVisitSurveyInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_registerAgent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.RegisterAgentInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNRegisterAgentInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAgentInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9347,6 +9384,48 @@ func (ec *executionContext) _Mutation_setUserCommunicationsSettings(ctx context.
 	res := resTmp.(*base.UserCommunicationsSetting)
 	fc.Result = res
 	return ec.marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserCommunicationsSetting(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_registerAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_registerAgent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RegisterAgent(rctx, args["input"].(dto.RegisterAgentInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*base.UserProfile)
+	fc.Result = res
+	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NHIFDetails_id(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
@@ -17293,6 +17372,42 @@ func (ec *executionContext) unmarshalInputPractitionerServiceInput(ctx context.C
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputRegisterAgentInput(ctx context.Context, obj interface{}) (dto.RegisterAgentInput, error) {
+	var it dto.RegisterAgentInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "gender":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
+			it.Gender, err = ec.unmarshalOGender2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "firstName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+			it.FirstName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lastName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			it.LastName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSortInput(ctx context.Context, obj interface{}) (base.SortInput, error) {
 	var it base.SortInput
 	var asMap = obj.(map[string]interface{})
@@ -18529,6 +18644,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "setUserCommunicationsSettings":
 			out.Values[i] = ec._Mutation_setUserCommunicationsSettings(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "registerAgent":
+			out.Values[i] = ec._Mutation_registerAgent(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -20656,6 +20776,11 @@ func (ec *executionContext) marshalNPractitionerService2ᚕgitlabᚗslade360emr�
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) unmarshalNRegisterAgentInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAgentInput(ctx context.Context, v interface{}) (dto.RegisterAgentInput, error) {
+	res, err := ec.unmarshalInputRegisterAgentInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNSortOrder2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx context.Context, v interface{}) (base.SortOrder, error) {

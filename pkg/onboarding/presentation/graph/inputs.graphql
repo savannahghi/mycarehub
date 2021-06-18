@@ -300,3 +300,9 @@ input NHIFDetailsInput {
   identificationCardPhotoID: String!
   NHIFCardPhotoID: String!
 }
+
+input RegisterAgentInput {
+  gender: Gender
+  firstName: String
+  lastName: String
+}

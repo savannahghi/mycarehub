@@ -123,4 +123,6 @@ extend type Mutation {
     allowPush: Boolean
     allowEmail: Boolean
   ): UserCommunicationsSetting!
+
+  registerAgent(input: RegisterAgentInput!): UserProfile!
 }

@@ -447,3 +447,12 @@ func SessionIDError(err error) error {
 		Code:    int(base.Internal),
 	}
 }
+
+// RoleNotValid return an error when a user does not have the required role
+func RoleNotValid(err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: RoleNotValidMsg,
+		Code:    int(base.RoleNotValid),
+	}
+}

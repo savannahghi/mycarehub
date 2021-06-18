@@ -312,3 +312,10 @@ type RolePayload struct {
 	PhoneNumber *string        `json:"phoneNumber"`
 	Role        *base.RoleType `json:"role"`
 }
+
+// RegisterAgentInput provides the data payload required to create an Agent
+type RegisterAgentInput struct {
+	Gender    *base.Gender `json:"gender,omitempty"`
+	FirstName *string      `json:"lastName"`
+	LastName  *string      `json:"firstName"`
+}

@@ -46,6 +46,243 @@ type ServicesOffered struct {
 	OtherServices []string                     `json:"otherServices"`
 }
 
+type ChannelOfContact string
+
+const (
+	ChannelOfContactApp       ChannelOfContact = "APP"
+	ChannelOfContactUssd      ChannelOfContact = "USSD"
+	ChannelOfContactShortcode ChannelOfContact = "SHORTCODE"
+)
+
+var AllChannelOfContact = []ChannelOfContact{
+	ChannelOfContactApp,
+	ChannelOfContactUssd,
+	ChannelOfContactShortcode,
+}
+
+func (e ChannelOfContact) IsValid() bool {
+	switch e {
+	case ChannelOfContactApp, ChannelOfContactUssd, ChannelOfContactShortcode:
+		return true
+	}
+	return false
+}
+
+func (e ChannelOfContact) String() string {
+	return string(e)
+}
+
+func (e *ChannelOfContact) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ChannelOfContact(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ChannelOfContact", str)
+	}
+	return nil
+}
+
+func (e ChannelOfContact) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type FilterOperatorType string
+
+const (
+	FilterOperatorTypeEq               FilterOperatorType = "EQ"
+	FilterOperatorTypeNeq              FilterOperatorType = "NEQ"
+	FilterOperatorTypeLt               FilterOperatorType = "LT"
+	FilterOperatorTypeLte              FilterOperatorType = "LTE"
+	FilterOperatorTypeGt               FilterOperatorType = "GT"
+	FilterOperatorTypeGte              FilterOperatorType = "GTE"
+	FilterOperatorTypeHasProperty      FilterOperatorType = "HAS_PROPERTY"
+	FilterOperatorTypeNotHasProperty   FilterOperatorType = "NOT_HAS_PROPERTY"
+	FilterOperatorTypeContainsToken    FilterOperatorType = "CONTAINS_TOKEN"
+	FilterOperatorTypeNotContainsToken FilterOperatorType = "NOT_CONTAINS_TOKEN"
+)
+
+var AllFilterOperatorType = []FilterOperatorType{
+	FilterOperatorTypeEq,
+	FilterOperatorTypeNeq,
+	FilterOperatorTypeLt,
+	FilterOperatorTypeLte,
+	FilterOperatorTypeGt,
+	FilterOperatorTypeGte,
+	FilterOperatorTypeHasProperty,
+	FilterOperatorTypeNotHasProperty,
+	FilterOperatorTypeContainsToken,
+	FilterOperatorTypeNotContainsToken,
+}
+
+func (e FilterOperatorType) IsValid() bool {
+	switch e {
+	case FilterOperatorTypeEq, FilterOperatorTypeNeq, FilterOperatorTypeLt, FilterOperatorTypeLte, FilterOperatorTypeGt, FilterOperatorTypeGte, FilterOperatorTypeHasProperty, FilterOperatorTypeNotHasProperty, FilterOperatorTypeContainsToken, FilterOperatorTypeNotContainsToken:
+		return true
+	}
+	return false
+}
+
+func (e FilterOperatorType) String() string {
+	return string(e)
+}
+
+func (e *FilterOperatorType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FilterOperatorType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FilterOperatorType", str)
+	}
+	return nil
+}
+
+func (e FilterOperatorType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type GeneralOptionType string
+
+const (
+	GeneralOptionTypeYes      GeneralOptionType = "YES"
+	GeneralOptionTypeNo       GeneralOptionType = "NO"
+	GeneralOptionTypeNotGiven GeneralOptionType = "NOT_GIVEN"
+)
+
+var AllGeneralOptionType = []GeneralOptionType{
+	GeneralOptionTypeYes,
+	GeneralOptionTypeNo,
+	GeneralOptionTypeNotGiven,
+}
+
+func (e GeneralOptionType) IsValid() bool {
+	switch e {
+	case GeneralOptionTypeYes, GeneralOptionTypeNo, GeneralOptionTypeNotGiven:
+		return true
+	}
+	return false
+}
+
+func (e GeneralOptionType) String() string {
+	return string(e)
+}
+
+func (e *GeneralOptionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = GeneralOptionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid GeneralOptionType", str)
+	}
+	return nil
+}
+
+func (e GeneralOptionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type Payor string
+
+const (
+	PayorApa        Payor = "APA"
+	PayorJubilee    Payor = "JUBILEE"
+	PayorResolution Payor = "RESOLUTION"
+	PayorBritam     Payor = "BRITAM"
+	PayorMinet      Payor = "MINET"
+	PayorMadison    Payor = "MADISON"
+)
+
+var AllPayor = []Payor{
+	PayorApa,
+	PayorJubilee,
+	PayorResolution,
+	PayorBritam,
+	PayorMinet,
+	PayorMadison,
+}
+
+func (e Payor) IsValid() bool {
+	switch e {
+	case PayorApa, PayorJubilee, PayorResolution, PayorBritam, PayorMinet, PayorMadison:
+		return true
+	}
+	return false
+}
+
+func (e Payor) String() string {
+	return string(e)
+}
+
+func (e *Payor) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Payor(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Payor", str)
+	}
+	return nil
+}
+
+func (e Payor) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type Persona string
+
+const (
+	PersonaAlice  Persona = "ALICE"
+	PersonaJuma   Persona = "JUMA"
+	PersonaBob    Persona = "BOB"
+	PersonaAndrew Persona = "ANDREW"
+)
+
+var AllPersona = []Persona{
+	PersonaAlice,
+	PersonaJuma,
+	PersonaBob,
+	PersonaAndrew,
+}
+
+func (e Persona) IsValid() bool {
+	switch e {
+	case PersonaAlice, PersonaJuma, PersonaBob, PersonaAndrew:
+		return true
+	}
+	return false
+}
+
+func (e Persona) String() string {
+	return string(e)
+}
+
+func (e *Persona) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Persona(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Persona", str)
+	}
+	return nil
+}
+
+func (e Persona) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type SignUpMethod string
 
 const (
@@ -90,5 +327,46 @@ func (e *SignUpMethod) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SignUpMethod) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SortType string
+
+const (
+	SortTypeAscending  SortType = "ASCENDING"
+	SortTypeDescending SortType = "DESCENDING"
+)
+
+var AllSortType = []SortType{
+	SortTypeAscending,
+	SortTypeDescending,
+}
+
+func (e SortType) IsValid() bool {
+	switch e {
+	case SortTypeAscending, SortTypeDescending:
+		return true
+	}
+	return false
+}
+
+func (e SortType) String() string {
+	return string(e)
+}
+
+func (e *SortType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SortType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SortType", str)
+	}
+	return nil
+}
+
+func (e SortType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

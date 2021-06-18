@@ -30,6 +30,7 @@ type Interactor struct {
 	SMS          usecases.SMSUsecase
 	AITUSSD      usecases.UssdUsecase
 	CRM          hubspot.ServiceHubSpotInterface
+	Agent        usecases.AgentUseCase
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -50,6 +51,7 @@ func NewOnboardingInteractor(
 	sms usecases.SMSUsecase,
 	aitussd usecases.UssdUsecase,
 	crm hubspot.ServiceHubSpotInterface,
+	agt usecases.AgentUseCase,
 ) (*Interactor, error) {
 
 	return &Interactor{
@@ -68,5 +70,6 @@ func NewOnboardingInteractor(
 		SMS:          sms,
 		AITUSSD:      aitussd,
 		CRM:          crm,
+		Agent:        agt,
 	}, nil
 }

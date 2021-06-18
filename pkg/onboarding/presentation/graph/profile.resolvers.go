@@ -381,6 +381,16 @@ func (r *mutationResolver) SetUserCommunicationsSettings(ctx context.Context, al
 	return setUserCommunicationsSettings, err
 }
 
+func (r *mutationResolver) RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error) {
+	startTime := time.Now()
+
+	userProfile, err := r.interactor.Agent.RegisterAgent(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "registerAgent", err)
+
+	return userProfile, err
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	startTime := time.Now()
 

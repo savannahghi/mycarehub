@@ -126,10 +126,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage, pubSub)
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
 	sms := usecases.NewSMSUsecase(repo, baseExt)
+	agent := usecases.NewAgentUseCases(repo, profile, engage, mes, baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(
 		repo, profile, su, supplier, login, survey,
-		userpin, erp, chrg, engage, mes, nhif, pubSub, sms, aitUssd, crm,
+		userpin, erp, chrg, engage, mes, nhif, pubSub, sms, aitUssd, crm, agent,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
