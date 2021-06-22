@@ -2533,22 +2533,22 @@ func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *dto.Afr
 
 }
 
-//AddIncomingUSSDData persists USSD details
-func (fr *Repository) AddIncomingUSSDData(ctx context.Context, input *dto.EndSessionDetails) error {
-	validDetails, err := utils.ValidateEndNoteUSSDDetails(input)
+// AddAITSessionDetails ...
+func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) error {
+	validateDetails, err := utils.ValidateUSSDDetails(input)
 	if err != nil {
 		return err
 	}
-	ussdDetails := domain.USSDLeadDetails{
+	sessionDetails := &domain.USSDLeadDetails{
 		ID:          uuid.New().String(),
-		Text:        validDetails.Input,
-		SessionID:   validDetails.SessionID,
-		PhoneNumber: *validDetails.PhoneNumber,
+		SessionID:   validateDetails.SessionID,
+		PhoneNumber: *validateDetails.PhoneNumber,
+		Level:       validateDetails.Level,
 	}
 
 	createCommand := &CreateCommand{
 		CollectionName: fr.GetUSSDCollectionName(),
-		Data:           ussdDetails,
+		Data:           sessionDetails,
 	}
 
 	_, err = fr.FirestoreClient.Create(ctx, createCommand)
@@ -2562,4 +2562,97 @@ func (fr *Repository) AddIncomingUSSDData(ctx context.Context, input *dto.EndSes
 // CreateAgentUserProfile creates an agent on firebase
 func (fr *Repository) CreateAgentUserProfile(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
 	return nil, nil
+}
+
+// GetAITSessionDetails gets Africa's Talking session details
+func (fr *Repository) GetAITSessionDetails(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error) {
+	query := &GetAllQuery{
+		CollectionName: fr.GetUSSDCollectionName(),
+		FieldName:      "sessionID",
+		Value:          sessionID,
+		Operator:       "==",
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	if len(docs) == 0 {
+		return nil, nil
+	}
+
+	sessionDet := &domain.USSDLeadDetails{}
+	err = docs[0].DataTo(sessionDet)
+	if err != nil {
+		return nil, err
+	}
+
+	return sessionDet, nil
+
+}
+
+// UpdateSessionLevel updates user interaction level whike they interact with USSD
+func (fr *Repository) UpdateSessionLevel(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error) {
+	sessionDetails, err := fr.GetAITSessionDetails(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	collectionName := fr.GetUSSDCollectionName()
+	query := &GetAllQuery{
+		CollectionName: collectionName,
+		FieldName:      "sessionID",
+		Value:          sessionID,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionDetails.Level = level
+
+	updateCommand := &UpdateCommand{
+		CollectionName: collectionName,
+		ID:             docs[0].Ref.ID,
+		Data:           sessionDetails,
+	}
+	err = fr.FirestoreClient.Update(ctx, updateCommand)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+	return sessionDetails, nil
+}
+
+// UpdateSessionPIN updates current user's session PIN when signing up or changing PIN
+func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error) {
+	sessionDetails, err := fr.GetAITSessionDetails(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	collectionName := fr.GetUSSDCollectionName()
+	query := &GetAllQuery{
+		CollectionName: collectionName,
+		FieldName:      "sessionID",
+		Value:          sessionID,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	sessionDetails.PIN = pin
+
+	updateCommand := &UpdateCommand{
+		CollectionName: collectionName,
+		ID:             docs[0].Ref.ID,
+		Data:           sessionDetails,
+	}
+	err = fr.FirestoreClient.Update(ctx, updateCommand)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+	return sessionDetails, nil
 }

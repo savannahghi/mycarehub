@@ -40,7 +40,7 @@ type HandlersInterfaces interface {
 	UpdateUserProfile(ctx context.Context) http.HandlerFunc
 	IncomingATSMS(ctx context.Context) http.HandlerFunc
 	IncomingUSSDHandler(ctx context.Context) http.HandlerFunc
-	USSDEndNotificationHandler(ctx context.Context) http.HandlerFunc
+	// USSDEndNotificationHandler(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -844,33 +844,7 @@ func (h *HandlersInterfacesImpl) IncomingUSSDHandler(ctx context.Context) http.H
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
-		resp := h.interactor.AITUSSD.GenerateUSSD(sessionDetails)
+		resp := h.interactor.AITUSSD.GenerateUSSD(ctx, sessionDetails)
 		fmt.Fprintf(w, "%s", resp)
 	}
-}
-
-//USSDEndNotificationHandler gets details of just ended session and creates USSD data
-func (h *HandlersInterfacesImpl) USSDEndNotificationHandler(ctx context.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-		sessionDet := &dto.EndSessionDetails{}
-		sessionDet.SessionID = r.PostForm.Get("sessionId")
-		phone := r.PostForm.Get("phoneNumber")
-		sessionDet.PhoneNumber = &phone
-		sessionDet.Input = r.PostForm.Get("input")
-		err = h.interactor.AITUSSD.CreateUSSDData(ctx, sessionDet)
-		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		base.WriteJSONResponse(w, dto.OKResp{
-			Status: "USSD Details persisted successfully"}, http.StatusOK)
-
-	}
-
 }

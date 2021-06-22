@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -67,8 +68,8 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
-	aitUssd := usecases.NewUssdUsecases(r, ext)
 	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
+	aitUssd := usecases.NewUssdUsecases(r, ext, profile)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
@@ -230,29 +231,15 @@ func composeSMSMessageDataPayload(t *testing.T, payload *dto.AfricasTalkingMessa
 	return smspayload
 }
 
-func composeUssdPayload(t *testing.T, phone, sessionId, text string) *strings.Reader {
-	//https://stackoverflow.com/questions/19253469/make-a-url-encoded-post-request-using-http-newrequest
+func composeUssdPayload(t *testing.T, payload *dto.SessionDetails) *strings.Reader {
 	data := url.Values{}
-	data.Set("phoneNumber", phone)
-	data.Set("sessionId", sessionId)
-	data.Set("text", text)
+	data.Set("phoneNumber", *payload.PhoneNumber)
+	data.Set("sessionId", payload.SessionID)
+	data.Set("text", payload.Text)
+	data.Set("level", strconv.Itoa(payload.Level))
 
-	payload := strings.NewReader(data.Encode())
-	return payload
-}
-
-func composeUssdJsonPayload(t *testing.T, phone, sessionId, text string) *bytes.Buffer {
-	payload := dto.SessionDetails{
-		PhoneNumber: &phone,
-		SessionID:   sessionId,
-		Text:        text,
-	}
-	bs, err := json.Marshal(payload)
-	if err != nil {
-		t.Errorf("unable to marshal payload to JSON: %s", err)
-		return nil
-	}
-	return bytes.NewBuffer(bs)
+	ussdPayload := strings.NewReader(data.Encode())
+	return ussdPayload
 }
 
 func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
@@ -3416,12 +3403,28 @@ func TestHandlersInterfacesImpl_USSDHandler(t *testing.T) {
 	h := rest.NewHandlersInterfaces(i)
 
 	USSDPhoneNumber := "+254711445566"
-	SessionId := "123456778"
+	invalidUSSDPhoneNumber := ""
+	sessionId := "123456778"
+	invalidSessionId := ""
 	text := "1"
-	validPayload := composeUssdPayload(t, USSDPhoneNumber, SessionId, text)
-	invalidPayload := composeUssdPayload(t, "", SessionId, text)
-	emptySessionIdPayload := composeUssdPayload(t, USSDPhoneNumber, "", text)
-	jsonPayload := composeUssdJsonPayload(t, USSDPhoneNumber, SessionId, text)
+	level := 0
+
+	validPayload := &dto.SessionDetails{
+		SessionID:   sessionId,
+		PhoneNumber: &USSDPhoneNumber,
+		Level:       level,
+		Text:        text,
+	}
+
+	invalidPayload := &dto.SessionDetails{
+		SessionID:   invalidSessionId,
+		PhoneNumber: &invalidUSSDPhoneNumber,
+		Level:       level,
+		Text:        text,
+	}
+
+	validUSSDPayload := composeUssdPayload(t, validPayload)
+	invalidUSSDPayload := composeUssdPayload(t, invalidPayload)
 
 	type args struct {
 		url        string
@@ -3435,41 +3438,21 @@ func TestHandlersInterfacesImpl_USSDHandler(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "valid:_successful USSD",
+			name: "valid:_successful_USSD",
 			args: args{
 				url:        fmt.Sprintf("%s/ait_ussd", serverUrl),
 				httpMethod: http.MethodPost,
-				body:       validPayload,
+				body:       validUSSDPayload,
 			},
 			wantStatus: http.StatusOK,
 			wantErr:    false,
 		},
 		{
-			name: "invalid:_empty_phonenumber",
+			name: "Invalid:_unsuccessful_USSD",
 			args: args{
 				url:        fmt.Sprintf("%s/ait_ussd", serverUrl),
 				httpMethod: http.MethodPost,
-				body:       invalidPayload,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-		{
-			name: "invalid:_empty_sessionId",
-			args: args{
-				url:        fmt.Sprintf("%s/ait_ussd", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       emptySessionIdPayload,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-		{
-			name: "invalid:_json_payload",
-			args: args{
-				url:        fmt.Sprintf("%s/ait_ussd", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       jsonPayload,
+				body:       invalidUSSDPayload,
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,
@@ -3484,22 +3467,33 @@ func TestHandlersInterfacesImpl_USSDHandler(t *testing.T) {
 			}
 			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 			response := httptest.NewRecorder()
-			if tt.name == "valid:_Successfully_Send_USSD" {
+			if tt.name == "valid:_successful_USSD" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254721026491"
 					return &phone, nil
 				}
 
+				fakeRepo.AddAITSessionDetailsFn = func(ctx context.Context, input *dto.SessionDetails) error {
+					return nil
+				}
+
+				fakeRepo.UpdateSessionLevelFn = func(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error) {
+					return nil, nil
+				}
+
+				fakeRepo.GetAITSessionDetailsFn = func(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error) {
+					return &domain.USSDLeadDetails{
+						Level: 2,
+					}, nil
+				}
+				fakeRepo.UpdateSessionPINFn = func(ctx context.Context, sessionID, pin string) (*domain.USSDLeadDetails, error) {
+					return nil, nil
+				}
+
 			}
-			if tt.name == "invalid:_empty_phonenumber" {
+			if tt.name == "Invalid:_unsuccessful_USSD" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					return nil, fmt.Errorf("empty phone number")
-				}
-			}
-			if tt.name == "invalid:_empty_sessionId" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254721026491"
-					return &phone, nil
 				}
 			}
 			svr := h.IncomingUSSDHandler(ctx)
@@ -3520,92 +3514,6 @@ func TestHandlersInterfacesImpl_USSDHandler(t *testing.T) {
 				return
 			}
 
-		})
-	}
-}
-
-func TestHandlersInterfacesImpl_EndUSSDNotificationHandler(t *testing.T) {
-	ctx := context.Background()
-	i, err := InitializeFakeOnboardingInteractor()
-	if err != nil {
-		t.Errorf("failed to initialize onboarding interactor: %v", err)
-		return
-	}
-	h := rest.NewHandlersInterfaces(i)
-
-	USSDPhoneNumber := "+254711445566"
-	SessionId := "123456778"
-	text := "1"
-	validPayload := composeUssdPayload(t, USSDPhoneNumber, SessionId, text)
-
-	type args struct {
-		url        string
-		httpMethod string
-		body       io.Reader
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantStatus int
-		wantErr    bool
-	}{
-		{
-			name: "valid:_Successfully_Get_USSD_Response",
-			args: args{
-				url:        fmt.Sprintf("%s/ait_end_note_ussd", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       validPayload,
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    false,
-		},
-		{
-			name: "invalid:_Nil_USSD_Response",
-			args: args{
-				url:        fmt.Sprintf("%s/ait_end_note_ussd", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       nil,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
-			if err != nil {
-				t.Errorf("can't create new request: %v", err)
-				return
-			}
-			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-			response := httptest.NewRecorder()
-			if tt.name == "valid:_Successfully_Get_USSD_Response" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254721026491"
-					return &phone, nil
-				}
-				fakeRepo.AddIncomingUSSDDataFn = func(ctx context.Context, input *dto.EndSessionDetails) error {
-					return nil
-				}
-
-			}
-			svr := h.USSDEndNotificationHandler(ctx)
-			svr.ServeHTTP(response, req)
-
-			if tt.wantStatus != response.Code {
-				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
-				return
-			}
-
-			dataResponse, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				t.Errorf("can't read response body: %v", err)
-				return
-			}
-			if dataResponse == nil {
-				t.Errorf("nil response body data")
-				return
-			}
 		})
 	}
 }

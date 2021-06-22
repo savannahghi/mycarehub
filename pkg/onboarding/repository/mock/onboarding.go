@@ -143,6 +143,11 @@ type FakeOnboardingRepository struct {
 
 	PersistIncomingSMSDataFn func(ctx context.Context, input *dto.AfricasTalkingMessage) error
 
+	AddAITSessionDetailsFn func(ctx context.Context, input *dto.SessionDetails) error
+	GetAITSessionDetailsFn func(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error)
+	UpdateSessionLevelFn   func(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error)
+	UpdateSessionPINFn     func(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error)
+
 	UpdateCustomerProfileFn func(
 		ctx context.Context,
 		profileID string,
@@ -531,9 +536,24 @@ func (f *FakeOnboardingRepository) PersistIncomingSMSData(ctx context.Context, i
 	return f.PersistIncomingSMSDataFn(ctx, input)
 }
 
-//AddIncomingUSSDData ...
-func (f *FakeOnboardingRepository) AddIncomingUSSDData(ctx context.Context, input *dto.EndSessionDetails) error {
-	return f.AddIncomingUSSDDataFn(ctx, input)
+//AddAITSessionDetails ...
+func (f *FakeOnboardingRepository) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) error {
+	return f.AddAITSessionDetailsFn(ctx, input)
+}
+
+//GetAITSessionDetails ...
+func (f *FakeOnboardingRepository) GetAITSessionDetails(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error) {
+	return f.GetAITSessionDetailsFn(ctx, sessionID)
+}
+
+//UpdateSessionLevel ...
+func (f *FakeOnboardingRepository) UpdateSessionLevel(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error) {
+	return f.UpdateSessionLevelFn(ctx, sessionID, level)
+}
+
+//UpdateSessionPIN ...
+func (f *FakeOnboardingRepository) UpdateSessionPIN(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error) {
+	return f.UpdateSessionPINFn(ctx, sessionID, pin)
 }
 
 // CreateAgentUserProfile ...

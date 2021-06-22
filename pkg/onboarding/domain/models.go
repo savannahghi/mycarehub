@@ -101,7 +101,11 @@ type NHIFDetails struct {
 //USSDLeadDetails represents ussd details from AIT
 type USSDLeadDetails struct {
 	ID          string `json:"id" firestore:"id"`
-	Text        string `json:"text" firestore:"text"`
+	Level       int    `json:"level" firestore:"level"`
 	PhoneNumber string `json:"phoneNumber" firestore:"phoneNumber"`
-	SessionID   string `json:"sessionId" firestore:"sessionId"`
+	SessionID   string `json:"sessionID" firestore:"sessionID"`
+	FirstName   string `json:"firstName" firestore:"firstName"`
+	LastName    string `json:"lastName" firestore:"lastName"`
+	DateOfBirth string `json:"dob" firestore:"dob"`
+	PIN         string `json:"pin" firestore:"pin"`
 }

@@ -3,12 +3,26 @@ package utils
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+)
+
+const (
+	// Default min length of the date
+	minDateLength = 8
+	// Default max length of the date
+	maxDateLength = 8
+
+	// Default min length of the date
+	minPINLength = 4
+	// Default max length of the date
+	maxPINLength = 4
 )
 
 // ValidateUID checks that the uid supplied in the indicated request is valid
@@ -110,6 +124,7 @@ func ValidateUSSDDetails(payload *dto.SessionDetails) (*dto.SessionDetails, erro
 	return &dto.SessionDetails{
 		PhoneNumber: phone,
 		SessionID:   payload.SessionID,
+		Level:       payload.Level,
 		Text:        payload.Text,
 	}, nil
 }
@@ -127,4 +142,71 @@ func ValidateEndNoteUSSDDetails(payload *dto.EndSessionDetails) (*dto.EndSession
 		Input:       payload.Input,
 		Status:      payload.Status,
 	}, nil
+}
+
+// ValidatePIN ...
+func ValidatePIN(pin string) error {
+	validatePINErr := ValidatePINLength(pin)
+	if validatePINErr != nil {
+		return validatePINErr
+	}
+
+	pinDigitsErr := extension.ValidatePINDigits(pin)
+	if pinDigitsErr != nil {
+		return pinDigitsErr
+	}
+	return nil
+}
+
+// ValidatePINLength ...
+func ValidatePINLength(pin string) error {
+	// make sure pin length is [4-6]
+	if len(pin) < minPINLength || len(pin) > maxPINLength {
+		return exceptions.ValidatePINLengthError(fmt.Errorf("PIN should be of 4 digits"))
+	}
+	return nil
+}
+
+// ValidateUSSDInput ...
+func ValidateUSSDInput(text string) error {
+	if text == "" {
+		return fmt.Errorf("invalid input")
+	}
+
+	return nil
+}
+
+// IsLetter ...
+func IsLetter(s string) bool {
+	for _, r := range s {
+		if (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') {
+			return false
+		}
+	}
+	return true
+}
+
+//ValidateDateLength ensures that the dates are of only 8 numbers
+func ValidateDateLength(date string) error {
+	// make sure date length is [8]
+	if len(date) < minDateLength || len(date) > maxDateLength {
+		return fmt.Errorf("date should be of only 8 digits")
+	}
+	return nil
+}
+
+// ValidateDateDigits validates user pin to ensure a PIN only contains digits
+func ValidateDateDigits(pin string) error {
+	// ensure pin is only digits
+	_, err := strconv.ParseUint(pin, 10, 64)
+	if err != nil {
+		return fmt.Errorf("date can only be numbers")
+	}
+	return nil
+}
+
+//GetUserChoice gets the concatenated text from Africas Talking and splits it to get the current level/state/hop
+func GetUserChoice(text string, textLength int) string {
+	vals := strings.Split(text, "*")
+	return vals[len(vals)-textLength]
 }

@@ -115,10 +115,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	engage := engagement.NewServiceEngagementImpl(engagementClient, baseExt, pubSub)
 	mes := messaging.NewServiceMessagingImpl(baseExt)
 	pinExt := extension.NewPINExtensionImpl()
-	aitUssd := usecases.NewUssdUsecases(repo, baseExt)
 
 	// Initialize the usecases
 	profile := usecases.NewProfileUseCase(repo, baseExt, engage, pubSub)
+	aitUssd := usecases.NewUssdUsecases(repo, baseExt, profile)
 	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mes, baseExt, pubSub)
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
@@ -153,7 +153,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	//USSD routes
 	r.Path("/ait_ussd").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.IncomingUSSDHandler(ctx))
-	r.Path("/ait_end_note_ussd").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.USSDEndNotificationHandler(ctx))
 
 	// Unauthenticated routes
 

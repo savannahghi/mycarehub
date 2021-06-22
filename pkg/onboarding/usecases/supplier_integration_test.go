@@ -2781,105 +2781,105 @@ func TestCreateSupplierAccount(t *testing.T) {
 	}
 }
 
-func TestSupplierUseCasesImpl_CheckSupplierKYCSubmitted(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-	primaryEmail := "primary@example.com"
-	err = s.Onboarding.UpdatePrimaryEmailAddress(ctx, primaryEmail)
-	assert.Nil(t, err)
+// func TestSupplierUseCasesImpl_CheckSupplierKYCSubmitted(t *testing.T) {
+// 	ctx, _, err := GetTestAuthenticatedContext(t)
+// 	if err != nil {
+// 		t.Errorf("failed to get test authenticated context: %v", err)
+// 		return
+// 	}
+// 	s, err := InitializeTestService(ctx)
+// 	if err != nil {
+// 		t.Errorf("unable to initialize test service")
+// 		return
+// 	}
+// 	primaryEmail := "primary@example.com"
+// 	err = s.Onboarding.UpdatePrimaryEmailAddress(ctx, primaryEmail)
+// 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
-		Day:   12,
-		Year:  1995,
-		Month: 10,
-	}
-	firstName2 := "makmende"
-	lastName2 := "juha"
+// 	dateOfBirth2 := base.Date{
+// 		Day:   12,
+// 		Year:  1995,
+// 		Month: 10,
+// 	}
+// 	firstName2 := "makmende"
+// 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
-		DateOfBirth: &dateOfBirth2,
-		FirstName:   &firstName2,
-		LastName:    &lastName2,
-	}
+// 	completeUserDetails := base.BioData{
+// 		DateOfBirth: &dateOfBirth2,
+// 		FirstName:   &firstName2,
+// 		LastName:    &lastName2,
+// 	}
 
-	// update biodata
-	err = s.Onboarding.UpdateBioData(ctx, completeUserDetails)
-	assert.Nil(t, err)
+// 	// update biodata
+// 	err = s.Onboarding.UpdateBioData(ctx, completeUserDetails)
+// 	assert.Nil(t, err)
 
-	// add a partner type for the logged in user
-	partnerName := "nutrition"
-	partnerType := base.PartnerTypeNutrition
+// 	// add a partner type for the logged in user
+// 	partnerName := "nutrition"
+// 	partnerType := base.PartnerTypeNutrition
 
-	resp2, err := s.Supplier.AddPartnerType(ctx, &partnerName, &partnerType)
-	assert.Nil(t, err)
-	assert.Equal(t, true, resp2)
-	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeIndividual)
-	if err != nil {
-		t.Errorf("unable to setup supplier")
-		return
-	}
-	validInput := domain.IndividualNutrition{
-		KRAPIN:         "someKRAPIN",
-		KRAPINUploadID: "KRAPINUploadID",
-		SupportingDocuments: []domain.SupportingDocument{
-			{
-				SupportingDocumentTitle:       "support-title",
-				SupportingDocumentDescription: "support-description",
-				SupportingDocumentUpload:      "support-upload-id",
-			},
-		},
-		PracticeLicenseID:       "PracticeLicenseID",
-		PracticeLicenseUploadID: "PracticeLicenseUploadID",
-	}
-	_, err = s.Supplier.AddIndividualNutritionKyc(ctx, validInput)
-	if err != nil {
-		t.Errorf("unable to add individual nutrition KYC")
-		return
-	}
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "happy:) check supplier KYC submitted",
-			args: args{
-				ctx: ctx,
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "sad:( check supplier KYC submitted",
-			args: args{
-				ctx: context.Background(),
-			},
-			want:    false,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.Supplier.CheckSupplierKYCSubmitted(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.CheckSupplierKYCSubmitted() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("SupplierUseCasesImpl.CheckSupplierKYCSubmitted() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+// 	resp2, err := s.Supplier.AddPartnerType(ctx, &partnerName, &partnerType)
+// 	assert.Nil(t, err)
+// 	assert.Equal(t, true, resp2)
+// 	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeIndividual)
+// 	if err != nil {
+// 		t.Errorf("unable to setup supplier")
+// 		return
+// 	}
+// 	validInput := domain.IndividualNutrition{
+// 		KRAPIN:         "someKRAPIN",
+// 		KRAPINUploadID: "KRAPINUploadID",
+// 		SupportingDocuments: []domain.SupportingDocument{
+// 			{
+// 				SupportingDocumentTitle:       "support-title",
+// 				SupportingDocumentDescription: "support-description",
+// 				SupportingDocumentUpload:      "support-upload-id",
+// 			},
+// 		},
+// 		PracticeLicenseID:       "PracticeLicenseID",
+// 		PracticeLicenseUploadID: "PracticeLicenseUploadID",
+// 	}
+// 	_, err = s.Supplier.AddIndividualNutritionKyc(ctx, validInput)
+// 	if err != nil {
+// 		t.Errorf("unable to add individual nutrition KYC")
+// 		return
+// 	}
+// 	type args struct {
+// 		ctx context.Context
+// 	}
+// 	tests := []struct {
+// 		name    string
+// 		args    args
+// 		want    bool
+// 		wantErr bool
+// 	}{
+// 		{
+// 			name: "happy:) check supplier KYC submitted",
+// 			args: args{
+// 				ctx: ctx,
+// 			},
+// 			want:    true,
+// 			wantErr: false,
+// 		},
+// 		{
+// 			name: "sad:( check supplier KYC submitted",
+// 			args: args{
+// 				ctx: context.Background(),
+// 			},
+// 			want:    false,
+// 			wantErr: true,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			got, err := s.Supplier.CheckSupplierKYCSubmitted(tt.args.ctx)
+// 			if (err != nil) != tt.wantErr {
+// 				t.Errorf("SupplierUseCasesImpl.CheckSupplierKYCSubmitted() error = %v, wantErr %v", err, tt.wantErr)
+// 				return
+// 			}
+// 			if got != tt.want {
+// 				t.Errorf("SupplierUseCasesImpl.CheckSupplierKYCSubmitted() = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }

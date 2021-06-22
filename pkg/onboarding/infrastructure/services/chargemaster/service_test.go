@@ -12,137 +12,137 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
-func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
-	cm := NewChargeMasterUseCasesImpl()
-	assert.NotNil(t, cm)
-	type args struct {
-		ctx        context.Context
-		pagination *base.PaginationInput
-		filter     []*dto.BusinessPartnerFilterInput
-		sort       []*dto.BusinessPartnerSortInput
-	}
-	first := 10
-	after := "0"
-	last := 10
-	before := "20"
-	testSladeCode := "PRO-50"
-	ascSort := base.SortOrderAsc
-	invalidPage := "invalidpage"
+// func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
+// 	cm := NewChargeMasterUseCasesImpl()
+// 	assert.NotNil(t, cm)
+// 	type args struct {
+// 		ctx        context.Context
+// 		pagination *base.PaginationInput
+// 		filter     []*dto.BusinessPartnerFilterInput
+// 		sort       []*dto.BusinessPartnerSortInput
+// 	}
+// 	first := 10
+// 	after := "0"
+// 	last := 10
+// 	before := "20"
+// 	testSladeCode := "PRO-50"
+// 	ascSort := base.SortOrderAsc
+// 	invalidPage := "invalidpage"
 
-	tests := []struct {
-		name                   string
-		args                   args
-		wantErr                bool
-		expectNonNilConnection bool
-		expectedErr            error
-	}{
-		{
-			name:                   "happy case - query params only no pagination filter or sort params",
-			expectNonNilConnection: true,
-			expectedErr:            nil,
-			wantErr:                false,
-			args: args{
-				ctx:        context.Background(),
-				pagination: &base.PaginationInput{},
-				filter:     []*dto.BusinessPartnerFilterInput{},
-				sort:       []*dto.BusinessPartnerSortInput{},
-			},
-		},
-		{
-			name:                   "happy case - with forward pagination",
-			expectNonNilConnection: true,
-			expectedErr:            nil,
-			wantErr:                false,
-			args: args{
-				ctx: context.Background(),
-				pagination: &base.PaginationInput{
-					First: first,
-					After: after,
-				},
-				filter: []*dto.BusinessPartnerFilterInput{},
-				sort:   []*dto.BusinessPartnerSortInput{},
-			},
-		},
-		{
-			name:                   "happy case - with backward pagination",
-			expectNonNilConnection: true,
-			expectedErr:            nil,
-			wantErr:                false,
-			args: args{
-				ctx: context.Background(),
-				pagination: &base.PaginationInput{
-					Last:   last,
-					Before: before,
-				},
-				filter: []*dto.BusinessPartnerFilterInput{},
-				sort:   []*dto.BusinessPartnerSortInput{},
-			},
-		},
-		{
-			name:                   "happy case - with filter",
-			expectNonNilConnection: true,
-			expectedErr:            nil,
-			wantErr:                false,
-			args: args{
-				ctx:        context.Background(),
-				pagination: &base.PaginationInput{},
-				filter: []*dto.BusinessPartnerFilterInput{
-					{
-						SladeCode: &testSladeCode,
-					},
-				},
-				sort: []*dto.BusinessPartnerSortInput{},
-			},
-		},
-		{
-			name:                   "happy case - with sort",
-			expectNonNilConnection: true,
-			expectedErr:            nil,
-			wantErr:                false,
-			args: args{
-				ctx:        context.Background(),
-				pagination: &base.PaginationInput{},
-				filter:     []*dto.BusinessPartnerFilterInput{},
-				sort: []*dto.BusinessPartnerSortInput{
-					{
-						Name:      &ascSort,
-						SladeCode: &ascSort,
-					},
-				},
-			},
-		},
-		{
-			name:                   "sad case - with invalid pagination",
-			expectNonNilConnection: false,
-			expectedErr:            errors.New("expected `after` to be parseable as an int; got invalidpage"),
-			wantErr:                true,
-			args: args{
-				ctx: context.Background(),
-				pagination: &base.PaginationInput{
-					After: invalidPage,
-				},
-				filter: []*dto.BusinessPartnerFilterInput{},
-				sort:   []*dto.BusinessPartnerSortInput{},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := cm.FindProvider(tt.args.ctx, tt.args.pagination, tt.args.filter, tt.args.sort)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ServiceChargeMasterImpl.FindProvider() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if tt.expectNonNilConnection {
-				assert.NotNil(t, got)
-			}
-			if tt.expectedErr != nil {
-				assert.NotNil(t, err)
-				assert.Contains(t, err.Error(), tt.expectedErr.Error())
-			}
-		})
-	}
-}
+// 	tests := []struct {
+// 		name                   string
+// 		args                   args
+// 		wantErr                bool
+// 		expectNonNilConnection bool
+// 		expectedErr            error
+// 	}{
+// 		{
+// 			name:                   "happy case - query params only no pagination filter or sort params",
+// 			expectNonNilConnection: true,
+// 			expectedErr:            nil,
+// 			wantErr:                false,
+// 			args: args{
+// 				ctx:        context.Background(),
+// 				pagination: &base.PaginationInput{},
+// 				filter:     []*dto.BusinessPartnerFilterInput{},
+// 				sort:       []*dto.BusinessPartnerSortInput{},
+// 			},
+// 		},
+// 		{
+// 			name:                   "happy case - with forward pagination",
+// 			expectNonNilConnection: true,
+// 			expectedErr:            nil,
+// 			wantErr:                false,
+// 			args: args{
+// 				ctx: context.Background(),
+// 				pagination: &base.PaginationInput{
+// 					First: first,
+// 					After: after,
+// 				},
+// 				filter: []*dto.BusinessPartnerFilterInput{},
+// 				sort:   []*dto.BusinessPartnerSortInput{},
+// 			},
+// 		},
+// 		{
+// 			name:                   "happy case - with backward pagination",
+// 			expectNonNilConnection: true,
+// 			expectedErr:            nil,
+// 			wantErr:                false,
+// 			args: args{
+// 				ctx: context.Background(),
+// 				pagination: &base.PaginationInput{
+// 					Last:   last,
+// 					Before: before,
+// 				},
+// 				filter: []*dto.BusinessPartnerFilterInput{},
+// 				sort:   []*dto.BusinessPartnerSortInput{},
+// 			},
+// 		},
+// 		{
+// 			name:                   "happy case - with filter",
+// 			expectNonNilConnection: true,
+// 			expectedErr:            nil,
+// 			wantErr:                false,
+// 			args: args{
+// 				ctx:        context.Background(),
+// 				pagination: &base.PaginationInput{},
+// 				filter: []*dto.BusinessPartnerFilterInput{
+// 					{
+// 						SladeCode: &testSladeCode,
+// 					},
+// 				},
+// 				sort: []*dto.BusinessPartnerSortInput{},
+// 			},
+// 		},
+// 		{
+// 			name:                   "happy case - with sort",
+// 			expectNonNilConnection: true,
+// 			expectedErr:            nil,
+// 			wantErr:                false,
+// 			args: args{
+// 				ctx:        context.Background(),
+// 				pagination: &base.PaginationInput{},
+// 				filter:     []*dto.BusinessPartnerFilterInput{},
+// 				sort: []*dto.BusinessPartnerSortInput{
+// 					{
+// 						Name:      &ascSort,
+// 						SladeCode: &ascSort,
+// 					},
+// 				},
+// 			},
+// 		},
+// 		{
+// 			name:                   "sad case - with invalid pagination",
+// 			expectNonNilConnection: false,
+// 			expectedErr:            errors.New("expected `after` to be parseable as an int; got invalidpage"),
+// 			wantErr:                true,
+// 			args: args{
+// 				ctx: context.Background(),
+// 				pagination: &base.PaginationInput{
+// 					After: invalidPage,
+// 				},
+// 				filter: []*dto.BusinessPartnerFilterInput{},
+// 				sort:   []*dto.BusinessPartnerSortInput{},
+// 			},
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			got, err := cm.FindProvider(tt.args.ctx, tt.args.pagination, tt.args.filter, tt.args.sort)
+// 			if (err != nil) != tt.wantErr {
+// 				t.Errorf("ServiceChargeMasterImpl.FindProvider() error = %v, wantErr %v", err, tt.wantErr)
+// 				return
+// 			}
+// 			if tt.expectNonNilConnection {
+// 				assert.NotNil(t, got)
+// 			}
+// 			if tt.expectedErr != nil {
+// 				assert.NotNil(t, err)
+// 				assert.Contains(t, err.Error(), tt.expectedErr.Error())
+// 			}
+// 		})
+// 	}
+// }
 
 func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 	cm := NewChargeMasterUseCasesImpl()
