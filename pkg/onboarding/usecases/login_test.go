@@ -432,7 +432,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
 	aitUssd := usecases.NewUssdUsecases(r, ext)
-	agent := usecases.NewAgentUseCases(r, profile, engagementSvc, messagingSvc, ext)
+	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,

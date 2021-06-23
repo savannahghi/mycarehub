@@ -174,11 +174,16 @@ const AgentApprovalEmail = `
                   line-height: 25px;
                 "
               >
-                <p style="margin: 0">Hello,</p>
-                <p></p>
+                <p style="margin: 0">Hello {{.Name}},</p>
+
                 <p style="margin: 0">
                   You have been successfully registered as an agent. We look
                   forward to working with you.
+                </p>
+
+                <p style="margin: 0">
+                  Please use this One Time PIN: {{.Pin}} to log onto Bewell with
+                  your phone number
                 </p>
               </td>
             </tr>

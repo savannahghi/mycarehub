@@ -793,3 +793,100 @@ func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 		})
 	}
 }
+
+func TestUserPinUseCaseImpl_SetUserTempPIN(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+
+	type args struct {
+		ctx       context.Context
+		profileID string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "valid:_set_user_temp_pin",
+			args: args{
+				ctx:       ctx,
+				profileID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid:_unable_to_save_pin",
+			args: args{
+				ctx:       ctx,
+				profileID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:_unable_to_generate_pin",
+			args: args{
+				ctx:       ctx,
+				profileID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "valid:_set_user_temp_pin" {
+				fakePinExt.GenerateTempPINFn = func(ctx context.Context) (string, error) {
+					return "1234", nil
+				}
+
+				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
+					return "salt", "passw"
+				}
+
+				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
+					return true, nil
+				}
+
+			}
+
+			if tt.name == "invalid:_unable_to_save_pin" {
+				fakePinExt.GenerateTempPINFn = func(ctx context.Context) (string, error) {
+					return "1234", nil
+				}
+
+				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
+					return "salt", "passw"
+				}
+
+				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
+					return false, fmt.Errorf("cannot save pin")
+				}
+			}
+
+			if tt.name == "invalid:_unable_to_generate_pin" {
+				fakePinExt.GenerateTempPINFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("cannot generate user pin")
+				}
+			}
+
+			got, err := i.UserPIN.SetUserTempPIN(tt.args.ctx, tt.args.profileID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserPinUseCaseImpl.SetUserTempPIN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == "" {
+				t.Errorf("UserPinUseCaseImpl.SetUserTempPIN() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

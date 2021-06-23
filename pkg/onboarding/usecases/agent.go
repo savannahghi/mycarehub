@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"time"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
@@ -13,7 +14,6 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -29,29 +29,25 @@ type AgentUseCase interface {
 
 // AgentUseCaseImpl  represents usecase implementation object
 type AgentUseCaseImpl struct {
-	repo    repository.OnboardingRepository
-	profile ProfileUseCase
-
+	repo       repository.OnboardingRepository
 	engagement engagement.ServiceEngagement
-	messaging  messaging.ServiceMessaging
 	baseExt    extension.BaseExtension
+	pin        UserPINUseCases
 }
 
 // NewAgentUseCases returns a new a onboarding usecase
 func NewAgentUseCases(
 	r repository.OnboardingRepository,
-	p ProfileUseCase,
 	eng engagement.ServiceEngagement,
-	messaging messaging.ServiceMessaging,
 	ext extension.BaseExtension,
+	pin UserPINUseCases,
 ) AgentUseCase {
 
 	return &AgentUseCaseImpl{
 		repo:       r,
-		profile:    p,
 		engagement: eng,
-		messaging:  messaging,
 		baseExt:    ext,
+		pin:        pin,
 	}
 }
 
@@ -79,6 +75,7 @@ func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.Register
 		return nil, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have `EMPLOYEE` role"))
 	}
 
+	timestamp := time.Now().In(base.TimeLocation)
 	agentProfile := base.UserProfile{
 		PrimaryEmailAddress: &input.Email,
 		UserBioData: base.BioData{
@@ -86,12 +83,16 @@ func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.Register
 			LastName:  &input.LastName,
 			Gender:    input.Gender,
 		},
-		Role: base.RoleTypeAgent,
+		Role:        base.RoleTypeAgent,
+		Permissions: base.RoleTypeAgent.Permissions(),
+		CreatedByID: &usp.ID,
+		Created:     &timestamp,
 	}
 
 	// create a user profile in bewell
 	profile, err := a.repo.CreateDetailedUserProfile(ctx, input.PhoneNumber, agentProfile)
 	if err != nil {
+		// wrapped error
 		return nil, err
 	}
 
@@ -124,25 +125,38 @@ func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.Register
 		&defaultCommunicationSetting,
 	)
 	if err != nil {
+		// wrapped error
 		return nil, err
 	}
 
-	if err := a.notifyNewAgent([]string{input.Email}, []string{input.PhoneNumber}); err != nil {
+	otp, err := a.pin.SetUserTempPIN(ctx, profile.ID)
+	if err != nil {
+		// wrapped error
+		return nil, err
+	}
+
+	if err := a.notifyNewAgent([]string{input.Email}, []string{input.PhoneNumber}, *profile.UserBioData.FirstName, otp); err != nil {
 		return nil, fmt.Errorf("unable to send agent registration notifications: %w", err)
 	}
 
 	return profile, nil
 }
 
-func (a *AgentUseCaseImpl) notifyNewAgent(emails []string, phoneNumbers []string) error {
+func (a *AgentUseCaseImpl) notifyNewAgent(emails []string, phoneNumbers []string, name, otp string) error {
+	type pin struct {
+		Name string
+		Pin  string
+	}
+
 	t := template.Must(template.New("agentApprovalEmail").Parse(utils.AgentApprovalEmail))
 	buf := new(bytes.Buffer)
-	err := t.Execute(buf, "")
+	err := t.Execute(buf, pin{name, otp})
 	if err != nil {
 		log.Fatalf("error while generating agent approval email template: %s", err)
 	}
 
-	if err := a.engagement.SendSMS(phoneNumbers, agentWelcomeMessage); err != nil {
+	message := fmt.Sprintf("%sPlease use this One Time PIN: %s to log onto Bewell with your phone number", agentWelcomeMessage, otp)
+	if err := a.engagement.SendSMS(phoneNumbers, message); err != nil {
 		return fmt.Errorf("unable to send agent registration message: %w", err)
 	}
 

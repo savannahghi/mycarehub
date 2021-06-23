@@ -16,6 +16,8 @@ import (
 // UserPINUseCases represents all the business logic that touch on user PIN Management
 type UserPINUseCases interface {
 	SetUserPIN(ctx context.Context, pin string, profileID string) (bool, error)
+	// SetUserTempPIN is used to set a temporary PIN for a created user.
+	SetUserTempPIN(ctx context.Context, profileID string) (string, error)
 	ResetUserPIN(
 		ctx context.Context,
 		phone string,
@@ -221,4 +223,29 @@ func (u *UserPinUseCaseImpl) CheckHasPIN(ctx context.Context, profileID string) 
 	}
 
 	return true, nil
+}
+
+// SetUserTempPIN generates a random one time pin.
+// The pin acts as a temporary PIN and should be changed by the user.
+func (u *UserPinUseCaseImpl) SetUserTempPIN(ctx context.Context, profileID string) (string, error) {
+	pin, err := u.pinExt.GenerateTempPIN(ctx)
+	if err != nil {
+		return "", exceptions.GeneratePinError(err)
+	}
+
+	// Encrypt the PIN
+	salt, encryptedPin := u.pinExt.EncryptPIN(pin, nil)
+
+	pinPayload := &domain.PIN{
+		ID:        uuid.New().String(),
+		ProfileID: profileID,
+		PINNumber: encryptedPin,
+		Salt:      salt,
+		IsOTP:     true,
+	}
+	if _, err := u.onboardingRepository.SavePIN(ctx, pinPayload); err != nil {
+		return "", exceptions.SaveUserPinError(err)
+	}
+
+	return pin, nil
 }

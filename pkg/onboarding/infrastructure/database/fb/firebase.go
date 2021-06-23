@@ -1399,6 +1399,13 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 	if len(docs) == 0 {
 		return false, exceptions.InternalServerError(fmt.Errorf("user pin not found"))
 	}
+
+	// Check if PIN being updated is a Temporary PIN
+	if pinData.IsOTP {
+		// Set New PIN flag as false
+		pin.IsOTP = false
+	}
+
 	updateCommand := &UpdateCommand{
 		CollectionName: fr.GetPINsCollectionName(),
 		ID:             docs[0].Ref.ID,

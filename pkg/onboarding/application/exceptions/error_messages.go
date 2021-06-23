@@ -138,6 +138,9 @@ const (
 	// SaveUserPinErrMsg is displayed when a user pin is not saved
 	SaveUserPinErrMsg = "unable to save user PIN"
 
+	// GeneratePinErrMsg is displayed when a user pin is not generated
+	GeneratePinErrMsg = "unable to generate temporary PIN for new user"
+
 	// BioDataErrMsg is displayed when a user BioData is incomplete
 	BioDataErrMsg = "incomplete Bio Data, expected first and last name"
 

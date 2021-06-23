@@ -47,6 +47,9 @@ type PIN struct {
 	ProfileID string `json:"profileID" firestore:"profileID"`
 	PINNumber string `json:"pinNumber" firestore:"pinNumber"`
 	Salt      string `json:"salt" firestore:"salt"`
+
+	// Flags the PIN as temporary and should be changed by user
+	IsOTP bool `json:"isOTP" firestore:"isOTP"`
 }
 
 // SetPINRequest payload to set PIN information

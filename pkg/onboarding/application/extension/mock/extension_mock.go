@@ -271,8 +271,9 @@ func (b *FakeBaseExtensionImpl) WriteJSONResponse(
 
 // PINExtensionImpl is a `PIN` fake  .
 type PINExtensionImpl struct {
-	EncryptPINFn func(rawPwd string, options *extension.Options) (string, string)
-	ComparePINFn func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
+	EncryptPINFn      func(rawPwd string, options *extension.Options) (string, string)
+	ComparePINFn      func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool
+	GenerateTempPINFn func(ctx context.Context) (string, error)
 }
 
 // EncryptPIN ...
@@ -283,6 +284,11 @@ func (p *PINExtensionImpl) EncryptPIN(rawPwd string, options *extension.Options)
 // ComparePIN ...
 func (p *PINExtensionImpl) ComparePIN(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
 	return p.ComparePINFn(rawPwd, salt, encodedPwd, options)
+}
+
+// GenerateTempPIN ...
+func (p *PINExtensionImpl) GenerateTempPIN(ctx context.Context) (string, error) {
+	return p.GenerateTempPINFn(ctx)
 }
 
 // ISCClientExtension is an ISC fake

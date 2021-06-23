@@ -1,11 +1,13 @@
 package extension
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
 	"hash"
+	"math/big"
 	"strconv"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -17,6 +19,7 @@ import (
 type PINExtension interface {
 	EncryptPIN(rawPwd string, options *Options) (string, string)
 	ComparePIN(rawPwd string, salt string, encodedPwd string, options *Options) bool
+	GenerateTempPIN(ctx context.Context) (string, error)
 }
 
 // PINExtensionImpl ...
@@ -36,6 +39,8 @@ const (
 	minPinLength = 4
 	// Default max length of the pin
 	maxPinLength = 6
+	// Default length of a generated pin
+	generatedPinLength = 4
 )
 
 // DefaultHashFunction ...
@@ -90,6 +95,26 @@ func (p PINExtensionImpl) ComparePIN(rawPwd string, salt string, encodedPwd stri
 		return encodedPwd == hex.EncodeToString(pbkdf2.Key([]byte(rawPwd), []byte(salt), defaultIterations, DefaultKeyLen, DefaultHashFunction))
 	}
 	return encodedPwd == hex.EncodeToString(pbkdf2.Key([]byte(rawPwd), []byte(salt), options.Iterations, options.KeyLen, options.HashFunction))
+}
+
+// GenerateTempPIN generates a temporary One Time PIN for a user
+// The PIN will have 4 digits formatted as a string
+func (p PINExtensionImpl) GenerateTempPIN(ctx context.Context) (string, error) {
+	var pin string
+
+	length := 0
+	for length < generatedPinLength {
+		number, err := rand.Int(rand.Reader, big.NewInt(10))
+		if err != nil {
+			return "", err
+		}
+
+		pin += number.String()
+
+		length++
+	}
+
+	return pin, nil
 }
 
 // ValidatePINDigits validates user pin to ensure a PIN only contains digits

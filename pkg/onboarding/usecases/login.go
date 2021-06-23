@@ -84,6 +84,12 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, err
 	}
 
+	// Check whether the PIN is temporary i.e OTP
+	// Update the auth response
+	if PINData.IsOTP {
+		auth.ChangePIN = true
+	}
+
 	customer, supplier, err := l.onboardingRepository.GetCustomerOrSupplierProfileByProfileID(
 		ctx,
 		flavour,

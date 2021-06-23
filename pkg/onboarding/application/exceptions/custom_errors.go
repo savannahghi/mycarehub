@@ -351,6 +351,15 @@ func SaveUserPinError(err error) error {
 	}
 }
 
+// GeneratePinError returns an error message when we are unable to generate a temporary PIN
+func GeneratePinError(err error) error {
+	return &base.CustomError{
+		Err:     err,
+		Message: GeneratePinErrMsg,
+		Code:    int(base.PINError),
+	}
+}
+
 // CompleteSignUpError returns an error message when we are unable
 // to CompleteSignup
 func CompleteSignUpError(err error) error {
