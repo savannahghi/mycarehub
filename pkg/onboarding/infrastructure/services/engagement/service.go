@@ -462,13 +462,15 @@ func (en *ServiceEngagementImpl) NotifySupplierOnSuspension(input dto.EmailNotif
 // SendSMS does the actual delivery of messages to the provided phone numbers
 func (en *ServiceEngagementImpl) SendSMS(phoneNumbers []string, message string) error {
 	type PayloadRequest struct {
-		To      []string `json:"to"`
-		Message string   `json:"message"`
+		To      []string      `json:"to"`
+		Message string        `json:"message"`
+		Sender  base.SenderID `json:"sender"`
 	}
 
 	requestPayload := PayloadRequest{
 		To:      phoneNumbers,
 		Message: message,
+		Sender:  base.SenderIDBewell,
 	}
 
 	resp, err := en.Engage.MakeRequest(http.MethodPost, sendSMS, requestPayload)
