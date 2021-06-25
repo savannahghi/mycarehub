@@ -510,8 +510,8 @@ github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1
 gitlab.slade360emr.com/go/base v0.0.148/go.mod h1:vAjJNtKRwqLgIeY3zbxoiTyurpncqupPgnaMDQOsc3k=
 gitlab.slade360emr.com/go/base v0.0.154 h1:x+qCeebOXgLsvU4QaW50EQghCo/wx73U2i0onPj+ULw=
 gitlab.slade360emr.com/go/base v0.0.154/go.mod h1:2I0e87cNOQj2hT42jHER4MzXyW+kgGsKFoCFDvG99ro=
-gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210617194420-c4ac13ba4506 h1:0OqNZDRH2Rw4QDO9DuEdSAcQ6BSAPWFaqmUJ89XPHU8=
-gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210617194420-c4ac13ba4506/go.mod h1:nlrDr53OfFHB5qxJtTQy8Zyw4+jS3TbMhQuYXQ3/FWI=
+gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210625072658-01f9918f32ae h1:PkHFyIsesNYDl5Gl8aa4xRl36Muh5NqfrQ5OlsSxNoc=
+gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210625072658-01f9918f32ae/go.mod h1:nlrDr53OfFHB5qxJtTQy8Zyw4+jS3TbMhQuYXQ3/FWI=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=

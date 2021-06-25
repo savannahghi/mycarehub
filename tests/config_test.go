@@ -191,15 +191,15 @@ func composeSMSMessageDataPayload(t *testing.T, payload *dto.AfricasTalkingMessa
 	return smspayload
 }
 
-// func composeUSSDPayload(t *testing.T, payload *dto.SessionDetails) *strings.Reader {
-// 	data := url.Values{}
-// 	data.Set("sessionId", payload.SessionID)
-// 	data.Set("phoneNumber", *payload.PhoneNumber)
-// 	data.Set("text", payload.Text)
+func composeUSSDPayload(t *testing.T, payload *dto.SessionDetails) *strings.Reader {
+	data := url.Values{}
+	data.Set("sessionId", payload.SessionID)
+	data.Set("phoneNumber", *payload.PhoneNumber)
+	data.Set("text", payload.Text)
 
-// 	smspayload := strings.NewReader(data.Encode())
-// 	return smspayload
-// }
+	smspayload := strings.NewReader(data.Encode())
+	return smspayload
+}
 
 func CreateTestUserByPhone(t *testing.T, phone string) (*base.UserResponse, error) {
 	client := http.DefaultClient

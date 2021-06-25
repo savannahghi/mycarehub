@@ -2,14 +2,18 @@ package usecases
 
 import (
 	"context"
+	"encoding/json"
+	"log"
 	"strconv"
 	"strings"
 
 	"gitlab.slade360emr.com/go/base"
+	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -56,6 +60,7 @@ type UssdImpl struct {
 	profile              ProfileUseCase
 	pinUsecase           UserPINUseCases
 	signUp               SignUpUseCases
+	pubsub               pubsubmessaging.ServicePubSub
 }
 
 //NewUssdUsecases returns a new Ussd usecase
@@ -65,6 +70,7 @@ func NewUssdUsecases(
 	profileUsecase ProfileUseCase,
 	pinUsecase UserPINUseCases,
 	signUp SignUpUseCases,
+	pubsub pubsubmessaging.ServicePubSub,
 ) UssdUsecase {
 	return &UssdImpl{
 		baseExt:              ext,
@@ -72,6 +78,7 @@ func NewUssdUsecases(
 		profile:              profileUsecase,
 		pinUsecase:           pinUsecase,
 		signUp:               signUp,
+		pubsub:               pubsub,
 	}
 }
 
@@ -99,8 +106,30 @@ func (u *UssdImpl) UpdateSessionLevel(ctx context.Context, level int, sessionID 
 func (u *UssdImpl) userWithNoAccountMenu(ctx context.Context, payload *dto.SessionDetails, textArray []string) string {
 	// if the text field is empty, this indicates that this is the begining of a session
 	if len(payload.Text) == 0 {
+
+		CRMContact := CRMDomain.CRMContact{
+			Properties: CRMDomain.ContactProperties{
+				Phone:                 *payload.PhoneNumber,
+				FirstChannelOfContact: CRMDomain.ChannelOfContactUssd,
+			},
+		}
+
+		bs, err := json.Marshal(CRMContact)
+		if err != nil {
+			return err.Error()
+		}
+
+		err = u.pubsub.PublishToPubsub(
+			ctx,
+			u.pubsub.AddPubSubNamespace(pubsubmessaging.CreateCRMContact),
+			bs,
+		)
+		if err != nil {
+			log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
+		}
+
 		payload.Level = 0
-		err := u.AddAITSessionDetails(ctx, payload)
+		err = u.AddAITSessionDetails(ctx, payload)
 		if err != nil {
 			return err.Error()
 		}
@@ -157,6 +186,35 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 		}
 		userFirstName = firstname
 
+		//Get phoneNumber
+		sessionDetails, err := u.onboardingRepository.GetAITSessionDetails(ctx, sessionID)
+		if err != nil {
+			return err.Error()
+		}
+
+		//Update CRM
+		var CRMContactProperties CRMDomain.ContactProperties
+		if firstname != "" {
+			CRMContactProperties.FirstName = firstname
+		}
+
+		bs, err := json.Marshal(dto.UpdateContactPSMessage{
+			Properties: CRMContactProperties,
+			Phone:      sessionDetails.PhoneNumber,
+		})
+		if err != nil {
+			return err.Error()
+		}
+
+		err = u.pubsub.PublishToPubsub(
+			ctx,
+			u.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
+			bs,
+		)
+		if err != nil {
+			log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
+		}
+
 		err = u.UpdateSessionLevel(ctx, level, sessionID)
 		if err != nil {
 			return err.Error()
@@ -176,6 +234,36 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 		isLetter := utils.IsLetter(lastname)
 		if !isLetter {
 			return invalidName
+		}
+
+		//Updating CRM lastname
+		//Get phoneNumber
+		sessionDetails, err := u.onboardingRepository.GetAITSessionDetails(ctx, sessionID)
+		if err != nil {
+			return err.Error()
+		}
+
+		//Update CRM
+		var CRMContactProperties CRMDomain.ContactProperties
+		if lastname != "" {
+			CRMContactProperties.LastName = lastname
+		}
+
+		bs, err := json.Marshal(dto.UpdateContactPSMessage{
+			Properties: CRMContactProperties,
+			Phone:      sessionDetails.PhoneNumber,
+		})
+		if err != nil {
+			return err.Error()
+		}
+
+		err = u.pubsub.PublishToPubsub(
+			ctx,
+			u.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
+			bs,
+		)
+		if err != nil {
+			log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
 		}
 
 		err = u.UpdateSessionLevel(ctx, level, sessionID)
@@ -281,6 +369,36 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 		switch userOption {
 		case "1":
 			response = optOutEndMessage
+			////Get phoneNumber
+			sessionDetails, err := u.onboardingRepository.GetAITSessionDetails(ctx, sessionID)
+			if err != nil {
+				return err.Error()
+			}
+
+			//Update CRM
+			var CRMContactProperties CRMDomain.ContactProperties
+			if userOption == "1" {
+				CRMContactProperties.OptOut = CRMDomain.GeneralOptionTypeYes
+			}
+
+			bs, err := json.Marshal(dto.UpdateContactPSMessage{
+				Properties: CRMContactProperties,
+				Phone:      sessionDetails.PhoneNumber,
+			})
+			if err != nil {
+				return err.Error()
+			}
+
+			err = u.pubsub.PublishToPubsub(
+				ctx,
+				u.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
+				bs,
+			)
+			if err != nil {
+				log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
+			}
+
+			response = "END We have successfully opted you out of marketing messages"
 			return response
 		case "2":
 			response = currentPIN

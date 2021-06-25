@@ -191,7 +191,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage, ps)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 	sms := usecases.NewSMSUsecase(repo, ext)
-	aitUssd := usecases.NewUssdUsecases(repo, ext, profile, userpin, su)
+	aitUssd := usecases.NewUssdUsecases(repo, ext, profile, userpin, su, ps)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -432,7 +432,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
 	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
-	aitUssd := usecases.NewUssdUsecases(r, ext, profile, userpin, su)
+	aitUssd := usecases.NewUssdUsecases(r, ext, profile, userpin, su, ps)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
