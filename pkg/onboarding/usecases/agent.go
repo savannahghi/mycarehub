@@ -54,7 +54,7 @@ func NewAgentUseCases(
 // RegisterAgent creates a new Agent in bewell
 func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error) {
 
-	_, err := a.baseExt.NormalizeMSISDN(input.PhoneNumber)
+	msisdn, err := a.baseExt.NormalizeMSISDN(input.PhoneNumber)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
@@ -91,7 +91,7 @@ func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.Register
 	}
 
 	// create a user profile in bewell
-	profile, err := a.repo.CreateDetailedUserProfile(ctx, input.PhoneNumber, agentProfile)
+	profile, err := a.repo.CreateDetailedUserProfile(ctx, *msisdn, agentProfile)
 	if err != nil {
 		// wrapped error
 		return nil, err
