@@ -143,7 +143,7 @@ type FakeOnboardingRepository struct {
 
 	PersistIncomingSMSDataFn func(ctx context.Context, input *dto.AfricasTalkingMessage) error
 
-	AddAITSessionDetailsFn func(ctx context.Context, input *dto.SessionDetails) error
+	AddAITSessionDetailsFn func(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error)
 	GetAITSessionDetailsFn func(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error)
 	UpdateSessionLevelFn   func(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error)
 	UpdateSessionPINFn     func(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error)
@@ -538,7 +538,7 @@ func (f *FakeOnboardingRepository) PersistIncomingSMSData(ctx context.Context, i
 }
 
 //AddAITSessionDetails ...
-func (f *FakeOnboardingRepository) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) error {
+func (f *FakeOnboardingRepository) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error) {
 	return f.AddAITSessionDetailsFn(ctx, input)
 }
 

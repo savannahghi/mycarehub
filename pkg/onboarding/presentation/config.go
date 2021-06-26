@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd"
+
 	"cloud.google.com/go/pubsub"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -124,7 +126,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage, pubSub)
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
-	aitUssd := usecases.NewUssdUsecases(repo, baseExt, profile, userpin, su, pubSub)
+	aitUssd := ussd.NewUssdUsecases(repo, baseExt, profile, userpin, su, pinExt, pubSub)
 	sms := usecases.NewSMSUsecase(repo, baseExt)
 	agent := usecases.NewAgentUseCases(repo, engage, baseExt, userpin)
 

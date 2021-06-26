@@ -11,6 +11,7 @@ import (
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd"
 )
 
 // Interactor represents an assemble of all use cases into a single object that can be instantiated anywhere
@@ -28,7 +29,7 @@ type Interactor struct {
 	NHIF         usecases.NHIFUseCases
 	PubSub       pubsubmessaging.ServicePubSub
 	SMS          usecases.SMSUsecase
-	AITUSSD      usecases.UssdUsecase
+	AITUSSD      ussd.Usecase
 	CRM          hubspot.ServiceHubSpotInterface
 	Agent        usecases.AgentUseCase
 }
@@ -49,7 +50,7 @@ func NewOnboardingInteractor(
 	nhif usecases.NHIFUseCases,
 	pubsub pubsubmessaging.ServicePubSub,
 	sms usecases.SMSUsecase,
-	aitussd usecases.UssdUsecase,
+	aitussd ussd.Usecase,
 	crm hubspot.ServiceHubSpotInterface,
 	agt usecases.AgentUseCase,
 ) (*Interactor, error) {

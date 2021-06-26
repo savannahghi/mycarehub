@@ -2534,10 +2534,10 @@ func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *dto.Afr
 }
 
 // AddAITSessionDetails ...
-func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) error {
+func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error) {
 	validateDetails, err := utils.ValidateUSSDDetails(input)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	sessionDetails := &domain.USSDLeadDetails{
 		ID:          uuid.New().String(),
@@ -2553,10 +2553,15 @@ func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.Sessi
 
 	_, err = fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
-		return exceptions.InternalServerError(err)
+		return nil, exceptions.InternalServerError(err)
 	}
 
-	return nil
+	sessionDetails, err = fr.GetAITSessionDetails(ctx, validateDetails.SessionID)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	return sessionDetails, nil
 }
 
 // CreateAgentUserProfile creates an agent on firebase

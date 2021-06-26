@@ -885,7 +885,7 @@ func (h *HandlersInterfacesImpl) IncomingUSSDHandler(ctx context.Context) http.H
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
-		resp := h.interactor.AITUSSD.GenerateUSSD(ctx, sessionDetails)
+		resp := h.interactor.AITUSSD.HandleResponseFromUSSDGateway(ctx, sessionDetails)
 		fmt.Fprintf(w, "%s", resp)
 	}
 }

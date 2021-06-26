@@ -22,6 +22,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
@@ -191,7 +192,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage, ps)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 	sms := usecases.NewSMSUsecase(repo, ext)
-	aitUssd := usecases.NewUssdUsecases(repo, ext, profile, userpin, su, ps)
+	aitUssd := ussd.NewUssdUsecases(repo, ext, profile, userpin, su, pinExt, ps)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -432,7 +433,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
 	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
-	aitUssd := usecases.NewUssdUsecases(r, ext, profile, userpin, su, ps)
+	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,

@@ -205,8 +205,9 @@ func ValidateDateDigits(pin string) error {
 	return nil
 }
 
-//GetUserChoice gets the concatenated text from Africas Talking and splits it to get the current level/state/hop
-func GetUserChoice(text string, textLength int) string {
-	vals := strings.Split(text, "*")
-	return vals[len(vals)-textLength]
+//GetUserResponse gets the concatenated text from Africas Talking and splits it to get the current user input
+func GetUserResponse(text string) string {
+	response := strings.Split(text, "*")
+	lastUserInput := response[len(response)-1]
+	return lastUserInput
 }

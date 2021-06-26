@@ -166,7 +166,7 @@ type OnboardingRepository interface {
 
 	PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error
 
-	AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) error
+	AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error)
 	GetAITSessionDetails(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error)
 	UpdateSessionLevel(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error)
 	UpdateSessionPIN(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error)
