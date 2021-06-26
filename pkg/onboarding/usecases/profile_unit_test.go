@@ -743,6 +743,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				}
 
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					ctx context.Context,
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
@@ -752,6 +753,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 
 				// Resolve the second nudge
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					ctx context.Context,
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
@@ -849,6 +851,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				}
 
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					ctx context.Context,
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
@@ -898,6 +901,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				}
 
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					ctx context.Context,
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
@@ -907,6 +911,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 
 				// Resolve the second nudge
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					ctx context.Context,
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,

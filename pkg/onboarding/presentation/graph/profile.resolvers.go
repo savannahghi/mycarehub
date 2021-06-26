@@ -11,6 +11,8 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func (r *mutationResolver) CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error) {
@@ -406,6 +408,10 @@ func (r *mutationResolver) RegisterAdmin(ctx context.Context, input dto.Register
 }
 
 func (r *mutationResolver) RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error) {
+	span := trace.SpanFromContext(ctx)
+	span.SetAttributes(
+		attribute.String("resolver.name", "registerAgent"),
+	)
 	startTime := time.Now()
 
 	userProfile, err := r.interactor.Agent.RegisterAgent(ctx, input)
@@ -456,6 +462,11 @@ func (r *mutationResolver) DeleteFavoriteNavAction(ctx context.Context, title st
 }
 
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
+	span := trace.SpanFromContext(ctx)
+	span.SetAttributes(
+		attribute.String("resolver.name", "userProfile"),
+	)
+
 	startTime := time.Now()
 
 	userProfile, err := r.interactor.Onboarding.UserProfile(ctx)

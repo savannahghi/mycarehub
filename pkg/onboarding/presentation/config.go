@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 
 	"cloud.google.com/go/pubsub"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
@@ -143,6 +144,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	loginService := loginservice.NewServiceLogin(baseExt)
 
 	r := mux.NewRouter() // gorilla mux
+	r.Use(otelmux.Middleware(base.MetricsCollectorService("onboarding")))
 	r.Use(
 		handlers.RecoveryHandler(
 			handlers.PrintRecoveryStack(true),

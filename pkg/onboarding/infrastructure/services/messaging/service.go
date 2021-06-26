@@ -1,6 +1,8 @@
 package messaging
 
 import (
+	"context"
+
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -23,7 +25,7 @@ const (
 type ServiceMessaging interface {
 	FetchSMSClient() *base.InterServiceClient
 	FetchTwilioClient() *base.InterServiceClient
-	SendSMS(phoneNumbers []string, message string) error
+	SendSMS(ctx context.Context, phoneNumbers []string, message string) error
 }
 
 // ServiceMessagingImpl represents our messaging struct
@@ -50,7 +52,7 @@ func (s *ServiceMessagingImpl) FetchTwilioClient() *base.InterServiceClient {
 }
 
 // SendSMS does the actual delvery of messages to the provided phone numbers
-func (s *ServiceMessagingImpl) SendSMS(phoneNumbers []string, message string) error {
+func (s *ServiceMessagingImpl) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
 	smsISC := base.SmsISC{
 		Isc:      s.FetchSMSClient(),
 		EndPoint: sendSMS,
@@ -60,5 +62,5 @@ func (s *ServiceMessagingImpl) SendSMS(phoneNumbers []string, message string) er
 		Isc:      s.FetchTwilioClient(),
 		EndPoint: sendTwilioSMS,
 	}
-	return base.SendSMS(phoneNumbers, message, smsISC, twilioISC)
+	return base.SendSMS(ctx, phoneNumbers, message, smsISC, twilioISC)
 }

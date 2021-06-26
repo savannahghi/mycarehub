@@ -73,9 +73,9 @@ type SupplierUseCases interface {
 
 	SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error)
 
-	EDIUserLogin(username, password *string) (*base.EDIUserProfile, error)
+	EDIUserLogin(ctx context.Context, username, password *string) (*base.EDIUserProfile, error)
 
-	CoreEDIUserLogin(username, password string) (*base.EDIUserProfile, error)
+	CoreEDIUserLogin(ctx context.Context, username, password string) (*base.EDIUserProfile, error)
 
 	FetchSupplierAllowedLocations(ctx context.Context) (*dto.BranchConnection, error)
 	CheckSupplierKYCSubmitted(ctx context.Context) (bool, error)
@@ -219,6 +219,8 @@ func (s SupplierUseCasesImpl) AddPartnerType(
 	name *string,
 	partnerType *base.PartnerType,
 ) (bool, error) {
+	ctx, span := tracer.Start(ctx, "AddPartnerType")
+	defer span.End()
 
 	if name == nil || partnerType == nil {
 		return false, fmt.Errorf("expected `name` to be defined and `partnerType` to be valid")
@@ -234,10 +236,12 @@ func (s SupplierUseCasesImpl) AddPartnerType(
 
 	user, err := s.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, fmt.Errorf("can't get user: %w", err)
 	}
 	isAuthorized, err := authorization.IsAuthorized(user, permission.PartnerTypeCreate)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 	if !isAuthorized {
@@ -246,11 +250,13 @@ func (s SupplierUseCasesImpl) AddPartnerType(
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
 	v, err := s.repo.AddPartnerType(ctx, profile.ID, name, partnerType)
 	if !v || err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.AddPartnerTypeError(err)
 	}
 
@@ -264,12 +270,17 @@ func (s SupplierUseCasesImpl) CreateCustomerAccount(
 	name string,
 	partnerType base.PartnerType,
 ) error {
+	ctx, span := tracer.Start(ctx, "CreateCustomerAccount")
+	defer span.End()
+
 	user, err := s.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return fmt.Errorf("can't get user: %w", err)
 	}
 	isAuthorized, err := authorization.IsAuthorized(user, permission.CustomerAccountCreate)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 	if !isAuthorized {
@@ -282,6 +293,7 @@ func (s SupplierUseCasesImpl) CreateCustomerAccount(
 
 	currency, err := s.baseExt.FetchDefaultCurrency(s.erp.FetchERPClient())
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.FetchDefaultCurrencyError(err)
 	}
 
@@ -301,6 +313,7 @@ func (s SupplierUseCasesImpl) CreateCustomerAccount(
 
 	bs, err := json.Marshal(customerPubSubPayload)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 
@@ -319,12 +332,17 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 	name string,
 	partnerType base.PartnerType,
 ) error {
+	ctx, span := tracer.Start(ctx, "CreateSupplierAccount")
+	defer span.End()
+
 	user, err := s.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return fmt.Errorf("can't get user: %w", err)
 	}
 	isAuthorized, err := authorization.IsAuthorized(user, permission.SupplierAccountCreate)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 	if !isAuthorized {
@@ -337,6 +355,7 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 
 	currency, err := s.baseExt.FetchDefaultCurrency(s.erp.FetchERPClient())
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.FetchDefaultCurrencyError(err)
 	}
 
@@ -356,6 +375,7 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 
 	bs, err := json.Marshal(supplierPubSubPayload)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 
@@ -372,13 +392,20 @@ func (s SupplierUseCasesImpl) FindSupplierByID(
 	ctx context.Context,
 	id string,
 ) (*base.Supplier, error) {
+	ctx, span := tracer.Start(ctx, "FindSupplierByID")
+	defer span.End()
+
 	return s.repo.GetSupplierProfileByID(ctx, id)
 }
 
 // FindSupplierByUID fetches a supplier by logged in user uid
 func (s SupplierUseCasesImpl) FindSupplierByUID(ctx context.Context) (*base.Supplier, error) {
+	ctx, span := tracer.Start(ctx, "FindSupplierByUID")
+	defer span.End()
+
 	pr, err := s.profile.UserProfile(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 	return s.repo.GetSupplierProfileByProfileID(ctx, pr.ID)
@@ -386,8 +413,12 @@ func (s SupplierUseCasesImpl) FindSupplierByUID(ctx context.Context) (*base.Supp
 
 // CheckSupplierKYCSubmitted checks if a supplier has submitted KYC already.
 func (s SupplierUseCasesImpl) CheckSupplierKYCSubmitted(ctx context.Context) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckSupplierKYCSubmitted")
+	defer span.End()
+
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return false, err
 	}
@@ -407,6 +438,9 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 	ctx context.Context,
 	accountType base.AccountType,
 ) (*base.Supplier, error) {
+	ctx, span := tracer.Start(ctx, "SetUpSupplier")
+	defer span.End()
+
 	validAccountType := accountType.IsValid()
 	if !validAccountType {
 		return nil, fmt.Errorf("%v is not an allowed AccountType choice", accountType.String())
@@ -414,10 +448,12 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 
 	user, err := s.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("can't get user: %w", err)
 	}
 	isAuthorized, err := authorization.IsAuthorized(user, permission.SupplierCreate)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 	if !isAuthorized {
@@ -426,12 +462,14 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
 
 	sup, err := s.repo.AddSupplierAccountType(ctx, profile.ID, accountType)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 	if *sup.AccountType == base.AccountTypeOrganisation ||
@@ -439,6 +477,7 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 		sup.OrganizationName = sup.SupplierName
 		err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 	}
@@ -449,6 +488,7 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 		}
 
 		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			utils.RecordSpanError(span, err)
 			logrus.Error(err)
 		}
 	}(user.UID, sup.PartnerType, *sup.AccountType)
@@ -456,6 +496,7 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 	go func() {
 		pro := func() error {
 			return s.engagement.ResolveDefaultNudgeByTitle(
+				ctx,
 				user.UID,
 				base.FlavourPro,
 				PartnerAccountSetupNudgeTitle,
@@ -465,6 +506,7 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 			pro,
 			backoff.NewExponentialBackOff(),
 		); err != nil {
+			utils.RecordSpanError(span, err)
 			logrus.Error(err)
 		}
 	}()
@@ -474,23 +516,30 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 
 // SuspendSupplier flips the active boolean on the erp partner from true to false
 func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "SuspendSupplier")
+	defer span.End()
+
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.UserNotFoundError(err)
 	}
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return false, err
 	}
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return false, err
 	}
 	sup.Active = false
 
 	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
@@ -501,8 +550,9 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context, suspensionRea
 		EmailAddress: *profile.PrimaryEmailAddress,
 		PrimaryPhone: *profile.PrimaryPhone,
 	}
-	err = s.engagement.NotifySupplierOnSuspension(supplierEmailPayload)
+	err = s.engagement.NotifySupplierOnSuspension(ctx, supplierEmailPayload)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
@@ -513,19 +563,25 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context, suspensionRea
 // EDIUserLogin used to login a user to EDI (Portal Authserver) and return their
 // EDI (Portal Authserver) profile
 func (s SupplierUseCasesImpl) EDIUserLogin(
+	ctx context.Context,
 	username, password *string,
 ) (*base.EDIUserProfile, error) {
+	_, span := tracer.Start(ctx, "EDIUserLogin")
+	defer span.End()
+
 	if username == nil || password == nil {
 		return nil, exceptions.InvalidCredentialsError()
 	}
 
 	ediClient, err := s.baseExt.LoginClient(*username, *password)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("cannot initialize edi client with supplied credentials: %w", err)
 	}
 
 	userProfile, err := s.baseExt.FetchUserProfile(ediClient)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("cannot retrieve EDI user profile: %w", err)
 	}
 
@@ -536,8 +592,11 @@ func (s SupplierUseCasesImpl) EDIUserLogin(
 // CoreEDIUserLogin used to login a user to EDI (Core Authserver) and return their EDI
 // EDI (Core Authserver) profile
 func (s SupplierUseCasesImpl) CoreEDIUserLogin(
+	ctx context.Context,
 	username, password string,
 ) (*base.EDIUserProfile, error) {
+	_, span := tracer.Start(ctx, "CoreEDIUserLogin")
+	defer span.End()
 
 	if username == "" || password == "" {
 		return nil, exceptions.InvalidCredentialsError()
@@ -545,11 +604,13 @@ func (s SupplierUseCasesImpl) CoreEDIUserLogin(
 
 	ediClient, err := s.baseExt.LoginClient(username, password)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("cannot initialize edi client with supplied credentials: %w", err)
 	}
 
 	userProfile, err := s.baseExt.FetchUserProfile(ediClient)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("cannot retrieve EDI user profile: %w", err)
 	}
 
@@ -569,21 +630,27 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 	password string,
 	sladeCode string,
 ) (*dto.SupplierLogin, error) {
+	ctx, span := tracer.Start(ctx, "SupplierEDILogin")
+	defer span.End()
+
 	var resp dto.SupplierLogin
 
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
 
 	supplier, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -599,8 +666,9 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 		switch sladeCode {
 		case SavannahSladeCode:
 			// login to core
-			ediUserProfile, err = s.CoreEDIUserLogin(username, password)
+			ediUserProfile, err = s.CoreEDIUserLogin(ctx, username, password)
 			if err != nil {
+				utils.RecordSpanError(span, err)
 				supplier.IsOrganizationVerified = false
 				return nil, fmt.Errorf("cannot get Core  user profile: %w", err)
 			}
@@ -611,8 +679,9 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 
 		default:
 			//Login to portal edi
-			ediUserProfile, err = s.EDIUserLogin(&username, &password)
+			ediUserProfile, err = s.EDIUserLogin(ctx, &username, &password)
 			if err != nil {
+				utils.RecordSpanError(span, err)
 				supplier.IsOrganizationVerified = false
 				return nil, fmt.Errorf("cannot get EDI user profile: %w", err)
 			}
@@ -625,6 +694,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 		return ediUserProfile, nil
 	}(sladeCode)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -650,10 +720,12 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 		supplier.OrganizationName = SavannahOrgName
 
 		if err := s.repo.UpdateSupplierProfile(ctx, *supplier.ProfileID, supplier); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
 		if err := s.profile.UpdatePermissions(ctx, base.DefaultAdminPermissions); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -676,6 +748,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 
 	partner, err := s.chargemaster.FindProvider(ctx, nil, filter, nil)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.FindProviderError(err)
 	}
 	if len(partner.Edges) != 1 {
@@ -690,6 +763,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 		}
 
 		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			utils.RecordSpanError(span, err)
 			logrus.Error(err)
 		}
 	}()
@@ -697,6 +771,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 	go func() {
 		pro := func() error {
 			return s.engagement.ResolveDefaultNudgeByTitle(
+				ctx,
 				uid,
 				base.FlavourPro,
 				PartnerAccountSetupNudgeTitle,
@@ -706,6 +781,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 			pro,
 			backoff.NewExponentialBackOff(),
 		); err != nil {
+			utils.RecordSpanError(span, err)
 			logrus.Error(err)
 		}
 	}()
@@ -716,12 +792,14 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 
 		partner, err := s.chargemaster.FetchProviderByID(ctx, *businessPartner.Parent)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, exceptions.FindProviderError(err)
 		}
 
 		supplier.OrganizationName = partner.Name
 
 		if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, supplier); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -734,6 +812,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 
 		brs, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
 		if len(brs.Edges) == 0 || err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, exceptions.FindProviderError(err)
 		}
 
@@ -747,6 +826,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 		if len(brs.Edges) == 1 {
 			spr, err := s.SupplierSetDefaultLocation(ctx, brs.Edges[0].Node.ID)
 			if err != nil {
+				utils.RecordSpanError(span, err)
 				return nil, err
 			}
 
@@ -767,6 +847,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 	supplier.Location = &loc
 
 	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, supplier); err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -781,20 +862,25 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
 	ctx context.Context,
 	locationID string,
 ) (*base.Supplier, error) {
+	ctx, span := tracer.Start(ctx, "SupplierSetDefaultLocation")
+	defer span.End()
 
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -808,6 +894,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
 
 	brs, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.FindProviderError(err)
 	}
 
@@ -829,6 +916,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
 		sup.Location = &loc
 
 		if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -843,8 +931,12 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
 func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(
 	ctx context.Context,
 ) (*dto.BranchConnection, error) {
+	ctx, span := tracer.Start(ctx, "FetchSupplierAllowedLocations")
+	defer span.End()
+
 	supplier, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -857,6 +949,7 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(
 
 	branchConnection, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.FindProviderError(err)
 	}
 
@@ -896,6 +989,9 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 	partner *base.PartnerType,
 	account *base.AccountType,
 ) error {
+	ctx, span := tracer.Start(ctx, "PublishKYCNudge")
+	defer span.End()
+
 	if partner == nil || account == nil {
 		return exceptions.PublishKYCNudgeError(
 			fmt.Errorf("expected `partner` to be defined and to be valid"),
@@ -974,12 +1070,14 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 		},
 	}
 
-	resp, err := s.engagement.PublishKYCNudge(uid, nudge)
+	resp, err := s.engagement.PublishKYCNudge(ctx, uid, nudge)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.PublishKYCNudgeError(err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		if err := s.SaveProfileNudge(ctx, &nudge); err != nil {
+			utils.RecordSpanError(span, err)
 			logrus.Errorf("failed to stage nudge : %v", err)
 		}
 
@@ -995,6 +1093,9 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 
 // PublishKYCFeedItem notifies admin users of a KYC approval request
 func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...string) error {
+	ctx, span := tracer.Start(ctx, "PublishKYCFeedItem")
+	defer span.End()
+
 	for _, uid := range uids {
 		payload := base.Item{
 			ID:             ksuid.New().String(),
@@ -1054,8 +1155,9 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 				base.ChannelSms,
 			},
 		}
-		resp, err := s.engagement.PublishKYCFeedItem(uid, payload)
+		resp, err := s.engagement.PublishKYCFeedItem(ctx, uid, payload)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return fmt.Errorf("unable to publish kyc admin notification feed item : %v", err)
 		}
 		if resp.StatusCode != http.StatusOK {
@@ -1076,6 +1178,9 @@ func (s *SupplierUseCasesImpl) SaveProfileNudge(
 	ctx context.Context,
 	nudge *base.Nudge,
 ) error {
+	ctx, span := tracer.Start(ctx, "SaveProfileNudge")
+	defer span.End()
+
 	return s.repo.StageProfileNudge(ctx, nudge)
 }
 
@@ -1100,12 +1205,17 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 	ctx context.Context,
 	sup *base.Supplier,
 ) error {
+	ctx, span := tracer.Start(ctx, "SaveKYCResponseAndNotifyAdmins")
+	defer span.End()
+
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.UserNotFoundError(err)
 	}
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -1115,14 +1225,17 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 	}
 
 	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
 	if err := s.StageKYCProcessingRequest(ctx, sup); err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 
@@ -1135,8 +1248,9 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 		EmailAddress: *profile.PrimaryEmailAddress,
 		PrimaryPhone: *profile.PrimaryPhone,
 	}
-	err = s.engagement.SendAlertToSupplier(supplierEmailPayload)
+	err = s.engagement.SendAlertToSupplier(ctx, supplierEmailPayload)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 
@@ -1149,8 +1263,9 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 		EmailAddress: *profile.PrimaryEmailAddress,
 		PrimaryPhone: *profile.PrimaryPhone,
 	}
-	err = s.engagement.NotifyAdmins(adminEmailPayload)
+	err = s.engagement.NotifyAdmins(ctx, adminEmailPayload)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 
@@ -1158,6 +1273,7 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 		op := func() error {
 			a, err := s.repo.FetchAdminUsers(ctx)
 			if err != nil {
+				utils.RecordSpanError(span, err)
 				return err
 			}
 			var uids []string
@@ -1169,6 +1285,7 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 		}
 
 		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+			utils.RecordSpanError(span, err)
 			logrus.Error(err)
 		}
 	}()
@@ -1181,6 +1298,9 @@ func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(
 	ctx context.Context,
 	sup *base.Supplier,
 ) error {
+	ctx, span := tracer.Start(ctx, "StageKYCProcessingRequest")
+	defer span.End()
+
 	r := &domain.KYCRequest{
 		ID:             uuid.New().String(),
 		ReqPartnerType: sup.PartnerType,
@@ -1199,8 +1319,12 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(
 	ctx context.Context,
 	input domain.IndividualRider,
 ) (*domain.IndividualRider, error) {
+	ctx, span := tracer.Start(ctx, "AddIndividualRiderKyc")
+	defer span.End()
+
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -1227,6 +1351,7 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, fmt.Errorf("cannot marshal kyc to json")
 		}
 
@@ -1235,6 +1360,7 @@ func (s *SupplierUseCasesImpl) AddIndividualRiderKyc(
 
 		// Notify the supplier and admins
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -1249,6 +1375,8 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(
 	ctx context.Context,
 	input domain.OrganizationRider,
 ) (*domain.OrganizationRider, error) {
+	ctx, span := tracer.Start(ctx, "AddOrganizationRiderKyc")
+	defer span.End()
 
 	if !input.OrganizationTypeName.IsValid() {
 		return nil, fmt.Errorf(
@@ -1259,6 +1387,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -1284,6 +1413,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, fmt.Errorf("cannot marshal kyc to json")
 		}
 
@@ -1291,6 +1421,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationRiderKyc(
 		sup.KYCSubmitted = true
 
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -1305,8 +1436,12 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(
 	ctx context.Context,
 	input domain.IndividualPractitioner,
 ) (*domain.IndividualPractitioner, error) {
+	ctx, span := tracer.Start(ctx, "AddIndividualPractitionerKyc")
+	defer span.End()
+
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -1336,6 +1471,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, fmt.Errorf("cannot marshal kyc to json")
 		}
 
@@ -1343,6 +1479,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPractitionerKyc(
 		sup.KYCSubmitted = true
 
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -1358,8 +1495,12 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(
 	ctx context.Context,
 	input domain.OrganizationPractitioner,
 ) (*domain.OrganizationPractitioner, error) {
+	ctx, span := tracer.Start(ctx, "AddOrganizationPractitionerKyc")
+	defer span.End()
+
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -1396,6 +1537,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, fmt.Errorf("cannot marshal kyc to json")
 		}
 
@@ -1403,6 +1545,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPractitionerKyc(
 		sup.KYCSubmitted = true
 
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -1417,9 +1560,12 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(
 	ctx context.Context,
 	input domain.OrganizationProvider,
 ) (*domain.OrganizationProvider, error) {
+	ctx, span := tracer.Start(ctx, "AddOrganizationProviderKyc")
+	defer span.End()
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -1463,6 +1609,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, fmt.Errorf("cannot marshal kyc to json")
 		}
 
@@ -1470,6 +1617,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationProviderKyc(
 		sup.KYCSubmitted = true
 
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -1484,9 +1632,12 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(
 	ctx context.Context,
 	input domain.IndividualPharmaceutical,
 ) (*domain.IndividualPharmaceutical, error) {
+	ctx, span := tracer.Start(ctx, "AddIndividualPharmaceuticalKyc")
+	defer span.End()
 
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -1513,6 +1664,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, fmt.Errorf("cannot marshal kyc to json")
 		}
 
@@ -1520,6 +1672,7 @@ func (s *SupplierUseCasesImpl) AddIndividualPharmaceuticalKyc(
 		sup.KYCSubmitted = true
 
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -1534,8 +1687,12 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(
 	ctx context.Context,
 	input domain.OrganizationPharmaceutical,
 ) (*domain.OrganizationPharmaceutical, error) {
+	ctx, span := tracer.Start(ctx, "AddOrganizationPharmaceuticalKyc")
+	defer span.End()
+
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -1570,6 +1727,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, fmt.Errorf("cannot marshal kyc to json")
 		}
 
@@ -1577,6 +1735,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationPharmaceuticalKyc(
 		sup.KYCSubmitted = true
 
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -1591,8 +1750,12 @@ func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(
 	ctx context.Context,
 	input domain.IndividualCoach,
 ) (*domain.IndividualCoach, error) {
+	ctx, span := tracer.Start(ctx, "AddIndividualCoachKyc")
+	defer span.End()
+
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -1620,6 +1783,7 @@ func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, fmt.Errorf("cannot marshal kyc to json")
 		}
 
@@ -1627,6 +1791,7 @@ func (s *SupplierUseCasesImpl) AddIndividualCoachKyc(
 		sup.KYCSubmitted = true
 
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -1641,8 +1806,12 @@ func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(
 	ctx context.Context,
 	input domain.OrganizationCoach,
 ) (*domain.OrganizationCoach, error) {
+	ctx, span := tracer.Start(ctx, "AddOrganizationCoachKyc")
+	defer span.End()
+
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -1669,6 +1838,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, fmt.Errorf("cannot marshal kyc to json")
 		}
 
@@ -1676,6 +1846,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationCoachKyc(
 		sup.KYCSubmitted = true
 
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -1690,8 +1861,12 @@ func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(
 	ctx context.Context,
 	input domain.IndividualNutrition,
 ) (*domain.IndividualNutrition, error) {
+	ctx, span := tracer.Start(ctx, "AddIndividualNutritionKyc")
+	defer span.End()
+
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -1709,6 +1884,7 @@ func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, fmt.Errorf("cannot marshal kyc to json")
 		}
 
@@ -1716,6 +1892,7 @@ func (s *SupplierUseCasesImpl) AddIndividualNutritionKyc(
 		sup.KYCSubmitted = true
 
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -1730,8 +1907,12 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(
 	ctx context.Context,
 	input domain.OrganizationNutrition,
 ) (*domain.OrganizationNutrition, error) {
+	ctx, span := tracer.Start(ctx, "AddOrganizationNutritionKyc")
+	defer span.End()
+
 	sup, err := s.FindSupplierByUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -1759,6 +1940,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(
 
 		kycAsMap, err := s.parseKYCAsMap(kyc)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, fmt.Errorf("cannot marshal kyc to json")
 		}
 
@@ -1766,6 +1948,7 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(
 		sup.KYCSubmitted = true
 
 		if err := s.SaveKYCResponseAndNotifyAdmins(ctx, sup); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
@@ -1779,12 +1962,18 @@ func (s *SupplierUseCasesImpl) AddOrganizationNutritionKyc(
 func (s *SupplierUseCasesImpl) FetchKYCProcessingRequests(
 	ctx context.Context,
 ) ([]*domain.KYCRequest, error) {
+	ctx, span := tracer.Start(ctx, "FetchKYCProcessingRequests")
+	defer span.End()
+
 	return s.repo.FetchKYCProcessingRequests(ctx)
 }
 
 // SendKYCEmail will send a KYC processing request email to the supplier
 func (s *SupplierUseCasesImpl) SendKYCEmail(ctx context.Context, text, emailaddress string) error {
-	return s.engagement.SendMail(emailaddress, text, emailKYCSubject)
+	ctx, span := tracer.Start(ctx, "SendKYCEmail")
+	defer span.End()
+
+	return s.engagement.SendMail(ctx, emailaddress, text, emailKYCSubject)
 }
 
 // ProcessKYCRequest transitions a kyc request to a given state
@@ -1794,8 +1983,12 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 	status domain.KYCProcessStatus,
 	rejectionReason *string,
 ) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ProcessKYCRequest")
+	defer span.End()
+
 	reviewerProfile, err := s.profile.UserProfile(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
@@ -1803,6 +1996,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 
 	KYCRequest, err := s.repo.FetchKYCProcessingRequestByID(ctx, id)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
@@ -1818,6 +2012,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		ctx,
 		KYCRequest,
 	); err != nil {
+		utils.RecordSpanError(span, err)
 		return false, fmt.Errorf("unable to update KYC request record: %v", err)
 	}
 
@@ -1826,6 +2021,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		KYCRequest.SupplierRecord.ProfileID,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
@@ -1840,6 +2036,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 				KYCRequest.SupplierRecord.SupplierName,
 				KYCRequest.ReqPartnerType,
 			); err != nil {
+				utils.RecordSpanError(span, err)
 				logrus.Error(fmt.Errorf("unable to create erp supplier account: %v", err))
 			}
 		}()
@@ -1849,6 +2046,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 
 		supplier, err := s.FindSupplierByUID(ctx)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return false, err
 		}
 
@@ -1859,6 +2057,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 			supplierProfile.ID,
 			supplier,
 		); err != nil {
+			utils.RecordSpanError(span, err)
 			return false, err
 		}
 
@@ -1876,10 +2075,12 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 	go func() {
 		for _, UID := range supplierVerifiedUIDs {
 			if err = s.engagement.ResolveDefaultNudgeByTitle(
+				ctx,
 				UID,
 				base.FlavourPro,
 				nudgeTitle,
 			); err != nil {
+				utils.RecordSpanError(span, err)
 				logrus.Print(err)
 			}
 		}
@@ -1897,6 +2098,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 	for _, supplierEmail := range supplierEmails {
 		err = s.SendKYCEmail(ctx, email, supplierEmail)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return false, fmt.Errorf("unable to send KYC processing email: %w", err)
 		}
 	}
@@ -1908,7 +2110,8 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		return phones
 	}(supplierProfile)
 
-	if err := s.engagement.SendSMS(supplierPhones, message); err != nil {
+	if err := s.engagement.SendSMS(ctx, supplierPhones, message); err != nil {
+		utils.RecordSpanError(span, err)
 		return false, fmt.Errorf("unable to send KYC processing message: %w", err)
 	}
 
@@ -1917,22 +2120,29 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 
 // RetireKYCRequest retires the KYC process request of a supplier
 func (s *SupplierUseCasesImpl) RetireKYCRequest(ctx context.Context) error {
+	ctx, span := tracer.Start(ctx, "RetireKYCRequest")
+	defer span.End()
+
 	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.UserNotFoundError(err)
 	}
 
 	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
 	sup, err := s.repo.GetSupplierProfileByProfileID(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
 	if err := s.repo.RemoveKYCProcessingRequest(ctx, sup.ID); err != nil {
+		utils.RecordSpanError(span, err)
 		// the error is a custom error already. No need to wrap it here
 		return err
 	}

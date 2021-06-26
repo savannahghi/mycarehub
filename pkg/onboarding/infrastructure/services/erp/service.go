@@ -131,6 +131,7 @@ func (e *ServiceERPImpl) CreateERPSupplier(
 	supplier.Active = true
 
 	return e.repo.ActivateSupplierProfile(
+		ctx,
 		profile.ID,
 		*supplier,
 	)

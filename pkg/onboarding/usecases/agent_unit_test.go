@@ -299,11 +299,11 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 					return true, nil
 				}
 
-				fakeEngagementSvs.SendSMSFn = func(phoneNumbers []string, message string) error {
+				fakeEngagementSvs.SendSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
 					return nil
 				}
 
-				fakeEngagementSvs.SendMailFn = func(email string, message string, subject string) error {
+				fakeEngagementSvs.SendMailFn = func(ctx context.Context, email string, message string, subject string) error {
 					return nil
 				}
 			}
@@ -380,7 +380,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 					return true, nil
 				}
 
-				fakeEngagementSvs.SendSMSFn = func(phoneNumbers []string, message string) error {
+				fakeEngagementSvs.SendSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
 					return fmt.Errorf("cannot send notification sms")
 				}
 			}
@@ -588,11 +588,11 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 					return true, nil
 				}
 
-				fakeEngagementSvs.SendSMSFn = func(phoneNumbers []string, message string) error {
+				fakeEngagementSvs.SendSMSFn = func(ctx context.Context, phoneNumbers []string, message string) error {
 					return nil
 				}
 
-				fakeEngagementSvs.SendMailFn = func(email string, message string, subject string) error {
+				fakeEngagementSvs.SendMailFn = func(ctx context.Context, email string, message string, subject string) error {
 					return fmt.Errorf("cannot send notification email")
 				}
 			}

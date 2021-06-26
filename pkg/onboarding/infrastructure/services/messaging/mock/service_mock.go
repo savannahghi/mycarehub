@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"context"
+
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -8,7 +10,7 @@ import (
 type FakeServiceMessaging struct {
 	FetchSMSClientFn    func() *base.InterServiceClient
 	FetchTwilioClientFn func() *base.InterServiceClient
-	SendSMSFn           func(phoneNumbers []string, message string) error
+	SendSMSFn           func(ctx context.Context, phoneNumbers []string, message string) error
 }
 
 // FetchSMSClient ...
@@ -22,6 +24,6 @@ func (f *FakeServiceMessaging) FetchTwilioClient() *base.InterServiceClient {
 }
 
 // SendSMS ...
-func (f *FakeServiceMessaging) SendSMS(phoneNumbers []string, message string) error {
-	return f.SendSMSFn(phoneNumbers, message)
+func (f *FakeServiceMessaging) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
+	return f.SendSMSFn(ctx, phoneNumbers, message)
 }

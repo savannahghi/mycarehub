@@ -56,7 +56,7 @@ func (o *ServiceOTPImpl) GenerateAndSendOTP(
 	body := map[string]interface{}{
 		"msisdn": phone,
 	}
-	resp, err := o.OtpExt.MakeRequest(http.MethodPost, SendOtp, body)
+	resp, err := o.OtpExt.MakeRequest(ctx, http.MethodPost, SendOtp, body)
 	if err != nil {
 		return nil, exceptions.GenerateAndSendOTPError(err)
 	}
@@ -93,7 +93,7 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 		"msisdn":    phoneNumber,
 		"retryStep": retryStep,
 	}
-	resp, err := o.OtpExt.MakeRequest(http.MethodPost, SendRetryOtp, body)
+	resp, err := o.OtpExt.MakeRequest(ctx, http.MethodPost, SendRetryOtp, body)
 	if err != nil {
 		return nil, exceptions.GenerateAndSendOTPError(err)
 	}
@@ -136,7 +136,7 @@ func (o *ServiceOTPImpl) VerifyOTP(ctx context.Context, phone, otp string) (bool
 		VerificationCode: otp,
 	}
 
-	resp, err := o.OtpExt.MakeRequest(http.MethodPost, VerifyOTPEndPoint, verifyPayload)
+	resp, err := o.OtpExt.MakeRequest(ctx, http.MethodPost, VerifyOTPEndPoint, verifyPayload)
 	if err != nil {
 		return false, fmt.Errorf(
 			"can't complete OTP verification request: %w", err)
@@ -176,7 +176,7 @@ func (o *ServiceOTPImpl) VerifyEmailOTP(ctx context.Context, email, otp string) 
 		VerificationCode: otp,
 	}
 
-	resp, err := o.OtpExt.MakeRequest(http.MethodPost, VerifyEmailOtp, verifyPayload)
+	resp, err := o.OtpExt.MakeRequest(ctx, http.MethodPost, VerifyEmailOtp, verifyPayload)
 	if err != nil {
 		return false, fmt.Errorf(
 			"can't complete OTP verification request: %w", err)

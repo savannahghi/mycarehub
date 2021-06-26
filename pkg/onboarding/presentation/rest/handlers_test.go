@@ -1208,7 +1208,7 @@ func TestHandlersInterfacesImpl_RefreshToken(t *testing.T) {
 			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 			response := httptest.NewRecorder()
 			if tt.name == "valid:_successfully_refresh_token" {
-				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(token string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*base.AuthCredentialResponse, error) {
 					return &base.AuthCredentialResponse{
 						UID:          "5550",
 						RefreshToken: "55550",
@@ -1217,7 +1217,7 @@ func TestHandlersInterfacesImpl_RefreshToken(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_refresh_token_fails" {
-				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(token string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*base.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("unable to refresh token")
 				}
 			}

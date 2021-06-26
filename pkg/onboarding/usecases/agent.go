@@ -56,21 +56,26 @@ func NewAgentUseCases(
 
 // RegisterAgent creates a new Agent in bewell
 func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "RegisterAgent")
+	defer span.End()
 
 	msisdn, err := a.baseExt.NormalizeMSISDN(input.PhoneNumber)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
 	// Check logged in user has permissions/role of employee
 	p, err := a.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
 	// Get Logged In user profile
 	usp, err := a.repo.GetUserProfileByUID(ctx, p.UID, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -97,11 +102,13 @@ func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.Register
 	profile, err := a.repo.CreateDetailedUserProfile(ctx, *msisdn, agentProfile)
 	if err != nil {
 		// wrapped error
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
 	_, err = a.repo.CreateEmptyCustomerProfile(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -115,6 +122,7 @@ func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.Register
 
 	_, err = a.repo.CreateDetailedSupplierProfile(ctx, profile.ID, sup)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -130,23 +138,26 @@ func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.Register
 	)
 	if err != nil {
 		// wrapped error
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
 	otp, err := a.pin.SetUserTempPIN(ctx, profile.ID)
 	if err != nil {
 		// wrapped error
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
-	if err := a.notifyNewAgent([]string{input.Email}, []string{input.PhoneNumber}, *profile.UserBioData.FirstName, otp); err != nil {
+	if err := a.notifyNewAgent(ctx, []string{input.Email}, []string{input.PhoneNumber}, *profile.UserBioData.FirstName, otp); err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("unable to send agent registration notifications: %w", err)
 	}
 
 	return profile, nil
 }
 
-func (a *AgentUseCaseImpl) notifyNewAgent(emails []string, phoneNumbers []string, name, otp string) error {
+func (a *AgentUseCaseImpl) notifyNewAgent(ctx context.Context, emails []string, phoneNumbers []string, name, otp string) error {
 	type pin struct {
 		Name string
 		Pin  string
@@ -160,13 +171,13 @@ func (a *AgentUseCaseImpl) notifyNewAgent(emails []string, phoneNumbers []string
 	}
 
 	message := fmt.Sprintf("%sPlease use this One Time PIN: %s to log onto Bewell with your phone number", agentWelcomeMessage, otp)
-	if err := a.engagement.SendSMS(phoneNumbers, message); err != nil {
+	if err := a.engagement.SendSMS(ctx, phoneNumbers, message); err != nil {
 		return fmt.Errorf("unable to send agent registration message: %w", err)
 	}
 
 	text := buf.String()
 	for _, email := range emails {
-		if err := a.engagement.SendMail(email, text, agentWelcomeEmailSubject); err != nil {
+		if err := a.engagement.SendMail(ctx, email, text, agentWelcomeEmailSubject); err != nil {
 			return fmt.Errorf("unable to send agent registration email: %w", err)
 		}
 	}
@@ -176,15 +187,19 @@ func (a *AgentUseCaseImpl) notifyNewAgent(emails []string, phoneNumbers []string
 
 // ActivateAgent activates/unsuspends the agent profile
 func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, agentID string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ActivateAgent")
+	defer span.End()
 
 	// Check logged in user has permissions/role of employee
 	p, err := a.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
 	usp, err := a.repo.GetUserProfileByUID(ctx, p.UID, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
@@ -194,11 +209,13 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, agentID string) (b
 
 	agent, err := a.repo.GetUserProfileByID(ctx, agentID, true)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(err)
 	}
 
 	err = a.repo.UpdateSuspended(ctx, agent.ID, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 	return true, nil
@@ -206,14 +223,18 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, agentID string) (b
 
 // DeactivateAgent deacivates/suspends the agent profile
 func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) (bool, error) {
-	// Check logged in user has permissions/role of employee
+	ctx, span := tracer.Start(ctx, "DeactivateAgent")
+	defer span.End()
+
 	p, err := a.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
 	usp, err := a.repo.GetUserProfileByUID(ctx, p.UID, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
@@ -224,6 +245,7 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) 
 	// Get agent profile using phoneNumber
 	agent, err := a.repo.GetUserProfileByID(ctx, agentID, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(err)
 	}
 
@@ -233,6 +255,7 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) 
 
 	err = a.repo.UpdateSuspended(ctx, agent.ID, true)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 	return true, nil
@@ -240,8 +263,12 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) 
 
 // FetchAgents fetches registered agents
 func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {
+	ctx, span := tracer.Start(ctx, "FetchAgents")
+	defer span.End()
+
 	profiles, err := a.repo.ListUserProfiles(ctx, base.RoleTypeAgent)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 

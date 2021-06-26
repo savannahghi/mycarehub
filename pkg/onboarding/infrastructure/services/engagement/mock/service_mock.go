@@ -10,13 +10,13 @@ import (
 
 // FakeServiceEngagement is an `engagement` service mock .
 type FakeServiceEngagement struct {
-	PublishKYCNudgeFn            func(uid string, payload base.Nudge) (*http.Response, error)
-	PublishKYCFeedItemFn         func(uid string, payload base.Item) (*http.Response, error)
-	ResolveDefaultNudgeByTitleFn func(UID string, flavour base.Flavour, nudgeTitle string) error
-	SendMailFn                   func(email string, message string, subject string) error
-	SendAlertToSupplierFn        func(input dto.EmailNotificationPayload) error
-	NotifySupplierOnSuspensionFn func(input dto.EmailNotificationPayload) error
-	NotifyAdminsFn               func(input dto.EmailNotificationPayload) error
+	PublishKYCNudgeFn            func(ctx context.Context, uid string, payload base.Nudge) (*http.Response, error)
+	PublishKYCFeedItemFn         func(ctx context.Context, uid string, payload base.Item) (*http.Response, error)
+	ResolveDefaultNudgeByTitleFn func(ctx context.Context, UID string, flavour base.Flavour, nudgeTitle string) error
+	SendMailFn                   func(ctx context.Context, email string, message string, subject string) error
+	SendAlertToSupplierFn        func(ctx context.Context, input dto.EmailNotificationPayload) error
+	NotifySupplierOnSuspensionFn func(ctx context.Context, input dto.EmailNotificationPayload) error
+	NotifyAdminsFn               func(ctx context.Context, input dto.EmailNotificationPayload) error
 	GenerateAndSendOTPFn         func(
 		ctx context.Context,
 		phone string,
@@ -32,32 +32,36 @@ type FakeServiceEngagement struct {
 
 	VerifyEmailOTPFn func(ctx context.Context, email, OTP string) (bool, error)
 
-	SendSMSFn func(phoneNumbers []string, message string) error
+	SendSMSFn func(ctx context.Context, phoneNumbers []string, message string) error
 }
 
 // PublishKYCNudge ...
 func (f *FakeServiceEngagement) PublishKYCNudge(
+	ctx context.Context,
 	uid string,
 	payload base.Nudge,
 ) (*http.Response, error) {
-	return f.PublishKYCNudgeFn(uid, payload)
+	return f.PublishKYCNudgeFn(ctx, uid, payload)
 }
 
 // PublishKYCFeedItem ...
 func (f *FakeServiceEngagement) PublishKYCFeedItem(
+	ctx context.Context,
 	uid string,
 	payload base.Item,
 ) (*http.Response, error) {
-	return f.PublishKYCFeedItemFn(uid, payload)
+	return f.PublishKYCFeedItemFn(ctx, uid, payload)
 }
 
 // ResolveDefaultNudgeByTitle ...
 func (f *FakeServiceEngagement) ResolveDefaultNudgeByTitle(
+	ctx context.Context,
 	UID string,
 	flavour base.Flavour,
 	nudgeTitle string,
 ) error {
 	return f.ResolveDefaultNudgeByTitleFn(
+		ctx,
 		UID,
 		flavour,
 		nudgeTitle,
@@ -66,21 +70,22 @@ func (f *FakeServiceEngagement) ResolveDefaultNudgeByTitle(
 
 // SendMail ...
 func (f *FakeServiceEngagement) SendMail(
+	ctx context.Context,
 	email string,
 	message string,
 	subject string,
 ) error {
-	return f.SendMailFn(email, message, subject)
+	return f.SendMailFn(ctx, email, message, subject)
 }
 
 // SendAlertToSupplier ...
-func (f *FakeServiceEngagement) SendAlertToSupplier(input dto.EmailNotificationPayload) error {
-	return f.SendAlertToSupplierFn(input)
+func (f *FakeServiceEngagement) SendAlertToSupplier(ctx context.Context, input dto.EmailNotificationPayload) error {
+	return f.SendAlertToSupplierFn(ctx, input)
 }
 
 // NotifyAdmins ...
-func (f *FakeServiceEngagement) NotifyAdmins(input dto.EmailNotificationPayload) error {
-	return f.NotifyAdminsFn(input)
+func (f *FakeServiceEngagement) NotifyAdmins(ctx context.Context, input dto.EmailNotificationPayload) error {
+	return f.NotifyAdminsFn(ctx, input)
 }
 
 // GenerateAndSendOTP ...
@@ -111,11 +116,11 @@ func (f *FakeServiceEngagement) VerifyEmailOTP(ctx context.Context, email, OTP s
 }
 
 // NotifySupplierOnSuspension ...
-func (f *FakeServiceEngagement) NotifySupplierOnSuspension(input dto.EmailNotificationPayload) error {
-	return f.NotifySupplierOnSuspensionFn(input)
+func (f *FakeServiceEngagement) NotifySupplierOnSuspension(ctx context.Context, input dto.EmailNotificationPayload) error {
+	return f.NotifySupplierOnSuspensionFn(ctx, input)
 }
 
 // SendSMS ...
-func (f *FakeServiceEngagement) SendSMS(phoneNumbers []string, message string) error {
-	return f.SendSMSFn(phoneNumbers, message)
+func (f *FakeServiceEngagement) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
+	return f.SendSMSFn(ctx, phoneNumbers, message)
 }

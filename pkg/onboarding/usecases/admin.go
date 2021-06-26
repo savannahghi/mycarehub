@@ -54,21 +54,26 @@ func NewAdminUseCases(
 
 // RegisterAdmin creates a new Admin in bewell
 func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*base.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "RegisterAdmin")
+	defer span.End()
 
 	msisdn, err := a.baseExt.NormalizeMSISDN(input.PhoneNumber)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
 	// Check logged in user has permissions/role of employee
 	p, err := a.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
 	// Get Logged In user profile
 	usp, err := a.repo.GetUserProfileByUID(ctx, p.UID, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -94,12 +99,14 @@ func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.Register
 	// create a user profile in bewell
 	profile, err := a.repo.CreateDetailedUserProfile(ctx, *msisdn, adminProfile)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// wrapped error
 		return nil, err
 	}
 
 	_, err = a.repo.CreateEmptyCustomerProfile(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -113,6 +120,7 @@ func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.Register
 
 	_, err = a.repo.CreateDetailedSupplierProfile(ctx, profile.ID, sup)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -127,24 +135,27 @@ func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.Register
 		&defaultCommunicationSetting,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// wrapped error
 		return nil, err
 	}
 
 	otp, err := a.pin.SetUserTempPIN(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// wrapped error
 		return nil, err
 	}
 
-	if err := a.notifyNewAdmin([]string{input.Email}, []string{input.PhoneNumber}, *profile.UserBioData.FirstName, otp); err != nil {
+	if err := a.notifyNewAdmin(ctx, []string{input.Email}, []string{input.PhoneNumber}, *profile.UserBioData.FirstName, otp); err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("unable to send admin registration notifications: %w", err)
 	}
 
 	return profile, nil
 }
 
-func (a *AdminUseCaseImpl) notifyNewAdmin(emails []string, phoneNumbers []string, name, otp string) error {
+func (a *AdminUseCaseImpl) notifyNewAdmin(ctx context.Context, emails []string, phoneNumbers []string, name, otp string) error {
 	type pin struct {
 		Name string
 		Pin  string
@@ -158,13 +169,13 @@ func (a *AdminUseCaseImpl) notifyNewAdmin(emails []string, phoneNumbers []string
 	}
 
 	message := fmt.Sprintf("%sPlease use this One Time PIN: %s to log onto Bewell with your phone number", adminWelcomeMessage, otp)
-	if err := a.engagement.SendSMS(phoneNumbers, message); err != nil {
+	if err := a.engagement.SendSMS(ctx, phoneNumbers, message); err != nil {
 		return fmt.Errorf("unable to send admin registration message: %w", err)
 	}
 
 	text := buf.String()
 	for _, email := range emails {
-		if err := a.engagement.SendMail(email, text, adminWelcomeEmailSubject); err != nil {
+		if err := a.engagement.SendMail(ctx, email, text, adminWelcomeEmailSubject); err != nil {
 			return fmt.Errorf("unable to send admin registration email: %w", err)
 		}
 	}
@@ -174,8 +185,12 @@ func (a *AdminUseCaseImpl) notifyNewAdmin(emails []string, phoneNumbers []string
 
 // FetchAdmins fetches registered admins
 func (a *AdminUseCaseImpl) FetchAdmins(ctx context.Context) ([]*dto.Admin, error) {
+	ctx, span := tracer.Start(ctx, "FetchAdmins")
+	defer span.End()
+
 	profiles, err := a.repo.ListUserProfiles(ctx, base.RoleTypeEmployee)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 

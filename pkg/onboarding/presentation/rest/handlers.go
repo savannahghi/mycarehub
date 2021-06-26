@@ -399,7 +399,7 @@ func (h *HandlersInterfacesImpl) RefreshToken(ctx context.Context) http.HandlerF
 			return
 		}
 
-		response, err := h.interactor.Login.RefreshToken(*p.RefreshToken)
+		response, err := h.interactor.Login.RefreshToken(ctx, *p.RefreshToken)
 		if err != nil {
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return

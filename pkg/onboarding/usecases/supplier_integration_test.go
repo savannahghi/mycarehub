@@ -21,7 +21,7 @@ const (
 	// TestEDIPortalUsername is a test username for `test` EDI Login
 	TestEDIPortalUsername = "malibu.pharmacy-3873@healthcloud.co.ke"
 
-	// TestEDIPortalPassword is a test passowrd for `test` EDI Login
+	// TestEDIPortalPassword is a test password for `test` EDI Login
 	TestEDIPortalPassword = "test provider one"
 
 	testChargeMasterParentOrgId = "83d3479d-e902-4aab-a27d-6d5067454daf"
@@ -2094,6 +2094,7 @@ func TestSupplierEDIUserLogin(t *testing.T) {
 	assert.Nil(t, resp3.EDIUserProfile)
 
 	type args struct {
+		ctx      context.Context
 		username *string
 		password *string
 	}
@@ -2106,6 +2107,7 @@ func TestSupplierEDIUserLogin(t *testing.T) {
 		{
 			name: "Happy Case: valid credentials",
 			args: args{
+				ctx:      context.Background(),
 				username: &TestEDIPortalUsername,
 				password: &TestEDIPortalPassword,
 			},
@@ -2114,6 +2116,7 @@ func TestSupplierEDIUserLogin(t *testing.T) {
 		{
 			name: "Sad Case: Wrong username and password",
 			args: args{
+				ctx:      context.Background(),
 				username: &WrongTestEDIPortalUsername,
 				password: &WrongTestEDIPortalPassword,
 			},
@@ -2122,6 +2125,7 @@ func TestSupplierEDIUserLogin(t *testing.T) {
 		{
 			name: "sad case: empty username and password",
 			args: args{
+				ctx:      context.Background(),
 				username: &EmptyWrongTestEDIPortalUsername,
 				password: &EmptyTestEDIPortalPassword,
 			},
@@ -2130,7 +2134,7 @@ func TestSupplierEDIUserLogin(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := s.Supplier.EDIUserLogin(tt.args.username, tt.args.password)
+			_, err := s.Supplier.EDIUserLogin(tt.args.ctx, tt.args.username, tt.args.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SupplierUseCasesImpl.EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2545,6 +2549,7 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 	emptyUsername := ""
 	emptyPassword := ""
 	type args struct {
+		ctx      context.Context
 		username *string
 		password *string
 	}
@@ -2556,6 +2561,7 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 		{
 			name: "Happy Case: valid credentials",
 			args: args{
+				ctx:      context.Background(),
 				username: &validUsername,
 				password: &validPassword,
 			},
@@ -2564,6 +2570,7 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 		{
 			name: "Sad Case: Wrong username and password",
 			args: args{
+				ctx:      context.Background(),
 				username: &invalidUsername,
 				password: &invalidPassword,
 			},
@@ -2572,6 +2579,7 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 		{
 			name: "sad case: empty username and password",
 			args: args{
+				ctx:      context.Background(),
 				username: &emptyUsername,
 				password: &emptyPassword,
 			},
@@ -2580,6 +2588,7 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 		{
 			name: "sad case:valid username invalid password",
 			args: args{
+				ctx:      context.Background(),
 				username: &validUsername,
 				password: &invalidPassword,
 			},
@@ -2589,7 +2598,7 @@ func TestSupplierUseCasesImpl_EDIUserLogin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ediLogin := s
-			_, err := ediLogin.Supplier.EDIUserLogin(tt.args.username, tt.args.password)
+			_, err := ediLogin.Supplier.EDIUserLogin(tt.args.ctx, tt.args.username, tt.args.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SupplierUseCasesImpl.EDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2610,6 +2619,7 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 		return
 	}
 	type args struct {
+		ctx      context.Context
 		username string
 		password string
 	}
@@ -2621,6 +2631,7 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 		{
 			name: "Happy Case: valid credentials",
 			args: args{
+				ctx:      context.Background(),
 				username: "bewell@slade360.co.ke",
 				password: "please change me",
 			},
@@ -2629,6 +2640,7 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 		{
 			name: "Sad Case: Wrong userame and password",
 			args: args{
+				ctx:      context.Background(),
 				username: "invalid Username",
 				password: "invalid Password",
 			},
@@ -2637,6 +2649,7 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 		{
 			name: "sad case: empty username and password",
 			args: args{
+				ctx:      context.Background(),
 				username: "",
 				password: "",
 			},
@@ -2654,7 +2667,7 @@ func TestSupplierUseCasesImpl_CoreEDIUserLogin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			coreEdiLogin := s
-			_, err := coreEdiLogin.Supplier.CoreEDIUserLogin(tt.args.username, tt.args.password)
+			_, err := coreEdiLogin.Supplier.CoreEDIUserLogin(tt.args.ctx, tt.args.username, tt.args.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SupplierUseCasesImpl.CoreEDIUserLogin() error = %v, wantErr %v", err, tt.wantErr)
 				return

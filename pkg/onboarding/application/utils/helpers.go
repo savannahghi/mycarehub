@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"gitlab.slade360emr.com/go/base"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // IfCoverExistsInSlice checks is a cover is in a slice.
@@ -57,8 +59,8 @@ func CheckIdentifierExists(profile *base.UserProfile, UID string) bool {
 	return base.StringSliceContains(foundVerifiedUIDs, UID)
 }
 
-// HasFavNavAction checks if user has book marked the provided navaction
-func Check_UserHasFavNavAction(u *base.UserProfile, title string) bool {
+// CheckUserHasFavNavAction checks if user has book marked the provided navaction
+func CheckUserHasFavNavAction(u *base.UserProfile, title string) bool {
 	if len(u.FavNavActions) == 0 {
 		return false
 	}
@@ -130,7 +132,7 @@ func ParseUSSDDateInput(date string) string {
 	return fmt.Sprintf("%v-%v-%v", dayEntered, monthEntered, yearEntered)
 }
 
-// UniqueStringArray removes duplicate permissions in an array of permissions
+// UniquePermissionsArray removes duplicate permissions in a slice of permissions
 func UniquePermissionsArray(arr []base.PermissionType) []base.PermissionType {
 	occured := map[base.PermissionType]bool{}
 	result := []base.PermissionType{}
@@ -147,4 +149,10 @@ func UniquePermissionsArray(arr []base.PermissionType) []base.PermissionType {
 	}
 
 	return result
+}
+
+// RecordSpanError is a helper function to capture errors in a span
+func RecordSpanError(span trace.Span, err error) {
+	span.SetStatus(codes.Error, err.Error())
+	span.RecordError(err)
 }

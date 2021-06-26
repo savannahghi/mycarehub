@@ -73,6 +73,7 @@ func (f *FirebaseClientExtension) DeleteUser(ctx context.Context, uid string) er
 	return f.DeleteUserFn(ctx, uid)
 }
 
+// GetUserProfileByID ...
 func (f *FirebaseClientExtension) GetUserProfileByID(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
 	return f.GetUserProfileByIDFn(ctx, id, suspended)
 }

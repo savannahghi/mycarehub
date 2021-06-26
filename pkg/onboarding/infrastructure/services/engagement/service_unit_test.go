@@ -37,6 +37,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
 	type args struct {
+		ctx        context.Context
 		UID        string
 		flavour    base.Flavour
 		nudgeTitle string
@@ -50,6 +51,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 		{
 			name: "valid:_resolve_a_default_nudge",
 			args: args{
+				ctx:        context.Background(),
 				UID:        uuid.New().String(),
 				flavour:    base.FlavourConsumer,
 				nudgeTitle: "Nudge Title",
@@ -60,6 +62,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 		{
 			name: "invalid:_nudge_not_found",
 			args: args{
+				ctx:        context.Background(),
 				UID:        uuid.New().String(),
 				flavour:    base.FlavourConsumer,
 				nudgeTitle: "Nudge Title",
@@ -70,6 +73,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 		{
 			name: "invalid:_bad_request_sent",
 			args: args{
+				ctx:        context.Background(),
 				UID:        uuid.New().String(),
 				flavour:    base.FlavourConsumer,
 				nudgeTitle: "Nudge Title",
@@ -80,6 +84,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 		{
 			name: "invalid:_error_occurred_when_sending_the_request",
 			args: args{
+				ctx:        context.Background(),
 				UID:        uuid.New().String(),
 				flavour:    base.FlavourConsumer,
 				nudgeTitle: "Nudge Title",
@@ -91,6 +96,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:_resolve_a_default_nudge" {
 				fakeISCExt.MakeRequestFn = func(
+					ctx context.Context,
 					method string,
 					path string,
 					body interface{},
@@ -105,6 +111,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 
 			if tt.name == "invalid:_nudge_not_found" {
 				fakeISCExt.MakeRequestFn = func(
+					ctx context.Context,
 					method string,
 					path string,
 					body interface{},
@@ -119,6 +126,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 
 			if tt.name == "invalid:_bad_request_sent" {
 				fakeISCExt.MakeRequestFn = func(
+					ctx context.Context,
 					method string,
 					path string,
 					body interface{},
@@ -133,6 +141,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 
 			if tt.name == "invalid:_error_occurred_when_sending_the_request" {
 				fakeISCExt.MakeRequestFn = func(
+					ctx context.Context,
 					method string,
 					path string,
 					body interface{},
@@ -142,6 +151,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 			}
 
 			err := e.ResolveDefaultNudgeByTitle(
+				tt.args.ctx,
 				tt.args.UID,
 				tt.args.flavour,
 				tt.args.nudgeTitle,
@@ -216,6 +226,7 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 		},
 	}
 	type args struct {
+		ctx     context.Context
 		uid     string
 		payload base.Item
 	}
@@ -228,6 +239,7 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 		{
 			name: "valid:publish_kyc_feed_item",
 			args: args{
+				ctx:     context.Background(),
 				uid:     uuid.New().String(),
 				payload: payload,
 			},
@@ -241,6 +253,7 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 		{
 			name: "invalid:fail_to_publish_kyc_feed_item",
 			args: args{
+				ctx:     context.Background(),
 				uid:     uuid.New().String(),
 				payload: payload,
 			},
@@ -255,7 +268,7 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:publish_kyc_feed_item" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: http.StatusOK,
@@ -265,7 +278,7 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 			}
 
 			if tt.name == "invalid:fail_to_publish_kyc_feed_item" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "BAD REQUEST",
 						StatusCode: http.StatusBadRequest,
@@ -274,7 +287,7 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 				}
 			}
 
-			resp, err := e.PublishKYCFeedItem(tt.args.uid, tt.args.payload)
+			resp, err := e.PublishKYCFeedItem(tt.args.ctx, tt.args.uid, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEngagementImpl.PublishKYCFeedItem() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -350,6 +363,7 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 	}
 
 	type args struct {
+		ctx     context.Context
 		uid     string
 		payload base.Nudge
 	}
@@ -362,6 +376,7 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 		{
 			name: "valid:successfully_publish_kyc_nudge",
 			args: args{
+				ctx:     context.Background(),
 				uid:     uuid.New().String(),
 				payload: payload,
 			},
@@ -375,6 +390,7 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 		{
 			name: "invalid:fail_to_publish_kyc_nudge",
 			args: args{
+				ctx:     context.Background(),
 				uid:     uuid.New().String(),
 				payload: payload,
 			},
@@ -389,7 +405,7 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:successfully_publish_kyc_nudge" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: http.StatusOK,
@@ -399,7 +415,7 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 			}
 
 			if tt.name == "invalid:fail_to_publish_kyc_nudge" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "BAD REQUEST",
 						StatusCode: http.StatusBadRequest,
@@ -408,7 +424,7 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 				}
 			}
 
-			resp, err := e.PublishKYCNudge(tt.args.uid, tt.args.payload)
+			resp, err := e.PublishKYCNudge(tt.args.ctx, tt.args.uid, tt.args.payload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEngagementImpl.PublishKYCNudge() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -443,6 +459,7 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
 	type args struct {
+		ctx     context.Context
 		email   string
 		message string
 		subject string
@@ -456,6 +473,7 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 		{
 			name: "valid:successfully_send_email",
 			args: args{
+				ctx:     context.Background(),
 				email:   "johndoe@gmail.com",
 				message: "This is an update of how things are",
 				subject: "update",
@@ -466,6 +484,7 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 		{
 			name: "invalid:use_an_invalid_email",
 			args: args{
+				ctx:     context.Background(),
 				email:   "1234",
 				message: "This is an update of how things are",
 				subject: "update",
@@ -476,6 +495,7 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 		{
 			name: "invalid:error_while_sending_request",
 			args: args{
+				ctx:     context.Background(),
 				email:   "johndoe",
 				message: "This is an update of how things are",
 				subject: "update",
@@ -487,7 +507,7 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:successfully_send_email" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -497,7 +517,7 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 			}
 
 			if tt.name == "invalid:use_an_invalid_email" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "BAD REQUEST",
 						StatusCode: 400,
@@ -507,11 +527,11 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 			}
 
 			if tt.name == "invalid:error_while_sending_request" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("an error occured!")
 				}
 			}
-			err := e.SendMail(tt.args.email, tt.args.message, tt.args.subject)
+			err := e.SendMail(tt.args.ctx, tt.args.email, tt.args.message, tt.args.subject)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEngagementImpl.SendMail() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -608,7 +628,7 @@ func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -629,7 +649,7 @@ func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("unable to make http request")
 				}
 			}
@@ -640,7 +660,7 @@ func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 400,
@@ -655,7 +675,7 @@ func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -752,7 +772,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:_successfully_generate_and_send_otp" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
@@ -762,13 +782,13 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_make_request_fails" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("unable to make a request")
 				}
 			}
 
 			if tt.name == "invalid:_invalid_HTTP_response" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusUnprocessableEntity,
 						Status:     "",
@@ -778,7 +798,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_unmarshall" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
@@ -894,7 +914,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 					phone := "+2547345678"
 					return &phone, nil
 				}
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
@@ -908,7 +928,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 					phone := "+2547345678"
 					return &phone, nil
 				}
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("unable to make a request")
 				}
 			}
@@ -919,7 +939,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusUnprocessableEntity,
 						Status:     "",
@@ -934,7 +954,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
@@ -1036,7 +1056,7 @@ func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:_successfully_verify_email_otp" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
@@ -1046,13 +1066,13 @@ func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_make_request_fails" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("unable to make a request")
 				}
 			}
 
 			if tt.name == "invalid:_invalid_HTTP_response" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusUnprocessableEntity,
 						Status:     "",
@@ -1062,7 +1082,7 @@ func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_unmarshall" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
@@ -1097,6 +1117,7 @@ func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 	type args struct {
+		ctx   context.Context
 		input dto.EmailNotificationPayload
 	}
 	suspensionReason := `
@@ -1131,6 +1152,7 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 		{
 			name: "valid:successfully_send_email",
 			args: args{
+				ctx:   context.Background(),
 				input: validInput,
 			},
 			wantErr:    false,
@@ -1139,6 +1161,7 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 		{
 			name: "invalid:wrong_email_address",
 			args: args{
+				ctx:   context.Background(),
 				input: invalidInput,
 			},
 			wantErr:    true,
@@ -1155,7 +1178,7 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:successfully_send_email" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -1164,7 +1187,7 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 				}
 			}
 			if tt.name == "invalid:wrong_email_address" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "BAD REQUEST",
 						StatusCode: 400,
@@ -1173,11 +1196,11 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 				}
 			}
 			if tt.name == "invalid:error_while_sending_request" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("an error occured!")
 				}
 			}
-			err := e.NotifySupplierOnSuspension(tt.args.input)
+			err := e.NotifySupplierOnSuspension(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEngagementImpl.SendMail() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -1211,6 +1234,7 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 	}
 
 	type args struct {
+		ctx   context.Context
 		input dto.EmailNotificationPayload
 	}
 	tests := []struct {
@@ -1221,6 +1245,7 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 		{
 			name: "valid:successfully_send_email",
 			args: args{
+				ctx:   context.Background(),
 				input: input,
 			},
 			wantErr: false,
@@ -1228,6 +1253,7 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 		{
 			name: "invalid:error_while_sending_request",
 			args: args{
+				ctx:   context.Background(),
 				input: input,
 			},
 			wantErr: true,
@@ -1237,7 +1263,7 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:successfully_send_email" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -1247,12 +1273,12 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 			}
 
 			if tt.name == "invalid:error_while_sending_request" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("an error occured!")
 				}
 			}
 
-			err := e.SendAlertToSupplier(tt.args.input)
+			err := e.SendAlertToSupplier(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEngagementImpl.SendAlertToSupplier() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -1286,6 +1312,7 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 	}
 
 	type args struct {
+		ctx   context.Context
 		input dto.EmailNotificationPayload
 	}
 	tests := []struct {
@@ -1296,6 +1323,7 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 		{
 			name: "valid:successfully_send_email",
 			args: args{
+				ctx:   context.Background(),
 				input: input,
 			},
 			wantErr: false,
@@ -1303,6 +1331,7 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 		{
 			name: "invalid:error_while_sending_request",
 			args: args{
+				ctx:   context.Background(),
 				input: input,
 			},
 			wantErr: true,
@@ -1312,7 +1341,7 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:successfully_send_email" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -1322,12 +1351,12 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 			}
 
 			if tt.name == "invalid:error_while_sending_request" {
-				fakeISCExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("an error occured!")
 				}
 			}
 
-			err := e.NotifyAdmins(tt.args.input)
+			err := e.NotifyAdmins(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEngagementImpl.NotifyAdmins() error = %v, wantErr %v", err, tt.wantErr)
 			}

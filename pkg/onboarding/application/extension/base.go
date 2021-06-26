@@ -329,7 +329,7 @@ func (b *BaseExtensionImpl) ErrorMap(err error) map[string]string {
 
 // ISCClientExtension represents the base ISC client
 type ISCClientExtension interface {
-	MakeRequest(method string, path string, body interface{}) (*http.Response, error)
+	MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
 }
 
 // ISCExtensionImpl ...
@@ -341,7 +341,7 @@ func NewISCExtension() ISCClientExtension {
 }
 
 // MakeRequest performs an inter service http request and returns a response
-func (i *ISCExtensionImpl) MakeRequest(method string, path string, body interface{}) (*http.Response, error) {
+func (i *ISCExtensionImpl) MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 	var isc base.InterServiceClient
-	return isc.MakeRequest(method, path, body)
+	return isc.MakeRequest(ctx, method, path, body)
 }

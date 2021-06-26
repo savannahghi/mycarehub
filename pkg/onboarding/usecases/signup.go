@@ -96,13 +96,18 @@ func (s *SignUpUseCasesImpl) VerifyPhoneNumber(
 	ctx context.Context,
 	phone string,
 ) (*base.OtpResponse, error) {
+	ctx, span := tracer.Start(ctx, "VerifyPhoneNumber")
+	defer span.End()
+
 	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 	// check if phone number exists
 	exists, err := s.profileUsecase.CheckPhoneExists(ctx, *phoneNumber)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 	// if phone exists return early
@@ -113,6 +118,7 @@ func (s *SignUpUseCasesImpl) VerifyPhoneNumber(
 	otpResp, err := s.engagement.GenerateAndSendOTP(ctx, *phoneNumber)
 
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.GenerateAndSendOTPError(err)
 	}
 	// return the generated otp
@@ -125,8 +131,12 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	ctx context.Context,
 	input *dto.SignUpInput,
 ) (*base.UserResponse, error) {
+	ctx, span := tracer.Start(ctx, "CreateUserByPhone")
+	defer span.End()
+
 	userData, err := utils.ValidateSignUpInput(input)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 	verified, err := s.engagement.VerifyOTP(
@@ -135,6 +145,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		*userData.OTP,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.VerifyOTPError(err)
 	}
 
@@ -145,6 +156,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	// get or create user via their phone number
 	user, err := s.onboardingRepository.GetOrCreatePhoneNumberUser(ctx, *userData.PhoneNumber)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -155,6 +167,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		user.UID,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	// generate auth credentials
@@ -164,6 +177,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		profile,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 	// save the user pin
@@ -173,6 +187,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		profile.ID,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -180,11 +195,13 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	var customer *base.Customer
 	supplier, err = s.onboardingRepository.CreateEmptySupplierProfile(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
 	customer, err = s.onboardingRepository.CreateEmptyCustomerProfile(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	// set the user default communications settings
@@ -198,6 +215,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		&defaultCommunicationSetting,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -212,6 +230,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 
 	bs, err := json.Marshal(CRMContact)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -221,6 +240,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		bs,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
 	}
 
@@ -238,16 +258,20 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(
 	ctx context.Context,
 	input *dto.UserProfileInput,
 ) (*base.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "UpdateUserProfile")
+	defer span.End()
 
 	// get the old user profile
 	pr, err := s.profileUsecase.UserProfile(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
 
 	if input.PhotoUploadID != nil {
 		if err := s.profileUsecase.UpdatePhotoUploadID(ctx, *input.PhotoUploadID); err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 	}
@@ -278,6 +302,7 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(
 			return pr.UserBioData.Gender
 		}(input.Gender),
 	}); err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 	return s.profileUsecase.UserProfile(ctx)
@@ -285,10 +310,14 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(
 
 // RegisterPushToken adds a new push token in the users profile if the push token does not exist
 func (s *SignUpUseCasesImpl) RegisterPushToken(ctx context.Context, token string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "RegisterPushToken")
+	defer span.End()
+
 	if len(token) < 5 {
 		return false, exceptions.InValidPushTokenLengthError()
 	}
 	if err := s.profileUsecase.UpdatePushTokens(ctx, token, false); err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 	return true, nil
@@ -300,6 +329,8 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 	ctx context.Context,
 	flavour base.Flavour,
 ) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CompleteSignup")
+	defer span.End()
 
 	if flavour != base.FlavourConsumer {
 		return false, exceptions.InvalidFlavourDefinedError()
@@ -307,6 +338,7 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 
 	profile, err := s.profileUsecase.UserProfile(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 	if profile.UserBioData.FirstName == nil || profile.UserBioData.LastName == nil {
@@ -323,6 +355,7 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 		base.PartnerTypeConsumer,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		logrus.Print(err)
 	}
 
@@ -331,10 +364,14 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 
 // RetirePushToken removes a push token from the users profile
 func (s *SignUpUseCasesImpl) RetirePushToken(ctx context.Context, token string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "RetirePushToken")
+	defer span.End()
+
 	if len(token) < 5 {
 		return false, exceptions.InValidPushTokenLengthError()
 	}
 	if err := s.profileUsecase.UpdatePushTokens(ctx, token, true); err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(err)
 	}
 	return true, nil
@@ -346,13 +383,18 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(
 	ctx context.Context,
 	phone string,
 ) (*dto.AccountRecoveryPhonesResponse, error) {
+	ctx, span := tracer.Start(ctx, "GetUserRecoveryPhoneNumbers")
+	defer span.End()
+
 	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
 	pr, err := s.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *phoneNumber, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -378,12 +420,17 @@ func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(
 	ctx context.Context,
 	phone, otp string,
 ) (bool, error) {
+	ctx, span := tracer.Start(ctx, "SetPhoneAsPrimary")
+	defer span.End()
+
 	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
 	if err := s.profileUsecase.SetPrimaryPhoneNumber(ctx, *phoneNumber, otp, false); err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 	return true, nil
@@ -393,8 +440,12 @@ func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(
 // will ONLY be called
 // in testing environment.
 func (s *SignUpUseCasesImpl) RemoveUserByPhoneNumber(ctx context.Context, phone string) error {
+	ctx, span := tracer.Start(ctx, "RemoveUserByPhoneNumber")
+	defer span.End()
+
 	phoneNumber, err := s.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.NormalizeMSISDNError(err)
 	}
 	return s.onboardingRepository.PurgeUserByPhoneNumber(ctx, *phoneNumber)

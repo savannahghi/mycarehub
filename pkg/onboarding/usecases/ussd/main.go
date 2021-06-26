@@ -79,8 +79,12 @@ func NewUssdUsecases(
 
 //HandleResponseFromUSSDGateway receives and processes the USSD response from the USSD gateway
 func (u *Impl) HandleResponseFromUSSDGateway(ctx context.Context, payload *dto.SessionDetails) string {
+	ctx, span := tracer.Start(ctx, "HandleResponseFromUSSDGateway")
+	defer span.End()
+
 	sessionDetails, err := u.GetOrCreateSessionState(ctx, payload)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return "END Something went wrong. Please try again."
 	}
 
@@ -88,6 +92,7 @@ func (u *Impl) HandleResponseFromUSSDGateway(ctx context.Context, payload *dto.S
 
 	exists, err := u.profile.CheckPhoneExists(ctx, *payload.PhoneNumber)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return "END Something went wrong. Please try again."
 	}
 

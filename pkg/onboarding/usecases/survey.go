@@ -7,6 +7,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
@@ -35,6 +36,9 @@ func (rs *SurveyUseCasesImpl) RecordPostVisitSurvey(
 	ctx context.Context,
 	input dto.PostVisitSurveyInput,
 ) (bool, error) {
+	ctx, span := tracer.Start(ctx, "RecordPostVisitSurvey")
+	defer span.End()
+
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
 		return false, exceptions.LikelyToRecommendError(
 			fmt.Errorf(exceptions.LikelyToRecommendErrMsg),
@@ -43,10 +47,12 @@ func (rs *SurveyUseCasesImpl) RecordPostVisitSurvey(
 
 	UID, err := rs.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.UserNotFoundError(err)
 	}
 
 	if err := rs.onboardingRepository.RecordPostVisitSurvey(ctx, input, UID); err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(fmt.Errorf(exceptions.InternalServerErrorMsg))
 	}
 

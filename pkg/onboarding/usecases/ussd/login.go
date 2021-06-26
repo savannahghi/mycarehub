@@ -4,11 +4,18 @@ import (
 	"context"
 
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd")
 
 // HandleLogin represents the workflow for authenticating a user
 func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
+	ctx, span := tracer.Start(ctx, "HandleLogin")
+	defer span.End()
+
 	switch userResponse {
 	case EmptyInput:
 		resp := "CON Welcome to Be.Well.Please enter\r\n"
@@ -19,6 +26,7 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 	case ForgotPINInput:
 		err := u.UpdateSessionLevel(ctx, ForgotPINVerifyDate, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 		resp := "CON Please enter your date of birth in\r\n"
@@ -30,6 +38,7 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 	default:
 		isLoggedIn, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, base.FlavourConsumer)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 		if !isLoggedIn {
@@ -40,6 +49,7 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 		}
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 		userResponse := ""
@@ -55,6 +65,8 @@ func (u *Impl) LoginInUser(
 	PIN string,
 	flavour base.Flavour,
 ) (bool, error) {
+	ctx, span := tracer.Start(ctx, "LoginInUser")
+	defer span.End()
 
 	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(
 		ctx,
@@ -62,11 +74,13 @@ func (u *Impl) LoginInUser(
 		false,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
 	PINData, err := u.onboardingRepository.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 	if PINData == nil {

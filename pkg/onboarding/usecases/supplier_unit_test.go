@@ -133,14 +133,14 @@ func TestProfileUseCaseImpl_SendKYCEmail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:_send_kyc_mail" {
-				fakeEngagementSvs.SendMailFn = func(email string, message string, subject string) error {
+				fakeEngagementSvs.SendMailFn = func(ctx context.Context, email string, message string, subject string) error {
 					return nil
 				}
 
 			}
 
 			if tt.name == "invalid:_send_mail_fails" {
-				fakeEngagementSvs.SendMailFn = func(email string, message string, subject string) error {
+				fakeEngagementSvs.SendMailFn = func(ctx context.Context, email string, message string, subject string) error {
 					return fmt.Errorf("unable to send mail")
 				}
 
@@ -213,7 +213,7 @@ func TestProfileUseCaseImpl_PublishKYCFeedItem(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:_publish_kyc_item" {
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -223,13 +223,13 @@ func TestProfileUseCaseImpl_PublishKYCFeedItem(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_publish_kyc_item" {
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return nil, fmt.Errorf("unable to publish kyc item")
 				}
 			}
 
 			if tt.name == "invalid:_unexpected_status_code" {
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "",
 						StatusCode: 400,
@@ -605,6 +605,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeRepo.ActivateSupplierProfileFn = func(
+					ctx context.Context,
 					profileID string,
 					supplier base.Supplier,
 				) (*base.Supplier, error) {
@@ -612,6 +613,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeEngagementSvs.SendMailFn = func(
+					ctx context.Context,
 					email string,
 					message string,
 					subject string,
@@ -620,6 +622,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeEngagementSvs.SendSMSFn = func(
+					ctx context.Context,
 					phoneNumbers []string,
 					message string,
 				) error {
@@ -682,6 +685,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeEngagementSvs.SendMailFn = func(
+					ctx context.Context,
 					email string,
 					message string,
 					subject string,
@@ -690,6 +694,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeEngagementSvs.SendSMSFn = func(
+					ctx context.Context,
 					phoneNumbers []string,
 					message string,
 				) error {
@@ -975,6 +980,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeEngagementSvs.SendMailFn = func(
+					ctx context.Context,
 					email string,
 					message string,
 					subject string,
@@ -1034,6 +1040,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeEngagementSvs.SendMailFn = func(
+					ctx context.Context,
 					email string,
 					message string,
 					subject string,
@@ -1042,6 +1049,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				}
 
 				fakeEngagementSvs.SendSMSFn = func(
+					ctx context.Context,
 					phoneNumbers []string,
 					message string,
 				) error {
@@ -1236,16 +1244,16 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -1512,7 +1520,7 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifySupplierOnSuspensionFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifySupplierOnSuspensionFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 			}
@@ -1795,16 +1803,16 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -2115,16 +2123,16 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -2383,16 +2391,16 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -2646,16 +2654,16 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -2893,16 +2901,16 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -3337,16 +3345,16 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -3721,16 +3729,16 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -4099,16 +4107,16 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -4476,16 +4484,16 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -4841,16 +4849,16 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
 					return nil
 				}
-				fakeEngagementSvs.SendAlertToSupplierFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.SendAlertToSupplierFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeEngagementSvs.NotifyAdminsFn = func(input dto.EmailNotificationPayload) error {
+				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
 				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -6120,7 +6128,7 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload base.Nudge) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: http.StatusOK,
@@ -6266,7 +6274,7 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload base.Nudge) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: http.StatusOK,
@@ -6387,7 +6395,7 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload base.Nudge) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: http.StatusOK,
@@ -6483,7 +6491,7 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(uid string, payload base.Nudge) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload base.Nudge) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: http.StatusOK,
@@ -7169,6 +7177,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 					return nil
 				}
 				fakeEngagementSvs.PublishKYCNudgeFn = func(
+					ctx context.Context,
 					uid string,
 					payload base.Nudge,
 				) (*http.Response, error) {
@@ -7176,6 +7185,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				}
 
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					ctx context.Context,
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
@@ -7228,6 +7238,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				}
 
 				fakeEngagementSvs.PublishKYCNudgeFn = func(
+					ctx context.Context,
 					uid string,
 					payload base.Nudge,
 				) (*http.Response, error) {
@@ -7235,6 +7246,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				}
 
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					ctx context.Context,
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
@@ -7340,6 +7352,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				}
 
 				fakeEngagementSvs.PublishKYCNudgeFn = func(
+					ctx context.Context,
 					uid string,
 					payload base.Nudge,
 				) (*http.Response, error) {
@@ -7347,6 +7360,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				}
 
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					ctx context.Context,
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
@@ -7388,6 +7402,7 @@ func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
 	// var password1 string
 
 	type args struct {
+		ctx      context.Context
 		username *string
 		password *string
 	}
@@ -7401,6 +7416,7 @@ func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
 		{
 			name: "valid:login_user_with_username_and_password",
 			args: args{
+				ctx:      context.Background(),
 				username: &username,
 				password: &password,
 			},
@@ -7409,6 +7425,7 @@ func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
 		{
 			name: "invalid:unable_to_initialize_login_client",
 			args: args{
+				ctx:      context.Background(),
 				username: &username,
 				password: &password,
 			},
@@ -7417,6 +7434,7 @@ func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
 		{
 			name: "invalid:unable_to_fetch_user_profile",
 			args: args{
+				ctx:      context.Background(),
 				username: &username,
 				password: &password,
 			},
@@ -7461,6 +7479,7 @@ func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
 			}
 
 			profile, err := s.Supplier.EDIUserLogin(
+				tt.args.ctx,
 				tt.args.username,
 				tt.args.password,
 			)

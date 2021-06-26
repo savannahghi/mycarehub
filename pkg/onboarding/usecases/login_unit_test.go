@@ -547,6 +547,7 @@ func TestProfileUseCaseImpl_RefreshToken(t *testing.T) {
 	}
 
 	type args struct {
+		ctx   context.Context
 		token string
 	}
 	tests := []struct {
@@ -558,6 +559,7 @@ func TestProfileUseCaseImpl_RefreshToken(t *testing.T) {
 		{
 			name: "valid:successfully_refreshToken",
 			args: args{
+				ctx:   context.Background(),
 				token: uuid.New().String(),
 			},
 			wantErr: false,
@@ -565,6 +567,7 @@ func TestProfileUseCaseImpl_RefreshToken(t *testing.T) {
 		{
 			name: "invalid:invalid_refreshtoken",
 			args: args{
+				ctx:   context.Background(),
 				token: "",
 			},
 			wantErr: true,
@@ -575,7 +578,7 @@ func TestProfileUseCaseImpl_RefreshToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:successfully_refreshToken" {
-				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(token string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*base.AuthCredentialResponse, error) {
 					customToken := uuid.New().String()
 					idToken := uuid.New().String()
 					refreshToken := uuid.New().String()
@@ -588,11 +591,11 @@ func TestProfileUseCaseImpl_RefreshToken(t *testing.T) {
 			}
 
 			if tt.name == "invalid:invalid_refreshtoken" {
-				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(token string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*base.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("invalid refresh token")
 				}
 			}
-			got, err := i.Login.RefreshToken(tt.args.token)
+			got, err := i.Login.RefreshToken(tt.args.ctx, tt.args.token)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ProfileUseCaseImpl.RefreshToken() error = %v, wantErr %v", err, tt.wantErr)
 				return

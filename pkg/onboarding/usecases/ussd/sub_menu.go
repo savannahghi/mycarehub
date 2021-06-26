@@ -3,6 +3,7 @@ package ussd
 import (
 	"context"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -29,6 +30,9 @@ func (u *Impl) ResetPinMenu() string {
 
 // HandleHomeMenu represents the default home menu
 func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.USSDLeadDetails, userResponse string) string {
+	ctx, span := tracer.Start(ctx, "HandleHomeMenu")
+	defer span.End()
+
 	if userResponse == EmptyInput || userResponse == GoBackHomeInput {
 		return u.WelcomeMenu()
 
@@ -36,6 +40,7 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 		option := "STOP"
 		err := u.profile.SetOptOut(ctx, option, session.PhoneNumber)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 
@@ -47,6 +52,7 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 	} else if userResponse == ChangePINInput {
 		err := u.UpdateSessionLevel(ctx, ChangeUserPINState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
 		return u.HandleChangePIN(ctx, session, userResponse)

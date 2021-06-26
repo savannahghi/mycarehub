@@ -95,7 +95,7 @@ func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -116,7 +116,7 @@ func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("unable to make http request")
 				}
 			}
@@ -127,7 +127,7 @@ func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 400,
@@ -142,7 +142,7 @@ func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -239,7 +239,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:_successfully_generate_and_send_otp" {
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
@@ -249,13 +249,13 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_make_request_fails" {
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("unable to make a request")
 				}
 			}
 
 			if tt.name == "invalid:_invalid_HTTP_response" {
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusUnprocessableEntity,
 						Status:     "",
@@ -265,7 +265,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_unmarshall" {
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
@@ -381,7 +381,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 					phone := "+2547345678"
 					return &phone, nil
 				}
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
@@ -395,7 +395,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 					phone := "+2547345678"
 					return &phone, nil
 				}
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("unable to make a request")
 				}
 			}
@@ -406,7 +406,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusUnprocessableEntity,
 						Status:     "",
@@ -421,7 +421,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
@@ -523,7 +523,7 @@ func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "valid:_successfully_verify_email_otp" {
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",
@@ -533,13 +533,13 @@ func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_make_request_fails" {
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return nil, fmt.Errorf("unable to make a request")
 				}
 			}
 
 			if tt.name == "invalid:_invalid_HTTP_response" {
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusUnprocessableEntity,
 						Status:     "",
@@ -549,7 +549,7 @@ func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_unmarshall" {
-				fakeotpExt.MakeRequestFn = func(method string, path string, body interface{}) (*http.Response, error) {
+				fakeotpExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     "OK",

@@ -43,32 +43,36 @@ const (
 // ServiceEngagement represents engagement usecases
 type ServiceEngagement interface {
 	PublishKYCNudge(
+		ctx context.Context,
 		uid string,
 		payload base.Nudge,
 	) (*http.Response, error)
 
 	PublishKYCFeedItem(
+		ctx context.Context,
 		uid string,
 		payload base.Item,
 	) (*http.Response, error)
 
 	ResolveDefaultNudgeByTitle(
+		ctx context.Context,
 		UID string,
 		flavour base.Flavour,
 		nudgeTitle string,
 	) error
 
 	SendMail(
+		ctx context.Context,
 		email string,
 		message string,
 		subject string,
 	) error
 
-	SendAlertToSupplier(input dto.EmailNotificationPayload) error
+	SendAlertToSupplier(ctx context.Context, input dto.EmailNotificationPayload) error
 
-	NotifyAdmins(input dto.EmailNotificationPayload) error
+	NotifyAdmins(ctx context.Context, input dto.EmailNotificationPayload) error
 
-	NotifySupplierOnSuspension(input dto.EmailNotificationPayload) error
+	NotifySupplierOnSuspension(ctx context.Context, input dto.EmailNotificationPayload) error
 
 	GenerateAndSendOTP(
 		ctx context.Context,
@@ -85,7 +89,7 @@ type ServiceEngagement interface {
 
 	VerifyEmailOTP(ctx context.Context, email, OTP string) (bool, error)
 
-	SendSMS(phoneNumbers []string, message string) error
+	SendSMS(ctx context.Context, phoneNumbers []string, message string) error
 }
 
 // ServiceEngagementImpl represents engagement usecases
@@ -103,10 +107,11 @@ func NewServiceEngagementImpl(eng extension.ISCClientExtension, ext extension.Ba
 // PublishKYCNudge calls the `engagement service` to publish
 // a KYC nudge
 func (en *ServiceEngagementImpl) PublishKYCNudge(
+	ctx context.Context,
 	uid string,
 	payload base.Nudge,
 ) (*http.Response, error) {
-	return en.Engage.MakeRequest(
+	return en.Engage.MakeRequest(ctx,
 		http.MethodPost,
 		fmt.Sprintf(publishNudge, uid),
 		payload,
@@ -116,10 +121,11 @@ func (en *ServiceEngagementImpl) PublishKYCNudge(
 // PublishKYCFeedItem calls the `engagement service` to publish
 // a KYC feed item
 func (en *ServiceEngagementImpl) PublishKYCFeedItem(
+	ctx context.Context,
 	uid string,
 	payload base.Item,
 ) (*http.Response, error) {
-	return en.Engage.MakeRequest(
+	return en.Engage.MakeRequest(ctx,
 		http.MethodPost,
 		fmt.Sprintf(publishItem, uid),
 		payload,
@@ -129,11 +135,12 @@ func (en *ServiceEngagementImpl) PublishKYCFeedItem(
 // ResolveDefaultNudgeByTitle calls the `engagement service`
 // to resolve any default nudge by its `Title`
 func (en *ServiceEngagementImpl) ResolveDefaultNudgeByTitle(
+	ctx context.Context,
 	UID string,
 	flavour base.Flavour,
 	nudgeTitle string,
 ) error {
-	resp, err := en.Engage.MakeRequest(
+	resp, err := en.Engage.MakeRequest(ctx,
 		http.MethodPatch,
 		fmt.Sprintf(
 			resolveDefaultNudges,
@@ -167,6 +174,7 @@ func (en *ServiceEngagementImpl) ResolveDefaultNudgeByTitle(
 
 // SendMail sends emails to communicate to our users
 func (en *ServiceEngagementImpl) SendMail(
+	ctx context.Context,
 	email string,
 	message string,
 	subject string,
@@ -181,7 +189,7 @@ func (en *ServiceEngagementImpl) SendMail(
 		"subject": subject,
 	}
 
-	resp, err := en.Engage.MakeRequest(
+	resp, err := en.Engage.MakeRequest(ctx,
 		http.MethodPost,
 		sendEmail,
 		body,
@@ -202,7 +210,7 @@ func (en *ServiceEngagementImpl) SendMail(
 
 //SendAlertToSupplier send email to supplier to acknowledgement receipt of
 // KYC request/documents.
-func (en *ServiceEngagementImpl) SendAlertToSupplier(input dto.EmailNotificationPayload) error {
+func (en *ServiceEngagementImpl) SendAlertToSupplier(ctx context.Context, input dto.EmailNotificationPayload) error {
 	var writer bytes.Buffer
 	t := template.Must(template.New("acknowledgementKYCEmail").Parse(utils.AcknowledgementKYCEmail))
 	_ = t.Execute(&writer, dto.EmailNotificationPayload{
@@ -220,7 +228,7 @@ func (en *ServiceEngagementImpl) SendAlertToSupplier(input dto.EmailNotification
 		"subject": input.SubjectTitle,
 	}
 
-	resp, err := en.Engage.MakeRequest(http.MethodPost, sendEmail, body)
+	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, sendEmail, body)
 	if err != nil {
 		return fmt.Errorf("unable to send alert to supplier email: %w", err)
 	}
@@ -234,7 +242,8 @@ func (en *ServiceEngagementImpl) SendAlertToSupplier(input dto.EmailNotification
 
 //NotifyAdmins send email to admin notifying them of new
 // KYC Request.
-func (en *ServiceEngagementImpl) NotifyAdmins(input dto.EmailNotificationPayload) error {
+func (en *ServiceEngagementImpl) NotifyAdmins(ctx context.Context, input dto.EmailNotificationPayload) error {
+
 	adminEmail, err := base.GetEnvVar("SAVANNAH_ADMIN_EMAIL")
 	if err != nil {
 		return err
@@ -257,7 +266,7 @@ func (en *ServiceEngagementImpl) NotifyAdmins(input dto.EmailNotificationPayload
 		"subject": input.SubjectTitle,
 	}
 
-	resp, err := en.Engage.MakeRequest(http.MethodPost, sendEmail, body)
+	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, sendEmail, body)
 	if err != nil {
 		return fmt.Errorf("unable to send alert to admin email: %w", err)
 	}
@@ -277,7 +286,7 @@ func (en *ServiceEngagementImpl) GenerateAndSendOTP(
 	body := map[string]interface{}{
 		"msisdn": phone,
 	}
-	resp, err := en.Engage.MakeRequest(http.MethodPost, SendOtp, body)
+	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, SendOtp, body)
 	if err != nil {
 		return nil, exceptions.GenerateAndSendOTPError(err)
 	}
@@ -314,7 +323,7 @@ func (en *ServiceEngagementImpl) SendRetryOTP(
 		"msisdn":    phoneNumber,
 		"retryStep": retryStep,
 	}
-	resp, err := en.Engage.MakeRequest(http.MethodPost, SendRetryOtp, body)
+	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, SendRetryOtp, body)
 	if err != nil {
 		return nil, exceptions.GenerateAndSendOTPError(err)
 	}
@@ -357,7 +366,7 @@ func (en *ServiceEngagementImpl) VerifyOTP(ctx context.Context, phone, otp strin
 		VerificationCode: otp,
 	}
 
-	resp, err := en.Engage.MakeRequest(http.MethodPost, VerifyOTPEndPoint, verifyPayload)
+	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, VerifyOTPEndPoint, verifyPayload)
 	if err != nil {
 		return false, fmt.Errorf(
 			"can't complete OTP verification request: %w", err)
@@ -397,7 +406,7 @@ func (en *ServiceEngagementImpl) VerifyEmailOTP(ctx context.Context, email, otp 
 		VerificationCode: otp,
 	}
 
-	resp, err := en.Engage.MakeRequest(http.MethodPost, VerifyEmailOtp, verifyPayload)
+	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, VerifyEmailOtp, verifyPayload)
 	if err != nil {
 		return false, fmt.Errorf(
 			"can't complete OTP verification request: %w", err)
@@ -429,7 +438,7 @@ func (en *ServiceEngagementImpl) VerifyEmailOTP(ctx context.Context, email, otp 
 
 //NotifySupplierOnSuspension send email to supplier notifying him of the
 // suspension.
-func (en *ServiceEngagementImpl) NotifySupplierOnSuspension(input dto.EmailNotificationPayload) error {
+func (en *ServiceEngagementImpl) NotifySupplierOnSuspension(ctx context.Context, input dto.EmailNotificationPayload) error {
 	var writer bytes.Buffer
 	t := template.Must(template.New("supplierSuspensionEmail").Parse(utils.SupplierSuspensionEmail))
 	_ = t.Execute(&writer, dto.EmailNotificationPayload{
@@ -447,7 +456,7 @@ func (en *ServiceEngagementImpl) NotifySupplierOnSuspension(input dto.EmailNotif
 		"subject": input.SubjectTitle,
 	}
 
-	resp, err := en.Engage.MakeRequest(http.MethodPost, sendEmail, body)
+	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, sendEmail, body)
 
 	if err != nil {
 		return fmt.Errorf("unable to send alert to supplier email: %w", err)
@@ -460,7 +469,7 @@ func (en *ServiceEngagementImpl) NotifySupplierOnSuspension(input dto.EmailNotif
 }
 
 // SendSMS does the actual delivery of messages to the provided phone numbers
-func (en *ServiceEngagementImpl) SendSMS(phoneNumbers []string, message string) error {
+func (en *ServiceEngagementImpl) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
 	type PayloadRequest struct {
 		To      []string      `json:"to"`
 		Message string        `json:"message"`
@@ -473,7 +482,7 @@ func (en *ServiceEngagementImpl) SendSMS(phoneNumbers []string, message string) 
 		Sender:  base.SenderIDBewell,
 	}
 
-	resp, err := en.Engage.MakeRequest(http.MethodPost, sendSMS, requestPayload)
+	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, sendSMS, requestPayload)
 	if err != nil {
 		return fmt.Errorf("unable to send sms: %v", err)
 	}

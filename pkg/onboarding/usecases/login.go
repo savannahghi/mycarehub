@@ -7,6 +7,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -19,7 +20,7 @@ type LoginUseCases interface {
 		PIN string,
 		flavour base.Flavour,
 	) (*base.UserResponse, error)
-	RefreshToken(token string) (*base.AuthCredentialResponse, error)
+	RefreshToken(ctx context.Context, token string) (*base.AuthCredentialResponse, error)
 	LoginAsAnonymous(ctx context.Context) (*base.AuthCredentialResponse, error)
 	ResumeWithPin(ctx context.Context, pin string) (bool, error)
 }
@@ -52,8 +53,12 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	PIN string,
 	flavour base.Flavour,
 ) (*base.UserResponse, error) {
+	ctx, span := tracer.Start(ctx, "LoginByPhone")
+	defer span.End()
+
 	phoneNumber, err := l.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
 
@@ -63,12 +68,14 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		false,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// the error is wrapped already. No need to wrap it again
 		return nil, err
 	}
 
 	PINData, err := l.onboardingRepository.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// the error is wrapped already. No need to wrap it again
 		return nil, err
 	}
@@ -81,6 +88,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 
 	auth, err := l.onboardingRepository.GenerateAuthCredentials(ctx, *phoneNumber, profile)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -96,12 +104,14 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		profile.ID,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.RetrieveRecordError(err)
 	}
 
 	// fetch the user's communication settings
 	comms, err := l.onboardingRepository.GetUserCommunicationsSettings(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -109,6 +119,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	navActions, err := l.profile.GetNavActions(ctx, *profile)
 
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -125,8 +136,11 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 // RefreshToken takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func (l *LoginUseCasesImpl) RefreshToken(token string) (*base.AuthCredentialResponse, error) {
-	return l.onboardingRepository.ExchangeRefreshTokenForIDToken(token)
+func (l *LoginUseCasesImpl) RefreshToken(ctx context.Context, token string) (*base.AuthCredentialResponse, error) {
+	ctx, span := tracer.Start(ctx, "RefreshToken")
+	defer span.End()
+
+	return l.onboardingRepository.ExchangeRefreshTokenForIDToken(ctx, token)
 }
 
 // LoginAsAnonymous logs in a user as anonymous. This anonymous user will not have a userProfile
@@ -135,6 +149,9 @@ func (l *LoginUseCasesImpl) RefreshToken(token string) (*base.AuthCredentialResp
 func (l *LoginUseCasesImpl) LoginAsAnonymous(
 	ctx context.Context,
 ) (*base.AuthCredentialResponse, error) {
+	ctx, span := tracer.Start(ctx, "LoginAsAnonymous")
+	defer span.End()
+
 	return l.onboardingRepository.GenerateAuthCredentialsForAnonymousUser(ctx)
 }
 
@@ -142,8 +159,12 @@ func (l *LoginUseCasesImpl) LoginAsAnonymous(
 // to get
 // access to app
 func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ResumeWithPin")
+	defer span.End()
+
 	profile, err := l.profile.UserProfile(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// the error is wrapped already. No need to wrap it again
 		return false, err
 	}
@@ -152,6 +173,7 @@ func (l *LoginUseCasesImpl) ResumeWithPin(ctx context.Context, pin string) (bool
 	}
 	PINData, err := l.onboardingRepository.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.PinNotFoundError(err)
 	}
 	if PINData == nil {

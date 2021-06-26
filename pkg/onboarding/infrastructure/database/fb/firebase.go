@@ -12,6 +12,7 @@ import (
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
+	"go.opentelemetry.io/otel"
 
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
@@ -20,6 +21,9 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
+
+// Package that generates trace information
+var tracer = otel.Tracer("gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb")
 
 const (
 	userProfileCollectionName            = "user_profiles"
@@ -132,6 +136,9 @@ func (fr Repository) GetCRMStagingCollectionName() string {
 
 // GetUserProfileByUID retrieves the user profile by UID
 func (fr *Repository) GetUserProfileByUID(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "GetUserProfileByUID")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "verifiedUIDS",
@@ -140,11 +147,15 @@ func (fr *Repository) GetUserProfileByUID(ctx context.Context, uid string, suspe
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
 	if len(docs) == 0 {
-		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
+		err = exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
+
+		utils.RecordSpanError(span, err)
+		return nil, err
 	}
 
 	if len(docs) > 1 && base.IsDebug() {
@@ -158,6 +169,7 @@ func (fr *Repository) GetUserProfileByUID(ctx context.Context, uid string, suspe
 	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		err = fmt.Errorf("unable to read user profile")
 		return nil, exceptions.InternalServerError(err)
 	}
@@ -178,6 +190,9 @@ func (fr *Repository) GetUserProfileByID(
 	id string,
 	suspended bool,
 ) (*base.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "GetUserProfileByID")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "id",
@@ -186,6 +201,7 @@ func (fr *Repository) GetUserProfileByID(
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) > 1 && base.IsDebug() {
@@ -199,6 +215,7 @@ func (fr *Repository) GetUserProfileByID(
 	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
 	}
 
@@ -221,9 +238,12 @@ func (fr *Repository) fetchUserRandomName(ctx context.Context) *string {
 
 // CreateUserProfile creates a user profile of using the provided phone number and uid
 func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "CreateUserProfile")
+	defer span.End()
 
 	v, err := fr.CheckIfPhoneNumberExists(ctx, phoneNumber)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("failed to check the phone number: %v", err))
 	}
 
@@ -253,6 +273,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 	}
 	docRef, err := fr.FirestoreClient.Create(ctx, command)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new user profile: %w", err))
 	}
 	query := &GetSingleQuery{
@@ -261,12 +282,14 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 	}
 	dsnap, err := fr.FirestoreClient.Get(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created user profile: %w", err))
 	}
 	// return the newly created user profile
 	userProfile := &base.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
 	}
 	return userProfile, nil
@@ -275,19 +298,26 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 
 // CreateDetailedUserProfile creates a new user profile that is pre-filled using the provided phone number
 func (fr *Repository) CreateDetailedUserProfile(ctx context.Context, phoneNumber string, profile base.UserProfile) (*base.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "CreateDetailedUserProfile")
+	defer span.End()
+
 	exists, err := fr.CheckIfPhoneNumberExists(ctx, phoneNumber)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("failed to check the phone number: %v", err))
 	}
 
 	if exists {
 		// this phone is number is associated with another user profile, hence can not create an profile with the same phone number
-		return nil, exceptions.CheckPhoneNumberExistError()
+		err = exceptions.CheckPhoneNumberExistError()
+		utils.RecordSpanError(span, err)
+		return nil, err
 	}
 
 	// create user via their phone number on firebase
 	user, err := fr.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -314,6 +344,7 @@ func (fr *Repository) CreateDetailedUserProfile(ctx context.Context, phoneNumber
 
 	_, err = fr.FirestoreClient.Create(ctx, command)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new user profile: %w", err))
 	}
 
@@ -322,6 +353,9 @@ func (fr *Repository) CreateDetailedUserProfile(ctx context.Context, phoneNumber
 
 // CreateEmptySupplierProfile creates an empty supplier profile
 func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error) {
+	ctx, span := tracer.Start(ctx, "CreateEmptySupplierProfile")
+	defer span.End()
+
 	sup := &base.Supplier{
 		ID:        uuid.New().String(),
 		ProfileID: &profileID,
@@ -333,6 +367,7 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 	}
 	docRef, err := fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new supplier empty profile: %w", err))
 	}
 	getSupplierquery := &GetSingleQuery{
@@ -341,12 +376,14 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 	}
 	dsnap, err := fr.FirestoreClient.Get(ctx, getSupplierquery)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created supplier profile: %w", err))
 	}
 	// return the newly created supplier profile
 	supplier := &base.Supplier{}
 	err = dsnap.DataTo(supplier)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier profile: %w", err))
 	}
 	return supplier, nil
@@ -355,6 +392,9 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 
 // CreateDetailedSupplierProfile create a new supplier profile that is pre-filled using the provided profile ID
 func (fr *Repository) CreateDetailedSupplierProfile(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
+	ctx, span := tracer.Start(ctx, "CreateDetailedSupplierProfile")
+	defer span.End()
+
 	supplierID := uuid.New().String()
 	supplier.ID = supplierID
 	supplier.ProfileID = &profileID
@@ -367,6 +407,7 @@ func (fr *Repository) CreateDetailedSupplierProfile(ctx context.Context, profile
 
 	_, err := fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new supplier empty profile: %w", err))
 	}
 
@@ -375,6 +416,9 @@ func (fr *Repository) CreateDetailedSupplierProfile(ctx context.Context, profile
 
 // CreateEmptyCustomerProfile creates an empty customer profile
 func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*base.Customer, error) {
+	ctx, span := tracer.Start(ctx, "CreateEmptyCustomerProfile")
+	defer span.End()
+
 	cus := &base.Customer{
 		ID:        uuid.New().String(),
 		ProfileID: &profileID,
@@ -386,20 +430,25 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 	}
 	docRef, err := fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new customer empty profile: %w", err))
 	}
+
 	getSupplierquery := &GetSingleQuery{
 		CollectionName: fr.GetCustomerProfileCollectionName(),
 		Value:          docRef.ID,
 	}
 	dsnap, err := fr.FirestoreClient.Get(ctx, getSupplierquery)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created customer profile: %w", err))
 	}
+
 	// return the newly created customer profile
 	customer := &base.Customer{}
 	err = dsnap.DataTo(customer)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 	}
 	return customer, nil
@@ -407,6 +456,9 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 
 //GetUserProfileByPrimaryPhoneNumber fetches a user profile by primary phone number
 func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "GetUserProfileByPrimaryPhoneNumber")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "primaryPhone",
@@ -415,6 +467,7 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) == 0 {
@@ -424,6 +477,7 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 	profile := &base.UserProfile{}
 	err = dsnap.DataTo(profile)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
 	}
 
@@ -439,6 +493,9 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 // GetUserProfileByPhoneNumber fetches a user profile by phone number. This method traverses both PRIMARY PHONE numbers
 // and SECONDARY PHONE numbers.
 func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "GetUserProfileByPhoneNumber")
+	defer span.End()
+
 	// check first primary phone numbers
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
@@ -448,6 +505,7 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) == 1 {
@@ -468,6 +526,7 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 	}
 	docs1, err := fr.FirestoreClient.GetAll(ctx, query1)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -495,6 +554,9 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 // CheckIfPhoneNumberExists checks both PRIMARY PHONE NUMBERs and SECONDARY PHONE NUMBERs for the
 // existence of the argument phoneNumber.
 func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckIfPhoneNumberExists")
+	defer span.End()
+
 	// check first primary phone numbers
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
@@ -504,6 +566,7 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(err)
 	}
 
@@ -520,6 +583,7 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 	}
 	docs1, err := fr.FirestoreClient.GetAll(ctx, query1)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(err)
 	}
 	if len(docs1) > 0 {
@@ -532,6 +596,9 @@ func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber 
 // CheckIfEmailExists checks in both PRIMARY EMAIL and SECONDARY EMAIL for the
 // existence of the argument email
 func (fr *Repository) CheckIfEmailExists(ctx context.Context, email string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckIfEmailExists")
+	defer span.End()
+
 	// check first primary email
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
@@ -541,6 +608,7 @@ func (fr *Repository) CheckIfEmailExists(ctx context.Context, email string) (boo
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(err)
 	}
 	if len(docs) == 1 {
@@ -556,6 +624,7 @@ func (fr *Repository) CheckIfEmailExists(ctx context.Context, email string) (boo
 	}
 	docs1, err := fr.FirestoreClient.GetAll(ctx, query1)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 	if len(docs1) == 1 {
@@ -567,6 +636,9 @@ func (fr *Repository) CheckIfEmailExists(ctx context.Context, email string) (boo
 // CheckIfUsernameExists checks if the provided username exists. If true, it means its has already been associated with
 // another user
 func (fr *Repository) CheckIfUsernameExists(ctx context.Context, userName string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckIfUsernameExists")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "userName",
@@ -575,6 +647,7 @@ func (fr *Repository) CheckIfUsernameExists(ctx context.Context, userName string
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(err)
 	}
 	if len(docs) == 1 {
@@ -586,6 +659,9 @@ func (fr *Repository) CheckIfUsernameExists(ctx context.Context, userName string
 
 // GetPINByProfileID gets a user's PIN by their profile ID
 func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (*domain.PIN, error) {
+	ctx, span := tracer.Start(ctx, "GetPINByProfileID")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetPINsCollectionName(),
 		FieldName:      "profileID",
@@ -594,6 +670,7 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	// this should never run. If it does, it means we are doing something wrong.
@@ -609,6 +686,7 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 	PIN := &domain.PIN{}
 	err = dsnap.DataTo(PIN)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -619,20 +697,26 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 // want to delegate sign-in of anonymous users to the frontend. This is an effort the over reliance on firebase and lettin us
 // handle all the heavy lifting
 func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*base.AuthCredentialResponse, error) {
+	ctx, span := tracer.Start(ctx, "GenerateAuthCredentialsForAnonymousUser")
+	defer span.End()
+
 	// todo(dexter) : move anonymousPhoneNumber to base. AnonymousPhoneNumber should NEVER NEVER have a user profile
 	anonymousPhoneNumber := "+254700000000"
 
 	u, err := fr.GetOrCreatePhoneNumberUser(ctx, anonymousPhoneNumber)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
 	customToken, err := base.CreateFirebaseCustomToken(ctx, u.UID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.CustomTokenError(err)
 	}
 	userTokens, err := base.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.AuthenticateTokenError(err)
 	}
 
@@ -653,8 +737,12 @@ func (fr *Repository) GenerateAuthCredentials(
 	phone string,
 	profile *base.UserProfile,
 ) (*base.AuthCredentialResponse, error) {
+	ctx, span := tracer.Start(ctx, "GenerateAuthCredentials")
+	defer span.End()
+
 	resp, err := fr.GetOrCreatePhoneNumberUser(ctx, phone)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		if auth.IsUserNotFound(err) {
 			return nil, exceptions.UserNotFoundError(err)
 		}
@@ -663,10 +751,12 @@ func (fr *Repository) GenerateAuthCredentials(
 
 	customToken, err := base.CreateFirebaseCustomToken(ctx, resp.UID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.CustomTokenError(err)
 	}
 	userTokens, err := base.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.AuthenticateTokenError(err)
 	}
 
@@ -684,6 +774,7 @@ func (fr *Repository) GenerateAuthCredentials(
 
 	canExperiment, err := fr.CheckIfExperimentParticipant(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return nil, err
 	}
@@ -718,8 +809,12 @@ func (fr *Repository) CheckIfAdmin(profile *base.UserProfile) bool {
 // UpdateUserName updates the username of a profile that matches the id
 // this method should be called after asserting the username is unique and not associated with another userProfile
 func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName string) error {
+	ctx, span := tracer.Start(ctx, "UpdateUserName")
+	defer span.End()
+
 	v, err := fr.CheckIfUsernameExists(ctx, userName)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 	if v {
@@ -727,6 +822,7 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 	}
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -739,6 +835,7 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
@@ -752,6 +849,7 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile primary phone number: %v", err))
 	}
 
@@ -761,8 +859,12 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 // UpdatePrimaryPhoneNumber append a new primary phone number to the user profile
 // this method should be called after asserting the phone number is unique and not associated with another userProfile
 func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, phoneNumber string) error {
+	ctx, span := tracer.Start(ctx, "UpdatePrimaryPhoneNumber")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -776,6 +878,7 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
@@ -790,6 +893,7 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile primary phone number: %v", err))
 	}
 
@@ -799,8 +903,12 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 // UpdatePrimaryEmailAddress the primary email addresses of the profile that matches the id
 // this method should be called after asserting the emailAddress is unique and not associated with another userProfile
 func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, emailAddress string) error {
+	ctx, span := tracer.Start(ctx, "UpdatePrimaryEmailAddress")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -814,6 +922,7 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
@@ -827,6 +936,7 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile primary email address: %v", err))
 	}
 
@@ -836,8 +946,12 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 // UpdateSecondaryPhoneNumbers updates the secondary phone numbers of the profile that matches the id
 // this method should be called after asserting the phone numbers are unique and not associated with another userProfile
 func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string, phoneNumbers []string) error {
+	ctx, span := tracer.Start(ctx, "UpdateSecondaryPhoneNumbers")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -869,6 +983,7 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
@@ -882,6 +997,7 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary phone numbers: %v", err))
 	}
 
@@ -891,8 +1007,12 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 // UpdateSecondaryEmailAddresses the secondary email addresses of the profile that matches the id
 // this method should be called after asserting the emailAddresses  as unique and not associated with another userProfile
 func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id string, uniqueEmailAddresses []string) error {
+	ctx, span := tracer.Start(ctx, "UpdateSecondaryEmailAddresses")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -928,6 +1048,7 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -940,6 +1061,7 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary email address: %v", err))
 	}
 	return nil
@@ -947,8 +1069,12 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 
 // UpdateSuspended updates the suspend attribute of the profile that matches the id
 func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status bool) error {
+	ctx, span := tracer.Start(ctx, "UpdateSuspended")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, true)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -962,6 +1088,7 @@ func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status boo
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 	if len(docs) == 0 {
@@ -974,6 +1101,7 @@ func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status boo
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 
@@ -983,8 +1111,12 @@ func (fr *Repository) UpdateSuspended(ctx context.Context, id string, status boo
 
 // UpdatePhotoUploadID updates the photoUploadID attribute of the profile that matches the id
 func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, uploadID string) error {
+	ctx, span := tracer.Start(ctx, "UpdatePhotoUploadID")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -998,6 +1130,7 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -1010,6 +1143,7 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile photo upload id: %v", err))
 	}
 
@@ -1018,8 +1152,12 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 
 // UpdateCovers updates the covers attribute of the profile that matches the id
 func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base.Cover) error {
+	ctx, span := tracer.Start(ctx, "UpdateCovers")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -1048,6 +1186,7 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -1060,6 +1199,7 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile covers: %v", err))
 	}
 
@@ -1069,8 +1209,12 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 // UpdatePushTokens updates the pushTokens attribute of the profile that matches the id. This function does a hard reset instead of prior
 // matching
 func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushTokens []string) error {
+	ctx, span := tracer.Start(ctx, "UpdatePushTokens")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -1085,6 +1229,7 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -1097,6 +1242,7 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile push tokens: %v", err))
 	}
 	return nil
@@ -1104,8 +1250,12 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 
 // UpdatePermissions update the permissions of the user profile
 func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []base.PermissionType) error {
+	ctx, span := tracer.Start(ctx, "UpdatePermissions")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -1141,6 +1291,7 @@ func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -1153,6 +1304,7 @@ func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile permissions: %v", err))
 	}
 	return nil
@@ -1161,8 +1313,12 @@ func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []
 
 // UpdateRole update the permissions of the user profile
 func (fr *Repository) UpdateRole(ctx context.Context, id string, role base.RoleType) error {
+	ctx, span := tracer.Start(ctx, "UpdateRole")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -1178,6 +1334,7 @@ func (fr *Repository) UpdateRole(ctx context.Context, id string, role base.RoleT
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -1190,6 +1347,7 @@ func (fr *Repository) UpdateRole(ctx context.Context, id string, role base.RoleT
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user role and permissions: %v", err))
 	}
 	return nil
@@ -1233,8 +1391,12 @@ func (fr *Repository) UpdateFavNavActions(ctx context.Context, id string, favAct
 
 // UpdateBioData updates the biodate of the profile that matches the id
 func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.BioData) error {
+	ctx, span := tracer.Start(ctx, "UpdateBioData")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
@@ -1272,6 +1434,7 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -1284,6 +1447,7 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile bio data: %v", err))
 	}
 	return nil
@@ -1291,11 +1455,14 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 
 // UpdateVerifiedIdentifiers adds a UID to a user profile during login if it does not exist
 func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error {
+	ctx, span := tracer.Start(ctx, "UpdateVerifiedIdentifiers")
+	defer span.End()
 
 	for _, identifier := range identifiers {
 		// for each run, get the user profile. this will ensure the fetch profile always has the latest data
 		profile, err := fr.GetUserProfileByID(ctx, id, false)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			// this is a wrapped error. No need to wrap it again
 			return err
 		}
@@ -1315,6 +1482,7 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 			}
 			docs, err := fr.FirestoreClient.GetAll(ctx, query)
 			if err != nil {
+				utils.RecordSpanError(span, err)
 				return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 			}
 			if len(docs) == 0 {
@@ -1327,6 +1495,7 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 			}
 			err = fr.FirestoreClient.Update(ctx, updateCommand)
 			if err != nil {
+				utils.RecordSpanError(span, err)
 				return exceptions.InternalServerError(fmt.Errorf("unable to update user profile verified identifiers: %v", err))
 			}
 			return nil
@@ -1339,11 +1508,14 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 
 // UpdateVerifiedUIDS adds a UID to a user profile during login if it does not exist
 func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []string) error {
+	ctx, span := tracer.Start(ctx, "UpdateVerifiedUIDS")
+	defer span.End()
 
 	for _, uid := range uids {
 		// for each run, get the user profile. this will ensure the fetch profile always has the latest data
 		profile, err := fr.GetUserProfileByID(ctx, id, false)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			// this is a wrapped error. No need to wrap it again
 			return err
 		}
@@ -1363,6 +1535,7 @@ func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []
 			}
 			docs, err := fr.FirestoreClient.GetAll(ctx, query)
 			if err != nil {
+				utils.RecordSpanError(span, err)
 				return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 			}
 			if len(docs) == 0 {
@@ -1375,6 +1548,7 @@ func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []
 			}
 			err = fr.FirestoreClient.Update(ctx, updateCommand)
 			if err != nil {
+				utils.RecordSpanError(span, err)
 				return exceptions.InternalServerError(fmt.Errorf("unable to update user profile verified UIDS: %v", err))
 			}
 			return nil
@@ -1391,6 +1565,9 @@ func (fr *Repository) RecordPostVisitSurvey(
 	input dto.PostVisitSurveyInput,
 	UID string,
 ) error {
+	ctx, span := tracer.Start(ctx, "RecordPostVisitSurvey")
+	defer span.End()
+
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
 		return exceptions.LikelyToRecommendError(fmt.Errorf("the likelihood of recommending should be an int between 0 and 10"))
 
@@ -1408,6 +1585,7 @@ func (fr *Repository) RecordPostVisitSurvey(
 	}
 	_, err := fr.FirestoreClient.Create(ctx, command)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.AddRecordError(err)
 
 	}
@@ -1416,6 +1594,9 @@ func (fr *Repository) RecordPostVisitSurvey(
 
 // SavePIN  persist the data of the newly created PIN to a datastore
 func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (bool, error) {
+	ctx, span := tracer.Start(ctx, "SavePin")
+	defer span.End()
+
 	// persist the data to a datastore
 	command := &CreateCommand{
 		CollectionName: fr.GetPINsCollectionName(),
@@ -1423,6 +1604,7 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (bool, error
 	}
 	_, err := fr.FirestoreClient.Create(ctx, command)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.AddRecordError(err)
 	}
 	return true, nil
@@ -1431,8 +1613,12 @@ func (fr *Repository) SavePIN(ctx context.Context, pin *domain.PIN) (bool, error
 
 // UpdatePIN  persist the data of the updated PIN to a datastore
 func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN) (bool, error) {
+	ctx, span := tracer.Start(ctx, "UpdatePIN")
+	defer span.End()
+
 	pinData, err := fr.GetPINByProfileID(ctx, id)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.PinNotFoundError(err)
 	}
 	query := &GetAllQuery{
@@ -1443,6 +1629,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user pin as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -1462,6 +1649,7 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.UpdateProfileError(err)
 	}
 
@@ -1472,9 +1660,13 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 // ExchangeRefreshTokenForIDToken takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*base.AuthCredentialResponse, error) {
+func (fr Repository) ExchangeRefreshTokenForIDToken(ctx context.Context, refreshToken string) (*base.AuthCredentialResponse, error) {
+	_, span := tracer.Start(ctx, "ExchangeRefreshTokenForIDToken")
+	defer span.End()
+
 	apiKey, err := base.GetEnvVar(base.FirebaseWebAPIKeyEnvVarName)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -1484,6 +1676,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*base.
 	}
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -1498,6 +1691,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*base.
 
 	defer base.CloseRespBody(resp)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -1515,6 +1709,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*base.
 	var tokenResp base.AuthCredentialResponse
 	err = json.NewDecoder(resp.Body).Decode(&tokenResp)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -1523,6 +1718,9 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(refreshToken string) (*base.
 
 // GetCustomerProfileByID fetch the customer profile by profile id.
 func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*base.Customer, error) {
+	ctx, span := tracer.Start(ctx, "GetCustomerProfileByID")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetCustomerProfileCollectionName(),
 		FieldName:      "id",
@@ -1531,6 +1729,7 @@ func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*b
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) > 1 && base.IsDebug() {
@@ -1544,6 +1743,7 @@ func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*b
 	cus := &base.Customer{}
 	err = dsnap.DataTo(cus)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 	}
 	return cus, nil
@@ -1551,6 +1751,9 @@ func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*b
 
 // GetCustomerProfileByProfileID fetches customer profile by given ID
 func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*base.Customer, error) {
+	ctx, span := tracer.Start(ctx, "GetCustomerProfileByProfileID")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetCustomerProfileCollectionName(),
 		FieldName:      "profileID",
@@ -1559,6 +1762,7 @@ func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profile
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -1569,6 +1773,7 @@ func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profile
 	cus := &base.Customer{}
 	err = dsnap.DataTo(cus)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 	}
 	return cus, nil
@@ -1580,6 +1785,9 @@ func (fr *Repository) GetSupplierProfileByProfileID(
 	ctx context.Context,
 	profileID string,
 ) (*base.Supplier, error) {
+	ctx, span := tracer.Start(ctx, "GetSupplierProfileByProfileID")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetSupplierProfileCollectionName(),
 		FieldName:      "profileID",
@@ -1588,6 +1796,7 @@ func (fr *Repository) GetSupplierProfileByProfileID(
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	if len(docs) > 1 && base.IsDebug() {
@@ -1601,6 +1810,7 @@ func (fr *Repository) GetSupplierProfileByProfileID(
 	sup := &base.Supplier{}
 	err = dsnap.DataTo(sup)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	return sup, nil
@@ -1608,6 +1818,9 @@ func (fr *Repository) GetSupplierProfileByProfileID(
 
 // GetSupplierProfileByID fetches supplier profile by given ID
 func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*base.Supplier, error) {
+	ctx, span := tracer.Start(ctx, "GetSupplierProfileByID")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetSupplierProfileCollectionName(),
 		FieldName:      "id",
@@ -1616,6 +1829,7 @@ func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*b
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -1626,6 +1840,7 @@ func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*b
 	sup := &base.Supplier{}
 	err = dsnap.DataTo(sup)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier profile: %w", err))
 	}
 	return sup, nil
@@ -1633,9 +1848,13 @@ func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*b
 
 // UpdateSupplierProfile does a generic update of supplier profile.
 func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID string, data *base.Supplier) error {
+	ctx, span := tracer.Start(ctx, "UpdateSupplierProfile")
+	defer span.End()
+
 	// get the suppier profile
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 
@@ -1663,6 +1882,7 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID strin
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -1675,6 +1895,7 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID strin
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile: %v", err))
 	}
 	return nil
@@ -1683,10 +1904,13 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID strin
 
 // AddSupplierAccountType update the supplier profile with the correct account type
 func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID string, accountType base.AccountType) (*base.Supplier, error) {
+	ctx, span := tracer.Start(ctx, "AddSupplierAccountType")
+	defer span.End()
 
 	// get the suppier profile
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -1704,6 +1928,7 @@ func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID stri
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -1716,6 +1941,7 @@ func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID stri
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to update user profile: %v", err))
 	}
 
@@ -1725,10 +1951,13 @@ func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID stri
 
 // AddPartnerType updates the suppier profile with the provided name and  partner type.
 func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error) {
+	ctx, span := tracer.Start(ctx, "AddPartnerType")
+	defer span.End()
 
 	// get the suppier profile
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(err)
 	}
 
@@ -1744,6 +1973,7 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -1757,6 +1987,7 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(fmt.Errorf("unable to update user profile: %v", err))
 	}
 
@@ -1766,12 +1997,16 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 
 // ActivateSupplierProfile sets the active attribute of supplier profile to true
 func (fr *Repository) ActivateSupplierProfile(
+	ctx context.Context,
 	profileID string,
 	supplier base.Supplier,
 ) (*base.Supplier, error) {
-	ctx := context.Background()
+	ctx, span := tracer.Start(ctx, "AddPartnerType")
+	defer span.End()
+
 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -1784,6 +2019,7 @@ func (fr *Repository) ActivateSupplierProfile(
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -1798,6 +2034,7 @@ func (fr *Repository) ActivateSupplierProfile(
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	return sup, nil
@@ -1808,12 +2045,16 @@ func (fr *Repository) StageProfileNudge(
 	ctx context.Context,
 	nudge *base.Nudge,
 ) error {
+	ctx, span := tracer.Start(ctx, "StageProfileNudge")
+	defer span.End()
+
 	command := &CreateCommand{
 		CollectionName: fr.GetProfileNudgesCollectionName(),
 		Data:           nudge,
 	}
 	_, err := fr.FirestoreClient.Create(ctx, command)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 	return nil
@@ -1821,12 +2062,16 @@ func (fr *Repository) StageProfileNudge(
 
 // StageKYCProcessingRequest stages the request which will be retrieved later for admins
 func (fr *Repository) StageKYCProcessingRequest(ctx context.Context, data *domain.KYCRequest) error {
+	ctx, span := tracer.Start(ctx, "StageKYCProcessingRequest")
+	defer span.End()
+
 	command := &CreateCommand{
 		CollectionName: fr.GetKCYProcessCollectionName(),
 		Data:           data,
 	}
 	_, err := fr.FirestoreClient.Create(ctx, command)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 	return nil
@@ -1834,6 +2079,9 @@ func (fr *Repository) StageKYCProcessingRequest(ctx context.Context, data *domai
 
 // RemoveKYCProcessingRequest removes the supplier's kyc processing request
 func (fr *Repository) RemoveKYCProcessingRequest(ctx context.Context, supplierProfileID string) error {
+	ctx, span := tracer.Start(ctx, "RemoveKYCProcessingRequest")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetKCYProcessCollectionName(),
 		FieldName:      "supplierRecord.id",
@@ -1842,6 +2090,7 @@ func (fr *Repository) RemoveKYCProcessingRequest(ctx context.Context, supplierPr
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to fetch kyc request documents: %v", err))
 	}
 
@@ -1873,6 +2122,9 @@ func (fr *Repository) RemoveKYCProcessingRequest(ctx context.Context, supplierPr
 
 // FetchKYCProcessingRequests retrieves all unprocessed kycs for admins
 func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
+	ctx, span := tracer.Start(ctx, "FetchKYCProcessingRequests")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetKCYProcessCollectionName(),
 		FieldName:      "status",
@@ -1881,6 +2133,7 @@ func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to fetch kyc request documents: %v", err))
 	}
 
@@ -1890,6 +2143,7 @@ func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain
 		req := &domain.KYCRequest{}
 		err = doc.DataTo(req)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier: %w", err))
 		}
 		res = append(res, req)
@@ -1900,6 +2154,9 @@ func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain
 
 // FetchKYCProcessingRequestByID retrieves a specific kyc processing request
 func (fr *Repository) FetchKYCProcessingRequestByID(ctx context.Context, id string) (*domain.KYCRequest, error) {
+	ctx, span := tracer.Start(ctx, "FetchKYCProcessingRequestByID")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetKCYProcessCollectionName(),
 		FieldName:      "id",
@@ -1908,12 +2165,14 @@ func (fr *Repository) FetchKYCProcessingRequestByID(ctx context.Context, id stri
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to fetch kyc request documents: %v", err))
 	}
 
 	req := &domain.KYCRequest{}
 	err = docs[0].DataTo(req)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier: %w", err))
 	}
 
@@ -1922,6 +2181,9 @@ func (fr *Repository) FetchKYCProcessingRequestByID(ctx context.Context, id stri
 
 // UpdateKYCProcessingRequest update the supplier profile
 func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, kycRequest *domain.KYCRequest) error {
+	ctx, span := tracer.Start(ctx, "UpdateKYCProcessingRequest")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetKCYProcessCollectionName(),
 		FieldName:      "id",
@@ -1930,6 +2192,7 @@ func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, kycRequest
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse kyc processing request as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -1942,6 +2205,7 @@ func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, kycRequest
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update kyc processing request profile: %v", err))
 	}
 	return nil
@@ -1949,6 +2213,9 @@ func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, kycRequest
 
 // FetchAdminUsers fetches all admins
 func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "FetchAdminUsers")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "permissions",
@@ -1957,6 +2224,7 @@ func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile,
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
 	var admins []*base.UserProfile
@@ -1964,6 +2232,7 @@ func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile,
 		u := &base.UserProfile{}
 		err = doc.DataTo(u)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
 		}
 		admins = append(admins, u)
@@ -1973,14 +2242,19 @@ func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile,
 
 // PurgeUserByPhoneNumber removes the record of a user given a phone number.
 func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) error {
+	ctx, span := tracer.Start(ctx, "PurgeUserByPhoneNumber")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByPhoneNumber(ctx, phone, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 
 	// delete pin of the user
 	pin, err := fr.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 
@@ -2007,9 +2281,11 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	// profile should only occur if a supplier profile exists and not throw an error.
 	supplier, err := fr.GetSupplierProfileByProfileID(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 	} else {
 		err = fr.RemoveKYCProcessingRequest(ctx, supplier.ID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			log.Printf("KYC request information was not removed %v", err)
 		}
 
@@ -2038,6 +2314,7 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	// profile should only occur if a customer profile exists and not throw an error.
 	customer, err := fr.GetCustomerProfileByProfileID(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 	} else {
 		query := &GetAllQuery{
 			CollectionName: fr.GetCustomerProfileCollectionName(),
@@ -2092,6 +2369,9 @@ func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
 	flavour base.Flavour,
 	profileID string,
 ) (*base.Customer, *base.Supplier, error) {
+	ctx, span := tracer.Start(ctx, "GetCustomerOrSupplierProfileByProfileID")
+	defer span.End()
+
 	var customer *base.Customer
 	var supplier *base.Supplier
 
@@ -2100,6 +2380,7 @@ func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
 		{
 			customerProfile, err := fr.GetCustomerProfileByProfileID(ctx, profileID)
 			if err != nil {
+				utils.RecordSpanError(span, err)
 				return nil, nil, fmt.Errorf("failed to get customer profile")
 			}
 			customer = customerProfile
@@ -2108,6 +2389,7 @@ func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
 		{
 			supplierProfile, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 			if err != nil {
+				utils.RecordSpanError(span, err)
 				return nil, nil, fmt.Errorf("failed to get customer profile")
 			}
 			supplier = supplierProfile
@@ -2125,6 +2407,9 @@ func (fr *Repository) GetOrCreatePhoneNumberUser(
 	ctx context.Context,
 	phone string,
 ) (*dto.CreatedUserResponse, error) {
+	ctx, span := tracer.Start(ctx, "GetOrCreatePhoneNumberUser")
+	defer span.End()
+
 	user, err := fr.FirebaseClient.GetUserByPhoneNumber(
 		ctx,
 		phone,
@@ -2147,6 +2432,7 @@ func (fr *Repository) GetOrCreatePhoneNumberUser(
 		params,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	return &dto.CreatedUserResponse{
@@ -2167,6 +2453,9 @@ func (fr *Repository) HardResetSecondaryPhoneNumbers(
 	profile *base.UserProfile,
 	newSecondaryPhoneNumbers []string,
 ) error {
+	ctx, span := tracer.Start(ctx, "HardResetSecondaryPhoneNumbers")
+	defer span.End()
+
 	profile.SecondaryPhoneNumbers = newSecondaryPhoneNumbers
 
 	query := &GetAllQuery{
@@ -2177,6 +2466,7 @@ func (fr *Repository) HardResetSecondaryPhoneNumbers(
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -2189,6 +2479,7 @@ func (fr *Repository) HardResetSecondaryPhoneNumbers(
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary phone numbers: %v", err))
 	}
 
@@ -2202,6 +2493,9 @@ func (fr *Repository) HardResetSecondaryEmailAddress(
 	profile *base.UserProfile,
 	newSecondaryEmails []string,
 ) error {
+	ctx, span := tracer.Start(ctx, "HardResetSecondaryEmailAddress")
+	defer span.End()
+
 	profile.SecondaryEmailAddresses = newSecondaryEmails
 
 	query := &GetAllQuery{
@@ -2212,6 +2506,7 @@ func (fr *Repository) HardResetSecondaryEmailAddress(
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	if len(docs) == 0 {
@@ -2224,6 +2519,7 @@ func (fr *Repository) HardResetSecondaryEmailAddress(
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary phone numbers: %v", err))
 	}
 
@@ -2232,6 +2528,9 @@ func (fr *Repository) HardResetSecondaryEmailAddress(
 
 // CheckIfExperimentParticipant check if a user has subscribed to be an experiment participant
 func (fr *Repository) CheckIfExperimentParticipant(ctx context.Context, profileID string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckIfExperimentParticipant")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetExperimentParticipantCollectionName(),
 		FieldName:      "id",
@@ -2240,6 +2539,7 @@ func (fr *Repository) CheckIfExperimentParticipant(ctx context.Context, profileI
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 
@@ -2252,8 +2552,12 @@ func (fr *Repository) CheckIfExperimentParticipant(ctx context.Context, profileI
 // AddUserAsExperimentParticipant adds the provided user profile as an experiment participant if does not already exist.
 // this method is idempotent.
 func (fr *Repository) AddUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error) {
+	ctx, span := tracer.Start(ctx, "AddUserAsExperimentParticipant")
+	defer span.End()
+
 	exists, err := fr.CheckIfExperimentParticipant(ctx, profile.ID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
@@ -2264,6 +2568,7 @@ func (fr *Repository) AddUserAsExperimentParticipant(ctx context.Context, profil
 		}
 		_, err = fr.FirestoreClient.Create(ctx, createCommand)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return false, exceptions.InternalServerError(fmt.Errorf("unable to add user profile of ID %v in experiment_participant: %v", profile.ID, err))
 		}
 		return true, nil
@@ -2276,6 +2581,9 @@ func (fr *Repository) AddUserAsExperimentParticipant(ctx context.Context, profil
 // RemoveUserAsExperimentParticipant removes the provide user profile as an experiment participant. This methold does not check
 // for existence before deletion since non-existence is relatively equivalent to a removal
 func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error) {
+	ctx, span := tracer.Start(ctx, "RemoveUserAsExperimentParticipant")
+	defer span.End()
+
 	// fetch the document References
 	query := &GetAllQuery{
 		CollectionName: fr.GetExperimentParticipantCollectionName(),
@@ -2285,6 +2593,7 @@ func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, pro
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
 	}
 	// means the document was removed or does not exist
@@ -2297,6 +2606,7 @@ func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, pro
 	}
 	err = fr.FirestoreClient.Delete(ctx, deleteCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(fmt.Errorf("unable to remove user profile of ID %v from experiment_participant: %v", profile.ID, err))
 	}
 
@@ -2310,8 +2620,12 @@ func (fr *Repository) UpdateAddresses(
 	address base.Address,
 	addressType base.AddressType,
 ) error {
+	ctx, span := tracer.Start(ctx, "UpdateAddresses")
+	defer span.End()
+
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 
@@ -2336,6 +2650,7 @@ func (fr *Repository) UpdateAddresses(
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 	updateCommand := &UpdateCommand{
@@ -2345,6 +2660,7 @@ func (fr *Repository) UpdateAddresses(
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 	return nil
@@ -2356,6 +2672,9 @@ func (fr *Repository) AddNHIFDetails(
 	input dto.NHIFDetailsInput,
 	profileID string,
 ) (*domain.NHIFDetails, error) {
+	ctx, span := tracer.Start(ctx, "AddNHIFDetails")
+	defer span.End()
+
 	// Do a check if the item exists
 	collectionName := fr.GetNHIFDetailsCollectionName()
 	query := &GetAllQuery{
@@ -2366,6 +2685,7 @@ func (fr *Repository) AddNHIFDetails(
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -2390,6 +2710,7 @@ func (fr *Repository) AddNHIFDetails(
 	}
 	docRef, err := fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -2399,12 +2720,14 @@ func (fr *Repository) AddNHIFDetails(
 	}
 	dsnap, err := fr.FirestoreClient.Get(ctx, getNhifQuery)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
 	nhif := &domain.NHIFDetails{}
 	err = dsnap.DataTo(nhif)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -2416,6 +2739,9 @@ func (fr *Repository) GetNHIFDetailsByProfileID(
 	ctx context.Context,
 	profileID string,
 ) (*domain.NHIFDetails, error) {
+	ctx, span := tracer.Start(ctx, "GetNHIFDetailsByProfileID")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetNHIFDetailsCollectionName(),
 		FieldName:      "profileID",
@@ -2424,6 +2750,7 @@ func (fr *Repository) GetNHIFDetailsByProfileID(
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -2441,6 +2768,7 @@ func (fr *Repository) GetNHIFDetailsByProfileID(
 	nhif := &domain.NHIFDetails{}
 	err = docs[0].DataTo(nhif)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -2449,6 +2777,9 @@ func (fr *Repository) GetNHIFDetailsByProfileID(
 
 // GetUserCommunicationsSettings fetches the communication settings of a specific user.
 func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
+	ctx, span := tracer.Start(ctx, "GetUserCommunicationsSettings")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetCommunicationsSettingsCollectionName(),
 		FieldName:      "profileID",
@@ -2458,6 +2789,7 @@ func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profile
 
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -2475,6 +2807,7 @@ func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profile
 	comms := &base.UserCommunicationsSetting{}
 	err = docs[0].DataTo(comms)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 	return comms, nil
@@ -2484,9 +2817,13 @@ func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profile
 func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profileID string,
 	allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
 
+	ctx, span := tracer.Start(ctx, "SetUserCommunicationsSettings")
+	defer span.End()
+
 	// get the previous communications_settings
 	comms, err := fr.GetUserCommunicationsSettings(ctx, profileID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -2505,6 +2842,7 @@ func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profile
 	}
 	_, err = fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -2519,8 +2857,12 @@ func (fr *Repository) UpdateCustomerProfile(
 	profileID string,
 	cus base.Customer,
 ) (*base.Customer, error) {
+	ctx, span := tracer.Start(ctx, "UpdateCustomerProfile")
+	defer span.End()
+
 	customer, err := fr.GetCustomerProfileByProfileID(ctx, profileID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -2533,6 +2875,7 @@ func (fr *Repository) UpdateCustomerProfile(
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -2547,6 +2890,7 @@ func (fr *Repository) UpdateCustomerProfile(
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	return customer, nil
@@ -2554,6 +2898,9 @@ func (fr *Repository) UpdateCustomerProfile(
 
 // PersistIncomingSMSData persists SMS data
 func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error {
+	ctx, span := tracer.Start(ctx, "PersistIncomingSMSData")
+	defer span.End()
+
 	message := &dto.AfricasTalkingMessage{
 		Date:   input.Date,
 		From:   input.From,
@@ -2565,6 +2912,7 @@ func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *dto.Afr
 
 	validatedMessage, err := utils.ValidateAficasTalkingSMSData(message)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 
@@ -2575,6 +2923,7 @@ func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *dto.Afr
 
 	_, err = fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 
@@ -2584,8 +2933,12 @@ func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *dto.Afr
 
 // AddAITSessionDetails ...
 func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error) {
+	ctx, span := tracer.Start(ctx, "AddAITSessionDetails")
+	defer span.End()
+
 	validateDetails, err := utils.ValidateUSSDDetails(input)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 	sessionDetails := &domain.USSDLeadDetails{
@@ -2602,11 +2955,13 @@ func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.Sessi
 
 	_, err = fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
 	sessionDetails, err = fr.GetAITSessionDetails(ctx, validateDetails.SessionID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -2643,6 +2998,9 @@ func (fr *Repository) ListUserProfiles(ctx context.Context, role base.RoleType) 
 
 // GetAITSessionDetails gets Africa's Talking session details
 func (fr *Repository) GetAITSessionDetails(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error) {
+	ctx, span := tracer.Start(ctx, "GetAITSessionDetails")
+	defer span.End()
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetUSSDCollectionName(),
 		FieldName:      "sessionID",
@@ -2652,6 +3010,7 @@ func (fr *Repository) GetAITSessionDetails(ctx context.Context, sessionID string
 
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -2662,6 +3021,7 @@ func (fr *Repository) GetAITSessionDetails(ctx context.Context, sessionID string
 	sessionDet := &domain.USSDLeadDetails{}
 	err = docs[0].DataTo(sessionDet)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -2671,8 +3031,12 @@ func (fr *Repository) GetAITSessionDetails(ctx context.Context, sessionID string
 
 // UpdateSessionLevel updates user interaction level whike they interact with USSD
 func (fr *Repository) UpdateSessionLevel(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error) {
+	ctx, span := tracer.Start(ctx, "UpdateSessionLevel")
+	defer span.End()
+
 	sessionDetails, err := fr.GetAITSessionDetails(ctx, sessionID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -2685,6 +3049,7 @@ func (fr *Repository) UpdateSessionLevel(ctx context.Context, sessionID string, 
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -2697,6 +3062,7 @@ func (fr *Repository) UpdateSessionLevel(ctx context.Context, sessionID string, 
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	return sessionDetails, nil
@@ -2704,8 +3070,12 @@ func (fr *Repository) UpdateSessionLevel(ctx context.Context, sessionID string, 
 
 // UpdateSessionPIN updates current user's session PIN when signing up or changing PIN
 func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error) {
+	ctx, span := tracer.Start(ctx, "UpdateSessionPIN")
+	defer span.End()
+
 	sessionDetails, err := fr.GetAITSessionDetails(ctx, sessionID)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -2718,6 +3088,7 @@ func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pi
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 	sessionDetails.PIN = pin
@@ -2729,6 +3100,7 @@ func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pi
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 	return sessionDetails, nil
@@ -2736,6 +3108,9 @@ func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pi
 
 // StageCRMPayload ...
 func (fr *Repository) StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error {
+	ctx, span := tracer.Start(ctx, "StageCRMPayload")
+	defer span.End()
+
 	createCommand := &CreateCommand{
 		CollectionName: fr.GetCRMStagingCollectionName(),
 		Data:           payload,
@@ -2743,6 +3118,7 @@ func (fr *Repository) StageCRMPayload(ctx context.Context, payload dto.ContactLe
 
 	_, err := fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return fmt.Errorf("failed to create CRM staging payload")
 	}
 	return nil

@@ -293,12 +293,12 @@ func (p *PINExtensionImpl) GenerateTempPIN(ctx context.Context) (string, error) 
 
 // ISCClientExtension is an ISC fake
 type ISCClientExtension struct {
-	MakeRequestFn func(method string, path string, body interface{}) (*http.Response, error)
+	MakeRequestFn func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error)
 }
 
 // MakeRequest ...
-func (i *ISCClientExtension) MakeRequest(method string, path string, body interface{}) (*http.Response, error) {
-	return i.MakeRequestFn(method, path, body)
+func (i *ISCClientExtension) MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+	return i.MakeRequestFn(ctx, method, path, body)
 }
 
 // GetUserProfileByPrimaryPhoneNumber ..

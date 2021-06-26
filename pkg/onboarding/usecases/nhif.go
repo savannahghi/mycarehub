@@ -9,6 +9,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -55,8 +56,12 @@ func (n NHIFUseCaseImpl) AddNHIFDetails(
 	ctx context.Context,
 	input dto.NHIFDetailsInput,
 ) (*domain.NHIFDetails, error) {
+	ctx, span := tracer.Start(ctx, "AddNHIFDetails")
+	defer span.End()
+
 	UID, err := n.baseExt.GetLoggedInUserUID(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.UserNotFoundError(err)
 	}
 	profile, err := n.onboardingRepository.GetUserProfileByUID(
@@ -65,6 +70,7 @@ func (n NHIFUseCaseImpl) AddNHIFDetails(
 		false,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -74,12 +80,14 @@ func (n NHIFUseCaseImpl) AddNHIFDetails(
 		profile.ID,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
 	go func() {
 		cons := func() error {
 			return n.engagement.ResolveDefaultNudgeByTitle(
+				ctx,
 				UID,
 				base.FlavourConsumer,
 				AddNHIFNudgeTitle,
@@ -100,8 +108,12 @@ func (n NHIFUseCaseImpl) AddNHIFDetails(
 func (n NHIFUseCaseImpl) NHIFDetails(
 	ctx context.Context,
 ) (*domain.NHIFDetails, error) {
+	ctx, span := tracer.Start(ctx, "NHIFDetails")
+	defer span.End()
+
 	profile, err := n.profile.UserProfile(ctx)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 

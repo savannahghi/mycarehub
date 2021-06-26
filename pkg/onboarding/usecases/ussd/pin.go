@@ -35,10 +35,14 @@ const (
 
 // HandleChangePIN represents workflow used to change a user PIN
 func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
+	ctx, span := tracer.Start(ctx, "HandleChangePIN")
+	defer span.End()
+
 	if userResponse == EmptyInput || userResponse == ChangePINInput {
 		// TODO FIXME validate/check if supplied PIN is correct
 		err := u.UpdateSessionLevel(ctx, ChangePINEnterNewPINState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
 		resp := "CON Enter your old PIN to continue\r\n"
@@ -49,6 +53,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	if userResponse == GoBackHomeInput {
 		correctPin, err := u.LoginInUser(ctx, session.PhoneNumber, session.PIN, base.FlavourConsumer)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END something went wrong. Please try again"
 		}
 		if !correctPin {
@@ -56,6 +61,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		}
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
 		userResponse := ""
@@ -65,6 +71,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	if session.Level == ChangePINEnterNewPINState {
 		correctPin, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, base.FlavourConsumer)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
 		if !correctPin {
@@ -72,6 +79,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		}
 		err = u.UpdateSessionLevel(ctx, ConfirmNewPInState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
 		resp := "CON Enter a new four digit PIN\r\n"
@@ -80,14 +88,17 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	if session.Level == ConfirmNewPInState {
 		err := utils.ValidatePIN(userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "CON The PIN you entered is invalid. Please try again"
 		}
 		_, err = u.onboardingRepository.UpdateSessionPIN(ctx, session.SessionID, userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 		err = u.UpdateSessionLevel(ctx, ChangePINProcessNewPINState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return err.Error()
 		}
 		return "CON Please enter a 4 digit PIN again to confirm"
@@ -101,10 +112,12 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		}
 		_, err := u.ChangeUSSDUserPIN(ctx, session.PhoneNumber, userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
 		return u.ResetPinMenu()
@@ -114,11 +127,15 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 
 // HandlePINReset represents workflow used to reset to a user PIN
 func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
+	ctx, span := tracer.Start(ctx, "HandlePINReset")
+	defer span.End()
+
 	if session.Level == ForgetPINResetState {
 		resp := "CON Please enter a new  4 digit PIN to\r\n"
 		resp += "secure your account\r\n"
 		err := u.UpdateSessionLevel(ctx, PINResetEnterNewPINState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
 		return resp
@@ -128,14 +145,17 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 
 		err := utils.ValidatePIN(userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "CON The PIN you entered is invalid. Please try again"
 		}
 		_, err = u.onboardingRepository.UpdateSessionPIN(ctx, session.SessionID, userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
 		err = u.UpdateSessionLevel(ctx, PINResetProcessState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
 		resp := "CON Please enter a 4 digit PIN again to\r\n"
@@ -151,10 +171,12 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 		}
 		_, err := u.ChangeUSSDUserPIN(ctx, session.PhoneNumber, userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 		return u.ResetPinMenu()
@@ -162,6 +184,7 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 	if session.Level == ForgotPINVerifyDate {
 		profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, session.PhoneNumber, false)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END something wrong it happened"
 		}
 		date := userResponse
@@ -178,6 +201,7 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 		}
 		err = u.UpdateSessionLevel(ctx, UserPINResetState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 
@@ -189,12 +213,16 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 
 //SetUSSDUserPin sets user pin when a user registers via USSD
 func (u *Impl) SetUSSDUserPin(ctx context.Context, phoneNumber string, PIN string) error {
+	ctx, span := tracer.Start(ctx, "SetUSSDUserPin")
+	defer span.End()
+
 	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(
 		ctx,
 		phoneNumber,
 		false,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 
@@ -204,6 +232,7 @@ func (u *Impl) SetUSSDUserPin(ctx context.Context, phoneNumber string, PIN strin
 		profile.ID,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 	return nil
@@ -215,12 +244,16 @@ func (u *Impl) ChangeUSSDUserPIN(
 	phone string,
 	pin string,
 ) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ChangeUSSDUserPIN")
+	defer span.End()
+
 	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(
 		ctx,
 		phone,
 		false,
 	)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, err
 	}
 
@@ -233,6 +266,7 @@ func (u *Impl) ChangeUSSDUserPIN(
 	}
 	_, err = u.onboardingRepository.UpdatePIN(ctx, profile.ID, pinPayload)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(err)
 	}
 	return true, nil

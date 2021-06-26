@@ -38,6 +38,9 @@ var date string
 
 // HandleUserRegistration ...
 func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
+	ctx, span := tracer.Start(ctx, "HandleUserRegistration")
+	defer span.End()
+
 	if userResponse == EmptyInput || userResponse == GoBackHomeInput && session.Level == InitialState {
 		//Creating contact stub on first USSD Dial
 		time := time.Now()
@@ -51,6 +54,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 			ContactChannel: "USSD",
 			IsRegistered:   false,
 		}); err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 
@@ -76,6 +80,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	if userResponse == RegisterInput && session.Level == InitialState {
 		err := u.UpdateSessionLevel(ctx, GetFirstNameState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 		resp := "CON Please enter your firstname(e.g.\r\n"
@@ -86,6 +91,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	if session.Level == GetFirstNameState {
 		err := utils.ValidateUSSDInput(userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "CON Invalid name. Please enter a valid name (e.g John)"
 		}
 
@@ -97,6 +103,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		err = u.UpdateSessionLevel(ctx, GetLastNameState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 		resp := "CON Please enter your lastname(e.g.\r\n"
@@ -108,6 +115,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	if session.Level == GetLastNameState {
 		err := utils.ValidateUSSDInput(userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "CON Invalid name. Please enter a valid name (e.g John)"
 		}
 
@@ -120,6 +128,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		err = u.UpdateSessionLevel(ctx, GetDOBState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return err.Error()
 		}
 
@@ -132,11 +141,13 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	if session.Level == GetDOBState {
 		err := utils.ValidateDateDigits(userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "CON The date of birth you entered is not valid, please try again in DDMMYYYY format e.g 14031996"
 		}
 
 		err = utils.ValidateDateLength(userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "CON The date of birth you entered is not valid, please try again in DDMMYYYY format e.g 14031996"
 		}
 		resp := utils.ValidateYearOfBirth(userResponse)
@@ -148,6 +159,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		err = u.UpdateSessionLevel(ctx, GetPINState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return err.Error()
 		}
 		return "CON Please enter a 4 digit PIN to secure your account"
@@ -157,14 +169,17 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		// TODO FIXME check for empty response
 		err := utils.ValidatePIN(userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "CON The PIN you entered in not correct please enter a 4 digit PIN"
 		}
 		_, err = u.onboardingRepository.UpdateSessionPIN(ctx, session.SessionID, userResponse)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 		err = u.UpdateSessionLevel(ctx, SaveRecordState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return err.Error()
 		}
 		return "CON Please enter a 4 digit PIN again to confirm"
@@ -193,6 +208,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		err := u.CreateUsddUserProfile(ctx, session.PhoneNumber, session.PIN, updateInput)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 
@@ -206,6 +222,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
+			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
 		userResponse := ""

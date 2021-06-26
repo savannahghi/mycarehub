@@ -100,6 +100,7 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 				}
 
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					ctx context.Context,
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,
@@ -157,6 +158,7 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 				}
 
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
+					ctx context.Context,
 					UID string,
 					flavour base.Flavour,
 					nudgeTitle string,

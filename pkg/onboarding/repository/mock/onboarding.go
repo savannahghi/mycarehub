@@ -27,7 +27,7 @@ type FakeOnboardingRepository struct {
 	RemoveKYCProcessingRequestFn func(ctx context.Context, supplierProfileID string) error
 
 	// sets the active attribute of supplier profile to true
-	ActivateSupplierProfileFn func(profileID string, supplier base.Supplier) (*base.Supplier, error)
+	ActivateSupplierProfileFn func(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error)
 
 	SetUpSupplierFn func(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
 
@@ -97,6 +97,7 @@ type FakeOnboardingRepository struct {
 	UpdatePINFn func(ctx context.Context, id string, pin *domain.PIN) (bool, error)
 
 	ExchangeRefreshTokenForIDTokenFn func(
+		ctx context.Context,
 		token string,
 	) (*base.AuthCredentialResponse, error)
 
@@ -236,8 +237,8 @@ func (f *FakeOnboardingRepository) RemoveKYCProcessingRequest(ctx context.Contex
 }
 
 // ActivateSupplierProfile ...
-func (f *FakeOnboardingRepository) ActivateSupplierProfile(profileID string, supplier base.Supplier) (*base.Supplier, error) {
-	return f.ActivateSupplierProfileFn(profileID, supplier)
+func (f *FakeOnboardingRepository) ActivateSupplierProfile(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
+	return f.ActivateSupplierProfileFn(ctx, profileID, supplier)
 }
 
 // FetchKYCProcessingRequests ...
@@ -361,8 +362,8 @@ func (f *FakeOnboardingRepository) UpdatePIN(ctx context.Context, id string, pin
 }
 
 // ExchangeRefreshTokenForIDToken ...
-func (f *FakeOnboardingRepository) ExchangeRefreshTokenForIDToken(token string) (*base.AuthCredentialResponse, error) {
-	return f.ExchangeRefreshTokenForIDTokenFn(token)
+func (f *FakeOnboardingRepository) ExchangeRefreshTokenForIDToken(ctx context.Context, token string) (*base.AuthCredentialResponse, error) {
+	return f.ExchangeRefreshTokenForIDTokenFn(ctx, token)
 }
 
 // GetCustomerOrSupplierProfileByProfileID ...
