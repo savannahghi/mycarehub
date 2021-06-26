@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"gitlab.slade360emr.com/go/base"
@@ -13,22 +14,35 @@ import (
 )
 
 const (
-	firstName           = "CON Please enter your first name (e.g John)"
-	invalidName         = "CON Invalid name. Please enter a valid name (e.g John)"
-	lastName            = "CON Please enter your last name (eg Doe)"
-	dateOfBirth         = "CON Please enter your date of birth in DDMMYYYY format e.g 14031996 for 14th March 1992"
-	invalidDateOfBirth  = "CON The date of birth you entered is not valid, please try again in DDMMYYYY format e.g 14031996"
-	pin                 = "CON Please enter a 4 digit PIN to secure your account"
-	invalidPIN          = "CON Invalid PIN. Please enter a 4 digit PIN to secure your account"
-	confirmPIN          = "CON Please enter a 4 digit PIN again to confirm"
-	currentPIN          = "CON Enter your old PIN to continue"
-	mismatchedPIN       = "CON PIN mismatch. Please enter a PIN that matches the first PIN"
-	mismatchedChangePIN = "CON PIN mismatch. Please enter a PIN that matches your current PIN"
-	newPIN              = "CON Enter a new four digit PIN"
-	confirmNewPIN       = "CON Please enter the 4 digit PIN again to confirm"
+	welcomeMenu                 = "CON Welcome to Be.Well \n1. Register"
+	welcomeMenuInvalidChoice    = "CON Invalid choice.Please try again. \n1. Register"
+	optOutEndMessage            = "END We have successfully opted you out of marketing messages"
+	firstName                   = "CON Please enter your first name (e.g John)"
+	invalidDate                 = "CON Please enter your date of birth in DDMMYYYY format e.g 14031996 for 14th March 1992"
+	invalidName                 = "CON Invalid name. Please enter a valid name (e.g John)"
+	lastName                    = "CON Please enter your last name (eg Doe)"
+	dateOfBirth                 = "CON Please enter your date of birth in DDMMYYYY format e.g 14031996 for 14th March 1992"
+	invalidDateOfBirth          = "CON The date of birth you entered is not valid, please try again in DDMMYYYY format e.g 14031996"
+	pin                         = "CON Please enter a 4 digit PIN to secure your account"
+	invalidPIN                  = "CON Invalid PIN. Please enter a 4 digit PIN to secure your account"
+	confirmPIN                  = "CON Please enter a 4 digit PIN again to confirm"
+	currentPIN                  = "CON Enter your old PIN to continue"
+	mismatchedPIN               = "CON PIN mismatch. Please enter a PIN that matches the first PIN"
+	mismatchedChangePIN         = "CON PIN mismatch. Please enter a PIN that matches your current PIN"
+	newPIN                      = "CON Enter a new four digit PIN"
+	confirmNewPIN               = "CON Please enter the 4 digit PIN again to confirm"
+	optOutChangePinMenu         = "CON Thanks for signing up for Be.Well \n1. Opt out from marketing messages \n2. Change PIN"
+	defaultResponse             = "CON Invalid choice. Please try again.\n1. Opt out from marketing messages \n2. Change PIN"
+	oldPin                      = "CON Please enter the 4 digit PIN again to confirm"
+	oldPinMissMatchResponse     = "CON PIN mismatch. Please enter a PIN that matches the first PIN"
+	oldPinChangeSuccessResponse = "END Your PIN was changed successfully"
+	endDefaultResponse          = "END Invalid choice."
 )
 
 var temporaryPINHolder string
+var userFirstName string
+var userLastName string
+var date string
 
 //UssdUsecase represent the logic involved in receiving a USSD
 type UssdUsecase interface {
@@ -40,6 +54,8 @@ type UssdImpl struct {
 	baseExt              extension.BaseExtension
 	onboardingRepository repository.OnboardingRepository
 	profile              ProfileUseCase
+	pinUsecase           UserPINUseCases
+	signUp               SignUpUseCases
 }
 
 //NewUssdUsecases returns a new Ussd usecase
@@ -47,11 +63,15 @@ func NewUssdUsecases(
 	repository repository.OnboardingRepository,
 	ext extension.BaseExtension,
 	profileUsecase ProfileUseCase,
+	pinUsecase UserPINUseCases,
+	signUp SignUpUseCases,
 ) UssdUsecase {
 	return &UssdImpl{
 		baseExt:              ext,
 		onboardingRepository: repository,
 		profile:              profileUsecase,
+		pinUsecase:           pinUsecase,
+		signUp:               signUp,
 	}
 }
 
@@ -85,7 +105,7 @@ func (u *UssdImpl) userWithNoAccountMenu(ctx context.Context, payload *dto.Sessi
 			return err.Error()
 		}
 
-		return "CON Welcome to Be.Well \n1. Register"
+		return welcomeMenu
 	}
 
 	if textArray[0] == "1" {
@@ -95,7 +115,7 @@ func (u *UssdImpl) userWithNoAccountMenu(ctx context.Context, payload *dto.Sessi
 			return err.Error()
 		}
 
-		return u.USSDSignupFlow(ctx, payload.Text, sessionDetails.Level, payload.SessionID, textArray)
+		return u.USSDSignupFlow(ctx, payload.Text, sessionDetails.Level, payload.SessionID, *payload.PhoneNumber)
 	}
 
 	userChoice := utils.GetUserChoice(payload.Text, 1)
@@ -106,14 +126,14 @@ func (u *UssdImpl) userWithNoAccountMenu(ctx context.Context, payload *dto.Sessi
 	}
 
 	if sessionDetails.Level == 0 && userChoice != "1" {
-		return "CON Invalid choice.Please try again. \n1. Register"
+		return welcomeMenuInvalidChoice
 	}
 
-	return u.USSDSignupFlow(ctx, userChoice, sessionDetails.Level, payload.SessionID, textArray)
+	return u.USSDSignupFlow(ctx, userChoice, sessionDetails.Level, payload.SessionID, *payload.PhoneNumber)
 }
 
 // USSDSignupFlow ...
-func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, sessionID string, textArray []string) string {
+func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, sessionID string, phoneNumber string) string {
 	var response string
 	if text == "1" {
 		response = firstName
@@ -126,7 +146,6 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 
 	if level == 1 {
 		firstname := utils.GetUserChoice(text, 1)
-
 		err := utils.ValidateUSSDInput(firstname)
 		if err != nil {
 			return invalidName
@@ -136,6 +155,7 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 		if !isLetter {
 			return invalidName
 		}
+		userFirstName = firstname
 
 		err = u.UpdateSessionLevel(ctx, level, sessionID)
 		if err != nil {
@@ -163,7 +183,8 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 			return err.Error()
 		}
 
-		response = "CON Please enter your date of birth in DDMMYYYY format e.g 14031996 for 14th March 1992"
+		userLastName = lastname
+		response = invalidDate
 		return response
 	}
 
@@ -180,6 +201,7 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 			return invalidDateOfBirth
 		}
 
+		date = dob
 		err = u.UpdateSessionLevel(ctx, level, sessionID)
 		if err != nil {
 			return err.Error()
@@ -217,12 +239,35 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 			return mismatchedPIN
 		}
 
-		_, err := u.onboardingRepository.UpdateSessionPIN(ctx, sessionID, confirmedPIN)
+		// signUpInput := &dto.SignUpInput{
+		// 	PhoneNumber: &phonNumber,
+		// 	PIN:         &confirmedPIN,
+		// }
+
+		day, _ := strconv.Atoi(date[0:2])
+		month, _ := strconv.Atoi(date[2:4])
+		year, _ := strconv.Atoi(date[4:8])
+		dateofBirth := &base.Date{
+			Month: month,
+			Day:   day,
+			Year:  year,
+		}
+		updateInput := &dto.UserProfileInput{
+			DateOfBirth: dateofBirth,
+			FirstName:   &userFirstName,
+			LastName:    &userLastName,
+		}
+		err := u.CreateUsddUserProfile(ctx, phoneNumber, confirmedPIN, updateInput)
 		if err != nil {
 			return err.Error()
 		}
 
-		response = "CON Thanks for signing up for Be.Well \n1. Opt out from marketing messages \n2. Change PIN"
+		_, err = u.onboardingRepository.UpdateSessionPIN(ctx, sessionID, confirmedPIN)
+		if err != nil {
+			return err.Error()
+		}
+
+		response = optOutChangePinMenu
 
 		err = u.UpdateSessionLevel(ctx, level, sessionID)
 		if err != nil {
@@ -235,7 +280,7 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 		userOption := utils.GetUserChoice(text, 1)
 		switch userOption {
 		case "1":
-			response = "END We have successfully opted you out of marketing messages"
+			response = optOutEndMessage
 			return response
 		case "2":
 			response = currentPIN
@@ -245,9 +290,7 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 			}
 			return response
 		default:
-			resp := "CON Invalid choice. Please try again.\n"
-			response = "1.Opt out from marketing messages \n2. Change PIN"
-			resp += response
+			resp := defaultResponse
 			return resp
 		}
 
@@ -284,7 +327,7 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 
 		temporaryPINHolder = newPIN
 
-		response = "CON Please enter the 4 digit PIN again to confirm"
+		response = oldPin
 		err = u.UpdateSessionLevel(ctx, level, sessionID)
 		if err != nil {
 			return err.Error()
@@ -297,19 +340,23 @@ func (u *UssdImpl) USSDSignupFlow(ctx context.Context, text string, level int, s
 		newConfirmedPIN := utils.GetUserChoice(text, 1)
 
 		if newPIN != newConfirmedPIN {
-			return "CON PIN mismatch. Please enter a PIN that matches the first PIN"
+			return oldPinMissMatchResponse
 		}
 
 		_, err := u.onboardingRepository.UpdateSessionPIN(ctx, sessionID, newConfirmedPIN)
 		if err != nil {
 			return err.Error()
 		}
+		err = u.UpdateUserPin(ctx, phoneNumber, newConfirmedPIN)
+		if err != nil {
+			return err.Error()
+		}
 
-		response = "END Your PIN was changed successfully"
+		response = oldPinChangeSuccessResponse
 		return response
 	}
 
-	return "END Invalid choice."
+	return endDefaultResponse
 }
 
 //AddAITSessionDetails persists USSD details
@@ -324,6 +371,71 @@ func (u *UssdImpl) AddAITSessionDetails(ctx context.Context, input *dto.SessionD
 		Level:       input.Level,
 	}
 	err = u.onboardingRepository.AddAITSessionDetails(ctx, sessionDetails)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//CreateUsddUserProfile creates and updates a user profile
+func (u *UssdImpl) CreateUsddUserProfile(ctx context.Context, phoneNumber string, PIN string, userProfile *dto.UserProfileInput) error {
+	user, err := u.onboardingRepository.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
+	if err != nil {
+		return err
+	}
+	profile, err := u.onboardingRepository.CreateUserProfile(
+		ctx,
+		phoneNumber,
+		user.UID,
+	)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+	_, err = u.pinUsecase.SetUserPIN(
+		ctx,
+		PIN,
+		profile.ID,
+	)
+	if err != nil {
+		return err
+	}
+	_, err = u.onboardingRepository.CreateEmptyCustomerProfile(ctx, profile.ID)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+
+	data := base.BioData{
+		FirstName:   &userFirstName,
+		LastName:    &userLastName,
+		DateOfBirth: userProfile.DateOfBirth,
+	}
+	err = u.onboardingRepository.UpdateBioData(ctx, profile.ID, data)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+//UpdateUserPin updates user pin when a user changes their pin using USSD
+func (u *UssdImpl) UpdateUserPin(ctx context.Context, phoneNumber string, PIN string) error {
+	user, err := u.onboardingRepository.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
+	if err != nil {
+		return err
+	}
+	profile, err := u.onboardingRepository.CreateUserProfile(
+		ctx,
+		phoneNumber,
+		user.UID,
+	)
+	if err != nil {
+		return err
+	}
+	_, err = u.pinUsecase.SetUserPIN(
+		ctx,
+		PIN,
+		profile.ID,
+	)
 	if err != nil {
 		return err
 	}

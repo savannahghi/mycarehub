@@ -118,13 +118,13 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Initialize the usecases
 	profile := usecases.NewProfileUseCase(repo, baseExt, engage, pubSub)
-	aitUssd := usecases.NewUssdUsecases(repo, baseExt, profile)
 	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mes, baseExt, pubSub)
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage, pubSub)
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
+	aitUssd := usecases.NewUssdUsecases(repo, baseExt, profile, userpin, su)
 	sms := usecases.NewSMSUsecase(repo, baseExt)
 	agent := usecases.NewAgentUseCases(repo, engage, baseExt, userpin)
 
