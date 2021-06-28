@@ -182,6 +182,10 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		if err != nil {
 			return "CON The date of birth you entered is not valid, please try again in DDMMYYYY format e.g 14031996"
 		}
+		resp := utils.ValidateYearOfBirth(userResponse)
+		if err != nil {
+			return resp
+		}
 
 		date = userResponse
 		err = u.UpdateSessionLevel(ctx, GetPINState, session.SessionID)
@@ -252,8 +256,14 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 			resp += "reach out to you. Thank you.\r\n"
 			return resp
 		case RegOptOutInput:
-			resp := "END We have successfully opted you.\r\n"
+			option := "STOP"
+			err := u.profile.SetOptOut(ctx, option, session.PhoneNumber)
+			if err != nil {
+				return err.Error()
+			}
+			resp := "CON We have successfully opted you.\r\n"
 			resp += "marketing messages.\r\n"
+			resp += "0. Go back home."
 			return resp
 		case RegChangePINInput:
 			err := u.UpdateSessionLevel(ctx, UserPINState, session.SessionID)

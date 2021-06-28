@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
@@ -210,4 +211,25 @@ func GetUserResponse(text string) string {
 	response := strings.Split(text, "*")
 	lastUserInput := response[len(response)-1]
 	return lastUserInput
+}
+
+//ValidateYearOfBirth validates that the year enter is 18 years and above
+func ValidateYearOfBirth(date string) string {
+	year, _, _ := time.Now().Date()
+	dayEntered, _ := strconv.Atoi(date[0:2])
+	monthEntered, _ := strconv.Atoi(date[2:4])
+	yearEntered, _ := strconv.Atoi(date[4:8])
+	if dayEntered < 0 || dayEntered > 31 {
+		return "CON wrong date value"
+	}
+	if monthEntered < 0 || monthEntered > 12 {
+		return "CON wrong month value"
+	}
+
+	age := year - yearEntered
+	if age < 18 {
+		return "CON your age needs to be 18 years and above"
+	}
+	return ""
+
 }
