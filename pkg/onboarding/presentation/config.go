@@ -155,7 +155,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Path("/ait_ussd").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.IncomingUSSDHandler(ctx))
 
 	// Unauthenticated routes
-
+	r.Path("/optout").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.SetOptOut(ctx))
 	// login service routes
 	r.Path("/login").Methods(
 		http.MethodPost,

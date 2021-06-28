@@ -153,6 +153,12 @@ type SetPrimaryPhoneNumberPayload struct {
 	OTP         *string `json:"otp"`
 }
 
+// SetOptOutPayload used when setting optout option in crm via REST
+type SetOptOutPayload struct {
+	Option      *string `json:"option"`
+	PhoneNumber *string `json:"phoneNumber"`
+}
+
 // ChangePINRequest payload to set or change PIN information
 type ChangePINRequest struct {
 	PhoneNumber string `json:"phoneNumber"`

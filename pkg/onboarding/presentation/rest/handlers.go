@@ -14,12 +14,16 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 )
 
+const choice1 string = "STOP"
+const choice2 string = "START"
+
 // HandlersInterfaces represents all the REST API logic
 type HandlersInterfaces interface {
 	VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc
 	CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc
 	UserRecoveryPhoneNumbers(ctx context.Context) http.HandlerFunc
 	SetPrimaryPhoneNumber(ctx context.Context) http.HandlerFunc
+	SetOptOut(ctx context.Context) http.HandlerFunc
 	LoginByPhone(ctx context.Context) http.HandlerFunc
 	LoginAnonymous(ctx context.Context) http.HandlerFunc
 	RequestPINReset(ctx context.Context) http.HandlerFunc
@@ -118,6 +122,43 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) h
 			return
 		}
 		base.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+//SetOptOut toggles the optout attribute in the crm to yes of no to determine accepting or rejecting promotional messages
+func (h *HandlersInterfacesImpl) SetOptOut(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		p := &dto.SetOptOutPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.Option == nil || *p.Option != "STOP" && *p.Option != "START" {
+			err := fmt.Errorf("expected an optout option to be provided or valid")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		err := h.interactor.Onboarding.SetOptOut(
+			ctx,
+			*p.Option,
+			*p.PhoneNumber,
+		)
+		var response string
+
+		if err != nil {
+			base.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		if *p.Option == choice1 {
+			response = "You have unsubscribed from promotional messages"
+		} else if *p.Option == choice2 {
+			response = "you have subscribed to receiving promotional messages"
+		}
+
+		base.WriteJSONResponse(w, dto.NewOKResp(response), http.StatusOK)
 	}
 }
 

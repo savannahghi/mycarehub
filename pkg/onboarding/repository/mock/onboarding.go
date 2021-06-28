@@ -172,6 +172,7 @@ type FakeOnboardingRepository struct {
 	UpdateAddressesFn               func(ctx context.Context, id string, address base.Address, addressType base.AddressType) error
 	AddIncomingUSSDDataFn           func(ctx context.Context, input *dto.EndSessionDetails) error
 	CreateAgentUserProfileFn        func(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
+	UpdateOptOutFn                  func(ctx context.Context, option string, phoneNumber string) error
 }
 
 // GetSupplierProfileByID ...

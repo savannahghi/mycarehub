@@ -87,7 +87,7 @@ type ProfileUseCase interface {
 		emailAddress string,
 		otp string,
 	) error
-
+	SetOptOut(ctx context.Context, option string, phoneNumber string) error
 	// checks whether a phone number has been registered by another user. Checks both primary and
 	// secondary phone numbers. If the the phone number is foreign, it returns false
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
@@ -845,6 +845,47 @@ func (p *ProfileUseCaseImpl) SetPrimaryPhoneNumber(
 	}
 
 	return nil
+}
+
+//SetOptOut toggles the optout attribute to yes or no enabling the crm to stop or start sending promotional messages
+func (p *ProfileUseCaseImpl) SetOptOut(ctx context.Context, option string, phoneNumber string) error {
+	pr, err := p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber, false)
+	if err != nil {
+		return err
+	}
+
+	if option != "STOP" && option != "START" {
+		return fmt.Errorf("invalid input")
+	}
+	generalOption := CRMDomain.GeneralOptionTypeNotGiven
+	if option == "STOP" {
+		generalOption = CRMDomain.GeneralOptionTypeYes
+	}
+	if option == "START" {
+		generalOption = CRMDomain.GeneralOptionTypeNo
+	}
+	CRMContactProperties := CRMDomain.ContactProperties{
+		OptOut: generalOption,
+	}
+	bs, err := json.Marshal(dto.UpdateContactPSMessage{
+		Properties: CRMContactProperties,
+		Phone:      *pr.PrimaryPhone,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = p.pubsub.PublishToPubsub(
+		ctx,
+		p.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
+		bs,
+	)
+
+	if err != nil {
+		return err
+	}
+	return nil
+
 }
 
 // SetPrimaryEmailAddress set the primary email address of the user after verifying the otp code
