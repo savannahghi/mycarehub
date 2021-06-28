@@ -869,10 +869,10 @@ func (p *ProfileUseCaseImpl) SetOptOut(ctx context.Context, option string, phone
 		OptOut: generalOption,
 	}
 
-	if err := p.onboardingRepository.StageingCRMPayload(ctx, dto.CRMStagingPayload{
+	if err := p.onboardingRepository.StageCRMPayload(ctx, dto.CRMStagingPayload{
 		CRMUpdateContactPayload: CRMContactProperties,
 	}); err != nil {
-		fmt.Errorf("failed to create CRM staging payload")
+		return fmt.Errorf("failed to create CRM staging payload")
 	}
 
 	//todo(restore)

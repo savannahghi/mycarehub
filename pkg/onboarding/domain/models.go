@@ -109,3 +109,14 @@ type USSDLeadDetails struct {
 	DateOfBirth string `json:"dob" firestore:"dob"`
 	PIN         string `json:"pin" firestore:"pin"`
 }
+
+// CRMContact represents a stored CRM contact
+type CRMContact struct {
+	FirstName   string `json:"first_name,omitempty"`
+	LastName    string `json:"last_name,omitempty"`
+	DOB         string `json:"dob,omitempty"`
+	PhoneNumber string `json:"phone_number,omitempty"`
+	OptOut      string `json:"opt_out,omitempty"`
+	TimeStamp   string `json:"time_stamp,omitempty"`
+	IsSynced    string `json:"is_synced,omitempty"`
+}

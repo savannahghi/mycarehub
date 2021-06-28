@@ -2,17 +2,12 @@ package ussd
 
 import (
 	"context"
-	"encoding/json"
-	"log"
 	"strconv"
-	"time"
 
 	"gitlab.slade360emr.com/go/base"
-	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 )
 
 const (
@@ -42,7 +37,7 @@ const (
 	RegChangePINInput = "3"
 
 	//date layout
-	layoutISO = "01-02-2006"
+	// layoutISO = "01-02-2006"
 )
 
 var userFirstName string
@@ -52,16 +47,16 @@ var date string
 // HandleUserRegistration ...
 func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
 	if userResponse == "" && session.Level == InitialState {
-		contact := CRMDomain.CRMContact{
-			Properties: CRMDomain.ContactProperties{
-				Phone:                 session.PhoneNumber,
-				FirstChannelOfContact: CRMDomain.ChannelOfContactUssd,
-			},
-		}
-		err := u.CreateCRMContact(ctx, contact)
-		if err != nil {
-			return "END something wrong happened"
-		}
+		// contact := CRMDomain.CRMContact{
+		// 	Properties: CRMDomain.ContactProperties{
+		// 		Phone:                 session.PhoneNumber,
+		// 		FirstChannelOfContact: CRMDomain.ChannelOfContactUssd,
+		// 	},
+		// }
+		// err := u.CreateCRMContact(ctx, contact)
+		// if err != nil {
+		// 	return "END something wrong happened"
+		// }
 		resp := "CON Welcome to Be.Well.\r\n"
 		resp += "1. Register\r\n"
 		resp += "2. I want a cover\r\n"
@@ -98,14 +93,14 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		userFirstName = userResponse
 
 		//Update CRM Firstname
-		var CRMContactProperties CRMDomain.ContactProperties
-		if userFirstName != "" {
-			CRMContactProperties.FirstName = userFirstName
-		}
-		err = u.UpdateCRMContactDetails(CRMContactProperties, session, ctx)
-		if err != nil {
-			return err.Error()
-		}
+		// var CRMContactProperties CRMDomain.ContactProperties
+		// if userFirstName != "" {
+		// 	CRMContactProperties.FirstName = userFirstName
+		// }
+		// err = u.UpdateCRMContactDetails(CRMContactProperties, session, ctx)
+		// if err != nil {
+		// 	return err.Error()
+		// }
 
 		err = u.UpdateSessionLevel(ctx, GetLastNameState, session.SessionID)
 		if err != nil {
@@ -131,15 +126,15 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		userLastName = userResponse
 
 		//Update CRM Lastname
-		var CRMContactProperties CRMDomain.ContactProperties
-		if userLastName != "" {
-			CRMContactProperties.FirstName = userLastName
-		}
+		// var CRMContactProperties CRMDomain.ContactProperties
+		// if userLastName != "" {
+		// 	CRMContactProperties.FirstName = userLastName
+		// }
 
-		err = u.UpdateCRMContactDetails(CRMContactProperties, session, ctx)
-		if err != nil {
-			return err.Error()
-		}
+		// err = u.UpdateCRMContactDetails(CRMContactProperties, session, ctx)
+		// if err != nil {
+		// 	return err.Error()
+		// }
 
 		err = u.UpdateSessionLevel(ctx, GetDOBState, session.SessionID)
 		if err != nil {
@@ -169,23 +164,23 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		date = userResponse
 
-		//Update CRM Contact DOB
-		day := date[0:2]
-		month := date[2:4]
-		year := date[4:8]
+		// //Update CRM Contact DOB
+		// day := date[0:2]
+		// month := date[2:4]
+		// year := date[4:8]
 
-		myDOB := day + "-" + month + "-" + year
-		userDOB, _ := time.Parse(layoutISO, myDOB)
+		// myDOB := day + "-" + month + "-" + year
+		// userDOB, _ := time.Parse(layoutISO, myDOB)
 
-		var CRMContactProperties CRMDomain.ContactProperties
-		if date != "" {
-			CRMContactProperties.DateOfBirth = &userDOB
-		}
+		// var CRMContactProperties CRMDomain.ContactProperties
+		// if date != "" {
+		// 	CRMContactProperties.DateOfBirth = &userDOB
+		// }
 
-		err = u.UpdateCRMContactDetails(CRMContactProperties, session, ctx)
-		if err != nil {
-			return err.Error()
-		}
+		// err = u.UpdateCRMContactDetails(CRMContactProperties, session, ctx)
+		// if err != nil {
+		// 	return err.Error()
+		// }
 
 		err = u.UpdateSessionLevel(ctx, GetPINState, session.SessionID)
 		if err != nil {
@@ -234,6 +229,24 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		if err != nil {
 			return "END something wrong happened"
 		}
+		// SEND CRM DATA
+		data := struct {
+			DateOfBirth base.Date
+			FirstName   string
+			LastName    string
+			PhoneNumber string
+		}{
+			DateOfBirth: *dateofBirth,
+			FirstName:   userFirstName,
+			LastName:    userLastName,
+			PhoneNumber: session.PhoneNumber,
+		}
+
+		if err := u.onboardingRepository.StageCRMPayload(ctx, dto.CRMStagingPayload{
+			CRMUpdateContactPayload: data,
+		}); err != nil {
+			return "End something wrong happened"
+		}
 
 		err = u.UpdateSessionLevel(ctx, WelcomeMenu, session.SessionID)
 		if err != nil {
@@ -279,43 +292,43 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 }
 
 // CreateCRMContact ...
-func (u *Impl) CreateCRMContact(ctx context.Context, contact CRMDomain.CRMContact) error {
+// func (u *Impl) CreateCRMContact(ctx context.Context, contact CRMDomain.CRMContact) error {
 
-	bs, err := json.Marshal(contact)
-	if err != nil {
-		return err
-	}
+// 	bs, err := json.Marshal(contact)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = u.pubsub.PublishToPubsub(
-		ctx,
-		u.pubsub.AddPubSubNamespace(pubsubmessaging.CreateCRMContact),
-		bs,
-	)
-	if err != nil {
-		log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
-	}
-	return nil
+// 	err = u.pubsub.PublishToPubsub(
+// 		ctx,
+// 		u.pubsub.AddPubSubNamespace(pubsubmessaging.CreateCRMContact),
+// 		bs,
+// 	)
+// 	if err != nil {
+// 		log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
+// 	}
+// 	return nil
 
-}
+// }
 
 // UpdateCRMContactDetails updates CRM contact
-func (u *Impl) UpdateCRMContactDetails(payload CRMDomain.ContactProperties, sessionDetails *domain.USSDLeadDetails, ctx context.Context) error {
+// func (u *Impl) UpdateCRMContactDetails(payload CRMDomain.ContactProperties, sessionDetails *domain.USSDLeadDetails, ctx context.Context) error {
 
-	bs, err := json.Marshal(dto.UpdateContactPSMessage{
-		Properties: payload,
-		Phone:      sessionDetails.PhoneNumber,
-	})
-	if err != nil {
-		return nil
-	}
+// 	bs, err := json.Marshal(dto.UpdateContactPSMessage{
+// 		Properties: payload,
+// 		Phone:      sessionDetails.PhoneNumber,
+// 	})
+// 	if err != nil {
+// 		return nil
+// 	}
 
-	err = u.pubsub.PublishToPubsub(
-		ctx,
-		u.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
-		bs,
-	)
-	if err != nil {
-		log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
-	}
-	return nil
-}
+// 	err = u.pubsub.PublishToPubsub(
+// 		ctx,
+// 		u.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
+// 		bs,
+// 	)
+// 	if err != nil {
+// 		log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
+// 	}
+// 	return nil
+// }
