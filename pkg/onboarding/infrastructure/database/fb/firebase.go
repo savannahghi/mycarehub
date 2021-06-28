@@ -2669,7 +2669,7 @@ func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pi
 }
 
 // StageCRMPayload ...
-func (fr *Repository) StageCRMPayload(ctx context.Context, payload dto.CRMStagingPayload) error {
+func (fr *Repository) StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error {
 
 	createCommand := &CreateCommand{
 		CollectionName: fr.GetCRMStagingCollectionName(),

@@ -1,8 +1,6 @@
 package dto
 
 import (
-	"time"
-
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 
 	"gitlab.slade360emr.com/go/base"
@@ -67,10 +65,4 @@ type UserInfo struct {
 	// In UserRecord.UserInfo it will return the constant string "firebase".
 	ProviderID string `json:"providerId,omitempty"`
 	UID        string `json:"rawId,omitempty"`
-}
-
-type CRMStagingPayload struct {
-	CRMUpdateContactPayload interface{} `json:"CRMUpdateContactPayload" firestore:"CRMUpdateContactPayload"`
-	IsSync                  bool        `json:"isSync"  firestore:"IsSync"`
-	TimeSync                *time.Time  `json:"timeSync"  firestore:"TimeSync"`
 }

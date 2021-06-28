@@ -18,8 +18,8 @@ const (
 	LoginUserState = 0
 	//HomeMenuState represents inner submenu once user is logged in
 	HomeMenuState = 5
-	// UserPINState represents workflows required to set a user PIN
-	UserPINState = 50
+	// ChangeUserPINState represents workflows required to set a user PIN
+	ChangeUserPINState = 50
 	// UserPINResetState represents workflows required to reset a forgotten user PIN
 	UserPINResetState = 10
 	// EmptyInput is used to load a default menu when user has not supplied any input
@@ -96,7 +96,7 @@ func (u *Impl) HandleResponseFromUSSDGateway(ctx context.Context, payload *dto.S
 		return u.HandleLogin(ctx, sessionDetails, userResponse)
 	case sessionDetails.Level == HomeMenuState:
 		return u.HandleHomeMenu(ctx, HomeMenuState, sessionDetails, userResponse)
-	case sessionDetails.Level >= UserPINState:
+	case sessionDetails.Level >= ChangeUserPINState:
 		return u.HandleChangePIN(ctx, sessionDetails, userResponse)
 	case sessionDetails.Level >= UserPINResetState:
 		return u.HandlePINReset(ctx, sessionDetails, userResponse)

@@ -31,8 +31,8 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		if err != nil {
 			return "END something is wrong"
 		}
-		resp := "CON Enter your old PIN to continue.\r\n"
-		resp += "0. Go back home.\r\n"
+		resp := "CON Enter your old PIN to continue\r\n"
+		resp += "0. Go back home\r\n"
 		return resp
 	}
 
@@ -50,7 +50,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		if err != nil {
 			return "END something is wrong"
 		}
-		resp := "CON Enter a new four digit PIN.\r\n"
+		resp := "CON Enter a new four digit PIN\r\n"
 		return resp
 	}
 
@@ -72,8 +72,8 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 // HandlePINReset represents workflow used to reset to a user PIN
 func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
 	if userResponse == ForgotPINInput {
-		resp := "CON Please enter a 4 digit PIN to.\r\n"
-		resp += "secure your account.\r\n"
+		resp := "CON Please enter a 4 digit PIN to\r\n"
+		resp += "secure your account\r\n"
 		return resp
 	}
 
@@ -86,7 +86,7 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 		if err != nil {
 			return "END something is wrong"
 		}
-		resp := "CON Please enter a 4 digit PIN again to.\r\n"
+		resp := "CON Please enter a 4 digit PIN again to\r\n"
 		resp += "confirm.\r\n"
 		return resp
 	}
@@ -96,9 +96,9 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 			if err != nil {
 				return "END something wrong happened"
 			}
-			resp := "CON The PIN you entered does not match.\r\n"
-			resp += "Please enter a 4 digit PIN to.\r\n"
-			resp += "secure your account.\r\n"
+			resp := "CON The PIN you entered does not match\r\n"
+			resp += "Please enter a 4 digit PIN to\r\n"
+			resp += "secure your account\r\n"
 			return resp
 		}
 		_, err := u.ChangeUSSDUserPIN(ctx, session.PhoneNumber, userResponse)

@@ -865,12 +865,15 @@ func (p *ProfileUseCaseImpl) SetOptOut(ctx context.Context, option string, phone
 	if option == "START" {
 		generalOption = CRMDomain.GeneralOptionTypeNo
 	}
-	CRMContactProperties := CRMDomain.ContactProperties{
-		OptOut: generalOption,
-	}
+	// CRMContactProperties := CRMDomain.ContactProperties{
+	// 	OptOut: generalOption,
+	// }
 
-	if err := p.onboardingRepository.StageCRMPayload(ctx, dto.CRMStagingPayload{
-		CRMUpdateContactPayload: CRMContactProperties,
+	if err := p.onboardingRepository.StageCRMPayload(ctx, dto.ContactLeadInput{
+		ContactValue: phoneNumber,
+		ContactType:  "phone",
+		OptOut:       generalOption,
+		IsSync:       false,
 	}); err != nil {
 		return fmt.Errorf("failed to create CRM staging payload")
 	}
