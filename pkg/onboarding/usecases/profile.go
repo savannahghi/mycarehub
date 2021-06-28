@@ -849,10 +849,11 @@ func (p *ProfileUseCaseImpl) SetPrimaryPhoneNumber(
 
 //SetOptOut toggles the optout attribute to yes or no enabling the crm to stop or start sending promotional messages
 func (p *ProfileUseCaseImpl) SetOptOut(ctx context.Context, option string, phoneNumber string) error {
-	pr, err := p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber, false)
-	if err != nil {
-		return err
-	}
+	// todo(restore tomorrow)
+	// pr, err := p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber, false)
+	// if err != nil {
+	// 	return err
+	// }
 
 	if option != "STOP" && option != "START" {
 		return fmt.Errorf("invalid input")
@@ -867,23 +868,31 @@ func (p *ProfileUseCaseImpl) SetOptOut(ctx context.Context, option string, phone
 	CRMContactProperties := CRMDomain.ContactProperties{
 		OptOut: generalOption,
 	}
-	bs, err := json.Marshal(dto.UpdateContactPSMessage{
-		Properties: CRMContactProperties,
-		Phone:      *pr.PrimaryPhone,
-	})
-	if err != nil {
-		return err
+
+	if err := p.onboardingRepository.StageingCRMPayload(ctx, dto.CRMStagingPayload{
+		CRMUpdateContactPayload: CRMContactProperties,
+	}); err != nil {
+		fmt.Errorf("failed to create CRM staging payload")
 	}
 
-	err = p.pubsub.PublishToPubsub(
-		ctx,
-		p.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
-		bs,
-	)
+	//todo(restore)
+	// bs, err := json.Marshal(dto.UpdateContactPSMessage{
+	// 	Properties: CRMContactProperties,
+	// 	Phone:      *pr.PrimaryPhone,
+	// })
+	// if err != nil {
+	// 	return err
+	// }
 
-	if err != nil {
-		return err
-	}
+	// err = p.pubsub.PublishToPubsub(
+	// 	ctx,
+	// 	p.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
+	// 	bs,
+	// )
+
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 
 }

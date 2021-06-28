@@ -170,6 +170,8 @@ type OnboardingRepository interface {
 	GetAITSessionDetails(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error)
 	UpdateSessionLevel(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error)
 	UpdateSessionPIN(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error)
+
+	StageingCRMPayload(ctx context.Context, payload dto.CRMStagingPayload) error
 }
 
 // UserProfileRepository interface that provide access to all persistent storage operations for user profile

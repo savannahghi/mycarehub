@@ -34,8 +34,8 @@ const (
 	communicationsSettingsCollectionName = "communications_settings"
 	smsCollectionName                    = "incoming_sms"
 	ussdCollectioName                    = "ussd"
-
-	firebaseExchangeRefreshTokenURL = "https://securetoken.googleapis.com/v1/token?key="
+	crmStagingCollectionName             = "crm_staging"
+	firebaseExchangeRefreshTokenURL      = "https://securetoken.googleapis.com/v1/token?key="
 )
 
 // Repository accesses and updates an item that is stored on Firebase
@@ -121,6 +121,12 @@ func (fr Repository) GetSMSCollectionName() string {
 //GetUSSDCollectionName ...
 func (fr Repository) GetUSSDCollectionName() string {
 	suffixed := base.SuffixCollection(ussdCollectioName)
+	return suffixed
+}
+
+//GetCRMStagingCollectionName ...
+func (fr Repository) GetCRMStagingCollectionName() string {
+	suffixed := base.SuffixCollection(crmStagingCollectionName)
 	return suffixed
 }
 
@@ -2660,4 +2666,19 @@ func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pi
 		return nil, exceptions.InternalServerError(err)
 	}
 	return sessionDetails, nil
+}
+
+// StageingCRMPayload ...
+func (fr *Repository) StageingCRMPayload(ctx context.Context, payload dto.CRMStagingPayload) error {
+
+	createCommand := &CreateCommand{
+		CollectionName: fr.GetCRMStagingCollectionName(),
+		Data:           payload,
+	}
+
+	_, err := fr.FirestoreClient.Create(ctx, createCommand)
+	if err != nil {
+		return fmt.Errorf("failed to create CRM staging payload")
+	}
+	return nil
 }

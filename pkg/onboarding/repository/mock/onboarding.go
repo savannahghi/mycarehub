@@ -173,6 +173,7 @@ type FakeOnboardingRepository struct {
 	AddIncomingUSSDDataFn           func(ctx context.Context, input *dto.EndSessionDetails) error
 	CreateAgentUserProfileFn        func(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
 	UpdateOptOutFn                  func(ctx context.Context, option string, phoneNumber string) error
+	StageingCRMPayloadFn            func(ctx context.Context, payload dto.CRMStagingPayload) error
 }
 
 // GetSupplierProfileByID ...
@@ -570,4 +571,8 @@ func (f *FakeOnboardingRepository) CreateDetailedUserProfile(ctx context.Context
 // CreateDetailedSupplierProfile ...
 func (f *FakeOnboardingRepository) CreateDetailedSupplierProfile(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
 	return f.CreateDetailedSupplierProfileFn(ctx, profileID, supplier)
+}
+
+func (f *FakeOnboardingRepository) StageingCRMPayload(ctx context.Context, payload dto.CRMStagingPayload) error {
+	return f.StageingCRMPayloadFn(ctx, payload)
 }
