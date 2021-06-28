@@ -14,8 +14,16 @@ services:
     entrypoint: ["env", "-u", "DOCKER_HOST"]
     command: ["dockerd-entrypoint.sh"]
 
+echo_stage:
+  stage: test
+  script:
+    - echo "Just echo stage"
+  tags:
+    - healthcloud-multi
+
 lint_and_test:
   stage: test
+  when: manual
   before_script:
     - bash decrypt_service_account.sh
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com" 
