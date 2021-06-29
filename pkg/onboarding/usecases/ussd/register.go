@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -42,6 +43,20 @@ var date string
 
 // HandleUserRegistration ...
 func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
+	//Creating contact stub on first USSD Dial
+	if err := u.onboardingRepository.StageCRMPayload(ctx, dto.ContactLeadInput{
+		ContactType:    "phone",
+		ContactValue:   session.PhoneNumber,
+		IsSync:         false,
+		TimeSync:       &time.Time{},
+		OptOut:         "NO",
+		WantCover:      false,
+		ContactChannel: "USSD",
+		IsRegistered:   false,
+	}); err != nil {
+		return "END Something wrong happened. Please try again."
+	}
+
 	if userResponse == EmptyInput || userResponse == GoBackHomeInput && session.Level == InitialState {
 		resp := "CON Welcome to Be.Well\r\n"
 		resp += "1. Register\r\n"
@@ -65,13 +80,18 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		resp += "reach out to you. Thank you\r\n"
 		resp += "0. Go back home"
 
-		payload := dto.ContactLeadInput{
-			ContactValue: session.PhoneNumber,
-			WantCover:    true,
+		coverPayload := dto.ContactLeadInput{
+			ContactType:    "phone",
+			ContactValue:   session.PhoneNumber,
+			IsSync:         false,
+			OptOut:         "NO",
+			WantCover:      true,
+			ContactChannel: "USSD",
+			IsRegistered:   false,
 		}
 
 		//Error shouldn't break USSD flow
-		_ = u.onboardingRepository.StageCRMPayload(ctx, payload)
+		_ = u.onboardingRepository.StageCRMPayload(ctx, coverPayload)
 
 		return resp
 
@@ -189,22 +209,18 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		}
 
 		err := u.CreateUsddUserProfile(ctx, session.PhoneNumber, session.PIN, updateInput)
+		logrus.Print("ERROR IS: ", err)
 		if err != nil {
 			return "END Something wrong happened. Please try again."
 		}
 
-		if err := u.onboardingRepository.StageCRMPayload(ctx, dto.ContactLeadInput{
-			ContactType:  "phone",
-			ContactValue: session.PhoneNumber,
-			FirstName:    userFirstName,
+		contactLead := &dto.ContactLeadInput{
+			FirstName:    userResponse,
 			LastName:     userLastName,
 			DateOfBirth:  *dateofBirth,
-			IsSync:       false,
-			TimeSync:     &time.Time{},
-			OptOut:       "NO",
-		}); err != nil {
-			return "END Something wrong happened. Please try again."
+			IsRegistered: true,
 		}
+		_ = u.onboardingRepository.UpdateStageCRMPayload(ctx, session.PhoneNumber, contactLead)
 
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {

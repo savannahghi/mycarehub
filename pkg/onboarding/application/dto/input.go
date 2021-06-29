@@ -331,13 +331,15 @@ type RegisterAgentInput struct {
 
 // ContactLeadInput ...
 type ContactLeadInput struct {
-	ContactType  string                      `json:"contact_type,omitempty"`
-	ContactValue string                      `json:"contact_value,omitempty"`
-	FirstName    string                      `json:"first_name,omitempty"`
-	LastName     string                      `json:"last_name,omitempty"`
-	DateOfBirth  base.Date                   `json:"date_of_birth,omitempty"`
-	IsSync       bool                        `json:"isSync"  firestore:"IsSync"`
-	TimeSync     *time.Time                  `json:"timeSync"  firestore:"TimeSync"`
-	OptOut       CRMDomain.GeneralOptionType `json:"opt_out,omitempty"`
-	WantCover    bool                        `json:"wantCover" firestore:"wantCover"`
+	ContactType    string                      `json:"contact_type,omitempty"`
+	ContactValue   string                      `json:"contact_value,omitempty"`
+	FirstName      string                      `json:"first_name,omitempty"`
+	LastName       string                      `json:"last_name,omitempty"`
+	DateOfBirth    base.Date                   `json:"date_of_birth,omitempty"`
+	IsSync         bool                        `json:"isSync"  firestore:"IsSync"`
+	TimeSync       *time.Time                  `json:"timeSync"  firestore:"TimeSync"`
+	OptOut         CRMDomain.GeneralOptionType `json:"opt_out,omitempty"`
+	WantCover      bool                        `json:"wantCover" firestore:"wantCover"`
+	ContactChannel string                      `json:"contact_channel,omitempty"`
+	IsRegistered   bool                        `json:"is_registered,omitempty"`
 }

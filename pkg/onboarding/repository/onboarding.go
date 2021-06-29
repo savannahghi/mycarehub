@@ -172,6 +172,7 @@ type OnboardingRepository interface {
 	UpdateSessionPIN(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error)
 
 	StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error
+	UpdateStageCRMPayload(ctx context.Context, phoneNumber string, payload *dto.ContactLeadInput) error
 }
 
 // UserProfileRepository interface that provide access to all persistent storage operations for user profile

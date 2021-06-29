@@ -15,6 +15,7 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -2671,6 +2672,7 @@ func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pi
 // StageCRMPayload ...
 func (fr *Repository) StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error {
 
+	logrus.Print("PAYLOAD IS: ", payload)
 	createCommand := &CreateCommand{
 		CollectionName: fr.GetCRMStagingCollectionName(),
 		Data:           payload,
@@ -2679,6 +2681,69 @@ func (fr *Repository) StageCRMPayload(ctx context.Context, payload dto.ContactLe
 	_, err := fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
 		return fmt.Errorf("failed to create CRM staging payload")
+	}
+	return nil
+}
+
+// GetStageCRMPayload ...
+func (fr *Repository) GetStageCRMPayload(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error) {
+	query := &GetAllQuery{
+		CollectionName: fr.GetCRMStagingCollectionName(),
+		FieldName:      "ContactValue",
+		Value:          phoneNumber,
+		Operator:       "==",
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	if len(docs) == 0 {
+		return nil, nil
+	}
+
+	CRMDet := &dto.ContactLeadInput{}
+	err = docs[0].DataTo(CRMDet)
+	if err != nil {
+		return nil, err
+	}
+
+	return CRMDet, nil
+
+}
+
+// UpdateStageCRMPayload ...
+func (fr *Repository) UpdateStageCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
+	CRMDetails, err := fr.GetStageCRMPayload(ctx, phoneNumber)
+	if err != nil {
+		return err
+	}
+
+	collectionName := fr.GetCRMStagingCollectionName()
+	query := &GetAllQuery{
+		CollectionName: collectionName,
+		FieldName:      "ContactValue",
+		Value:          phoneNumber,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return err
+	}
+	CRMDetails.FirstName = contactLead.FirstName
+	CRMDetails.LastName = contactLead.LastName
+	CRMDetails.DateOfBirth = contactLead.DateOfBirth
+	CRMDetails.IsRegistered = contactLead.IsRegistered
+
+	updateCommand := &UpdateCommand{
+		CollectionName: collectionName,
+		ID:             docs[0].Ref.ID,
+		Data:           CRMDetails,
+	}
+	err = fr.FirestoreClient.Update(ctx, updateCommand)
+	if err != nil {
+		return exceptions.InternalServerError(err)
 	}
 	return nil
 }
