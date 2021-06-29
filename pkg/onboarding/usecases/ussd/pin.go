@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -21,6 +23,8 @@ const (
 	PINResetEnterNewPINState = 10
 	// PINResetProcessState represents the state when the user has provided a wrong PIN
 	PINResetProcessState = 11
+	//ConfirmNewPInState indicates the state when a user is confirming a pin update
+	ConfirmNewPInState = 53
 )
 
 // HandleChangePIN represents workflow used to change a user PIN
@@ -37,7 +41,14 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	}
 
 	if userResponse == GoBackHomeInput {
-		err := u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
+		correctPin, err := u.LoginInUser(ctx, session.PhoneNumber, session.PIN, base.FlavourConsumer)
+		if err != nil {
+			return "END something went wrong. Please try again"
+		}
+		if !correctPin {
+			return "CON Invalid PIN. Please try again"
+		}
+		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
 			return "END Something wrong happened. Please try again"
 		}
@@ -46,15 +57,39 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	}
 
 	if session.Level == ChangePINEnterNewPINState {
-		err := u.UpdateSessionLevel(ctx, ChangePINProcessNewPINState, session.SessionID)
+		err := u.UpdateSessionLevel(ctx, ConfirmNewPInState, session.SessionID)
 		if err != nil {
 			return "END Something wrong happened. Please try again"
 		}
 		resp := "CON Enter a new four digit PIN\r\n"
 		return resp
 	}
+	if session.Level == ConfirmNewPInState {
+		err := utils.ValidatePIN(userResponse)
+		if err != nil {
+			return "CON The PIN you entered in not correct please enter a 4 digit PIN"
+		}
+		_, err = u.onboardingRepository.UpdateSessionPIN(ctx, session.SessionID, userResponse)
+		if err != nil {
+			return "END Something wrong happened. Please try again. please retry again"
+		}
+		err = u.UpdateSessionLevel(ctx, ChangePINProcessNewPINState, session.SessionID)
+		if err != nil {
+			return err.Error()
+		}
+		return "CON Please enter a 4 digit PIN again to confirm"
+	}
 
 	if session.Level == ChangePINProcessNewPINState {
+		if userResponse != session.PIN {
+			err := u.UpdateSessionLevel(ctx, ConfirmNewPInState, session.SessionID)
+			if err != nil {
+				return "END Something wrong happened. Please try again."
+			}
+			resp := "CON The PIN you entered does not match\r\n"
+			resp += "Please enter a 4 digit PIN to secure your account\r\n"
+			return resp
+		}
 		_, err := u.ChangeUSSDUserPIN(ctx, session.PhoneNumber, userResponse)
 		if err != nil {
 			return "END Something wrong happened. Please try again"
@@ -63,8 +98,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		if err != nil {
 			return "END Something wrong happened. Please try again"
 		}
-		userResponse := ""
-		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)
+		return u.ResetPinMenu()
 	}
 	return "END invalid input"
 }
@@ -94,7 +128,7 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 		if userResponse != session.PIN {
 			err := u.UpdateSessionLevel(ctx, PINResetEnterNewPINState, session.SessionID)
 			if err != nil {
-				return "END something wrong happened"
+				return "END Something wrong happened. Please try again."
 			}
 			resp := "CON The PIN you entered does not match\r\n"
 			resp += "Please enter a 4 digit PIN to\r\n"
@@ -107,7 +141,7 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 		}
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
-			return "END something wrong happened"
+			return "END Something wrong happened. Please try again."
 		}
 		userResponse := ""
 		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)

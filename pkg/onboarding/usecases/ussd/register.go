@@ -52,7 +52,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	if userResponse == RegisterInput && session.Level == InitialState {
 		err := u.UpdateSessionLevel(ctx, GetFirstNameState, session.SessionID)
 		if err != nil {
-			return "END something wrong happened"
+			return "END Something wrong happened. Please try again."
 		}
 		resp := "CON Please enter your firstname(e.g.\r\n"
 		resp += "John).\r\n"
@@ -81,7 +81,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		err = u.UpdateSessionLevel(ctx, GetLastNameState, session.SessionID)
 		if err != nil {
-			return "END something wrong happened"
+			return "END Something wrong happened. Please try again."
 		}
 		resp := "CON Please enter your lastname(e.g.\r\n"
 		resp += "Doe)\r\n"
@@ -124,7 +124,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 			return "CON The date of birth you entered is not valid, please try again in DDMMYYYY format e.g 14031996"
 		}
 		resp := utils.ValidateYearOfBirth(userResponse)
-		if err != nil {
+		if resp != "" {
 			return resp
 		}
 
@@ -139,9 +139,13 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 	if session.Level == GetPINState {
 		// TODO FIXME check for empty response
-		_, err := u.onboardingRepository.UpdateSessionPIN(ctx, session.SessionID, userResponse)
+		err := utils.ValidatePIN(userResponse)
 		if err != nil {
-			return "END something wrong happened"
+			return "CON The PIN you entered in not correct please enter a 4 digit PIN"
+		}
+		_, err = u.onboardingRepository.UpdateSessionPIN(ctx, session.SessionID, userResponse)
+		if err != nil {
+			return "END Something wrong happened. Please try again."
 		}
 		err = u.UpdateSessionLevel(ctx, SaveRecordState, session.SessionID)
 		if err != nil {
@@ -155,7 +159,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		if userResponse != session.PIN {
 			err := u.UpdateSessionLevel(ctx, GetPINState, session.SessionID)
 			if err != nil {
-				return "END something wrong happened"
+				return "END Something wrong happened. Please try again."
 			}
 			resp := "CON The PIN you entered does not match\r\n"
 			resp += "Please enter a 4 digit PIN to secure your account\r\n"
@@ -177,7 +181,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		err := u.CreateUsddUserProfile(ctx, session.PhoneNumber, session.PIN, updateInput)
 		if err != nil {
-			return "END Something wrong happened. Please try again"
+			return "END Something wrong happened. Please try again."
 		}
 
 		if err := u.onboardingRepository.StageCRMPayload(ctx, dto.ContactLeadInput{
@@ -190,16 +194,18 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 			TimeSync:     &time.Time{},
 			OptOut:       "NO",
 		}); err != nil {
-			return "END Something wrong happened. Please try again"
+			return "END Something wrong happened. Please try again."
 		}
 
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
-			return "END Something wrong happened. Please try again"
+			return "END Something wrong happened. Please try again."
 		}
 		userResponse := ""
 		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)
 	}
-
-	return "END Connection problem or invalid MMI"
+	resp := "CON Invalid choice. Try again.\r\n"
+	resp += "1. Register\r\n"
+	resp += "2. I want a cover\r\n"
+	return resp
 }

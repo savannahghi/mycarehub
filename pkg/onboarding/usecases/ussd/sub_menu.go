@@ -28,6 +28,14 @@ func (u *Impl) WelcomeMenu() string {
 	return resp
 }
 
+func (u *Impl) ResetPinMenu() string {
+	resp := "CON Your PIN was reset successfully.\r\n"
+	resp += "1. I want a cover\r\n"
+	resp += "2. Opt out from marketing messages\r\n"
+	resp += "3. Change PIN"
+	return resp
+}
+
 // HandleHomeMenu represents the default home menu
 func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.USSDLeadDetails, userResponse string) string {
 	if userResponse == EmptyInput || userResponse == GoBackHomeInput {
@@ -57,6 +65,11 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 		return resp
 
 	} else if userResponse == OptOutFromMarketingInput {
+		option := "STOP"
+		err := u.profile.SetOptOut(ctx, option, session.PhoneNumber)
+		if err != nil {
+			return "END Something wrong happened. Please try again."
+		}
 		resp := "CON We have successfully opted you\r\n"
 		resp += "out of marketing messages\r\n"
 		resp += "0. Go back home"
@@ -70,7 +83,10 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 		return u.HandleChangePIN(ctx, session, userResponse)
 
 	} else {
-		// TODO FIXME return user to home
-		return "END invalid input try again"
+		resp := "CON Invalid choice. Try again.\r\n"
+		resp += "1. I want a cover\r\n"
+		resp += "2. Opt out from marketing messages\r\n"
+		resp += "3. Change PIN"
+		return resp
 	}
 }

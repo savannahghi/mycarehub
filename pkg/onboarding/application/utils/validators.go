@@ -220,10 +220,10 @@ func ValidateYearOfBirth(date string) string {
 	monthEntered, _ := strconv.Atoi(date[2:4])
 	yearEntered, _ := strconv.Atoi(date[4:8])
 	if dayEntered < 0 || dayEntered > 31 {
-		return "CON wrong date value"
+		return "CON wrong date value please enter a valid date"
 	}
 	if monthEntered < 0 || monthEntered > 12 {
-		return "CON wrong month value"
+		return "CON wrong month value please enter a valid month"
 	}
 
 	age := year - yearEntered
