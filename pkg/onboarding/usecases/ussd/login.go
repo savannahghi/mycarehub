@@ -15,16 +15,19 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 		resp += "your PIN to continue(enter 00 if\r\n"
 		resp += "you forgot your PIN)\r\n"
 		return resp
+
 	case ForgotPINInput:
+		// TODO: Ask user for their DOB before resetting their PIN
 		err := u.UpdateSessionLevel(ctx, UserPINResetState, session.SessionID)
 		if err != nil {
 			return "END something wrong happened"
 		}
 		return u.HandlePINReset(ctx, session, userResponse)
+
 	default:
 		isLoggedIn, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, base.FlavourConsumer)
 		if err != nil {
-			return "END something wrong happened"
+			return "END Something wrong happened. Please try again"
 		}
 		if !isLoggedIn {
 			resp := "CON The PIN you entered is not correct\r\n"
@@ -34,7 +37,7 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 		}
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
-			return "END something wrong happened"
+			return "END Something wrong happened. Please try again"
 		}
 		userResponse := ""
 		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)

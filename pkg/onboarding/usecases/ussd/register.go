@@ -3,6 +3,7 @@ package ussd
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
@@ -176,23 +177,25 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		err := u.CreateUsddUserProfile(ctx, session.PhoneNumber, session.PIN, updateInput)
 		if err != nil {
-			return "END something wrong happened"
+			return "END Something wrong happened. Please try again"
 		}
 
 		if err := u.onboardingRepository.StageCRMPayload(ctx, dto.ContactLeadInput{
-			ContactValue: session.PhoneNumber,
 			ContactType:  "phone",
-			DateOfBirth:  *dateofBirth,
+			ContactValue: session.PhoneNumber,
 			FirstName:    userFirstName,
 			LastName:     userLastName,
+			DateOfBirth:  *dateofBirth,
 			IsSync:       false,
+			TimeSync:     &time.Time{},
+			OptOut:       "NO",
 		}); err != nil {
-			return "End something wrong happened"
+			return "END Something wrong happened. Please try again"
 		}
 
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
-			return "END something wrong happened"
+			return "END Something wrong happened. Please try again"
 		}
 		userResponse := ""
 		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)

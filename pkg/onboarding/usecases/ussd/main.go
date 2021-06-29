@@ -81,27 +81,35 @@ func NewUssdUsecases(
 func (u *Impl) HandleResponseFromUSSDGateway(ctx context.Context, payload *dto.SessionDetails) string {
 	sessionDetails, err := u.GetOrCreateSessionState(ctx, payload)
 	if err != nil {
-		return "END something wrong happened"
+		return "END Something wrong happened. Please try again"
 	}
+
 	userResponse := utils.GetUserResponse(payload.Text)
+
 	exists, err := u.profile.CheckPhoneExists(ctx, *payload.PhoneNumber)
 	if err != nil {
-		return "END something wrong happened"
+		return "END Something wrong happened. Please try again"
 	}
+
 	if !exists {
 		return u.HandleUserRegistration(ctx, sessionDetails, userResponse)
 	}
+
 	switch {
 	case sessionDetails.Level == LoginUserState:
 		return u.HandleLogin(ctx, sessionDetails, userResponse)
+
 	case sessionDetails.Level == HomeMenuState:
 		return u.HandleHomeMenu(ctx, HomeMenuState, sessionDetails, userResponse)
+
 	case sessionDetails.Level >= ChangeUserPINState:
 		return u.HandleChangePIN(ctx, sessionDetails, userResponse)
+
 	case sessionDetails.Level >= UserPINResetState:
 		return u.HandlePINReset(ctx, sessionDetails, userResponse)
+
 	default:
-		return "END something wrong happened"
+		return "END Something wrong happened. Please try again"
 	}
 
 }

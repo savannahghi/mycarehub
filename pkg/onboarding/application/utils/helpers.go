@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"fmt"
+	"strconv"
+
 	"gitlab.slade360emr.com/go/base"
 )
 
@@ -103,4 +106,12 @@ func FindItem(slice []string, value string) (int, bool) {
 		}
 	}
 	return -1, false
+}
+
+func ParseUSSDDateInput(date string) string {
+	dayEntered, _ := strconv.Atoi(date[0:2])
+	monthEntered, _ := strconv.Atoi(date[2:4])
+	yearEntered, _ := strconv.Atoi(date[4:8])
+
+	return fmt.Sprintf("%v-%v-%v", dayEntered, monthEntered, yearEntered)
 }

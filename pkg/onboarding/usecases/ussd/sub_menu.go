@@ -2,7 +2,11 @@ package ussd
 
 import (
 	"context"
+	"time"
 
+	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -11,6 +15,8 @@ const (
 	WantCoverInput = "1"
 	// OptOutFromMarketingInput indicates users who don't want to be send marketing sms(messages)
 	OptOutFromMarketingInput = "2"
+
+	layoutISO = "01-02-2006"
 )
 
 // WelcomeMenu represents  the default welcome submenu
@@ -32,18 +38,37 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 		resp += "and one of the representatives will\r\n"
 		resp += "reach out to you. Thank you\r\n"
 		resp += "0. Go back home"
+
+		validDate := utils.ParseUSSDDateInput(session.DateOfBirth)
+		DOB, _ := time.Parse(layoutISO, validDate)
+		payload := dto.ContactLeadInput{
+			FirstName: session.FirstName,
+			LastName:  session.LastName,
+			DateOfBirth: base.Date{
+				Year:  DOB.Year(),
+				Month: int(DOB.Month()),
+				Day:   DOB.Day(),
+			},
+			WantCover: true,
+		}
+		//Error shouldn't break USSD flow
+		_ = u.onboardingRepository.StageCRMPayload(ctx, payload)
+
 		return resp
+
 	} else if userResponse == OptOutFromMarketingInput {
 		resp := "CON We have successfully opted you\r\n"
 		resp += "out of marketing messages\r\n"
 		resp += "0. Go back home"
 		return resp
+
 	} else if userResponse == ChangePINInput {
 		err := u.UpdateSessionLevel(ctx, ChangeUserPINState, session.SessionID)
 		if err != nil {
-			return "END something is wrong"
+			return "END Something wrong happened. Please try again"
 		}
 		return u.HandleChangePIN(ctx, session, userResponse)
+
 	} else {
 		// TODO FIXME return user to home
 		return "END invalid input try again"

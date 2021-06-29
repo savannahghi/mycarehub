@@ -339,4 +339,5 @@ type ContactLeadInput struct {
 	IsSync       bool                        `json:"isSync"  firestore:"IsSync"`
 	TimeSync     *time.Time                  `json:"timeSync"  firestore:"TimeSync"`
 	OptOut       CRMDomain.GeneralOptionType `json:"opt_out,omitempty"`
+	WantCover    bool                        `json:"wantCover" firestore:"wantCover"`
 }

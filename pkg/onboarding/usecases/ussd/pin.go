@@ -29,7 +29,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		// TODO FIXME validate/check if supplied PIN is correct
 		err := u.UpdateSessionLevel(ctx, ChangePINEnterNewPINState, session.SessionID)
 		if err != nil {
-			return "END something is wrong"
+			return "END Something wrong happened. Please try again"
 		}
 		resp := "CON Enter your old PIN to continue\r\n"
 		resp += "0. Go back home\r\n"
@@ -39,7 +39,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	if userResponse == GoBackHomeInput {
 		err := u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
-			return "END something is wrong"
+			return "END Something wrong happened. Please try again"
 		}
 		userResponse := ""
 		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)
@@ -48,7 +48,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	if session.Level == ChangePINEnterNewPINState {
 		err := u.UpdateSessionLevel(ctx, ChangePINProcessNewPINState, session.SessionID)
 		if err != nil {
-			return "END something is wrong"
+			return "END Something wrong happened. Please try again"
 		}
 		resp := "CON Enter a new four digit PIN\r\n"
 		return resp
@@ -57,11 +57,11 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	if session.Level == ChangePINProcessNewPINState {
 		_, err := u.ChangeUSSDUserPIN(ctx, session.PhoneNumber, userResponse)
 		if err != nil {
-			return "END something is wrong"
+			return "END Something wrong happened. Please try again"
 		}
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
-			return "END something is wrong"
+			return "END Something wrong happened. Please try again"
 		}
 		userResponse := ""
 		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)
@@ -84,7 +84,7 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 		}
 		err = u.UpdateSessionLevel(ctx, PINResetProcessState, session.SessionID)
 		if err != nil {
-			return "END something is wrong"
+			return "END Something wrong happened. Please try again"
 		}
 		resp := "CON Please enter a 4 digit PIN again to\r\n"
 		resp += "confirm.\r\n"
@@ -103,7 +103,7 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 		}
 		_, err := u.ChangeUSSDUserPIN(ctx, session.PhoneNumber, userResponse)
 		if err != nil {
-			return "END something is wrong"
+			return "END Something wrong happened. Please try again"
 		}
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
