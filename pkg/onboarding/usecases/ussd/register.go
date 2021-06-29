@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -27,14 +26,10 @@ const (
 	SaveRecordState = 5
 	// RegisterInput ...
 	RegisterInput = "1"
-	// BuyCoverInput ...
-	BuyCoverInput = "2"
-	// RegWantToBuyCoverInput ...
-	RegWantToBuyCoverInput = "1"
 	//RegOptOutInput ...
-	RegOptOutInput = "2"
+	RegOptOutInput = "1"
 	//RegChangePINInput ...
-	RegChangePINInput = "3"
+	RegChangePINInput = "2"
 )
 
 var userFirstName string
@@ -60,7 +55,6 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	if userResponse == EmptyInput || userResponse == GoBackHomeInput && session.Level == InitialState {
 		resp := "CON Welcome to Be.Well\r\n"
 		resp += "1. Register\r\n"
-		resp += "2. I want a cover\r\n"
 		return resp
 	}
 
@@ -74,28 +68,6 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		return resp
 	}
 
-	if userResponse == BuyCoverInput && session.Level == InitialState {
-		resp := "CON We have recorded your request\r\n"
-		resp += "and one of our representatives will\r\n"
-		resp += "reach out to you. Thank you\r\n"
-		resp += "0. Go back home"
-
-		coverPayload := dto.ContactLeadInput{
-			ContactType:    "phone",
-			ContactValue:   session.PhoneNumber,
-			IsSync:         false,
-			OptOut:         "NO",
-			WantCover:      true,
-			ContactChannel: "USSD",
-			IsRegistered:   false,
-		}
-
-		//Error shouldn't break USSD flow
-		_ = u.onboardingRepository.StageCRMPayload(ctx, coverPayload)
-
-		return resp
-
-	}
 	if session.Level == GetFirstNameState {
 		err := utils.ValidateUSSDInput(userResponse)
 		if err != nil {
@@ -209,7 +181,6 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		}
 
 		err := u.CreateUsddUserProfile(ctx, session.PhoneNumber, session.PIN, updateInput)
-		logrus.Print("ERROR IS: ", err)
 		if err != nil {
 			return "END Something wrong happened. Please try again."
 		}
@@ -231,6 +202,5 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	}
 	resp := "CON Invalid choice. Try again.\r\n"
 	resp += "1. Register\r\n"
-	resp += "2. I want a cover\r\n"
 	return resp
 }

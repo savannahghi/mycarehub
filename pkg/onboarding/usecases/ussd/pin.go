@@ -14,7 +14,7 @@ import (
 
 const (
 	// ChangePINInput indicates the user intention to change their PIN
-	ChangePINInput = "3"
+	ChangePINInput = "2"
 	// ForgotPINInput indicates the user has forgotten their PIN and would like to reset it
 	ForgotPINInput = "00"
 	// ChangePINEnterNewPINState indicates the state at which user wants to set a new PIN
@@ -29,6 +29,8 @@ const (
 	PINResetProcessState = 11
 	//ForgetPINResetState indicates the state when a use wants to reset PIN
 	ForgetPINResetState = 13
+	//ForgotPINVerifyDate indicates the state when a use wants to reset PIN
+	ForgotPINVerifyDate = 15
 )
 
 // HandleChangePIN represents workflow used to change a user PIN
@@ -157,7 +159,7 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 		}
 		return u.ResetPinMenu()
 	}
-	if session.Level == ForgetPINResetState {
+	if session.Level == ForgotPINVerifyDate {
 		profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, session.PhoneNumber, false)
 		if err != nil {
 			return "END something wrong it happened"

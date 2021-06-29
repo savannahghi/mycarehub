@@ -17,7 +17,7 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 		return resp
 
 	case ForgotPINInput:
-		err := u.UpdateSessionLevel(ctx, ForgetPINResetState, session.SessionID)
+		err := u.UpdateSessionLevel(ctx, ForgotPINVerifyDate, session.SessionID)
 		if err != nil {
 			return "END Something wrong happened. Please try again."
 		}

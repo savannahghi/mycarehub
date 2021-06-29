@@ -15,7 +15,6 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -2671,8 +2670,6 @@ func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pi
 
 // StageCRMPayload ...
 func (fr *Repository) StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error {
-
-	logrus.Print("PAYLOAD IS: ", payload)
 	createCommand := &CreateCommand{
 		CollectionName: fr.GetCRMStagingCollectionName(),
 		Data:           payload,

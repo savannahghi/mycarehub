@@ -7,26 +7,23 @@ import (
 )
 
 const (
-	// WantCoverInput indicates user intention to buy a cover
-	WantCoverInput = "1"
 	// OptOutFromMarketingInput indicates users who don't want to be send marketing sms(messages)
-	OptOutFromMarketingInput = "2"
+	OptOutFromMarketingInput = "1"
 )
 
 // WelcomeMenu represents  the default welcome submenu
 func (u *Impl) WelcomeMenu() string {
 	resp := "CON Welcome to Be.Well\r\n"
-	resp += "1. I want a cover\r\n"
-	resp += "2. Opt out from marketing messages\r\n"
-	resp += "3. Change PIN"
+	resp += "1. Opt out from marketing messages\r\n"
+	resp += "2. Change PIN"
 	return resp
 }
 
+// ResetPinMenu ...
 func (u *Impl) ResetPinMenu() string {
 	resp := "CON Your PIN was reset successfully.\r\n"
-	resp += "1. I want a cover\r\n"
-	resp += "2. Opt out from marketing messages\r\n"
-	resp += "3. Change PIN"
+	resp += "1. Opt out from marketing messages\r\n"
+	resp += "2. Change PIN"
 	return resp
 }
 
@@ -34,14 +31,6 @@ func (u *Impl) ResetPinMenu() string {
 func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.USSDLeadDetails, userResponse string) string {
 	if userResponse == EmptyInput || userResponse == GoBackHomeInput {
 		return u.WelcomeMenu()
-	} else if userResponse == WantCoverInput {
-		// TODO FIXME asynchronously send request to CRM
-		resp := "CON We have recorded your request\r\n"
-		resp += "and one of the representatives will\r\n"
-		resp += "reach out to you. Thank you\r\n"
-		resp += "0. Go back home"
-
-		return resp
 
 	} else if userResponse == OptOutFromMarketingInput {
 		option := "STOP"
@@ -63,9 +52,8 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 
 	} else {
 		resp := "CON Invalid choice. Try again.\r\n"
-		resp += "1. I want a cover\r\n"
-		resp += "2. Opt out from marketing messages\r\n"
-		resp += "3. Change PIN"
+		resp += "1. Opt out from marketing messages\r\n"
+		resp += "2. Change PIN"
 		return resp
 	}
 }
