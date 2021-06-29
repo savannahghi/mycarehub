@@ -120,7 +120,11 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 	}
 
 	if session.Level == PINResetEnterNewPINState {
-		_, err := u.onboardingRepository.UpdateSessionPIN(ctx, session.SessionID, userResponse)
+		err := utils.ValidatePIN(userResponse)
+		if err != nil {
+			return "CON The PIN you entered in not correct please enter a 4 digit PIN"
+		}
+		_, err = u.onboardingRepository.UpdateSessionPIN(ctx, session.SessionID, userResponse)
 		if err != nil {
 			return "END something wrong it happened"
 		}
