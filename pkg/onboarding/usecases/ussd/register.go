@@ -64,6 +64,15 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		resp += "and one of our representatives will\r\n"
 		resp += "reach out to you. Thank you\r\n"
 		resp += "0. Go back home"
+
+		payload := dto.ContactLeadInput{
+			ContactValue: session.PhoneNumber,
+			WantCover:    true,
+		}
+
+		//Error shouldn't break USSD flow
+		_ = u.onboardingRepository.StageCRMPayload(ctx, payload)
+
 		return resp
 
 	}
