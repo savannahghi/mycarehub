@@ -2,6 +2,8 @@ package ussd
 
 import (
 	"context"
+	"reflect"
+	"strconv"
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
@@ -19,12 +21,14 @@ const (
 	ChangePINEnterNewPINState = 51
 	// ChangePINProcessNewPINState indicates the state when the supplied PIN is being processed
 	ChangePINProcessNewPINState = 52
+	//ConfirmNewPInState indicates the state when a user is confirming a pin update
+	ConfirmNewPInState = 53
 	// PINResetEnterNewPINState indicates the state when the user wants to reset their PIN
 	PINResetEnterNewPINState = 10
 	// PINResetProcessState represents the state when the user has provided a wrong PIN
 	PINResetProcessState = 11
-	//ConfirmNewPInState indicates the state when a user is confirming a pin update
-	ConfirmNewPInState = 53
+	//ForgetPINResetState indicates the state when a use wants to reset PIN
+	ForgetPINResetState = 13
 )
 
 // HandleChangePIN represents workflow used to change a user PIN
@@ -105,9 +109,13 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 
 // HandlePINReset represents workflow used to reset to a user PIN
 func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
-	if userResponse == ForgotPINInput {
-		resp := "CON Please enter a 4 digit PIN to\r\n"
+	if session.Level == ForgetPINResetState {
+		resp := "CON Please enter a new  4 digit PIN to\r\n"
 		resp += "secure your account\r\n"
+		err := u.UpdateSessionLevel(ctx, PINResetEnterNewPINState, session.SessionID)
+		if err != nil {
+			return "END Something wrong happened. Please try again"
+		}
 		return resp
 	}
 
@@ -143,8 +151,32 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 		if err != nil {
 			return "END Something wrong happened. Please try again."
 		}
-		userResponse := ""
-		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)
+		return u.ResetPinMenu()
+	}
+	if session.Level == ForgetPINResetState {
+		profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, session.PhoneNumber, false)
+		if err != nil {
+			return "END something wrong it happened"
+		}
+		date := userResponse
+		day, _ := strconv.Atoi(date[0:2])
+		month, _ := strconv.Atoi(date[2:4])
+		year, _ := strconv.Atoi(date[4:8])
+		dateofBirth := &base.Date{
+			Month: month,
+			Day:   day,
+			Year:  year,
+		}
+		if !reflect.DeepEqual(profile.UserBioData.DateOfBirth, dateofBirth) {
+			return "CON Date of birth entered does not match the date of birth on record. Please enter your valid date of birth"
+		}
+		err = u.UpdateSessionLevel(ctx, UserPINResetState, session.SessionID)
+		if err != nil {
+			return "END Something wrong happened. Please try again."
+		}
+
+		session.Level = ForgetPINResetState
+		return u.HandlePINReset(ctx, session, userResponse)
 	}
 	return "END something went wrong"
 }

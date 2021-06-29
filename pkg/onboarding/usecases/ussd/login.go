@@ -17,12 +17,15 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 		return resp
 
 	case ForgotPINInput:
-		// TODO: Ask user for their DOB before resetting their PIN
-		err := u.UpdateSessionLevel(ctx, UserPINResetState, session.SessionID)
+		err := u.UpdateSessionLevel(ctx, ForgetPINResetState, session.SessionID)
 		if err != nil {
 			return "END Something wrong happened. Please try again."
 		}
-		return u.HandlePINReset(ctx, session, userResponse)
+		resp := "CON Please enter your date of birth in\r\n"
+		resp += "DDMMYYYY format e.g 14031996 for\r\n"
+		resp += "14th March 1992\r\n"
+		resp += "to be able to reset PIN\r\n"
+		return resp
 
 	default:
 		isLoggedIn, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, base.FlavourConsumer)
