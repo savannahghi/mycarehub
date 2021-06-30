@@ -2570,9 +2570,32 @@ func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.Sessi
 	return sessionDetails, nil
 }
 
-// CreateAgentUserProfile creates an agent on firebase
-func (fr *Repository) CreateAgentUserProfile(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
-	return nil, nil
+// ListAgentUserProfiles fetches all agents from the database
+func (fr *Repository) ListAgentUserProfiles(ctx context.Context) ([]*base.UserProfile, error) {
+	query := &GetAllQuery{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		FieldName:      "role",
+		Value:          base.RoleTypeAgent,
+		Operator:       "==",
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	profiles := []*base.UserProfile{}
+
+	for _, doc := range docs {
+		profile := &base.UserProfile{}
+		err = doc.DataTo(profile)
+		if err != nil {
+			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier: %w", err))
+		}
+		profiles = append(profiles, profile)
+	}
+
+	return profiles, nil
 }
 
 // GetAITSessionDetails gets Africa's Talking session details

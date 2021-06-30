@@ -27,6 +27,14 @@ type AgentUseCase interface {
 	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error)
 	ActivateAgent(ctx context.Context, phone string) (bool, error)
 	DeactivateAgent(ctx context.Context, phone string) (bool, error)
+	// simple without pagination
+	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
+	FindAgent(
+		ctx context.Context,
+		pagination *base.PaginationInput,
+		filter *dto.AgentFilterInput,
+		sort *dto.AgentSortInput,
+	) (*dto.AgentConnection, error)
 }
 
 // AgentUseCaseImpl  represents usecase implementation object
@@ -192,8 +200,8 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, phone string) (boo
 		return false, err
 	}
 
-	if usp.Role != base.RoleTypeEmployee {
-		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have `EMPLOYEE` role"))
+	if !usp.HasPermission(base.PermissionTypeUnsuspendAgent) {
+		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to create agent"))
 	}
 
 	// Get agent profile using phoneNumber
@@ -228,8 +236,8 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, phone string) (b
 		return false, err
 	}
 
-	if usp.Role != base.RoleTypeEmployee {
-		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have `EMPLOYEE` role"))
+	if !usp.HasPermission(base.PermissionTypeSuspendAgent) {
+		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to create agent"))
 	}
 
 	// Get agent profile using phoneNumber
@@ -247,4 +255,40 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, phone string) (b
 		return false, err
 	}
 	return true, nil
+}
+
+func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {
+	profiles, err := a.repo.ListAgentUserProfiles(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	agents := []*dto.Agent{}
+
+	for _, profile := range profiles {
+		agent := &dto.Agent{
+			ID:                      profile.ID,
+			PhotoUploadID:           profile.PhotoUploadID,
+			UserBioData:             profile.UserBioData,
+			PrimaryPhone:            *profile.PrimaryPhone,
+			PrimaryEmailAddress:     *profile.PrimaryEmailAddress,
+			SecondaryPhoneNumbers:   profile.SecondaryPhoneNumbers,
+			SecondaryEmailAddresses: profile.SecondaryEmailAddresses,
+			TermsAccepted:           profile.TermsAccepted,
+			Suspended:               profile.Suspended,
+		}
+
+		agents = append(agents, agent)
+	}
+
+	return agents, nil
+}
+
+func (a *AgentUseCaseImpl) FindAgent(
+	ctx context.Context,
+	pagination *base.PaginationInput,
+	filter *dto.AgentFilterInput,
+	sort *dto.AgentSortInput,
+) (*dto.AgentConnection, error) {
+	return nil, nil
 }

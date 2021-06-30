@@ -1218,3 +1218,106 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 		})
 	}
 }
+
+func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*dto.Agent
+		wantErr bool
+	}{
+		{
+			name: "success:_non_empty_list_of_user_agents",
+			args: args{
+				ctx: ctx,
+			},
+			want: []*dto.Agent{
+				{
+					ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+					PrimaryPhone:        base.TestUserPhoneNumber,
+					PrimaryEmailAddress: base.TestUserEmail,
+				},
+				{
+					ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					PrimaryPhone:        base.TestUserPhoneNumber,
+					PrimaryEmailAddress: base.TestUserEmail,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "success:_empty_list_of_user_agents",
+			args: args{
+				ctx: ctx,
+			},
+			want:    []*dto.Agent{},
+			wantErr: false,
+		},
+		{
+			name: "fail:error_fetching_list_of_user_agents",
+			args: args{
+				ctx: ctx,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "success:_non_empty_list_of_user_agents" {
+				fakeRepo.ListAgentUserProfilesFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					p := base.TestUserPhoneNumber
+					e := base.TestUserEmail
+					s := []*base.UserProfile{
+						{
+							ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+							PrimaryPhone:        &p,
+							PrimaryEmailAddress: &e,
+							VerifiedUIDS:        []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
+							Role:                base.RoleTypeAgent,
+						},
+						{
+							ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+							PrimaryPhone:        &p,
+							PrimaryEmailAddress: &e,
+							VerifiedUIDS:        []string{"c9d62c7e-93e5-44a6-b503-6fc159c1782f"},
+							Role:                base.RoleTypeAgent,
+						},
+					}
+					return s, nil
+				}
+			}
+			if tt.name == "success:_empty_list_of_user_agents" {
+				fakeRepo.ListAgentUserProfilesFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return []*base.UserProfile{}, nil
+				}
+			}
+			if tt.name == "fail:error_fetching_list_of_user_agents" {
+				fakeRepo.ListAgentUserProfilesFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+					return nil, fmt.Errorf("cannot fetch list of user profiles")
+				}
+			}
+			got, err := i.Agent.FetchAgents(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AgentUseCaseImpl.FetchAgents() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("AgentUseCaseImpl.FetchAgents() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

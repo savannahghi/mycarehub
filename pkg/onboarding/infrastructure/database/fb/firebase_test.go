@@ -3,6 +3,7 @@ package fb_test
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"cloud.google.com/go/firestore"
@@ -871,6 +872,65 @@ func TestRepository_CreateDetailedUserProfile(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("Repository.CreateDetailedUserProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_ListAgentUserProfiles(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*base.UserProfile
+		wantErr bool
+	}{
+		{
+			name: "success:fetch_agent_user_profiles",
+			args: args{
+				ctx: ctx,
+			},
+			want:    []*base.UserProfile{},
+			wantErr: false,
+		},
+		{
+			name: "fail:fetch_agent_user_profiles_error",
+			args: args{
+				ctx: ctx,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "success:fetch_agent_user_profiles" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{}
+					return docs, nil
+				}
+			}
+
+			if tt.name == "fail:fetch_agent_user_profiles_error" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+
+					return nil, fmt.Errorf("cannot fetch firebase docs")
+				}
+			}
+
+			got, err := repo.ListAgentUserProfiles(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.ListAgentUserProfiles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.ListAgentUserProfiles() = %v, want %v", got, tt.want)
 			}
 		})
 	}

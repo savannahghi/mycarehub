@@ -18,6 +18,43 @@ type BusinessPartnerConnection struct {
 	PageInfo *base.PageInfo         `json:"pageInfo"`
 }
 
+type AgentConnection struct {
+	Edges    []AgentEdge
+	PageInfo base.PageInfo `json:"pageInfo"`
+}
+
+type AgentEdge struct {
+	Cursor string
+	Node   Agent
+}
+
+// Agent represents agent with details inferred from their user profile
+type Agent struct {
+	ID string `json:"id"`
+
+	PrimaryPhone string `json:"primaryPhone" `
+
+	PrimaryEmailAddress string `json:"primaryEmailAddress" `
+
+	SecondaryPhoneNumbers []string `json:"secondaryPhoneNumbers" `
+
+	SecondaryEmailAddresses []string `json:"secondaryEmailAddresses" `
+
+	TermsAccepted bool `json:"terms_accepted,omitempty" `
+
+	Suspended bool `json:"suspended"`
+
+	PhotoUploadID string `json:"photoUploadID,omitempty" `
+
+	UserBioData base.BioData `json:"userBioData,omitempty" `
+}
+
+type AgentFilterInput struct {
+}
+
+type AgentSortInput struct {
+}
+
 // AccountRecoveryPhonesResponse  payload sent back to the frontend when recovery an account
 type AccountRecoveryPhonesResponse struct {
 	MaskedPhoneNumbers   []string `json:"maskedPhoneNumbers"`

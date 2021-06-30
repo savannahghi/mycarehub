@@ -197,5 +197,5 @@ type UserProfileRepository interface {
 
 // AgentRepository  defines signatures that relate to agents
 type AgentRepository interface {
-	CreateAgentUserProfile(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
+	ListAgentUserProfiles(ctx context.Context) ([]*base.UserProfile, error)
 }

@@ -171,7 +171,7 @@ type FakeOnboardingRepository struct {
 	UpdateVerifiedUIDSFn            func(ctx context.Context, id string, uids []string) error
 	UpdateAddressesFn               func(ctx context.Context, id string, address base.Address, addressType base.AddressType) error
 	AddIncomingUSSDDataFn           func(ctx context.Context, input *dto.EndSessionDetails) error
-	CreateAgentUserProfileFn        func(ctx context.Context, phoneNumber string) (*base.UserProfile, error)
+	ListAgentUserProfilesFn         func(ctx context.Context) ([]*base.UserProfile, error)
 	UpdateOptOutFn                  func(ctx context.Context, option string, phoneNumber string) error
 	StageCRMPayloadFn               func(ctx context.Context, payload dto.ContactLeadInput) error
 	UpdateStageCRMPayloadFn         func(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
@@ -561,9 +561,9 @@ func (f *FakeOnboardingRepository) UpdateSessionPIN(ctx context.Context, session
 	return f.UpdateSessionPINFn(ctx, sessionID, pin)
 }
 
-// CreateAgentUserProfile ...
-func (f *FakeOnboardingRepository) CreateAgentUserProfile(ctx context.Context, phoneNumber string) (*base.UserProfile, error) {
-	return f.CreateAgentUserProfileFn(ctx, phoneNumber)
+// ListAgentUserProfiles ...
+func (f *FakeOnboardingRepository) ListAgentUserProfiles(ctx context.Context) ([]*base.UserProfile, error) {
+	return f.ListAgentUserProfilesFn(ctx)
 }
 
 // CreateDetailedUserProfile ...
