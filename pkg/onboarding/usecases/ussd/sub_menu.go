@@ -36,7 +36,7 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 		option := "STOP"
 		err := u.profile.SetOptOut(ctx, option, session.PhoneNumber)
 		if err != nil {
-			return "END Something wrong happened. Please try again."
+			return "END Something went wrong. Please try again."
 		}
 		resp := "CON We have successfully opted you\r\n"
 		resp += "out of marketing messages\r\n"
@@ -46,7 +46,7 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 	} else if userResponse == ChangePINInput {
 		err := u.UpdateSessionLevel(ctx, ChangeUserPINState, session.SessionID)
 		if err != nil {
-			return "END Something wrong happened. Please try again"
+			return "END Something went wrong. Please try again"
 		}
 		return u.HandleChangePIN(ctx, session, userResponse)
 

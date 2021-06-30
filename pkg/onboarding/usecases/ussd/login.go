@@ -19,7 +19,7 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 	case ForgotPINInput:
 		err := u.UpdateSessionLevel(ctx, ForgotPINVerifyDate, session.SessionID)
 		if err != nil {
-			return "END Something wrong happened. Please try again."
+			return "END Something went wrong. Please try again."
 		}
 		resp := "CON Please enter your date of birth in\r\n"
 		resp += "DDMMYYYY format e.g 14031996 for\r\n"
@@ -30,7 +30,7 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 	default:
 		isLoggedIn, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, base.FlavourConsumer)
 		if err != nil {
-			return "END Something wrong happened. Please try again."
+			return "END Something went wrong. Please try again."
 		}
 		if !isLoggedIn {
 			resp := "CON The PIN you entered is not correct\r\n"
@@ -40,7 +40,7 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 		}
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
-			return "END Something wrong happened. Please try again."
+			return "END Something went wrong. Please try again."
 		}
 		userResponse := ""
 		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)

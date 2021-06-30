@@ -49,7 +49,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		ContactChannel: "USSD",
 		IsRegistered:   false,
 	}); err != nil {
-		return "END Something wrong happened. Please try again."
+		return "END Something went wrong. Please try again."
 	}
 
 	if userResponse == EmptyInput || userResponse == GoBackHomeInput && session.Level == InitialState {
@@ -61,7 +61,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	if userResponse == RegisterInput && session.Level == InitialState {
 		err := u.UpdateSessionLevel(ctx, GetFirstNameState, session.SessionID)
 		if err != nil {
-			return "END Something wrong happened. Please try again."
+			return "END Something went wrong. Please try again."
 		}
 		resp := "CON Please enter your firstname(e.g.\r\n"
 		resp += "John).\r\n"
@@ -82,7 +82,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		err = u.UpdateSessionLevel(ctx, GetLastNameState, session.SessionID)
 		if err != nil {
-			return "END Something wrong happened. Please try again."
+			return "END Something went wrong. Please try again."
 		}
 		resp := "CON Please enter your lastname(e.g.\r\n"
 		resp += "Doe)\r\n"
@@ -146,7 +146,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		}
 		_, err = u.onboardingRepository.UpdateSessionPIN(ctx, session.SessionID, userResponse)
 		if err != nil {
-			return "END Something wrong happened. Please try again."
+			return "END Something went wrong. Please try again."
 		}
 		err = u.UpdateSessionLevel(ctx, SaveRecordState, session.SessionID)
 		if err != nil {
@@ -178,7 +178,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		err := u.CreateUsddUserProfile(ctx, session.PhoneNumber, session.PIN, updateInput)
 		if err != nil {
-			return "END Something wrong happened. Please try again."
+			return "END Something went wrong. Please try again."
 		}
 
 		contactLead := &dto.ContactLeadInput{
@@ -191,7 +191,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
 		if err != nil {
-			return "END Something wrong happened. Please try again."
+			return "END Something went wrong. Please try again."
 		}
 		userResponse := ""
 		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)
