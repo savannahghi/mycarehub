@@ -25,16 +25,9 @@ const (
 // AgentUseCase represent the business logic required for management of agents
 type AgentUseCase interface {
 	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error)
-	ActivateAgent(ctx context.Context, phone string) (bool, error)
-	DeactivateAgent(ctx context.Context, phone string) (bool, error)
-	// simple without pagination
+	ActivateAgent(ctx context.Context, agentID string) (bool, error)
+	DeactivateAgent(ctx context.Context, agentID string) (bool, error)
 	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
-	FindAgent(
-		ctx context.Context,
-		pagination *base.PaginationInput,
-		filter *dto.AgentFilterInput,
-		sort *dto.AgentSortInput,
-	) (*dto.AgentConnection, error)
 }
 
 // AgentUseCaseImpl  represents usecase implementation object
@@ -182,12 +175,7 @@ func (a *AgentUseCaseImpl) notifyNewAgent(emails []string, phoneNumbers []string
 }
 
 // ActivateAgent activates/unsuspends the agent profile
-func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, phone string) (bool, error) {
-
-	phoneNumber, err := a.baseExt.NormalizeMSISDN(phone)
-	if err != nil {
-		return false, exceptions.NormalizeMSISDNError(err)
-	}
+func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, agentID string) (bool, error) {
 
 	// Check logged in user has permissions/role of employee
 	p, err := a.baseExt.GetLoggedInUser(ctx)
@@ -201,11 +189,10 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, phone string) (boo
 	}
 
 	if !usp.HasPermission(base.PermissionTypeUnsuspendAgent) {
-		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to create agent"))
+		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to activate agent"))
 	}
 
-	// Get agent profile using phoneNumber
-	agent, err := a.repo.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, true)
+	agent, err := a.repo.GetUserProfileByID(ctx, agentID, true)
 	if err != nil {
 		return false, exceptions.InternalServerError(err)
 	}
@@ -218,13 +205,7 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, phone string) (boo
 }
 
 // DeactivateAgent deacivates/suspends the agent profile
-func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, phone string) (bool, error) {
-
-	phoneNumber, err := a.baseExt.NormalizeMSISDN(phone)
-	if err != nil {
-		return false, exceptions.NormalizeMSISDNError(err)
-	}
-
+func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) (bool, error) {
 	// Check logged in user has permissions/role of employee
 	p, err := a.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
@@ -237,11 +218,11 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, phone string) (b
 	}
 
 	if !usp.HasPermission(base.PermissionTypeSuspendAgent) {
-		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to create agent"))
+		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to suspend agent"))
 	}
 
 	// Get agent profile using phoneNumber
-	agent, err := a.repo.GetUserProfileByPrimaryPhoneNumber(ctx, *phoneNumber, false)
+	agent, err := a.repo.GetUserProfileByID(ctx, agentID, false)
 	if err != nil {
 		return false, exceptions.InternalServerError(err)
 	}
@@ -257,6 +238,7 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, phone string) (b
 	return true, nil
 }
 
+// FetchAgents fetches registered agents
 func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {
 	profiles, err := a.repo.ListAgentUserProfiles(ctx)
 	if err != nil {
@@ -282,13 +264,4 @@ func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error
 	}
 
 	return agents, nil
-}
-
-func (a *AgentUseCaseImpl) FindAgent(
-	ctx context.Context,
-	pagination *base.PaginationInput,
-	filter *dto.AgentFilterInput,
-	sort *dto.AgentSortInput,
-) (*dto.AgentConnection, error) {
-	return nil, nil
 }

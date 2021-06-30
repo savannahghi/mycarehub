@@ -108,6 +108,7 @@ func FindItem(slice []string, value string) (int, bool) {
 	return -1, false
 }
 
+// ParseUSSDDateInput ...
 func ParseUSSDDateInput(date string) string {
 	dayEntered, _ := strconv.Atoi(date[0:2])
 	monthEntered, _ := strconv.Atoi(date[2:4])

@@ -343,3 +343,8 @@ type ContactLeadInput struct {
 	ContactChannel string                      `json:"contact_channel,omitempty"`
 	IsRegistered   bool                        `json:"is_registered,omitempty"`
 }
+
+// AgentFilterInput is used to supply filter parameters for agent filter inputs
+type AgentFilterInput struct {
+	PhoneNumber string `json:"phoneNumber"`
+}

@@ -60,6 +60,18 @@ type ComplexityRoot struct {
 		PlaceID          func(childComplexity int) int
 	}
 
+	Agent struct {
+		ID                      func(childComplexity int) int
+		PhotoUploadID           func(childComplexity int) int
+		PrimaryEmailAddress     func(childComplexity int) int
+		PrimaryPhone            func(childComplexity int) int
+		SecondaryEmailAddresses func(childComplexity int) int
+		SecondaryPhoneNumbers   func(childComplexity int) int
+		Suspended               func(childComplexity int) int
+		TermsAccepted           func(childComplexity int) int
+		UserBioData             func(childComplexity int) int
+	}
+
 	Beneficiary struct {
 		DateOfBirth  func(childComplexity int) int
 		Emails       func(childComplexity int) int
@@ -206,7 +218,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		ActivateAgent                    func(childComplexity int, phoneNumber string) int
+		ActivateAgent                    func(childComplexity int, agentID string) int
 		AddAddress                       func(childComplexity int, input dto.UserAddressInput, addressType base.AddressType) int
 		AddIndividualCoachKyc            func(childComplexity int, input domain.IndividualCoach) int
 		AddIndividualNutritionKyc        func(childComplexity int, input domain.IndividualNutrition) int
@@ -224,7 +236,7 @@ type ComplexityRoot struct {
 		AddSecondaryEmailAddress         func(childComplexity int, email []string) int
 		AddSecondaryPhoneNumber          func(childComplexity int, phone []string) int
 		CompleteSignup                   func(childComplexity int, flavour base.Flavour) int
-		DeactivateAgent                  func(childComplexity int, phoneNumber string) int
+		DeactivateAgent                  func(childComplexity int, agentID string) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
 		RecordPostVisitSurvey            func(childComplexity int, input dto.PostVisitSurveyInput) int
 		RegisterAgent                    func(childComplexity int, input dto.RegisterAgentInput) int
@@ -358,6 +370,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		CheckSupplierKYCSubmitted     func(childComplexity int) int
+		FetchAgents                   func(childComplexity int) int
 		FetchKYCProcessingRequests    func(childComplexity int) int
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) int
@@ -507,8 +520,8 @@ type MutationResolver interface {
 	AddAddress(ctx context.Context, input dto.UserAddressInput, addressType base.AddressType) (*base.Address, error)
 	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
 	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error)
-	ActivateAgent(ctx context.Context, phoneNumber string) (bool, error)
-	DeactivateAgent(ctx context.Context, phoneNumber string) (bool, error)
+	ActivateAgent(ctx context.Context, agentID string) (bool, error)
+	DeactivateAgent(ctx context.Context, agentID string) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -522,6 +535,7 @@ type QueryResolver interface {
 	NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error)
 	GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error)
 	CheckSupplierKYCSubmitted(ctx context.Context) (bool, error)
+	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
 }
 type VerifiedIdentifierResolver interface {
 	Timestamp(ctx context.Context, obj *base.VerifiedIdentifier) (*base.Date, error)
@@ -583,6 +597,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Address.PlaceID(childComplexity), true
+
+	case "Agent.id":
+		if e.complexity.Agent.ID == nil {
+			break
+		}
+
+		return e.complexity.Agent.ID(childComplexity), true
+
+	case "Agent.photoUploadID":
+		if e.complexity.Agent.PhotoUploadID == nil {
+			break
+		}
+
+		return e.complexity.Agent.PhotoUploadID(childComplexity), true
+
+	case "Agent.primaryEmailAddress":
+		if e.complexity.Agent.PrimaryEmailAddress == nil {
+			break
+		}
+
+		return e.complexity.Agent.PrimaryEmailAddress(childComplexity), true
+
+	case "Agent.primaryPhone":
+		if e.complexity.Agent.PrimaryPhone == nil {
+			break
+		}
+
+		return e.complexity.Agent.PrimaryPhone(childComplexity), true
+
+	case "Agent.secondaryEmailAddresses":
+		if e.complexity.Agent.SecondaryEmailAddresses == nil {
+			break
+		}
+
+		return e.complexity.Agent.SecondaryEmailAddresses(childComplexity), true
+
+	case "Agent.secondaryPhoneNumbers":
+		if e.complexity.Agent.SecondaryPhoneNumbers == nil {
+			break
+		}
+
+		return e.complexity.Agent.SecondaryPhoneNumbers(childComplexity), true
+
+	case "Agent.suspended":
+		if e.complexity.Agent.Suspended == nil {
+			break
+		}
+
+		return e.complexity.Agent.Suspended(childComplexity), true
+
+	case "Agent.termsAccepted":
+		if e.complexity.Agent.TermsAccepted == nil {
+			break
+		}
+
+		return e.complexity.Agent.TermsAccepted(childComplexity), true
+
+	case "Agent.userBioData":
+		if e.complexity.Agent.UserBioData == nil {
+			break
+		}
+
+		return e.complexity.Agent.UserBioData(childComplexity), true
 
 	case "Beneficiary.dateOfBirth":
 		if e.complexity.Beneficiary.DateOfBirth == nil {
@@ -1220,7 +1297,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ActivateAgent(childComplexity, args["phoneNumber"].(string)), true
+		return e.complexity.Mutation.ActivateAgent(childComplexity, args["agentID"].(string)), true
 
 	case "Mutation.addAddress":
 		if e.complexity.Mutation.AddAddress == nil {
@@ -1436,7 +1513,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeactivateAgent(childComplexity, args["phoneNumber"].(string)), true
+		return e.complexity.Mutation.DeactivateAgent(childComplexity, args["agentID"].(string)), true
 
 	case "Mutation.processKYCRequest":
 		if e.complexity.Mutation.ProcessKYCRequest == nil {
@@ -2248,6 +2325,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.CheckSupplierKYCSubmitted(childComplexity), true
+
+	case "Query.fetchAgents":
+		if e.complexity.Query.FetchAgents == nil {
+			break
+		}
+
+		return e.complexity.Query.FetchAgents(childComplexity), true
 
 	case "Query.fetchKYCProcessingRequests":
 		if e.complexity.Query.FetchKYCProcessingRequests == nil {
@@ -3451,6 +3535,8 @@ input RegisterAgentInput {
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
   checkSupplierKYCSubmitted: Boolean!
+
+  fetchAgents: [Agent]
 }
 
 extend type Mutation {
@@ -3463,7 +3549,7 @@ extend type Mutation {
   setPrimaryPhoneNumber(phone: String!, otp: String!): Boolean!
 
   setPrimaryEmailAddress(email: String!, otp: String!): Boolean!
-  setOptOut(option:String!, phoneNumber:String!):Boolean!
+  setOptOut(option: String!, phoneNumber: String!): Boolean!
 
   addSecondaryPhoneNumber(phone: [String!]): Boolean!
 
@@ -3551,9 +3637,9 @@ extend type Mutation {
 
   registerAgent(input: RegisterAgentInput!): UserProfile!
 
-  activateAgent(phoneNumber: String!): Boolean!
+  activateAgent(agentID: String!): Boolean!
 
-  deactivateAgent(phoneNumber: String!): Boolean!
+  deactivateAgent(agentID: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -3981,6 +4067,18 @@ type UserCommunicationsSetting {
   allowPush: Boolean!
   allowEmail: Boolean!
 }
+
+type Agent {
+  id: String!
+  primaryPhone: String!
+  primaryEmailAddress: String
+  secondaryPhoneNumbers: [String]
+  secondaryEmailAddresses: [String]
+  termsAccepted: Boolean
+  suspended: Boolean
+  photoUploadID: String
+  userBioData: BioData
+}
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
@@ -4053,14 +4151,14 @@ func (ec *executionContext) field_Mutation_activateAgent_args(ctx context.Contex
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["phoneNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+	if tmp, ok := rawArgs["agentID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("agentID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["phoneNumber"] = arg0
+	args["agentID"] = arg0
 	return args, nil
 }
 
@@ -4341,14 +4439,14 @@ func (ec *executionContext) field_Mutation_deactivateAgent_args(ctx context.Cont
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["phoneNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+	if tmp, ok := rawArgs["agentID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("agentID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["phoneNumber"] = arg0
+	args["agentID"] = arg0
 	return args, nil
 }
 
@@ -5066,6 +5164,300 @@ func (ec *executionContext) _Address_formattedAddress(ctx context.Context, field
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agent_id(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agent_primaryPhone(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PrimaryPhone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agent_primaryEmailAddress(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PrimaryEmailAddress, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agent_secondaryPhoneNumbers(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SecondaryPhoneNumbers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agent_secondaryEmailAddresses(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SecondaryEmailAddresses, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agent_termsAccepted(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TermsAccepted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agent_suspended(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Suspended, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agent_photoUploadID(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PhotoUploadID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agent_userBioData(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserBioData, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(base.BioData)
+	fc.Result = res
+	return ec.marshalOBioData2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐBioData(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Beneficiary_name(ctx context.Context, field graphql.CollectedField, obj *model.Beneficiary) (ret graphql.Marshaler) {
@@ -9599,7 +9991,7 @@ func (ec *executionContext) _Mutation_activateAgent(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ActivateAgent(rctx, args["phoneNumber"].(string))
+		return ec.resolvers.Mutation().ActivateAgent(rctx, args["agentID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9641,7 +10033,7 @@ func (ec *executionContext) _Mutation_deactivateAgent(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeactivateAgent(rctx, args["phoneNumber"].(string))
+		return ec.resolvers.Mutation().DeactivateAgent(rctx, args["agentID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12865,6 +13257,38 @@ func (ec *executionContext) _Query_checkSupplierKYCSubmitted(ctx context.Context
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_fetchAgents(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FetchAgents(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*dto.Agent)
+	fc.Result = res
+	return ec.marshalOAgent2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17929,6 +18353,52 @@ func (ec *executionContext) _Address(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var agentImplementors = []string{"Agent"}
+
+func (ec *executionContext) _Agent(ctx context.Context, sel ast.SelectionSet, obj *dto.Agent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, agentImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Agent")
+		case "id":
+			out.Values[i] = ec._Agent_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "primaryPhone":
+			out.Values[i] = ec._Agent_primaryPhone(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "primaryEmailAddress":
+			out.Values[i] = ec._Agent_primaryEmailAddress(ctx, field, obj)
+		case "secondaryPhoneNumbers":
+			out.Values[i] = ec._Agent_secondaryPhoneNumbers(ctx, field, obj)
+		case "secondaryEmailAddresses":
+			out.Values[i] = ec._Agent_secondaryEmailAddresses(ctx, field, obj)
+		case "termsAccepted":
+			out.Values[i] = ec._Agent_termsAccepted(ctx, field, obj)
+		case "suspended":
+			out.Values[i] = ec._Agent_suspended(ctx, field, obj)
+		case "photoUploadID":
+			out.Values[i] = ec._Agent_photoUploadID(ctx, field, obj)
+		case "userBioData":
+			out.Values[i] = ec._Agent_userBioData(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var beneficiaryImplementors = []string{"Beneficiary"}
 
 func (ec *executionContext) _Beneficiary(ctx context.Context, sel ast.SelectionSet, obj *model.Beneficiary) graphql.Marshaler {
@@ -19610,6 +20080,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			})
+		case "fetchAgents":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_fetchAgents(ctx, field)
 				return res
 			})
 		case "_entities":
@@ -21579,6 +22060,53 @@ func (ec *executionContext) marshalOAddress2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 		return graphql.Null
 	}
 	return ec._Address(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOAgent2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx context.Context, sel ast.SelectionSet, v []*dto.Agent) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOAgent2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOAgent2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx context.Context, sel ast.SelectionSet, v *dto.Agent) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Agent(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOBioData2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐBioData(ctx context.Context, sel ast.SelectionSet, v base.BioData) graphql.Marshaler {

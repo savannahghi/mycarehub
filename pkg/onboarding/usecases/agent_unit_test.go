@@ -798,8 +798,8 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 	}
 
 	type args struct {
-		ctx   context.Context
-		phone string
+		ctx     context.Context
+		agentID string
 	}
 	tests := []struct {
 		name    string
@@ -808,19 +808,10 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "invalid:failed_cannot_normmalize_phonenumber",
-			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name: "invalid:failed_to_get_loggedin_user",
 			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				ctx:     ctx,
+				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 			},
 			want:    false,
 			wantErr: true,
@@ -828,8 +819,8 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 		{
 			name: "invalid:loggedin_user_does_not_have_employee_role",
 			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				ctx:     ctx,
+				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 			},
 			want:    false,
 			wantErr: true,
@@ -837,8 +828,8 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 		{
 			name: "invalid:error_getting_agent_profile",
 			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				ctx:     ctx,
+				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 			},
 			want:    false,
 			wantErr: true,
@@ -846,8 +837,8 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 		{
 			name: "invalid:failed_to_activate_account",
 			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				ctx:     ctx,
+				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 			},
 			want:    false,
 			wantErr: true,
@@ -855,8 +846,8 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 		{
 			name: "valid:success_activated_agent",
 			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				ctx:     ctx,
+				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 			},
 			want:    true,
 			wantErr: false,
@@ -866,29 +857,13 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if tt.name == "invalid:failed_cannot_normmalize_phonenumber" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					return nil, fmt.Errorf("failed, invalid mobile number, cannot normalize mobilenumber")
-				}
-			}
-
 			if tt.name == "invalid:failed_to_get_loggedin_user" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
-
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return nil, fmt.Errorf("failed. could not get logged in user")
 				}
 			}
 
 			if tt.name == "invalid:loggedin_user_does_not_have_employee_role" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
-
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
@@ -899,16 +874,11 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 					return &base.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeAgent,
 					}, nil
 				}
 			}
 
 			if tt.name == "invalid:error_getting_agent_profile" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
 
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
@@ -923,20 +893,12 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 						Role:         base.RoleTypeEmployee,
 					}, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeEmployee,
-					}, fmt.Errorf("found user profile but user is not an agent")
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("found user profile but user is not an agent")
 				}
 			}
 
 			if tt.name == "invalid:failed_to_activate_account" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
@@ -949,11 +911,11 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 						Role:         base.RoleTypeEmployee,
 					}, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeAgent,
+						Permissions:  base.DefaultEmployeePermissions,
 					}, nil
 				}
 				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
@@ -962,10 +924,6 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 			}
 
 			if tt.name == "valid:success_activated_agent" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
@@ -975,15 +933,14 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 					return &base.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeEmployee,
+						Permissions:  base.DefaultEmployeePermissions,
 					}, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 						Role:         base.RoleTypeAgent,
-						Suspended:    false,
 					}, nil
 				}
 				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
@@ -991,7 +948,7 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 				}
 			}
 
-			got, err := i.Agent.ActivateAgent(tt.args.ctx, tt.args.phone)
+			got, err := i.Agent.ActivateAgent(tt.args.ctx, tt.args.agentID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AgentUseCaseImpl.ActivateAgent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1014,8 +971,8 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 	}
 
 	type args struct {
-		ctx   context.Context
-		phone string
+		ctx     context.Context
+		agentID string
 	}
 	tests := []struct {
 		name    string
@@ -1024,19 +981,10 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "invalid:failed_cannot_normmalize_phonenumber",
-			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name: "invalid:failed_to_get_loggedin_user",
 			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				ctx:     ctx,
+				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 			},
 			want:    false,
 			wantErr: true,
@@ -1044,8 +992,8 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 		{
 			name: "invalid:loggedin_user_does_not_have_employee_role",
 			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				ctx:     ctx,
+				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 			},
 			want:    false,
 			wantErr: true,
@@ -1053,8 +1001,8 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 		{
 			name: "invalid:error_getting_agent_profile",
 			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				ctx:     ctx,
+				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 			},
 			want:    false,
 			wantErr: true,
@@ -1062,8 +1010,8 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 		{
 			name: "invalid:failed_to_activate_account",
 			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				ctx:     ctx,
+				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 			},
 			want:    false,
 			wantErr: true,
@@ -1071,8 +1019,8 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 		{
 			name: "valid:success_deactivated_agent",
 			args: args{
-				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				ctx:     ctx,
+				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 			},
 			want:    true,
 			wantErr: false,
@@ -1081,13 +1029,6 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			if tt.name == "invalid:failed_cannot_normmalize_phonenumber" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					return nil, fmt.Errorf("failed, invalid mobile number, cannot normalize mobilenumber")
-				}
-			}
-
 			if tt.name == "invalid:failed_to_get_loggedin_user" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254777886622"
@@ -1115,17 +1056,11 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 					return &base.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeAgent,
 					}, nil
 				}
 			}
 
 			if tt.name == "invalid:error_getting_agent_profile" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
-
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
@@ -1136,23 +1071,16 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 					return &base.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeEmployee,
+						Permissions:  base.DefaultEmployeePermissions,
 					}, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeEmployee,
-					}, fmt.Errorf("found user profile but user is not an agent")
+
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("found user profile but user is not an agent")
 				}
 			}
 
 			if tt.name == "invalid:failed_to_activate_account" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
@@ -1162,14 +1090,14 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 					return &base.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeEmployee,
+						Permissions:  base.DefaultEmployeePermissions,
 					}, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeAgent,
+						Role:         base.RoleTypeEmployee,
 					}, nil
 				}
 				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
@@ -1178,10 +1106,6 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 			}
 
 			if tt.name == "valid:success_deactivated_agent" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
@@ -1191,23 +1115,23 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 					return &base.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeEmployee,
+						Permissions:  base.DefaultEmployeePermissions,
 					}, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 						Role:         base.RoleTypeAgent,
-						Suspended:    true,
 					}, nil
 				}
+
 				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
 					return nil
 				}
 			}
 
-			got, err := i.Agent.DeactivateAgent(tt.args.ctx, tt.args.phone)
+			got, err := i.Agent.DeactivateAgent(tt.args.ctx, tt.args.agentID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AgentUseCaseImpl.DeactivateAgent() error = %v, wantErr %v", err, tt.wantErr)
 				return

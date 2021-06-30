@@ -18,14 +18,16 @@ type BusinessPartnerConnection struct {
 	PageInfo *base.PageInfo         `json:"pageInfo"`
 }
 
+// AgentConnection is used to serialize GraphQL Relay connections for agents
 type AgentConnection struct {
-	Edges    []AgentEdge
+	Edges    []AgentEdge   `json:"edges"`
 	PageInfo base.PageInfo `json:"pageInfo"`
 }
 
+// AgentEdge is used to serialize GraphQL Edges for an agent
 type AgentEdge struct {
-	Cursor string
-	Node   Agent
+	Cursor string `json:"cursor"`
+	Node   Agent  `json:"node"`
 }
 
 // Agent represents agent with details inferred from their user profile
@@ -40,19 +42,13 @@ type Agent struct {
 
 	SecondaryEmailAddresses []string `json:"secondaryEmailAddresses" `
 
-	TermsAccepted bool `json:"terms_accepted,omitempty" `
+	TermsAccepted bool `json:"termsAccepted,omitempty" `
 
 	Suspended bool `json:"suspended"`
 
 	PhotoUploadID string `json:"photoUploadID,omitempty" `
 
 	UserBioData base.BioData `json:"userBioData,omitempty" `
-}
-
-type AgentFilterInput struct {
-}
-
-type AgentSortInput struct {
 }
 
 // AccountRecoveryPhonesResponse  payload sent back to the frontend when recovery an account

@@ -405,20 +405,20 @@ func (r *mutationResolver) RegisterAgent(ctx context.Context, input dto.Register
 	return userProfile, err
 }
 
-func (r *mutationResolver) ActivateAgent(ctx context.Context, phoneNumber string) (bool, error) {
+func (r *mutationResolver) ActivateAgent(ctx context.Context, agentID string) (bool, error) {
 	startTime := time.Now()
 
-	success, err := r.interactor.Agent.ActivateAgent(ctx, phoneNumber)
+	success, err := r.interactor.Agent.ActivateAgent(ctx, agentID)
 
 	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "activateAgent", err)
 
 	return success, err
 }
 
-func (r *mutationResolver) DeactivateAgent(ctx context.Context, phoneNumber string) (bool, error) {
+func (r *mutationResolver) DeactivateAgent(ctx context.Context, agentID string) (bool, error) {
 	startTime := time.Now()
 
-	success, err := r.interactor.Agent.DeactivateAgent(ctx, phoneNumber)
+	success, err := r.interactor.Agent.DeactivateAgent(ctx, agentID)
 
 	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "deactivateAgent", err)
 
@@ -533,6 +533,16 @@ func (r *queryResolver) CheckSupplierKYCSubmitted(ctx context.Context) (bool, er
 	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "checkSupplierKYCSubmitted", err)
 
 	return checkSupplierKYCSubmitted, err
+}
+
+func (r *queryResolver) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {
+	startTime := time.Now()
+
+	agents, err := r.interactor.Agent.FetchAgents(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "fetchAgents", err)
+
+	return agents, err
 }
 
 // Mutation returns generated.MutationResolver implementation.

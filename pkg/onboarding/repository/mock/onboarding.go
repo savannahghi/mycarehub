@@ -581,17 +581,17 @@ func (f *FakeOnboardingRepository) StageCRMPayload(ctx context.Context, payload 
 	return f.StageCRMPayloadFn(ctx, payload)
 }
 
-// StageCRMPayload ...
+// UpdateStageCRMPayload ...
 func (f *FakeOnboardingRepository) UpdateStageCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
 	return f.UpdateStageCRMPayloadFn(ctx, phoneNumber, contactLead)
 }
 
-// GetStageCRMPayloadFn ...
+// GetStageCRMPayload ...
 func (f *FakeOnboardingRepository) GetStageCRMPayload(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error) {
 	return f.GetStageCRMPayloadFn(ctx, phoneNumber)
 }
 
-// UpdateOptOutCRMPayloadFn ...
+// UpdateOptOutCRMPayload ...
 func (f *FakeOnboardingRepository) UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
 	return f.UpdateOptOutCRMPayloadFn(ctx, phoneNumber, contactLead)
 }

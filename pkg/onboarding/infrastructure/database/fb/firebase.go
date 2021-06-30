@@ -2590,7 +2590,7 @@ func (fr *Repository) ListAgentUserProfiles(ctx context.Context) ([]*base.UserPr
 		profile := &base.UserProfile{}
 		err = doc.DataTo(profile)
 		if err != nil {
-			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier: %w", err))
+			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read agent user profile: %w", err))
 		}
 		profiles = append(profiles, profile)
 	}

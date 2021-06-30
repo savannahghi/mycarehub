@@ -27,6 +27,8 @@ extend type Query {
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
   checkSupplierKYCSubmitted: Boolean!
+
+  fetchAgents: [Agent]
 }
 
 extend type Mutation {
@@ -39,7 +41,7 @@ extend type Mutation {
   setPrimaryPhoneNumber(phone: String!, otp: String!): Boolean!
 
   setPrimaryEmailAddress(email: String!, otp: String!): Boolean!
-  setOptOut(option:String!, phoneNumber:String!):Boolean!
+  setOptOut(option: String!, phoneNumber: String!): Boolean!
 
   addSecondaryPhoneNumber(phone: [String!]): Boolean!
 
@@ -127,7 +129,7 @@ extend type Mutation {
 
   registerAgent(input: RegisterAgentInput!): UserProfile!
 
-  activateAgent(phoneNumber: String!): Boolean!
+  activateAgent(agentID: String!): Boolean!
 
-  deactivateAgent(phoneNumber: String!): Boolean!
+  deactivateAgent(agentID: String!): Boolean!
 }

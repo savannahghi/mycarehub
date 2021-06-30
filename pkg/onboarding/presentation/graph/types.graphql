@@ -423,3 +423,15 @@ type UserCommunicationsSetting {
   allowPush: Boolean!
   allowEmail: Boolean!
 }
+
+type Agent {
+  id: String!
+  primaryPhone: String!
+  primaryEmailAddress: String
+  secondaryPhoneNumbers: [String]
+  secondaryEmailAddresses: [String]
+  termsAccepted: Boolean
+  suspended: Boolean
+  photoUploadID: String
+  userBioData: BioData
+}
