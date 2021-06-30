@@ -38,22 +38,22 @@ var date string
 
 // HandleUserRegistration ...
 func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
-	//Creating contact stub on first USSD Dial
-	time := time.Now()
-	if err := u.onboardingRepository.StageCRMPayload(ctx, dto.ContactLeadInput{
-		ContactType:    "phone",
-		ContactValue:   session.PhoneNumber,
-		IsSync:         false,
-		TimeSync:       &time,
-		OptOut:         "NO",
-		WantCover:      false,
-		ContactChannel: "USSD",
-		IsRegistered:   false,
-	}); err != nil {
-		return "END Something went wrong. Please try again."
-	}
-
 	if userResponse == EmptyInput || userResponse == GoBackHomeInput && session.Level == InitialState {
+		//Creating contact stub on first USSD Dial
+		time := time.Now()
+		if err := u.onboardingRepository.StageCRMPayload(ctx, dto.ContactLeadInput{
+			ContactType:    "phone",
+			ContactValue:   session.PhoneNumber,
+			IsSync:         false,
+			TimeSync:       &time,
+			OptOut:         "NO",
+			WantCover:      false,
+			ContactChannel: "USSD",
+			IsRegistered:   false,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
+
 		resp := "CON Welcome to Be.Well\r\n"
 		resp += "1. Register\r\n"
 		return resp

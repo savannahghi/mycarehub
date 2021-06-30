@@ -2744,3 +2744,35 @@ func (fr *Repository) UpdateStageCRMPayload(ctx context.Context, phoneNumber str
 	}
 	return nil
 }
+
+// UpdateOptOutCRMPayload ...
+func (fr *Repository) UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
+	CRMDetails, err := fr.GetStageCRMPayload(ctx, phoneNumber)
+	if err != nil {
+		return err
+	}
+
+	collectionName := fr.GetCRMStagingCollectionName()
+	query := &GetAllQuery{
+		CollectionName: collectionName,
+		FieldName:      "ContactValue",
+		Value:          phoneNumber,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return err
+	}
+	CRMDetails.OptOut = contactLead.OptOut
+
+	updateCommand := &UpdateCommand{
+		CollectionName: collectionName,
+		ID:             docs[0].Ref.ID,
+		Data:           CRMDetails,
+	}
+	err = fr.FirestoreClient.Update(ctx, updateCommand)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+	return nil
+}

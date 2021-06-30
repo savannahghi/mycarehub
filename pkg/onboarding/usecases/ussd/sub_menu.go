@@ -38,6 +38,7 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 		if err != nil {
 			return "END Something went wrong. Please try again."
 		}
+
 		resp := "CON We have successfully opted you\r\n"
 		resp += "out of marketing messages\r\n"
 		resp += "0. Go back home"
