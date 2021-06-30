@@ -39,11 +39,12 @@ var date string
 // HandleUserRegistration ...
 func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
 	//Creating contact stub on first USSD Dial
+	time := time.Now()
 	if err := u.onboardingRepository.StageCRMPayload(ctx, dto.ContactLeadInput{
 		ContactType:    "phone",
 		ContactValue:   session.PhoneNumber,
 		IsSync:         false,
-		TimeSync:       &time.Time{},
+		TimeSync:       &time,
 		OptOut:         "NO",
 		WantCover:      false,
 		ContactChannel: "USSD",
