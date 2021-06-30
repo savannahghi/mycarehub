@@ -182,7 +182,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		}
 
 		contactLead := &dto.ContactLeadInput{
-			FirstName:    userResponse,
+			FirstName:    userFirstName,
 			LastName:     userLastName,
 			DateOfBirth:  *dateofBirth,
 			IsRegistered: true,
