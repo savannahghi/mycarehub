@@ -3501,11 +3501,11 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 				OnTapRoute: "",
 				Icon: base.Link{
 					ID:          ksuid.New().String(),
-					URL:         common.KYCNavActionURL,
+					URL:         common.RequestNavActionURL,
 					LinkType:    base.LinkTypeSvgImage,
 					Title:       "KYC",
 					Description: "KYC Navigation action",
-					Thumbnail:   common.KYCNavActionURL,
+					Thumbnail:   common.RequestNavActionURL,
 				},
 				Favourite: false,
 			},

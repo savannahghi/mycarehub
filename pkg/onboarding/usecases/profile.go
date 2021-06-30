@@ -1407,16 +1407,15 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (ba
 				Favourite: false,
 			},
 			{
-				Title: common.RequestsNavActionTitle,
-				// Not provided yet
-				OnTapRoute: "",
+				Title:      common.RequestsNavActionTitle,
+				OnTapRoute: common.RequestsRoute,
 				Icon: base.Link{
 					ID:          ksuid.New().String(),
-					URL:         common.KYCNavActionURL,
+					URL:         common.RequestNavActionURL,
 					LinkType:    base.LinkTypeSvgImage,
 					Title:       common.RequestsNavActionTitle,
 					Description: common.RequestsNavActionDescription,
-					Thumbnail:   common.KYCNavActionURL,
+					Thumbnail:   common.RequestNavActionURL,
 				},
 				Favourite: false,
 			},
@@ -1462,6 +1461,16 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (ba
 					Thumbnail:   common.AgentNavActionURL,
 				},
 				Favourite: false,
+				Nested: []base.NestedNavAction{
+					{
+						Title:      common.AgentRegistrationActionTitle,
+						OnTapRoute: "",
+					},
+					{
+						Title:      common.AgentIdentificationActionTitle,
+						OnTapRoute: "",
+					},
+				},
 			},
 			{
 				Title: common.PatientNavActionTitle,
