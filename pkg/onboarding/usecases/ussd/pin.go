@@ -63,7 +63,14 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	}
 
 	if session.Level == ChangePINEnterNewPINState {
-		err := u.UpdateSessionLevel(ctx, ConfirmNewPInState, session.SessionID)
+		correctPin, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, base.FlavourConsumer)
+		if err != nil {
+			return "END something went wrong. Please try again"
+		}
+		if !correctPin {
+			return "CON Invalid PIN. Please try again"
+		}
+		err = u.UpdateSessionLevel(ctx, ConfirmNewPInState, session.SessionID)
 		if err != nil {
 			return "END Something wrong happened. Please try again"
 		}
@@ -73,7 +80,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	if session.Level == ConfirmNewPInState {
 		err := utils.ValidatePIN(userResponse)
 		if err != nil {
-			return "CON The PIN you entered in not correct please enter a 4 digit PIN"
+			return "CON The PIN you entered in not correct. Please enter a 4 digit PIN"
 		}
 		_, err = u.onboardingRepository.UpdateSessionPIN(ctx, session.SessionID, userResponse)
 		if err != nil {
@@ -88,12 +95,8 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 
 	if session.Level == ChangePINProcessNewPINState {
 		if userResponse != session.PIN {
-			err := u.UpdateSessionLevel(ctx, ConfirmNewPInState, session.SessionID)
-			if err != nil {
-				return "END Something wrong happened. Please try again."
-			}
 			resp := "CON The PIN you entered does not match\r\n"
-			resp += "Please enter a 4 digit PIN to secure your account\r\n"
+			resp += "Please enter a 4 digit PIN that matches you PIN\r\n"
 			return resp
 		}
 		_, err := u.ChangeUSSDUserPIN(ctx, session.PhoneNumber, userResponse)
@@ -122,6 +125,7 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 	}
 
 	if session.Level == PINResetEnterNewPINState {
+
 		err := utils.ValidatePIN(userResponse)
 		if err != nil {
 			return "CON The PIN you entered in not correct please enter a 4 digit PIN"
@@ -140,10 +144,6 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 	}
 	if session.Level == PINResetProcessState {
 		if userResponse != session.PIN {
-			err := u.UpdateSessionLevel(ctx, PINResetEnterNewPINState, session.SessionID)
-			if err != nil {
-				return "END Something wrong happened. Please try again."
-			}
 			resp := "CON The PIN you entered does not match\r\n"
 			resp += "Please enter a 4 digit PIN to\r\n"
 			resp += "secure your account\r\n"

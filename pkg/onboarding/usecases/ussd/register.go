@@ -158,10 +158,6 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 	if session.Level == SaveRecordState {
 		if userResponse != session.PIN {
-			err := u.UpdateSessionLevel(ctx, GetPINState, session.SessionID)
-			if err != nil {
-				return "END Something wrong happened. Please try again."
-			}
 			resp := "CON The PIN you entered does not match\r\n"
 			resp += "Please enter a 4 digit PIN to secure your account\r\n"
 			return resp
