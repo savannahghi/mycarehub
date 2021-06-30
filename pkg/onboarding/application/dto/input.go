@@ -329,6 +329,16 @@ type RegisterAgentInput struct {
 	DateOfBirth base.Date   `json:"dateOfBirth"`
 }
 
+// RegisterAdminInput provides the data payload required to create an Admin
+type RegisterAdminInput struct {
+	FirstName   string      `json:"lastName"`
+	LastName    string      `json:"firstName"`
+	Gender      base.Gender `json:"gender"`
+	PhoneNumber string      `json:"phoneNumber"`
+	Email       string      `json:"email"`
+	DateOfBirth base.Date   `json:"dateOfBirth"`
+}
+
 // ContactLeadInput ...
 type ContactLeadInput struct {
 	ContactType    string                      `json:"contact_type,omitempty"`

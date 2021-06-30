@@ -240,7 +240,7 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) 
 
 // FetchAgents fetches registered agents
 func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {
-	profiles, err := a.repo.ListAgentUserProfiles(ctx)
+	profiles, err := a.repo.ListUserProfiles(ctx, base.RoleTypeAgent)
 	if err != nil {
 		return nil, err
 	}

@@ -51,6 +51,27 @@ type Agent struct {
 	UserBioData base.BioData `json:"userBioData,omitempty" `
 }
 
+// Admin represents agent with details inferred from their user profile
+type Admin struct {
+	ID string `json:"id"`
+
+	PrimaryPhone string `json:"primaryPhone" `
+
+	PrimaryEmailAddress string `json:"primaryEmailAddress" `
+
+	SecondaryPhoneNumbers []string `json:"secondaryPhoneNumbers" `
+
+	SecondaryEmailAddresses []string `json:"secondaryEmailAddresses" `
+
+	TermsAccepted bool `json:"termsAccepted,omitempty" `
+
+	Suspended bool `json:"suspended"`
+
+	PhotoUploadID string `json:"photoUploadID,omitempty" `
+
+	UserBioData base.BioData `json:"userBioData,omitempty" `
+}
+
 // AccountRecoveryPhonesResponse  payload sent back to the frontend when recovery an account
 type AccountRecoveryPhonesResponse struct {
 	MaskedPhoneNumbers   []string `json:"maskedPhoneNumbers"`

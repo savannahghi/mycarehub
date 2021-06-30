@@ -1030,7 +1030,8 @@ func TestRepository_ListAgentUserProfiles(t *testing.T) {
 	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
 
 	type args struct {
-		ctx context.Context
+		ctx  context.Context
+		role base.RoleType
 	}
 	tests := []struct {
 		name    string
@@ -1041,7 +1042,8 @@ func TestRepository_ListAgentUserProfiles(t *testing.T) {
 		{
 			name: "success:fetch_agent_user_profiles",
 			args: args{
-				ctx: ctx,
+				ctx:  ctx,
+				role: base.RoleTypeEmployee,
 			},
 			want:    []*base.UserProfile{},
 			wantErr: false,
@@ -1049,7 +1051,8 @@ func TestRepository_ListAgentUserProfiles(t *testing.T) {
 		{
 			name: "fail:fetch_agent_user_profiles_error",
 			args: args{
-				ctx: ctx,
+				ctx:  ctx,
+				role: base.RoleTypeAgent,
 			},
 			want:    nil,
 			wantErr: true,
@@ -1071,7 +1074,7 @@ func TestRepository_ListAgentUserProfiles(t *testing.T) {
 				}
 			}
 
-			got, err := repo.ListAgentUserProfiles(tt.args.ctx)
+			got, err := repo.ListUserProfiles(tt.args.ctx, tt.args.role)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.ListAgentUserProfiles() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
@@ -395,6 +396,10 @@ func (r *mutationResolver) SetUserCommunicationsSettings(ctx context.Context, al
 	return setUserCommunicationsSettings, err
 }
 
+func (r *mutationResolver) RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*base.UserProfile, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error) {
 	startTime := time.Now()
 
@@ -553,6 +558,16 @@ func (r *queryResolver) CheckSupplierKYCSubmitted(ctx context.Context) (bool, er
 	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "checkSupplierKYCSubmitted", err)
 
 	return checkSupplierKYCSubmitted, err
+}
+
+func (r *queryResolver) FetchAdmins(ctx context.Context) ([]*dto.Admin, error) {
+	startTime := time.Now()
+
+	admins, err := r.interactor.Admin.FetchAdmins(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "fetchAdmins", err)
+
+	return admins, err
 }
 
 func (r *queryResolver) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {

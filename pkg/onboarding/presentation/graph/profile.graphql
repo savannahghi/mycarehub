@@ -28,6 +28,8 @@ extend type Query {
   getUserCommunicationsSettings: UserCommunicationsSetting!
   checkSupplierKYCSubmitted: Boolean!
 
+  fetchAdmins: [Admin]
+
   fetchAgents: [Agent]
 
   fetchUserNavigationActions: NavigationActions
@@ -128,6 +130,8 @@ extend type Mutation {
     allowPush: Boolean
     allowEmail: Boolean
   ): UserCommunicationsSetting!
+
+  registerAdmin(input: RegisterAdminInput!): UserProfile!
 
   registerAgent(input: RegisterAgentInput!): UserProfile!
 

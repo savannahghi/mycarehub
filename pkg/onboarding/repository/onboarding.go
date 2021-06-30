@@ -62,8 +62,6 @@ type OnboardingRepository interface {
 
 	CustomerRepository
 
-	AgentRepository
-
 	// creates a user profile of using the provided phone number and uid
 	CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error)
 
@@ -194,9 +192,5 @@ type UserProfileRepository interface {
 	UpdateBioData(ctx context.Context, id string, data base.BioData) error
 	UpdateAddresses(ctx context.Context, id string, address base.Address, addressType base.AddressType) error
 	UpdateFavNavActions(ctx context.Context, id string, favActions []string) error
-}
-
-// AgentRepository  defines signatures that relate to agents
-type AgentRepository interface {
-	ListAgentUserProfiles(ctx context.Context) ([]*base.UserProfile, error)
+	ListUserProfiles(ctx context.Context, role base.RoleType) ([]*base.UserProfile, error)
 }

@@ -32,6 +32,7 @@ type Interactor struct {
 	AITUSSD      ussd.Usecase
 	CRM          hubspot.ServiceHubSpotInterface
 	Agent        usecases.AgentUseCase
+	Admin        usecases.AdminUseCase
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -53,6 +54,7 @@ func NewOnboardingInteractor(
 	aitussd ussd.Usecase,
 	crm hubspot.ServiceHubSpotInterface,
 	agt usecases.AgentUseCase,
+	adm usecases.AdminUseCase,
 ) (*Interactor, error) {
 
 	return &Interactor{
@@ -72,5 +74,6 @@ func NewOnboardingInteractor(
 		AITUSSD:      aitussd,
 		CRM:          crm,
 		Agent:        agt,
+		Admin:        adm,
 	}, nil
 }

@@ -2613,12 +2613,12 @@ func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.Sessi
 	return sessionDetails, nil
 }
 
-// ListAgentUserProfiles fetches all agents from the database
-func (fr *Repository) ListAgentUserProfiles(ctx context.Context) ([]*base.UserProfile, error) {
+// ListUserProfiles fetches all users with the specified role from the database
+func (fr *Repository) ListUserProfiles(ctx context.Context, role base.RoleType) ([]*base.UserProfile, error) {
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "role",
-		Value:          base.RoleTypeAgent,
+		Value:          role,
 		Operator:       "==",
 	}
 
@@ -2635,7 +2635,6 @@ func (fr *Repository) ListAgentUserProfiles(ctx context.Context) ([]*base.UserPr
 		if err != nil {
 			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read agent user profile: %w", err))
 		}
-		profiles = append(profiles, profile)
 	}
 
 	return profiles, nil

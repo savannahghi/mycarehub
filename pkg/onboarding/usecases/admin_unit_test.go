@@ -12,7 +12,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
-func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
+func TestAdminUseCaseImpl_RegisterAdmin(t *testing.T) {
 	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
@@ -22,7 +22,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 		return
 	}
 
-	// agent 47
+	// admin 47
 	fName := "Tobias"
 	lName := "Rieper"
 	dob := base.Date{
@@ -30,7 +30,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 		Month: 6,
 		Day:   1,
 	}
-	agent := dto.RegisterAgentInput{
+	admin := dto.RegisterAdminInput{
 		FirstName:   fName,
 		LastName:    lName,
 		Gender:      base.GenderMale,
@@ -41,7 +41,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 
 	type args struct {
 		ctx   context.Context
-		input dto.RegisterAgentInput
+		input dto.RegisterAdminInput
 	}
 	tests := []struct {
 		name    string
@@ -50,10 +50,10 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid:register_new_agent",
+			name: "valid:register_new_admin",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want: &base.UserProfile{
 				ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
@@ -64,7 +64,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 					Gender:      base.GenderMale,
 					DateOfBirth: &dob,
 				},
-				Role: base.RoleTypeAgent,
+				Role: base.RoleTypeEmployee,
 			},
 			wantErr: false,
 		},
@@ -72,7 +72,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 			name: "invalid:cannot_create_user_profile",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want:    nil,
 			wantErr: true,
@@ -81,7 +81,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 			name: "invalid:cannot_create_customer_profile",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want:    nil,
 			wantErr: true,
@@ -90,7 +90,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 			name: "invalid:cannot_create_supplier_profile",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want:    nil,
 			wantErr: true,
@@ -99,25 +99,25 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 			name: "invalid:cannot_set_communication_settings",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want:    nil,
 			wantErr: true,
 		},
 		{
-			name: "invalid:cannot_notify_new_agent_sms",
+			name: "invalid:cannot_notify_new_admin_sms",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want:    nil,
 			wantErr: true,
 		},
 		{
-			name: "invalid:cannot_notify_new_agent_email",
+			name: "invalid:cannot_notify_new_admin_email",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want:    nil,
 			wantErr: true,
@@ -126,7 +126,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 			name: "invalid:get_logged_in_user_error",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want:    nil,
 			wantErr: true,
@@ -135,7 +135,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 			name: "invalid:get_profile_by_uid_error",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want:    nil,
 			wantErr: true,
@@ -144,7 +144,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 			name: "invalid:invalid_logged_in_user_role",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want:    nil,
 			wantErr: true,
@@ -153,16 +153,16 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 			name: "invalid:normalizing_phonenumber_failed",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want:    nil,
 			wantErr: true,
 		},
 		{
-			name: "invalid:cannot_set_agent_temporary_pin",
+			name: "invalid:cannot_set_admin_temporary_pin",
 			args: args{
 				ctx:   ctx,
-				input: agent,
+				input: admin,
 			},
 			want:    nil,
 			wantErr: true,
@@ -225,12 +225,12 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							Gender:      base.GenderMale,
 							DateOfBirth: &dob,
 						},
-						Permissions: base.DefaultAgentPermissions,
+						Permissions: base.DefaultAdminPermissions,
 					}, fmt.Errorf("user do not have required permissions")
 				}
 			}
 
-			if tt.name == "valid:register_new_agent" {
+			if tt.name == "valid:register_new_admin" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254777886622"
 					return &phone, nil
@@ -250,7 +250,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							LastName:  &lName,
 							Gender:    base.GenderMale,
 						},
-						Permissions: base.DefaultEmployeePermissions,
+						Permissions: base.DefaultSuperAdminPermissions,
 					}, nil
 				}
 
@@ -264,7 +264,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							Gender:      base.GenderMale,
 							DateOfBirth: &dob,
 						},
-						Role: base.RoleTypeAgent,
+						Role: base.RoleTypeEmployee,
 					}, nil
 				}
 
@@ -308,7 +308,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 				}
 			}
 
-			if tt.name == "invalid:cannot_notify_new_agent_sms" {
+			if tt.name == "invalid:cannot_notify_new_admin_sms" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254777886622"
 					return &phone, nil
@@ -341,7 +341,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							Gender:      base.GenderMale,
 							DateOfBirth: &dob,
 						},
-						Role: base.RoleTypeAgent,
+						Role: base.RoleTypeEmployee,
 					}, nil
 				}
 
@@ -385,7 +385,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 				}
 			}
 
-			if tt.name == "invalid:cannot_set_agent_temporary_pin" {
+			if tt.name == "invalid:cannot_set_admin_temporary_pin" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254777886622"
 					return &phone, nil
@@ -417,7 +417,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							LastName:  &lName,
 							Gender:    base.GenderMale,
 						},
-						Role: base.RoleTypeAgent,
+						Role: base.RoleTypeEmployee,
 					}, nil
 				}
 
@@ -450,7 +450,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 
 			}
 
-			if tt.name == "invalid:cannot_set_agent_temporary_pin" {
+			if tt.name == "invalid:cannot_set_admin_temporary_pin" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254777886622"
 					return &phone, nil
@@ -483,7 +483,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							Gender:      base.GenderMale,
 							DateOfBirth: &dob,
 						},
-						Role: base.RoleTypeAgent,
+						Role: base.RoleTypeEmployee,
 					}, nil
 				}
 
@@ -516,7 +516,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 
 			}
 
-			if tt.name == "invalid:cannot_notify_new_agent_email" {
+			if tt.name == "invalid:cannot_notify_new_admin_email" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254777886622"
 					return &phone, nil
@@ -549,7 +549,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							Gender:      base.GenderMale,
 							DateOfBirth: &dob,
 						},
-						Role: base.RoleTypeAgent,
+						Role: base.RoleTypeEmployee,
 					}, nil
 				}
 
@@ -630,7 +630,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							Gender:      base.GenderMale,
 							DateOfBirth: &dob,
 						},
-						Role: base.RoleTypeAgent,
+						Role: base.RoleTypeEmployee,
 					}, nil
 				}
 
@@ -688,7 +688,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							Gender:      base.GenderMale,
 							DateOfBirth: &dob,
 						},
-						Role: base.RoleTypeAgent,
+						Role: base.RoleTypeEmployee,
 					}, nil
 				}
 
@@ -738,7 +738,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 							Gender:      base.GenderMale,
 							DateOfBirth: &dob,
 						},
-						Role: base.RoleTypeAgent,
+						Role: base.RoleTypeEmployee,
 					}, nil
 				}
 
@@ -775,375 +775,19 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 				}
 			}
 
-			got, err := i.Agent.RegisterAgent(tt.args.ctx, tt.args.input)
+			got, err := i.Admin.RegisterAdmin(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AgentUseCaseImpl.RegisterAgent() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("AdminUseCaseImpl.RegisterAdmin() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("AgentUseCaseImpl.RegisterAgent() = %v, want %v", got, tt.want)
+				t.Errorf("AdminUseCaseImpl.RegisterAdmin() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
-	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
-	if err != nil {
-		t.Errorf("failed to fake initialize onboarding interactor: %v",
-			err,
-		)
-		return
-	}
-
-	type args struct {
-		ctx     context.Context
-		agentID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "invalid:failed_to_get_loggedin_user",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:loggedin_user_does_not_have_employee_role",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:error_getting_agent_profile",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:failed_to_activate_account",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "valid:success_activated_agent",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
-			want:    true,
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			if tt.name == "invalid:failed_to_get_loggedin_user" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return nil, fmt.Errorf("failed. could not get logged in user")
-				}
-			}
-
-			if tt.name == "invalid:loggedin_user_does_not_have_employee_role" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					}, nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-					}, nil
-				}
-			}
-
-			if tt.name == "invalid:error_getting_agent_profile" {
-
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					}, nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeEmployee,
-					}, nil
-				}
-				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("found user profile but user is not an agent")
-				}
-			}
-
-			if tt.name == "invalid:failed_to_activate_account" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					}, nil
-				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeEmployee,
-					}, nil
-				}
-				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Permissions:  base.DefaultEmployeePermissions,
-					}, nil
-				}
-				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
-					return fmt.Errorf("failed to unsuspend/activate agent account")
-				}
-			}
-
-			if tt.name == "valid:success_activated_agent" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					}, nil
-				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Permissions:  base.DefaultEmployeePermissions,
-					}, nil
-				}
-				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeAgent,
-					}, nil
-				}
-				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
-					return nil
-				}
-			}
-
-			got, err := i.Agent.ActivateAgent(tt.args.ctx, tt.args.agentID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("AgentUseCaseImpl.ActivateAgent() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("AgentUseCaseImpl.ActivateAgent() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
-	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
-	if err != nil {
-		t.Errorf("failed to fake initialize onboarding interactor: %v",
-			err,
-		)
-		return
-	}
-
-	type args struct {
-		ctx     context.Context
-		agentID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "invalid:failed_to_get_loggedin_user",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:loggedin_user_does_not_have_employee_role",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:error_getting_agent_profile",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:failed_to_activate_account",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "valid:success_deactivated_agent",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
-			want:    true,
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "invalid:failed_to_get_loggedin_user" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
-
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return nil, fmt.Errorf("failed. could not get logged in user")
-				}
-			}
-
-			if tt.name == "invalid:loggedin_user_does_not_have_employee_role" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
-
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					}, nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-					}, nil
-				}
-			}
-
-			if tt.name == "invalid:error_getting_agent_profile" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					}, nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Permissions:  base.DefaultEmployeePermissions,
-					}, nil
-				}
-
-				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("found user profile but user is not an agent")
-				}
-			}
-
-			if tt.name == "invalid:failed_to_activate_account" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					}, nil
-				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Permissions:  base.DefaultEmployeePermissions,
-					}, nil
-				}
-				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeEmployee,
-					}, nil
-				}
-				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
-					return fmt.Errorf("failed to unsuspend/activate agent account")
-				}
-			}
-
-			if tt.name == "valid:success_deactivated_agent" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					}, nil
-				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Permissions:  base.DefaultEmployeePermissions,
-					}, nil
-				}
-				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         base.RoleTypeAgent,
-					}, nil
-				}
-
-				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
-					return nil
-				}
-			}
-
-			got, err := i.Agent.DeactivateAgent(tt.args.ctx, tt.args.agentID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("AgentUseCaseImpl.DeactivateAgent() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("AgentUseCaseImpl.DeactivateAgent() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
+func TestAdminUseCaseImpl_FetchAdmins(t *testing.T) {
 	ctx := context.Background()
 
 	i, err := InitializeFakeOnboaridingInteractor()
@@ -1160,15 +804,15 @@ func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []*dto.Agent
+		want    []*dto.Admin
 		wantErr bool
 	}{
 		{
-			name: "success:_non_empty_list_of_user_agents",
+			name: "success:_non_empty_list_of_user_admins",
 			args: args{
 				ctx: ctx,
 			},
-			want: []*dto.Agent{
+			want: []*dto.Admin{
 				{
 					ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 					PrimaryPhone:        base.TestUserPhoneNumber,
@@ -1183,15 +827,15 @@ func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "success:_empty_list_of_user_agents",
+			name: "success:_empty_list_of_user_admins",
 			args: args{
 				ctx: ctx,
 			},
-			want:    []*dto.Agent{},
+			want:    []*dto.Admin{},
 			wantErr: false,
 		},
 		{
-			name: "fail:error_fetching_list_of_user_agents",
+			name: "fail:error_fetching_list_of_user_admins",
 			args: args{
 				ctx: ctx,
 			},
@@ -1201,7 +845,7 @@ func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "success:_non_empty_list_of_user_agents" {
+			if tt.name == "success:_non_empty_list_of_user_admins" {
 				fakeRepo.ListUserProfilesFn = func(ctx context.Context, role base.RoleType) ([]*base.UserProfile, error) {
 					p := base.TestUserPhoneNumber
 					e := base.TestUserEmail
@@ -1211,36 +855,36 @@ func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 							PrimaryPhone:        &p,
 							PrimaryEmailAddress: &e,
 							VerifiedUIDS:        []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-							Role:                base.RoleTypeAgent,
+							Role:                base.RoleTypeEmployee,
 						},
 						{
 							ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 							PrimaryPhone:        &p,
 							PrimaryEmailAddress: &e,
 							VerifiedUIDS:        []string{"c9d62c7e-93e5-44a6-b503-6fc159c1782f"},
-							Role:                base.RoleTypeAgent,
+							Role:                base.RoleTypeEmployee,
 						},
 					}
 					return s, nil
 				}
 			}
-			if tt.name == "success:_empty_list_of_user_agents" {
+			if tt.name == "success:_empty_list_of_user_admins" {
 				fakeRepo.ListUserProfilesFn = func(ctx context.Context, role base.RoleType) ([]*base.UserProfile, error) {
 					return []*base.UserProfile{}, nil
 				}
 			}
-			if tt.name == "fail:error_fetching_list_of_user_agents" {
+			if tt.name == "fail:error_fetching_list_of_user_admins" {
 				fakeRepo.ListUserProfilesFn = func(ctx context.Context, role base.RoleType) ([]*base.UserProfile, error) {
 					return nil, fmt.Errorf("cannot fetch list of user profiles")
 				}
 			}
-			got, err := i.Agent.FetchAgents(tt.args.ctx)
+			got, err := i.Admin.FetchAdmins(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AgentUseCaseImpl.FetchAgents() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("AdminUseCaseImpl.FetchAdmins() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("AgentUseCaseImpl.FetchAgents() = %v, want %v", got, tt.want)
+				t.Errorf("AdminUseCaseImpl.FetchAdmins() = %v, want %v", got, tt.want)
 			}
 		})
 	}
