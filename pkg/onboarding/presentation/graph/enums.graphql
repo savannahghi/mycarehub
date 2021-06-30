@@ -156,3 +156,11 @@ enum FilterOperatorType {
   CONTAINS_TOKEN
   NOT_CONTAINS_TOKEN
 }
+
+enum LinkType {
+  YOUTUBE_VIDEO
+  PNG_IMAGE
+  PDF_DOCUMENT
+  SVG_IMAGE
+  DEFAULT
+}

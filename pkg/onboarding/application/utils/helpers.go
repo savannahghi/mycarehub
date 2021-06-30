@@ -57,6 +57,19 @@ func CheckIdentifierExists(profile *base.UserProfile, UID string) bool {
 	return base.StringSliceContains(foundVerifiedUIDs, UID)
 }
 
+// HasFavNavAction checks if user has book marked the provided navaction
+func Check_UserHasFavNavAction(u *base.UserProfile, title string) bool {
+	if len(u.FavNavActions) == 0 {
+		return false
+	}
+	for _, t := range u.FavNavActions {
+		if t == title {
+			return true
+		}
+	}
+	return false
+}
+
 // AddHashToCovers add a hash identifier to provided unhashed covers
 func AddHashToCovers(unHashedCovers []base.Cover) []base.Cover {
 	hashed := []base.Cover{}

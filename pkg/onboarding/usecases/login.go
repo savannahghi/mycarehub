@@ -106,7 +106,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	}
 
 	// get navigation actions
-	navActions, err := l.profile.GetNavActions(ctx, profile.Role)
+	navActions, err := l.profile.GetNavActions(ctx, *profile)
 
 	if err != nil {
 		return nil, err

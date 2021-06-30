@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"firebase.google.com/go/auth"
+	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 
 	"cloud.google.com/go/firestore"
@@ -54,6 +55,7 @@ type FirebaseClientExtension struct {
 	GetUserByPhoneNumberFn func(ctx context.Context, phone string) (*auth.UserRecord, error)
 	CreateUserFn           func(ctx context.Context, user *auth.UserToCreate) (*auth.UserRecord, error)
 	DeleteUserFn           func(ctx context.Context, uid string) error
+	GetUserProfileByIDFn   func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error)
 }
 
 // GetUserByPhoneNumber ...
@@ -69,4 +71,8 @@ func (f *FirebaseClientExtension) CreateUser(ctx context.Context, user *auth.Use
 // DeleteUser ...
 func (f *FirebaseClientExtension) DeleteUser(ctx context.Context, uid string) error {
 	return f.DeleteUserFn(ctx, uid)
+}
+
+func (f *FirebaseClientExtension) GetUserProfileByID(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+	return f.GetUserProfileByIDFn(ctx, id, suspended)
 }

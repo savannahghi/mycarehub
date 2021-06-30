@@ -149,10 +149,14 @@ type ProfileUseCase interface {
 		allowEmail *bool,
 	) (*base.UserCommunicationsSetting, error)
 
-	GetNavActions(ctx context.Context, role base.RoleType) (*base.NavigationActions, error)
+	GetNavActions(ctx context.Context, user base.UserProfile) (*base.NavigationActions, error)
 	GenerateDefaultNavActions(ctx context.Context) (base.NavigationActions, error)
 	GenerateAgentNavActions(ctx context.Context) (base.NavigationActions, error)
 	GenerateEmployeeNavActions(ctx context.Context) (base.NavigationActions, error)
+
+	SaveFavoriteNavActions(ctx context.Context, title string) (bool, error)
+	DeleteFavoriteNavActions(ctx context.Context, title string) (bool, error)
+	RefreshNavigationActions(ctx context.Context) (*base.NavigationActions, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -1362,30 +1366,49 @@ func (p *ProfileUseCaseImpl) SetUserCommunicationsSettings(
 }
 
 // GetNavActions Generates and returns the navigation actions for a user based on their role
-func (p *ProfileUseCaseImpl) GetNavActions(ctx context.Context, role base.RoleType) (*base.NavigationActions, error) {
-	switch role {
+func (p *ProfileUseCaseImpl) GetNavActions(ctx context.Context, user base.UserProfile) (*base.NavigationActions, error) {
+	var navActions base.NavigationActions
+	var err error
+	switch user.Role {
 	case base.RoleTypeEmployee:
-		actions, err := p.GenerateEmployeeNavActions(ctx)
+		navActions, err = p.GenerateEmployeeNavActions(ctx)
 		if err != nil {
 			return nil, err
 		}
-		return &actions, nil
 
 	case base.RoleTypeAgent:
-		actions, err := p.GenerateAgentNavActions(ctx)
+		navActions, err = p.GenerateAgentNavActions(ctx)
 		if err != nil {
 			return nil, err
 		}
-		return &actions, nil
 
 	default:
-		actions, err := p.GenerateDefaultNavActions(ctx)
+		navActions, err = p.GenerateDefaultNavActions(ctx)
 		if err != nil {
 			return nil, err
 		}
-		return &actions, nil
 	}
 
+	// set favorite navigation actions in response
+	primaryActions := []base.NavAction{}
+	for _, navAction := range navActions.Primary {
+		if utils.Check_UserHasFavNavAction(&user, navAction.Title) {
+			navAction.Favourite = true
+		}
+		primaryActions = append(primaryActions, navAction)
+	}
+
+	secondaryActions := []base.NavAction{}
+	for _, navAction := range navActions.Secondary {
+		if utils.Check_UserHasFavNavAction(&user, navAction.Title) {
+			navAction.Favourite = true
+		}
+		secondaryActions = append(secondaryActions, navAction)
+	}
+
+	navActions.Primary = primaryActions
+	navActions.Secondary = secondaryActions
+	return &navActions, nil
 }
 
 //GenerateEmployeeNavActions generates the navigation actions for a SIL employee
@@ -1610,4 +1633,71 @@ func (p *ProfileUseCaseImpl) GenerateDefaultNavActions(ctx context.Context) (bas
 	}
 
 	return actions, nil
+}
+
+// SaveFavoriteNavActions  saves the users favorite navigation actions
+func (p *ProfileUseCaseImpl) SaveFavoriteNavActions(ctx context.Context, title string) (bool, error) {
+	userinfo, err := p.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		return false, exceptions.ProfileNotFoundError(err)
+	}
+
+	user, err := p.onboardingRepository.GetUserProfileByUID(ctx, userinfo.UID, false)
+	if err != nil {
+		return false, exceptions.ProfileNotFoundError(err)
+	}
+
+	favActions := user.FavNavActions
+	if !utils.Check_UserHasFavNavAction(user, title) {
+		favActions = append(favActions, title)
+	}
+
+	err = p.onboardingRepository.UpdateFavNavActions(ctx, user.ID, favActions)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// DeleteFavoriteNavActions  removes a booked marked navigation action from user profile
+func (p *ProfileUseCaseImpl) DeleteFavoriteNavActions(ctx context.Context, title string) (bool, error) {
+	userinfo, err := p.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		return false, exceptions.ProfileNotFoundError(err)
+	}
+
+	user, err := p.onboardingRepository.GetUserProfileByUID(ctx, userinfo.UID, false)
+	if err != nil {
+		return false, exceptions.ProfileNotFoundError(err)
+	}
+	var favActions []string
+	for _, t := range user.FavNavActions {
+		if !utils.Check_UserHasFavNavAction(user, title) {
+			favActions = append(favActions, t)
+		}
+	}
+	err = p.onboardingRepository.UpdateFavNavActions(ctx, user.ID, favActions)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// RefreshNavigationActions gets user navigation actions only
+func (p *ProfileUseCaseImpl) RefreshNavigationActions(ctx context.Context) (*base.NavigationActions, error) {
+	user, err := p.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		return nil, exceptions.UserNotFoundError(err)
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
+	if err != nil {
+		return nil, exceptions.ProfileNotFoundError(err)
+	}
+
+	navAction, err := p.GetNavActions(ctx, *profile)
+	if err != nil {
+		return nil, exceptions.InternalServerError(fmt.Errorf("failed to get user navigation actions"))
+	}
+	return navAction, nil
 }

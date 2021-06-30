@@ -435,3 +435,30 @@ type Agent {
   photoUploadID: String
   userBioData: BioData
 }
+
+extend type Link {
+  ID: String
+  URL: String
+  LinkType: LinkType
+  Title: String
+  Description: String
+  Thumbnail: String
+}
+
+type NavAction {
+  Title: String
+  OnTapRoute: String
+  Icon: Link
+  Favourite: Boolean
+  Nested: [NestedNavAction]
+}
+
+type NestedNavAction {
+  Title: String
+  OnTapRoute: String
+}
+
+type NavigationActions {
+  Primary: [NavAction]
+  Secondary: [NavAction]
+}

@@ -211,6 +211,15 @@ type ComplexityRoot struct {
 		SupplierRecord      func(childComplexity int) int
 	}
 
+	Link struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		LinkType    func(childComplexity int) int
+		Thumbnail   func(childComplexity int) int
+		Title       func(childComplexity int) int
+		URL         func(childComplexity int) int
+	}
+
 	Location struct {
 		BranchSladeCode func(childComplexity int) int
 		ID              func(childComplexity int) int
@@ -237,6 +246,7 @@ type ComplexityRoot struct {
 		AddSecondaryPhoneNumber          func(childComplexity int, phone []string) int
 		CompleteSignup                   func(childComplexity int, flavour base.Flavour) int
 		DeactivateAgent                  func(childComplexity int, agentID string) int
+		DeleteFavoriteNavAction          func(childComplexity int, title string) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
 		RecordPostVisitSurvey            func(childComplexity int, input dto.PostVisitSurveyInput) int
 		RegisterAgent                    func(childComplexity int, input dto.RegisterAgentInput) int
@@ -244,6 +254,7 @@ type ComplexityRoot struct {
 		RetireKYCProcessingRequest       func(childComplexity int) int
 		RetireSecondaryEmailAddresses    func(childComplexity int, emails []string) int
 		RetireSecondaryPhoneNumbers      func(childComplexity int, phones []string) int
+		SaveFavoriteNavAction            func(childComplexity int, title string) int
 		SetOptOut                        func(childComplexity int, option string, phoneNumber string) int
 		SetPrimaryEmailAddress           func(childComplexity int, email string, otp string) int
 		SetPrimaryPhoneNumber            func(childComplexity int, phone string, otp string) int
@@ -267,6 +278,24 @@ type ComplexityRoot struct {
 		MembershipNumber          func(childComplexity int) int
 		NHIFCardPhotoID           func(childComplexity int) int
 		ProfileID                 func(childComplexity int) int
+	}
+
+	NavAction struct {
+		Favourite  func(childComplexity int) int
+		Icon       func(childComplexity int) int
+		Nested     func(childComplexity int) int
+		OnTapRoute func(childComplexity int) int
+		Title      func(childComplexity int) int
+	}
+
+	NavigationActions struct {
+		Primary   func(childComplexity int) int
+		Secondary func(childComplexity int) int
+	}
+
+	NestedNavAction struct {
+		OnTapRoute func(childComplexity int) int
+		Title      func(childComplexity int) int
 	}
 
 	OrganizationCoach struct {
@@ -373,6 +402,7 @@ type ComplexityRoot struct {
 		FetchAgents                   func(childComplexity int) int
 		FetchKYCProcessingRequests    func(childComplexity int) int
 		FetchSupplierAllowedLocations func(childComplexity int) int
+		FetchUserNavigationActions    func(childComplexity int) int
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) int
 		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) int
 		GetAddresses                  func(childComplexity int) int
@@ -522,6 +552,8 @@ type MutationResolver interface {
 	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error)
 	ActivateAgent(ctx context.Context, agentID string) (bool, error)
 	DeactivateAgent(ctx context.Context, agentID string) (bool, error)
+	SaveFavoriteNavAction(ctx context.Context, title string) (bool, error)
+	DeleteFavoriteNavAction(ctx context.Context, title string) (bool, error)
 }
 type QueryResolver interface {
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
@@ -536,6 +568,7 @@ type QueryResolver interface {
 	GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error)
 	CheckSupplierKYCSubmitted(ctx context.Context) (bool, error)
 	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
+	FetchUserNavigationActions(ctx context.Context) (*base.NavigationActions, error)
 }
 type VerifiedIdentifierResolver interface {
 	Timestamp(ctx context.Context, obj *base.VerifiedIdentifier) (*base.Date, error)
@@ -1266,6 +1299,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.KYCRequest.SupplierRecord(childComplexity), true
 
+	case "Link.Description":
+		if e.complexity.Link.Description == nil {
+			break
+		}
+
+		return e.complexity.Link.Description(childComplexity), true
+
+	case "Link.ID":
+		if e.complexity.Link.ID == nil {
+			break
+		}
+
+		return e.complexity.Link.ID(childComplexity), true
+
+	case "Link.LinkType":
+		if e.complexity.Link.LinkType == nil {
+			break
+		}
+
+		return e.complexity.Link.LinkType(childComplexity), true
+
+	case "Link.Thumbnail":
+		if e.complexity.Link.Thumbnail == nil {
+			break
+		}
+
+		return e.complexity.Link.Thumbnail(childComplexity), true
+
+	case "Link.Title":
+		if e.complexity.Link.Title == nil {
+			break
+		}
+
+		return e.complexity.Link.Title(childComplexity), true
+
+	case "Link.URL":
+		if e.complexity.Link.URL == nil {
+			break
+		}
+
+		return e.complexity.Link.URL(childComplexity), true
+
 	case "Location.branchSladeCode":
 		if e.complexity.Location.BranchSladeCode == nil {
 			break
@@ -1515,6 +1590,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeactivateAgent(childComplexity, args["agentID"].(string)), true
 
+	case "Mutation.deleteFavoriteNavAction":
+		if e.complexity.Mutation.DeleteFavoriteNavAction == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteFavoriteNavAction_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteFavoriteNavAction(childComplexity, args["title"].(string)), true
+
 	case "Mutation.processKYCRequest":
 		if e.complexity.Mutation.ProcessKYCRequest == nil {
 			break
@@ -1593,6 +1680,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RetireSecondaryPhoneNumbers(childComplexity, args["phones"].([]string)), true
+
+	case "Mutation.saveFavoriteNavAction":
+		if e.complexity.Mutation.SaveFavoriteNavAction == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_saveFavoriteNavAction_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SaveFavoriteNavAction(childComplexity, args["title"].(string)), true
 
 	case "Mutation.setOptOut":
 		if e.complexity.Mutation.SetOptOut == nil {
@@ -1793,6 +1892,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.NHIFDetails.ProfileID(childComplexity), true
+
+	case "NavAction.Favourite":
+		if e.complexity.NavAction.Favourite == nil {
+			break
+		}
+
+		return e.complexity.NavAction.Favourite(childComplexity), true
+
+	case "NavAction.Icon":
+		if e.complexity.NavAction.Icon == nil {
+			break
+		}
+
+		return e.complexity.NavAction.Icon(childComplexity), true
+
+	case "NavAction.Nested":
+		if e.complexity.NavAction.Nested == nil {
+			break
+		}
+
+		return e.complexity.NavAction.Nested(childComplexity), true
+
+	case "NavAction.OnTapRoute":
+		if e.complexity.NavAction.OnTapRoute == nil {
+			break
+		}
+
+		return e.complexity.NavAction.OnTapRoute(childComplexity), true
+
+	case "NavAction.Title":
+		if e.complexity.NavAction.Title == nil {
+			break
+		}
+
+		return e.complexity.NavAction.Title(childComplexity), true
+
+	case "NavigationActions.Primary":
+		if e.complexity.NavigationActions.Primary == nil {
+			break
+		}
+
+		return e.complexity.NavigationActions.Primary(childComplexity), true
+
+	case "NavigationActions.Secondary":
+		if e.complexity.NavigationActions.Secondary == nil {
+			break
+		}
+
+		return e.complexity.NavigationActions.Secondary(childComplexity), true
+
+	case "NestedNavAction.OnTapRoute":
+		if e.complexity.NestedNavAction.OnTapRoute == nil {
+			break
+		}
+
+		return e.complexity.NestedNavAction.OnTapRoute(childComplexity), true
+
+	case "NestedNavAction.Title":
+		if e.complexity.NestedNavAction.Title == nil {
+			break
+		}
+
+		return e.complexity.NestedNavAction.Title(childComplexity), true
 
 	case "OrganizationCoach.certificateOfInCorporationUploadID":
 		if e.complexity.OrganizationCoach.CertificateOfInCorporationUploadID == nil {
@@ -2346,6 +2508,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FetchSupplierAllowedLocations(childComplexity), true
+
+	case "Query.fetchUserNavigationActions":
+		if e.complexity.Query.FetchUserNavigationActions == nil {
+			break
+		}
+
+		return e.complexity.Query.FetchUserNavigationActions(childComplexity), true
 
 	case "Query.findBranch":
 		if e.complexity.Query.FindBranch == nil {
@@ -3079,6 +3248,14 @@ enum FilterOperatorType {
   CONTAINS_TOKEN
   NOT_CONTAINS_TOKEN
 }
+
+enum LinkType {
+  YOUTUBE_VIDEO
+  PNG_IMAGE
+  PDF_DOCUMENT
+  SVG_IMAGE
+  DEFAULT
+}
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/external.graphql", Input: `# supported content types
 enum ContentType {
@@ -3537,6 +3714,8 @@ input RegisterAgentInput {
   checkSupplierKYCSubmitted: Boolean!
 
   fetchAgents: [Agent]
+
+  fetchUserNavigationActions: NavigationActions
 }
 
 extend type Mutation {
@@ -3640,6 +3819,10 @@ extend type Mutation {
   activateAgent(agentID: String!): Boolean!
 
   deactivateAgent(agentID: String!): Boolean!
+
+  saveFavoriteNavAction(title: String!): Boolean!
+
+  deleteFavoriteNavAction(title: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -4079,6 +4262,33 @@ type Agent {
   photoUploadID: String
   userBioData: BioData
 }
+
+extend type Link {
+  ID: String
+  URL: String
+  LinkType: LinkType
+  Title: String
+  Description: String
+  Thumbnail: String
+}
+
+type NavAction {
+  Title: String
+  OnTapRoute: String
+  Icon: Link
+  Favourite: Boolean
+  Nested: [NestedNavAction]
+}
+
+type NestedNavAction {
+  Title: String
+  OnTapRoute: String
+}
+
+type NavigationActions {
+  Primary: [NavAction]
+  Secondary: [NavAction]
+}
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
@@ -4450,6 +4660,21 @@ func (ec *executionContext) field_Mutation_deactivateAgent_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteFavoriteNavAction_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["title"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["title"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_processKYCRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4555,6 +4780,21 @@ func (ec *executionContext) field_Mutation_retireSecondaryPhoneNumbers_args(ctx 
 		}
 	}
 	args["phones"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_saveFavoriteNavAction_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["title"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["title"] = arg0
 	return args, nil
 }
 
@@ -8362,6 +8602,198 @@ func (ec *executionContext) _KYCRequest_processedTimestamp(ctx context.Context, 
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Link_ID(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Link",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Link_URL(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Link",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Link_LinkType(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Link",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LinkType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(base.LinkType)
+	fc.Result = res
+	return ec.marshalOLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Link_Title(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Link",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Link_Description(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Link",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Link_Thumbnail(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Link",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Thumbnail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Location_id(ctx context.Context, field graphql.CollectedField, obj *base.Location) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -10050,6 +10482,90 @@ func (ec *executionContext) _Mutation_deactivateAgent(ctx context.Context, field
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_saveFavoriteNavAction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_saveFavoriteNavAction_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SaveFavoriteNavAction(rctx, args["title"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteFavoriteNavAction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteFavoriteNavAction_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteFavoriteNavAction(rctx, args["title"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NHIFDetails_id(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -10328,6 +10844,294 @@ func (ec *executionContext) _NHIFDetails_NHIFCardPhotoID(ctx context.Context, fi
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NavAction_Title(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NavAction",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NavAction_OnTapRoute(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NavAction",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OnTapRoute, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NavAction_Icon(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NavAction",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Icon, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(base.Link)
+	fc.Result = res
+	return ec.marshalOLink2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLink(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NavAction_Favourite(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NavAction",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Favourite, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NavAction_Nested(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NavAction",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nested, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]base.NestedNavAction)
+	fc.Result = res
+	return ec.marshalONestedNavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNestedNavAction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NavigationActions_Primary(ctx context.Context, field graphql.CollectedField, obj *base.NavigationActions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NavigationActions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Primary, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]base.NavAction)
+	fc.Result = res
+	return ec.marshalONavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NavigationActions_Secondary(ctx context.Context, field graphql.CollectedField, obj *base.NavigationActions) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NavigationActions",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Secondary, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]base.NavAction)
+	fc.Result = res
+	return ec.marshalONavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NestedNavAction_Title(ctx context.Context, field graphql.CollectedField, obj *base.NestedNavAction) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NestedNavAction",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NestedNavAction_OnTapRoute(ctx context.Context, field graphql.CollectedField, obj *base.NestedNavAction) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NestedNavAction",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OnTapRoute, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationCoach_organizationTypeName(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationCoach) (ret graphql.Marshaler) {
@@ -13289,6 +14093,38 @@ func (ec *executionContext) _Query_fetchAgents(ctx context.Context, field graphq
 	res := resTmp.([]*dto.Agent)
 	fc.Result = res
 	return ec.marshalOAgent2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_fetchUserNavigationActions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FetchUserNavigationActions(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*base.NavigationActions)
+	fc.Result = res
+	return ec.marshalONavigationActions2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavigationActions(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19155,6 +19991,40 @@ func (ec *executionContext) _KYCRequest(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var linkImplementors = []string{"Link"}
+
+func (ec *executionContext) _Link(ctx context.Context, sel ast.SelectionSet, obj *base.Link) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, linkImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Link")
+		case "ID":
+			out.Values[i] = ec._Link_ID(ctx, field, obj)
+		case "URL":
+			out.Values[i] = ec._Link_URL(ctx, field, obj)
+		case "LinkType":
+			out.Values[i] = ec._Link_LinkType(ctx, field, obj)
+		case "Title":
+			out.Values[i] = ec._Link_Title(ctx, field, obj)
+		case "Description":
+			out.Values[i] = ec._Link_Description(ctx, field, obj)
+		case "Thumbnail":
+			out.Values[i] = ec._Link_Thumbnail(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var locationImplementors = []string{"Location"}
 
 func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet, obj *base.Location) graphql.Marshaler {
@@ -19391,6 +20261,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "saveFavoriteNavAction":
+			out.Values[i] = ec._Mutation_saveFavoriteNavAction(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteFavoriteNavAction":
+			out.Values[i] = ec._Mutation_deleteFavoriteNavAction(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19453,6 +20333,90 @@ func (ec *executionContext) _NHIFDetails(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var navActionImplementors = []string{"NavAction"}
+
+func (ec *executionContext) _NavAction(ctx context.Context, sel ast.SelectionSet, obj *base.NavAction) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, navActionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NavAction")
+		case "Title":
+			out.Values[i] = ec._NavAction_Title(ctx, field, obj)
+		case "OnTapRoute":
+			out.Values[i] = ec._NavAction_OnTapRoute(ctx, field, obj)
+		case "Icon":
+			out.Values[i] = ec._NavAction_Icon(ctx, field, obj)
+		case "Favourite":
+			out.Values[i] = ec._NavAction_Favourite(ctx, field, obj)
+		case "Nested":
+			out.Values[i] = ec._NavAction_Nested(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var navigationActionsImplementors = []string{"NavigationActions"}
+
+func (ec *executionContext) _NavigationActions(ctx context.Context, sel ast.SelectionSet, obj *base.NavigationActions) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, navigationActionsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NavigationActions")
+		case "Primary":
+			out.Values[i] = ec._NavigationActions_Primary(ctx, field, obj)
+		case "Secondary":
+			out.Values[i] = ec._NavigationActions_Secondary(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var nestedNavActionImplementors = []string{"NestedNavAction"}
+
+func (ec *executionContext) _NestedNavAction(ctx context.Context, sel ast.SelectionSet, obj *base.NestedNavAction) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, nestedNavActionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NestedNavAction")
+		case "Title":
+			out.Values[i] = ec._NestedNavAction_Title(ctx, field, obj)
+		case "OnTapRoute":
+			out.Values[i] = ec._NestedNavAction_OnTapRoute(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20091,6 +21055,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_fetchAgents(ctx, field)
+				return res
+			})
+		case "fetchUserNavigationActions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_fetchUserNavigationActions(ctx, field)
 				return res
 			})
 		case "_entities":
@@ -22630,6 +23605,20 @@ func (ec *executionContext) marshalOKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋg
 	return ec._KYCRequest(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOLink2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLink(ctx context.Context, sel ast.SelectionSet, v base.Link) graphql.Marshaler {
+	return ec._Link(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalOLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx context.Context, v interface{}) (base.LinkType, error) {
+	var res base.LinkType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx context.Context, sel ast.SelectionSet, v base.LinkType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLocation(ctx context.Context, sel ast.SelectionSet, v *base.Location) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -22642,6 +23631,101 @@ func (ec *executionContext) marshalONHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋ
 		return graphql.Null
 	}
 	return ec._NHIFDetails(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalONavAction2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx context.Context, sel ast.SelectionSet, v base.NavAction) graphql.Marshaler {
+	return ec._NavAction(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalONavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx context.Context, sel ast.SelectionSet, v []base.NavAction) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalONavAction2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalONavigationActions2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavigationActions(ctx context.Context, sel ast.SelectionSet, v *base.NavigationActions) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._NavigationActions(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalONestedNavAction2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNestedNavAction(ctx context.Context, sel ast.SelectionSet, v base.NestedNavAction) graphql.Marshaler {
+	return ec._NestedNavAction(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalONestedNavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNestedNavAction(ctx context.Context, sel ast.SelectionSet, v []base.NestedNavAction) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalONestedNavAction2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNestedNavAction(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) unmarshalOOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx context.Context, v interface{}) (domain.OrganizationType, error) {

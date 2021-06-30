@@ -29,6 +29,8 @@ extend type Query {
   checkSupplierKYCSubmitted: Boolean!
 
   fetchAgents: [Agent]
+
+  fetchUserNavigationActions: NavigationActions
 }
 
 extend type Mutation {
@@ -132,4 +134,8 @@ extend type Mutation {
   activateAgent(agentID: String!): Boolean!
 
   deactivateAgent(agentID: String!): Boolean!
+
+  saveFavoriteNavAction(title: String!): Boolean!
+
+  deleteFavoriteNavAction(title: String!): Boolean!
 }

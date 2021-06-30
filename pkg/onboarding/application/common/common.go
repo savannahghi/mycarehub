@@ -56,6 +56,9 @@ const (
 	AgentRegistrationActionTitle   = "Agent Registration"
 	AgentIdentificationActionTitle = "Agent Identification"
 
+	AgentRegistrationTitle   = "Agent Registration"
+	AgentIdentificationTitle = "Agent Identification"
+
 	ConsumerNavActionTitle       = "Consumer"
 	ConsumerNavActionDescription = "Consumer Navigation action"
 

@@ -14,7 +14,6 @@ require (
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/casbin/casbin/v2 v2.31.3
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -25,7 +24,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/vektah/gqlparser/v2 v2.1.0
-	gitlab.slade360emr.com/go/base v0.0.157
+	gitlab.slade360emr.com/go/base v0.0.159
 	gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210617194420-c4ac13ba4506
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a

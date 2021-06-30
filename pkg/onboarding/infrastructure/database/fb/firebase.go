@@ -1196,6 +1196,41 @@ func (fr *Repository) UpdateRole(ctx context.Context, id string, role base.RoleT
 
 }
 
+// UpdateFavNavActions update the permissions of the user profile
+func (fr *Repository) UpdateFavNavActions(ctx context.Context, id string, favActions []string) error {
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
+	if err != nil {
+		// this is a wrapped error. No need to wrap it again
+		return err
+	}
+
+	profile.FavNavActions = favActions
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		FieldName:      "id",
+		Value:          profile.ID,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+	}
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
+	updateCommand := &UpdateCommand{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		ID:             docs[0].Ref.ID,
+		Data:           profile,
+	}
+	err = fr.FirestoreClient.Update(ctx, updateCommand)
+	if err != nil {
+		return exceptions.InternalServerError(fmt.Errorf("unable to update user favorite actions: %v", err))
+	}
+	return nil
+}
+
 // UpdateBioData updates the biodate of the profile that matches the id
 func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.BioData) error {
 	profile, err := fr.GetUserProfileByID(ctx, id, false)

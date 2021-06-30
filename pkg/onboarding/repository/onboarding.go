@@ -193,6 +193,7 @@ type UserProfileRepository interface {
 	UpdateRole(ctx context.Context, id string, role base.RoleType) error
 	UpdateBioData(ctx context.Context, id string, data base.BioData) error
 	UpdateAddresses(ctx context.Context, id string, address base.Address, addressType base.AddressType) error
+	UpdateFavNavActions(ctx context.Context, id string, favActions []string) error
 }
 
 // AgentRepository  defines signatures that relate to agents

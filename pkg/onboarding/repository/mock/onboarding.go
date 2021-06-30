@@ -177,6 +177,7 @@ type FakeOnboardingRepository struct {
 	UpdateStageCRMPayloadFn         func(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
 	GetStageCRMPayloadFn            func(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error)
 	UpdateOptOutCRMPayloadFn        func(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
+	UpdateFavNavActionsFn           func(ctx context.Context, id string, favActions []string) error
 }
 
 // GetSupplierProfileByID ...
@@ -594,4 +595,9 @@ func (f *FakeOnboardingRepository) GetStageCRMPayload(ctx context.Context, phone
 // UpdateOptOutCRMPayload ...
 func (f *FakeOnboardingRepository) UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
 	return f.UpdateOptOutCRMPayloadFn(ctx, phoneNumber, contactLead)
+}
+
+// UpdateFavNavActions ...
+func (f *FakeOnboardingRepository) UpdateFavNavActions(ctx context.Context, id string, favActions []string) error {
+	return f.UpdateFavNavActionsFn(ctx, id, favActions)
 }

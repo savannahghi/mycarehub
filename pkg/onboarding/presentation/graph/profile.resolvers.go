@@ -425,6 +425,26 @@ func (r *mutationResolver) DeactivateAgent(ctx context.Context, agentID string) 
 	return success, err
 }
 
+func (r *mutationResolver) SaveFavoriteNavAction(ctx context.Context, title string) (bool, error) {
+	startTime := time.Now()
+
+	success, err := r.interactor.Onboarding.SaveFavoriteNavActions(ctx, title)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "saveFavoriteNavAction", err)
+
+	return success, err
+}
+
+func (r *mutationResolver) DeleteFavoriteNavAction(ctx context.Context, title string) (bool, error) {
+	startTime := time.Now()
+
+	success, err := r.interactor.Onboarding.DeleteFavoriteNavActions(ctx, title)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "deleteFavoriteNavAction", err)
+
+	return success, err
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	startTime := time.Now()
 
@@ -543,6 +563,16 @@ func (r *queryResolver) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {
 	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "fetchAgents", err)
 
 	return agents, err
+}
+
+func (r *queryResolver) FetchUserNavigationActions(ctx context.Context) (*base.NavigationActions, error) {
+	startTime := time.Now()
+
+	navactions, err := r.interactor.Onboarding.RefreshNavigationActions(ctx)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "fetchUserNavigationActions", err)
+
+	return navactions, err
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
@@ -532,6 +533,152 @@ func TestRepository_UpdateRole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := repo.UpdateRole(tt.args.ctx, tt.args.id, tt.args.role)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+
+		})
+	}
+}
+
+func TestRepository_UpdateFavNavActions(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	type args struct {
+		ctx        context.Context
+		id         string
+		favActions []string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "invalid:user_profile_not_found",
+			args: args{
+				ctx:        ctx,
+				id:         "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+				favActions: []string{"home"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:unable_to_pass_userprofile",
+			args: args{
+				ctx:        ctx,
+				id:         "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+				favActions: []string{"home"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:user_profile_collection_size_0",
+			args: args{
+				ctx:        ctx,
+				id:         "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+				favActions: []string{"home"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid:unable_update_userprofile_fav_actions",
+			args: args{
+				ctx:        ctx,
+				id:         "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+				favActions: []string{"home"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "valid:update_user_favorite_actions_successful",
+			args: args{
+				ctx:        ctx,
+				id:         "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+				favActions: []string{"home"},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "invalid:user_profile_not_found" {
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("error: unable to get profile")
+				}
+			}
+			if tt.name == "invalid:unable_to_pass_userprofile" {
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{}, nil
+				}
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, fmt.Errorf("unable to get user profile docs")
+				}
+			}
+			if tt.name == "invalid:user_profile_collection_size_0" {
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{}, nil
+				}
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{}
+					return docs, nil
+				}
+			}
+			if tt.name == "invalid:unable_update_userprofile_fav_actions" {
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{}, nil
+				}
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{
+						{
+							Ref:        &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"},
+							CreateTime: time.Time{},
+							UpdateTime: time.Time{},
+							ReadTime:   time.Time{},
+						},
+					}
+					return docs, nil
+				}
+				fakeFireStoreClientExt.UpdateFn = func(ctx context.Context, command *fb.UpdateCommand) error {
+					return fmt.Errorf("unable to update user profile")
+				}
+			}
+			if tt.name == "valid:update_user_favorite_actions_successful" {
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{}, nil
+				}
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{
+						{
+							Ref:        &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"},
+							CreateTime: time.Time{},
+							UpdateTime: time.Time{},
+							ReadTime:   time.Time{},
+						},
+					}
+					return docs, nil
+				}
+				fakeFireStoreClientExt.UpdateFn = func(ctx context.Context, command *fb.UpdateCommand) error {
+					return nil
+				}
+			}
+
+			err := repo.UpdateFavNavActions(tt.args.ctx, tt.args.id, tt.args.favActions)
 
 			if tt.wantErr {
 				if err == nil {

@@ -3626,7 +3626,7 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 					Description: "Partner Navigation action",
 					Thumbnail:   common.PartnerNavActionURL,
 				},
-				Favourite: false,
+				Favourite: true,
 			},
 			{
 				Title:      "Consumer",
@@ -3639,7 +3639,7 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 					Description: "Consumer Navigation action",
 					Thumbnail:   common.ConsumerNavActionURL,
 				},
-				Favourite: false,
+				Favourite: true,
 			},
 			{
 				Title:      "Help",
@@ -3658,19 +3658,22 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 	}
 	type args struct {
 		ctx  context.Context
-		role base.RoleType
+		user base.UserProfile
 	}
 	tests := []struct {
 		name    string
 		args    args
 		want    *base.NavigationActions
+		wantNil bool
 		wantErr bool
 	}{
 		{
 			name: "valid:success_no_role_default_action",
 			args: args{
-				ctx:  ctx,
-				role: "",
+				ctx: ctx,
+				user: base.UserProfile{
+					Role: "",
+				},
 			},
 			want:    defaultActions,
 			wantErr: false,
@@ -3678,8 +3681,11 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 		{
 			name: "valid:success_employee_role_actions",
 			args: args{
-				ctx:  ctx,
-				role: employee,
+				ctx: ctx,
+				user: base.UserProfile{
+					Role:          employee,
+					FavNavActions: []string{"Agent"},
+				},
 			},
 			want:    employeeActions,
 			wantErr: false,
@@ -3687,8 +3693,11 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 		{
 			name: "valid:success_agent_role_actions",
 			args: args{
-				ctx:  ctx,
-				role: agent,
+				ctx: ctx,
+				user: base.UserProfile{
+					Role:          agent,
+					FavNavActions: []string{"Partner", "Consumer"},
+				},
 			},
 			want:    agentActions,
 			wantErr: false,
@@ -3696,13 +3705,319 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := i.Onboarding.GetNavActions(tt.args.ctx, tt.args.role)
+			got, err := i.Onboarding.GetNavActions(tt.args.ctx, tt.args.user)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FeedUseCaseImpl.GetNavActions() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == nil {
 				t.Errorf("FeedUseCaseImpl.GetNavActions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx   context.Context
+		title string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		want    bool
+	}{
+		{
+			name: "invalid: unable get loggedIn user",
+			args: args{
+				ctx:   ctx,
+				title: "home",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: unable get user profile",
+			args: args{
+				ctx:   ctx,
+				title: "home",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: unable to save user navactions",
+			args: args{
+				ctx:   ctx,
+				title: "home",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "valid: saved user navactions",
+			args: args{
+				ctx:   ctx,
+				title: "home",
+			},
+			wantErr: false,
+			want:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "invalid: unable get loggedIn user" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return nil, fmt.Errorf("unable to get logged in user")
+				}
+			}
+			if tt.name == "invalid: unable get user profile" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get user profile")
+				}
+			}
+			if tt.name == "invalid: unable to save user navactions" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+				fakeRepo.UpdateFavNavActionsFn = func(ctx context.Context, id string, favActions []string) error {
+					return fmt.Errorf("unable to update user favorite navactions")
+				}
+			}
+			if tt.name == "valid: saved user navactions" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+				fakeRepo.UpdateFavNavActionsFn = func(ctx context.Context, id string, favActions []string) error {
+					return nil
+				}
+			}
+			got, err := i.Onboarding.SaveFavoriteNavActions(tt.args.ctx, tt.args.title)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.SaveFavoriteNavActions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ProfileUseCaseImpl.SaveFavoriteNavActions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+	type args struct {
+		ctx   context.Context
+		title string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		want    bool
+	}{
+		{
+			name: "invalid: unable get loggedIn user",
+			args: args{
+				ctx:   ctx,
+				title: "home",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: unable get user profile",
+			args: args{
+				ctx:   ctx,
+				title: "home",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: unable to delete user navactions",
+			args: args{
+				ctx:   ctx,
+				title: "home",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "valid: deleted user navactions",
+			args: args{
+				ctx:   ctx,
+				title: "home",
+			},
+			wantErr: false,
+			want:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "invalid: unable get loggedIn user" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return nil, fmt.Errorf("unable to get logged in user")
+				}
+			}
+			if tt.name == "invalid: unable get user profile" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get user profile")
+				}
+			}
+			if tt.name == "invalid: unable to delete user navactions" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+				fakeRepo.UpdateFavNavActionsFn = func(ctx context.Context, id string, favActions []string) error {
+					return fmt.Errorf("unable to update user favorite navactions")
+				}
+			}
+			if tt.name == "valid: deleted user navactions" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID: uuid.New().String(),
+					}, nil
+				}
+				fakeRepo.UpdateFavNavActionsFn = func(ctx context.Context, id string, favActions []string) error {
+					return nil
+				}
+			}
+			got, err := i.Onboarding.DeleteFavoriteNavActions(tt.args.ctx, tt.args.title)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.DeleteFavoriteNavActions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ProfileUseCaseImpl.DeleteFavoriteNavActions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_RefreshNavigationActions(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantNil bool
+		wantErr bool
+	}{
+		{
+			name:    "sad: failed to get logged in user",
+			args:    args{ctx: ctx},
+			wantNil: true,
+			wantErr: true,
+		}, {
+			name:    "sad: failed to get logged in user profile",
+			args:    args{ctx: ctx},
+			wantNil: true,
+			wantErr: true,
+		}, {
+			name:    "sad: failed to get user navigation actions",
+			args:    args{ctx: ctx},
+			wantNil: true,
+			wantErr: true,
+		}, {
+			name:    "happy: got user navigation actions",
+			args:    args{ctx: ctx},
+			wantNil: false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad: failed to get logged in user" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return nil, fmt.Errorf("unable to get logged in user")
+				}
+			}
+			if tt.name == "sad: failed to get logged in user profile" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get user profile")
+				}
+			}
+			if tt.name == "happy: got user navigation actions" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{}, nil
+				}
+
+				fakeRepo.GetNavActionsFn = func(ctx context.Context, role base.RoleType) (*base.NavigationActions, error) {
+					return &base.NavigationActions{}, nil
+				}
+			}
+
+			got, err := i.Onboarding.RefreshNavigationActions(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.RefreshNavigationActions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantNil {
+				if got == nil {
+					t.Errorf("ProfileUseCaseImpl.RefreshNavigationActions() = %v, want %v", got, tt.wantNil)
+				}
 			}
 		})
 	}
