@@ -8,6 +8,7 @@ test_output.txt
 documentation/site
 artifacts.zip
 bewell-app-ci.json
+bewell-app.json
 bin/
 coverage.html
 coverage.json

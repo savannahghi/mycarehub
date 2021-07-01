@@ -161,7 +161,7 @@ func ValidatePIN(pin string) error {
 
 // ValidatePINLength ...
 func ValidatePINLength(pin string) error {
-	// make sure pin length is [4-6]
+	// make sure pin length is [4]
 	if len(pin) < minPINLength || len(pin) > maxPINLength {
 		return exceptions.ValidatePINLengthError(fmt.Errorf("PIN should be of 4 digits"))
 	}

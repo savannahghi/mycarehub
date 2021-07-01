@@ -2,6 +2,7 @@ package ussd
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -111,17 +112,17 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		return resp
 
 	}
-
+	fmt.Println("the last name level", session.Level)
 	if session.Level == GetLastNameState {
 		err := utils.ValidateUSSDInput(userResponse)
 		if err != nil {
 			utils.RecordSpanError(span, err)
-			return "CON Invalid name. Please enter a valid name (e.g John)"
+			return "CON Invalid name. Please enter a valid name (e.g Doe)"
 		}
 
 		isLetter := utils.IsLetter(userResponse)
 		if !isLetter {
-			return "CON Invalid name. Please enter a valid name (e.g John)"
+			return "CON Invalid name. Please enter a valid name (e.g Doe)"
 		}
 
 		userLastName = userResponse
@@ -134,7 +135,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		resp := "CON Please enter your date of birth in\r\n"
 		resp += "DDMMYYYY format e.g 14031996 for\r\n"
-		resp += "14th March 1992\r\n"
+		resp += "14th March 1996\r\n"
 		return resp
 	}
 

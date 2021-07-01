@@ -24,6 +24,24 @@ func (u *Impl) UpdateSessionLevel(ctx context.Context, level int, sessionID stri
 
 }
 
+// UpdateOptOutCRMPayload ...
+func (u *Impl) UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
+	err := u.onboardingRepository.UpdateOptOutCRMPayload(ctx, phoneNumber, contactLead)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// StageCRMPayload ...
+func (u *Impl) StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error {
+	err := u.onboardingRepository.StageCRMPayload(ctx, payload)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //AddAITSessionDetails persists USSD details
 func (u *Impl) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error) {
 	ctx, span := tracer.Start(ctx, "AddAITSessionDetails")

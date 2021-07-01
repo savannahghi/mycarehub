@@ -2,6 +2,7 @@ package fb_test
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"testing"
 
@@ -17,6 +18,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -265,181 +267,181 @@ func InitializeTestFirebaseClient(ctx context.Context) (*firestore.Client, *auth
 	return fsc, fbc
 }
 
-// func TestRemoveKYCProcessingRequest(t *testing.T) {
-// 	s, err := InitializeTestService(context.Background())
-// 	assert.Nil(t, err)
+func TestRemoveKYCProcessingRequest(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	assert.Nil(t, err)
 
-// 	// clean up
-// 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), base.TestUserPhoneNumber)
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), base.TestUserPhoneNumber)
 
-// 	ctx, auth, err := GetTestAuthenticatedContext(t)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, auth)
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	assert.Nil(t, err)
+	assert.NotNil(t, auth)
 
-// 	fsc, fbc := InitializeTestFirebaseClient(ctx)
-// 	if fsc == nil {
-// 		log.Panicf("failed to initialize test FireStore client")
-// 	}
-// 	if fbc == nil {
-// 		log.Panicf("failed to initialize test FireBase client")
-// 	}
-// 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-// 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
-// 	input1 := domain.OrganizationNutrition{
-// 		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
-// 		KRAPIN:               "someKRAPIN",
-// 		KRAPINUploadID:       "KRAPINUploadID",
-// 		SupportingDocuments: []domain.SupportingDocument{
-// 			{
-// 				SupportingDocumentTitle:       "support-title",
-// 				SupportingDocumentDescription: "support-description",
-// 				SupportingDocumentUpload:      "support-upload-id",
-// 			},
-// 		},
-// 		CertificateOfIncorporation:         "CertificateOfIncorporation",
-// 		CertificateOfInCorporationUploadID: "CertificateOfInCorporationUploadID",
-// 		DirectorIdentifications: []domain.Identification{
-// 			{
-// 				IdentificationDocType:           base.IdentificationDocTypeMilitary,
-// 				IdentificationDocNumber:         "IdentificationDocNumber",
-// 				IdentificationDocNumberUploadID: "IdentificationDocNumberUploadID",
-// 			},
-// 		},
-// 		RegistrationNumber:      "RegistrationNumber",
-// 		PracticeLicenseID:       "PracticeLicenseID",
-// 		PracticeLicenseUploadID: "PracticeLicenseUploadID",
-// 	}
+	input1 := domain.OrganizationNutrition{
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		KRAPIN:               "someKRAPIN",
+		KRAPINUploadID:       "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		CertificateOfIncorporation:         "CertificateOfIncorporation",
+		CertificateOfInCorporationUploadID: "CertificateOfInCorporationUploadID",
+		DirectorIdentifications: []domain.Identification{
+			{
+				IdentificationDocType:           base.IdentificationDocTypeMilitary,
+				IdentificationDocNumber:         "IdentificationDocNumber",
+				IdentificationDocNumberUploadID: "IdentificationDocNumberUploadID",
+			},
+		},
+		RegistrationNumber:      "RegistrationNumber",
+		PracticeLicenseID:       "PracticeLicenseID",
+		PracticeLicenseUploadID: "PracticeLicenseUploadID",
+	}
 
-// 	kycJSON, err := json.Marshal(input1)
-// 	assert.Nil(t, err)
+	kycJSON, err := json.Marshal(input1)
+	assert.Nil(t, err)
 
-// 	var kycAsMap map[string]interface{}
-// 	err = json.Unmarshal(kycJSON, &kycAsMap)
-// 	assert.Nil(t, err)
+	var kycAsMap map[string]interface{}
+	err = json.Unmarshal(kycJSON, &kycAsMap)
+	assert.Nil(t, err)
 
-// 	// get the user profile
-// 	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, profile)
+	// get the user profile
+	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
+	assert.Nil(t, err)
+	assert.NotNil(t, profile)
 
-// 	// fetch the supplier profile
-// 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profile.ID)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, sup)
+	// fetch the supplier profile
+	sup, err := fr.GetSupplierProfileByProfileID(ctx, profile.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, sup)
 
-// 	//call remove kyc process request. this should fail since the user has not added a kyc yet
-// 	err = fr.RemoveKYCProcessingRequest(ctx, sup.ID)
-// 	assert.NotNil(t, err)
+	//call remove kyc process request. this should fail since the user has not added a kyc yet
+	err = fr.RemoveKYCProcessingRequest(ctx, sup.ID)
+	assert.NotNil(t, err)
 
-// 	sup.SupplierKYC = kycAsMap
+	sup.SupplierKYC = kycAsMap
 
-// 	// now add the kyc processing request
-// 	req1 := &domain.KYCRequest{
-// 		ID:             uuid.New().String(),
-// 		ReqPartnerType: sup.PartnerType,
-// 		ReqRaw:         sup.SupplierKYC,
-// 		Processed:      false,
-// 		SupplierRecord: sup,
-// 		Status:         domain.KYCProcessStatusPending,
-// 	}
-// 	err = fr.StageKYCProcessingRequest(ctx, req1)
-// 	assert.Nil(t, err)
+	// now add the kyc processing request
+	req1 := &domain.KYCRequest{
+		ID:             uuid.New().String(),
+		ReqPartnerType: sup.PartnerType,
+		ReqRaw:         sup.SupplierKYC,
+		Processed:      false,
+		SupplierRecord: sup,
+		Status:         domain.KYCProcessStatusPending,
+	}
+	err = fr.StageKYCProcessingRequest(ctx, req1)
+	assert.Nil(t, err)
 
-// 	// call remove kypc processing request again. this should pass now since there is and existing processing request added
-// 	err = fr.RemoveKYCProcessingRequest(ctx, sup.ID)
-// 	assert.Nil(t, err)
+	// call remove kypc processing request again. this should pass now since there is and existing processing request added
+	err = fr.RemoveKYCProcessingRequest(ctx, sup.ID)
+	assert.Nil(t, err)
 
-// }
+}
 
-// func TestPurgeUserByPhoneNumber(t *testing.T) {
-// 	s, err := InitializeTestService(context.Background())
-// 	assert.Nil(t, err)
-// 	// clean up
-// 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), base.TestUserPhoneNumber)
-// 	ctx, auth, err := GetTestAuthenticatedContext(t)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, auth)
-// 	fsc, fbc := InitializeTestFirebaseClient(ctx)
-// 	if fsc == nil {
-// 		log.Panicf("failed to initialize test FireStore client")
-// 	}
-// 	if fbc == nil {
-// 		log.Panicf("failed to initialize test FireBase client")
-// 	}
-// 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-// 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
-// 	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, profile)
-// 	assert.Equal(t, base.TestUserPhoneNumber, *profile.PrimaryPhone)
+func TestPurgeUserByPhoneNumber(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	assert.Nil(t, err)
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), base.TestUserPhoneNumber)
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	assert.Nil(t, err)
+	assert.NotNil(t, auth)
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
+	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
+	assert.Nil(t, err)
+	assert.NotNil(t, profile)
+	assert.Equal(t, base.TestUserPhoneNumber, *profile.PrimaryPhone)
 
-// 	// fetch the same profile but now using the primary phone number
-// 	profile, err = fr.GetUserProfileByPrimaryPhoneNumber(ctx, base.TestUserPhoneNumber, false)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, profile)
-// 	assert.Equal(t, base.TestUserPhoneNumber, *profile.PrimaryPhone)
+	// fetch the same profile but now using the primary phone number
+	profile, err = fr.GetUserProfileByPrimaryPhoneNumber(ctx, base.TestUserPhoneNumber, false)
+	assert.Nil(t, err)
+	assert.NotNil(t, profile)
+	assert.Equal(t, base.TestUserPhoneNumber, *profile.PrimaryPhone)
 
-// 	// purge the record. this should not fail
-// 	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
-// 	assert.Nil(t, err)
+	// purge the record. this should not fail
+	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
+	assert.Nil(t, err)
 
-// 	// try purging the record again. this should fail since not user profile will be found with the phone number
-// 	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
-// 	assert.NotNil(t, err)
+	// try purging the record again. this should fail since not user profile will be found with the phone number
+	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
+	assert.NotNil(t, err)
 
-// 	// create an invalid user profile
-// 	fakeUID := uuid.New().String()
-// 	invalidpr1, err := fr.CreateUserProfile(context.Background(), base.TestUserPhoneNumber, fakeUID)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, invalidpr1)
+	// create an invalid user profile
+	fakeUID := uuid.New().String()
+	invalidpr1, err := fr.CreateUserProfile(context.Background(), base.TestUserPhoneNumber, fakeUID)
+	assert.Nil(t, err)
+	assert.NotNil(t, invalidpr1)
 
-// 	// fetch the pins related to invalidpr1. this should fail since no pin has been associated with invalidpr1
-// 	pin, err := fr.GetPINByProfileID(ctx, invalidpr1.ID)
-// 	assert.NotNil(t, err)
-// 	assert.Nil(t, pin)
+	// fetch the pins related to invalidpr1. this should fail since no pin has been associated with invalidpr1
+	pin, err := fr.GetPINByProfileID(ctx, invalidpr1.ID)
+	assert.NotNil(t, err)
+	assert.Nil(t, pin)
 
-// 	// fetch the customer profile related to invalidpr1. this should fail since no customer profile has been associated with invalidpr
-// 	cpr, err := fr.GetCustomerProfileByProfileID(ctx, invalidpr1.ID)
-// 	assert.NotNil(t, err)
-// 	assert.Nil(t, cpr)
+	// fetch the customer profile related to invalidpr1. this should fail since no customer profile has been associated with invalidpr
+	cpr, err := fr.GetCustomerProfileByProfileID(ctx, invalidpr1.ID)
+	assert.NotNil(t, err)
+	assert.Nil(t, cpr)
 
-// 	// fetch the supplier profile related to invalidpr1. this should fail since no supplier profile has been associated with invalidpr
-// 	spr, err := fr.GetSupplierProfileByProfileID(ctx, invalidpr1.ID)
-// 	assert.NotNil(t, err)
-// 	assert.Nil(t, spr)
+	// fetch the supplier profile related to invalidpr1. this should fail since no supplier profile has been associated with invalidpr
+	spr, err := fr.GetSupplierProfileByProfileID(ctx, invalidpr1.ID)
+	assert.NotNil(t, err)
+	assert.Nil(t, spr)
 
-// 	// call PurgeUserByPhoneNumber using the phone number associated with invalidpr1. this should fail since it does not have
-// 	// an associated pin
-// 	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
-// 	assert.NotNil(t, err)
-// 	assert.Contains(t, err.Error(), "server error! unable to perform operation")
+	// call PurgeUserByPhoneNumber using the phone number associated with invalidpr1. this should fail since it does not have
+	// an associated pin
+	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "server error! unable to perform operation")
 
-// 	// now set a  pin. this should not fail
-// 	userpin := "1234"
-// 	pset, err := s.UserPIN.SetUserPIN(ctx, userpin, invalidpr1.ID)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, pset)
-// 	assert.Equal(t, true, pset)
+	// now set a  pin. this should not fail
+	userpin := "1234"
+	pset, err := s.UserPIN.SetUserPIN(ctx, userpin, invalidpr1.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, pset)
+	assert.Equal(t, true, pset)
 
-// 	// retrieve the pin and assert it matches the one set
-// 	pin, err = fr.GetPINByProfileID(ctx, invalidpr1.ID)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, pin)
-// 	var pinExt extension.PINExtensionImpl
-// 	matched := pinExt.ComparePIN(userpin, pin.Salt, pin.PINNumber, nil)
-// 	assert.Equal(t, true, matched)
+	// retrieve the pin and assert it matches the one set
+	pin, err = fr.GetPINByProfileID(ctx, invalidpr1.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, pin)
+	var pinExt extension.PINExtensionImpl
+	matched := pinExt.ComparePIN(userpin, pin.Salt, pin.PINNumber, nil)
+	assert.Equal(t, true, matched)
 
-// 	// now remove. this should pass even though customer/supplier profile don't exist. What must be removed is the pins
-// 	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
-// 	assert.Nil(t, err)
+	// now remove. this should pass even though customer/supplier profile don't exist. What must be removed is the pins
+	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
+	assert.Nil(t, err)
 
-// 	// assert the pin has been removed
-// 	pin, err = fr.GetPINByProfileID(ctx, invalidpr1.ID)
-// 	assert.NotNil(t, err)
-// 	assert.Nil(t, pin)
+	// assert the pin has been removed
+	pin, err = fr.GetPINByProfileID(ctx, invalidpr1.ID)
+	assert.NotNil(t, err)
+	assert.Nil(t, pin)
 
-// }
+}
 
 func TestCreateEmptyCustomerProfile(t *testing.T) {
 	ctx := context.Background()

@@ -34,9 +34,12 @@ type Usecase interface {
 	HandleUserRegistration(ctx context.Context, sessionDetails *domain.USSDLeadDetails, userResponse string) string
 	HandleHomeMenu(ctx context.Context, level int, session *domain.USSDLeadDetails, userResponse string) string
 	CreateUsddUserProfile(ctx context.Context, phoneNumber string, PIN string, userProfile *dto.UserProfileInput) error
+	HandleLogin(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string
 	// session usecases
 	GetOrCreateSessionState(ctx context.Context, payload *dto.SessionDetails) (*domain.USSDLeadDetails, error)
 	AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error)
+	UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
+	StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error
 	UpdateSessionLevel(ctx context.Context, level int, sessionID string) error
 	// USSD PIN usecases
 	HandleChangePIN(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string

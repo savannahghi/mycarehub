@@ -14,12 +14,12 @@ services:
     entrypoint: ["env", "-u", "DOCKER_HOST"]
     command: ["dockerd-entrypoint.sh"]
 
-echo_stage:
-  stage: test
-  script:
-    - echo "Just echo stage"
-  tags:
-    - healthcloud-multi
+# echo_stage:
+#   stage: test0
+#   script:
+#     - echo "Just echo stage"
+#   tags:
+#     - healthcloud-multi
 
 lint_and_test:
   stage: test

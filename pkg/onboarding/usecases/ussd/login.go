@@ -31,7 +31,7 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 		}
 		resp := "CON Please enter your date of birth in\r\n"
 		resp += "DDMMYYYY format e.g 14031996 for\r\n"
-		resp += "14th March 1992\r\n"
+		resp += "14th March 1996\r\n"
 		resp += "to be able to reset PIN\r\n"
 		return resp
 

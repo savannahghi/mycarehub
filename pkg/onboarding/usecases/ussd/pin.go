@@ -22,7 +22,7 @@ const (
 	// ChangePINProcessNewPINState indicates the state when the supplied PIN is being processed
 	ChangePINProcessNewPINState = 52
 	//ConfirmNewPInState indicates the state when a user is confirming a pin update
-	ConfirmNewPInState = 53
+	ConfirmNewPINState = 53
 	// PINResetEnterNewPINState indicates the state when the user wants to reset their PIN
 	PINResetEnterNewPINState = 10
 	// PINResetProcessState represents the state when the user has provided a wrong PIN
@@ -51,12 +51,12 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	}
 
 	if userResponse == GoBackHomeInput {
-		correctPin, err := u.LoginInUser(ctx, session.PhoneNumber, session.PIN, base.FlavourConsumer)
+		isLoggedInUser, err := u.LoginInUser(ctx, session.PhoneNumber, session.PIN, base.FlavourConsumer)
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			return "END something went wrong. Please try again"
 		}
-		if !correctPin {
+		if !isLoggedInUser {
 			return "CON Invalid PIN. Please try again"
 		}
 		err = u.UpdateSessionLevel(ctx, HomeMenuState, session.SessionID)
@@ -69,15 +69,15 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	}
 
 	if session.Level == ChangePINEnterNewPINState {
-		correctPin, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, base.FlavourConsumer)
+		isLoggedInUser, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, base.FlavourConsumer)
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
-		if !correctPin {
+		if !isLoggedInUser {
 			return "CON Invalid PIN. Please try again"
 		}
-		err = u.UpdateSessionLevel(ctx, ConfirmNewPInState, session.SessionID)
+		err = u.UpdateSessionLevel(ctx, ConfirmNewPINState, session.SessionID)
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
@@ -85,7 +85,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		resp := "CON Enter a new four digit PIN\r\n"
 		return resp
 	}
-	if session.Level == ConfirmNewPInState {
+	if session.Level == ConfirmNewPINState {
 		err := utils.ValidatePIN(userResponse)
 		if err != nil {
 			utils.RecordSpanError(span, err)
@@ -131,7 +131,7 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 	defer span.End()
 
 	if session.Level == ForgetPINResetState {
-		resp := "CON Please enter a new  4 digit PIN to\r\n"
+		resp := "CON Please enter a new 4 digit PIN to\r\n"
 		resp += "secure your account\r\n"
 		err := u.UpdateSessionLevel(ctx, PINResetEnterNewPINState, session.SessionID)
 		if err != nil {
