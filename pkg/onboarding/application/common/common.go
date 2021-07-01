@@ -30,6 +30,9 @@ const (
 
 	// Has KYC and Covers
 	RequestsRoute = "/admin"
+
+	AgentRegistrationRoute   = "/agentRegistration"
+	AgentIdentificationRoute = "/agentIdentification"
 )
 
 // Navigation actions
