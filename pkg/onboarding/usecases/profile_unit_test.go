@@ -3549,6 +3549,16 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 					Thumbnail:   common.AgentNavActionURL,
 				},
 				Favourite: false,
+				Nested: []base.NestedNavAction{
+					{
+						Title:      common.AgentRegistrationActionTitle,
+						OnTapRoute: "",
+					},
+					{
+						Title:      common.AgentIdentificationActionTitle,
+						OnTapRoute: "",
+					},
+				},
 			},
 			{
 				Title:      "Patient",

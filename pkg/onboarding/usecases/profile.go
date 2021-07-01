@@ -1464,11 +1464,11 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (ba
 				Nested: []base.NestedNavAction{
 					{
 						Title:      common.AgentRegistrationActionTitle,
-						OnTapRoute: common.AgentRegistrationRoute,
+						OnTapRoute: "",
 					},
 					{
 						Title:      common.AgentIdentificationActionTitle,
-						OnTapRoute: common.AgentIdentificationRoute,
+						OnTapRoute: "",
 					},
 				},
 			},
