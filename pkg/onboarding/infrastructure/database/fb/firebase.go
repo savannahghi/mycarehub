@@ -1110,15 +1110,23 @@ func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []
 		return err
 	}
 
+	// Removes duplicate permissions from array
+	// Used for cleaning existing records
+	profile.Permissions = utils.UniquePermissionsArray(profile.Permissions)
+
 	newPerms := []base.PermissionType{}
+	// Check if has perms
 	if len(profile.Permissions) >= 1 {
+		// copy the existing perms
+		newPerms = append(newPerms, profile.Permissions...)
+
 		for _, perm := range perms {
-			for _, current := range profile.Permissions {
-				if string(perm) != string(current) {
-					newPerms = append(newPerms, perm)
-				}
+			// add permission if it doesn't exist
+			if !profile.HasPermission(perm) {
+				newPerms = append(newPerms, perm)
 			}
 		}
+
 	} else {
 		newPerms = append(newPerms, perms...)
 	}

@@ -1,6 +1,7 @@
 package utils_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -300,6 +301,67 @@ func TestFindNumber(t *testing.T) {
 			}
 			if got1 != tt.want1 {
 				t.Errorf("FindNumber() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}
+
+func TestUniquePermissionsArray(t *testing.T) {
+	duplicated := []base.PermissionType{}
+	duplicated = append(duplicated, base.DefaultAdminPermissions...)
+	duplicated = append(duplicated, base.DefaultAdminPermissions...)
+	duplicated = append(duplicated, base.DefaultAdminPermissions...)
+
+	duplicatedMixed := []base.PermissionType{}
+	duplicatedMixed = append(duplicatedMixed, base.DefaultAdminPermissions...)
+	duplicatedMixed = append(duplicatedMixed, base.DefaultAgentPermissions...)
+	duplicatedMixed = append(duplicatedMixed, base.DefaultAdminPermissions...)
+	duplicatedMixed = append(duplicatedMixed, base.DefaultAgentPermissions...)
+	mixed := []base.PermissionType{}
+	mixed = append(mixed, base.DefaultAdminPermissions...)
+	mixed = append(mixed, base.DefaultAgentPermissions...)
+
+	type args struct {
+		arr []base.PermissionType
+	}
+	tests := []struct {
+		name string
+		args args
+		want []base.PermissionType
+	}{
+		{
+			name: "success:return unique array of permissions",
+			args: args{
+				arr: duplicatedMixed,
+			},
+			want: mixed,
+		},
+		{
+			name: "success:return unique array of permissions",
+			args: args{
+				arr: duplicated,
+			},
+			want: base.DefaultAdminPermissions,
+		},
+		{
+			name: "success:return same unique array",
+			args: args{
+				arr: base.DefaultAdminPermissions,
+			},
+			want: base.DefaultAdminPermissions,
+		},
+		{
+			name: "success:empty array of permissions",
+			args: args{
+				arr: []base.PermissionType{},
+			},
+			want: []base.PermissionType{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.UniquePermissionsArray(tt.args.arr); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("UniquePermissionsArray() = %v, want %v", got, tt.want)
 			}
 		})
 	}

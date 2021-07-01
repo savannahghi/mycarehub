@@ -116,3 +116,22 @@ func ParseUSSDDateInput(date string) string {
 
 	return fmt.Sprintf("%v-%v-%v", dayEntered, monthEntered, yearEntered)
 }
+
+// UniqueStringArray removes duplicate permissions in an array of permissions
+func UniquePermissionsArray(arr []base.PermissionType) []base.PermissionType {
+	occured := map[base.PermissionType]bool{}
+	result := []base.PermissionType{}
+
+	for e := range arr {
+		// check if already the mapped
+		// variable is set to true or not
+		if !occured[arr[e]] {
+			occured[arr[e]] = true
+
+			// Append to result slice.
+			result = append(result, arr[e])
+		}
+	}
+
+	return result
+}
