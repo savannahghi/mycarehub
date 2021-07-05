@@ -311,18 +311,12 @@ func (s SupplierUseCasesImpl) CreateCustomerAccount(
 		UID:             user.UID,
 	}
 
-	bs, err := json.Marshal(customerPubSubPayload)
-	if err != nil {
+	if err = s.pubsub.NotifyCreateCustomer(ctx, customerPubSubPayload); err != nil {
 		utils.RecordSpanError(span, err)
-		return err
+		log.Printf("failed to publish to customers.create topic: %v", err)
 	}
 
-	topicName := s.pubsub.AddPubSubNamespace(pubsubmessaging.CreateCustomerTopic)
-	return s.pubsub.PublishToPubsub(
-		ctx,
-		topicName,
-		bs,
-	)
+	return nil
 }
 
 // CreateSupplierAccount makes a call to our own ERP and creates a supplier account based
@@ -373,18 +367,12 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 		UID:             user.UID,
 	}
 
-	bs, err := json.Marshal(supplierPubSubPayload)
-	if err != nil {
+	if err = s.pubsub.NotifyCreateSupplier(ctx, supplierPubSubPayload); err != nil {
 		utils.RecordSpanError(span, err)
-		return err
+		log.Printf("failed to publish to suppliers.create topic: %v", err)
 	}
 
-	topicName := s.pubsub.AddPubSubNamespace(pubsubmessaging.CreateSupplierTopic)
-	return s.pubsub.PublishToPubsub(
-		context.Background(),
-		topicName,
-		bs,
-	)
+	return nil
 }
 
 // FindSupplierByID fetches a supplier by their id

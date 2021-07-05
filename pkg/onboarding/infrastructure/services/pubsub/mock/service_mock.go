@@ -3,6 +3,9 @@ package mock
 import (
 	"context"
 	"net/http"
+
+	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 // FakeServicePubSub ...
@@ -27,6 +30,10 @@ type FakeServicePubSub struct {
 		r *http.Request,
 	)
 	AddEngagementPubsubNameSpaceFn func(topic string) string
+	NotifyCreateContactFn          func(ctx context.Context, contact domain.CRMContact) error
+	NotifyUpdateContactFn          func(ctx context.Context, updateData dto.UpdateContactPSMessage) error
+	NotifyCreateCustomerFn         func(ctx context.Context, data dto.CustomerPubSubMessage) error
+	NotifyCreateSupplierFn         func(ctx context.Context, data dto.SupplierPubSubMessage) error
 }
 
 // AddPubSubNamespace ...
@@ -83,4 +90,24 @@ func (m *FakeServicePubSub) ReceivePubSubPushMessages(
 // AddEngagementPubsubNameSpace ...
 func (m *FakeServicePubSub) AddEngagementPubsubNameSpace(topic string) string {
 	return m.AddEngagementPubsubNameSpaceFn(topic)
+}
+
+// NotifyCreateContact ..
+func (m *FakeServicePubSub) NotifyCreateContact(ctx context.Context, contact domain.CRMContact) error {
+	return m.NotifyCreateContactFn(ctx, contact)
+}
+
+// NotifyUpdateContact ..
+func (m *FakeServicePubSub) NotifyUpdateContact(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+	return m.NotifyUpdateContactFn(ctx, updateData)
+}
+
+// NotifyCreateCustomer ..
+func (m *FakeServicePubSub) NotifyCreateCustomer(ctx context.Context, data dto.CustomerPubSubMessage) error {
+	return m.NotifyCreateCustomerFn(ctx, data)
+}
+
+// NotifyCreateSupplier ..
+func (m *FakeServicePubSub) NotifyCreateSupplier(ctx context.Context, data dto.SupplierPubSubMessage) error {
+	return m.NotifyCreateSupplierFn(ctx, data)
 }

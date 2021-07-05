@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -884,30 +883,20 @@ func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioDat
 
 	if data.DateOfBirth != nil {
 		dob := data.DateOfBirth.AsTime()
-		CRMContactProperties.DateOfBirth = &dob
+		CRMContactProperties.DateOfBirth = dob
 	}
 
 	if data.Gender != "" {
 		CRMContactProperties.Gender = data.Gender.String()
 	}
 
-	bs, err := json.Marshal(dto.UpdateContactPSMessage{
+	updateData := dto.UpdateContactPSMessage{
 		Properties: CRMContactProperties,
 		Phone:      *profile.PrimaryPhone,
-	})
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return err
 	}
-
-	err = p.pubsub.PublishToPubsub(
-		ctx,
-		p.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
-		bs,
-	)
-	if err != nil {
+	if err = p.pubsub.NotifyUpdateContact(ctx, updateData); err != nil {
 		utils.RecordSpanError(span, err)
-		log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
+		log.Printf("failed to publish to crm.contact.update topic: %v", err)
 	}
 
 	return nil
@@ -1041,23 +1030,13 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 	CRMContactProperties := CRMDomain.ContactProperties{
 		Email: emailAddress,
 	}
-	bs, err := json.Marshal(dto.UpdateContactPSMessage{
+	updateData := dto.UpdateContactPSMessage{
 		Properties: CRMContactProperties,
 		Phone:      *profile.PrimaryPhone,
-	})
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return err
 	}
-
-	err = p.pubsub.PublishToPubsub(
-		ctx,
-		p.pubsub.AddPubSubNamespace(pubsubmessaging.UpdateCRMContact),
-		bs,
-	)
-	if err != nil {
+	if err = p.pubsub.NotifyUpdateContact(ctx, updateData); err != nil {
 		utils.RecordSpanError(span, err)
-		log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
+		log.Printf("failed to publish to crm.contact.update topic: %v", err)
 	}
 
 	// The `VerifyEmail` nudge is by default created for both flavours, `PRO`

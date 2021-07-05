@@ -65,3 +65,18 @@ const (
 	PartnerNavActionTitle       = "Partner"
 	PartnerNavActionDescription = "Partner Navigation action"
 )
+
+// PubSub topic names
+const (
+	// CreateCustomerTopic is the TopicID for customer creation Topic
+	CreateCustomerTopic = "customers.create"
+
+	// CreateSupplierTopic is the TopicID for supplier creation Topic
+	CreateSupplierTopic = "suppliers.create"
+
+	// CreateCRMContact is the TopicID for CRM contact creation
+	CreateCRMContact = "crm.contact.create"
+
+	// UpdateCRMContact is the topicID for CRM contact updates
+	UpdateCRMContact = "crm.contact.update"
+)

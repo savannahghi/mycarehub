@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -219,7 +218,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		return nil, err
 	}
 
-	CRMContact := domain.CRMContact{
+	contact := domain.CRMContact{
 		Properties: domain.ContactProperties{
 			Phone:                 *profile.PrimaryPhone,
 			FirstChannelOfContact: domain.ChannelOfContactApp,
@@ -228,20 +227,9 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		},
 	}
 
-	bs, err := json.Marshal(CRMContact)
-	if err != nil {
+	if err = s.pubsub.NotifyCreateContact(ctx, contact); err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	err = s.pubsub.PublishToPubsub(
-		ctx,
-		s.pubsub.AddPubSubNamespace(pubsubmessaging.CreateCRMContact),
-		bs,
-	)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		log.Printf("unable to publish to Pub/Sub to create CRM contact: %v", err)
+		log.Printf("failed to publish to crm.contact.create topic: %v", err)
 	}
 
 	return &base.UserResponse{

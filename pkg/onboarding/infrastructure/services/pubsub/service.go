@@ -2,13 +2,12 @@ package pubsubmessaging
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
-	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
@@ -20,18 +19,6 @@ const (
 
 	// TopicVersion ...
 	TopicVersion = "v1"
-
-	// CreateCustomerTopic is the TopicID for customer creation Topic
-	CreateCustomerTopic = "customers.create"
-
-	// CreateSupplierTopic is the TopicID for supplier creation Topic
-	CreateSupplierTopic = "suppliers.create"
-
-	// CreateCRMContact is the TopicID for CRM contact creation
-	CreateCRMContact = "crm.contact.create"
-
-	// UpdateCRMContact is the topicID for CRM contact updates
-	UpdateCRMContact = "crm.contact.update"
 
 	hostNameEnvVarName = "SERVICE_HOST"
 
@@ -61,6 +48,21 @@ type ServicePubSub interface {
 		r *http.Request,
 	)
 	AddEngagementPubsubNameSpace(topic string) string
+
+	// Publishers
+	NotifyCreateContact(ctx context.Context, contact domain.CRMContact) error
+	NotifyUpdateContact(
+		ctx context.Context,
+		updateData dto.UpdateContactPSMessage,
+	) error
+	NotifyCreateCustomer(
+		ctx context.Context,
+		data dto.CustomerPubSubMessage,
+	) error
+	NotifyCreateSupplier(
+		ctx context.Context,
+		data dto.SupplierPubSubMessage,
+	) error
 }
 
 // ServicePubSubMessaging sends "real" (production) notifications
@@ -68,7 +70,7 @@ type ServicePubSubMessaging struct {
 	client  *pubsub.Client
 	baseExt extension.BaseExtension
 	erp     erp.ServiceERP
-	crm     hubspot.ServiceHubSpotInterface
+	crm     extension.CRMExtension
 }
 
 // NewServicePubSubMessaging ...
@@ -76,7 +78,7 @@ func NewServicePubSubMessaging(
 	client *pubsub.Client,
 	ext extension.BaseExtension,
 	erp erp.ServiceERP,
-	crm hubspot.ServiceHubSpotInterface,
+	crm extension.CRMExtension,
 ) (*ServicePubSubMessaging, error) {
 	s := &ServicePubSubMessaging{
 		client:  client,
@@ -103,7 +105,9 @@ func NewServicePubSubMessaging(
 // engagement service, which is prepended with the word "engagement". This solves the problem
 // where namespaced topics from "onboarding" are different from the ones in engagement.
 // This fix allows for uniformity of topic names between the engagement and onboarding services.
-func (ps ServicePubSubMessaging) AddEngagementPubsubNameSpace(topic string) string {
+func (ps ServicePubSubMessaging) AddEngagementPubsubNameSpace(
+	topic string,
+) string {
 	environment := ps.baseExt.GetRunningEnvironment()
 	return ps.baseExt.NamespacePubsubIdentifier(
 		engagementService,
@@ -127,10 +131,10 @@ func (ps ServicePubSubMessaging) AddPubSubNamespace(topicName string) string {
 // TopicIDs returns the known (registered) topic IDs
 func (ps ServicePubSubMessaging) TopicIDs() []string {
 	return []string{
-		ps.AddPubSubNamespace(CreateCustomerTopic),
-		ps.AddPubSubNamespace(CreateSupplierTopic),
-		ps.AddPubSubNamespace(CreateCRMContact),
-		ps.AddPubSubNamespace(UpdateCRMContact),
+		ps.AddPubSubNamespace(common.CreateCustomerTopic),
+		ps.AddPubSubNamespace(common.CreateSupplierTopic),
+		ps.AddPubSubNamespace(common.CreateCRMContact),
+		ps.AddPubSubNamespace(common.UpdateCRMContact),
 	}
 }
 
@@ -195,144 +199,4 @@ func (ps ServicePubSubMessaging) EnsureSubscriptionsExist(
 // SubscriptionIDs returns a map of topic IDs to subscription IDs
 func (ps ServicePubSubMessaging) SubscriptionIDs() map[string]string {
 	return ps.baseExt.SubscriptionIDs(ps.TopicIDs())
-}
-
-// ReceivePubSubPushMessages receives and processes a Pub/Sub push message.
-func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
-	message, err := ps.baseExt.VerifyPubSubJWTAndDecodePayload(w, r)
-	if err != nil {
-		ps.baseExt.WriteJSONResponse(
-			w,
-			ps.baseExt.ErrorMap(err),
-			http.StatusBadRequest,
-		)
-		return
-	}
-
-	topicID, err := ps.baseExt.GetPubSubTopic(message)
-	if err != nil {
-		ps.baseExt.WriteJSONResponse(
-			w,
-			ps.baseExt.ErrorMap(err),
-			http.StatusBadRequest,
-		)
-		return
-	}
-
-	ctx := r.Context()
-	switch topicID {
-	case ps.AddPubSubNamespace(CreateCustomerTopic):
-		var data dto.CustomerPubSubMessage
-		err := json.Unmarshal(message.Message.Data, &data)
-		if err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-		if _, err := ps.erp.CreateERPCustomer(
-			ctx,
-			data.CustomerPayload,
-			data.UID,
-		); err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-
-	case ps.AddPubSubNamespace(CreateSupplierTopic):
-		var data dto.SupplierPubSubMessage
-		err := json.Unmarshal(message.Message.Data, &data)
-		if err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-		if _, err := ps.erp.CreateERPSupplier(
-			ctx,
-			data.SupplierPayload,
-			data.UID,
-		); err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-
-	case ps.AddPubSubNamespace(CreateCRMContact):
-		var CRMContact domain.CRMContact
-		err := json.Unmarshal(message.Message.Data, &CRMContact)
-		if err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-		if _, err = ps.crm.CreateContact(CRMContact); err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-
-	case ps.AddPubSubNamespace(UpdateCRMContact):
-		var contactProperties dto.UpdateContactPSMessage
-		err := json.Unmarshal(message.Message.Data, &contactProperties)
-		if err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-		if _, err = ps.crm.UpdateContact(
-			contactProperties.Phone,
-			contactProperties.Properties,
-		); err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-
-	default:
-		errMsg := fmt.Sprintf(
-			"pub sub handler error: unknown topic `%s`",
-			topicID,
-		)
-		http.Error(w, errMsg, http.StatusBadRequest)
-		return
-	}
-
-	resp := map[string]string{"status": "success"}
-	marshalledSuccessMsg, err := json.Marshal(resp)
-	if err != nil {
-		ps.baseExt.WriteJSONResponse(
-			w,
-			ps.baseExt.ErrorMap(err),
-			http.StatusInternalServerError,
-		)
-		return
-	}
-	_, _ = w.Write(marshalledSuccessMsg)
 }

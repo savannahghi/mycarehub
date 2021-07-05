@@ -4,13 +4,11 @@ go 1.16
 
 require (
 	cloud.google.com/go/firestore v1.5.0
-	cloud.google.com/go/pubsub v1.11.0
-	contrib.go.opencensus.io/exporter/stackdriver v0.13.8 // indirect
+	cloud.google.com/go/pubsub v1.12.0
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
-	github.com/aws/aws-sdk-go v1.38.61 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/casbin/casbin/v2 v2.31.3
 	github.com/cenkalti/backoff v2.2.1+incompatible
@@ -22,16 +20,14 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/segmentio/ksuid v1.0.3
 	github.com/sirupsen/logrus v1.8.1
+	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/vektah/gqlparser/v2 v2.1.0
 	gitlab.slade360emr.com/go/base v0.0.202
-	gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210617194420-c4ac13ba4506
+	gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210705092445-b51dcd0a40cc
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.21.0
 	go.opentelemetry.io/otel v1.0.0-RC1
 	go.opentelemetry.io/otel/trace v1.0.0-RC1
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
-	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
-	google.golang.org/genproto v0.0.0-20210614182748-5b3b54cad159 // indirect
 )
