@@ -2635,6 +2635,7 @@ func (fr *Repository) ListUserProfiles(ctx context.Context, role base.RoleType) 
 		if err != nil {
 			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read agent user profile: %w", err))
 		}
+		profiles = append(profiles, profile)
 	}
 
 	return profiles, nil

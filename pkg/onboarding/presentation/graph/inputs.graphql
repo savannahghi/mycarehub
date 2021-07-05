@@ -306,7 +306,7 @@ input RegisterAdminInput {
   lastName: String!
   gender: Gender!
   phoneNumber: String!
-  email: String!
+  email: String
   dateOfBirth: Date!
 }
 
@@ -315,6 +315,6 @@ input RegisterAgentInput {
   lastName: String!
   gender: Gender!
   phoneNumber: String!
-  email: String!
+  email: String
   dateOfBirth: Date!
 }

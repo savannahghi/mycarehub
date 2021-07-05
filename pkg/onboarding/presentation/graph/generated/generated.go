@@ -3777,7 +3777,7 @@ input RegisterAdminInput {
   lastName: String!
   gender: Gender!
   phoneNumber: String!
-  email: String!
+  email: String
   dateOfBirth: Date!
 }
 
@@ -3786,7 +3786,7 @@ input RegisterAgentInput {
   lastName: String!
   gender: Gender!
   phoneNumber: String!
-  email: String!
+  email: String
   dateOfBirth: Date!
 }
 `, BuiltIn: false},
@@ -19410,7 +19410,7 @@ func (ec *executionContext) unmarshalInputRegisterAdminInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			it.Email, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19470,7 +19470,7 @@ func (ec *executionContext) unmarshalInputRegisterAgentInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			it.Email, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
