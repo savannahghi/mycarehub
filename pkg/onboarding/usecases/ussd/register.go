@@ -27,7 +27,7 @@ const (
 	// RegisterInput ...
 	RegisterInput = "1"
 	//RegOptOutInput ...
-	RegOptOutInput = "1"
+	RegOptOutInput = "2"
 	//RegChangePINInput ...
 	RegChangePINInput = "2"
 )
@@ -56,6 +56,20 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 
 		resp := "CON Welcome to Be.Well\r\n"
 		resp += "1. Register\r\n"
+		resp += "2. Opt Out\r\n"
+		return resp
+	}
+
+	if userResponse == RegOptOutInput && session.Level == InitialState {
+		option := "STOP"
+		err := u.profile.SetOptOut(ctx, option, session.PhoneNumber)
+		if err != nil {
+			return "END Something went wrong. Please try again."
+		}
+
+		resp := "CON We have successfully opted you\r\n"
+		resp += "out of marketing messages\r\n"
+		resp += "0. Go back home"
 		return resp
 	}
 
