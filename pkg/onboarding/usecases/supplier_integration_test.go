@@ -27,6 +27,7 @@ const (
 
 	testChargeMasterParentOrgId = "83d3479d-e902-4aab-a27d-6d5067454daf"
 	testChargeMasterBranchID    = "94294577-6b27-4091-9802-1ce0f2ce4153"
+	primaryEmail                = "test@bewell.co.ke"
 )
 
 func cleanUpFirebase(ctx context.Context, t *testing.T) {
@@ -104,7 +105,6 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
@@ -268,7 +268,6 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
@@ -433,7 +432,6 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
@@ -595,7 +593,6 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
@@ -765,7 +762,6 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
@@ -934,7 +930,6 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
@@ -1099,7 +1094,6 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
@@ -1269,7 +1263,6 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
@@ -1435,7 +1428,6 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
@@ -1589,7 +1581,6 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 0, len(pr.Permissions))
 
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
@@ -1758,7 +1749,6 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
@@ -2213,7 +2203,6 @@ func TestSuspendSupplier(t *testing.T) {
 	suspensionReason := `
 	"This email is to inform you that as a result of your actions on April 12th, 2021, you have been issued a suspension for 1 week (7 days)"
 	`
-	primaryEmail := "primary@example.com"
 	err = s.Onboarding.UpdatePrimaryEmailAddress(ctx, primaryEmail)
 	assert.Nil(t, err)
 
@@ -2806,7 +2795,7 @@ func TestCreateSupplierAccount(t *testing.T) {
 // 		t.Errorf("unable to initialize test service")
 // 		return
 // 	}
-// 	primaryEmail := "primary@example.com"
+//
 // 	err = s.Onboarding.UpdatePrimaryEmailAddress(ctx, primaryEmail)
 // 	assert.Nil(t, err)
 

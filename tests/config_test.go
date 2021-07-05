@@ -198,15 +198,15 @@ func composeSMSMessageDataPayload(t *testing.T, payload *dto.AfricasTalkingMessa
 	return smspayload
 }
 
-// func composeUSSDPayload(t *testing.T, payload *dto.SessionDetails) *strings.Reader {
-// 	data := url.Values{}
-// 	data.Set("sessionId", payload.SessionID)
-// 	data.Set("phoneNumber", *payload.PhoneNumber)
-// 	data.Set("text", payload.Text)
+func composeUSSDPayload(t *testing.T, payload *dto.SessionDetails) *strings.Reader {
+	data := url.Values{}
+	data.Set("sessionId", payload.SessionID)
+	data.Set("phoneNumber", *payload.PhoneNumber)
+	data.Set("text", payload.Text)
 
-// 	smspayload := strings.NewReader(data.Encode())
-// 	return smspayload
-// }
+	smspayload := strings.NewReader(data.Encode())
+	return smspayload
+}
 
 func CreateTestUserByPhone(t *testing.T, phone string) (*base.UserResponse, error) {
 	client := http.DefaultClient
@@ -402,40 +402,40 @@ func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {
 	return getGraphHeaders(*resp.Auth.IDToken)
 }
 
-func setRoleForUserWithPhone(phoneNumber string, role base.RoleType, headers map[string]string) error {
-	url := fmt.Sprintf("%s/roles/add_user_role", baseURL)
+// func setRoleForUserWithPhone(phoneNumber string, role base.RoleType, headers map[string]string) error {
+// 	url := fmt.Sprintf("%s/roles/add_user_role", baseURL)
 
-	payload := dto.RolePayload{
-		PhoneNumber: &phoneNumber,
-		Role:        &role,
-	}
-	body, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("unable to marshal payload to JSON: %s", err)
-	}
+// 	payload := dto.RolePayload{
+// 		PhoneNumber: &phoneNumber,
+// 		Role:        &role,
+// 	}
+// 	body, err := json.Marshal(payload)
+// 	if err != nil {
+// 		return fmt.Errorf("unable to marshal payload to JSON: %s", err)
+// 	}
 
-	request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
-	if err != nil {
-		return fmt.Errorf("unable to compose request: %s", err)
-	}
-	if request == nil {
-		return fmt.Errorf("nil request")
-	}
+// 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
+// 	if err != nil {
+// 		return fmt.Errorf("unable to compose request: %s", err)
+// 	}
+// 	if request == nil {
+// 		return fmt.Errorf("nil request")
+// 	}
 
-	for header, value := range headers {
-		request.Header.Add(header, value)
-	}
+// 	for header, value := range headers {
+// 		request.Header.Add(header, value)
+// 	}
 
-	response, err := http.DefaultClient.Do(request)
-	if err != nil {
-		return fmt.Errorf("request error: %s", err)
-	}
+// 	response, err := http.DefaultClient.Do(request)
+// 	if err != nil {
+// 		return fmt.Errorf("request error: %s", err)
+// 	}
 
-	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to set role for user : expected status to be %v, but got %v ", http.StatusOK, response.StatusCode)
-	}
-	return nil
-}
+// 	if response.StatusCode != http.StatusOK {
+// 		return fmt.Errorf("failed to set role for user : expected status to be %v, but got %v ", http.StatusOK, response.StatusCode)
+// 	}
+// 	return nil
+// }
 
 func getGraphHeaders(idToken string) map[string]string {
 	return req.Header{

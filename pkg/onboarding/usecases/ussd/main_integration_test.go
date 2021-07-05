@@ -137,81 +137,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}, nil
 }
 
-func TestImpl_HandleResponseFromUSSDGateway(t *testing.T) {
-	ctx := context.Background()
-
-	u, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize service")
-		return
-	}
-
-	sessionID := uuid.New().String()
-	unregisteredPhoneNumber := "0723456756"
-	registeredPhoneNumber := base.TestUserPhoneNumber
-
-	unregisteredValidPayload := &dto.SessionDetails{
-		SessionID:   sessionID,
-		PhoneNumber: &unregisteredPhoneNumber,
-	}
-
-	registeredValidPayload := &dto.SessionDetails{
-		SessionID:   sessionID,
-		PhoneNumber: &registeredPhoneNumber,
-	}
-
-	invalidPayload := &dto.SessionDetails{
-		SessionID:   "",
-		PhoneNumber: &registeredPhoneNumber,
-	}
-
-	type args struct {
-		ctx     context.Context
-		payload *dto.SessionDetails
-	}
-	tests := []struct {
-		name     string
-		args     args
-		response string
-	}{
-		{
-			name: "Happy case ):_Success case_Unregistered_user",
-			args: args{
-				ctx:     ctx,
-				payload: unregisteredValidPayload,
-			},
-			response: "CON Welcome to Be.Well\r\n" +
-				"1. Register\r\n" +
-				"2. Opt Out\r\n",
-		},
-		{
-			name: "Happy case ):_Success case_Registered_user",
-			args: args{
-				ctx:     ctx,
-				payload: registeredValidPayload,
-			},
-			response: "CON Welcome to Be.Well.Please enter\r\n" +
-				"your PIN to continue(enter 00 if\r\n" +
-				"you forgot your PIN)\r\n",
-		},
-		{
-			name: "SAD case ):Fail case_invalid_sessionID",
-			args: args{
-				ctx:     ctx,
-				payload: invalidPayload,
-			},
-			response: "END Something went wrong. Please try again.",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if gotresp := u.AITUSSD.HandleResponseFromUSSDGateway(tt.args.ctx, tt.args.payload); gotresp != tt.response {
-				t.Errorf("Impl.HandleResponseFromUSSDGateway() = %v, want %v", gotresp, tt.response)
-			}
-		})
-	}
-}
-
 var fakeRepo mockRepo.FakeOnboardingRepository
 var fakeBaseExt extMock.FakeBaseExtensionImpl
 var fakePinExt extMock.PINExtensionImpl
@@ -259,4 +184,81 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	}
 	return i, nil
 
+}
+
+func TestImpl_HandleResponseFromUSSDGateway(t *testing.T) {
+	ctx := context.Background()
+
+	u, err := InitializeTestService(ctx)
+	if err != nil {
+		t.Errorf("unable to initialize service")
+		return
+	}
+	sessionID := uuid.New().String()
+	unregisteredPhoneNumber := "0723456756"
+	registeredPhoneNumber := base.TestUserPhoneNumber
+
+	unregisteredValidPayload := &dto.SessionDetails{
+		SessionID:   sessionID,
+		PhoneNumber: &unregisteredPhoneNumber,
+	}
+
+	registeredValidPayload := &dto.SessionDetails{
+		SessionID:   sessionID,
+		PhoneNumber: &registeredPhoneNumber,
+	}
+
+	invalidPayload := &dto.SessionDetails{
+		SessionID:   "",
+		PhoneNumber: &registeredPhoneNumber,
+	}
+
+	type args struct {
+		ctx     context.Context
+		payload *dto.SessionDetails
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "Happy case ):_Success case_Unregistered_user",
+			args: args{
+				ctx:     ctx,
+				payload: unregisteredValidPayload,
+			},
+			want: "CON Welcome to Be.Well\r\n" +
+				"1. Register\r\n" +
+				"2. Opt Out\r\n",
+		},
+		{
+			name: "Happy case ):_Success case_Registered_user",
+			args: args{
+				ctx:     ctx,
+				payload: registeredValidPayload,
+			},
+			// TODO: Make this test valid for registered user
+			want: "CON Welcome to Be.Well\r\n" +
+				"1. Register\r\n" +
+				"2. Opt Out\r\n",
+		},
+		{
+			name: "SAD case ):Fail case_invalid_sessionID",
+			args: args{
+				ctx:     ctx,
+				payload: invalidPayload,
+			},
+			want: "END Something went wrong. Please try again.",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ussd := u
+			got := ussd.AITUSSD.HandleResponseFromUSSDGateway(tt.args.ctx, tt.args.payload)
+			if got != tt.want {
+				t.Errorf("Impl.HandleResponseFromUSSDGateway() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

@@ -24,6 +24,7 @@ const (
 
 	// TestEDIPortalPassword is a test passowrd for `test` EDI Login
 	TestEDIPortalPassword = "test provider one"
+	testEmail             = "test@bewell.co.ke"
 )
 
 // CreatedUserGraphQLHeaders updates the authorization header with the
@@ -390,7 +391,7 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -798,7 +799,7 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -1021,7 +1022,7 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -1253,7 +1254,7 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -1473,7 +1474,7 @@ func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -1707,7 +1708,7 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -1929,7 +1930,7 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -2153,7 +2154,7 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -2865,7 +2866,7 @@ func TestAddOrganizationCoachKYC(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -3095,7 +3096,7 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -3314,7 +3315,7 @@ func TestAddOrganizationNutritionKyc(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -3634,7 +3635,7 @@ func TestAddOrganizationPractitionerKyc(t *testing.T) {
 	}
 	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, base.TestUserEmail)
+	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return

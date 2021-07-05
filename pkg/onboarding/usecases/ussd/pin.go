@@ -54,7 +54,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		isLoggedInUser, err := u.LoginInUser(ctx, session.PhoneNumber, session.PIN, base.FlavourConsumer)
 		if err != nil {
 			utils.RecordSpanError(span, err)
-			return "END something went wrong. Please try again"
+			return "END Something went wrong. Please try again"
 		}
 		if !isLoggedInUser {
 			return "CON Invalid PIN. Please try again"

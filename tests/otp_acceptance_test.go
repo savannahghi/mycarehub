@@ -23,7 +23,6 @@ func composeValidWARetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {
 	}
 }
 
-// TODO: Restore this
 // func composeValidMessageRetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {
 // 	phoneNumber := base.TestUserPhoneNumber
 // 	step := 2

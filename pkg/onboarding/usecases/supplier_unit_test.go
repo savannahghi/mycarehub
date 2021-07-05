@@ -18,6 +18,10 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
+const (
+	testEmail = "test@bewell.co.ke"
+)
+
 func TestProfileUseCaseImpl_FindSupplierByID(t *testing.T) {
 	ctx := context.Background()
 	i, err := InitializeFakeOnboaridingInteractor()
@@ -497,18 +501,20 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 		{
 			name: "invalid:_failed_to_send_email",
 			args: args{
-				ctx:    ctx,
-				id:     uuid.New().String(),
-				status: domain.KYCProcessStatusRejected,
+				ctx:             ctx,
+				id:              uuid.New().String(),
+				status:          domain.KYCProcessStatusRejected,
+				rejectionReason: &rejectionReason,
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid:_failed_to_send_sms",
 			args: args{
-				ctx:    ctx,
-				id:     uuid.New().String(),
-				status: domain.KYCProcessStatusRejected,
+				ctx:             ctx,
+				id:              uuid.New().String(),
+				status:          domain.KYCProcessStatusRejected,
+				rejectionReason: &rejectionReason,
 			},
 			wantErr: true,
 		},
@@ -519,7 +525,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       "test@example.com",
+						Email:       testEmail,
 						PhoneNumber: "0721568526",
 					}, nil
 				}
@@ -959,7 +965,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					id string,
 					suspended bool,
 				) (*base.UserProfile, error) {
-					email := base.GenerateRandomEmail()
+					email := testEmail
 					phone := base.TestUserPhoneNumber
 					return &base.UserProfile{
 						ID:                  uuid.New().String(),
@@ -1224,7 +1230,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -1490,7 +1496,7 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -1783,7 +1789,7 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumer := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -2103,7 +2109,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -2371,7 +2377,7 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -2634,7 +2640,7 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -2881,7 +2887,7 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -3325,7 +3331,7 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -3709,7 +3715,7 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -4087,7 +4093,7 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -4464,7 +4470,7 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -4829,7 +4835,7 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := "test@example.com"
+					email := testEmail
 					firstName := "Makmende"
 					primaryPhoneNumber := base.TestUserPhoneNumber
 					return &base.UserProfile{
@@ -5082,7 +5088,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       "test@example.com",
+						Email:       testEmail,
 						PhoneNumber: "0721568526",
 					}, nil
 				}
@@ -5125,7 +5131,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       "test@example.com",
+						Email:       testEmail,
 						PhoneNumber: "0721568526",
 					}, nil
 				}
@@ -5143,7 +5149,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       "test@example.com",
+						Email:       testEmail,
 						PhoneNumber: "0721568526",
 					}, nil
 				}
@@ -6825,7 +6831,7 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       "test@example.com",
+						Email:       testEmail,
 						PhoneNumber: "0721568526",
 					}, nil
 				}
@@ -6849,7 +6855,7 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       "test@example.com",
+						Email:       testEmail,
 						PhoneNumber: "0721568526",
 					}, nil
 				}
@@ -6863,7 +6869,7 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       "test@example.com",
+						Email:       testEmail,
 						PhoneNumber: "0721568526",
 					}, nil
 				}
@@ -7574,7 +7580,7 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       "test@example.com",
+						Email:       testEmail,
 						PhoneNumber: "0721568526",
 					}, nil
 				}

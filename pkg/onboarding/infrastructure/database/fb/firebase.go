@@ -3137,6 +3137,7 @@ func (fr *Repository) StageCRMPayload(ctx context.Context, payload dto.ContactLe
 
 // GetStageCRMPayload ...
 func (fr *Repository) GetStageCRMPayload(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error) {
+	log.Printf("the phone number is %v", phoneNumber)
 	query := &GetAllQuery{
 		CollectionName: fr.GetCRMStagingCollectionName(),
 		FieldName:      "ContactValue",
@@ -3145,7 +3146,6 @@ func (fr *Repository) GetStageCRMPayload(ctx context.Context, phoneNumber string
 	}
 
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	log.Printf("the leng of docs is %v", len(docs))
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
