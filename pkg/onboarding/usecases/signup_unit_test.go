@@ -1232,8 +1232,12 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 					}, nil
 				}
 
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
+						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
+						Email:       "test@example.com",
+						PhoneNumber: "0721568526",
+					}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
@@ -1260,6 +1264,9 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 					return &base.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
+				}
+				fakePubSub.NotifyCreateCustomerFn = func(ctx context.Context, data dto.CustomerPubSubMessage) error {
+					return nil
 				}
 
 				fakePubSub.TopicIDsFn = func() []string {

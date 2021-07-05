@@ -3,6 +3,7 @@ package usecases_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 
 func TestSetuserProfileOptOut(t *testing.T) {
 	s, err := InitializeTestService(context.Background())
+	log.Printf("the error is %v", err)
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
@@ -229,7 +231,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
 	if err != nil {
-		t.Errorf("an error occured while logging in by phone")
+		t.Errorf("an error occurred while logging in by phone")
 		return
 	}
 
@@ -328,12 +330,12 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	// login with the old primary phone number. This should fail
 	login4, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
 	if err == nil {
-		t.Errorf("unexpected error occured! :%v", err)
+		t.Errorf("unexpected error occurred! :%v", err)
 		return
 	}
 
 	if login4 != nil {
-		t.Errorf("unexpected error occured! Expected this to fail")
+		t.Errorf("unexpected error occurred! Expected this to fail")
 		return
 	}
 
@@ -423,7 +425,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
 	if err != nil {
-		t.Errorf("an error occured while logging in by phone :%v", err)
+		t.Errorf("an error occurred while logging in by phone :%v", err)
 		return
 	}
 
@@ -549,7 +551,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	}
 
 	if login2 != nil {
-		t.Errorf("an unexpected error occured :%v", err)
+		t.Errorf("an unexpected error occurred :%v", err)
 	}
 
 	login3, err := s.Login.LoginByPhone(context.Background(), secondaryPhone2, pin, base.FlavourConsumer)
@@ -559,7 +561,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	}
 
 	if login3 != nil {
-		t.Errorf("an unexpected error occured :%v", err)
+		t.Errorf("an unexpected error occurred :%v", err)
 	}
 
 	login4, err := s.Login.LoginByPhone(context.Background(), secondaryPhone3, pin, base.FlavourConsumer)
@@ -569,7 +571,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	}
 
 	if login4 != nil {
-		t.Errorf("an unexpected error occured :%v", err)
+		t.Errorf("an unexpected error occurred :%v", err)
 	}
 }
 
@@ -629,7 +631,7 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
 	if err != nil {
-		t.Errorf("an error occured while logging in by phone :%v", err)
+		t.Errorf("an error occurred while logging in by phone :%v", err)
 		return
 	}
 

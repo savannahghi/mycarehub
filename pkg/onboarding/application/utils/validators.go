@@ -207,7 +207,7 @@ func ValidateDateDigits(pin string) error {
 	return nil
 }
 
-//GetUserResponse gets the concatenated text from Africas Talking and splits it to get the current user input
+//GetUserResponse gets the concatenated text from Africans Talking and splits it to get the current user input
 func GetUserResponse(text string) string {
 	response := strings.Split(text, "*")
 	lastUserInput := response[len(response)-1]

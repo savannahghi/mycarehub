@@ -82,19 +82,19 @@ var PartnerTypeCreate = dto.PermissionInput{
 	Action:   "create",
 }
 
-// SupplierCreate describes write permissions on inital creation of a supplier
+// SupplierCreate describes write permissions on initial creation of a supplier
 var SupplierCreate = dto.PermissionInput{
 	Resource: "setup_supplier",
 	Action:   "create",
 }
 
-// CustomerAccountCreate describes write permissions on inital creation of a customer account
+// CustomerAccountCreate describes write permissions on initial creation of a customer account
 var CustomerAccountCreate = dto.PermissionInput{
 	Resource: "create_customer_account",
 	Action:   "create",
 }
 
-// SupplierAccountCreate describes write permissions on inital creation of a supplier account
+// SupplierAccountCreate describes write permissions on initial creation of a supplier account
 var SupplierAccountCreate = dto.PermissionInput{
 	Resource: "create_supplier_account",
 	Action:   "create",

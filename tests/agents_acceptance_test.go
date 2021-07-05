@@ -22,6 +22,7 @@ func TestRegisterAgent(t *testing.T) {
 		Gender:      "male",
 		PhoneNumber: "0700011122",
 		Email:       "test.agent@test.com",
+		DateOfBirth: base.Date{Year: 1990, Month: 1, Day: 1},
 	}
 
 	graphqlMutation := `
@@ -60,6 +61,7 @@ func TestRegisterAgent(t *testing.T) {
 							"gender":      up.Gender,
 							"phoneNumber": up.PhoneNumber,
 							"email":       up.Email,
+							"dateOfBirth": up.DateOfBirth,
 						},
 					},
 				},
@@ -79,6 +81,7 @@ func TestRegisterAgent(t *testing.T) {
 							"gender":      up.Gender,
 							"phoneNumber": up.PhoneNumber,
 							"email":       up.Email,
+							"dateOfBirth": up.DateOfBirth,
 						},
 					},
 				},
@@ -98,6 +101,7 @@ func TestRegisterAgent(t *testing.T) {
 							"gender":      "",
 							"phoneNumber": "",
 							"email":       "",
+							"dateOfBirth": nil,
 						},
 					},
 				},
@@ -117,6 +121,7 @@ func TestRegisterAgent(t *testing.T) {
 							"gender":      up.Gender,
 							"phoneNumber": "0712345",
 							"email":       up.Email,
+							"dateOfBirth": up.DateOfBirth,
 						},
 					},
 				},
@@ -136,6 +141,7 @@ func TestRegisterAgent(t *testing.T) {
 							"gender":      "cow",
 							"phoneNumber": up.PhoneNumber,
 							"email":       up.Email,
+							"dateOfBirth": up.DateOfBirth,
 						},
 					},
 				},
@@ -247,23 +253,36 @@ func TestRegisterAgent(t *testing.T) {
 	if err != nil {
 		t.Errorf("unable to remove test user employee: %s", err)
 	}
-
-	// _, err = RemoveTestUserByPhone(t, up.PhoneNumber)
-	// if err != nil {
-	// 	t.Errorf("unable to remove test user agent: %s", err)
-	// }
 }
 
 func TestActivateAgent(t *testing.T) {
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-	up := "0700011122"
+	err := setRoleForUserWithPhone(base.TestUserPhoneNumber, base.RoleTypeEmployee, headers)
+	if err != nil {
+		t.Errorf("failed to set employee role for logged in user: %s", err)
+		return
+	}
+
+	agentInput := dto.RegisterAgentInput{
+		FirstName:   "Test",
+		LastName:    "Agent",
+		Gender:      "male",
+		PhoneNumber: "0704711122",
+		Email:       "test.agent@test.com",
+		DateOfBirth: base.Date{Year: 1990, Month: 1, Day: 1},
+	}
+	agent, err := registerTestAgent(agentInput, headers)
+	if err != nil {
+		t.Errorf("failed to create test agent: %s", err)
+		return
+	}
 
 	graphqlMutation := `
-	mutation activateAgent($phoneNumber: String!) {
-		activateAgent(phoneNumber: $phoneNumber)
-	  }`
+	mutation activateAgent($agentID: String!) {
+		activateAgent(agentID: $agentID)
+	}`
 
 	type args struct {
 		query map[string]interface{}
@@ -281,20 +300,20 @@ func TestActivateAgent(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phoneNumber": up,
+						"agentID": agent.ID,
 					},
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true,
+			wantErr:    false,
 		},
 		{
-			name: "invalid : wrong phoneNumber",
+			name: "invalid : wrong agent id",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phoneNumber": "07256",
+						"agentID": "agarbagevalue",
 					},
 				},
 			},
@@ -307,7 +326,7 @@ func TestActivateAgent(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phoneNumber": "",
+						"agentID": "",
 					},
 				},
 			},
@@ -396,14 +415,13 @@ func TestActivateAgent(t *testing.T) {
 					}
 					for nestedKey := range nestedMap {
 						if nestedKey == "activateAgent" {
-							output, ok := nestedMap[nestedKey].(map[string]interface{})
+							output, ok := nestedMap[nestedKey].(bool)
 							if !ok {
 								t.Errorf("can't cast nestedKey to map[string]interface{}")
 								return
 							}
-							_, present := output["userBioData"].(map[string]interface{})
-							if !present {
-								t.Errorf("Biodata not present in output")
+							if !output {
+								t.Errorf("expected the \"activateAgent\" property to be set to \"true\"")
 								return
 							}
 						}
@@ -414,27 +432,45 @@ func TestActivateAgent(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user employee: %s", err)
 	}
 
-	// _, err = RemoveTestUserByPhone(t, up)
-	// if err != nil {
-	// 	t.Errorf("unable to remove test user agent: %s", err)
-	// }
+	_, err = RemoveTestUserByPhone(t, agentInput.PhoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user agent: %s", err)
+	}
 }
 
 func TestDeactivateAgent(t *testing.T) {
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-	up := "0700011122"
+	err := setRoleForUserWithPhone(base.TestUserPhoneNumber, base.RoleTypeEmployee, headers)
+	if err != nil {
+		t.Errorf("failed to set employee role for logged in user: %s", err)
+		return
+	}
+
+	agentInput := dto.RegisterAgentInput{
+		FirstName:   "Test",
+		LastName:    "Agent",
+		Gender:      "male",
+		PhoneNumber: "0704711122",
+		Email:       "test.agent@test.com",
+		DateOfBirth: base.Date{Year: 1990, Month: 1, Day: 1},
+	}
+	agent, err := registerTestAgent(agentInput, headers)
+	if err != nil {
+		t.Errorf("failed to create test agent: %s", err)
+		return
+	}
 
 	graphqlMutation := `
-	mutation deactivateAgent($phoneNumber: String!) {
-		deactivateAgent(phoneNumber: $phoneNumber) 
-	  }`
+	mutation deactivateAgent($agentID: String!) {
+		deactivateAgent(agentID: $agentID)
+	}`
 
 	type args struct {
 		query map[string]interface{}
@@ -452,20 +488,20 @@ func TestDeactivateAgent(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phoneNumber": up,
+						"agentID": agent.ID,
 					},
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true,
+			wantErr:    false,
 		},
 		{
-			name: "invalid : wrong phoneNumber",
+			name: "invalid : non-existent agent id",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phoneNumber": "07256",
+						"agentID": "agarbagevalue",
 					},
 				},
 			},
@@ -478,7 +514,7 @@ func TestDeactivateAgent(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phoneNumber": "",
+						"agentID": "",
 					},
 				},
 			},
@@ -567,14 +603,13 @@ func TestDeactivateAgent(t *testing.T) {
 					}
 					for nestedKey := range nestedMap {
 						if nestedKey == "deactivateAgent" {
-							output, ok := nestedMap[nestedKey].(map[string]interface{})
+							output, ok := nestedMap[nestedKey].(bool)
 							if !ok {
 								t.Errorf("can't cast nestedKey to map[string]interface{}")
 								return
 							}
-							_, present := output["userBioData"].(map[string]interface{})
-							if !present {
-								t.Errorf("Biodata not present in output")
+							if !output {
+								t.Errorf("expected the \"deactivateAgent\" property to be set to \"true\"")
 								return
 							}
 						}
@@ -585,13 +620,104 @@ func TestDeactivateAgent(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user employee: %s", err)
 	}
 
-	// _, err = RemoveTestUserByPhone(t, up)
-	// if err != nil {
-	// 	t.Errorf("unable to remove test user agent: %s", err)
-	// }
+	_, err = RemoveTestUserByPhone(t, agentInput.PhoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user agent: %s", err)
+	}
+}
+
+func registerTestAgent(agentInput dto.RegisterAgentInput, headers map[string]string) (*base.UserProfile, error) {
+	url := fmt.Sprintf("%s/graphql", baseURL)
+
+	graphqlMutation := `
+	mutation registerAgent($input: RegisterAgentInput!) {
+		registerAgent(input: $input) {
+			id
+			userName
+		  	primaryPhone
+		  	termsAccepted
+		  	suspended
+		  	userBioData {
+				firstName
+				lastName
+				gender
+		  	}
+		}
+	}`
+	query := map[string]interface{}{
+		"query": graphqlMutation,
+		"variables": map[string]interface{}{
+			"input": map[string]interface{}{
+				"firstName":   agentInput.FirstName,
+				"lastName":    agentInput.LastName,
+				"gender":      agentInput.Gender,
+				"phoneNumber": agentInput.PhoneNumber,
+				"email":       agentInput.Email,
+				"dateOfBirth": agentInput.DateOfBirth,
+			},
+		},
+	}
+
+	body, err := mapToJSONReader(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal query to GQL JSON io.Reader: %s", err)
+	}
+
+	request, err := http.NewRequest(http.MethodPost, url, body)
+	if err != nil {
+		return nil, fmt.Errorf("unable to compose request: %s", err)
+	}
+	if request == nil {
+		return nil, fmt.Errorf("nil request")
+	}
+
+	for header, value := range headers {
+		request.Header.Add(header, value)
+	}
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("request error: %s", err)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to register agent: expected status to be %v got %v ", http.StatusOK, response.StatusCode)
+	}
+
+	data, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read response body: %s", err)
+	}
+
+	// Process response
+	var responseContent map[string]interface{}
+	err = json.Unmarshal(data, &responseContent)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshall response: %v", err)
+	}
+	responseData, ok := responseContent["data"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("expected response to contain a \"data\" object")
+	}
+	agentData, ok := responseData["registerAgent"]
+	if !ok {
+		return nil, fmt.Errorf("expected response to contain a \"data.registerAgent\" object")
+	}
+	agentDataAsJSON, err := json.Marshal(agentData)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal agent data to JSON: %s", err)
+	}
+
+	var agent base.UserProfile
+	err = json.Unmarshal(agentDataAsJSON, &agent)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshall response: %v", err)
+	}
+
+	return &agent, nil
 }

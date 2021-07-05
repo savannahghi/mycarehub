@@ -58,6 +58,8 @@ func TestMain(m *testing.M) {
 	log.Printf("Setting tests up ...")
 	envOriginalValue := os.Getenv("ENVIRONMENT")
 	os.Setenv("ENVIRONMENT", "staging")
+	emailOriginalValue := os.Getenv("SAVANNAH_ADMIN_EMAIL")
+	os.Setenv("SAVANNAH_ADMIN_EMAIL", "test@bewell.co.ke")
 	debugEnvValue := os.Getenv("DEBUG")
 	os.Setenv("DEBUG", "true")
 	os.Setenv("REPOSITORY", "firebase")
@@ -117,6 +119,7 @@ func TestMain(m *testing.M) {
 
 	// restore environment varibles to original values
 	os.Setenv(envOriginalValue, "ENVIRONMENT")
+	os.Setenv(emailOriginalValue, "SAVANNAH_ADMIN_EMAIL")
 	os.Setenv("DEBUG", debugEnvValue)
 	os.Setenv("ROOT_COLLECTION_SUFFIX", collectionEnvValue)
 

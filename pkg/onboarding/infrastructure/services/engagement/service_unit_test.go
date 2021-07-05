@@ -522,13 +522,13 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 						Status:     "BAD REQUEST",
 						StatusCode: 400,
 						Body:       nil,
-					}, fmt.Errorf("an error occured! Invalid email address")
+					}, fmt.Errorf("an error occurred! Invalid email address")
 				}
 			}
 
 			if tt.name == "invalid:error_while_sending_request" {
 				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					return nil, fmt.Errorf("an error occured!")
+					return nil, fmt.Errorf("an error occurred!")
 				}
 			}
 			err := e.SendMail(tt.args.ctx, tt.args.email, tt.args.message, tt.args.subject)
@@ -1192,12 +1192,12 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 						Status:     "BAD REQUEST",
 						StatusCode: 400,
 						Body:       nil,
-					}, fmt.Errorf("an error occured! Invalid email address")
+					}, fmt.Errorf("an error occurred! Invalid email address")
 				}
 			}
 			if tt.name == "invalid:error_while_sending_request" {
 				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					return nil, fmt.Errorf("an error occured!")
+					return nil, fmt.Errorf("an error occurred!")
 				}
 			}
 			err := e.NotifySupplierOnSuspension(tt.args.ctx, tt.args.input)
@@ -1274,7 +1274,7 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 
 			if tt.name == "invalid:error_while_sending_request" {
 				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					return nil, fmt.Errorf("an error occured!")
+					return nil, fmt.Errorf("an error occurred!")
 				}
 			}
 
@@ -1352,7 +1352,7 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 
 			if tt.name == "invalid:error_while_sending_request" {
 				fakeISCExt.MakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					return nil, fmt.Errorf("an error occured!")
+					return nil, fmt.Errorf("an error occurred!")
 				}
 			}
 

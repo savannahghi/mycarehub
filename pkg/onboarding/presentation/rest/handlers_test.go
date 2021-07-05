@@ -19,6 +19,7 @@ import (
 	"gitlab.slade360emr.com/go/base"
 	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 	erpMock "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases/mock"
+	crmDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -574,6 +575,9 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
 					return "salt", "passw"
 				}
+				fakePubSub.NotifyCoverLinkingFn = func(ctx context.Context, data dto.LinkCoverPubSubMessage) error {
+					return nil
+				}
 				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
 					return &base.Supplier{
 						ID:         "5550",
@@ -607,6 +611,10 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				fakeRepo.SetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string,
 					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
 					return &base.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+				}
+
+				fakePubSub.NotifyCreateContactFn = func(ctx context.Context, contact crmDomain.CRMContact) error {
+					return nil
 				}
 
 				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {

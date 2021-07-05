@@ -2862,7 +2862,7 @@ func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profile
 }
 
 // UpdateCustomerProfile does a generic update of the customer profile
-// to add the data recieved from the ERP.
+// to add the data received from the ERP.
 func (fr *Repository) UpdateCustomerProfile(
 	ctx context.Context,
 	profileID string,
@@ -3145,6 +3145,7 @@ func (fr *Repository) GetStageCRMPayload(ctx context.Context, phoneNumber string
 	}
 
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	log.Printf("the leng of docs is %v", len(docs))
 	if err != nil {
 		return nil, exceptions.InternalServerError(err)
 	}
@@ -3201,6 +3202,7 @@ func (fr *Repository) UpdateStageCRMPayload(ctx context.Context, phoneNumber str
 // UpdateOptOutCRMPayload ...
 func (fr *Repository) UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
 	CRMDetails, err := fr.GetStageCRMPayload(ctx, phoneNumber)
+	log.Printf("the crm details is %v", CRMDetails)
 	if err != nil {
 		return err
 	}

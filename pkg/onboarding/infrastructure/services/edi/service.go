@@ -13,6 +13,7 @@ import (
 
 // internal apis definitions
 const (
+	// LinkCover ISC endpoint to link user cover
 	LinkCover = "internal/link_cover"
 )
 

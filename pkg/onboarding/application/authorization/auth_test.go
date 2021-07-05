@@ -30,7 +30,7 @@ func TestCheckPemissions(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "valid: unknown subject with unkown resource",
+			name: "valid: unknown subject with unknown resource",
 			args: args{
 				subject: "mail@example.com",
 				input: dto.PermissionInput{
@@ -80,7 +80,7 @@ func TestCheckAuthorization(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "valid: unknown subject with unkown resource",
+			name: "valid: unknown subject with unknown resource",
 			args: args{
 				subject: "mail@example.com",
 				permission: dto.PermissionInput{

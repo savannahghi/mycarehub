@@ -13,7 +13,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/pubsub"
@@ -403,6 +402,41 @@ func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {
 	return getGraphHeaders(*resp.Auth.IDToken)
 }
 
+func setRoleForUserWithPhone(phoneNumber string, role base.RoleType, headers map[string]string) error {
+	url := fmt.Sprintf("%s/roles/add_user_role", baseURL)
+
+	payload := dto.RolePayload{
+		PhoneNumber: &phoneNumber,
+		Role:        &role,
+	}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("unable to marshal payload to JSON: %s", err)
+	}
+
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("unable to compose request: %s", err)
+	}
+	if request == nil {
+		return fmt.Errorf("nil request")
+	}
+
+	for header, value := range headers {
+		request.Header.Add(header, value)
+	}
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return fmt.Errorf("request error: %s", err)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to set role for user : expected status to be %v, but got %v ", http.StatusOK, response.StatusCode)
+	}
+	return nil
+}
+
 func getGraphHeaders(idToken string) map[string]string {
 	return req.Header{
 		"Accept":        "application/json",
@@ -414,10 +448,8 @@ func getGraphHeaders(idToken string) map[string]string {
 func TestMain(m *testing.M) {
 	// setup
 	os.Setenv("ENVIRONMENT", "staging")
-	// !NOTE!
-	// Under no circumstances should you remove this env var when testing
-	// You risk purging important collections, like our prod collections
-	os.Setenv("ROOT_COLLECTION_SUFFIX", fmt.Sprintf("onboarding_acceptance_tests_%v", time.Now().Unix()))
+	os.Setenv("ROOT_COLLECTION_SUFFIX", "onboarding_testing")
+	os.Setenv("SAVANNAH_ADMIN_EMAIL", "test@bewell.co.ke")
 	os.Setenv("REPOSITORY", "firebase")
 
 	ctx := context.Background()

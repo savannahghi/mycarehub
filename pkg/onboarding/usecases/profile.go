@@ -995,7 +995,8 @@ func (p *ProfileUseCaseImpl) SetOptOut(
 	contactLead := &dto.ContactLeadInput{
 		OptOut: generalOption,
 	}
-	_ = p.onboardingRepository.UpdateOptOutCRMPayload(ctx, phoneNumber, contactLead)
+	err := p.onboardingRepository.UpdateOptOutCRMPayload(ctx, phoneNumber, contactLead)
+	log.Printf("the error that has occurred is %v", err)
 
 	return nil
 }

@@ -230,7 +230,7 @@ func TestAddTestNHIFDetails(t *testing.T) {
 
 	err = AddTestNHIFDetails(t, user)
 	if err != nil {
-		t.Errorf("an error occured: %v", err)
+		t.Errorf("an error occurred: %v", err)
 		return
 	}
 
@@ -250,7 +250,7 @@ func TestGetNHIFDetails(t *testing.T) {
 
 	err = AddTestNHIFDetails(t, user)
 	if err != nil {
-		t.Errorf("an error occured: %v", err)
+		t.Errorf("an error occurred: %v", err)
 		return
 	}
 

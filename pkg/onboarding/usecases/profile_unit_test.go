@@ -730,6 +730,10 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					}, nil
 				}
 
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+					return nil
+				}
+
 				fakePubSub.TopicIDsFn = func() []string {
 					return []string{uuid.New().String()}
 				}
@@ -1168,7 +1172,7 @@ func TestProfileUseCaseImpl_RemoveRoleToUser(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid:succesfully_removed_role",
+			name: "valid:successfully_removed_role",
 			args: args{
 				ctx:   ctx,
 				phone: "+254721123123",
@@ -1186,7 +1190,7 @@ func TestProfileUseCaseImpl_RemoveRoleToUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "valid:succesfully_removed_role" {
+			if tt.name == "valid:successfully_removed_role" {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254721123123"
 					return &phone, nil
@@ -2422,6 +2426,10 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					}, nil
 				}
 
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+					return nil
+				}
+
 				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
 					return nil
 				}
@@ -2453,6 +2461,10 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryPhone: &phone,
 					}, nil
+				}
+
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+					return nil
 				}
 
 				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
@@ -2487,6 +2499,9 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 						PrimaryPhone: &phone,
 					}, nil
 				}
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+					return nil
+				}
 
 				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
 					return nil
@@ -2507,6 +2522,10 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryPhone: &phone,
 					}, nil
+				}
+
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+					return nil
 				}
 
 				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
@@ -2540,6 +2559,10 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryPhone: &phone,
 					}, nil
+				}
+
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+					return nil
 				}
 
 				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
@@ -3005,7 +3028,7 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 
 			if tt.name == "sad:( failed to get logged in user" {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -3019,7 +3042,7 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("an error ocurred")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -3135,7 +3158,7 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 
 			if tt.name == "sad:( failed to get logged in user" {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return nil, fmt.Errorf("an error ocurred")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -3149,7 +3172,7 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("an error ocurred")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -3279,7 +3302,7 @@ func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
 
 			if tt.name == "invalid: failed to get logged in user" {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return nil, fmt.Errorf("an error ocurred")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -3293,7 +3316,7 @@ func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("an error ocurred")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -3404,7 +3427,7 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 
 			if tt.name == "invalid: failed to get logged in user" {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -3418,7 +3441,7 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return nil, fmt.Errorf("an error ocurred")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
