@@ -230,5 +230,6 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	}
 	resp := "CON Invalid choice. Try again.\r\n"
 	resp += "1. Register\r\n"
+	resp += "2. Opt Out\r\n"
 	return resp
 }
