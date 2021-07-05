@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
@@ -397,7 +396,13 @@ func (r *mutationResolver) SetUserCommunicationsSettings(ctx context.Context, al
 }
 
 func (r *mutationResolver) RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*base.UserProfile, error) {
-	panic(fmt.Errorf("not implemented"))
+	startTime := time.Now()
+
+	userProfile, err := r.interactor.Admin.RegisterAdmin(ctx, input)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "registerAdmin", err)
+
+	return userProfile, err
 }
 
 func (r *mutationResolver) RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error) {
