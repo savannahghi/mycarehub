@@ -1245,3 +1245,107 @@ func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 		})
 	}
 }
+
+func TestAgentUseCaseImpl_FindAgentbyPhone(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboaridingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+
+	msisdn := base.TestUserPhoneNumber
+	agent := dto.Agent{
+		ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+		PrimaryPhone:        base.TestUserPhoneNumber,
+		PrimaryEmailAddress: base.TestUserEmail,
+	}
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber *string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.Agent
+		wantErr bool
+	}{
+		{
+			name: "success:find_agent",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: &msisdn,
+			},
+			want:    &agent,
+			wantErr: false,
+		},
+		{
+			name: "fail:unable_to_normalize_phon_number",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: &msisdn,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "fail:unable_to_get_user_profile",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: &msisdn,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "success:find_agent" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return &msisdn, nil
+				}
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					p := base.TestUserPhoneNumber
+					e := base.TestUserEmail
+
+					return &base.UserProfile{
+						ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+						PrimaryPhone:        &p,
+						PrimaryEmailAddress: &e,
+						VerifiedUIDS:        []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
+						Role:                base.RoleTypeAgent,
+					}, nil
+				}
+			}
+
+			if tt.name == "fail:unable_to_normalize_phon_number" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("cannot normalize msisdn")
+				}
+			}
+
+			if tt.name == "fail:unable_to_get_user_profile" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return &msisdn, nil
+				}
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get user profile")
+				}
+			}
+
+			got, err := i.Agent.FindAgentbyPhone(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AgentUseCaseImpl.FindAgentbyPhone() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("AgentUseCaseImpl.FindAgentbyPhone() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

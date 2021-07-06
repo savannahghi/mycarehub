@@ -32,6 +32,8 @@ extend type Query {
 
   fetchAgents: [Agent]
 
+  findAgentbyPhone(phoneNumber: String): Agent
+
   fetchUserNavigationActions: NavigationActions
 }
 

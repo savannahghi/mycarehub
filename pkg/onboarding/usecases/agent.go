@@ -28,6 +28,7 @@ type AgentUseCase interface {
 	ActivateAgent(ctx context.Context, agentID string) (bool, error)
 	DeactivateAgent(ctx context.Context, agentID string) (bool, error)
 	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
+	FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error)
 }
 
 // AgentUseCaseImpl  represents usecase implementation object
@@ -291,4 +292,36 @@ func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error
 	}
 
 	return agents, nil
+}
+
+// FindAgentbyPhone is used to find an agent using their phone number
+func (a *AgentUseCaseImpl) FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error) {
+	ctx, span := tracer.Start(ctx, "FindAgentbyPhone")
+	defer span.End()
+
+	phoneNumber, err := a.baseExt.NormalizeMSISDN(*phoneNumber)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.NormalizeMSISDNError(err)
+	}
+
+	profile, err := a.repo.GetUserProfileByPhoneNumber(ctx, *phoneNumber, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	agent := dto.Agent{
+		ID:                      profile.ID,
+		PhotoUploadID:           profile.PhotoUploadID,
+		UserBioData:             profile.UserBioData,
+		PrimaryPhone:            *profile.PrimaryPhone,
+		PrimaryEmailAddress:     *profile.PrimaryEmailAddress,
+		SecondaryPhoneNumbers:   profile.SecondaryPhoneNumbers,
+		SecondaryEmailAddresses: profile.SecondaryEmailAddresses,
+		TermsAccepted:           profile.TermsAccepted,
+		Suspended:               profile.Suspended,
+	}
+
+	return &agent, nil
 }

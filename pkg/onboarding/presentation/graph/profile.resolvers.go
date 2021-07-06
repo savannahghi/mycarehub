@@ -596,6 +596,16 @@ func (r *queryResolver) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {
 	return agents, err
 }
 
+func (r *queryResolver) FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error) {
+	startTime := time.Now()
+
+	agent, err := r.interactor.Agent.FindAgentbyPhone(ctx, phoneNumber)
+
+	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "findAgentbyPhone", err)
+
+	return agent, err
+}
+
 func (r *queryResolver) FetchUserNavigationActions(ctx context.Context) (*base.NavigationActions, error) {
 	startTime := time.Now()
 

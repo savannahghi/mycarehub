@@ -417,6 +417,7 @@ type ComplexityRoot struct {
 		FetchKYCProcessingRequests    func(childComplexity int) int
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FetchUserNavigationActions    func(childComplexity int) int
+		FindAgentbyPhone              func(childComplexity int, phoneNumber *string) int
 		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) int
 		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) int
 		GetAddresses                  func(childComplexity int) int
@@ -584,6 +585,7 @@ type QueryResolver interface {
 	CheckSupplierKYCSubmitted(ctx context.Context) (bool, error)
 	FetchAdmins(ctx context.Context) ([]*dto.Admin, error)
 	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
+	FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error)
 	FetchUserNavigationActions(ctx context.Context) (*base.NavigationActions, error)
 }
 type VerifiedIdentifierResolver interface {
@@ -2614,6 +2616,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FetchUserNavigationActions(childComplexity), true
 
+	case "Query.findAgentbyPhone":
+		if e.complexity.Query.FindAgentbyPhone == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findAgentbyPhone_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindAgentbyPhone(childComplexity, args["phoneNumber"].(*string)), true
+
 	case "Query.findBranch":
 		if e.complexity.Query.FindBranch == nil {
 			break
@@ -3823,6 +3837,8 @@ input RegisterAgentInput {
   fetchAdmins: [Admin]
 
   fetchAgents: [Agent]
+
+  findAgentbyPhone(phoneNumber: String): Agent
 
   fetchUserNavigationActions: NavigationActions
 }
@@ -5224,6 +5240,21 @@ func (ec *executionContext) field_Query__entities_args(ctx context.Context, rawA
 		}
 	}
 	args["representations"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findAgentbyPhone_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg0
 	return args, nil
 }
 
@@ -14601,6 +14632,45 @@ func (ec *executionContext) _Query_fetchAgents(ctx context.Context, field graphq
 	return ec.marshalOAgent2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_findAgentbyPhone(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findAgentbyPhone_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindAgentbyPhone(rctx, args["phoneNumber"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*dto.Agent)
+	fc.Result = res
+	return ec.marshalOAgent2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_fetchUserNavigationActions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -21683,6 +21753,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_fetchAgents(ctx, field)
+				return res
+			})
+		case "findAgentbyPhone":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findAgentbyPhone(ctx, field)
 				return res
 			})
 		case "fetchUserNavigationActions":
