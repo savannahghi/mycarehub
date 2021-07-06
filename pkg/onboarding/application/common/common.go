@@ -11,14 +11,14 @@ const (
 	// StaticBase is the default path at which static assets are hosted
 	StaticBase = "https://assets.healthcloud.co.ke"
 
-	AgentNavActionURL    = StaticBase + "/actions/svg/agent_navaction.svg"
-	ConsumerNavActionURL = StaticBase + "/actions/svg/consumer_navaction.svg"
-	HelpNavActionURL     = StaticBase + "/actions/svg/help_navaction.svg"
-	HomeNavActionURL     = StaticBase + "/actions/svg/home_navaction.svg"
-	KYCNavActionURL      = StaticBase + "/actions/svg/kyc_navaction.svg"
-	PartnerNavActionURL  = StaticBase + "/actions/svg/partner_navaction.svg"
-	PatientNavActionURL  = StaticBase + "/actions/svg/patient_navaction.svg"
-	RequestNavActionURL  = StaticBase + "/actions/svg/request_navaction.svg"
+	AgentNavActionURL    = StaticBase + "/actions/agent_navaction.png"
+	ConsumerNavActionURL = StaticBase + "/actions/consumer_navaction.png"
+	HelpNavActionURL     = StaticBase + "/actions/help_navaction.png"
+	HomeNavActionURL     = StaticBase + "/actions/home_navaction.png"
+	KYCNavActionURL      = StaticBase + "/actions/kyc_navaction.png"
+	PartnerNavActionURL  = StaticBase + "/actions/partner_navaction.png"
+	PatientNavActionURL  = StaticBase + "/actions/patient_navaction.png"
+	RequestNavActionURL  = StaticBase + "/actions/request_navaction.png"
 )
 
 // On Tap Routes
