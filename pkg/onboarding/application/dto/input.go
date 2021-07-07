@@ -358,3 +358,16 @@ type ContactLeadInput struct {
 type AgentFilterInput struct {
 	PhoneNumber string `json:"phoneNumber"`
 }
+
+// CoverInput is used to add covers
+type CoverInput struct {
+	PayerSladeCode int    `json:"payerSladeCode"`
+	MemberNumber   string `json:"memberNumber"`
+	UID            string `json:"uid"`
+}
+
+// LinkCoverPubSubMessage is a `cover linking` pub sub message struct
+type LinkCoverPubSubMessage struct {
+	PhoneNumber string `json:"phoneNumber"`
+	UID         string `json:"uid"`
+}

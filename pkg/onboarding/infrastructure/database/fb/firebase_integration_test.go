@@ -27,6 +27,7 @@ import (
 	"firebase.google.com/go/auth"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
@@ -37,6 +38,7 @@ import (
 
 const (
 	engagementService = "engagement"
+	ediService        = "edi"
 )
 
 func TestMain(m *testing.M) {
@@ -116,17 +118,20 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
+	ediClient := utils.NewInterServiceClient(ediService, ext)
 
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 	erp := erp.NewERPService(fr)
 	crm := hubspot.NewHubSpotService()
+	edi := edi.NewEdiService(ediClient, fr)
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		ext,
 		erp,
 		crm,
+		edi,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
@@ -134,13 +139,12 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	engage := engagement.NewServiceEngagementImpl(engagementClient, ext, ps)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
-
 	profile := usecases.NewProfileUseCase(fr, ext, engage, ps)
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
 	userpin := usecases.NewUserPinUseCase(fr, profile, ext, pinExt, engage)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, ext, engage, ps)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, ext, engage, ps, edi)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -154,6 +158,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		Engagement:   engage,
 		PubSub:       ps,
 		CRM:          crm,
+		EDI:          edi,
 	}, nil
 }
 

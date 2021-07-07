@@ -57,3 +57,11 @@ func (ps *ServicePubSubMessaging) NotifyCreateSupplier(
 ) error {
 	return ps.newPublish(ctx, data, common.CreateCustomerTopic)
 }
+
+// NotifyCoverLinking pushes to covers.link topic
+func (ps *ServicePubSubMessaging) NotifyCoverLinking(
+	ctx context.Context,
+	data dto.LinkCoverPubSubMessage,
+) error {
+	return ps.newPublish(ctx, data, common.LinkCoverTopic)
+}

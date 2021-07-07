@@ -10,6 +10,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 )
 
@@ -51,6 +52,7 @@ type ServicePubSub interface {
 
 	// Publishers
 	NotifyCreateContact(ctx context.Context, contact domain.CRMContact) error
+	NotifyCoverLinking(ctx context.Context, data dto.LinkCoverPubSubMessage) error
 	NotifyUpdateContact(
 		ctx context.Context,
 		updateData dto.UpdateContactPSMessage,
@@ -71,6 +73,7 @@ type ServicePubSubMessaging struct {
 	baseExt extension.BaseExtension
 	erp     erp.ServiceERP
 	crm     extension.CRMExtension
+	edi     edi.ServiceEdi
 }
 
 // NewServicePubSubMessaging ...
@@ -79,12 +82,14 @@ func NewServicePubSubMessaging(
 	ext extension.BaseExtension,
 	erp erp.ServiceERP,
 	crm extension.CRMExtension,
+	edi edi.ServiceEdi,
 ) (*ServicePubSubMessaging, error) {
 	s := &ServicePubSubMessaging{
 		client:  client,
 		baseExt: ext,
 		erp:     erp,
 		crm:     crm,
+		edi:     edi,
 	}
 
 	ctx := context.Background()

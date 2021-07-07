@@ -25,6 +25,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
@@ -35,7 +36,7 @@ import (
 
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
 	chargemasterMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster/mock"
-
+	ediMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi/mock"
 	engagementMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement/mock"
 
 	erpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp/mock"
@@ -48,6 +49,7 @@ import (
 const (
 	otpService        = "otp"
 	engagementService = "engagement"
+	ediService        = "edi"
 )
 
 func TestMain(m *testing.M) {
@@ -167,6 +169,8 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
+	ediClient := utils.NewInterServiceClient(ediService, ext)
+	edi := edi.NewEdiService(ediClient, repo)
 
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
@@ -176,6 +180,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		ext,
 		erp,
 		crm,
+		edi,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
@@ -189,7 +194,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, ext)
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
-	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage, ps)
+	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage, ps, edi)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 	sms := usecases.NewSMSUsecase(repo, ext)
 	aitUssd := ussd.NewUssdUsecases(repo, ext, profile, userpin, su, pinExt, ps)
@@ -209,6 +214,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		SMS:          sms,
 		AITUSSD:      aitUssd,
 		CRM:          crm,
+		EDI:          edi,
 	}, nil
 }
 
@@ -409,6 +415,7 @@ var fakeMessagingSvc messagingMock.FakeServiceMessaging
 var fakeEPRSvc erpMock.FakeServiceERP
 var fakeChargeMasterSvc chargemasterMock.FakeServiceChargeMaster
 var fakePubSub pubsubmessagingMock.FakeServicePubSub
+var fakeEDISvc ediMock.FakeServiceEDI
 
 // InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
 func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
@@ -420,6 +427,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
 	var ps pubsubmessaging.ServicePubSub = &fakePubSub
+	var ediSvc edi.ServiceEdi = &fakeEDISvc
 
 	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
@@ -429,7 +437,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	)
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
 	crm := hubspot.NewHubSpotService()
-	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps)
+	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps, ediSvc)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
 	admin := usecases.NewAdminUseCases(r, engagementSvc, ext, userpin)
@@ -439,7 +447,7 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, crm, agent, admin,
+		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, crm, agent, admin, ediSvc,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

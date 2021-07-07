@@ -34,6 +34,7 @@ type FakeServicePubSub struct {
 	NotifyUpdateContactFn          func(ctx context.Context, updateData dto.UpdateContactPSMessage) error
 	NotifyCreateCustomerFn         func(ctx context.Context, data dto.CustomerPubSubMessage) error
 	NotifyCreateSupplierFn         func(ctx context.Context, data dto.SupplierPubSubMessage) error
+	NotifyCoverLinkingFn           func(ctx context.Context, data dto.LinkCoverPubSubMessage) error
 }
 
 // AddPubSubNamespace ...
@@ -110,4 +111,9 @@ func (m *FakeServicePubSub) NotifyCreateCustomer(ctx context.Context, data dto.C
 // NotifyCreateSupplier ..
 func (m *FakeServicePubSub) NotifyCreateSupplier(ctx context.Context, data dto.SupplierPubSubMessage) error {
 	return m.NotifyCreateSupplierFn(ctx, data)
+}
+
+// NotifyCoverLinking ..
+func (m *FakeServicePubSub) NotifyCoverLinking(ctx context.Context, data dto.LinkCoverPubSubMessage) error {
+	return m.NotifyCoverLinkingFn(ctx, data)
 }

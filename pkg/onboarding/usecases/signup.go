@@ -12,6 +12,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -67,6 +68,7 @@ type SignUpUseCasesImpl struct {
 	baseExt              extension.BaseExtension
 	engagement           engagement.ServiceEngagement
 	pubsub               pubsubmessaging.ServicePubSub
+	edi                  edi.ServiceEdi
 }
 
 // NewSignUpUseCases returns a new a onboarding usecase
@@ -78,6 +80,7 @@ func NewSignUpUseCases(
 	ext extension.BaseExtension,
 	eng engagement.ServiceEngagement,
 	pubsub pubsubmessaging.ServicePubSub,
+	edi edi.ServiceEdi,
 ) SignUpUseCases {
 	return &SignUpUseCasesImpl{
 		onboardingRepository: r,
@@ -87,6 +90,7 @@ func NewSignUpUseCases(
 		baseExt:              ext,
 		engagement:           eng,
 		pubsub:               pubsub,
+		edi:                  edi,
 	}
 }
 
@@ -188,6 +192,16 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
+	}
+
+	coverLinkingDetails := dto.LinkCoverPubSubMessage{
+		PhoneNumber: *userData.PhoneNumber,
+		UID:         user.UID,
+	}
+
+	if err := s.pubsub.NotifyCoverLinking(ctx, coverLinkingDetails); err != nil {
+		utils.RecordSpanError(span, err)
+		log.Printf("failed to publish to covers.link topic: %v", err)
 	}
 
 	var supplier *base.Supplier

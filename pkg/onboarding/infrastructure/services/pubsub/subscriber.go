@@ -128,6 +128,28 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			return
 		}
 
+	case ps.AddPubSubNamespace(common.LinkCoverTopic):
+		var userDetails dto.LinkCoverPubSubMessage
+		err := json.Unmarshal(message.Message.Data, &userDetails)
+		if err != nil {
+			ps.baseExt.WriteJSONResponse(
+				w,
+				ps.baseExt.ErrorMap(err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+
+		_, err = ps.edi.LinkCover(ctx, userDetails.PhoneNumber, userDetails.UID)
+		if err != nil {
+			ps.baseExt.WriteJSONResponse(
+				w,
+				ps.baseExt.ErrorMap(err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+
 	default:
 		errMsg := fmt.Sprintf(
 			"pub sub handler error: unknown topic `%s`",

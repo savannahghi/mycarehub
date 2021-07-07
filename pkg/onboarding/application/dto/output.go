@@ -120,3 +120,27 @@ type UserInfo struct {
 	ProviderID string `json:"providerId,omitempty"`
 	UID        string `json:"rawId,omitempty"`
 }
+
+// Segment represents the Segments data
+type Segment struct {
+	BeWellEnrolled        string `json:"be_well_enrolled" firestore:"be_well_enrolled"`
+	OptOut                string `json:"opt_out" firestore:"opt_out"`
+	BeWellAware           string `json:"be_well_aware" firestore:"be_well_aware"`
+	BeWellPersona         string `json:"be_well_persona" firestore:"be_well_persona"`
+	HasWellnessCard       string `json:"has_wellness_card" firestore:"has_wellness_card"`
+	HasCover              string `json:"has_cover" firestore:"has_cover"`
+	Payor                 string `json:"payor" firestore:"payor"`
+	FirstChannelOfContact string `json:"first_channel_of_contact" firestore:"first_channel_of_contact"`
+	InitialSegment        string `json:"initial_segment" firestore:"initial_segment"`
+	HasVirtualCard        string `json:"has_virtual_card" firestore:"has_virtual_card"`
+	Email                 string `json:"email" firestore:"email"`
+	PhoneNumber           string `json:"phone" firestore:"phone"`
+	FirstName             string `json:"firstname" firestore:"firstname"`
+	LastName              string `json:"lastname" firestore:"lastname"`
+	Wing                  string `json:"wing" firestore:"wing"`
+	MessageSent           string `json:"message_sent" firestore:"message_sent"`
+	IsSynced              string `json:"is_synced" firestore:"is_synced"`
+	TimeSynced            string `json:"time_synced" firestore:"time_synced"`
+	PayerSladeCode        int    `json:"payer_slade_code" firestore:"payersladecode"`
+	MemberNumber          string `json:"member_number" firestore:"membernumber"`
+}

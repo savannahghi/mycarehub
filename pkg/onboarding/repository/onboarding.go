@@ -173,6 +173,8 @@ type OnboardingRepository interface {
 	StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error
 	UpdateStageCRMPayload(ctx context.Context, phoneNumber string, payload *dto.ContactLeadInput) error
 	UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
+
+	GetUserMarketingData(ctx context.Context, phoneNumber string) (*dto.Segment, error)
 }
 
 // UserProfileRepository interface that provide access to all persistent storage operations for user profile

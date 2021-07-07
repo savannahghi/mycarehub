@@ -40,6 +40,7 @@ const (
 	ussdCollectioName                    = "ussd"
 	crmStagingCollectionName             = "crm_staging"
 	firebaseExchangeRefreshTokenURL      = "https://securetoken.googleapis.com/v1/token?key="
+	marketingDataCollectionName          = "marketing_data"
 )
 
 // Repository accesses and updates an item that is stored on Firebase
@@ -131,6 +132,12 @@ func (fr Repository) GetUSSDCollectionName() string {
 //GetCRMStagingCollectionName ...
 func (fr Repository) GetCRMStagingCollectionName() string {
 	suffixed := base.SuffixCollection(crmStagingCollectionName)
+	return suffixed
+}
+
+// GetMarketingDataCollectionName ...
+func (fr Repository) GetMarketingDataCollectionName() string {
+	suffixed := base.SuffixCollection(marketingDataCollectionName)
 	return suffixed
 }
 
@@ -3217,4 +3224,36 @@ func (fr *Repository) UpdateOptOutCRMPayload(ctx context.Context, phoneNumber st
 		return exceptions.InternalServerError(err)
 	}
 	return nil
+}
+
+// GetUserMarketingData retrieves a user's data from a collection.
+func (fr *Repository) GetUserMarketingData(ctx context.Context, phoneNumber string) (*dto.Segment, error) {
+	ctx, span := tracer.Start(ctx, "fetchMarketingData")
+	defer span.End()
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetMarketingDataCollectionName(),
+		FieldName:      "phone",
+		Value:          phoneNumber,
+		Operator:       "==",
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	if len(docs) == 0 {
+		return nil, nil
+	}
+
+	var data dto.Segment
+	err = docs[0].DataTo(&data)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"error unmarshalling saved data: %w",
+			err,
+		)
+	}
+	return &data, nil
 }

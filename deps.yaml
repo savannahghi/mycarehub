@@ -1,12 +1,20 @@
 staging:
   - depName: engagement
     depRootDomain: https://engagement-staging.healthcloud.co.ke
+  - depName: edi 
+    depRootDomain: https://edi-staging.healthcloud.co.ke
 testing:
   - depName: engagement
     depRootDomain: https://engagement-testing.healthcloud.co.ke
+  - depName: edi 
+    depRootDomain: https://edi-testing.healthcloud.co.ke
 demo:
   - depName: engagement
     depRootDomain: https://engagement-demo.healthcloud.co.ke
+  - depName: edi 
+    depRootDomain: https://edi-demo.healthcloud.co.ke
 production:
   - depName: engagement
     depRootDomain: https://engagement-prod.healthcloud.co.ke
+  - depName: edi 
+    depRootDomain: https://edi-prod.healthcloud.co.ke

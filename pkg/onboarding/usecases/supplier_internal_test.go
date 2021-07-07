@@ -15,6 +15,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
@@ -24,6 +25,7 @@ import (
 const (
 	otpService        = "otp"
 	engagementService = "engagement"
+	ediService        = "edi"
 )
 
 func TestParseKYCAsMap(t *testing.T) {
@@ -67,7 +69,8 @@ func TestParseKYCAsMap(t *testing.T) {
 	ext := extension.NewBaseExtensionImpl(&base.FirebaseClient{})
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
-
+	ediClient := utils.NewInterServiceClient(ediService, ext)
+	edi := edi.NewEdiService(ediClient, repo)
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	crm := hubspot.NewHubSpotService()
@@ -76,6 +79,7 @@ func TestParseKYCAsMap(t *testing.T) {
 		ext,
 		erp,
 		crm,
+		edi,
 	)
 	if err != nil {
 		t.Errorf("unable to initialize new pubsub messaging service: %w", err)

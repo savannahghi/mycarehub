@@ -79,4 +79,7 @@ const (
 
 	// UpdateCRMContact is the topicID for CRM contact updates
 	UpdateCRMContact = "crm.contact.update"
+
+	// LinkCoverTopic is the topicID for cover linking topic
+	LinkCoverTopic = "covers.link"
 )

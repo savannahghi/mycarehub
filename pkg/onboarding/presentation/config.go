@@ -19,6 +19,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	loginservice "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/login_service"
@@ -43,6 +44,7 @@ const (
 	mbBytes              = 1048576
 	serverTimeoutSeconds = 120
 	engagementService    = "engagement"
+	ediService           = "edi"
 )
 
 // AllowedOrigins is list of CORS origins allowed to interact with
@@ -101,16 +103,19 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, baseExt)
+	ediClient := utils.NewInterServiceClient(ediService, baseExt)
 
 	// Initialize new instance of our infrastructure services
 	erp := erp.NewERPService(repo)
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	crm := hubspot.NewHubSpotService()
+	edi := edi.NewEdiService(ediClient, repo)
 	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		baseExt,
 		erp,
 		crm,
+		edi,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
@@ -125,7 +130,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
-	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage, pubSub)
+	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage, pubSub, edi)
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
 	aitUssd := ussd.NewUssdUsecases(repo, baseExt, profile, userpin, su, pinExt, pubSub)
 	sms := usecases.NewSMSUsecase(repo, baseExt)
@@ -134,7 +139,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	i, err := interactor.NewOnboardingInteractor(
 		repo, profile, su, supplier, login, survey,
-		userpin, erp, chrg, engage, mes, nhif, pubSub, sms, aitUssd, crm, agent, admin,
+		userpin, erp, chrg, engage, mes, nhif, pubSub, sms, aitUssd, crm, agent, admin, edi,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

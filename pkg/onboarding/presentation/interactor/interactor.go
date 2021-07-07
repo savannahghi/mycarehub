@@ -5,6 +5,7 @@ package interactor
 import (
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
@@ -33,6 +34,7 @@ type Interactor struct {
 	CRM          hubspot.ServiceHubSpotInterface
 	Agent        usecases.AgentUseCase
 	Admin        usecases.AdminUseCase
+	EDI          edi.ServiceEdi
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -55,6 +57,7 @@ func NewOnboardingInteractor(
 	crm hubspot.ServiceHubSpotInterface,
 	agt usecases.AgentUseCase,
 	adm usecases.AdminUseCase,
+	edi edi.ServiceEdi,
 ) (*Interactor, error) {
 
 	return &Interactor{
@@ -75,5 +78,6 @@ func NewOnboardingInteractor(
 		CRM:          crm,
 		Agent:        agt,
 		Admin:        adm,
+		EDI:          edi,
 	}, nil
 }
