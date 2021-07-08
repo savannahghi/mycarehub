@@ -232,12 +232,19 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		log.Printf("failed to publish to crm.contact.create topic: %v", err)
 	}
 
+	navActions, err := s.profileUsecase.GetNavActions(ctx, *profile)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
 	return &base.UserResponse{
 		Profile:               profile,
 		SupplierProfile:       supplier,
 		CustomerProfile:       customer,
 		CommunicationSettings: comms,
 		Auth:                  *auth,
+		NavActions:            navActions,
 	}, nil
 }
 

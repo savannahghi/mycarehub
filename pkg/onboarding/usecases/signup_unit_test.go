@@ -8,6 +8,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	domain2 "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -344,6 +345,14 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 
 				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
 					return nil
+				}
+
+				fakePubSub.NotifyCreateContactFn = func(ctx context.Context, contact domain2.CRMContact) error {
+					return nil
+				}
+
+				fakeRepo.GetNavActionsFn = func(ctx context.Context, role base.RoleType) (*base.NavigationActions, error) {
+					return &base.NavigationActions{}, nil
 				}
 			}
 
