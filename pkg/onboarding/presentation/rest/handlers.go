@@ -6,6 +6,9 @@ import (
 	"log"
 	"net/http"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"firebase.google.com/go/auth"
 	"github.com/gorilla/mux"
 	"gitlab.slade360emr.com/go/base"
@@ -63,8 +66,16 @@ func NewHandlersInterfaces(i *interactor.Interactor) HandlersInterfaces {
 // If the phone number does not exist, it sends the OTP to the phone number
 func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		span := trace.SpanFromContext(ctx)
+
 		p := &dto.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
+
+		span.AddEvent("decode json payload to struct", trace.WithAttributes(
+			attribute.Any("payload", p),
+		))
+
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
@@ -76,6 +87,11 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) ht
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
 		}
+
+		span.AddEvent("verify phone number OTP response", trace.WithAttributes(
+			attribute.Any("response", otpResp),
+		))
+
 		base.WriteJSONResponse(w, otpResp, http.StatusOK)
 	}
 }
@@ -83,14 +99,25 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) ht
 // CreateUserWithPhoneNumber is an unauthenticated endpoint that is called to create
 func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		span := trace.SpanFromContext(ctx)
+
 		p := &dto.SignUpInput{}
 		base.DecodeJSONToTargetStruct(w, r, p)
+
+		span.AddEvent("decode json payload to struct", trace.WithAttributes(
+			attribute.Any("payload", p),
+		))
 
 		response, err := h.interactor.Signup.CreateUserByPhone(ctx, p)
 		if err != nil {
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
 		}
+
+		span.AddEvent("create user by phone", trace.WithAttributes(
+			attribute.Any("response", response),
+		))
 
 		base.WriteJSONResponse(w, response, http.StatusCreated)
 	}
@@ -100,9 +127,16 @@ func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) 
 // The returned phone numbers slice should be masked. E.G +254700***123
 func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		span := trace.SpanFromContext(ctx)
 
 		p := &dto.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
+
+		span.AddEvent("decode json payload to struct", trace.WithAttributes(
+			attribute.Any("payload", p),
+		))
+
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
 			base.WriteJSONResponse(w, base.CustomError{
@@ -121,6 +155,11 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) h
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
 		}
+
+		span.AddEvent("retrieve user recovery phone numbers", trace.WithAttributes(
+			attribute.Any("response", response),
+		))
+
 		base.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
@@ -165,9 +204,16 @@ func (h *HandlersInterfacesImpl) SetOptOut(ctx context.Context) http.HandlerFunc
 // SetPrimaryPhoneNumber sets the provided phone number as the primary phone of the profile associated with it
 func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		span := trace.SpanFromContext(ctx)
 
 		p := &dto.SetPrimaryPhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
+
+		span.AddEvent("decode json payload to struct", trace.WithAttributes(
+			attribute.Any("payload", p),
+		))
+
 		if p.PhoneNumber == nil || p.OTP == nil {
 			err := fmt.Errorf("expected `phoneNumber` and `otp` to be defined")
 			base.WriteJSONResponse(w, base.CustomError{
@@ -187,6 +233,11 @@ func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
 		}
+
+		span.AddEvent("setting primary phone number", trace.WithAttributes(
+			attribute.Any("response", response),
+		))
+
 		base.WriteJSONResponse(w, dto.NewOKResp(response), http.StatusOK)
 	}
 }
@@ -197,8 +248,16 @@ func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http
 // belongs to the profile and returns auth credentials to allow the user to login
 func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		span := trace.SpanFromContext(ctx)
+
 		p := &dto.LoginPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
+
+		span.AddEvent("decode json payload to struct", trace.WithAttributes(
+			attribute.Any("payload", p),
+		))
+
 		if p.PhoneNumber == nil || p.PIN == nil {
 			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
 			base.WriteJSONResponse(w, base.CustomError{
@@ -227,6 +286,9 @@ func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerF
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
 		}
+		span.AddEvent("login by phone response", trace.WithAttributes(
+			attribute.Any("response", response),
+		))
 
 		base.WriteJSONResponse(w, response, http.StatusOK)
 	}
@@ -235,8 +297,16 @@ func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerF
 // LoginAnonymous is an unauthenticated endpoint that returns only auth credentials for anonymous users
 func (h *HandlersInterfacesImpl) LoginAnonymous(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		span := trace.SpanFromContext(ctx)
+
 		p := &dto.LoginPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
+
+		span.AddEvent("decode json payload to struct", trace.WithAttributes(
+			attribute.Any("payload", p),
+		))
+
 		if p.Flavour.String() == "" {
 			err := fmt.Errorf("expected `flavour` to be defined")
 			base.WriteJSONResponse(w, base.CustomError{
@@ -261,6 +331,10 @@ func (h *HandlersInterfacesImpl) LoginAnonymous(ctx context.Context) http.Handle
 			return
 		}
 
+		span.AddEvent("log in as anonymous", trace.WithAttributes(
+			attribute.Any("response", response),
+		))
+
 		base.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
@@ -269,8 +343,16 @@ func (h *HandlersInterfacesImpl) LoginAnonymous(ctx context.Context) http.Handle
 // sends an otp to an msisdn that requests a PIN reset request during login
 func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		span := trace.SpanFromContext(ctx)
+
 		p := &dto.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
+
+		span.AddEvent("decode json payload to struct", trace.WithAttributes(
+			attribute.Any("payload", p),
+		))
+
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
 			base.WriteJSONResponse(w, base.CustomError{
@@ -285,6 +367,11 @@ func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.Handl
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
 		}
+
+		span.AddEvent("request pin reset otp response", trace.WithAttributes(
+			attribute.Any("response", otpResp),
+		))
+
 		base.WriteJSONResponse(w, otpResp, http.StatusOK)
 	}
 }
@@ -292,8 +379,16 @@ func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.Handl
 // ResetPin used to change/update a user's PIN
 func (h *HandlersInterfacesImpl) ResetPin(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		span := trace.SpanFromContext(ctx)
+
 		pin := &dto.ChangePINRequest{}
 		base.DecodeJSONToTargetStruct(w, r, pin)
+
+		span.AddEvent("decode json payload to struct", trace.WithAttributes(
+			attribute.Any("payload", pin),
+		))
+
 		if pin.PhoneNumber == "" || pin.PIN == "" || pin.OTP == "" {
 			err := fmt.Errorf(
 				"expected `phoneNumber`, `PIN` to be defined, `OTP` to be defined")
@@ -319,6 +414,10 @@ func (h *HandlersInterfacesImpl) ResetPin(ctx context.Context) http.HandlerFunc 
 			return
 		}
 
+		span.AddEvent("reset user pin success", trace.WithAttributes(
+			attribute.Bool("response", response),
+		))
+
 		base.WriteJSONResponse(w, response, http.StatusCreated)
 	}
 }
@@ -328,8 +427,16 @@ func (h *HandlersInterfacesImpl) ResetPin(ctx context.Context) http.HandlerFunc 
 // during account recovery workflow
 func (h *HandlersInterfacesImpl) SendOTP(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		span := trace.SpanFromContext(ctx)
+
 		payload := &dto.PhoneNumberPayload{}
 		base.DecodeJSONToTargetStruct(w, r, payload)
+
+		span.AddEvent("decode json payload to struct", trace.WithAttributes(
+			attribute.Any("payload", payload),
+		))
+
 		if payload.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
 			base.WriteJSONResponse(w, base.CustomError{
@@ -348,6 +455,10 @@ func (h *HandlersInterfacesImpl) SendOTP(ctx context.Context) http.HandlerFunc {
 			return
 		}
 
+		span.AddEvent("generate and send otp response", trace.WithAttributes(
+			attribute.Any("response", response),
+		))
+
 		base.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
@@ -357,8 +468,16 @@ func (h *HandlersInterfacesImpl) SendOTP(ctx context.Context) http.HandlerFunc {
 // and generates and sends a valid OTP to the phone number
 func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		span := trace.SpanFromContext(ctx)
+
 		retryPayload := &dto.SendRetryOTPPayload{}
 		base.DecodeJSONToTargetStruct(w, r, retryPayload)
+
+		span.AddEvent("decode json payload to struct", trace.WithAttributes(
+			attribute.Any("payload", retryPayload),
+		))
+
 		if retryPayload.Phone == nil || retryPayload.RetryStep == nil {
 			err := fmt.Errorf("expected `phoneNumber`, `retryStep` to be defined")
 			base.WriteJSONResponse(w, base.CustomError{
@@ -378,6 +497,10 @@ func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerF
 			return
 		}
 
+		span.AddEvent("send retry OTP", trace.WithAttributes(
+			attribute.Any("response", response),
+		))
+
 		base.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
@@ -388,8 +511,16 @@ func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerF
 // Otherwise, an error is returned
 func (h *HandlersInterfacesImpl) RefreshToken(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		span := trace.SpanFromContext(ctx)
+
 		p := &dto.RefreshTokenPayload{}
 		base.DecodeJSONToTargetStruct(w, r, p)
+
+		span.AddEvent("decode json payload to struct", trace.WithAttributes(
+			attribute.Any("payload", p),
+		))
+
 		if p.RefreshToken == nil {
 			err := fmt.Errorf("expected `refreshToken` to be defined")
 			base.WriteJSONResponse(w, base.CustomError{
@@ -404,6 +535,10 @@ func (h *HandlersInterfacesImpl) RefreshToken(ctx context.Context) http.HandlerF
 			base.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
 		}
+
+		span.AddEvent("new token", trace.WithAttributes(
+			attribute.Any("response", response),
+		))
 
 		base.WriteJSONResponse(w, response, http.StatusOK)
 	}
