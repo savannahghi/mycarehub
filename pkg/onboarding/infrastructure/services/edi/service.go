@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -50,8 +51,12 @@ func (e *ServiceEDIImpl) LinkCover(
 	}
 
 	if userMarketingData != nil {
+		sladeCode, err := strconv.Atoi(userMarketingData.PayerSladeCode)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert slade code to an int: %w", err)
+		}
 		payload := dto.CoverInput{
-			PayerSladeCode: userMarketingData.PayerSladeCode,
+			PayerSladeCode: sladeCode,
 			MemberNumber:   userMarketingData.MemberNumber,
 			UID:            uid,
 		}

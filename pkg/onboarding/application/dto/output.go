@@ -141,6 +141,6 @@ type Segment struct {
 	MessageSent           string `json:"message_sent" firestore:"message_sent"`
 	IsSynced              string `json:"is_synced" firestore:"is_synced"`
 	TimeSynced            string `json:"time_synced" firestore:"time_synced"`
-	PayerSladeCode        int    `json:"payer_slade_code" firestore:"payersladecode"`
+	PayerSladeCode        string `json:"payer_slade_code" firestore:"payersladecode"`
 	MemberNumber          string `json:"member_number" firestore:"membernumber"`
 }
