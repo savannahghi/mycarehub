@@ -2,7 +2,6 @@ package ussd_test
 
 import (
 	"context"
-	"strconv"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
@@ -20,7 +19,7 @@ const (
 	ForgotPINVerifyDate = 15
 )
 
-func TestImpl_HandleLogin(t *testing.T) {
+func TestImpl_HandleLogin_Integration_Test(t *testing.T) {
 	ctx := context.Background()
 	u, err := InitializeTestService(ctx)
 	if err != nil {
@@ -96,19 +95,19 @@ func TestImpl_HandleLogin(t *testing.T) {
 		},
 
 		{
-			name: "Happy case : good login PIN",
+			name: "Sad case : forgot PIN",
 			args: args{
 				ctx:          ctx,
 				session:      ussdDet,
-				userResponse: "1234",
+				userResponse: "01",
 			},
-			//TODO: Make this test valid for good login response
 			want: "END Something went wrong. Please try again.",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Happy case : good login PIN" {
+			if tt.name == "Happy case : empty input" {
+
 				err = u.AITUSSD.UpdateSessionLevel(ctx, HomeMenuState, sessionDetails.SessionID)
 				if err != nil {
 					t.Errorf("an error occured %v", err)
@@ -124,9 +123,8 @@ func TestImpl_HandleLogin(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Happy case : empty input" {
-				emptyInput, _ := strconv.Atoi(EmptyInput)
-				err = u.AITUSSD.UpdateSessionLevel(ctx, emptyInput, sessionDetails.SessionID)
+			if tt.name == "Sad case : forgot PIN" {
+				err = u.AITUSSD.UpdateSessionLevel(ctx, HomeMenuState, sessionDetails.SessionID)
 				if err != nil {
 					t.Errorf("an error occured %v", err)
 					return

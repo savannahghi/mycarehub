@@ -3,6 +3,7 @@ package ussd
 import (
 	"context"
 
+	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 
@@ -39,8 +40,9 @@ type Usecase interface {
 	GetOrCreateSessionState(ctx context.Context, payload *dto.SessionDetails) (*domain.USSDLeadDetails, error)
 	AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error)
 	UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
-	StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error
+	StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error
 	UpdateSessionLevel(ctx context.Context, level int, sessionID string) error
+	UpdateSessionPIN(ctx context.Context, pin string, sessionID string) (*domain.USSDLeadDetails, error)
 	// USSD PIN usecases
 	HandleChangePIN(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string
 	HandlePINReset(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string
@@ -48,6 +50,12 @@ type Usecase interface {
 	ChangeUSSDUserPIN(ctx context.Context, phone string, pin string) (bool, error)
 	// OptedOut
 	IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error)
+	// Onboarding
+	GetOrCreatePhoneNumberUser(ctx context.Context, phone string) (*dto.CreatedUserResponse, error)
+	CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error)
+	CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*base.Customer, error)
+	UpdateBioData(ctx context.Context, id string, data base.BioData) error
+	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspend bool) (*base.UserProfile, error)
 }
 
 //Impl represents usecase implementation

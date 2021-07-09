@@ -174,13 +174,15 @@ type FakeOnboardingRepository struct {
 	AddIncomingUSSDDataFn           func(ctx context.Context, input *dto.EndSessionDetails) error
 	ListUserProfilesFn              func(ctx context.Context, role base.RoleType) ([]*base.UserProfile, error)
 	UpdateOptOutFn                  func(ctx context.Context, option string, phoneNumber string) error
-	StageCRMPayloadFn               func(ctx context.Context, payload dto.ContactLeadInput) error
+	StageCRMPayloadFn               func(ctx context.Context, payload *dto.ContactLeadInput) error
 	UpdateStageCRMPayloadFn         func(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
 	GetStageCRMPayloadFn            func(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error)
 	UpdateOptOutCRMPayloadFn        func(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
 	UpdateFavNavActionsFn           func(ctx context.Context, id string, favActions []string) error
 	GetUserMarketingDataFn          func(ctx context.Context, phoneNumber string) (*dto.Segment, error)
 	IsOptedOutedFn                  func(ctx context.Context, phoneNumber string) (bool, error)
+	HandleResponseFromUSSDGatewayFn func(context context.Context, input *dto.SessionDetails) string
+	SetUSSDUserPinFn                func(ctx context.Context, phoneNumber string, PIN string) error
 }
 
 // GetSupplierProfileByID ...
@@ -581,7 +583,7 @@ func (f *FakeOnboardingRepository) CreateDetailedSupplierProfile(ctx context.Con
 }
 
 // StageCRMPayload ...
-func (f *FakeOnboardingRepository) StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error {
+func (f *FakeOnboardingRepository) StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error {
 	return f.StageCRMPayloadFn(ctx, payload)
 }
 
@@ -613,4 +615,14 @@ func (f *FakeOnboardingRepository) GetUserMarketingData(ctx context.Context, pho
 // IsOptedOuted ..
 func (f *FakeOnboardingRepository) IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error) {
 	return f.IsOptedOutedFn(ctx, phoneNumber)
+}
+
+// HandleResponseFromUSSDGateway ...
+func (f *FakeOnboardingRepository) HandleResponseFromUSSDGateway(context context.Context, input *dto.SessionDetails) string {
+	return f.HandleResponseFromUSSDGatewayFn(context, input)
+}
+
+// SetUSSDUserPin ...
+func (f *FakeOnboardingRepository) SetUSSDUserPin(ctx context.Context, phoneNumber string, PIN string) error {
+	return f.SetUSSDUserPinFn(ctx, phoneNumber, PIN)
 }

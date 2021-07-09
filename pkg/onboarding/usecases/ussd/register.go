@@ -45,7 +45,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	if userResponse == EmptyInput || userResponse == GoBackHomeInput && session.Level == InitialState {
 		//Creating contact stub on first USSD Dial
 		time := time.Now()
-		if err := u.onboardingRepository.StageCRMPayload(ctx, dto.ContactLeadInput{
+		if err := u.onboardingRepository.StageCRMPayload(ctx, &dto.ContactLeadInput{
 			ContactType:    "phone",
 			ContactValue:   session.PhoneNumber,
 			IsSync:         false,
@@ -167,7 +167,6 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	}
 
 	if session.Level == GetPINState {
-		// TODO FIXME check for empty response
 		err := utils.ValidatePIN(userResponse)
 		if err != nil {
 			utils.RecordSpanError(span, err)

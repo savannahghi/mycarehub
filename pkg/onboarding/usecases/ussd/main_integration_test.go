@@ -86,7 +86,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}
 
 	ext := extension.NewBaseExtensionImpl(&base.FirebaseClient{})
-
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 	ediClient := utils.NewInterServiceClient(ediService, ext)
@@ -137,16 +136,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		CRM:          crm,
 	}, nil
 }
-
-var fakeRepo mockRepo.FakeOnboardingRepository
-var fakeBaseExt extMock.FakeBaseExtensionImpl
-var fakePinExt extMock.PINExtensionImpl
-var fakeEngagementSvs engagementMock.FakeServiceEngagement
-var fakeMessagingSvc messagingMock.FakeServiceMessaging
-var fakeEPRSvc erpMock.FakeServiceCommonTools
-var fakeChargeMasterSvc chargemasterMock.FakeServiceChargeMaster
-var fakePubSub pubsubmessagingMock.FakeServicePubSub
-var fakeEDISvc ediMock.FakeServiceEDI
 
 // InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
 func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
@@ -263,4 +252,54 @@ func TestImpl_HandleResponseFromUSSDGateway(t *testing.T) {
 			}
 		})
 	}
+}
+
+var fakeRepo mockRepo.FakeOnboardingRepository
+var fakeBaseExt extMock.FakeBaseExtensionImpl
+var fakePinExt extMock.PINExtensionImpl
+var fakeEngagementSvs engagementMock.FakeServiceEngagement
+var fakeMessagingSvc messagingMock.FakeServiceMessaging
+var fakeEPRSvc erpMock.FakeServiceCommonTools
+var fakeChargeMasterSvc chargemasterMock.FakeServiceChargeMaster
+var fakePubSub pubsubmessagingMock.FakeServicePubSub
+var fakeEDISvc ediMock.FakeServiceEDI
+
+// InitializeFakeUSSDTestService represents a fakeussd interactor
+func InitializeFakeUSSDTestService() (*interactor.Interactor, error) {
+	var r repository.OnboardingRepository = &fakeRepo
+	var erpSvc erp.AccountingUsecase = &fakeEPRSvc
+	var chargemasterSvc chargemaster.ServiceChargeMaster = &fakeChargeMasterSvc
+	var engagementSvc engagement.ServiceEngagement = &fakeEngagementSvs
+	var messagingSvc messaging.ServiceMessaging = &fakeMessagingSvc
+	var ext extension.BaseExtension = &fakeBaseExt
+	var pinExt extension.PINExtension = &fakePinExt
+	var ps pubsubmessaging.ServicePubSub = &fakePubSub
+	var ediSvc edi.ServiceEdi = &fakeEDISvc
+
+	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps)
+	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
+	survey := usecases.NewSurveyUseCases(r, ext)
+	supplier := usecases.NewSupplierUseCases(
+		r, profile, erpSvc, chargemasterSvc, engagementSvc, messagingSvc, ext, ps,
+	)
+	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
+	crm := hubspot.NewHubSpotService()
+	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps, ediSvc)
+	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
+	sms := usecases.NewSMSUsecase(r, ext)
+	admin := usecases.NewAdminUseCases(r, engagementSvc, ext, userpin)
+	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
+	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps)
+	adminSrv := adminSrv.NewService(ext)
+
+	i, err := interactor.NewOnboardingInteractor(
+		r, profile, su, supplier, login,
+		survey, userpin, erpSvc, chargemasterSvc,
+		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, crm, agent, admin, ediSvc, adminSrv,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("can't instantiate service : %w", err)
+	}
+	return i, nil
+
 }

@@ -170,9 +170,10 @@ type OnboardingRepository interface {
 	UpdateSessionLevel(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error)
 	UpdateSessionPIN(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error)
 
-	StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error
+	StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error
 	UpdateStageCRMPayload(ctx context.Context, phoneNumber string, payload *dto.ContactLeadInput) error
 	UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
+	GetStageCRMPayload(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error)
 
 	GetUserMarketingData(ctx context.Context, phoneNumber string) (*dto.Segment, error)
 	IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error)

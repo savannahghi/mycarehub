@@ -29,9 +29,11 @@ const (
 	ForgetPINResetState = 13
 	// PINResetProcessState represents the state when the user has provided a wrong PIN
 	PINResetProcessState = 11
+	// UserPINResetState represents workflows required to reset a forgotten user PIN
+	UserPINResetState = 10
 )
 
-func TestImpl_HandleChangePIN(t *testing.T) {
+func TestImpl_HandleChangePIN_IntegrationTest(t *testing.T) {
 	ctx := context.Background()
 
 	u, err := InitializeTestService(ctx)
@@ -40,7 +42,7 @@ func TestImpl_HandleChangePIN(t *testing.T) {
 		return
 	}
 
-	phoneNumber := "+254700100200"
+	phoneNumber := "+254750100200"
 	dateOfBirth := "12122000"
 	PIN := "1234"
 	FirstName := gofakeit.LastName()
@@ -83,7 +85,7 @@ func TestImpl_HandleChangePIN(t *testing.T) {
 		want string
 	}{
 		{
-			name: "Happy case : enter correct old PIN",
+			name: "Happy case : empty input",
 			args: args{
 				ctx:          ctx,
 				session:      ussdDet,
@@ -94,7 +96,7 @@ func TestImpl_HandleChangePIN(t *testing.T) {
 		},
 
 		{
-			name: "Happy case :_Change PIN_selected_enter correct old PIN",
+			name: "Happy case :_Change PIN_selected",
 			args: args{
 				ctx:          ctx,
 				session:      ussdDet,
@@ -105,42 +107,19 @@ func TestImpl_HandleChangePIN(t *testing.T) {
 		},
 
 		{
-			name: "Sad case :bad user response for correct old PIN",
+			name: "Sad case :bad choice selected",
 			args: args{
 				ctx:          ctx,
 				session:      ussdDet,
-				userResponse: "ChangePINInput",
+				userResponse: "90",
 			},
-			//TODO: Make this test valid for bad user response for correct
-			//old PIN response
-			want: "END Something went wrong. Please try again",
-		},
-
-		{
-			name: "Happy case :Go back Home",
-			args: args{
-				ctx:          ctx,
-				session:      ussdDet,
-				userResponse: GoBackHomeInput,
-			},
-			//TODO: Make this test valid for Go back Home response
-			want: "END Something went wrong. Please try again",
-		},
-
-		{
-			name: "Sad case :Go back Home",
-			args: args{
-				ctx:          ctx,
-				session:      ussdDet,
-				userResponse: "GoBackHomeInput",
-			},
-			want: "END invalid input",
+			want: "CON Invalid choice. Please try again.",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if tt.name == "Happy case : forgot PIN" {
+			if tt.name == "Happy case : empty input" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, ChangePINEnterNewPINState, sessionDetails.SessionID)
 				if err != nil {
 					t.Errorf("an error occured %v", err)
@@ -148,7 +127,7 @@ func TestImpl_HandleChangePIN(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Happy case :_Change PIN_selected_enter correct old PIN" {
+			if tt.name == "Happy case :_Change PIN_selected" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, ChangePINEnterNewPINState, sessionDetails.SessionID)
 				if err != nil {
 					t.Errorf("an error occured %v", err)
@@ -156,23 +135,7 @@ func TestImpl_HandleChangePIN(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad case :bad user response for correct old PIN" {
-				err = u.AITUSSD.UpdateSessionLevel(ctx, ChangePINEnterNewPINState, sessionDetails.SessionID)
-				if err != nil {
-					t.Errorf("an error occured %v", err)
-					return
-				}
-			}
-
-			if tt.name == "Happy case :Go back Home" {
-				err = u.AITUSSD.UpdateSessionLevel(ctx, HomeMenuState, sessionDetails.SessionID)
-				if err != nil {
-					t.Errorf("an error occured %v", err)
-					return
-				}
-			}
-
-			if tt.name == "Sad case :Go back Home" {
+			if tt.name == "Sad case :bad choice selected" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, HomeMenuState, sessionDetails.SessionID)
 				if err != nil {
 					t.Errorf("an error occured %v", err)
@@ -202,7 +165,7 @@ func TestImpl_HandlePINReset(t *testing.T) {
 		return
 	}
 
-	phoneNumber := "+254700100200"
+	phoneNumber := "+254790009009"
 	dateOfBirth := "12122000"
 	PIN := "1234"
 	FirstName := gofakeit.LastName()
@@ -249,7 +212,7 @@ func TestImpl_HandlePINReset(t *testing.T) {
 			args: args{
 				ctx:          ctx,
 				session:      ussdDet,
-				userResponse: "1234",
+				userResponse: "00",
 			},
 			want: "CON Please enter a new 4 digit PIN to\r\n" +
 				"secure your account\r\n",
@@ -293,10 +256,9 @@ func TestImpl_HandlePINReset(t *testing.T) {
 			args: args{
 				ctx:          ctx,
 				session:      ussdDet,
-				userResponse: "14032100",
+				userResponse: "14032000",
 			},
-			//TODO: Make this test valid for  Forgot PIN verify date response
-			want: "END something wrong it happened",
+			want: "CON Date of birth entered does not match the date of birth on record. Please enter your valid date of birth",
 		},
 	}
 	for _, tt := range tests {
@@ -335,6 +297,23 @@ func TestImpl_HandlePINReset(t *testing.T) {
 			}
 
 			if tt.name == "Sad case : Forgot PIN verify date" {
+				userResponse, err := u.AITUSSD.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
+				if err != nil {
+					t.Errorf("an error occured %v", err)
+					return
+				}
+
+				userProfile, err := u.AITUSSD.CreateUserProfile(ctx, userResponse.PhoneNumber, userResponse.UID)
+				if err != nil {
+					t.Errorf("an error occured %v", err)
+					return
+				}
+
+				_, err = u.AITUSSD.GetUserProfileByPrimaryPhoneNumber(ctx, *userProfile.PrimaryPhone, false)
+				if err != nil {
+					t.Errorf("an error occured %v", err)
+					return
+				}
 				err = u.AITUSSD.UpdateSessionLevel(ctx, ForgotPINVerifyDate, sessionDetails.SessionID)
 				if err != nil {
 					t.Errorf("an error occured %v", err)
@@ -384,7 +363,7 @@ func TestImpl_SetUSSDUserPin(t *testing.T) {
 				phoneNumber: phone,
 				PIN:         pin,
 			},
-			wantErr: true, // TODO: Fix and make wantErr: false
+			wantErr: false,
 		},
 
 		{
@@ -419,6 +398,48 @@ func TestImpl_SetUSSDUserPin(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Happy case: Reset PIN successfully" {
+				err := utils.ValidatePINLength("12345")
+				if err != nil {
+					exceptions.ValidatePINLengthError(fmt.Errorf("PIN should be of 4 digits"))
+					return
+				}
+
+				userResponse, err := u.AITUSSD.GetOrCreatePhoneNumberUser(ctx, phone)
+				if err != nil {
+					t.Errorf("an error occured %v", err)
+					return
+				}
+
+				userProfile, err := u.AITUSSD.CreateUserProfile(ctx, userResponse.PhoneNumber, userResponse.UID)
+				if err != nil {
+					t.Errorf("an error occured %v", err)
+					return
+				}
+
+				_, err = u.AITUSSD.GetUserProfileByPrimaryPhoneNumber(ctx, *userProfile.PrimaryPhone, false)
+				if err != nil {
+					t.Errorf("an error occured %v", err)
+					return
+				}
+
+			}
+
+			if tt.name == "Sad case: Unable to Reset PIN" {
+				err := utils.ValidatePINLength("12345")
+				if err != nil {
+					exceptions.ValidatePINLengthError(fmt.Errorf("PIN should be of 4 digits"))
+					return
+				}
+			}
+
+			if tt.name == "Sad case: empty PIN" {
+				err := utils.ValidatePINLength("12345")
+				if err != nil {
+					exceptions.ValidatePINLengthError(fmt.Errorf("PIN should be of 4 digits"))
+					return
+				}
+			}
 
 			if tt.name == "Sad case: invalid PIN" {
 				err := utils.ValidatePINLength("12345")
@@ -466,8 +487,8 @@ func TestImpl_ChangeUSSDUserPIN(t *testing.T) {
 				phone: phoneNumber,
 				pin:   PIN,
 			},
-			want:    false, // TODO: Fix and make want: true
-			wantErr: true,  // TODO: Fix and make wantErr: false
+			want:    true,
+			wantErr: false,
 		},
 
 		{
@@ -483,6 +504,29 @@ func TestImpl_ChangeUSSDUserPIN(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Happy case: Change user PIN successfully" {
+				err := utils.ValidatePINLength(invalidPIN)
+				if err != nil {
+					exceptions.ValidatePINLengthError(fmt.Errorf("PIN should be of 4 digits"))
+					return
+				}
+				userResp, err := u.AITUSSD.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
+				if err != nil {
+					t.Errorf("an error occured %v", err)
+					return
+				}
+				userprofile, err := u.AITUSSD.CreateUserProfile(ctx, phoneNumber, userResp.UID)
+				if err != nil {
+					t.Errorf("an error occured %v", err)
+					return
+				}
+				_, err = u.AITUSSD.GetUserProfileByPrimaryPhoneNumber(ctx, *userprofile.PrimaryPhone, false)
+				if err != nil {
+					t.Errorf("an error occured %v", err)
+					return
+				}
+			}
+
 			if tt.name == "Sad case: Unable to Change user PIN" {
 				err := utils.ValidatePINLength(invalidPIN)
 				if err != nil {

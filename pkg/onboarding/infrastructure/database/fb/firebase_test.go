@@ -9,11 +9,14 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
+	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb/mock"
@@ -1177,6 +1180,315 @@ func TestRepository_GetUserMarketingData(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Repository.GetUserMarketingData() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_AddAITSessionDetails_Unittest(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	phoneNumber := "+254700100200"
+	SessionID := uuid.New().String()
+	Level := 0
+	Text := ""
+
+	sessionDet := &dto.SessionDetails{
+		SessionID:   SessionID,
+		PhoneNumber: &phoneNumber,
+		Level:       Level,
+		Text:        Text,
+	}
+
+	type args struct {
+		ctx   context.Context
+		input *dto.SessionDetails
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.USSDLeadDetails
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:   ctx,
+				input: sessionDet,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Sad case",
+			args: args{
+				ctx:   ctx,
+				input: sessionDet,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Happy case" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{}
+					return docs, nil
+				}
+
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}, nil
+				}
+			}
+
+			if tt.name == "Sad case" {
+				_, err := utils.ValidateUSSDDetails(sessionDet)
+				if err != nil {
+					t.Errorf("an error occurred")
+					return
+				}
+
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return nil, fmt.Errorf("error")
+				}
+
+			}
+
+			got, err := repo.AddAITSessionDetails(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.AddAITSessionDetails() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.AddAITSessionDetails() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_GetAITSessionDetails_Unittests(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	SessionID := uuid.New().String()
+
+	type args struct {
+		ctx       context.Context
+		sessionID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.USSDLeadDetails
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:       ctx,
+				sessionID: SessionID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:       ctx,
+				sessionID: SessionID,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Happy case" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{}
+					return docs, nil
+				}
+			}
+
+			if tt.name == "Sad case" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, fmt.Errorf("an error occured")
+				}
+			}
+
+			got, err := repo.GetAITSessionDetails(tt.args.ctx, tt.args.sessionID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetAITSessionDetails() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.GetAITSessionDetails() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_StageCRMPayload_Unittest(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	phoneNumber := "+254700100200"
+	ContactType := "phone"
+	ContactValue := phoneNumber
+	FirstName := gofakeit.FirstName()
+	LastName := gofakeit.LastName()
+	DateOfBirth := base.Date{
+		Day:   0,
+		Month: 0,
+		Year:  0,
+	}
+	IsSync := false
+	TimeSync := time.Now()
+	OptOut := "NO"
+	WantCover := false
+	ContactChannel := "USSD"
+	IsRegistered := false
+
+	contactLeadPayload := &dto.ContactLeadInput{
+		ContactType:    ContactType,
+		ContactValue:   ContactValue,
+		FirstName:      FirstName,
+		LastName:       LastName,
+		DateOfBirth:    DateOfBirth,
+		IsSync:         IsSync,
+		TimeSync:       &TimeSync,
+		OptOut:         CRMDomain.GeneralOptionType(OptOut),
+		WantCover:      WantCover,
+		ContactChannel: ContactChannel,
+		IsRegistered:   IsRegistered,
+	}
+
+	type args struct {
+		ctx     context.Context
+		payload *dto.ContactLeadInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:     ctx,
+				payload: contactLeadPayload,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:     ctx,
+				payload: nil,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Happy case" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{}
+					return docs, nil
+				}
+
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}, nil
+				}
+			}
+
+			if tt.name == "Sad case" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, fmt.Errorf("an error occured")
+				}
+			}
+
+			err := repo.StageCRMPayload(tt.args.ctx, tt.args.payload)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("error expected got %v", err)
+					return
+				}
+			}
+			if !tt.wantErr {
+				if err != nil {
+					t.Errorf("error not expected got %v", err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestRepository_GetStageCRMPayload_Unittest(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	phoneNumber := "+254700100200"
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.ContactLeadInput
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: phoneNumber,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Happy case" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docs := []*firestore.DocumentSnapshot{}
+					return docs, nil
+				}
+			}
+
+			if tt.name == "Sad case" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, fmt.Errorf("an error occured")
+				}
+			}
+
+			got, err := repo.GetStageCRMPayload(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetStageCRMPayload() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.GetStageCRMPayload() = %v, want %v", got, tt.want)
 			}
 		})
 	}

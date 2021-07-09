@@ -38,8 +38,12 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	ctx, span := tracer.Start(ctx, "HandleChangePIN")
 	defer span.End()
 
+	if userResponse != GoBackHomeInput && userResponse != EmptyInput && userResponse != ChangePINInput {
+		resp := "CON Invalid choice. Please try again."
+		return resp
+	}
+
 	if userResponse == EmptyInput || userResponse == ChangePINInput {
-		// TODO FIXME validate/check if supplied PIN is correct
 		err := u.UpdateSessionLevel(ctx, ChangePINEnterNewPINState, session.SessionID)
 		if err != nil {
 			utils.RecordSpanError(span, err)
@@ -122,6 +126,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		}
 		return u.ResetPinMenu()
 	}
+
 	return "END invalid input"
 }
 

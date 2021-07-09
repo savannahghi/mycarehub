@@ -92,7 +92,7 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 	}
 
 	//Staging
-	err = u.AITUSSD.StageCRMPayload(ctx, *contactLeadPayload)
+	err = u.AITUSSD.StageCRMPayload(ctx, contactLeadPayload)
 	if err != nil {
 		t.Errorf("an error occured %v", err)
 		return

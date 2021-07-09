@@ -172,3 +172,12 @@ func ServiceHealthEndPoint(input string) (string, error) {
 
 	return endpointURL, nil
 }
+
+// CheckEmptyString check that the string isn't empty
+func CheckEmptyString(text string) (*string, error) {
+	inputText := text
+	if inputText == "" {
+		return nil, fmt.Errorf("sessionID cannot be empty")
+	}
+	return &inputText, nil
+}

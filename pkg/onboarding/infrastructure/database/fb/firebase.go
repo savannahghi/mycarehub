@@ -3013,10 +3013,16 @@ func (fr *Repository) GetAITSessionDetails(ctx context.Context, sessionID string
 	ctx, span := tracer.Start(ctx, "GetAITSessionDetails")
 	defer span.End()
 
+	validatedSessionID, err := utils.CheckEmptyString(sessionID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetUSSDCollectionName(),
 		FieldName:      "sessionID",
-		Value:          sessionID,
+		Value:          validatedSessionID,
 		Operator:       "==",
 	}
 
@@ -3046,7 +3052,13 @@ func (fr *Repository) UpdateSessionLevel(ctx context.Context, sessionID string, 
 	ctx, span := tracer.Start(ctx, "UpdateSessionLevel")
 	defer span.End()
 
-	sessionDetails, err := fr.GetAITSessionDetails(ctx, sessionID)
+	validSessionID, err := utils.CheckEmptyString(sessionID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	sessionDetails, err := fr.GetAITSessionDetails(ctx, *validSessionID)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
@@ -3119,9 +3131,13 @@ func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pi
 }
 
 // StageCRMPayload ...
-func (fr *Repository) StageCRMPayload(ctx context.Context, payload dto.ContactLeadInput) error {
+func (fr *Repository) StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error {
 	ctx, span := tracer.Start(ctx, "StageCRMPayload")
 	defer span.End()
+
+	if payload == nil {
+		return fmt.Errorf("contact lead input cannot be nil")
+	}
 
 	createCommand := &CreateCommand{
 		CollectionName: fr.GetCRMStagingCollectionName(),
@@ -3139,10 +3155,19 @@ func (fr *Repository) StageCRMPayload(ctx context.Context, payload dto.ContactLe
 // GetStageCRMPayload ...
 func (fr *Repository) GetStageCRMPayload(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error) {
 	log.Printf("the phone number is %v", phoneNumber)
+	ctx, span := tracer.Start(ctx, "StageCRMPayload")
+	defer span.End()
+
+	validPhoneNumber, err := utils.CheckEmptyString(phoneNumber)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
 	query := &GetAllQuery{
 		CollectionName: fr.GetCRMStagingCollectionName(),
 		FieldName:      "ContactValue",
-		Value:          phoneNumber,
+		Value:          validPhoneNumber,
 		Operator:       "==",
 	}
 
@@ -3167,6 +3192,7 @@ func (fr *Repository) GetStageCRMPayload(ctx context.Context, phoneNumber string
 
 // UpdateStageCRMPayload ...
 func (fr *Repository) UpdateStageCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
+
 	CRMDetails, err := fr.GetStageCRMPayload(ctx, phoneNumber)
 	if err != nil {
 		return err
