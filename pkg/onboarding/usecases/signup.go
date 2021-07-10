@@ -194,19 +194,6 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		return nil, err
 	}
 
-	if len(profile.PushTokens) > 0 {
-		coverLinkingDetails := dto.LinkCoverPubSubMessage{
-			PhoneNumber: *userData.PhoneNumber,
-			UID:         user.UID,
-			PushToken:   profile.PushTokens,
-		}
-
-		if err := s.pubsub.NotifyCoverLinking(ctx, coverLinkingDetails); err != nil {
-			utils.RecordSpanError(span, err)
-			log.Printf("failed to publish to covers.link topic: %v", err)
-		}
-	}
-
 	var supplier *base.Supplier
 	var customer *base.Customer
 	supplier, err = s.onboardingRepository.CreateEmptySupplierProfile(ctx, profile.ID)
@@ -348,6 +335,11 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 		return false, exceptions.InvalidFlavourDefinedError()
 	}
 
+	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, err
+	}
+
 	profile, err := s.profileUsecase.UserProfile(ctx)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -369,6 +361,19 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		logrus.Print(err)
+	}
+
+	if len(profile.PushTokens) > 0 {
+		coverLinkingDetails := dto.LinkCoverPubSubMessage{
+			PhoneNumber: *profile.PrimaryPhone,
+			UID:         uid,
+			PushToken:   profile.PushTokens,
+		}
+
+		if err := s.pubsub.NotifyCoverLinking(ctx, coverLinkingDetails); err != nil {
+			utils.RecordSpanError(span, err)
+			log.Printf("failed to publish to covers.link topic: %v", err)
+		}
 	}
 
 	return true, nil

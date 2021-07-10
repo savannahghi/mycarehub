@@ -14,19 +14,12 @@ services:
     entrypoint: ["env", "-u", "DOCKER_HOST"]
     command: ["dockerd-entrypoint.sh"]
 
-# echo_stage:
-#   stage: test0
-#   script:
-#     - echo "Just echo stage"
-#   tags:
-#     - healthcloud-multi
-
 lint_and_test:
   stage: test
   when: manual
   before_script:
     - bash decrypt_service_account.sh
-    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com" 
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
     - curl -L -o ./install-misspell.sh https://git.io/misspell && sh ./install-misspell.sh
     - go install gitlab.slade360emr.com/go/admin/cmd/bewell@$BEWELL_CLI_VERSION
   script:
@@ -38,7 +31,7 @@ lint_and_test:
     - golint -set_exit_status $(go list ./... | grep -v /vendor/)
     - errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
     - gosec -exclude=G101,G404 ./...
-    - go-acc -o coverage.txt --ignore generated,cmd  ./... -- -timeout 30m 
+    - go-acc -o coverage.txt --ignore generated,cmd  ./... -- -timeout 30m
     - grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*resolver*go" | grep -v "server.go" > coverage.out
     - go tool cover -html=coverage.out -o coverage.html
     - gocov convert coverage.out > coverage.json
@@ -55,7 +48,6 @@ lint_and_test:
   tags:
     - healthcloud-multi
 
-
 build_docs:
   stage: docs
   image: python:3.8.5
@@ -66,11 +58,10 @@ build_docs:
   tags:
     - healthcloud-multi
   only:
-    - develop    
+    - develop
   artifacts:
     paths:
       - $CI_PROJECT_DIR/documentation
-
 
 deploy_develop_to_staging:
   image: eu.gcr.io/savannah-emr/gcloud-docker-in-docker:0.0.1
@@ -82,7 +73,7 @@ deploy_develop_to_staging:
     - export CLOUDSDK_CORE_PROJECT=bewell-app-testing
   stage: deploy
   only:
-    - develop    
+    - develop
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
@@ -96,7 +87,6 @@ deploy_develop_to_staging:
     - /google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker profile-staging --quiet
   tags:
     - healthcloud-multi
-      
 
 deploy_docs:
   stage: deploy
@@ -116,7 +106,7 @@ deploy_docs:
     - job: build_docs
       artifacts: true
   only:
-    - develop      
+    - develop
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
@@ -144,7 +134,7 @@ deploy_develop_to_test:
     - go install gitlab.slade360emr.com/go/admin/cmd/bewell@$BEWELL_CLI_VERSION
   stage: deploy
   only:
-    - develop    
+    - develop
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
@@ -198,7 +188,7 @@ deploy_master_to_demo:
     - go install gitlab.slade360emr.com/go/admin/cmd/bewell@$BEWELL_CLI_VERSION
   stage: deploy
   only:
-    - master   
+    - master
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
@@ -214,7 +204,6 @@ deploy_master_to_demo:
     - bewell service push-schema --name onboarding --version $CI_COMMIT_SHA --url https://profile-demo.healthcloud.co.ke/graphql --registry-url $DEMO_SCHEMA_REGISTRY_URL
   tags:
     - healthcloud-multi
-
 
 deploy_master_to_prod:
   image: eu.gcr.io/savannah-emr/gcloud-docker-in-docker:0.0.1
@@ -274,7 +263,6 @@ deploy_core_login:
   tags:
     - healthcloud-multi
 
-
 deploy_portal_login:
   image: eu.gcr.io/savannah-emr/gcloud-docker-in-docker:0.0.1
   before_script:
@@ -328,7 +316,7 @@ deploy_multitenant_login:
     - /google-cloud-sdk/bin/gcloud run services add-iam-policy-binding --platform managed --region=europe-west1 --member=allUsers --role=roles/run.invoker login-multitenant --quiet
   tags:
     - healthcloud-multi
-    
+
 deploy_core_release_login:
   image: eu.gcr.io/savannah-emr/gcloud-docker-in-docker:0.0.1
   before_script:
