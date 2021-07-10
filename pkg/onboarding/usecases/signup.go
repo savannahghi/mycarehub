@@ -194,14 +194,17 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		return nil, err
 	}
 
-	coverLinkingDetails := dto.LinkCoverPubSubMessage{
-		PhoneNumber: *userData.PhoneNumber,
-		UID:         user.UID,
-	}
+	if len(profile.PushTokens) > 0 {
+		coverLinkingDetails := dto.LinkCoverPubSubMessage{
+			PhoneNumber: *userData.PhoneNumber,
+			UID:         user.UID,
+			PushToken:   profile.PushTokens,
+		}
 
-	if err := s.pubsub.NotifyCoverLinking(ctx, coverLinkingDetails); err != nil {
-		utils.RecordSpanError(span, err)
-		log.Printf("failed to publish to covers.link topic: %v", err)
+		if err := s.pubsub.NotifyCoverLinking(ctx, coverLinkingDetails); err != nil {
+			utils.RecordSpanError(span, err)
+			log.Printf("failed to publish to covers.link topic: %v", err)
+		}
 	}
 
 	var supplier *base.Supplier

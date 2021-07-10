@@ -368,6 +368,7 @@ type CoverInput struct {
 
 // LinkCoverPubSubMessage is a `cover linking` pub sub message struct
 type LinkCoverPubSubMessage struct {
-	PhoneNumber string `json:"phoneNumber"`
-	UID         string `json:"uid"`
+	PhoneNumber string   `json:"phoneNumber"`
+	UID         string   `json:"uid"`
+	PushToken   []string `json:"pushToken"`
 }
