@@ -44,7 +44,6 @@ func (e *ServiceEDIImpl) LinkCover(
 	phoneNumber string,
 	uid string,
 ) (*http.Response, error) {
-	// Get the user marketing data
 	userMarketingData, err := e.onboardingRepository.GetUserMarketingData(ctx, phoneNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query the user's marketing details :%w", err)

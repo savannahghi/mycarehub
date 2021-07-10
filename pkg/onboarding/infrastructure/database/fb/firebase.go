@@ -3233,7 +3233,7 @@ func (fr *Repository) GetUserMarketingData(ctx context.Context, phoneNumber stri
 
 	query := &GetAllQuery{
 		CollectionName: fr.GetMarketingDataCollectionName(),
-		FieldName:      "phone",
+		FieldName:      "properties.Phone",
 		Value:          phoneNumber,
 		Operator:       "==",
 	}
