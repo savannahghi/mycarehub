@@ -140,6 +140,7 @@ func (ps ServicePubSubMessaging) TopicIDs() []string {
 		ps.AddPubSubNamespace(common.CreateSupplierTopic),
 		ps.AddPubSubNamespace(common.CreateCRMContact),
 		ps.AddPubSubNamespace(common.UpdateCRMContact),
+		ps.AddPubSubNamespace(common.LinkCoverTopic),
 	}
 }
 
