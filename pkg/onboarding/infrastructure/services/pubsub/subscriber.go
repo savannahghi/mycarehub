@@ -140,7 +140,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			return
 		}
 
-		_, err = ps.edi.LinkCover(ctx, userDetails.PhoneNumber, userDetails.UID)
+		_, err = ps.edi.LinkCover(ctx, userDetails.PhoneNumber, userDetails.UID, userDetails.PushToken)
 		if err != nil {
 			ps.baseExt.WriteJSONResponse(
 				w,

@@ -21,6 +21,7 @@ type ServiceEdi interface {
 		ctx context.Context,
 		phoneNumber string,
 		uid string,
+		pushToken []string,
 	) (*http.Response, error)
 }
 
@@ -43,6 +44,7 @@ func (e *ServiceEDIImpl) LinkCover(
 	ctx context.Context,
 	phoneNumber string,
 	uid string,
+	pushToken []string,
 ) (*http.Response, error) {
 	userMarketingData, err := e.onboardingRepository.GetUserMarketingData(ctx, phoneNumber)
 	if err != nil {
@@ -58,6 +60,7 @@ func (e *ServiceEDIImpl) LinkCover(
 			PayerSladeCode: sladeCode,
 			MemberNumber:   userMarketingData.MemberNumber,
 			UID:            uid,
+			PushToken:      pushToken,
 		}
 
 		return e.EdiExt.MakeRequest(

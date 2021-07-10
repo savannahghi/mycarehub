@@ -27,6 +27,7 @@ func TestServiceEDIImpl_LinkCover(t *testing.T) {
 		ctx         context.Context
 		phoneNumber string
 		uid         string
+		pushToken   []string
 	}
 	tests := []struct {
 		name       string
@@ -39,6 +40,7 @@ func TestServiceEDIImpl_LinkCover(t *testing.T) {
 			args: args{
 				phoneNumber: base.TestUserPhoneNumber,
 				uid:         uuid.New().String(),
+				pushToken:   []string{uuid.New().String()},
 			},
 			wantErr:    false,
 			wantStatus: http.StatusOK,
@@ -68,7 +70,7 @@ func TestServiceEDIImpl_LinkCover(t *testing.T) {
 				}
 			}
 
-			got, err := e.LinkCover(tt.args.ctx, tt.args.phoneNumber, tt.args.uid)
+			got, err := e.LinkCover(tt.args.ctx, tt.args.phoneNumber, tt.args.uid, tt.args.pushToken)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceEDIImpl.LinkCover() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -361,9 +361,10 @@ type AgentFilterInput struct {
 
 // CoverInput is used to add covers
 type CoverInput struct {
-	PayerSladeCode int    `json:"payerSladeCode"`
-	MemberNumber   string `json:"memberNumber"`
-	UID            string `json:"uid"`
+	PayerSladeCode int      `json:"payerSladeCode"`
+	MemberNumber   string   `json:"memberNumber"`
+	UID            string   `json:"uid"`
+	PushToken      []string `json:"pushToken"`
 }
 
 // LinkCoverPubSubMessage is a `cover linking` pub sub message struct

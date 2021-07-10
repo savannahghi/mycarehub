@@ -11,6 +11,7 @@ type FakeServiceEDI struct {
 		ctx context.Context,
 		phoneNumber string,
 		uid string,
+		pushToken []string,
 	) (*http.Response, error)
 }
 
@@ -19,6 +20,7 @@ func (f *FakeServiceEDI) LinkCover(
 	ctx context.Context,
 	phoneNumber string,
 	uid string,
+	pushToken []string,
 ) (*http.Response, error) {
-	return f.LinkCoverFn(ctx, phoneNumber, uid)
+	return f.LinkCoverFn(ctx, phoneNumber, uid, pushToken)
 }
