@@ -1063,6 +1063,12 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 		utils.RecordSpanError(span, err)
 		return exceptions.PublishKYCNudgeError(err)
 	}
+
+	// Status conflict means a similar KYC nudge already exists
+	if resp.StatusCode == http.StatusConflict {
+		return nil
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		if err := s.SaveProfileNudge(ctx, &nudge); err != nil {
 			utils.RecordSpanError(span, err)
