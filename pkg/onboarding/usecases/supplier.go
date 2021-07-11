@@ -2056,8 +2056,8 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		}
 
 	case domain.KYCProcessStatusRejected:
-		email = s.generateProcessKYCRejectionEmailTemplate()
-		message = "Your KYC details have been reviewed and not verified. Incase of any queries, please contact us via +254 790 360 360"
+		email = s.generateProcessKYCRejectionEmailTemplate(*rejectionReason)
+		message = "Your KYC details have been reviewed and have not been approved. Please check your email for detailed information. Incase of any queries, please contact us via +254 790 360 360"
 
 	}
 
@@ -2155,10 +2155,13 @@ func (s *SupplierUseCasesImpl) generateProcessKYCApprovalEmailTemplate() string 
 	return buf.String()
 }
 
-func (s *SupplierUseCasesImpl) generateProcessKYCRejectionEmailTemplate() string {
+func (s *SupplierUseCasesImpl) generateProcessKYCRejectionEmailTemplate(reason string) string {
+	type rejectionData struct {
+		Reason string
+	}
 	t := template.Must(template.New("rejectionKYCEmail").Parse(utils.ProcessKYCRejectionEmail))
 	buf := new(bytes.Buffer)
-	err := t.Execute(buf, "")
+	err := t.Execute(buf, rejectionData{Reason: reason})
 	if err != nil {
 		log.Fatalf("Error while generating KYC rejection email template: %s", err)
 	}

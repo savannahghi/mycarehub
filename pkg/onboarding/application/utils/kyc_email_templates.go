@@ -434,9 +434,15 @@ const ProcessKYCRejectionEmail = `
                 <p style="margin: 0">Hello,</p>
                 <p></p>
                 <p style="margin: 0">
-                  Your KYC details have been reviewed and not verified.
-                  The account is pending approval once resolved.Incase of any queries, please
-                  contact us via +254 790 360 360
+                  Your KYC details have been reviewed and have not been approved
+                  because of the following:
+                </p>
+                <p></p>
+                <p>{.Reason}</p>
+                <p></p>
+                <p style="margin: 0">
+                  If you feel that this was a mistake, please contact us via
+                  +254 790 360 360 in order to resolve the issue
                 </p>
               </td>
             </tr>
