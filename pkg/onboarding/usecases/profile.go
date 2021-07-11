@@ -1003,6 +1003,7 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 		utils.RecordSpanError(span, err)
 		return exceptions.UserNotFoundError(err)
 	}
+
 	// verify otp code
 	verified, err := p.engagement.VerifyEmailOTP(
 		ctx,
@@ -1016,6 +1017,7 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 	if !verified {
 		return exceptions.VerifyOTPError(nil)
 	}
+
 	if err := p.UpdatePrimaryEmailAddress(ctx, emailAddress); err != nil {
 		utils.RecordSpanError(span, err)
 		return err
@@ -1058,7 +1060,9 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 		); err != nil {
 			logrus.Error(err)
 		}
+	}()
 
+	go func() {
 		pro := func() error {
 			return p.engagement.ResolveDefaultNudgeByTitle(
 				ctx,
