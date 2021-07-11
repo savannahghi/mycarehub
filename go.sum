@@ -101,6 +101,8 @@ github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kB
 github.com/bketelsen/crypt v0.0.4/go.mod h1:aI6NrJ0pMGgvZKL1iVgXLnfIFJtfV+bKCoqOes/6LfM=
 github.com/brianvoe/gofakeit v3.18.0+incompatible h1:wDOmHc9DLG4nRjUVVaxA+CEglKOW72Y5+4WNxUIkjM8=
 github.com/brianvoe/gofakeit v3.18.0+incompatible/go.mod h1:kfwdRA90vvNhPutZWfH7WPaDzUjz+CZFqG+rPkOjGOc=
+github.com/brianvoe/gofakeit/v5 v5.11.2 h1:Ny5Nsf4z2023ZvYP8ujW8p5B1t5sxhdFaQ/0IYXbeSA=
+github.com/brianvoe/gofakeit/v5 v5.11.2/go.mod h1:/ZENnKqX+XrN8SORLe/fu5lZDIo1tuPncWuRD+eyhSI=
 github.com/brianvoe/gofakeit/v6 v6.5.0 h1:zoWqGsuB8TB4MSwUZXtV3OwUSdzi8EHeXO8JfReRIHg=
 github.com/brianvoe/gofakeit/v6 v6.5.0/go.mod h1:palrJUk4Fyw38zIFB/uBZqsgzW5VsNllhHKKwAebzew=
 github.com/casbin/casbin/v2 v2.31.3 h1:NaPzGmLYWAtEgItUjqH8aGP6cvIYOY2X4HNMusCuuzY=

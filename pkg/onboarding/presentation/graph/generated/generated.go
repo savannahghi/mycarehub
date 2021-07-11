@@ -149,6 +149,7 @@ type ComplexityRoot struct {
 	}
 
 	Entity struct {
+		FindMicroserviceByID      func(childComplexity int, id string) int
 		FindPageInfoByHasNextPage func(childComplexity int, hasNextPage bool) int
 		FindUserProfileByID       func(childComplexity int, id string) int
 	}
@@ -238,6 +239,13 @@ type ComplexityRoot struct {
 		Name            func(childComplexity int) int
 	}
 
+	Microservice struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+		URL         func(childComplexity int) int
+	}
+
 	Mutation struct {
 		ActivateAgent                    func(childComplexity int, agentID string) int
 		AddAddress                       func(childComplexity int, input dto.UserAddressInput, addressType base.AddressType) int
@@ -259,10 +267,13 @@ type ComplexityRoot struct {
 		CompleteSignup                   func(childComplexity int, flavour base.Flavour) int
 		DeactivateAgent                  func(childComplexity int, agentID string) int
 		DeleteFavoriteNavAction          func(childComplexity int, title string) int
+		DeregisterAllMicroservices       func(childComplexity int) int
+		DeregisterMicroservice           func(childComplexity int, id string) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
 		RecordPostVisitSurvey            func(childComplexity int, input dto.PostVisitSurveyInput) int
 		RegisterAdmin                    func(childComplexity int, input dto.RegisterAdminInput) int
 		RegisterAgent                    func(childComplexity int, input dto.RegisterAgentInput) int
+		RegisterMicroservice             func(childComplexity int, input domain.Microservice) int
 		RegisterPushToken                func(childComplexity int, token string) int
 		RetireKYCProcessingRequest       func(childComplexity int) int
 		RetireSecondaryEmailAddresses    func(childComplexity int, emails []string) int
@@ -423,6 +434,7 @@ type ComplexityRoot struct {
 		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) int
 		GetAddresses                  func(childComplexity int) int
 		GetUserCommunicationsSettings func(childComplexity int) int
+		ListMicroservices             func(childComplexity int) int
 		NHIFDetails                   func(childComplexity int) int
 		ResumeWithPin                 func(childComplexity int, pin string) int
 		SupplierProfile               func(childComplexity int) int
@@ -526,6 +538,7 @@ type ComplexityRoot struct {
 }
 
 type EntityResolver interface {
+	FindMicroserviceByID(ctx context.Context, id string) (*domain.Microservice, error)
 	FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*base.PageInfo, error)
 	FindUserProfileByID(ctx context.Context, id string) (*base.UserProfile, error)
 }
@@ -571,6 +584,9 @@ type MutationResolver interface {
 	DeactivateAgent(ctx context.Context, agentID string) (bool, error)
 	SaveFavoriteNavAction(ctx context.Context, title string) (bool, error)
 	DeleteFavoriteNavAction(ctx context.Context, title string) (bool, error)
+	RegisterMicroservice(ctx context.Context, input domain.Microservice) (*domain.Microservice, error)
+	DeregisterMicroservice(ctx context.Context, id string) (bool, error)
+	DeregisterAllMicroservices(ctx context.Context) (bool, error)
 }
 type QueryResolver interface {
 	DummyQuery(ctx context.Context) (*bool, error)
@@ -589,6 +605,7 @@ type QueryResolver interface {
 	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
 	FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error)
 	FetchUserNavigationActions(ctx context.Context) (*base.NavigationActions, error)
+	ListMicroservices(ctx context.Context) ([]*domain.Microservice, error)
 }
 type VerifiedIdentifierResolver interface {
 	Timestamp(ctx context.Context, obj *base.VerifiedIdentifier) (*base.Date, error)
@@ -1014,6 +1031,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Customer.ReceivablesAccount(childComplexity), true
+
+	case "Entity.findMicroserviceByID":
+		if e.complexity.Entity.FindMicroserviceByID == nil {
+			break
+		}
+
+		args, err := ec.field_Entity_findMicroserviceByID_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Entity.FindMicroserviceByID(childComplexity, args["id"].(string)), true
 
 	case "Entity.findPageInfoByHasNextPage":
 		if e.complexity.Entity.FindPageInfoByHasNextPage == nil {
@@ -1445,6 +1474,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Location.Name(childComplexity), true
 
+	case "Microservice.description":
+		if e.complexity.Microservice.Description == nil {
+			break
+		}
+
+		return e.complexity.Microservice.Description(childComplexity), true
+
+	case "Microservice.id":
+		if e.complexity.Microservice.ID == nil {
+			break
+		}
+
+		return e.complexity.Microservice.ID(childComplexity), true
+
+	case "Microservice.name":
+		if e.complexity.Microservice.Name == nil {
+			break
+		}
+
+		return e.complexity.Microservice.Name(childComplexity), true
+
+	case "Microservice.url":
+		if e.complexity.Microservice.URL == nil {
+			break
+		}
+
+		return e.complexity.Microservice.URL(childComplexity), true
+
 	case "Mutation.activateAgent":
 		if e.complexity.Mutation.ActivateAgent == nil {
 			break
@@ -1685,6 +1742,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteFavoriteNavAction(childComplexity, args["title"].(string)), true
 
+	case "Mutation.deregisterAllMicroservices":
+		if e.complexity.Mutation.DeregisterAllMicroservices == nil {
+			break
+		}
+
+		return e.complexity.Mutation.DeregisterAllMicroservices(childComplexity), true
+
+	case "Mutation.deregisterMicroservice":
+		if e.complexity.Mutation.DeregisterMicroservice == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deregisterMicroservice_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeregisterMicroservice(childComplexity, args["id"].(string)), true
+
 	case "Mutation.processKYCRequest":
 		if e.complexity.Mutation.ProcessKYCRequest == nil {
 			break
@@ -1732,6 +1808,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RegisterAgent(childComplexity, args["input"].(dto.RegisterAgentInput)), true
+
+	case "Mutation.registerMicroservice":
+		if e.complexity.Mutation.RegisterMicroservice == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_registerMicroservice_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegisterMicroservice(childComplexity, args["input"].(domain.Microservice)), true
 
 	case "Mutation.registerPushToken":
 		if e.complexity.Mutation.RegisterPushToken == nil {
@@ -2674,6 +2762,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetUserCommunicationsSettings(childComplexity), true
+
+	case "Query.listMicroservices":
+		if e.complexity.Query.ListMicroservices == nil {
+			break
+		}
+
+		return e.complexity.Query.ListMicroservices(childComplexity), true
 
 	case "Query.NHIFDetails":
 		if e.complexity.Query.NHIFDetails == nil {
@@ -3812,6 +3907,12 @@ input RegisterAgentInput {
   email: String
   dateOfBirth: Date!
 }
+
+input MicroserviceInput {
+  name: String!
+  url: String!
+  description: String!
+}
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
   # dummy query is a temporary query used to force-create a new schema version on schema registry
@@ -3853,6 +3954,8 @@ input RegisterAgentInput {
   findAgentbyPhone(phoneNumber: String): Agent
 
   fetchUserNavigationActions: NavigationActions
+
+  listMicroservices: [Microservice!]!
 }
 
 extend type Mutation {
@@ -3962,6 +4065,12 @@ extend type Mutation {
   saveFavoriteNavAction(title: String!): Boolean!
 
   deleteFavoriteNavAction(title: String!): Boolean!
+
+  registerMicroservice(input: MicroserviceInput!): Microservice!
+
+  deregisterMicroservice(id: String!): Boolean!
+
+  deregisterAllMicroservices: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -4440,6 +4549,13 @@ type NavigationActions {
   primary: [NavAction]
   secondary: [NavAction]
 }
+
+type Microservice @key(fields: "id") {
+  id: String!
+  name: String!
+  url: String!
+  description: String!
+}
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
@@ -4453,11 +4569,12 @@ directive @extends on OBJECT
 `, BuiltIn: true},
 	{Name: "federation/entity.graphql", Input: `
 # a union of all types that use the @key directive
-union _Entity = PageInfo | UserProfile
+union _Entity = Microservice | PageInfo | UserProfile
 
 # fake type to build resolver interfaces for users to implement
 type Entity {
-		findPageInfoByHasNextPage(hasNextPage: Boolean!,): PageInfo!
+		findMicroserviceByID(id: String!,): Microservice!
+	findPageInfoByHasNextPage(hasNextPage: Boolean!,): PageInfo!
 	findUserProfileByID(id: String!,): UserProfile!
 
 }
@@ -4477,6 +4594,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Entity_findMicroserviceByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Entity_findPageInfoByHasNextPage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -4826,6 +4958,21 @@ func (ec *executionContext) field_Mutation_deleteFavoriteNavAction_args(ctx cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deregisterMicroservice_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_processKYCRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4896,6 +5043,21 @@ func (ec *executionContext) field_Mutation_registerAgent_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNRegisterAgentInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAgentInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_registerMicroservice_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 domain.Microservice
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNMicroserviceInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7314,6 +7476,48 @@ func (ec *executionContext) _Customer_active(ctx context.Context, field graphql.
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Entity_findMicroserviceByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Entity",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Entity_findMicroserviceByID_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Entity().FindMicroserviceByID(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Microservice)
+	fc.Result = res
+	return ec.marshalNMicroservice2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Entity_findPageInfoByHasNextPage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9371,6 +9575,146 @@ func (ec *executionContext) _Location_branchSladeCode(ctx context.Context, field
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Microservice_id(ctx context.Context, field graphql.CollectedField, obj *domain.Microservice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Microservice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Microservice_name(ctx context.Context, field graphql.CollectedField, obj *domain.Microservice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Microservice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Microservice_url(ctx context.Context, field graphql.CollectedField, obj *domain.Microservice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Microservice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Microservice_description(ctx context.Context, field graphql.CollectedField, obj *domain.Microservice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Microservice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_completeSignup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11067,6 +11411,125 @@ func (ec *executionContext) _Mutation_deleteFavoriteNavAction(ctx context.Contex
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteFavoriteNavAction(rctx, args["title"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_registerMicroservice(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_registerMicroservice_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RegisterMicroservice(rctx, args["input"].(domain.Microservice))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Microservice)
+	fc.Result = res
+	return ec.marshalNMicroservice2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deregisterMicroservice(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deregisterMicroservice_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeregisterMicroservice(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deregisterAllMicroservices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeregisterAllMicroservices(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14745,6 +15208,41 @@ func (ec *executionContext) _Query_fetchUserNavigationActions(ctx context.Contex
 	res := resTmp.(*base.NavigationActions)
 	fc.Result = res
 	return ec.marshalONavigationActions2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavigationActions(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_listMicroservices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListMicroservices(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.Microservice)
+	fc.Result = res
+	return ec.marshalNMicroservice2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroserviceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18702,6 +19200,42 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputMicroserviceInput(ctx context.Context, obj interface{}) (domain.Microservice, error) {
+	var it domain.Microservice
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			it.URL, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNHIFDetailsInput(ctx context.Context, obj interface{}) (dto.NHIFDetailsInput, error) {
 	var it dto.NHIFDetailsInput
 	var asMap = obj.(map[string]interface{})
@@ -19806,6 +20340,11 @@ func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, 
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
+	case *domain.Microservice:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Microservice(ctx, sel, obj)
 	case base.PageInfo:
 		return ec._PageInfo(ctx, sel, &obj)
 	case *base.PageInfo:
@@ -20315,6 +20854,20 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Entity")
+		case "findMicroserviceByID":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Entity_findMicroserviceByID(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "findPageInfoByHasNextPage":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -20785,6 +21338,48 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var microserviceImplementors = []string{"Microservice", "_Entity"}
+
+func (ec *executionContext) _Microservice(ctx context.Context, sel ast.SelectionSet, obj *domain.Microservice) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, microserviceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Microservice")
+		case "id":
+			out.Values[i] = ec._Microservice_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Microservice_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "url":
+			out.Values[i] = ec._Microservice_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			out.Values[i] = ec._Microservice_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -20999,6 +21594,21 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteFavoriteNavAction":
 			out.Values[i] = ec._Mutation_deleteFavoriteNavAction(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "registerMicroservice":
+			out.Values[i] = ec._Mutation_registerMicroservice(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deregisterMicroservice":
+			out.Values[i] = ec._Mutation_deregisterMicroservice(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deregisterAllMicroservices":
+			out.Values[i] = ec._Mutation_deregisterAllMicroservices(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21830,6 +22440,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_fetchUserNavigationActions(ctx, field)
+				return res
+			})
+		case "listMicroservices":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listMicroservices(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "_entities":
@@ -22989,6 +23613,62 @@ func (ec *executionContext) marshalNMap2map(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNMicroservice2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx context.Context, sel ast.SelectionSet, v domain.Microservice) graphql.Marshaler {
+	return ec._Microservice(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMicroservice2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroserviceᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.Microservice) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMicroservice2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNMicroservice2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx context.Context, sel ast.SelectionSet, v *domain.Microservice) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Microservice(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMicroserviceInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx context.Context, v interface{}) (domain.Microservice, error) {
+	res, err := ec.unmarshalInputMicroserviceInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNNHIFDetails2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx context.Context, sel ast.SelectionSet, v domain.NHIFDetails) graphql.Marshaler {

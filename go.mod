@@ -10,6 +10,7 @@ require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
+	github.com/brianvoe/gofakeit/v5 v5.11.2
 	github.com/casbin/casbin/v2 v2.31.3
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/google/uuid v1.2.0

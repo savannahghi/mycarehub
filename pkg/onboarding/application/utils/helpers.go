@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"log"
+	"regexp"
 	"strconv"
 
 	"github.com/savannahghi/converterandformatter"
@@ -156,4 +158,17 @@ func UniquePermissionsArray(arr []base.PermissionType) []base.PermissionType {
 func RecordSpanError(span trace.Span, err error) {
 	span.SetStatus(codes.Error, err.Error())
 	span.RecordError(err)
+}
+
+//ServiceHealthEndPoint creates a url to the service health endpoint
+func ServiceHealthEndPoint(input string) (string, error) {
+	reg, err := regexp.CompilePOSIX("/graphql")
+	if err != nil {
+		log.Print(err)
+		return "", err
+	}
+	str := reg.Split(input, 2)
+	endpointURL := str[0] + "/" + "health"
+
+	return endpointURL, nil
 }

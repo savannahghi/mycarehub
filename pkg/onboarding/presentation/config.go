@@ -40,6 +40,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/rest"
+	adminSrv "gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/admin"
 )
 
 const (
@@ -139,10 +140,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	sms := usecases.NewSMSUsecase(repo, baseExt)
 	admin := usecases.NewAdminUseCases(repo, engage, baseExt, userpin)
 	agent := usecases.NewAgentUseCases(repo, engage, baseExt, userpin)
+	adminSrv := adminSrv.NewService(baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(
 		repo, profile, su, supplier, login, survey,
-		userpin, erp, chrg, engage, mes, nhif, pubSub, sms, aitUssd, crm, agent, admin, edi,
+		userpin, erp, chrg, engage, mes, nhif, pubSub,
+		sms, aitUssd, crm, agent, admin, edi, adminSrv,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -209,6 +212,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// misc routes
 	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))
 	r.Path("/health").HandlerFunc(HealthStatusCheck)
+
+	// Admin service polling
+	r.Path("/poll_services").Methods(http.MethodGet).HandlerFunc(h.PollServices(ctx))
 
 	// signup routes
 	r.Path("/verify_phone").Methods(

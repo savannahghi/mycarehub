@@ -318,3 +318,9 @@ input RegisterAgentInput {
   email: String
   dateOfBirth: Date!
 }
+
+input MicroserviceInput {
+  name: String!
+  url: String!
+  description: String!
+}

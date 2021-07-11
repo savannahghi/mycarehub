@@ -100,3 +100,6 @@ models:
   OrganizationPharmaceuticalInput:
     model:
       - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationPharmaceutical
+  MicroserviceInput:
+    model:
+      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.Microservice

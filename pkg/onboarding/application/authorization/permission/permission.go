@@ -99,3 +99,15 @@ var SupplierAccountCreate = dto.PermissionInput{
 	Resource: "create_supplier_account",
 	Action:   "create",
 }
+
+// MicroserviceDelete describes delete permissions on a microservice
+var MicroserviceDelete = dto.PermissionInput{
+	Resource: "microservice_delete",
+	Action:   "delete",
+}
+
+// MicroserviceCreate describes create permissions on a microservice
+var MicroserviceCreate = dto.PermissionInput{
+	Resource: "microservice_create",
+	Action:   "create",
+}

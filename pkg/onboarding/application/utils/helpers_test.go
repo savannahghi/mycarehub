@@ -366,3 +366,31 @@ func TestUniquePermissionsArray(t *testing.T) {
 		})
 	}
 }
+
+func Test_ServiceHealthEndPoint(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    string
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "valid_case",
+			args:    "https://admin-staging.healthcloud.co.ke/graphql",
+			want:    "https://admin-staging.healthcloud.co.ke/health",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := utils.ServiceHealthEndPoint(tt.args)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("serviceHealthEndPoint() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("serviceHealthEndPoint() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

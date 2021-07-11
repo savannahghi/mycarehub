@@ -120,3 +120,36 @@ type CRMContact struct {
 	TimeStamp   string `json:"time_stamp,omitempty"`
 	IsSynced    string `json:"is_synced,omitempty"`
 }
+
+// Microservice identifies a micro-service that conforms to the Apollo Graphqql
+// federation specification. These microservices are composed by an Apollo
+// Gateway into a single data graph.
+type Microservice struct {
+	ID          string `json:"id" firestore:"id"`
+	Name        string `json:"name" firestore:"name"`
+	URL         string `json:"url" firestore:"url"`
+	Description string `json:"description" firestore:"description"`
+}
+
+// IsNode marks this model as a GraphQL Relay Node
+func (m *Microservice) IsNode() {}
+
+// GetID returns the micro-service's ID
+func (m *Microservice) GetID() base.ID {
+	return base.IDValue(m.ID)
+}
+
+// SetID sets the microservice's ID
+func (m *Microservice) SetID(id string) {
+	m.ID = id
+}
+
+// IsEntity marks the struct as an Apollo Federation entity
+func (m *Microservice) IsEntity() {}
+
+// MicroserviceStatus denotes the status of a deployed microservice
+// shows if the revision is serving HTTP request
+type MicroserviceStatus struct {
+	Service *Microservice `json:"service"`
+	Active  bool          `json:"active"`
+}

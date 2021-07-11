@@ -52,6 +52,7 @@ type HandlersInterfaces interface {
 	SwitchFlaggedFeaturesHandler(ctx context.Context) http.HandlerFunc
 	// USSDEndNotificationHandler(ctx context.Context) http.HandlerFunc
 	IsOptedOuted(ctx context.Context) http.HandlerFunc
+	PollServices(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -1177,5 +1178,17 @@ func (h *HandlersInterfacesImpl) IsOptedOuted(
 		}
 
 		base.WriteJSONResponse(w, resp, http.StatusOK)
+	}
+}
+
+// PollServices polls registered services for their status
+func (h *HandlersInterfacesImpl) PollServices(ctx context.Context) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		services, err := h.interactor.AdminSrv.PollMicroservicesStatus(r.Context())
+		if err != nil {
+			base.WriteJSONResponse(rw, err, http.StatusInternalServerError)
+		}
+
+		base.WriteJSONResponse(rw, services, http.StatusOK)
 	}
 }

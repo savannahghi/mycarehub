@@ -474,3 +474,10 @@ type NavigationActions {
   primary: [NavAction]
   secondary: [NavAction]
 }
+
+type Microservice @key(fields: "id") {
+  id: String!
+  name: String!
+  url: String!
+  description: String!
+}

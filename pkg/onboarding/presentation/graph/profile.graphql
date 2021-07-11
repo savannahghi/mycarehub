@@ -38,6 +38,8 @@ extend type Query {
   findAgentbyPhone(phoneNumber: String): Agent
 
   fetchUserNavigationActions: NavigationActions
+
+  listMicroservices: [Microservice!]!
 }
 
 extend type Mutation {
@@ -147,4 +149,10 @@ extend type Mutation {
   saveFavoriteNavAction(title: String!): Boolean!
 
   deleteFavoriteNavAction(title: String!): Boolean!
+
+  registerMicroservice(input: MicroserviceInput!): Microservice!
+
+  deregisterMicroservice(id: String!): Boolean!
+
+  deregisterAllMicroservices: Boolean!
 }

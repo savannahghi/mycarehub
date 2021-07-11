@@ -46,6 +46,7 @@ import (
 	messagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging/mock"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	pubsubmessagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub/mock"
+	adminSrv "gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/admin"
 )
 
 const (
@@ -461,11 +462,13 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	admin := usecases.NewAdminUseCases(r, engagementSvc, ext, userpin)
 	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
 	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps)
+	adminSrv := adminSrv.NewService(ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, crm, agent, admin, ediSvc,
+		engagementSvc, messagingSvc, nhif, ps, sms,
+		aitUssd, crm, agent, admin, ediSvc, adminSrv,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

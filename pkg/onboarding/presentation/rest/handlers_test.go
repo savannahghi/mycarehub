@@ -42,6 +42,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 	mockRepo "gitlab.slade360emr.com/go/profile/pkg/onboarding/repository/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
+	adminSrv "gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/admin"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd"
 )
 
@@ -79,11 +80,13 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	admin := usecases.NewAdminUseCases(r, engagementSvc, ext, userpin)
 	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
 	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps)
+	adminSrv := adminSrv.NewService(ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, crm, agent, admin, ediSvc,
+		engagementSvc, messagingSvc, nhif, ps, sms,
+		aitUssd, crm, agent, admin, ediSvc, adminSrv,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -3548,6 +3551,64 @@ func TestHandlersInterfacesImpl_USSDHandler(t *testing.T) {
 				return
 			}
 
+		})
+	}
+}
+
+func TestHandlers_PollServices(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+	h := rest.NewHandlersInterfaces(i)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "return handler func",
+			args: args{
+				url:        fmt.Sprintf("%s/poll_services", serverUrl),
+				httpMethod: http.MethodGet,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+			// We create a ResponseRecorder to record the response.
+			response := httptest.NewRecorder()
+
+			/*
+				Some Mockery
+			*/
+
+			// call its ServeHTTP method and pass in our Request and ResponseRecorder.
+			svr := h.PollServices(ctx)
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
 		})
 	}
 }

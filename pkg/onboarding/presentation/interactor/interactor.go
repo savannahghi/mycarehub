@@ -13,6 +13,7 @@ import (
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/admin"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd"
 )
 
@@ -36,6 +37,7 @@ type Interactor struct {
 	Agent        usecases.AgentUseCase
 	Admin        usecases.AdminUseCase
 	EDI          edi.ServiceEdi
+	AdminSrv     admin.Usecase
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -59,6 +61,7 @@ func NewOnboardingInteractor(
 	agt usecases.AgentUseCase,
 	adm usecases.AdminUseCase,
 	edi edi.ServiceEdi,
+	admin admin.Usecase,
 ) (*Interactor, error) {
 
 	return &Interactor{
@@ -80,5 +83,6 @@ func NewOnboardingInteractor(
 		Agent:        agt,
 		Admin:        adm,
 		EDI:          edi,
+		AdminSrv:     admin,
 	}, nil
 }
