@@ -335,16 +335,31 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 		return false, exceptions.InvalidFlavourDefinedError()
 	}
 
-	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return false, err
-	}
-
 	profile, err := s.profileUsecase.UserProfile(ctx)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return false, err
 	}
+
+	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, err
+	}
+	if len(profile.PushTokens) > 0 {
+		logrus.Printf("This piece of code was called")
+		coverLinkingDetails := dto.LinkCoverPubSubMessage{
+			PhoneNumber: *profile.PrimaryPhone,
+			UID:         uid,
+			PushToken:   profile.PushTokens,
+		}
+
+		logrus.Printf("Publishing to covers.link topic")
+		if err := s.pubsub.NotifyCoverLinking(ctx, coverLinkingDetails); err != nil {
+			utils.RecordSpanError(span, err)
+			log.Printf("failed to publish to covers.link topic: %v", err)
+		}
+	}
+
 	if profile.UserBioData.FirstName == nil || profile.UserBioData.LastName == nil {
 		return false, exceptions.CompleteSignUpError(nil)
 	}
@@ -360,20 +375,7 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 	)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		logrus.Print(err)
-	}
-
-	if len(profile.PushTokens) > 0 {
-		coverLinkingDetails := dto.LinkCoverPubSubMessage{
-			PhoneNumber: *profile.PrimaryPhone,
-			UID:         uid,
-			PushToken:   profile.PushTokens,
-		}
-
-		if err := s.pubsub.NotifyCoverLinking(ctx, coverLinkingDetails); err != nil {
-			utils.RecordSpanError(span, err)
-			log.Printf("failed to publish to covers.link topic: %v", err)
-		}
+		logrus.Print("failed to create customer account with error: %v", err)
 	}
 
 	return true, nil
