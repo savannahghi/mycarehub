@@ -1380,42 +1380,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.KYCRequest.SupplierRecord(childComplexity), true
 
-	case "Link.Description":
+	case "Link.description":
 		if e.complexity.Link.Description == nil {
 			break
 		}
 
 		return e.complexity.Link.Description(childComplexity), true
 
-	case "Link.ID":
+	case "Link.id":
 		if e.complexity.Link.ID == nil {
 			break
 		}
 
 		return e.complexity.Link.ID(childComplexity), true
 
-	case "Link.LinkType":
+	case "Link.linkType":
 		if e.complexity.Link.LinkType == nil {
 			break
 		}
 
 		return e.complexity.Link.LinkType(childComplexity), true
 
-	case "Link.Thumbnail":
+	case "Link.thumbnail":
 		if e.complexity.Link.Thumbnail == nil {
 			break
 		}
 
 		return e.complexity.Link.Thumbnail(childComplexity), true
 
-	case "Link.Title":
+	case "Link.title":
 		if e.complexity.Link.Title == nil {
 			break
 		}
 
 		return e.complexity.Link.Title(childComplexity), true
 
-	case "Link.URL":
+	case "Link.url":
 		if e.complexity.Link.URL == nil {
 			break
 		}
@@ -1986,63 +1986,63 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.NHIFDetails.ProfileID(childComplexity), true
 
-	case "NavAction.Favourite":
+	case "NavAction.favourite":
 		if e.complexity.NavAction.Favourite == nil {
 			break
 		}
 
 		return e.complexity.NavAction.Favourite(childComplexity), true
 
-	case "NavAction.Icon":
+	case "NavAction.icon":
 		if e.complexity.NavAction.Icon == nil {
 			break
 		}
 
 		return e.complexity.NavAction.Icon(childComplexity), true
 
-	case "NavAction.Nested":
+	case "NavAction.nested":
 		if e.complexity.NavAction.Nested == nil {
 			break
 		}
 
 		return e.complexity.NavAction.Nested(childComplexity), true
 
-	case "NavAction.OnTapRoute":
+	case "NavAction.onTapRoute":
 		if e.complexity.NavAction.OnTapRoute == nil {
 			break
 		}
 
 		return e.complexity.NavAction.OnTapRoute(childComplexity), true
 
-	case "NavAction.Title":
+	case "NavAction.title":
 		if e.complexity.NavAction.Title == nil {
 			break
 		}
 
 		return e.complexity.NavAction.Title(childComplexity), true
 
-	case "NavigationActions.Primary":
+	case "NavigationActions.primary":
 		if e.complexity.NavigationActions.Primary == nil {
 			break
 		}
 
 		return e.complexity.NavigationActions.Primary(childComplexity), true
 
-	case "NavigationActions.Secondary":
+	case "NavigationActions.secondary":
 		if e.complexity.NavigationActions.Secondary == nil {
 			break
 		}
 
 		return e.complexity.NavigationActions.Secondary(childComplexity), true
 
-	case "NestedNavAction.OnTapRoute":
+	case "NestedNavAction.onTapRoute":
 		if e.complexity.NestedNavAction.OnTapRoute == nil {
 			break
 		}
 
 		return e.complexity.NestedNavAction.OnTapRoute(childComplexity), true
 
-	case "NestedNavAction.Title":
+	case "NestedNavAction.title":
 		if e.complexity.NestedNavAction.Title == nil {
 			break
 		}
@@ -4403,30 +4403,30 @@ type Agent {
 }
 
 extend type Link {
-  ID: String
-  URL: String
-  LinkType: LinkType
-  Title: String
-  Description: String
-  Thumbnail: String
+  id: String! @external
+  url: String! @external
+  linkType: LinkType! @external
+  title: String! @external
+  description: String! @external
+  thumbnail: String! @external
 }
 
 type NavAction {
-  Title: String
-  OnTapRoute: String
-  Icon: Link
-  Favourite: Boolean
-  Nested: [NestedNavAction]
+  title: String
+  onTapRoute: String
+  icon: Link
+  favourite: Boolean
+  nested: [NestedNavAction]
 }
 
 type NestedNavAction {
-  Title: String
-  OnTapRoute: String
+  title: String
+  onTapRoute: String
 }
 
 type NavigationActions {
-  Primary: [NavAction]
-  Secondary: [NavAction]
+  primary: [NavAction]
+  secondary: [NavAction]
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -9065,7 +9065,7 @@ func (ec *executionContext) _KYCRequest_processedTimestamp(ctx context.Context, 
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_ID(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_id(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9090,14 +9090,17 @@ func (ec *executionContext) _Link_ID(ctx context.Context, field graphql.Collecte
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_URL(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_url(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9122,14 +9125,17 @@ func (ec *executionContext) _Link_URL(ctx context.Context, field graphql.Collect
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_LinkType(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_linkType(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9154,14 +9160,17 @@ func (ec *executionContext) _Link_LinkType(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(base.LinkType)
 	fc.Result = res
-	return ec.marshalOLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx, field.Selections, res)
+	return ec.marshalNLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_Title(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_title(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9186,14 +9195,17 @@ func (ec *executionContext) _Link_Title(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_Description(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_description(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9218,14 +9230,17 @@ func (ec *executionContext) _Link_Description(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_Thumbnail(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_thumbnail(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9250,11 +9265,14 @@ func (ec *executionContext) _Link_Thumbnail(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Location_id(ctx context.Context, field graphql.CollectedField, obj *base.Location) (ret graphql.Marshaler) {
@@ -11351,7 +11369,7 @@ func (ec *executionContext) _NHIFDetails_NHIFCardPhotoID(ctx context.Context, fi
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavAction_Title(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavAction_title(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11383,7 +11401,7 @@ func (ec *executionContext) _NavAction_Title(ctx context.Context, field graphql.
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavAction_OnTapRoute(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavAction_onTapRoute(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11415,7 +11433,7 @@ func (ec *executionContext) _NavAction_OnTapRoute(ctx context.Context, field gra
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavAction_Icon(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavAction_icon(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11447,7 +11465,7 @@ func (ec *executionContext) _NavAction_Icon(ctx context.Context, field graphql.C
 	return ec.marshalOLink2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLink(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavAction_Favourite(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavAction_favourite(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11479,7 +11497,7 @@ func (ec *executionContext) _NavAction_Favourite(ctx context.Context, field grap
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavAction_Nested(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavAction_nested(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11511,7 +11529,7 @@ func (ec *executionContext) _NavAction_Nested(ctx context.Context, field graphql
 	return ec.marshalONestedNavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNestedNavAction(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavigationActions_Primary(ctx context.Context, field graphql.CollectedField, obj *base.NavigationActions) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavigationActions_primary(ctx context.Context, field graphql.CollectedField, obj *base.NavigationActions) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11543,7 +11561,7 @@ func (ec *executionContext) _NavigationActions_Primary(ctx context.Context, fiel
 	return ec.marshalONavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavigationActions_Secondary(ctx context.Context, field graphql.CollectedField, obj *base.NavigationActions) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavigationActions_secondary(ctx context.Context, field graphql.CollectedField, obj *base.NavigationActions) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11575,7 +11593,7 @@ func (ec *executionContext) _NavigationActions_Secondary(ctx context.Context, fi
 	return ec.marshalONavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NestedNavAction_Title(ctx context.Context, field graphql.CollectedField, obj *base.NestedNavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NestedNavAction_title(ctx context.Context, field graphql.CollectedField, obj *base.NestedNavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11607,7 +11625,7 @@ func (ec *executionContext) _NestedNavAction_Title(ctx context.Context, field gr
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NestedNavAction_OnTapRoute(ctx context.Context, field graphql.CollectedField, obj *base.NestedNavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NestedNavAction_onTapRoute(ctx context.Context, field graphql.CollectedField, obj *base.NestedNavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -20684,18 +20702,36 @@ func (ec *executionContext) _Link(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Link")
-		case "ID":
-			out.Values[i] = ec._Link_ID(ctx, field, obj)
-		case "URL":
-			out.Values[i] = ec._Link_URL(ctx, field, obj)
-		case "LinkType":
-			out.Values[i] = ec._Link_LinkType(ctx, field, obj)
-		case "Title":
-			out.Values[i] = ec._Link_Title(ctx, field, obj)
-		case "Description":
-			out.Values[i] = ec._Link_Description(ctx, field, obj)
-		case "Thumbnail":
-			out.Values[i] = ec._Link_Thumbnail(ctx, field, obj)
+		case "id":
+			out.Values[i] = ec._Link_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "url":
+			out.Values[i] = ec._Link_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "linkType":
+			out.Values[i] = ec._Link_linkType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "title":
+			out.Values[i] = ec._Link_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			out.Values[i] = ec._Link_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "thumbnail":
+			out.Values[i] = ec._Link_thumbnail(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21042,16 +21078,16 @@ func (ec *executionContext) _NavAction(ctx context.Context, sel ast.SelectionSet
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("NavAction")
-		case "Title":
-			out.Values[i] = ec._NavAction_Title(ctx, field, obj)
-		case "OnTapRoute":
-			out.Values[i] = ec._NavAction_OnTapRoute(ctx, field, obj)
-		case "Icon":
-			out.Values[i] = ec._NavAction_Icon(ctx, field, obj)
-		case "Favourite":
-			out.Values[i] = ec._NavAction_Favourite(ctx, field, obj)
-		case "Nested":
-			out.Values[i] = ec._NavAction_Nested(ctx, field, obj)
+		case "title":
+			out.Values[i] = ec._NavAction_title(ctx, field, obj)
+		case "onTapRoute":
+			out.Values[i] = ec._NavAction_onTapRoute(ctx, field, obj)
+		case "icon":
+			out.Values[i] = ec._NavAction_icon(ctx, field, obj)
+		case "favourite":
+			out.Values[i] = ec._NavAction_favourite(ctx, field, obj)
+		case "nested":
+			out.Values[i] = ec._NavAction_nested(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21074,10 +21110,10 @@ func (ec *executionContext) _NavigationActions(ctx context.Context, sel ast.Sele
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("NavigationActions")
-		case "Primary":
-			out.Values[i] = ec._NavigationActions_Primary(ctx, field, obj)
-		case "Secondary":
-			out.Values[i] = ec._NavigationActions_Secondary(ctx, field, obj)
+		case "primary":
+			out.Values[i] = ec._NavigationActions_primary(ctx, field, obj)
+		case "secondary":
+			out.Values[i] = ec._NavigationActions_secondary(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21100,10 +21136,10 @@ func (ec *executionContext) _NestedNavAction(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("NestedNavAction")
-		case "Title":
-			out.Values[i] = ec._NestedNavAction_Title(ctx, field, obj)
-		case "OnTapRoute":
-			out.Values[i] = ec._NestedNavAction_OnTapRoute(ctx, field, obj)
+		case "title":
+			out.Values[i] = ec._NestedNavAction_title(ctx, field, obj)
+		case "onTapRoute":
+			out.Values[i] = ec._NestedNavAction_onTapRoute(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -22899,6 +22935,16 @@ func (ec *executionContext) marshalNKYCProcessStatus2gitlabᚗslade360emrᚗcom�
 	return v
 }
 
+func (ec *executionContext) unmarshalNLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx context.Context, v interface{}) (base.LinkType, error) {
+	var res base.LinkType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx context.Context, sel ast.SelectionSet, v base.LinkType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNLoginProviderType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLoginProviderType(ctx context.Context, v interface{}) (base.LoginProviderType, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := base.LoginProviderType(tmp)
@@ -24368,16 +24414,6 @@ func (ec *executionContext) marshalOKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋg
 
 func (ec *executionContext) marshalOLink2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLink(ctx context.Context, sel ast.SelectionSet, v base.Link) graphql.Marshaler {
 	return ec._Link(ctx, sel, &v)
-}
-
-func (ec *executionContext) unmarshalOLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx context.Context, v interface{}) (base.LinkType, error) {
-	var res base.LinkType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx context.Context, sel ast.SelectionSet, v base.LinkType) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLocation(ctx context.Context, sel ast.SelectionSet, v *base.Location) graphql.Marshaler {

@@ -449,28 +449,28 @@ type Agent {
 }
 
 extend type Link {
-  ID: String
-  URL: String
-  LinkType: LinkType
-  Title: String
-  Description: String
-  Thumbnail: String
+  id: String! @external
+  url: String! @external
+  linkType: LinkType! @external
+  title: String! @external
+  description: String! @external
+  thumbnail: String! @external
 }
 
 type NavAction {
-  Title: String
-  OnTapRoute: String
-  Icon: Link
-  Favourite: Boolean
-  Nested: [NestedNavAction]
+  title: String
+  onTapRoute: String
+  icon: Link
+  favourite: Boolean
+  nested: [NestedNavAction]
 }
 
 type NestedNavAction {
-  Title: String
-  OnTapRoute: String
+  title: String
+  onTapRoute: String
 }
 
 type NavigationActions {
-  Primary: [NavAction]
-  Secondary: [NavAction]
+  primary: [NavAction]
+  secondary: [NavAction]
 }
