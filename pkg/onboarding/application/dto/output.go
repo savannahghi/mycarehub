@@ -122,7 +122,6 @@ type UserInfo struct {
 	UID        string `json:"rawId,omitempty"`
 }
 
-// TODO: Should be placed in base
 // Segment represents the Segments data
 type Segment struct {
 	Properties     crmDomain.ContactProperties `json:"properties" firestore:"properties"`

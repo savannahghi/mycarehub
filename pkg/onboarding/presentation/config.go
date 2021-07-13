@@ -166,6 +166,13 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Unauthenticated routes
 	r.Path("/optout").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.SetOptOut(ctx))
+	r.Path("/switch_flagged_features").Methods(
+		http.MethodPost,
+		http.MethodOptions,
+	).HandlerFunc(
+		h.SwitchFlaggedFeaturesHandler(ctx),
+	)
+
 	// login service routes
 	r.Path("/login").Methods(
 		http.MethodPost,

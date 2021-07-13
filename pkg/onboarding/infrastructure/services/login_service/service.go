@@ -21,7 +21,7 @@ type ServiceLoginImpl struct {
 }
 
 // NewServiceLogin initializes a new login service
-func NewServiceLogin(ext extension.BaseExtension) *ServiceLoginImpl {
+func NewServiceLogin(ext extension.BaseExtension) ServiceLogin {
 	return &ServiceLoginImpl{
 		baseExt: ext,
 	}

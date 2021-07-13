@@ -604,7 +604,7 @@ func (f *FakeOnboardingRepository) UpdateFavNavActions(ctx context.Context, id s
 	return f.UpdateFavNavActionsFn(ctx, id, favActions)
 }
 
-// FetchMarketingData ...
+// GetUserMarketingData ...
 func (f *FakeOnboardingRepository) GetUserMarketingData(ctx context.Context, phoneNumber string) (*dto.Segment, error) {
 	return f.GetUserMarketingDataFn(ctx, phoneNumber)
 }

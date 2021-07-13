@@ -11,6 +11,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
+// internal apis definitions
 const (
 	LinkCover = "internal/link_cover"
 )

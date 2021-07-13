@@ -21,7 +21,7 @@ const (
 	ChangePINEnterNewPINState = 51
 	// ChangePINProcessNewPINState indicates the state when the supplied PIN is being processed
 	ChangePINProcessNewPINState = 52
-	//ConfirmNewPInState indicates the state when a user is confirming a pin update
+	// ConfirmNewPINState indicates the state when a user is confirming a pin update
 	ConfirmNewPINState = 53
 	// PINResetEnterNewPINState indicates the state when the user wants to reset their PIN
 	PINResetEnterNewPINState = 10

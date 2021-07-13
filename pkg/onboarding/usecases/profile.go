@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization/permission"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
@@ -159,6 +160,7 @@ type ProfileUseCase interface {
 	SaveFavoriteNavActions(ctx context.Context, title string) (bool, error)
 	DeleteFavoriteNavActions(ctx context.Context, title string) (bool, error)
 	RefreshNavigationActions(ctx context.Context) (*base.NavigationActions, error)
+	SwitchUserFlaggedFeatures(ctx context.Context, phoneNumber string) (*dto.OKResp, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -1889,4 +1891,42 @@ func (p *ProfileUseCaseImpl) RefreshNavigationActions(ctx context.Context) (*bas
 		return nil, exceptions.InternalServerError(fmt.Errorf("failed to get user navigation actions"))
 	}
 	return navAction, nil
+}
+
+// SwitchUserFlaggedFeatures flips the user as opt-in or opt-out to flagged features
+// once flipped the, frontend will receive an updated user profile when the person logs in again
+func (p *ProfileUseCaseImpl) SwitchUserFlaggedFeatures(ctx context.Context, phoneNumber string) (*dto.OKResp, error) {
+	ctx, span := tracer.Start(ctx, "SwitchUserFlaggedFeatures")
+	defer span.End()
+
+	profile, err := p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber, false)
+	if err != nil {
+		return nil, exceptions.InternalServerError(fmt.Errorf("failed to get user with provider phone number"))
+	}
+
+	authenticatedContext := context.WithValue(
+		ctx,
+		base.AuthTokenContextKey,
+		&auth.Token{
+			UID: profile.VerifiedUIDS[0],
+		},
+	)
+
+	canExperiment, err := p.onboardingRepository.CheckIfExperimentParticipant(ctx, profile.ID)
+	if err != nil {
+		return nil, exceptions.InternalServerError(fmt.Errorf("failed to get user with provider phone number"))
+	}
+
+	// switch to the opposite
+	v := !canExperiment
+
+	_, err = p.SetupAsExperimentParticipant(authenticatedContext, &v)
+	if err != nil {
+		return nil, exceptions.InternalServerError(fmt.Errorf("failed to get user with provider phone number"))
+	}
+
+	return &dto.OKResp{Status: "SUCCESS", Response: struct {
+		SwithedFrom bool
+		SwithedTo   bool
+	}{SwithedFrom: canExperiment, SwithedTo: v}}, nil
 }

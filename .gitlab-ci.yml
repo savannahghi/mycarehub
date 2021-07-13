@@ -1,6 +1,7 @@
 image: eu.gcr.io/savannah-emr/golang-ci-image:0.0.6
 
 stages:
+  - linter
   - test
   - docs
   - deploy
@@ -14,11 +15,10 @@ services:
     entrypoint: ["env", "-u", "DOCKER_HOST"]
     command: ["dockerd-entrypoint.sh"]
 
-lint_and_test:
+lint:
   variables:
     REGISTRY_URL: $TEST_SCHEMA_REGISTRY_URL
-  stage: test
-  when: manual
+  stage: linter  
   before_script:
     - bash decrypt_service_account.sh
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
@@ -32,7 +32,30 @@ lint_and_test:
     - go vet $(go list ./... | grep -v /vendor/)
     - golint -set_exit_status $(go list ./... | grep -v /vendor/)
     - errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
-    - gosec -exclude=G101,G404 ./...
+    - gosec -exclude=G101,G404 ./...   
+  resource_group: ci_tests # only one of these will run at a time
+  artifacts:
+    untracked: true
+    paths:
+      - $CI_PROJECT_DIR/coverage.txt
+      - $CI_PROJECT_DIR/coverage.json
+      - $CI_PROJECT_DIR/coverage.html
+      - $CI_PROJECT_DIR/coverage_report.txt
+  tags:
+    - healthcloud-multi
+
+code_test:
+  variables:
+    REGISTRY_URL: $TEST_SCHEMA_REGISTRY_URL
+  stage: test
+  when: manual
+  before_script:
+    - bash decrypt_service_account.sh
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
+    - curl -L -o ./install-misspell.sh https://git.io/misspell && sh ./install-misspell.sh
+    - go install gitlab.slade360emr.com/go/base/command/bewell@$BEWELL_CLI_VERSION
+  script:
+    - bewell service validate-schema --name onboarding --version $CI_COMMIT_SHA --url https://profile-testing.healthcloud.co.ke/graphql  
     - go-acc -o coverage.txt --ignore generated,cmd  ./... -- -timeout 30m
     - grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*resolver*go" | grep -v "server.go" > coverage.out
     - go tool cover -html=coverage.out -o coverage.html

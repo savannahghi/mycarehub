@@ -47,6 +47,7 @@ type HandlersInterfaces interface {
 	UpdateUserProfile(ctx context.Context) http.HandlerFunc
 	IncomingATSMS(ctx context.Context) http.HandlerFunc
 	IncomingUSSDHandler(ctx context.Context) http.HandlerFunc
+	SwitchFlaggedFeaturesHandler(ctx context.Context) http.HandlerFunc
 	// USSDEndNotificationHandler(ctx context.Context) http.HandlerFunc
 }
 
@@ -1022,5 +1023,32 @@ func (h *HandlersInterfacesImpl) IncomingUSSDHandler(ctx context.Context) http.H
 		}
 		resp := h.interactor.AITUSSD.HandleResponseFromUSSDGateway(ctx, sessionDetails)
 		fmt.Fprintf(w, "%s", resp)
+	}
+}
+
+// SwitchFlaggedFeaturesHandler flips the user as opt-in or opt-out to flagged features
+func (h *HandlersInterfacesImpl) SwitchFlaggedFeaturesHandler(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &dto.PhoneNumberPayload{}
+		base.DecodeJSONToTargetStruct(w, r, p)
+		if p.PhoneNumber == nil {
+			err := fmt.Errorf("expected `phoneNumber` to be defined")
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		okRes, err := h.interactor.Onboarding.SwitchUserFlaggedFeatures(ctx, *p.PhoneNumber)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		base.WriteJSONResponse(w, okRes, http.StatusOK)
+
 	}
 }

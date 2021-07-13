@@ -375,7 +375,7 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 	)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		logrus.Print("failed to create customer account with error: %v", err)
+		logrus.Printf("failed to create customer account with error: %v", err)
 	}
 
 	return true, nil

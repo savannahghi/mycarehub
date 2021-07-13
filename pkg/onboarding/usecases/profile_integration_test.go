@@ -58,8 +58,65 @@ func TestSetuserProfileOptOut(t *testing.T) {
 	// update with an invalid option it should fail
 	err = s.Onboarding.SetOptOut(context.Background(), "END", primaryPhone)
 	assert.NotNil(t, err)
-
 }
+
+func TestSwitchUserFlaggedFeature(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	if err != nil {
+		t.Error("failed to setup signup usecase")
+	}
+	primaryPhone := base.TestUserPhoneNumber
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
+	otp, err := generateTestOTP(t, primaryPhone)
+	assert.Nil(t, err)
+	assert.NotNil(t, otp)
+	pin := "4567"
+	resp, err := s.Signup.CreateUserByPhone(
+		context.Background(),
+		&dto.SignUpInput{
+			PhoneNumber: &primaryPhone,
+			PIN:         &pin,
+			Flavour:     base.FlavourConsumer,
+			OTP:         &otp.OTP,
+		},
+	)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Profile)
+	assert.NotNil(t, resp.Profile.UserName)
+
+	// login and assert whether the profile matches the one created earlier
+	login, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	assert.Nil(t, err)
+	assert.NotNil(t, login)
+	assert.NotNil(t, login.Profile.UserName)
+	assert.Equal(t, *login.Profile.UserName, *resp.Profile.UserName)
+	assert.Equal(t, login.Auth.CanExperiment, false)
+
+	res1, err := s.Onboarding.SwitchUserFlaggedFeatures(context.Background(), primaryPhone)
+	assert.Nil(t, err)
+	assert.Equal(t, res1.Status, "SUCCESS")
+
+	// login again to verify the switch is set to true
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	assert.Nil(t, err)
+	assert.NotNil(t, login1)
+	assert.Equal(t, login1.Auth.CanExperiment, true)
+
+	// switch again
+	res2, err := s.Onboarding.SwitchUserFlaggedFeatures(context.Background(), primaryPhone)
+	assert.Nil(t, err)
+	assert.Equal(t, res2.Status, "SUCCESS")
+
+	// login again to verify the switch is set to false
+	login2, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	assert.Nil(t, err)
+	assert.NotNil(t, login2)
+	assert.Equal(t, login2.Auth.CanExperiment, false)
+}
+
 func TestUpdateUserProfileUserName(t *testing.T) {
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
