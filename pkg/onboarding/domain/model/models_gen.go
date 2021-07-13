@@ -33,6 +33,15 @@ type LocationInput struct {
 	BranchSladeCode *string `json:"branchSladeCode"`
 }
 
+type NewLink struct {
+	ID          string        `json:"id"`
+	URL         string        `json:"url"`
+	LinkType    base.LinkType `json:"linkType"`
+	Title       string        `json:"title"`
+	Description string        `json:"description"`
+	Thumbnail   string        `json:"thumbnail"`
+}
+
 type OtherPractitionerServiceInput struct {
 	OtherServices []string `json:"otherServices"`
 }
