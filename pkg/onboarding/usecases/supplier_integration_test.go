@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"firebase.google.com/go/auth"
+	"github.com/savannahghi/serverutils"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
@@ -38,7 +39,7 @@ func cleanUpFirebase(ctx context.Context, t *testing.T) {
 func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 
@@ -201,7 +202,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 
@@ -366,7 +367,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 
@@ -528,7 +529,7 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 
@@ -698,7 +699,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 
@@ -867,7 +868,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 
@@ -1032,7 +1033,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 
@@ -1202,7 +1203,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 
@@ -1368,7 +1369,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 
@@ -1533,7 +1534,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 
@@ -1691,7 +1692,7 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 
@@ -1856,7 +1857,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 func TestSupplierSetDefaultLocation(t *testing.T) {
 	// clean kyc processing requests collection because other tests have written to it
 	ctx1 := context.Background()
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		cleanUpFirebase(ctx1, t)
 	}
 

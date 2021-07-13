@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
@@ -72,14 +73,14 @@ type ServiceChargeMasterImpl struct {
 // NewChargeMasterUseCasesImpl ...
 func NewChargeMasterUseCasesImpl() ServiceChargeMaster {
 
-	clientID := base.MustGetEnvVar(ChargeMasterClientIDEnvVarName)
-	clientSecret := base.MustGetEnvVar(ChargeMasterClientSecretEnvVarName)
-	apiTokenURL := base.MustGetEnvVar(ChargeMasterTokenURLEnvVarName)
-	apiHost := base.MustGetEnvVar(ChargeMasterHostEnvVarName)
-	apiScheme := base.MustGetEnvVar(ChargeMasterAPISchemeEnvVarName)
-	grantType := base.MustGetEnvVar(ChargeMasterGrantTypeEnvVarName)
-	username := base.MustGetEnvVar(ChargeMasterUsernameEnvVarName)
-	password := base.MustGetEnvVar(ChargeMasterPasswordEnvVarName)
+	clientID := serverutils.MustGetEnvVar(ChargeMasterClientIDEnvVarName)
+	clientSecret := serverutils.MustGetEnvVar(ChargeMasterClientSecretEnvVarName)
+	apiTokenURL := serverutils.MustGetEnvVar(ChargeMasterTokenURLEnvVarName)
+	apiHost := serverutils.MustGetEnvVar(ChargeMasterHostEnvVarName)
+	apiScheme := serverutils.MustGetEnvVar(ChargeMasterAPISchemeEnvVarName)
+	grantType := serverutils.MustGetEnvVar(ChargeMasterGrantTypeEnvVarName)
+	username := serverutils.MustGetEnvVar(ChargeMasterUsernameEnvVarName)
+	password := serverutils.MustGetEnvVar(ChargeMasterPasswordEnvVarName)
 	extraHeaders := make(map[string]string)
 	client, err := base.NewServerClient(
 		clientID, clientSecret, apiTokenURL, apiHost, apiScheme, grantType, username, password, extraHeaders)

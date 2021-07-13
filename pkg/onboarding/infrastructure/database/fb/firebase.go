@@ -16,6 +16,7 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
+	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -165,7 +166,7 @@ func (fr *Repository) GetUserProfileByUID(ctx context.Context, uid string, suspe
 		return nil, err
 	}
 
-	if len(docs) > 1 && base.IsDebug() {
+	if len(docs) > 1 && serverutils.IsDebug() {
 		log.Printf("user with uids %s has > 1 profile (they have %d)",
 			uid,
 			len(docs),
@@ -211,7 +212,7 @@ func (fr *Repository) GetUserProfileByID(
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
-	if len(docs) > 1 && base.IsDebug() {
+	if len(docs) > 1 && serverutils.IsDebug() {
 		log.Printf("> 1 profile with id %s (count: %d)", id, len(docs))
 	}
 
@@ -681,7 +682,7 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 		return nil, exceptions.InternalServerError(err)
 	}
 	// this should never run. If it does, it means we are doing something wrong.
-	if len(docs) > 1 && base.IsDebug() {
+	if len(docs) > 1 && serverutils.IsDebug() {
 		log.Printf("> 1 PINs with profile ID %s (count: %d)", profileID, len(docs))
 	}
 
@@ -1671,7 +1672,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(ctx context.Context, refresh
 	_, span := tracer.Start(ctx, "ExchangeRefreshTokenForIDToken")
 	defer span.End()
 
-	apiKey, err := base.GetEnvVar(base.FirebaseWebAPIKeyEnvVarName)
+	apiKey, err := serverutils.GetEnvVar(base.FirebaseWebAPIKeyEnvVarName)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
@@ -1739,7 +1740,7 @@ func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*b
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
-	if len(docs) > 1 && base.IsDebug() {
+	if len(docs) > 1 && serverutils.IsDebug() {
 		log.Printf("> 1 profile with id %s (count: %d)", id, len(docs))
 	}
 
@@ -1806,7 +1807,7 @@ func (fr *Repository) GetSupplierProfileByProfileID(
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
-	if len(docs) > 1 && base.IsDebug() {
+	if len(docs) > 1 && serverutils.IsDebug() {
 		log.Printf("> 1 profile with id %s (count: %d)", profileID, len(docs))
 	}
 
@@ -2761,7 +2762,7 @@ func (fr *Repository) GetNHIFDetailsByProfileID(
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	if len(docs) > 1 && base.IsDebug() {
+	if len(docs) > 1 && serverutils.IsDebug() {
 		log.Printf("> 1 NHIF details with profile ID %s (count: %d)",
 			profileID,
 			len(docs),
@@ -2800,7 +2801,7 @@ func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profile
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	if len(docs) > 1 && base.IsDebug() {
+	if len(docs) > 1 && serverutils.IsDebug() {
 		log.Printf("> 1 communications settings with profile ID %s (count: %d)",
 			profileID,
 			len(docs),

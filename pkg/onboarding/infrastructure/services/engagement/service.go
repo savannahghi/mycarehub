@@ -12,6 +12,7 @@ import (
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -244,7 +245,7 @@ func (en *ServiceEngagementImpl) SendAlertToSupplier(ctx context.Context, input 
 // KYC Request.
 func (en *ServiceEngagementImpl) NotifyAdmins(ctx context.Context, input dto.EmailNotificationPayload) error {
 
-	adminEmail, err := base.GetEnvVar("SAVANNAH_ADMIN_EMAIL")
+	adminEmail, err := serverutils.GetEnvVar("SAVANNAH_ADMIN_EMAIL")
 	if err != nil {
 		return err
 	}

@@ -18,6 +18,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 	"github.com/imroc/req"
+	"github.com/savannahghi/serverutils"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
@@ -87,17 +88,17 @@ func initializeAcceptanceTestFirebaseClient(ctx context.Context) (*firestore.Cli
 func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) {
 	var repo repository.OnboardingRepository
 
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		fsc, fbc := initializeAcceptanceTestFirebaseClient(ctx)
 		firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 		repo = fb.NewFirebaseRepository(firestoreExtension, fbc)
 	}
 
-	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+	projectID, err := serverutils.GetEnvVar(serverutils.GoogleCloudProjectIDEnvVarName)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"can't get projectID from env var `%s`: %w",
-			base.GoogleCloudProjectIDEnvVarName,
+			serverutils.GoogleCloudProjectIDEnvVarName,
 			err,
 		)
 	}
@@ -416,7 +417,7 @@ func TestMain(m *testing.M) {
 	os.Setenv("REPOSITORY", "firebase")
 
 	ctx := context.Background()
-	srv, baseURL, serverErr = base.StartTestServer(
+	srv, baseURL, serverErr = serverutils.StartTestServer(
 		ctx,
 		presentation.PrepareServer,
 		presentation.AllowedOrigins,
@@ -428,7 +429,7 @@ func TestMain(m *testing.M) {
 	fsc, _ := initializeAcceptanceTestFirebaseClient(ctx)
 
 	purgeRecords := func() {
-		if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+		if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 			r := fb.Repository{}
 			collections := []string{
 				r.GetCustomerProfileCollectionName(),

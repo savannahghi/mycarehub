@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/stats/view"
 
@@ -18,41 +19,41 @@ const waitSeconds = 30
 
 func main() {
 	ctx := context.Background()
-	err := base.Sentry()
+	err := serverutils.Sentry()
 	if err != nil {
-		base.LogStartupError(ctx, err)
+		serverutils.LogStartupError(ctx, err)
 	}
 
 	// Firstly, we'll register Server views.
 	// A service can declare it's own additional views
 	if err := view.Register(base.DefaultServiceViews...); err != nil {
-		base.LogStartupError(ctx, err)
+		serverutils.LogStartupError(ctx, err)
 	}
 
-	deferFunc, err := base.EnableStatsAndTraceExporters(ctx, base.MetricsCollectorService("onboarding"))
+	deferFunc, err := serverutils.EnableStatsAndTraceExporters(ctx, serverutils.MetricsCollectorService("onboarding"))
 	if err != nil {
-		base.LogStartupError(ctx, err)
+		serverutils.LogStartupError(ctx, err)
 	}
 	defer deferFunc()
 
 	// initialize the tracing provider in prod and testing env only
-	env := base.GetRunningEnvironment()
-	if env == base.ProdEnv || env == base.TestingEnv {
+	env := serverutils.GetRunningEnvironment()
+	if env == serverutils.ProdEnv || env == serverutils.TestingEnv {
 		tp, err := base.InitOtelSDK(ctx, "onboarding")
 		if err != nil {
-			base.LogStartupError(ctx, err)
+			serverutils.LogStartupError(ctx, err)
 		}
 		defer tp.Shutdown(ctx)
 	}
 
-	port, err := strconv.Atoi(base.MustGetEnvVar(base.PortEnvVarName))
+	port, err := strconv.Atoi(serverutils.MustGetEnvVar(serverutils.PortEnvVarName))
 	if err != nil {
-		base.LogStartupError(ctx, err)
+		serverutils.LogStartupError(ctx, err)
 	}
 	srv := presentation.PrepareServer(ctx, port, presentation.AllowedOrigins)
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			base.LogStartupError(ctx, err)
+			serverutils.LogStartupError(ctx, err)
 		}
 	}()
 

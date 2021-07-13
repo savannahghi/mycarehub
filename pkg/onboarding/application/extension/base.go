@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"cloud.google.com/go/pubsub"
@@ -166,7 +167,7 @@ func (b *BaseExtensionImpl) SetupISCclient(config base.DepsConfig, serviceName s
 
 // GetEnvVar ...
 func (b *BaseExtensionImpl) GetEnvVar(envName string) (string, error) {
-	return base.GetEnvVar(envName)
+	return serverutils.GetEnvVar(envName)
 }
 
 // GetLoginFunc returns a function that can authenticate against both Slade 360 and Firebase
@@ -219,7 +220,7 @@ func (b *BaseExtensionImpl) EnsureTopicsExist(
 // GetRunningEnvironment returns the environment wheere the service is running. Importannt
 // so as to point to the correct deps
 func (b *BaseExtensionImpl) GetRunningEnvironment() string {
-	return base.GetRunningEnvironment()
+	return serverutils.GetRunningEnvironment()
 }
 
 // NamespacePubsubIdentifier uses the service name, environment and version to
@@ -262,7 +263,7 @@ func (b *BaseExtensionImpl) PublishToPubsub(
 
 // GoogleCloudProjectIDEnvVarName returns `GOOGLE_CLOUD_PROJECT` env
 func (b *BaseExtensionImpl) GoogleCloudProjectIDEnvVarName() (string, error) {
-	return b.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+	return b.GetEnvVar(serverutils.GoogleCloudProjectIDEnvVarName)
 }
 
 // EnsureSubscriptionsExist ensures that the subscriptions named in the supplied
@@ -319,12 +320,12 @@ func (b *BaseExtensionImpl) WriteJSONResponse(
 	source interface{},
 	status int,
 ) {
-	base.WriteJSONResponse(w, source, status)
+	serverutils.WriteJSONResponse(w, source, status)
 }
 
 // ErrorMap turns the supplied error into a map with "error" as the key
 func (b *BaseExtensionImpl) ErrorMap(err error) map[string]string {
-	return base.ErrorMap(err)
+	return serverutils.ErrorMap(err)
 }
 
 // ISCClientExtension represents the base ISC client

@@ -33,6 +33,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph"
@@ -78,11 +79,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		log.Panicf("can't initialize Firebase auth when setting up profile service: %s", err)
 	}
 
-	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+	projectID, err := serverutils.GetEnvVar(serverutils.GoogleCloudProjectIDEnvVarName)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"can't get projectID from env var `%s`: %w",
-			base.GoogleCloudProjectIDEnvVarName,
+			serverutils.GoogleCloudProjectIDEnvVarName,
 			err,
 		)
 	}
@@ -94,7 +95,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	var repo repository.OnboardingRepository
 
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 		repo = fb.NewFirebaseRepository(firestoreExtension, fbc)
 	}
@@ -151,17 +152,17 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	loginService := loginservice.NewServiceLogin(baseExt)
 
 	r := mux.NewRouter() // gorilla mux
-	r.Use(otelmux.Middleware(base.MetricsCollectorService("onboarding")))
+	r.Use(otelmux.Middleware(serverutils.MetricsCollectorService("onboarding")))
 	r.Use(
 		handlers.RecoveryHandler(
 			handlers.PrintRecoveryStack(true),
 			handlers.RecoveryLogger(log.StandardLogger()),
 		),
 	) // recover from panics by writing a HTTP error
-	r.Use(base.RequestDebugMiddleware())
+	r.Use(serverutils.RequestDebugMiddleware())
 
 	// Add Middleware that records the metrics for HTTP routes
-	r.Use(base.CustomHTTPRequestMetricsMiddleware())
+	r.Use(serverutils.CustomHTTPRequestMetricsMiddleware())
 
 	//USSD routes
 	r.Path("/ait_ussd").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.IncomingUSSDHandler(ctx))
@@ -376,7 +377,7 @@ func PrepareServer(ctx context.Context, port int, allowedOrigins []string) *http
 	// start up the router
 	r, err := Router(ctx)
 	if err != nil {
-		base.LogStartupError(ctx, err)
+		serverutils.LogStartupError(ctx, err)
 	}
 
 	// start the server
@@ -414,7 +415,7 @@ func GQLHandler(ctx context.Context,
 ) http.HandlerFunc {
 	resolver, err := graph.NewResolver(ctx, service)
 	if err != nil {
-		base.LogStartupError(ctx, err)
+		serverutils.LogStartupError(ctx, err)
 	}
 	server := handler.NewDefaultServer(
 		generated.NewExecutableSchema(

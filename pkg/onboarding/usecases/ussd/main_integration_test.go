@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
+	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
@@ -65,16 +66,16 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 
 	var repo repository.OnboardingRepository
 
-	if base.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
+	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 		firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 		repo = fb.NewFirebaseRepository(firestoreExtension, fbc)
 	}
 
-	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+	projectID, err := serverutils.GetEnvVar(serverutils.GoogleCloudProjectIDEnvVarName)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"can't get projectID from env var `%s`: %w",
-			base.GoogleCloudProjectIDEnvVarName,
+			serverutils.GoogleCloudProjectIDEnvVarName,
 			err,
 		)
 	}

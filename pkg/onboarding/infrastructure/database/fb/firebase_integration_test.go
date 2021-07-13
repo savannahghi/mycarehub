@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/serverutils"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -104,11 +105,11 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		log.Panicf("failed to initialize test FireBase client")
 	}
 
-	projectID, err := base.GetEnvVar(base.GoogleCloudProjectIDEnvVarName)
+	projectID, err := serverutils.GetEnvVar(serverutils.GoogleCloudProjectIDEnvVarName)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"can't get projectID from env var `%s`: %w",
-			base.GoogleCloudProjectIDEnvVarName,
+			serverutils.GoogleCloudProjectIDEnvVarName,
 			err,
 		)
 	}
@@ -643,7 +644,7 @@ func TestRepository_GetCustomerOrSupplierProfileByProfileID(t *testing.T) {
 				return
 			}
 
-			if base.IsDebug() {
+			if serverutils.IsDebug() {
 				log.Printf("Customer....%v", customer)
 				log.Printf("Supplier....%v", supplier)
 			}
@@ -702,7 +703,7 @@ func TestRepository_GetCustomerProfileByID(t *testing.T) {
 				t.Errorf("Repository.GetCustomerProfileByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if base.IsDebug() {
+			if serverutils.IsDebug() {
 				log.Printf("Customer....%v", customerProfile)
 			}
 		})

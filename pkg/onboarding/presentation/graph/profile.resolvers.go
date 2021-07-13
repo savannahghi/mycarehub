@@ -7,6 +7,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -20,7 +21,7 @@ func (r *mutationResolver) CompleteSignup(ctx context.Context, flavour base.Flav
 
 	completeSignup, err := r.interactor.Signup.CompleteSignup(ctx, flavour)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "completeSignup", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "completeSignup", err)
 
 	return completeSignup, err
 }
@@ -30,7 +31,7 @@ func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input dto.User
 
 	updateUserProfile, err := r.interactor.Signup.UpdateUserProfile(ctx, &input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "updateUserProfile", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "updateUserProfile", err)
 
 	return updateUserProfile, err
 }
@@ -40,7 +41,7 @@ func (r *mutationResolver) UpdateUserPin(ctx context.Context, phone string, pin 
 
 	updateUserPIN, err := r.interactor.UserPIN.ChangeUserPIN(ctx, phone, pin)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "updateUserPIN", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "updateUserPIN", err)
 
 	return updateUserPIN, err
 }
@@ -50,7 +51,7 @@ func (r *mutationResolver) SetPrimaryPhoneNumber(ctx context.Context, phone stri
 
 	err := r.interactor.Onboarding.SetPrimaryPhoneNumber(ctx, phone, otp, true)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setPrimaryPhoneNumber", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "setPrimaryPhoneNumber", err)
 
 	if err != nil {
 		return false, err
@@ -64,7 +65,7 @@ func (r *mutationResolver) SetPrimaryEmailAddress(ctx context.Context, email str
 
 	err := r.interactor.Onboarding.SetPrimaryEmailAddress(ctx, email, otp)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setPrimaryEmailAddress", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "setPrimaryEmailAddress", err)
 
 	if err != nil {
 		return false, err
@@ -78,7 +79,7 @@ func (r *mutationResolver) SetOptOut(ctx context.Context, option string, phoneNu
 
 	err := r.interactor.Onboarding.SetOptOut(ctx, option, phoneNumber)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setOptOut", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "setOptOut", err)
 
 	if err != nil {
 		return false, err
@@ -92,7 +93,7 @@ func (r *mutationResolver) AddSecondaryPhoneNumber(ctx context.Context, phone []
 
 	err := r.interactor.Onboarding.UpdateSecondaryPhoneNumbers(ctx, phone)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addSecondaryPhoneNumber", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addSecondaryPhoneNumber", err)
 
 	if err != nil {
 		return false, err
@@ -106,7 +107,7 @@ func (r *mutationResolver) RetireSecondaryPhoneNumbers(ctx context.Context, phon
 
 	retireSecondaryPhoneNumbers, err := r.interactor.Onboarding.RetireSecondaryPhoneNumbers(ctx, phones)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "retireSecondaryPhoneNumbers", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "retireSecondaryPhoneNumbers", err)
 
 	return retireSecondaryPhoneNumbers, err
 }
@@ -116,7 +117,7 @@ func (r *mutationResolver) AddSecondaryEmailAddress(ctx context.Context, email [
 
 	err := r.interactor.Onboarding.UpdateSecondaryEmailAddresses(ctx, email)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addSecondaryEmailAddress", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addSecondaryEmailAddress", err)
 
 	if err != nil {
 		return false, err
@@ -130,7 +131,7 @@ func (r *mutationResolver) RetireSecondaryEmailAddresses(ctx context.Context, em
 
 	retireSecondaryEmailAddresses, err := r.interactor.Onboarding.RetireSecondaryEmailAddress(ctx, emails)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "retireSecondaryEmailAddresses", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "retireSecondaryEmailAddresses", err)
 
 	return retireSecondaryEmailAddresses, err
 }
@@ -140,7 +141,7 @@ func (r *mutationResolver) UpdateUserName(ctx context.Context, username string) 
 
 	err := r.interactor.Onboarding.UpdateUserName(ctx, username)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "updateUserName", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "updateUserName", err)
 
 	if err != nil {
 		return false, err
@@ -154,7 +155,7 @@ func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) 
 
 	registerPushToken, err := r.interactor.Signup.RegisterPushToken(ctx, token)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "registerPushToken", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "registerPushToken", err)
 
 	return registerPushToken, err
 }
@@ -164,7 +165,7 @@ func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, part
 
 	addPartnerType, err := r.interactor.Supplier.AddPartnerType(ctx, &name, &partnerType)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addPartnerType", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addPartnerType", err)
 
 	return addPartnerType, err
 }
@@ -174,7 +175,7 @@ func (r *mutationResolver) SuspendSupplier(ctx context.Context, suspensionReason
 
 	suspendSupplier, err := r.interactor.Supplier.SuspendSupplier(ctx, suspensionReason)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "suspendSupplier", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "suspendSupplier", err)
 
 	return suspendSupplier, err
 }
@@ -184,7 +185,7 @@ func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType base.A
 
 	supplier, err := r.interactor.Supplier.SetUpSupplier(ctx, accountType)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setUpSupplier", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "setUpSupplier", err)
 
 	return supplier, err
 }
@@ -194,7 +195,7 @@ func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string
 
 	supplierEDILogin, err := r.interactor.Supplier.SupplierEDILogin(ctx, username, password, sladeCode)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "supplierEDILogin", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "supplierEDILogin", err)
 
 	return supplierEDILogin, err
 }
@@ -204,7 +205,7 @@ func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locat
 
 	supplier, err := r.interactor.Supplier.SupplierSetDefaultLocation(ctx, locationID)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "supplierSetDefaultLocation", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "supplierSetDefaultLocation", err)
 
 	return supplier, err
 }
@@ -214,7 +215,7 @@ func (r *mutationResolver) AddIndividualRiderKyc(ctx context.Context, input doma
 
 	individualRider, err := r.interactor.Supplier.AddIndividualRiderKyc(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualRiderKYC", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualRiderKYC", err)
 
 	return individualRider, err
 }
@@ -224,7 +225,7 @@ func (r *mutationResolver) AddOrganizationRiderKyc(ctx context.Context, input do
 
 	organizationRider, err := r.interactor.Supplier.AddOrganizationRiderKyc(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationRiderKYC", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationRiderKYC", err)
 
 	return organizationRider, err
 }
@@ -234,7 +235,7 @@ func (r *mutationResolver) AddIndividualPractitionerKyc(ctx context.Context, inp
 
 	individualPractitioner, err := r.interactor.Supplier.AddIndividualPractitionerKyc(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualPractitionerKYC", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualPractitionerKYC", err)
 
 	return individualPractitioner, err
 }
@@ -244,7 +245,7 @@ func (r *mutationResolver) AddOrganizationPractitionerKyc(ctx context.Context, i
 
 	organizationPractitioner, err := r.interactor.Supplier.AddOrganizationPractitionerKyc(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationPractitionerKYC", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationPractitionerKYC", err)
 
 	return organizationPractitioner, err
 }
@@ -254,7 +255,7 @@ func (r *mutationResolver) AddOrganizationProviderKyc(ctx context.Context, input
 
 	organizationProvider, err := r.interactor.Supplier.AddOrganizationProviderKyc(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationProviderKYC", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationProviderKYC", err)
 
 	return organizationProvider, err
 }
@@ -264,7 +265,7 @@ func (r *mutationResolver) AddIndividualPharmaceuticalKyc(ctx context.Context, i
 
 	individualPharmaceutical, err := r.interactor.Supplier.AddIndividualPharmaceuticalKyc(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualPharmaceuticalKYC", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualPharmaceuticalKYC", err)
 
 	return individualPharmaceutical, err
 }
@@ -274,7 +275,7 @@ func (r *mutationResolver) AddOrganizationPharmaceuticalKyc(ctx context.Context,
 
 	organizationPharmaceutical, err := r.interactor.Supplier.AddOrganizationPharmaceuticalKyc(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationPharmaceuticalKYC", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationPharmaceuticalKYC", err)
 
 	return organizationPharmaceutical, err
 }
@@ -284,7 +285,7 @@ func (r *mutationResolver) AddIndividualCoachKyc(ctx context.Context, input doma
 
 	individualCoach, err := r.interactor.Supplier.AddIndividualCoachKyc(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualCoachKYC", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualCoachKYC", err)
 
 	return individualCoach, err
 }
@@ -294,7 +295,7 @@ func (r *mutationResolver) AddOrganizationCoachKyc(ctx context.Context, input do
 
 	organizationCoach, err := r.interactor.Supplier.AddOrganizationCoachKyc(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationCoachKYC", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationCoachKYC", err)
 
 	return organizationCoach, err
 }
@@ -304,7 +305,7 @@ func (r *mutationResolver) AddIndividualNutritionKyc(ctx context.Context, input 
 
 	individualNutrition, err := r.interactor.Supplier.AddIndividualNutritionKyc(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualNutritionKYC", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addIndividualNutritionKYC", err)
 
 	return individualNutrition, err
 }
@@ -314,7 +315,7 @@ func (r *mutationResolver) AddOrganizationNutritionKyc(ctx context.Context, inpu
 
 	organizationNutrition, err := r.interactor.Supplier.AddOrganizationNutritionKyc(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationNutritionKYC", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addOrganizationNutritionKYC", err)
 
 	return organizationNutrition, err
 }
@@ -324,7 +325,7 @@ func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, sta
 
 	processKYCRequest, err := r.interactor.Supplier.ProcessKYCRequest(ctx, id, status, rejectionReason)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "processKYCRequest", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "processKYCRequest", err)
 
 	return processKYCRequest, err
 }
@@ -334,7 +335,7 @@ func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input dto.
 
 	recordPostVisitSurvey, err := r.interactor.Survey.RecordPostVisitSurvey(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "recordPostVisitSurvey", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "recordPostVisitSurvey", err)
 
 	return recordPostVisitSurvey, err
 }
@@ -348,7 +349,7 @@ func (r *mutationResolver) RetireKYCProcessingRequest(ctx context.Context) (bool
 		return false, err
 	}
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "retireKYCProcessingRequest", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "retireKYCProcessingRequest", err)
 
 	return true, nil
 }
@@ -358,7 +359,7 @@ func (r *mutationResolver) SetupAsExperimentParticipant(ctx context.Context, par
 
 	setupAsExperimentParticipant, err := r.interactor.Onboarding.SetupAsExperimentParticipant(ctx, participate)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setupAsExperimentParticipant", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "setupAsExperimentParticipant", err)
 
 	return setupAsExperimentParticipant, err
 }
@@ -368,7 +369,7 @@ func (r *mutationResolver) AddNHIFDetails(ctx context.Context, input dto.NHIFDet
 
 	addNHIFDetails, err := r.interactor.NHIF.AddNHIFDetails(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addNHIFDetails", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addNHIFDetails", err)
 
 	return addNHIFDetails, err
 }
@@ -382,7 +383,7 @@ func (r *mutationResolver) AddAddress(ctx context.Context, input dto.UserAddress
 		addressType,
 	)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "addAddress", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addAddress", err)
 
 	return addAddress, err
 }
@@ -392,7 +393,7 @@ func (r *mutationResolver) SetUserCommunicationsSettings(ctx context.Context, al
 
 	setUserCommunicationsSettings, err := r.interactor.Onboarding.SetUserCommunicationsSettings(ctx, allowWhatsApp, allowTextSms, allowPush, allowEmail)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "setUserCommunicationsSettings", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "setUserCommunicationsSettings", err)
 
 	return setUserCommunicationsSettings, err
 }
@@ -402,7 +403,7 @@ func (r *mutationResolver) RegisterAdmin(ctx context.Context, input dto.Register
 
 	userProfile, err := r.interactor.Admin.RegisterAdmin(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "registerAdmin", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "registerAdmin", err)
 
 	return userProfile, err
 }
@@ -416,7 +417,7 @@ func (r *mutationResolver) RegisterAgent(ctx context.Context, input dto.Register
 
 	userProfile, err := r.interactor.Agent.RegisterAgent(ctx, input)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "registerAgent", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "registerAgent", err)
 
 	return userProfile, err
 }
@@ -426,7 +427,7 @@ func (r *mutationResolver) ActivateAgent(ctx context.Context, agentID string) (b
 
 	success, err := r.interactor.Agent.ActivateAgent(ctx, agentID)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "activateAgent", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "activateAgent", err)
 
 	return success, err
 }
@@ -436,7 +437,7 @@ func (r *mutationResolver) DeactivateAgent(ctx context.Context, agentID string) 
 
 	success, err := r.interactor.Agent.DeactivateAgent(ctx, agentID)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "deactivateAgent", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "deactivateAgent", err)
 
 	return success, err
 }
@@ -446,7 +447,7 @@ func (r *mutationResolver) SaveFavoriteNavAction(ctx context.Context, title stri
 
 	success, err := r.interactor.Onboarding.SaveFavoriteNavActions(ctx, title)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "saveFavoriteNavAction", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "saveFavoriteNavAction", err)
 
 	return success, err
 }
@@ -456,7 +457,7 @@ func (r *mutationResolver) DeleteFavoriteNavAction(ctx context.Context, title st
 
 	success, err := r.interactor.Onboarding.DeleteFavoriteNavActions(ctx, title)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "deleteFavoriteNavAction", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "deleteFavoriteNavAction", err)
 
 	return success, err
 }
@@ -471,7 +472,7 @@ func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, err
 
 	userProfile, err := r.interactor.Onboarding.UserProfile(ctx)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "userProfile", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "userProfile", err)
 
 	return userProfile, err
 }
@@ -481,7 +482,7 @@ func (r *queryResolver) SupplierProfile(ctx context.Context) (*base.Supplier, er
 
 	supplier, err := r.interactor.Supplier.FindSupplierByUID(ctx)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "supplierProfile", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "supplierProfile", err)
 
 	return supplier, err
 }
@@ -491,7 +492,7 @@ func (r *queryResolver) ResumeWithPin(ctx context.Context, pin string) (bool, er
 
 	resumeWithPin, err := r.interactor.Login.ResumeWithPin(ctx, pin)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "resumeWithPin", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "resumeWithPin", err)
 
 	return resumeWithPin, err
 }
@@ -501,7 +502,7 @@ func (r *queryResolver) FindProvider(ctx context.Context, pagination *base.Pagin
 
 	provider, err := r.interactor.ChargeMaster.FindProvider(ctx, pagination, filter, sort)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "findProvider", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findProvider", err)
 
 	return provider, err
 }
@@ -511,7 +512,7 @@ func (r *queryResolver) FindBranch(ctx context.Context, pagination *base.Paginat
 
 	branch, err := r.interactor.ChargeMaster.FindBranch(ctx, pagination, filter, sort)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "findBranch", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findBranch", err)
 
 	return branch, err
 }
@@ -521,7 +522,7 @@ func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*dto
 
 	supplierAllowedLocations, err := r.interactor.Supplier.FetchSupplierAllowedLocations(ctx)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "fetchSupplierAllowedLocations", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "fetchSupplierAllowedLocations", err)
 
 	return supplierAllowedLocations, err
 }
@@ -531,7 +532,7 @@ func (r *queryResolver) FetchKYCProcessingRequests(ctx context.Context) ([]*doma
 
 	kycProcessingRequests, err := r.interactor.Supplier.FetchKYCProcessingRequests(ctx)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "fetchKYCProcessingRequests", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "fetchKYCProcessingRequests", err)
 
 	return kycProcessingRequests, err
 }
@@ -541,7 +542,7 @@ func (r *queryResolver) GetAddresses(ctx context.Context) (*domain.UserAddresses
 
 	addresses, err := r.interactor.Onboarding.GetAddresses(ctx)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "getAddresses", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "getAddresses", err)
 
 	return addresses, err
 }
@@ -551,7 +552,7 @@ func (r *queryResolver) NHIFDetails(ctx context.Context) (*domain.NHIFDetails, e
 
 	NHIFDetails, err := r.interactor.NHIF.NHIFDetails(ctx)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "NHIFDetails", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "NHIFDetails", err)
 
 	return NHIFDetails, err
 }
@@ -561,7 +562,7 @@ func (r *queryResolver) GetUserCommunicationsSettings(ctx context.Context) (*bas
 
 	userCommunicationsSettings, err := r.interactor.Onboarding.GetUserCommunicationsSettings(ctx)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "getUserCommunicationsSettings", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "getUserCommunicationsSettings", err)
 
 	return userCommunicationsSettings, err
 }
@@ -571,7 +572,7 @@ func (r *queryResolver) CheckSupplierKYCSubmitted(ctx context.Context) (bool, er
 
 	checkSupplierKYCSubmitted, err := r.interactor.Supplier.CheckSupplierKYCSubmitted(ctx)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "checkSupplierKYCSubmitted", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "checkSupplierKYCSubmitted", err)
 
 	return checkSupplierKYCSubmitted, err
 }
@@ -581,7 +582,7 @@ func (r *queryResolver) FetchAdmins(ctx context.Context) ([]*dto.Admin, error) {
 
 	admins, err := r.interactor.Admin.FetchAdmins(ctx)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "fetchAdmins", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "fetchAdmins", err)
 
 	return admins, err
 }
@@ -591,7 +592,7 @@ func (r *queryResolver) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {
 
 	agents, err := r.interactor.Agent.FetchAgents(ctx)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "fetchAgents", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "fetchAgents", err)
 
 	return agents, err
 }
@@ -601,7 +602,7 @@ func (r *queryResolver) FindAgentbyPhone(ctx context.Context, phoneNumber *strin
 
 	agent, err := r.interactor.Agent.FindAgentbyPhone(ctx, phoneNumber)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "findAgentbyPhone", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findAgentbyPhone", err)
 
 	return agent, err
 }
@@ -611,7 +612,7 @@ func (r *queryResolver) FetchUserNavigationActions(ctx context.Context) (*base.N
 
 	navactions, err := r.interactor.Onboarding.RefreshNavigationActions(ctx)
 
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "fetchUserNavigationActions", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "fetchUserNavigationActions", err)
 
 	return navactions, err
 }

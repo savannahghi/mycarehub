@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
 	"gitlab.slade360emr.com/go/base"
@@ -29,7 +30,7 @@ const (
 // ValidateUID checks that the uid supplied in the indicated request is valid
 func ValidateUID(w http.ResponseWriter, r *http.Request) (*dto.UIDPayload, error) {
 	p := &dto.UIDPayload{}
-	base.DecodeJSONToTargetStruct(w, r, p)
+	serverutils.DecodeJSONToTargetStruct(w, r, p)
 	if p.UID == nil {
 		err := fmt.Errorf("invalid credentials, expected a uid")
 		return nil, err
