@@ -187,3 +187,13 @@ Two `prod` login services will need to be deployed after testing: one that is se
 and another that is set up with the EDI core auth server. Providers paying on portal will have their requests
 verified against the portal auth server; our staff on core will have their requests verified against the core
 auth server.
+
+# Switch user to opt-in or opt-out to flagged features
+
+```sh
+http https://profile-testing.healthcloud.co.ke/switch_flagged_features phoneNumber="<phone-number-of-user>"
+
+```
+
+Replace `http` if using `curl`. 
+Replace `https://profile-testing.healthcloud.co.ke` with `https://profile-prod.healthcloud.co.ke` if running in PROD environment
