@@ -448,19 +448,19 @@ type Agent {
   userBioData: BioData
 }
 
-type NewLink {
-  id: String!
-  url: String!
-  linkType: LinkType!
-  title: String!
-  description: String!
-  thumbnail: String!
+extend type Link {
+  ID: String
+  URL: String
+  LinkType: LinkType
+  Title: String
+  Description: String
+  Thumbnail: String
 }
 
 type NavAction {
   title: String
   onTapRoute: String
-  icon: NewLink
+  icon: Link
   favourite: Boolean
   nested: [NestedNavAction]
 }
