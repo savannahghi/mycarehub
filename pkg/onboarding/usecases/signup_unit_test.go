@@ -8,6 +8,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	dm "gitlab.slade360emr.com/go/commontools/accounting/pkg/domain"
 	crmDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -1370,10 +1371,8 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPCustomerFn = func(
-					ctx context.Context,
-					customerPayload dto.CustomerPayload,
-					UID string,
+				fakeEPRSvc.CreateCustomerFn = func(
+					customerPayload dm.CustomerPayload,
 				) (*base.Customer, error) {
 					return nil, fmt.Errorf("failed to add customer supplier ERP account")
 				}

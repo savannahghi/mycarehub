@@ -11,8 +11,10 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/base"
+	dm "gitlab.slade360emr.com/go/commontools/accounting/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -825,10 +827,8 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPSupplierFn = func(
-					ctx context.Context,
-					supplierPayload dto.SupplierPayload,
-					UID string,
+				fakeEPRSvc.CreateSupplierFn = func(
+					supplierPayload dm.SupplierPayload,
 				) (*base.Supplier, error) {
 					return &base.Supplier{}, nil
 				}
@@ -903,10 +903,8 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateERPSupplierFn = func(
-					ctx context.Context,
-					supplierPayload dto.SupplierPayload,
-					UID string,
+				fakeEPRSvc.CreateSupplierFn = func(
+					supplierPayload dm.SupplierPayload,
 				) (*base.Supplier, error) {
 					return &base.Supplier{}, nil
 				}

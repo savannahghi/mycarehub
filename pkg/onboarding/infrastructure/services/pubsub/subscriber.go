@@ -38,7 +38,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 	ctx := r.Context()
 	switch topicID {
 	case ps.AddPubSubNamespace(common.CreateCustomerTopic):
-		var data dto.CustomerPubSubMessage
+		var data dto.CustomerPubSubMessagePayload
 		err := json.Unmarshal(message.Message.Data, &data)
 		if err != nil {
 			ps.baseExt.WriteJSONResponse(
@@ -48,10 +48,32 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			)
 			return
 		}
-		if _, err := ps.erp.CreateERPCustomer(
+		profile, err := ps.repo.GetUserProfileByUID(
 			ctx,
-			data.CustomerPayload,
 			data.UID,
+			false,
+		)
+		if err != nil {
+			ps.baseExt.WriteJSONResponse(
+				w,
+				ps.baseExt.ErrorMap(err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+		customer, err := ps.erp.CreateCustomer(data.CustomerPayload)
+		if err != nil {
+			ps.baseExt.WriteJSONResponse(
+				w,
+				ps.baseExt.ErrorMap(err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+		if _, err := ps.repo.UpdateCustomerProfile(
+			ctx,
+			profile.ID,
+			*customer,
 		); err != nil {
 			ps.baseExt.WriteJSONResponse(
 				w,
@@ -62,7 +84,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		}
 
 	case ps.AddPubSubNamespace(common.CreateSupplierTopic):
-		var data dto.SupplierPubSubMessage
+		var data dto.SupplierPubSubMessagePayload
 		err := json.Unmarshal(message.Message.Data, &data)
 		if err != nil {
 			ps.baseExt.WriteJSONResponse(
@@ -72,10 +94,29 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			)
 			return
 		}
-		if _, err := ps.erp.CreateERPSupplier(
+		profile, err := ps.repo.GetUserProfileByUID(ctx, data.UID, false)
+		if err != nil {
+			ps.baseExt.WriteJSONResponse(
+				w,
+				ps.baseExt.ErrorMap(err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+		supplier, err := ps.erp.CreateSupplier(data.SupplierPayload)
+		if err != nil {
+			ps.baseExt.WriteJSONResponse(
+				w,
+				ps.baseExt.ErrorMap(err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+
+		if _, err := ps.repo.ActivateSupplierProfile(
 			ctx,
-			data.SupplierPayload,
-			data.UID,
+			profile.ID,
+			*supplier,
 		); err != nil {
 			ps.baseExt.WriteJSONResponse(
 				w,

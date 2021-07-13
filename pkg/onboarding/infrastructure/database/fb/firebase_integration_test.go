@@ -28,10 +28,11 @@ import (
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 
+	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
@@ -125,7 +126,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
-	erp := erp.NewERPService(fr)
+	erp := erp.NewAccounting()
 	crm := hubspot.NewHubSpotService()
 	edi := edi.NewEdiService(ediClient, fr)
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
@@ -134,6 +135,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		erp,
 		crm,
 		edi,
+		fr,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)

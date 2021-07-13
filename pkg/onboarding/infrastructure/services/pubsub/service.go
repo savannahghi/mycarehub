@@ -11,7 +11,9 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
+
+	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 )
 
 const (
@@ -71,18 +73,20 @@ type ServicePubSub interface {
 type ServicePubSubMessaging struct {
 	client  *pubsub.Client
 	baseExt extension.BaseExtension
-	erp     erp.ServiceERP
+	erp     erp.AccountingUsecase
 	crm     extension.CRMExtension
 	edi     edi.ServiceEdi
+	repo    repository.OnboardingRepository
 }
 
 // NewServicePubSubMessaging ...
 func NewServicePubSubMessaging(
 	client *pubsub.Client,
 	ext extension.BaseExtension,
-	erp erp.ServiceERP,
+	erp erp.AccountingUsecase,
 	crm extension.CRMExtension,
 	edi edi.ServiceEdi,
+	repo repository.OnboardingRepository,
 ) (*ServicePubSubMessaging, error) {
 	s := &ServicePubSubMessaging{
 		client:  client,
@@ -90,6 +94,7 @@ func NewServicePubSubMessaging(
 		erp:     erp,
 		crm:     crm,
 		edi:     edi,
+		repo:    repo,
 	}
 
 	ctx := context.Background()

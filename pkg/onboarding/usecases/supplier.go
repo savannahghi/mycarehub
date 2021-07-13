@@ -26,7 +26,8 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+
+	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -178,10 +179,9 @@ type SupplierUseCases interface {
 
 // SupplierUseCasesImpl represents usecase implementation object
 type SupplierUseCasesImpl struct {
-	repo    repository.OnboardingRepository
-	profile ProfileUseCase
-
-	erp          erp.ServiceERP
+	repo         repository.OnboardingRepository
+	profile      ProfileUseCase
+	erp          erp.AccountingUsecase
 	chargemaster chargemaster.ServiceChargeMaster
 	engagement   engagement.ServiceEngagement
 	messaging    messaging.ServiceMessaging
@@ -193,7 +193,7 @@ type SupplierUseCasesImpl struct {
 func NewSupplierUseCases(
 	r repository.OnboardingRepository,
 	p ProfileUseCase,
-	er erp.ServiceERP,
+	er erp.AccountingUsecase,
 	chrg chargemaster.ServiceChargeMaster,
 	eng engagement.ServiceEngagement,
 	messaging messaging.ServiceMessaging,

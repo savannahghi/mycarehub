@@ -13,6 +13,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 
 	"cloud.google.com/go/pubsub"
+	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -21,7 +22,7 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+
 	loginservice "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/login_service"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
@@ -106,7 +107,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	ediClient := utils.NewInterServiceClient(ediService, baseExt)
 
 	// Initialize new instance of our infrastructure services
-	erp := erp.NewERPService(repo)
+	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	crm := hubspot.NewHubSpotService()
 	edi := edi.NewEdiService(ediClient, repo)
@@ -116,6 +117,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		erp,
 		crm,
 		edi,
+		repo,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)

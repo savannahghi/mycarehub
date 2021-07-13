@@ -7,7 +7,8 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+
+	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
@@ -23,7 +24,7 @@ type Interactor struct {
 	Login        usecases.LoginUseCases
 	Survey       usecases.SurveyUseCases
 	UserPIN      usecases.UserPINUseCases
-	ERP          erp.ServiceERP
+	ERP          erp.AccountingUsecase
 	ChargeMaster chargemaster.ServiceChargeMaster
 	Engagement   engagement.ServiceEngagement
 	Messaging    messaging.ServiceMessaging
@@ -46,7 +47,7 @@ func NewOnboardingInteractor(
 	login usecases.LoginUseCases,
 	survey usecases.SurveyUseCases,
 	userpin usecases.UserPINUseCases,
-	erp erp.ServiceERP,
+	erp erp.AccountingUsecase,
 	chrg chargemaster.ServiceChargeMaster,
 	engage engagement.ServiceEngagement,
 	mes messaging.ServiceMessaging,

@@ -4,11 +4,13 @@ go 1.16
 
 require (
 	cloud.google.com/go/firestore v1.5.0
-	cloud.google.com/go/pubsub v1.12.0
+	cloud.google.com/go/pubsub v1.12.2
+	cloud.google.com/go/storage v1.16.0 // indirect
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
+	github.com/aws/aws-sdk-go v1.39.4 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/casbin/casbin/v2 v2.31.3
 	github.com/cenkalti/backoff v2.2.1+incompatible
@@ -23,11 +25,14 @@ require (
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/vektah/gqlparser/v2 v2.1.0
-	gitlab.slade360emr.com/go/base v0.0.202
+	gitlab.slade360emr.com/go/base v0.0.204
+	gitlab.slade360emr.com/go/commontools/accounting v0.0.0-20210713100200-0e0064bc5c30 // indirect
 	gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210705092445-b51dcd0a40cc
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.21.0
 	go.opentelemetry.io/otel v1.0.0-RC1
 	go.opentelemetry.io/otel/trace v1.0.0-RC1
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	google.golang.org/genproto v0.0.0-20210708141623-e76da96a951f // indirect
 )

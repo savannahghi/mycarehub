@@ -17,7 +17,8 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+
+	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 )
@@ -71,7 +72,7 @@ func TestParseKYCAsMap(t *testing.T) {
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 	ediClient := utils.NewInterServiceClient(ediService, ext)
 	edi := edi.NewEdiService(ediClient, repo)
-	erp := erp.NewERPService(repo)
+	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	crm := hubspot.NewHubSpotService()
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
@@ -80,6 +81,7 @@ func TestParseKYCAsMap(t *testing.T) {
 		erp,
 		crm,
 		edi,
+		repo,
 	)
 	if err != nil {
 		t.Errorf("unable to initialize new pubsub messaging service: %w", err)

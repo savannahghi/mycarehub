@@ -24,10 +24,11 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd"
 
+	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp"
+
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -39,7 +40,7 @@ import (
 	ediMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi/mock"
 	engagementMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement/mock"
 
-	erpMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/erp/mock"
+	erpMock "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases/mock"
 
 	messagingMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging/mock"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
@@ -172,7 +173,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	ediClient := utils.NewInterServiceClient(ediService, ext)
 	edi := edi.NewEdiService(ediClient, repo)
 
-	erp := erp.NewERPService(repo)
+	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	crm := hubspot.NewHubSpotService()
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
@@ -181,6 +182,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		erp,
 		crm,
 		edi,
+		repo,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
@@ -412,7 +414,7 @@ var fakeBaseExt extMock.FakeBaseExtensionImpl
 var fakePinExt extMock.PINExtensionImpl
 var fakeEngagementSvs engagementMock.FakeServiceEngagement
 var fakeMessagingSvc messagingMock.FakeServiceMessaging
-var fakeEPRSvc erpMock.FakeServiceERP
+var fakeEPRSvc erpMock.FakeServiceCommonTools
 var fakeChargeMasterSvc chargemasterMock.FakeServiceChargeMaster
 var fakePubSub pubsubmessagingMock.FakeServicePubSub
 var fakeEDISvc ediMock.FakeServiceEDI
@@ -420,7 +422,7 @@ var fakeEDISvc ediMock.FakeServiceEDI
 // InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
 func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var r repository.OnboardingRepository = &fakeRepo
-	var erpSvc erp.ServiceERP = &fakeEPRSvc
+	var erpSvc erp.AccountingUsecase = &fakeEPRSvc
 	var chargemasterSvc chargemaster.ServiceChargeMaster = &fakeChargeMasterSvc
 	var engagementSvc engagement.ServiceEngagement = &fakeEngagementSvs
 	var messagingSvc messaging.ServiceMessaging = &fakeMessagingSvc

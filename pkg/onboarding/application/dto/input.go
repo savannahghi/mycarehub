@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gitlab.slade360emr.com/go/base"
+	dm "gitlab.slade360emr.com/go/commontools/accounting/pkg/domain"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
@@ -372,4 +373,16 @@ type LinkCoverPubSubMessage struct {
 	PhoneNumber string   `json:"phoneNumber"`
 	UID         string   `json:"uid"`
 	PushToken   []string `json:"pushToken"`
+}
+
+//CustomerPubSubMessagePayload is an `onboarding` PubSub message struct for commontools
+type CustomerPubSubMessagePayload struct {
+	CustomerPayload dm.CustomerPayload `json:"customerPayload"`
+	UID             string             `json:"uid"`
+}
+
+//SupplierPubSubMessagePayload is an `onboarding` PubSub message struct for commontools
+type SupplierPubSubMessagePayload struct {
+	SupplierPayload dm.SupplierPayload `json:"supplierPayload"`
+	UID             string             `json:"uid"`
 }
