@@ -96,4 +96,9 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	err = exceptions.ResolveNudgeErr(fmt.Errorf("error"), base.FlavourConsumer, "name2", nil)
 	assert.NotNil(t, err)
+
+	err = exceptions.RoleNotValid(fmt.Errorf("error"))
+	assert.NotNil(t, err)
+	err = exceptions.NavigationActionsError(fmt.Errorf("error"))
+	assert.NotNil(t, err)
 }

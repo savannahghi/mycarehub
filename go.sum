@@ -406,6 +406,8 @@ github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/ryanuber/columnize v2.1.0+incompatible/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
+github.com/savannahghi/errorcodeutil v0.0.0-20210715070815-98283e9f49c6 h1:xqo9EJ0TXLOIGSN11AOXWr7FLq13lDVIGAQJieGSoy4=
+github.com/savannahghi/errorcodeutil v0.0.0-20210715070815-98283e9f49c6/go.mod h1:BthIcPLuJe9K5eE97/qrcfkS+3azS91UFerowDIq/eE=
 github.com/savannahghi/serverutils v0.0.2 h1:ZVRRdyRH47qlqZCiZ3FKOd8W4ufhtvHQLLZxAQZonqk=
 github.com/savannahghi/serverutils v0.0.2/go.mod h1:sLX0El0i0DKN/9cUkB8xqm5cVMP79qCZvK60EzB7Pa4=
 github.com/schollz/closestmatch v2.1.0+incompatible/go.mod h1:RtP1ddjLong6gTkbtmuhtR2uUrrJOpYzYRvbcPAid+g=

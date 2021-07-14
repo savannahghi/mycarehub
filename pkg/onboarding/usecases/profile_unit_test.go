@@ -3734,6 +3734,10 @@ func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 		ctx   context.Context
 		title string
 	}
+
+	initialFavActions := []string{"agents", "consumers"}
+	finalfavActions := []string{"home", "agents", "consumers"}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -3759,7 +3763,16 @@ func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 			want:    false,
 		},
 		{
-			name: "invalid: unable to save user navactions",
+			name: "invalid: unable to add favorite navigation actions",
+			args: args{
+				ctx:   ctx,
+				title: "home",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: unable to update user favorite navactions",
 			args: args{
 				ctx:   ctx,
 				title: "home",
@@ -3793,14 +3806,30 @@ func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 					return nil, fmt.Errorf("unable to get user profile")
 				}
 			}
-			if tt.name == "invalid: unable to save user navactions" {
+			if tt.name == "invalid: unable to add favorite navigation actions" {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: uuid.New().String(),
+						ID:            uuid.New().String(),
+						FavNavActions: finalfavActions,
+					}, nil
+				}
+				fakeRepo.UpdateFavNavActionsFn = func(ctx context.Context, id string, favActions []string) error {
+					return nil
+				}
+			}
+			if tt.name == "invalid: unable to update user favorite navactions" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:            uuid.New().String(),
+						FavNavActions: initialFavActions,
 					}, nil
 				}
 				fakeRepo.UpdateFavNavActionsFn = func(ctx context.Context, id string, favActions []string) error {
@@ -3814,7 +3843,8 @@ func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: uuid.New().String(),
+						ID:            uuid.New().String(),
+						FavNavActions: initialFavActions,
 					}, nil
 				}
 				fakeRepo.UpdateFavNavActionsFn = func(ctx context.Context, id string, favActions []string) error {
@@ -3841,6 +3871,9 @@ func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
 	}
+
+	initialFavActions := []string{"home", "agents", "consumers"}
+	finalFavActions := []string{"agents", "consumers"}
 	type args struct {
 		ctx   context.Context
 		title string
@@ -3870,7 +3903,16 @@ func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
 			want:    false,
 		},
 		{
-			name: "invalid: unable to delete user navactions",
+			name: "invalid: unable to remove favorite navigation action",
+			args: args{
+				ctx:   ctx,
+				title: "home",
+			},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name: "invalid: unable to update user favorite navactions",
 			args: args{
 				ctx:   ctx,
 				title: "home",
@@ -3904,14 +3946,30 @@ func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
 					return nil, fmt.Errorf("unable to get user profile")
 				}
 			}
-			if tt.name == "invalid: unable to delete user navactions" {
+			if tt.name == "invalid: unable to remove favorite navigation action" {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{}, nil
 				}
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: uuid.New().String(),
+						ID:            uuid.New().String(),
+						FavNavActions: finalFavActions,
+					}, nil
+				}
+				fakeRepo.UpdateFavNavActionsFn = func(ctx context.Context, id string, favActions []string) error {
+					return nil
+				}
+			}
+			if tt.name == "invalid: unable to update user favorite navactions" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+					return &base.UserProfile{
+						ID:            uuid.New().String(),
+						FavNavActions: initialFavActions,
 					}, nil
 				}
 				fakeRepo.UpdateFavNavActionsFn = func(ctx context.Context, id string, favActions []string) error {
@@ -3925,7 +3983,8 @@ func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
 
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
 					return &base.UserProfile{
-						ID: uuid.New().String(),
+						ID:            uuid.New().String(),
+						FavNavActions: initialFavActions,
 					}, nil
 				}
 				fakeRepo.UpdateFavNavActionsFn = func(ctx context.Context, id string, favActions []string) error {

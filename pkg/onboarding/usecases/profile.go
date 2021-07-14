@@ -14,6 +14,7 @@ import (
 	"go.opentelemetry.io/otel"
 
 	"github.com/cenkalti/backoff"
+	"github.com/savannahghi/errorcodeutil"
 	"github.com/segmentio/ksuid"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
@@ -814,7 +815,7 @@ func (p *ProfileUseCaseImpl) AddRoleToUser(ctx context.Context, phone string, ro
 		return err
 	}
 	if !role.IsValid() {
-		return &base.CustomError{
+		return &errorcodeutil.CustomError{
 			Message: fmt.Sprintf("Invalid role `%v` not available", role),
 		}
 	}
@@ -1839,8 +1840,13 @@ func (p *ProfileUseCaseImpl) SaveFavoriteNavActions(ctx context.Context, title s
 	}
 
 	favActions := user.FavNavActions
+	// if user does not have such favorite action, add it.
 	if !utils.CheckUserHasFavNavAction(user, title) {
 		favActions = append(favActions, title)
+	}
+
+	if len(favActions) != len(user.FavNavActions)+1 {
+		return false, exceptions.NavigationActionsError(fmt.Errorf("failed to add user favorite actions"))
 	}
 
 	err = p.onboardingRepository.UpdateFavNavActions(ctx, user.ID, favActions)
@@ -1863,10 +1869,16 @@ func (p *ProfileUseCaseImpl) DeleteFavoriteNavActions(ctx context.Context, title
 	}
 	var favActions []string
 	for _, t := range user.FavNavActions {
-		if !utils.CheckUserHasFavNavAction(user, title) {
+		// retain the favorite action if it's not the one removed by user
+		if t != title {
 			favActions = append(favActions, t)
 		}
 	}
+
+	if len(favActions) != len(user.FavNavActions)-1 {
+		return false, exceptions.NavigationActionsError(fmt.Errorf("failed to remove user favorite actions"))
+	}
+
 	err = p.onboardingRepository.UpdateFavNavActions(ctx, user.ID, favActions)
 	if err != nil {
 		return false, err

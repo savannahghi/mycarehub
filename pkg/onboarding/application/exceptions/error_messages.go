@@ -173,4 +173,7 @@ const (
 	//RoleNotValidMsg is an error message displayed when the provided role is not valid
 	// and the user doesn't have permissions to perform an action
 	RoleNotValidMsg = "user role is not valid"
+
+	//NavActionsError is an error message displayed when the system cannot update navigation actions
+	NavActionsError = "navigation actions not updated"
 )

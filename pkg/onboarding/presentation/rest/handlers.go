@@ -11,6 +11,7 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/gorilla/mux"
+	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
@@ -75,7 +76,7 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -138,7 +139,7 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -178,7 +179,7 @@ func (h *HandlersInterfacesImpl) SetOptOut(
 			err := fmt.Errorf(
 				"expected an optout option to be provided or valid",
 			)
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -228,7 +229,7 @@ func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(
 
 		if p.PhoneNumber == nil || p.OTP == nil {
 			err := fmt.Errorf("expected `phoneNumber` and `otp` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -278,7 +279,7 @@ func (h *HandlersInterfacesImpl) LoginByPhone(
 
 		if p.PhoneNumber == nil || p.PIN == nil {
 			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -287,7 +288,7 @@ func (h *HandlersInterfacesImpl) LoginByPhone(
 
 		if !p.Flavour.IsValid() {
 			err := fmt.Errorf("an invalid `flavour` defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -329,7 +330,7 @@ func (h *HandlersInterfacesImpl) LoginAnonymous(
 
 		if p.Flavour.String() == "" {
 			err := fmt.Errorf("expected `flavour` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -338,7 +339,7 @@ func (h *HandlersInterfacesImpl) LoginAnonymous(
 
 		if !p.Flavour.IsValid() || p.Flavour != base.FlavourConsumer {
 			err := fmt.Errorf("an invalid `flavour` defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -369,7 +370,7 @@ func (h *HandlersInterfacesImpl) RequestPINReset(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -414,7 +415,7 @@ func (h *HandlersInterfacesImpl) ResetPin(
 			)
 			serverutils.WriteJSONResponse(
 				w,
-				base.CustomError{
+				errorcodeutil.CustomError{
 					Err:     err,
 					Message: err.Error(),
 				},
@@ -453,7 +454,7 @@ func (h *HandlersInterfacesImpl) SendOTP(
 		span := trace.SpanFromContext(ctx)
 		payload, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -498,7 +499,7 @@ func (h *HandlersInterfacesImpl) SendRetryOTP(
 			err := fmt.Errorf(
 				"expected `phoneNumber`, `retryStep` to be defined",
 			)
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -543,7 +544,7 @@ func (h *HandlersInterfacesImpl) RefreshToken(
 
 		if p.RefreshToken == nil {
 			err := fmt.Errorf("expected `refreshToken` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -571,7 +572,7 @@ func (h *HandlersInterfacesImpl) FindSupplierByUID(
 	return func(w http.ResponseWriter, r *http.Request) {
 		s, err := utils.ValidateUID(w, r)
 		if err != nil {
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -580,7 +581,7 @@ func (h *HandlersInterfacesImpl) FindSupplierByUID(
 
 		if s.UID == nil {
 			err := fmt.Errorf("expected `uid` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -617,7 +618,7 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -625,7 +626,7 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(
 		}
 		v, err := h.interactor.Onboarding.CheckPhoneExists(ctx, *p.PhoneNumber)
 		if err != nil {
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -634,7 +635,7 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(
 
 		if v {
 			if err := h.interactor.Signup.RemoveUserByPhoneNumber(ctx, *p.PhoneNumber); err != nil {
-				serverutils.WriteJSONResponse(w, base.CustomError{
+				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 					Err:     err,
 					Message: err.Error(),
 				}, http.StatusBadRequest)
@@ -650,7 +651,7 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(
 		err = fmt.Errorf(
 			"`phoneNumber` does not exist and not associated with any user ",
 		)
-		serverutils.WriteJSONResponse(w, base.CustomError{
+		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 			Err:     err,
 			Message: err.Error(),
 		}, http.StatusBadRequest)
@@ -832,7 +833,7 @@ func (h *HandlersInterfacesImpl) AddAdminPermsToUser(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -840,7 +841,7 @@ func (h *HandlersInterfacesImpl) AddAdminPermsToUser(
 		}
 		v, err := h.interactor.Onboarding.CheckPhoneExists(ctx, *p.PhoneNumber)
 		if err != nil {
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -849,7 +850,7 @@ func (h *HandlersInterfacesImpl) AddAdminPermsToUser(
 
 		if v {
 			if err := h.interactor.Onboarding.AddAdminPermsToUser(ctx, *p.PhoneNumber); err != nil {
-				serverutils.WriteJSONResponse(w, base.CustomError{
+				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 					Err:     err,
 					Message: err.Error(),
 				}, http.StatusBadRequest)
@@ -865,7 +866,7 @@ func (h *HandlersInterfacesImpl) AddAdminPermsToUser(
 		err = fmt.Errorf(
 			"`phoneNumber` does not exist and not associated with any user ",
 		)
-		serverutils.WriteJSONResponse(w, base.CustomError{
+		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 			Err:     err,
 			Message: err.Error(),
 		}, http.StatusBadRequest)
@@ -882,7 +883,7 @@ func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -890,7 +891,7 @@ func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(
 		}
 		v, err := h.interactor.Onboarding.CheckPhoneExists(ctx, *p.PhoneNumber)
 		if err != nil {
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -899,7 +900,7 @@ func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(
 
 		if v {
 			if err := h.interactor.Onboarding.RemoveAdminPermsToUser(ctx, *p.PhoneNumber); err != nil {
-				serverutils.WriteJSONResponse(w, base.CustomError{
+				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 					Err:     err,
 					Message: err.Error(),
 				}, http.StatusBadRequest)
@@ -915,7 +916,7 @@ func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(
 		err = fmt.Errorf(
 			"`phoneNumber` does not exist and not associated with any user ",
 		)
-		serverutils.WriteJSONResponse(w, base.CustomError{
+		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 			Err:     err,
 			Message: err.Error(),
 		}, http.StatusBadRequest)
@@ -932,7 +933,7 @@ func (h *HandlersInterfacesImpl) AddRoleToUser(
 		serverutils.DecodeJSONToTargetStruct(w, r, p)
 		if p.PhoneNumber == nil {
 			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -940,7 +941,7 @@ func (h *HandlersInterfacesImpl) AddRoleToUser(
 		}
 		if p.Role == nil {
 			err := fmt.Errorf("expected `roles` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -952,7 +953,7 @@ func (h *HandlersInterfacesImpl) AddRoleToUser(
 			*p.Role,
 		)
 		if err != nil {
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -975,7 +976,7 @@ func (h *HandlersInterfacesImpl) RemoveRoleToUser(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -983,7 +984,7 @@ func (h *HandlersInterfacesImpl) RemoveRoleToUser(
 		}
 		err = h.interactor.Onboarding.RemoveRoleToUser(ctx, *p.PhoneNumber)
 		if err != nil {
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -1006,7 +1007,7 @@ func (h *HandlersInterfacesImpl) UpdateUserProfile(
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 		if payload.UID == nil {
 			err := fmt.Errorf("expected `uid` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -1061,7 +1062,7 @@ func (h *HandlersInterfacesImpl) IncomingATSMS(
 		validatedPayload, err := utils.ValidateAficasTalkingSMSData(payload)
 		if err != nil {
 			err := fmt.Errorf("input validation error occurred")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -1123,7 +1124,7 @@ func (h *HandlersInterfacesImpl) SwitchFlaggedFeaturesHandler(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -1135,7 +1136,7 @@ func (h *HandlersInterfacesImpl) SwitchFlaggedFeaturesHandler(
 			*p.PhoneNumber,
 		)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -1154,7 +1155,7 @@ func (h *HandlersInterfacesImpl) IsOptedOuted(
 		span := trace.SpanFromContext(ctx)
 		payload, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -1165,7 +1166,7 @@ func (h *HandlersInterfacesImpl) IsOptedOuted(
 			*payload.PhoneNumber,
 		)
 		if err != nil {
-			base.WriteJSONResponse(w, base.CustomError{
+			base.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
