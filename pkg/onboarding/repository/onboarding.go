@@ -175,6 +175,7 @@ type OnboardingRepository interface {
 	UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
 
 	GetUserMarketingData(ctx context.Context, phoneNumber string) (*dto.Segment, error)
+	IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error)
 }
 
 // UserProfileRepository interface that provide access to all persistent storage operations for user profile

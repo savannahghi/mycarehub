@@ -180,6 +180,7 @@ type FakeOnboardingRepository struct {
 	UpdateOptOutCRMPayloadFn        func(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
 	UpdateFavNavActionsFn           func(ctx context.Context, id string, favActions []string) error
 	GetUserMarketingDataFn          func(ctx context.Context, phoneNumber string) (*dto.Segment, error)
+	IsOptedOutedFn                  func(ctx context.Context, phoneNumber string) (bool, error)
 }
 
 // GetSupplierProfileByID ...
@@ -607,4 +608,9 @@ func (f *FakeOnboardingRepository) UpdateFavNavActions(ctx context.Context, id s
 // GetUserMarketingData ...
 func (f *FakeOnboardingRepository) GetUserMarketingData(ctx context.Context, phoneNumber string) (*dto.Segment, error) {
 	return f.GetUserMarketingDataFn(ctx, phoneNumber)
+}
+
+// IsOptedOuted ..
+func (f *FakeOnboardingRepository) IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error) {
+	return f.IsOptedOutedFn(ctx, phoneNumber)
 }

@@ -46,6 +46,8 @@ type Usecase interface {
 	HandlePINReset(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string
 	SetUSSDUserPin(ctx context.Context, phoneNumber string, PIN string) error
 	ChangeUSSDUserPIN(ctx context.Context, phone string, pin string) (bool, error)
+	// OptedOut
+	IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error)
 }
 
 //Impl represents usecase implementation

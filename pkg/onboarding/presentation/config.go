@@ -316,6 +316,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.ProfileAttributes(ctx))
+	isc.Path("/is_opted_out").Methods(
+		http.MethodPost,
+		http.MethodOptions,
+	).HandlerFunc(h.IsOptedOuted(ctx))
 
 	// Interservice Authenticated routes
 	// The reason for the below endpoints to be used for interservice communication

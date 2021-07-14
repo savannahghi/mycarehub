@@ -17,7 +17,9 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
 	"github.com/savannahghi/serverutils"
+	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
+	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -3257,4 +3259,35 @@ func (fr *Repository) GetUserMarketingData(ctx context.Context, phoneNumber stri
 		)
 	}
 	return &data, nil
+}
+
+// IsOptedOuted checks if a phone number is opted out or not
+func (fr Repository) IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error) {
+	query := &GetAllQuery{
+		CollectionName: fr.GetCRMStagingCollectionName(),
+		FieldName:      "ContactValue",
+		Value:          phoneNumber,
+		Operator:       "==",
+	}
+	logrus.Print(fr.GetCRMStagingCollectionName())
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return false, exceptions.InternalServerError(err)
+	}
+	if len(docs) == 0 {
+		return false, nil
+	}
+
+	var data dto.ContactLeadInput
+	err = docs[0].DataTo(&data)
+	if err != nil {
+		return false, fmt.Errorf(
+			"unable to unmarshal contact lead data from doc snapshot: %w", err)
+	}
+
+	if data.OptOut == CRMDomain.GeneralOptionTypeNo {
+		return false, nil
+	}
+
+	return true, nil
 }

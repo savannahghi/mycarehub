@@ -85,3 +85,8 @@ func (u *Impl) GetOrCreateSessionState(ctx context.Context, payload *dto.Session
 	}
 	return sessionDetails, nil
 }
+
+// IsOptedOuted checks if a user is opted out
+func (u *Impl) IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error) {
+	return u.onboardingRepository.IsOptedOuted(ctx, phoneNumber)
+}

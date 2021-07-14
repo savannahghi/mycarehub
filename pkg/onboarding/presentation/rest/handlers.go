@@ -50,6 +50,7 @@ type HandlersInterfaces interface {
 	IncomingUSSDHandler(ctx context.Context) http.HandlerFunc
 	SwitchFlaggedFeaturesHandler(ctx context.Context) http.HandlerFunc
 	// USSDEndNotificationHandler(ctx context.Context) http.HandlerFunc
+	IsOptedOuted(ctx context.Context) http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -66,25 +67,25 @@ func NewHandlersInterfaces(i *interactor.Interactor) HandlersInterfaces {
 // check on the supplied phone number asserting whether the phone is associated with
 // a user profile. It check both the PRIMARY PHONE and SECONDARY PHONE NUMBER.
 // If the phone number does not exist, it sends the OTP to the phone number
-func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		span := trace.SpanFromContext(ctx)
-
-		p := &dto.PhoneNumberPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, p)
-
-		span.AddEvent("decode json payload to struct", trace.WithAttributes(
-			attribute.Any("payload", p),
-		))
-
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
+		p, err := decodePhoneNumberPayload(w, r, span)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
 			return
 		}
 
-		otpResp, err := h.interactor.Signup.VerifyPhoneNumber(ctx, *p.PhoneNumber)
+		otpResp, err := h.interactor.Signup.VerifyPhoneNumber(
+			ctx,
+			*p.PhoneNumber,
+		)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
@@ -99,7 +100,9 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(ctx context.Context) ht
 }
 
 // CreateUserWithPhoneNumber is an unauthenticated endpoint that is called to create
-func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		span := trace.SpanFromContext(ctx)
@@ -127,21 +130,15 @@ func (h *HandlersInterfacesImpl) CreateUserWithPhoneNumber(ctx context.Context) 
 
 // UserRecoveryPhoneNumbers fetches the phone numbers associated with a profile for the purpose of account recovery.
 // The returned phone numbers slice should be masked. E.G +254700***123
-func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		span := trace.SpanFromContext(ctx)
-
-		p := &dto.PhoneNumberPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, p)
-
-		span.AddEvent("decode json payload to struct", trace.WithAttributes(
-			attribute.Any("payload", p),
-		))
-
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+		p, err := decodePhoneNumberPayload(w, r, span)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -158,22 +155,29 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(ctx context.Context) h
 			return
 		}
 
-		span.AddEvent("retrieve user recovery phone numbers", trace.WithAttributes(
-			attribute.Any("response", response),
-		))
+		span.AddEvent(
+			"retrieve user recovery phone numbers",
+			trace.WithAttributes(
+				attribute.Any("response", response),
+			),
+		)
 
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }
 
 //SetOptOut toggles the optout attribute in the crm to yes of no to determine accepting or rejecting promotional messages
-func (h *HandlersInterfacesImpl) SetOptOut(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) SetOptOut(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		p := &dto.SetOptOutPayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, p)
 		if p.Option == nil || *p.Option != "STOP" && *p.Option != "START" {
-			err := fmt.Errorf("expected an optout option to be provided or valid")
+			err := fmt.Errorf(
+				"expected an optout option to be provided or valid",
+			)
 			serverutils.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -199,12 +203,18 @@ func (h *HandlersInterfacesImpl) SetOptOut(ctx context.Context) http.HandlerFunc
 			response = "you have subscribed to receiving promotional messages"
 		}
 
-		serverutils.WriteJSONResponse(w, dto.NewOKResp(response), http.StatusOK)
+		serverutils.WriteJSONResponse(
+			w,
+			dto.NewOKResp(response),
+			http.StatusOK,
+		)
 	}
 }
 
 // SetPrimaryPhoneNumber sets the provided phone number as the primary phone of the profile associated with it
-func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		span := trace.SpanFromContext(ctx)
@@ -240,7 +250,11 @@ func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http
 			attribute.Any("response", response),
 		))
 
-		serverutils.WriteJSONResponse(w, dto.NewOKResp(response), http.StatusOK)
+		serverutils.WriteJSONResponse(
+			w,
+			dto.NewOKResp(response),
+			http.StatusOK,
+		)
 	}
 }
 
@@ -248,7 +262,9 @@ func (h *HandlersInterfacesImpl) SetPrimaryPhoneNumber(ctx context.Context) http
 // Collects a phonenumber and pin from the user and checks if the phonenumber
 // is an existing PRIMARY PHONENUMBER. If it does then it fetches the PIN that
 // belongs to the profile and returns auth credentials to allow the user to login
-func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) LoginByPhone(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		span := trace.SpanFromContext(ctx)
@@ -297,7 +313,9 @@ func (h *HandlersInterfacesImpl) LoginByPhone(ctx context.Context) http.HandlerF
 }
 
 // LoginAnonymous is an unauthenticated endpoint that returns only auth credentials for anonymous users
-func (h *HandlersInterfacesImpl) LoginAnonymous(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) LoginAnonymous(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		span := trace.SpanFromContext(ctx)
@@ -343,28 +361,25 @@ func (h *HandlersInterfacesImpl) LoginAnonymous(ctx context.Context) http.Handle
 
 // RequestPINReset is an unauthenticated request that takes in a phone number
 // sends an otp to an msisdn that requests a PIN reset request during login
-func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) RequestPINReset(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		span := trace.SpanFromContext(ctx)
-
-		p := &dto.PhoneNumberPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, p)
-
-		span.AddEvent("decode json payload to struct", trace.WithAttributes(
-			attribute.Any("payload", p),
-		))
-
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+		p, err := decodePhoneNumberPayload(w, r, span)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
 			return
 		}
 
-		otpResp, err := h.interactor.UserPIN.RequestPINReset(ctx, *p.PhoneNumber)
+		otpResp, err := h.interactor.UserPIN.RequestPINReset(
+			ctx,
+			*p.PhoneNumber,
+		)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
@@ -379,7 +394,9 @@ func (h *HandlersInterfacesImpl) RequestPINReset(ctx context.Context) http.Handl
 }
 
 // ResetPin used to change/update a user's PIN
-func (h *HandlersInterfacesImpl) ResetPin(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) ResetPin(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		span := trace.SpanFromContext(ctx)
@@ -393,7 +410,8 @@ func (h *HandlersInterfacesImpl) ResetPin(ctx context.Context) http.HandlerFunc 
 
 		if pin.PhoneNumber == "" || pin.PIN == "" || pin.OTP == "" {
 			err := fmt.Errorf(
-				"expected `phoneNumber`, `PIN` to be defined, `OTP` to be defined")
+				"expected `phoneNumber`, `PIN` to be defined, `OTP` to be defined",
+			)
 			serverutils.WriteJSONResponse(
 				w,
 				base.CustomError{
@@ -427,21 +445,15 @@ func (h *HandlersInterfacesImpl) ResetPin(ctx context.Context) http.HandlerFunc 
 // SendOTP is an unauthenticated request that takes in a phone number
 // and generates an OTP and sends a valid OTP to the phone number. This API will mostly be used
 // during account recovery workflow
-func (h *HandlersInterfacesImpl) SendOTP(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) SendOTP(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		span := trace.SpanFromContext(ctx)
-
-		payload := &dto.PhoneNumberPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-
-		span.AddEvent("decode json payload to struct", trace.WithAttributes(
-			attribute.Any("payload", payload),
-		))
-
-		if payload.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+		payload, err := decodePhoneNumberPayload(w, r, span)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -468,7 +480,9 @@ func (h *HandlersInterfacesImpl) SendOTP(ctx context.Context) http.HandlerFunc {
 // SendRetryOTP is an unauthenticated request that takes in a phone number
 // and a retry step (1 for sending an OTP via WhatsApp and 2 for Twilio Messages)
 // and generates and sends a valid OTP to the phone number
-func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) SendRetryOTP(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		span := trace.SpanFromContext(ctx)
@@ -481,7 +495,9 @@ func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerF
 		))
 
 		if retryPayload.Phone == nil || retryPayload.RetryStep == nil {
-			err := fmt.Errorf("expected `phoneNumber`, `retryStep` to be defined")
+			err := fmt.Errorf(
+				"expected `phoneNumber`, `retryStep` to be defined",
+			)
 			serverutils.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -511,7 +527,9 @@ func (h *HandlersInterfacesImpl) SendRetryOTP(ctx context.Context) http.HandlerF
 // takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func (h *HandlersInterfacesImpl) RefreshToken(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) RefreshToken(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		span := trace.SpanFromContext(ctx)
@@ -547,7 +565,9 @@ func (h *HandlersInterfacesImpl) RefreshToken(ctx context.Context) http.HandlerF
 }
 
 // FindSupplierByUID fetch supplier profile via REST
-func (h *HandlersInterfacesImpl) FindSupplierByUID(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) FindSupplierByUID(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		s, err := utils.ValidateUID(w, r)
 		if err != nil {
@@ -569,7 +589,11 @@ func (h *HandlersInterfacesImpl) FindSupplierByUID(ctx context.Context) http.Han
 
 		var supplier *base.Supplier
 		authCred := &auth.Token{UID: *s.UID}
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, authCred)
+		newContext := context.WithValue(
+			ctx,
+			base.AuthTokenContextKey,
+			authCred,
+		)
 		supplier, err = h.interactor.Supplier.FindSupplierByUID(newContext)
 		log.Printf("the supplier is %v", supplier)
 		log.Printf("the err is %v", err)
@@ -586,14 +610,14 @@ func (h *HandlersInterfacesImpl) FindSupplierByUID(ctx context.Context) http.Han
 // RemoveUserByPhoneNumber is an unauthenticated endpoint that removes a user
 // whose phone number, either PRIMARY PHONE NUMBER or SECONDARY PHONE NUMBERS,matches the provided
 // phone number in the request. This endpoint will ONLY be available under testing environment
-func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		p := &dto.PhoneNumberPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+		span := trace.SpanFromContext(ctx)
+		p, err := decodePhoneNumberPayload(w, r, span)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -616,10 +640,16 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) ht
 				}, http.StatusBadRequest)
 				return
 			}
-			serverutils.WriteJSONResponse(w, dto.OKResp{Status: "OK"}, http.StatusOK)
+			serverutils.WriteJSONResponse(
+				w,
+				dto.OKResp{Status: "OK"},
+				http.StatusOK,
+			)
 			return
 		}
-		err = fmt.Errorf("`phoneNumber` does not exist and not associated with any user ")
+		err = fmt.Errorf(
+			"`phoneNumber` does not exist and not associated with any user ",
+		)
 		serverutils.WriteJSONResponse(w, base.CustomError{
 			Err:     err,
 			Message: err.Error(),
@@ -628,7 +658,9 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(ctx context.Context) ht
 }
 
 // GetUserProfileByUID fetches and returns a user profile via REST ISC
-func (h *HandlersInterfacesImpl) GetUserProfileByUID(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) GetUserProfileByUID(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &dto.UIDPayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, p)
@@ -638,7 +670,10 @@ func (h *HandlersInterfacesImpl) GetUserProfileByUID(ctx context.Context) http.H
 			return
 		}
 
-		profile, err := h.interactor.Onboarding.GetUserProfileByUID(ctx, *p.UID)
+		profile, err := h.interactor.Onboarding.GetUserProfileByUID(
+			ctx,
+			*p.UID,
+		)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
@@ -650,7 +685,9 @@ func (h *HandlersInterfacesImpl) GetUserProfileByUID(ctx context.Context) http.H
 
 // RegisterPushToken adds a new push token in the users profile if the push token does not exist
 // via REST ISC
-func (h *HandlersInterfacesImpl) RegisterPushToken(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) RegisterPushToken(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := &dto.PushTokenPayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, t)
@@ -660,8 +697,15 @@ func (h *HandlersInterfacesImpl) RegisterPushToken(ctx context.Context) http.Han
 			return
 		}
 		authCred := &auth.Token{UID: t.UID}
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, authCred)
-		profile, err := h.interactor.Signup.RegisterPushToken(newContext, t.PushToken)
+		newContext := context.WithValue(
+			ctx,
+			base.AuthTokenContextKey,
+			authCred,
+		)
+		profile, err := h.interactor.Signup.RegisterPushToken(
+			newContext,
+			t.PushToken,
+		)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
 			return
@@ -673,7 +717,9 @@ func (h *HandlersInterfacesImpl) RegisterPushToken(ctx context.Context) http.Han
 
 // UpdateCovers is an unauthenticated ISC endpoint that updates the cover of
 // a given user given their UID and cover details
-func (h *HandlersInterfacesImpl) UpdateCovers(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) UpdateCovers(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &dto.UpdateCoversPayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, p)
@@ -740,7 +786,9 @@ func (h *HandlersInterfacesImpl) UpdateCovers(ctx context.Context) http.HandlerF
 // ProfileAttributes retreives confirmed user profile attributes.
 // These attributes include a user's verified phone numbers, verfied emails
 // and verified FCM push tokens
-func (h *HandlersInterfacesImpl) ProfileAttributes(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) ProfileAttributes(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		attribute, found := vars["attribute"]
@@ -777,14 +825,14 @@ func (h *HandlersInterfacesImpl) ProfileAttributes(ctx context.Context) http.Han
 // AddAdminPermsToUser is authenticated endpoint that adds admin permissions to a
 // whose phone number, either PRIMARY PHONE NUMBER or SECONDARY PHONE NUMBERS,matches
 // the provided phone number in the request.
-func (h *HandlersInterfacesImpl) AddAdminPermsToUser(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) AddAdminPermsToUser(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		p := &dto.PhoneNumberPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+		span := trace.SpanFromContext(ctx)
+		p, err := decodePhoneNumberPayload(w, r, span)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -807,10 +855,16 @@ func (h *HandlersInterfacesImpl) AddAdminPermsToUser(ctx context.Context) http.H
 				}, http.StatusBadRequest)
 				return
 			}
-			serverutils.WriteJSONResponse(w, dto.OKResp{Status: "OK"}, http.StatusOK)
+			serverutils.WriteJSONResponse(
+				w,
+				dto.OKResp{Status: "OK"},
+				http.StatusOK,
+			)
 			return
 		}
-		err = fmt.Errorf("`phoneNumber` does not exist and not associated with any user ")
+		err = fmt.Errorf(
+			"`phoneNumber` does not exist and not associated with any user ",
+		)
 		serverutils.WriteJSONResponse(w, base.CustomError{
 			Err:     err,
 			Message: err.Error(),
@@ -821,14 +875,14 @@ func (h *HandlersInterfacesImpl) AddAdminPermsToUser(ctx context.Context) http.H
 // RemoveAdminPermsToUser is authenticated endpoint that removes admin permissions to a
 // whose phone number, either PRIMARY PHONE NUMBER or SECONDARY PHONE NUMBERS,matches
 // the provided phone number in the request.
-func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		p := &dto.PhoneNumberPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+		span := trace.SpanFromContext(ctx)
+		p, err := decodePhoneNumberPayload(w, r, span)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -851,10 +905,16 @@ func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(ctx context.Context) htt
 				}, http.StatusBadRequest)
 				return
 			}
-			serverutils.WriteJSONResponse(w, dto.OKResp{Status: "OK"}, http.StatusOK)
+			serverutils.WriteJSONResponse(
+				w,
+				dto.OKResp{Status: "OK"},
+				http.StatusOK,
+			)
 			return
 		}
-		err = fmt.Errorf("`phoneNumber` does not exist and not associated with any user ")
+		err = fmt.Errorf(
+			"`phoneNumber` does not exist and not associated with any user ",
+		)
 		serverutils.WriteJSONResponse(w, base.CustomError{
 			Err:     err,
 			Message: err.Error(),
@@ -864,7 +924,9 @@ func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(ctx context.Context) htt
 
 // AddRoleToUser is authenticated endpoint that adds role and role based permissions to a user
 // whose PRIMARY PHONE NUMBER matches the provided phone number in the request.
-func (h *HandlersInterfacesImpl) AddRoleToUser(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) AddRoleToUser(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &dto.RolePayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, p)
@@ -884,7 +946,11 @@ func (h *HandlersInterfacesImpl) AddRoleToUser(ctx context.Context) http.Handler
 			}, http.StatusBadRequest)
 			return
 		}
-		err := h.interactor.Onboarding.AddRoleToUser(ctx, *p.PhoneNumber, *p.Role)
+		err := h.interactor.Onboarding.AddRoleToUser(
+			ctx,
+			*p.PhoneNumber,
+			*p.Role,
+		)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
@@ -892,25 +958,30 @@ func (h *HandlersInterfacesImpl) AddRoleToUser(ctx context.Context) http.Handler
 			}, http.StatusBadRequest)
 			return
 		}
-		serverutils.WriteJSONResponse(w, dto.OKResp{Status: "OK"}, http.StatusOK)
+		serverutils.WriteJSONResponse(
+			w,
+			dto.OKResp{Status: "OK"},
+			http.StatusOK,
+		)
 	}
 }
 
 // RemoveRoleToUser is authenticated endpoint that removes role and role based permissions to a user
 // whose PRIMARY PHONE NUMBER matches the provided phone number in the request.
-func (h *HandlersInterfacesImpl) RemoveRoleToUser(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) RemoveRoleToUser(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &dto.PhoneNumberPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
-			serverutils.WriteJSONResponse(w, base.CustomError{
+		span := trace.SpanFromContext(ctx)
+		p, err := decodePhoneNumberPayload(w, r, span)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
 			return
 		}
-		err := h.interactor.Onboarding.RemoveRoleToUser(ctx, *p.PhoneNumber)
+		err = h.interactor.Onboarding.RemoveRoleToUser(ctx, *p.PhoneNumber)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
@@ -918,12 +989,18 @@ func (h *HandlersInterfacesImpl) RemoveRoleToUser(ctx context.Context) http.Hand
 			}, http.StatusBadRequest)
 			return
 		}
-		serverutils.WriteJSONResponse(w, dto.OKResp{Status: "OK"}, http.StatusOK)
+		serverutils.WriteJSONResponse(
+			w,
+			dto.OKResp{Status: "OK"},
+			http.StatusOK,
+		)
 	}
 }
 
 // UpdateUserProfile is an unauthenticated REST endpoint to update a user's profile
-func (h *HandlersInterfacesImpl) UpdateUserProfile(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) UpdateUserProfile(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload := &dto.UserProfilePayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
@@ -936,7 +1013,11 @@ func (h *HandlersInterfacesImpl) UpdateUserProfile(ctx context.Context) http.Han
 			return
 		}
 		authCred := &auth.Token{UID: *payload.UID}
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, authCred)
+		newContext := context.WithValue(
+			ctx,
+			base.AuthTokenContextKey,
+			authCred,
+		)
 
 		userProfile, err := h.interactor.Signup.UpdateUserProfile(
 			newContext,
@@ -958,7 +1039,9 @@ func (h *HandlersInterfacesImpl) UpdateUserProfile(ctx context.Context) http.Han
 }
 
 // IncomingATSMS is an authenticated REST endpoint acting as a callback url for Africa's Talking incoming SMS
-func (h *HandlersInterfacesImpl) IncomingATSMS(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) IncomingATSMS(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		payload := &dto.AfricasTalkingMessage{}
@@ -1003,7 +1086,9 @@ func (h *HandlersInterfacesImpl) IncomingATSMS(ctx context.Context) http.Handler
 //To get the x-www-form-urlencoded request body we need to first call the below function on the request object
 //It parses the query string present in the URL and populates the Form field of the request object
 //https://golangbyexample.com/url-encoded-body-golang/
-func (h *HandlersInterfacesImpl) IncomingUSSDHandler(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) IncomingUSSDHandler(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &dto.SessionDetails{}
 
@@ -1022,18 +1107,22 @@ func (h *HandlersInterfacesImpl) IncomingUSSDHandler(ctx context.Context) http.H
 			base.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
-		resp := h.interactor.AITUSSD.HandleResponseFromUSSDGateway(ctx, sessionDetails)
+		resp := h.interactor.AITUSSD.HandleResponseFromUSSDGateway(
+			ctx,
+			sessionDetails,
+		)
 		fmt.Fprintf(w, "%s", resp)
 	}
 }
 
 // SwitchFlaggedFeaturesHandler flips the user as opt-in or opt-out to flagged features
-func (h *HandlersInterfacesImpl) SwitchFlaggedFeaturesHandler(ctx context.Context) http.HandlerFunc {
+func (h *HandlersInterfacesImpl) SwitchFlaggedFeaturesHandler(
+	ctx context.Context,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := &dto.PhoneNumberPayload{}
-		base.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf("expected `phoneNumber` to be defined")
+		span := trace.SpanFromContext(ctx)
+		p, err := decodePhoneNumberPayload(w, r, span)
+		if err != nil {
 			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -1041,7 +1130,10 @@ func (h *HandlersInterfacesImpl) SwitchFlaggedFeaturesHandler(ctx context.Contex
 			return
 		}
 
-		okRes, err := h.interactor.Onboarding.SwitchUserFlaggedFeatures(ctx, *p.PhoneNumber)
+		okRes, err := h.interactor.Onboarding.SwitchUserFlaggedFeatures(
+			ctx,
+			*p.PhoneNumber,
+		)
 		if err != nil {
 			base.WriteJSONResponse(w, base.CustomError{
 				Err:     err,
@@ -1051,5 +1143,38 @@ func (h *HandlersInterfacesImpl) SwitchFlaggedFeaturesHandler(ctx context.Contex
 		}
 		base.WriteJSONResponse(w, okRes, http.StatusOK)
 
+	}
+}
+
+// IsOptedOuted checks whether a phone number is opted out or not
+func (h *HandlersInterfacesImpl) IsOptedOuted(
+	ctx context.Context,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		span := trace.SpanFromContext(ctx)
+		payload, err := decodePhoneNumberPayload(w, r, span)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		optedOut, err := h.interactor.AITUSSD.IsOptedOuted(
+			ctx,
+			*payload.PhoneNumber,
+		)
+		if err != nil {
+			base.WriteJSONResponse(w, base.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+		resp := map[string]interface{}{
+			"opted_out": optedOut,
+		}
+
+		base.WriteJSONResponse(w, resp, http.StatusOK)
 	}
 }
