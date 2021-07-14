@@ -1,4 +1,7 @@
 extend type Query {
+  # dummy query is a temporary query used to force-create a new schema version on schema registry
+  dummyQuery: Boolean
+
   userProfile: UserProfile!
 
   supplierProfile: Supplier!

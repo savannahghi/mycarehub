@@ -462,6 +462,11 @@ func (r *mutationResolver) DeleteFavoriteNavAction(ctx context.Context, title st
 	return success, err
 }
 
+func (r *queryResolver) DummyQuery(ctx context.Context) (*bool, error) {
+	dummy := true
+	return &dummy, nil
+}
+
 func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(

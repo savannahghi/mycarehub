@@ -412,6 +412,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		CheckSupplierKYCSubmitted     func(childComplexity int) int
+		DummyQuery                    func(childComplexity int) int
 		FetchAdmins                   func(childComplexity int) int
 		FetchAgents                   func(childComplexity int) int
 		FetchKYCProcessingRequests    func(childComplexity int) int
@@ -572,6 +573,7 @@ type MutationResolver interface {
 	DeleteFavoriteNavAction(ctx context.Context, title string) (bool, error)
 }
 type QueryResolver interface {
+	DummyQuery(ctx context.Context) (*bool, error)
 	UserProfile(ctx context.Context) (*base.UserProfile, error)
 	SupplierProfile(ctx context.Context) (*base.Supplier, error)
 	ResumeWithPin(ctx context.Context, pin string) (bool, error)
@@ -2581,6 +2583,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.CheckSupplierKYCSubmitted(childComplexity), true
 
+	case "Query.dummyQuery":
+		if e.complexity.Query.DummyQuery == nil {
+			break
+		}
+
+		return e.complexity.Query.DummyQuery(childComplexity), true
+
 	case "Query.fetchAdmins":
 		if e.complexity.Query.FetchAdmins == nil {
 			break
@@ -3805,6 +3814,9 @@ input RegisterAgentInput {
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
+  # dummy query is a temporary query used to force-create a new schema version on schema registry
+  dummyQuery: Boolean
+
   userProfile: UserProfile!
 
   supplierProfile: Supplier!
@@ -14168,6 +14180,38 @@ func (ec *executionContext) _PayablesAccount_description(ctx context.Context, fi
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_dummyQuery(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DummyQuery(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_userProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -21585,6 +21629,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "dummyQuery":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_dummyQuery(ctx, field)
+				return res
+			})
 		case "userProfile":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
