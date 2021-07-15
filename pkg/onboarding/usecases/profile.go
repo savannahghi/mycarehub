@@ -6,12 +6,14 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"firebase.google.com/go/auth"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization/permission"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/cenkalti/backoff"
 	"github.com/savannahghi/errorcodeutil"
@@ -1058,9 +1060,17 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 	// we need to `Resolve` the nudge for this user in both flavours
 	// Resolve the nudge in `CONSUMER`
 	go func() {
+		s := trace.SpanContextFromContext(ctx)
+		newctx := trace.ContextWithSpanContext(context.Background(), s)
+
+		// releases resources
+		newctx, cancel := context.WithTimeout(newctx, time.Duration(5*time.Minute))
+		defer cancel()
+
+		b := backoff.WithContext(backoff.NewExponentialBackOff(), newctx)
 		cons := func() error {
 			return p.engagement.ResolveDefaultNudgeByTitle(
-				ctx,
+				newctx,
 				UID,
 				base.FlavourConsumer,
 				VerifyEmailNudgeTitle,
@@ -1068,16 +1078,24 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 		}
 		if err := backoff.Retry(
 			cons,
-			backoff.NewExponentialBackOff(),
+			b,
 		); err != nil {
 			logrus.Error(err)
 		}
 	}()
 
 	go func() {
+		s := trace.SpanContextFromContext(ctx)
+		newctx := trace.ContextWithSpanContext(context.Background(), s)
+
+		// releases resources
+		newctx, cancel := context.WithTimeout(newctx, time.Duration(5*time.Minute))
+		defer cancel()
+
+		b := backoff.WithContext(backoff.NewExponentialBackOff(), newctx)
 		pro := func() error {
 			return p.engagement.ResolveDefaultNudgeByTitle(
-				ctx,
+				newctx,
 				UID,
 				base.FlavourPro,
 				VerifyEmailNudgeTitle,
@@ -1085,7 +1103,7 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 		}
 		if err := backoff.Retry(
 			pro,
-			backoff.NewExponentialBackOff(),
+			b,
 		); err != nil {
 			logrus.Error(err)
 		}
