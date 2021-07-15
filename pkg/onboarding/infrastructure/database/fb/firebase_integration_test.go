@@ -53,6 +53,10 @@ func TestMain(m *testing.M) {
 	os.Setenv("DEBUG", "true")
 	os.Setenv("REPOSITORY", "firebase")
 	collectionEnvValue := os.Getenv("ROOT_COLLECTION_SUFFIX")
+
+	// !NOTE!
+	// Under no circumstances should you remove this env var when testing
+	// You risk purging important collections, like our prod collections
 	os.Setenv("ROOT_COLLECTION_SUFFIX", fmt.Sprintf("onboarding_ci_%v", time.Now().Unix()))
 	ctx := context.Background()
 	r := fb.Repository{} // They are nil
@@ -71,6 +75,16 @@ func TestMain(m *testing.M) {
 			r.GetUserProfileCollectionName(),
 			r.GetSupplierProfileCollectionName(),
 			r.GetSurveyCollectionName(),
+			r.GetCRMStagingCollectionName(),
+			r.GetCommunicationsSettingsCollectionName(),
+			r.GetCustomerProfileCollectionName(),
+			r.GetExperimentParticipantCollectionName(),
+			r.GetKCYProcessCollectionName(),
+			r.GetMarketingDataCollectionName(),
+			r.GetNHIFDetailsCollectionName(),
+			r.GetProfileNudgesCollectionName(),
+			r.GetSMSCollectionName(),
+			r.GetUSSDCollectionName(),
 		}
 		for _, collection := range collections {
 			ref := fsc.Collection(collection)

@@ -13,6 +13,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/pubsub"
@@ -413,7 +414,10 @@ func getGraphHeaders(idToken string) map[string]string {
 func TestMain(m *testing.M) {
 	// setup
 	os.Setenv("ENVIRONMENT", "staging")
-	os.Setenv("ROOT_COLLECTION_SUFFIX", "onboarding_testing")
+	// !NOTE!
+	// Under no circumstances should you remove this env var when testing
+	// You risk purging important collections, like our prod collections
+	os.Setenv("ROOT_COLLECTION_SUFFIX", fmt.Sprintf("onboarding_acceptance_tests_%v", time.Now().Unix()))
 	os.Setenv("REPOSITORY", "firebase")
 
 	ctx := context.Background()
@@ -437,7 +441,16 @@ func TestMain(m *testing.M) {
 				r.GetUserProfileCollectionName(),
 				r.GetSupplierProfileCollectionName(),
 				r.GetSurveyCollectionName(),
+				r.GetCRMStagingCollectionName(),
+				r.GetCommunicationsSettingsCollectionName(),
+				r.GetCustomerProfileCollectionName(),
+				r.GetExperimentParticipantCollectionName(),
 				r.GetKCYProcessCollectionName(),
+				r.GetMarketingDataCollectionName(),
+				r.GetNHIFDetailsCollectionName(),
+				r.GetProfileNudgesCollectionName(),
+				r.GetSMSCollectionName(),
+				r.GetUSSDCollectionName(),
 			}
 			for _, collection := range collections {
 				ref := fsc.Collection(collection)
