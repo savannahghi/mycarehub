@@ -56,7 +56,10 @@ func NewAgentUseCases(
 }
 
 // RegisterAgent creates a new Agent in bewell
-func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error) {
+func (a *AgentUseCaseImpl) RegisterAgent(
+	ctx context.Context,
+	input dto.RegisterAgentInput,
+) (*base.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "RegisterAgent")
 	defer span.End()
 
@@ -81,7 +84,9 @@ func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.Register
 	}
 
 	if !usp.HasPermission(base.PermissionTypeRegisterAgent) {
-		return nil, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to create agent"))
+		return nil, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to create agent"),
+		)
 	}
 
 	timestamp := time.Now().In(base.TimeLocation)
@@ -158,7 +163,12 @@ func (a *AgentUseCaseImpl) RegisterAgent(ctx context.Context, input dto.Register
 	return profile, nil
 }
 
-func (a *AgentUseCaseImpl) notifyNewAgent(ctx context.Context, emails []string, phoneNumbers []string, name, otp string) error {
+func (a *AgentUseCaseImpl) notifyNewAgent(
+	ctx context.Context,
+	emails []string,
+	phoneNumbers []string,
+	name, otp string,
+) error {
 	type pin struct {
 		Name string
 		Pin  string
@@ -171,7 +181,11 @@ func (a *AgentUseCaseImpl) notifyNewAgent(ctx context.Context, emails []string, 
 		log.Fatalf("error while generating agent approval email template: %s", err)
 	}
 
-	message := fmt.Sprintf("%sPlease use this One Time PIN: %s to log onto Bewell with your phone number", agentWelcomeMessage, otp)
+	message := fmt.Sprintf(
+		"%sPlease use this One Time PIN: %s to log onto Bewell with your phone number. You will be prompted to change the PIN on login.",
+		agentWelcomeMessage,
+		otp,
+	)
 	if err := a.engagement.SendSMS(ctx, phoneNumbers, message); err != nil {
 		return fmt.Errorf("unable to send agent registration message: %w", err)
 	}
@@ -205,7 +219,9 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, agentID string) (b
 	}
 
 	if !usp.HasPermission(base.PermissionTypeUnsuspendAgent) {
-		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to activate agent"))
+		return false, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to activate agent"),
+		)
 	}
 
 	agent, err := a.repo.GetUserProfileByID(ctx, agentID, true)
@@ -240,7 +256,9 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) 
 	}
 
 	if !usp.HasPermission(base.PermissionTypeSuspendAgent) {
-		return false, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to suspend agent"))
+		return false, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to suspend agent"),
+		)
 	}
 
 	// Get agent profile using phoneNumber
@@ -295,7 +313,10 @@ func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error
 }
 
 // FindAgentbyPhone is used to find an agent using their phone number
-func (a *AgentUseCaseImpl) FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error) {
+func (a *AgentUseCaseImpl) FindAgentbyPhone(
+	ctx context.Context,
+	phoneNumber *string,
+) (*dto.Agent, error) {
 	ctx, span := tracer.Start(ctx, "FindAgentbyPhone")
 	defer span.End()
 
@@ -308,7 +329,7 @@ func (a *AgentUseCaseImpl) FindAgentbyPhone(ctx context.Context, phoneNumber *st
 	profile, err := a.repo.GetUserProfileByPhoneNumber(ctx, *phoneNumber, false)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, err
+		return nil, exceptions.AgentNotFoundError(err)
 	}
 
 	agent := dto.Agent{

@@ -795,7 +795,11 @@ func (p *ProfileUseCaseImpl) RemoveAdminPermsToUser(ctx context.Context, phone s
 }
 
 // AddRoleToUser updates the profiles role and permissions
-func (p *ProfileUseCaseImpl) AddRoleToUser(ctx context.Context, phone string, role base.RoleType) error {
+func (p *ProfileUseCaseImpl) AddRoleToUser(
+	ctx context.Context,
+	phone string,
+	role base.RoleType,
+) error {
 	ctx, span := tracer.Start(ctx, "AddRoleToUser")
 	defer span.End()
 
@@ -969,7 +973,11 @@ func (p *ProfileUseCaseImpl) SetPrimaryPhoneNumber(
 }
 
 //SetOptOut toggles the optout attribute to yes or no enabling the crm to stop or start sending promotional messages
-func (p *ProfileUseCaseImpl) SetOptOut(ctx context.Context, option string, phoneNumber string) error {
+func (p *ProfileUseCaseImpl) SetOptOut(
+	ctx context.Context,
+	option string,
+	phoneNumber string,
+) error {
 	ctx, span := tracer.Start(ctx, "SetOptOut")
 	defer span.End()
 
@@ -1143,7 +1151,9 @@ func (p *ProfileUseCaseImpl) RetireSecondaryPhoneNumbers(
 		index, exists := utils.FindItem(secondaryPhoneNumbers, phoneNo)
 		if exists {
 			// remove the passed number from the list of secondary numbers
-			secondaryPhoneNumbers = append(secondaryPhoneNumbers[:index], secondaryPhoneNumbers[index+1:]...)
+			secondaryPhoneNumbers = append(
+				secondaryPhoneNumbers[:index],
+				secondaryPhoneNumbers[index+1:]...)
 		} else {
 			return false, exceptions.RecordDoesNotExistError(fmt.Errorf("record does not exist"))
 		}
@@ -1551,7 +1561,10 @@ func (p *ProfileUseCaseImpl) SetUserCommunicationsSettings(
 }
 
 // GetNavActions Generates and returns the navigation actions for a user based on their role
-func (p *ProfileUseCaseImpl) GetNavActions(ctx context.Context, user base.UserProfile) (*base.NavigationActions, error) {
+func (p *ProfileUseCaseImpl) GetNavActions(
+	ctx context.Context,
+	user base.UserProfile,
+) (*base.NavigationActions, error) {
 	ctx, span := tracer.Start(ctx, "GetNavActions")
 	defer span.End()
 
@@ -1604,7 +1617,9 @@ func (p *ProfileUseCaseImpl) GetNavActions(ctx context.Context, user base.UserPr
 }
 
 //GenerateEmployeeNavActions generates the navigation actions for a SIL employee
-func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (base.NavigationActions, error) {
+func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(
+	ctx context.Context,
+) (base.NavigationActions, error) {
 
 	actions := base.NavigationActions{
 		Primary: []base.NavAction{
@@ -1683,7 +1698,7 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (ba
 					},
 					{
 						Title:      common.AgentIdentificationActionTitle,
-						OnTapRoute: "",
+						OnTapRoute: common.AgentIdentificationRoute,
 					},
 				},
 			},
@@ -1731,7 +1746,9 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(ctx context.Context) (ba
 }
 
 //GenerateAgentNavActions generates the navigation actions for a SIL employee
-func (p *ProfileUseCaseImpl) GenerateAgentNavActions(ctx context.Context) (base.NavigationActions, error) {
+func (p *ProfileUseCaseImpl) GenerateAgentNavActions(
+	ctx context.Context,
+) (base.NavigationActions, error) {
 	actions := base.NavigationActions{
 		Primary: []base.NavAction{
 			{
@@ -1792,7 +1809,9 @@ func (p *ProfileUseCaseImpl) GenerateAgentNavActions(ctx context.Context) (base.
 }
 
 //GenerateDefaultNavActions generates the navigation actions for a SIL employee
-func (p *ProfileUseCaseImpl) GenerateDefaultNavActions(ctx context.Context) (base.NavigationActions, error) {
+func (p *ProfileUseCaseImpl) GenerateDefaultNavActions(
+	ctx context.Context,
+) (base.NavigationActions, error) {
 	actions := base.NavigationActions{
 		Primary: []base.NavAction{
 			{
@@ -1828,7 +1847,10 @@ func (p *ProfileUseCaseImpl) GenerateDefaultNavActions(ctx context.Context) (bas
 }
 
 // SaveFavoriteNavActions  saves the users favorite navigation actions
-func (p *ProfileUseCaseImpl) SaveFavoriteNavActions(ctx context.Context, title string) (bool, error) {
+func (p *ProfileUseCaseImpl) SaveFavoriteNavActions(
+	ctx context.Context,
+	title string,
+) (bool, error) {
 	userinfo, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
 		return false, exceptions.ProfileNotFoundError(err)
@@ -1846,7 +1868,9 @@ func (p *ProfileUseCaseImpl) SaveFavoriteNavActions(ctx context.Context, title s
 	}
 
 	if len(favActions) != len(user.FavNavActions)+1 {
-		return false, exceptions.NavigationActionsError(fmt.Errorf("failed to add user favorite actions"))
+		return false, exceptions.NavigationActionsError(
+			fmt.Errorf("failed to add user favorite actions"),
+		)
 	}
 
 	err = p.onboardingRepository.UpdateFavNavActions(ctx, user.ID, favActions)
@@ -1857,7 +1881,10 @@ func (p *ProfileUseCaseImpl) SaveFavoriteNavActions(ctx context.Context, title s
 }
 
 // DeleteFavoriteNavActions  removes a booked marked navigation action from user profile
-func (p *ProfileUseCaseImpl) DeleteFavoriteNavActions(ctx context.Context, title string) (bool, error) {
+func (p *ProfileUseCaseImpl) DeleteFavoriteNavActions(
+	ctx context.Context,
+	title string,
+) (bool, error) {
 	userinfo, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
 		return false, exceptions.ProfileNotFoundError(err)
@@ -1876,7 +1903,9 @@ func (p *ProfileUseCaseImpl) DeleteFavoriteNavActions(ctx context.Context, title
 	}
 
 	if len(favActions) != len(user.FavNavActions)-1 {
-		return false, exceptions.NavigationActionsError(fmt.Errorf("failed to remove user favorite actions"))
+		return false, exceptions.NavigationActionsError(
+			fmt.Errorf("failed to remove user favorite actions"),
+		)
 	}
 
 	err = p.onboardingRepository.UpdateFavNavActions(ctx, user.ID, favActions)
@@ -1887,7 +1916,9 @@ func (p *ProfileUseCaseImpl) DeleteFavoriteNavActions(ctx context.Context, title
 }
 
 // RefreshNavigationActions gets user navigation actions only
-func (p *ProfileUseCaseImpl) RefreshNavigationActions(ctx context.Context) (*base.NavigationActions, error) {
+func (p *ProfileUseCaseImpl) RefreshNavigationActions(
+	ctx context.Context,
+) (*base.NavigationActions, error) {
 	user, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
 		return nil, exceptions.UserNotFoundError(err)
@@ -1900,20 +1931,27 @@ func (p *ProfileUseCaseImpl) RefreshNavigationActions(ctx context.Context) (*bas
 
 	navAction, err := p.GetNavActions(ctx, *profile)
 	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("failed to get user navigation actions"))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("failed to get user navigation actions"),
+		)
 	}
 	return navAction, nil
 }
 
 // SwitchUserFlaggedFeatures flips the user as opt-in or opt-out to flagged features
 // once flipped the, frontend will receive an updated user profile when the person logs in again
-func (p *ProfileUseCaseImpl) SwitchUserFlaggedFeatures(ctx context.Context, phoneNumber string) (*dto.OKResp, error) {
+func (p *ProfileUseCaseImpl) SwitchUserFlaggedFeatures(
+	ctx context.Context,
+	phoneNumber string,
+) (*dto.OKResp, error) {
 	ctx, span := tracer.Start(ctx, "SwitchUserFlaggedFeatures")
 	defer span.End()
 
 	profile, err := p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber, false)
 	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("failed to get user with provider phone number"))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("failed to get user with provider phone number"),
+		)
 	}
 
 	authenticatedContext := context.WithValue(
@@ -1926,7 +1964,9 @@ func (p *ProfileUseCaseImpl) SwitchUserFlaggedFeatures(ctx context.Context, phon
 
 	canExperiment, err := p.onboardingRepository.CheckIfExperimentParticipant(ctx, profile.ID)
 	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("failed to get user with provider phone number"))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("failed to get user with provider phone number"),
+		)
 	}
 
 	// switch to the opposite
@@ -1934,7 +1974,9 @@ func (p *ProfileUseCaseImpl) SwitchUserFlaggedFeatures(ctx context.Context, phon
 
 	_, err = p.SetupAsExperimentParticipant(authenticatedContext, &v)
 	if err != nil {
-		return nil, exceptions.InternalServerError(fmt.Errorf("failed to get user with provider phone number"))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("failed to get user with provider phone number"),
+		)
 	}
 
 	return &dto.OKResp{Status: "SUCCESS", Response: struct {
