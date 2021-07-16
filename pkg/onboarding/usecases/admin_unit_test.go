@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/savannahghi/firebasetools"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -34,8 +35,8 @@ func TestAdminUseCaseImpl_RegisterAdmin(t *testing.T) {
 		FirstName:   fName,
 		LastName:    lName,
 		Gender:      base.GenderMale,
-		PhoneNumber: base.TestUserEmail,
-		Email:       base.TestUserEmail,
+		PhoneNumber: firebasetools.TestUserEmail,
+		Email:       firebasetools.TestUserEmail,
 		DateOfBirth: dob,
 	}
 
@@ -816,12 +817,12 @@ func TestAdminUseCaseImpl_FetchAdmins(t *testing.T) {
 				{
 					ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 					PrimaryPhone:        base.TestUserPhoneNumber,
-					PrimaryEmailAddress: base.TestUserEmail,
+					PrimaryEmailAddress: firebasetools.TestUserEmail,
 				},
 				{
 					ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					PrimaryPhone:        base.TestUserPhoneNumber,
-					PrimaryEmailAddress: base.TestUserEmail,
+					PrimaryEmailAddress: firebasetools.TestUserEmail,
 				},
 			},
 			wantErr: false,
@@ -848,7 +849,7 @@ func TestAdminUseCaseImpl_FetchAdmins(t *testing.T) {
 			if tt.name == "success:_non_empty_list_of_user_admins" {
 				fakeRepo.ListUserProfilesFn = func(ctx context.Context, role base.RoleType) ([]*base.UserProfile, error) {
 					p := base.TestUserPhoneNumber
-					e := base.TestUserEmail
+					e := firebasetools.TestUserEmail
 					s := []*base.UserProfile{
 						{
 							ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
@@ -74,8 +75,8 @@ type BaseExtension interface {
 	VerifyPubSubJWTAndDecodePayload(
 		w http.ResponseWriter,
 		r *http.Request,
-	) (*base.PubSubPayload, error)
-	GetPubSubTopic(m *base.PubSubPayload) (string, error)
+	) (*pubsubtools.PubSubPayload, error)
+	GetPubSubTopic(m *pubsubtools.PubSubPayload) (string, error)
 	ErrorMap(err error) map[string]string
 	WriteJSONResponse(
 		w http.ResponseWriter,
@@ -215,7 +216,7 @@ func (b *BaseExtensionImpl) EnsureTopicsExist(
 	pubsubClient *pubsub.Client,
 	topicIDs []string,
 ) error {
-	return base.EnsureTopicsExist(ctx, pubsubClient, topicIDs)
+	return pubsubtools.EnsureTopicsExist(ctx, pubsubClient, topicIDs)
 }
 
 // GetRunningEnvironment returns the environment wheere the service is running. Importannt
@@ -233,7 +234,7 @@ func (b *BaseExtensionImpl) NamespacePubsubIdentifier(
 	environment string,
 	version string,
 ) string {
-	return base.NamespacePubsubIdentifier(
+	return pubsubtools.NamespacePubsubIdentifier(
 		serviceName,
 		topicID,
 		environment,
@@ -251,7 +252,7 @@ func (b *BaseExtensionImpl) PublishToPubsub(
 	version string,
 	payload []byte,
 ) error {
-	return base.PublishToPubsub(
+	return pubsubtools.PublishToPubsub(
 		ctx,
 		pubsubClient,
 		topicID,
@@ -275,7 +276,7 @@ func (b *BaseExtensionImpl) EnsureSubscriptionsExist(
 	topicSubscriptionMap map[string]string,
 	callbackURL string,
 ) error {
-	return base.EnsureSubscriptionsExist(
+	return pubsubtools.EnsureSubscriptionsExist(
 		ctx,
 		pubsubClient,
 		topicSubscriptionMap,
@@ -285,12 +286,12 @@ func (b *BaseExtensionImpl) EnsureSubscriptionsExist(
 
 // SubscriptionIDs returns a map of topic IDs to subscription IDs
 func (b *BaseExtensionImpl) SubscriptionIDs(topicIDs []string) map[string]string {
-	return base.SubscriptionIDs(topicIDs)
+	return pubsubtools.SubscriptionIDs(topicIDs)
 }
 
 // PubSubHandlerPath returns pubsub hander path `/pubsub`
 func (b *BaseExtensionImpl) PubSubHandlerPath() string {
-	return base.PubSubHandlerPath
+	return pubsubtools.PubSubHandlerPath
 }
 
 // VerifyPubSubJWTAndDecodePayload confirms that there is a valid Google signed
@@ -301,16 +302,16 @@ func (b *BaseExtensionImpl) PubSubHandlerPath() string {
 func (b *BaseExtensionImpl) VerifyPubSubJWTAndDecodePayload(
 	w http.ResponseWriter,
 	r *http.Request,
-) (*base.PubSubPayload, error) {
-	return base.VerifyPubSubJWTAndDecodePayload(
+) (*pubsubtools.PubSubPayload, error) {
+	return pubsubtools.VerifyPubSubJWTAndDecodePayload(
 		w,
 		r,
 	)
 }
 
 // GetPubSubTopic retrieves a pubsub topic from a pubsub payload.
-func (b *BaseExtensionImpl) GetPubSubTopic(m *base.PubSubPayload) (string, error) {
-	return base.GetPubSubTopic(m)
+func (b *BaseExtensionImpl) GetPubSubTopic(m *pubsubtools.PubSubPayload) (string, error) {
+	return pubsubtools.GetPubSubTopic(m)
 }
 
 // WriteJSONResponse writes the content supplied via the `source` parameter to

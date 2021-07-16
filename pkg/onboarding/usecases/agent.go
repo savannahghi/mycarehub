@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/savannahghi/pubsubtools"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -89,7 +90,7 @@ func (a *AgentUseCaseImpl) RegisterAgent(
 		)
 	}
 
-	timestamp := time.Now().In(base.TimeLocation)
+	timestamp := time.Now().In(pubsubtools.TimeLocation)
 	agentProfile := base.UserProfile{
 		PrimaryEmailAddress: &input.Email,
 		UserBioData: base.BioData{

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/firebasetools"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -1126,7 +1127,7 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 	supplierName := "Akaku Danger"
 	subjectTitle := "Suspension from Be.Well"
 	emailBody := suspensionReason
-	emailAddress := base.TestUserEmail
+	emailAddress := firebasetools.TestUserEmail
 	primaryPhone := base.TestUserPhoneNumber
 	validInput := dto.EmailNotificationPayload{
 		SupplierName: supplierName,
@@ -1229,7 +1230,7 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 		AccountType:  "INDIVIDUAL",
 		SubjectTitle: "Test Subject Title",
 		EmailBody:    "This is the test email body",
-		EmailAddress: base.TestUserEmail,
+		EmailAddress: firebasetools.TestUserEmail,
 		PrimaryPhone: base.TestUserPhoneNumber,
 	}
 
@@ -1307,7 +1308,7 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 		AccountType:  "INDIVIDUAL",
 		SubjectTitle: "Test Subject Title",
 		EmailBody:    "This is the test email body",
-		EmailAddress: base.TestUserEmail,
+		EmailAddress: firebasetools.TestUserEmail,
 		PrimaryPhone: base.TestUserPhoneNumber,
 	}
 

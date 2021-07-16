@@ -9,6 +9,7 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
+	"github.com/savannahghi/firebasetools"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
@@ -2042,7 +2043,7 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 		{
 			name: "sad :( adding an already existent email addresses",
 			args: args{
-				emailAddresses: []string{base.TestUserEmail},
+				emailAddresses: []string{firebasetools.TestUserEmail},
 			},
 			want:    false,
 			wantErr: true,
@@ -2113,7 +2114,7 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 					return
 				}
 
-				err = p.Onboarding.UpdatePrimaryEmailAddress(ctx, base.TestUserEmail)
+				err = p.Onboarding.UpdatePrimaryEmailAddress(ctx, firebasetools.TestUserEmail)
 				if err != nil {
 					t.Errorf("unable to set primary email address: %v", err)
 					return

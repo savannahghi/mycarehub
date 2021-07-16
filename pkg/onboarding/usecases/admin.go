@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/savannahghi/pubsubtools"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -81,7 +82,7 @@ func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.Register
 		return nil, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to create admin"))
 	}
 
-	timestamp := time.Now().In(base.TimeLocation)
+	timestamp := time.Now().In(pubsubtools.TimeLocation)
 	adminProfile := base.UserProfile{
 		PrimaryEmailAddress: &input.Email,
 		UserBioData: base.BioData{

@@ -17,6 +17,7 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
@@ -271,7 +272,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 		VerifiedIdentifiers: []base.VerifiedIdentifier{{
 			UID:           uid,
 			LoginProvider: base.LoginProviderTypePhone,
-			Timestamp:     time.Now().In(base.TimeLocation),
+			Timestamp:     time.Now().In(pubsubtools.TimeLocation),
 		}},
 		VerifiedUIDS:  []string{uid},
 		TermsAccepted: true,
@@ -335,7 +336,7 @@ func (fr *Repository) CreateDetailedUserProfile(ctx context.Context, phoneNumber
 	phoneIdentifier := base.VerifiedIdentifier{
 		UID:           user.UID,
 		LoginProvider: base.LoginProviderTypePhone,
-		Timestamp:     time.Now().In(base.TimeLocation),
+		Timestamp:     time.Now().In(pubsubtools.TimeLocation),
 	}
 
 	profile.VerifiedIdentifiers = append(profile.VerifiedIdentifiers, phoneIdentifier)
@@ -774,7 +775,7 @@ func (fr *Repository) GenerateAuthCredentials(
 	if err := fr.UpdateVerifiedIdentifiers(ctx, profile.ID, []base.VerifiedIdentifier{{
 		UID:           resp.UID,
 		LoginProvider: base.LoginProviderTypePhone,
-		Timestamp:     time.Now().In(base.TimeLocation),
+		Timestamp:     time.Now().In(pubsubtools.TimeLocation),
 	}}); err != nil {
 		return nil, exceptions.UpdateProfileError(err)
 	}

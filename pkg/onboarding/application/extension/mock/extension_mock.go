@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/savannahghi/pubsubtools"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
@@ -67,8 +68,8 @@ type FakeBaseExtensionImpl struct {
 	VerifyPubSubJWTAndDecodePayloadFn func(
 		w http.ResponseWriter,
 		r *http.Request,
-	) (*base.PubSubPayload, error)
-	GetPubSubTopicFn    func(m *base.PubSubPayload) (string, error)
+	) (*pubsubtools.PubSubPayload, error)
+	GetPubSubTopicFn    func(m *pubsubtools.PubSubPayload) (string, error)
 	ErrorMapFn          func(err error) map[string]string
 	WriteJSONResponseFn func(
 		w http.ResponseWriter,
@@ -247,12 +248,12 @@ func (b *FakeBaseExtensionImpl) PubSubHandlerPath() string {
 func (b *FakeBaseExtensionImpl) VerifyPubSubJWTAndDecodePayload(
 	w http.ResponseWriter,
 	r *http.Request,
-) (*base.PubSubPayload, error) {
+) (*pubsubtools.PubSubPayload, error) {
 	return b.VerifyPubSubJWTAndDecodePayloadFn(w, r)
 }
 
 // GetPubSubTopic ..
-func (b *FakeBaseExtensionImpl) GetPubSubTopic(m *base.PubSubPayload) (string, error) {
+func (b *FakeBaseExtensionImpl) GetPubSubTopic(m *pubsubtools.PubSubPayload) (string, error) {
 	return b.GetPubSubTopicFn(m)
 }
 

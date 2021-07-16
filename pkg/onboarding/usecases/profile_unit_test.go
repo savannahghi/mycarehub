@@ -7,6 +7,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/firebasetools"
 	"github.com/segmentio/ksuid"
 	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
@@ -177,7 +178,7 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					email := base.TestUserEmail
+					email := firebasetools.TestUserEmail
 					return &base.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &email,
