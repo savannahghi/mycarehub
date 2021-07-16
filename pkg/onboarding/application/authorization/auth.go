@@ -9,9 +9,8 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
-	"gitlab.slade360emr.com/go/base"
-
 	"github.com/casbin/casbin/v2"
+	"github.com/savannahghi/converterandformatter"
 )
 
 var (
@@ -69,10 +68,10 @@ func CheckAuthorization(subject string, permission dto.PermissionInput) (bool, e
 // have access by default.
 // for subjects identified by their phone number normalize the phone and omit the first (+) character
 func IsAuthorized(user *dto.UserInfo, permission dto.PermissionInput) (bool, error) {
-	if user.PhoneNumber != "" && base.StringSliceContains(common.AuthorizedPhones, user.PhoneNumber) {
+	if user.PhoneNumber != "" && converterandformatter.StringSliceContains(common.AuthorizedPhones, user.PhoneNumber) {
 		return CheckAuthorization(user.PhoneNumber[1:], permission)
 	}
-	if user.Email != "" && base.StringSliceContains(common.AuthorizedEmails, user.Email) {
+	if user.Email != "" && converterandformatter.StringSliceContains(common.AuthorizedEmails, user.Email) {
 		return CheckAuthorization(user.Email, permission)
 
 	}

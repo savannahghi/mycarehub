@@ -16,6 +16,7 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
+	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/serverutils"
 	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/base"
@@ -1530,7 +1531,7 @@ func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []
 			return err
 		}
 
-		if !base.StringSliceContains(profile.VerifiedUIDS, uid) {
+		if !converterandformatter.StringSliceContains(profile.VerifiedUIDS, uid) {
 			uids := []string{}
 
 			uids = append(uids, uid)

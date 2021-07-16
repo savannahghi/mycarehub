@@ -3,7 +3,7 @@ package ussd
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/converterandformatter"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -47,7 +47,7 @@ func (u *Impl) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetai
 	ctx, span := tracer.Start(ctx, "AddAITSessionDetails")
 	defer span.End()
 
-	phone, err := base.NormalizeMSISDN(*input.PhoneNumber)
+	phone, err := converterandformatter.NormalizeMSISDN(*input.PhoneNumber)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.NormalizeMSISDNError(err)

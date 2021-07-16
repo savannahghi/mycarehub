@@ -175,6 +175,8 @@ github.com/gobwas/httphead v0.0.0-20180130184737-2c6c146eadee/go.mod h1:L0fX3K22
 github.com/gobwas/pool v0.2.0/go.mod h1:q8bcK0KcYlCgd9e7WYLm9LpyS+YeLd8JVDW6WezmKEw=
 github.com/gobwas/ws v1.0.2/go.mod h1:szmBTxLgaFppYjEmNtny/v3w89xOydFnnZMcgRRu/EM=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
+github.com/gofrs/uuid v4.0.0+incompatible h1:1SD/1F5pU8p29ybwgQSwpQk+mwdRrXCYuPhW6m+TnJw=
+github.com/gofrs/uuid v4.0.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
 github.com/gogo/protobuf v1.0.0/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.3.2/go.mod h1:P1XiOD3dCwIKUDQYPy72D8LYyHL2YPYrpS2s69NZV8Q=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
@@ -406,8 +408,14 @@ github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/ryanuber/columnize v2.1.0+incompatible/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
+github.com/savannahghi/converterandformatter v0.0.3 h1:wRUC/Mv1tLfVbbMlatZj9/5du2C51b816NVJhtY8KW4=
+github.com/savannahghi/converterandformatter v0.0.3/go.mod h1:0o7yieYU10WabPqKuqj+5QL52eTL1eGElxjb+A68bbA=
+github.com/savannahghi/enumutils v0.0.0-20210622094023-d347744e1825 h1:fsQJI6leJba47gc06wrLyLlCYJzvNaVLubCYR7Ve7Uk=
+github.com/savannahghi/enumutils v0.0.0-20210622094023-d347744e1825/go.mod h1:DDdjQBO1qyf5BxLzhTs1uN91drCIHH2Lvr8aLdJwu/o=
 github.com/savannahghi/errorcodeutil v0.0.0-20210715070815-98283e9f49c6 h1:xqo9EJ0TXLOIGSN11AOXWr7FLq13lDVIGAQJieGSoy4=
 github.com/savannahghi/errorcodeutil v0.0.0-20210715070815-98283e9f49c6/go.mod h1:BthIcPLuJe9K5eE97/qrcfkS+3azS91UFerowDIq/eE=
+github.com/savannahghi/firebasetools v0.0.5 h1:citJhhPThsLBGTfCtD0SKfo3Xi4cJcsyfbc9G6zevH8=
+github.com/savannahghi/firebasetools v0.0.5/go.mod h1:obAxyBfPaGTx/g86LF19gSmmEh5x+Tbnziatk514mUQ=
 github.com/savannahghi/serverutils v0.0.2 h1:ZVRRdyRH47qlqZCiZ3FKOd8W4ufhtvHQLLZxAQZonqk=
 github.com/savannahghi/serverutils v0.0.2/go.mod h1:sLX0El0i0DKN/9cUkB8xqm5cVMP79qCZvK60EzB7Pa4=
 github.com/schollz/closestmatch v2.1.0+incompatible/go.mod h1:RtP1ddjLong6gTkbtmuhtR2uUrrJOpYzYRvbcPAid+g=

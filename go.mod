@@ -17,6 +17,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/imroc/req v0.3.0
+	github.com/savannahghi/converterandformatter v0.0.3
 	github.com/savannahghi/errorcodeutil v0.0.0-20210715070815-98283e9f49c6
 	github.com/savannahghi/serverutils v0.0.2
 	github.com/segmentio/ksuid v1.0.3
@@ -31,5 +32,4 @@ require (
 	go.opentelemetry.io/otel v1.0.0-RC1
 	go.opentelemetry.io/otel/trace v1.0.0-RC1
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
-	google.golang.org/api v0.50.0
 )

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 )
@@ -44,7 +44,7 @@ func ValidateSignUpInput(input *dto.SignUpInput) (*dto.SignUpInput, error) {
 		return nil, exceptions.WrongEnumTypeError(input.Flavour.String())
 	}
 
-	phone, err := base.NormalizeMSISDN(*input.PhoneNumber)
+	phone, err := converterandformatter.NormalizeMSISDN(*input.PhoneNumber)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}
@@ -97,7 +97,7 @@ func ValidateAficasTalkingSMSData(input *dto.AfricasTalkingMessage) (*dto.Africa
 		return nil, fmt.Errorf("`phone` number cannot be empty")
 	}
 
-	_, err := base.NormalizeMSISDN(input.From)
+	_, err := converterandformatter.NormalizeMSISDN(input.From)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func ValidateAficasTalkingSMSData(input *dto.AfricasTalkingMessage) (*dto.Africa
 //ValidateUSSDDetails checks if the phonenumber supplied is valid , that a session ID is provided
 // and returns valid USSD session details.
 func ValidateUSSDDetails(payload *dto.SessionDetails) (*dto.SessionDetails, error) {
-	phone, err := base.NormalizeMSISDN(*payload.PhoneNumber)
+	phone, err := converterandformatter.NormalizeMSISDN(*payload.PhoneNumber)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
 	}

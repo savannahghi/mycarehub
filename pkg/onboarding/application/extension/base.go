@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
@@ -135,7 +136,7 @@ func (b *BaseExtensionImpl) GetLoggedInUserUID(ctx context.Context) (string, err
 
 // NormalizeMSISDN validates the input phone number.
 func (b *BaseExtensionImpl) NormalizeMSISDN(msisdn string) (*string, error) {
-	return base.NormalizeMSISDN(msisdn)
+	return converterandformatter.NormalizeMSISDN(msisdn)
 }
 
 // FetchDefaultCurrency fetched an ERP's organization's default

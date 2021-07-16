@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/savannahghi/converterandformatter"
 	"gitlab.slade360emr.com/go/base"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -56,7 +57,7 @@ func CheckIdentifierExists(profile *base.UserProfile, UID string) bool {
 	for _, verifiedID := range verifiedIDs {
 		foundVerifiedUIDs = append(foundVerifiedUIDs, verifiedID.UID)
 	}
-	return base.StringSliceContains(foundVerifiedUIDs, UID)
+	return converterandformatter.StringSliceContains(foundVerifiedUIDs, UID)
 }
 
 // CheckUserHasFavNavAction checks if user has book marked the provided navaction
