@@ -6,12 +6,15 @@ import (
 	"net/http"
 
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
+	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"cloud.google.com/go/pubsub"
-	"gitlab.slade360emr.com/go/base"
 )
 
 // BaseExtension is an interface that represents some methods in base
@@ -22,12 +25,12 @@ type BaseExtension interface {
 	GetLoggedInUser(ctx context.Context) (*dto.UserInfo, error)
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	NormalizeMSISDN(msisdn string) (*string, error)
-	FetchDefaultCurrency(c base.Client,
-	) (*base.FinancialYearAndCurrency, error)
-	LoginClient(username string, password string) (base.Client, error)
-	FetchUserProfile(authClient base.Client) (*base.EDIUserProfile, error)
-	LoadDepsFromYAML() (*base.DepsConfig, error)
-	SetupISCclient(config base.DepsConfig, serviceName string) (*base.InterServiceClient, error)
+	FetchDefaultCurrency(c apiclient.Client,
+	) (*apiclient.FinancialYearAndCurrency, error)
+	LoginClient(username string, password string) (apiclient.Client, error)
+	FetchUserProfile(authClient apiclient.Client) (*profileutils.EDIUserProfile, error)
+	LoadDepsFromYAML() (*interserviceclient.DepsConfig, error)
+	SetupISCclient(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error)
 	GetEnvVar(envName string) (string, error)
 	NewServerClient(
 		clientID string,
@@ -39,7 +42,7 @@ type BaseExtension interface {
 		username string,
 		password string,
 		extraHeaders map[string]string,
-	) (*base.ServerClient, error)
+	) (*apiclient.ServerClient, error)
 
 	// PubSub
 	EnsureTopicsExist(
@@ -93,11 +96,11 @@ type BaseExtension interface {
 
 // BaseExtensionImpl ...
 type BaseExtensionImpl struct {
-	fc base.IFirebaseClient
+	fc firebasetools.IFirebaseClient
 }
 
 // NewBaseExtensionImpl ...
-func NewBaseExtensionImpl(fc base.IFirebaseClient) BaseExtension {
+func NewBaseExtensionImpl(fc firebasetools.IFirebaseClient) BaseExtension {
 	return &BaseExtensionImpl{
 		fc: fc,
 	}
@@ -105,12 +108,12 @@ func NewBaseExtensionImpl(fc base.IFirebaseClient) BaseExtension {
 
 // GetLoggedInUser retrieves logged in user information
 func (b *BaseExtensionImpl) GetLoggedInUser(ctx context.Context) (*dto.UserInfo, error) {
-	authToken, err := base.GetUserTokenFromContext(ctx)
+	authToken, err := firebasetools.GetUserTokenFromContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("user auth token not found in context: %w", err)
 	}
 
-	authClient, err := base.GetFirebaseAuthClient(ctx)
+	authClient, err := firebasetools.GetFirebaseAuthClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get or create Firebase client: %w", err)
 	}
@@ -132,7 +135,7 @@ func (b *BaseExtensionImpl) GetLoggedInUser(ctx context.Context) (*dto.UserInfo,
 
 // GetLoggedInUserUID get the logged in user uid
 func (b *BaseExtensionImpl) GetLoggedInUserUID(ctx context.Context) (string, error) {
-	return base.GetLoggedInUserUID(ctx)
+	return apiclient.GetLoggedInUserUID(ctx)
 }
 
 // NormalizeMSISDN validates the input phone number.
@@ -142,29 +145,29 @@ func (b *BaseExtensionImpl) NormalizeMSISDN(msisdn string) (*string, error) {
 
 // FetchDefaultCurrency fetched an ERP's organization's default
 // current currency
-func (b *BaseExtensionImpl) FetchDefaultCurrency(c base.Client,
-) (*base.FinancialYearAndCurrency, error) {
-	return base.FetchDefaultCurrency(c)
+func (b *BaseExtensionImpl) FetchDefaultCurrency(c apiclient.Client,
+) (*apiclient.FinancialYearAndCurrency, error) {
+	return apiclient.FetchDefaultCurrency(c)
 }
 
 // LoginClient returns a logged in client with the supplied username and password
-func (b *BaseExtensionImpl) LoginClient(username, password string) (base.Client, error) {
-	return base.LoginClient(username, password)
+func (b *BaseExtensionImpl) LoginClient(username, password string) (apiclient.Client, error) {
+	return apiclient.LoginClient(username, password)
 }
 
 // FetchUserProfile ...
-func (b *BaseExtensionImpl) FetchUserProfile(authClient base.Client) (*base.EDIUserProfile, error) {
-	return base.FetchUserProfile(authClient)
+func (b *BaseExtensionImpl) FetchUserProfile(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
+	return apiclient.FetchUserProfile(authClient)
 }
 
 // LoadDepsFromYAML ...
-func (b *BaseExtensionImpl) LoadDepsFromYAML() (*base.DepsConfig, error) {
-	return base.LoadDepsFromYAML()
+func (b *BaseExtensionImpl) LoadDepsFromYAML() (*interserviceclient.DepsConfig, error) {
+	return interserviceclient.LoadDepsFromYAML()
 }
 
 // SetupISCclient ...
-func (b *BaseExtensionImpl) SetupISCclient(config base.DepsConfig, serviceName string) (*base.InterServiceClient, error) {
-	return base.SetupISCclient(config, serviceName)
+func (b *BaseExtensionImpl) SetupISCclient(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error) {
+	return interserviceclient.SetupISCclient(config, serviceName)
 }
 
 // GetEnvVar ...
@@ -174,23 +177,23 @@ func (b *BaseExtensionImpl) GetEnvVar(envName string) (string, error) {
 
 // GetLoginFunc returns a function that can authenticate against both Slade 360 and Firebase
 func (b *BaseExtensionImpl) GetLoginFunc(ctx context.Context) http.HandlerFunc {
-	return base.GetLoginFunc(ctx, b.fc)
+	return apiclient.GetLoginFunc(ctx, b.fc)
 }
 
 // GetLogoutFunc logs the user out of Firebase
 func (b *BaseExtensionImpl) GetLogoutFunc(ctx context.Context) http.HandlerFunc {
-	return base.GetLogoutFunc(ctx, b.fc)
+	return apiclient.GetLogoutFunc(ctx, b.fc)
 }
 
 // GetRefreshFunc is used to refresh OAuth tokens
 func (b *BaseExtensionImpl) GetRefreshFunc() http.HandlerFunc {
-	return base.GetRefreshFunc()
+	return apiclient.GetRefreshFunc()
 }
 
 // GetVerifyTokenFunc confirms that an EDI access token (supplied) is valid.
 // If it is valid, it exchanges it for a Firebase ID token.
 func (b *BaseExtensionImpl) GetVerifyTokenFunc(ctx context.Context) http.HandlerFunc {
-	return base.GetVerifyTokenFunc(ctx, b.fc)
+	return apiclient.GetVerifyTokenFunc(ctx, b.fc)
 }
 
 // NewServerClient ...
@@ -204,8 +207,8 @@ func (b *BaseExtensionImpl) NewServerClient(
 	username string,
 	password string,
 	extraHeaders map[string]string,
-) (*base.ServerClient, error) {
-	return base.NewServerClient(
+) (*apiclient.ServerClient, error) {
+	return apiclient.NewServerClient(
 		clientID, clientSecret, apiTokenURL, apiHost, apiScheme, grantType, username, password, extraHeaders)
 }
 
@@ -345,6 +348,6 @@ func NewISCExtension() ISCClientExtension {
 
 // MakeRequest performs an inter service http request and returns a response
 func (i *ISCExtensionImpl) MakeRequest(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-	var isc base.InterServiceClient
+	var isc interserviceclient.InterServiceClient
 	return isc.MakeRequest(ctx, method, path, body)
 }

@@ -6,8 +6,9 @@ import (
 	"testing"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/serverutils"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -33,7 +34,7 @@ const (
 func TestParseKYCAsMap(t *testing.T) {
 	ctx := context.Background()
 
-	fc := base.FirebaseClient{}
+	fc := firebasetools.FirebaseClient{}
 	fa, err := fc.InitFirebase()
 	if err != nil {
 		log.Fatalf("unable to initialize Firestore for the Feed: %s", err)
@@ -68,7 +69,7 @@ func TestParseKYCAsMap(t *testing.T) {
 		return
 	}
 
-	ext := extension.NewBaseExtensionImpl(&base.FirebaseClient{})
+	ext := extension.NewBaseExtensionImpl(&firebasetools.FirebaseClient{})
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 	ediClient := utils.NewInterServiceClient(ediService, ext)
@@ -114,7 +115,7 @@ func TestParseKYCAsMap(t *testing.T) {
 
 			data := domain.IndividualRider{
 				IdentificationDoc: domain.Identification{
-					IdentificationDocType:           base.IdentificationDocTypeMilitary,
+					IdentificationDocType:           enumutils.IdentificationDocTypeMilitary,
 					IdentificationDocNumber:         "11111111",
 					IdentificationDocNumberUploadID: "11111111",
 				},

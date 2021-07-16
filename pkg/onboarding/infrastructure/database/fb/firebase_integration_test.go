@@ -2,6 +2,7 @@ package fb_test
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"testing"
 
@@ -19,8 +20,14 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
@@ -88,7 +95,7 @@ func TestMain(m *testing.M) {
 		}
 		for _, collection := range collections {
 			ref := fsc.Collection(collection)
-			base.DeleteCollection(ctx, fsc, ref, 10)
+			firebasetools.DeleteCollection(ctx, fsc, ref, 10)
 		}
 	}
 
@@ -132,7 +139,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
 	}
 
-	ext := extension.NewBaseExtensionImpl(&base.FirebaseClient{})
+	ext := extension.NewBaseExtensionImpl(&firebasetools.FirebaseClient{})
 
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
@@ -181,7 +188,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}, nil
 }
 
-func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {
+func generateTestOTP(t *testing.T, phone string) (*profileutils.OtpResponse, error) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {
@@ -200,9 +207,9 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize test service")
 	}
-	phone := base.TestUserPhoneNumber
-	flavour := base.FlavourConsumer
-	pin := base.TestUserPin
+	phone := interserviceclient.TestUserPhoneNumber
+	flavour := feedlib.FlavourConsumer
+	pin := interserviceclient.TestUserPin
 	exists, err := s.Onboarding.CheckPhoneExists(ctx, phone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if test phone exists: %v", err)
@@ -237,7 +244,7 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	logInCreds, err := s.Login.LoginByPhone(
 		ctx,
 		phone,
-		base.TestUserPin,
+		interserviceclient.TestUserPin,
 		flavour,
 	)
 	if err != nil {
@@ -259,14 +266,14 @@ func GetTestAuthenticatedContext(t *testing.T) (context.Context, *auth.Token, er
 	}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		auth,
 	)
 	return authenticatedContext, auth, nil
 }
 
 func InitializeTestFirebaseClient(ctx context.Context) (*firestore.Client, *auth.Client) {
-	fc := base.FirebaseClient{}
+	fc := firebasetools.FirebaseClient{}
 	fa, err := fc.InitFirebase()
 	if err != nil {
 		log.Panicf("unable to initialize Firebase: %s", err)
@@ -284,181 +291,181 @@ func InitializeTestFirebaseClient(ctx context.Context) (*firestore.Client, *auth
 	return fsc, fbc
 }
 
-// func TestRemoveKYCProcessingRequest(t *testing.T) {
-// 	s, err := InitializeTestService(context.Background())
-// 	assert.Nil(t, err)
+func TestRemoveKYCProcessingRequest(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	assert.Nil(t, err)
 
-// 	// clean up
-// 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), base.TestUserPhoneNumber)
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), interserviceclient.TestUserPhoneNumber)
 
-// 	ctx, auth, err := GetTestAuthenticatedContext(t)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, auth)
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	assert.Nil(t, err)
+	assert.NotNil(t, auth)
 
-// 	fsc, fbc := InitializeTestFirebaseClient(ctx)
-// 	if fsc == nil {
-// 		log.Panicf("failed to initialize test FireStore client")
-// 	}
-// 	if fbc == nil {
-// 		log.Panicf("failed to initialize test FireBase client")
-// 	}
-// 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-// 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
-// 	input1 := domain.OrganizationNutrition{
-// 		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
-// 		KRAPIN:               "someKRAPIN",
-// 		KRAPINUploadID:       "KRAPINUploadID",
-// 		SupportingDocuments: []domain.SupportingDocument{
-// 			{
-// 				SupportingDocumentTitle:       "support-title",
-// 				SupportingDocumentDescription: "support-description",
-// 				SupportingDocumentUpload:      "support-upload-id",
-// 			},
-// 		},
-// 		CertificateOfIncorporation:         "CertificateOfIncorporation",
-// 		CertificateOfInCorporationUploadID: "CertificateOfInCorporationUploadID",
-// 		DirectorIdentifications: []domain.Identification{
-// 			{
-// 				IdentificationDocType:           base.IdentificationDocTypeMilitary,
-// 				IdentificationDocNumber:         "IdentificationDocNumber",
-// 				IdentificationDocNumberUploadID: "IdentificationDocNumberUploadID",
-// 			},
-// 		},
-// 		RegistrationNumber:      "RegistrationNumber",
-// 		PracticeLicenseID:       "PracticeLicenseID",
-// 		PracticeLicenseUploadID: "PracticeLicenseUploadID",
-// 	}
+	input1 := domain.OrganizationNutrition{
+		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
+		KRAPIN:               "someKRAPIN",
+		KRAPINUploadID:       "KRAPINUploadID",
+		SupportingDocuments: []domain.SupportingDocument{
+			{
+				SupportingDocumentTitle:       "support-title",
+				SupportingDocumentDescription: "support-description",
+				SupportingDocumentUpload:      "support-upload-id",
+			},
+		},
+		CertificateOfIncorporation:         "CertificateOfIncorporation",
+		CertificateOfInCorporationUploadID: "CertificateOfInCorporationUploadID",
+		DirectorIdentifications: []domain.Identification{
+			{
+				IdentificationDocType:           enumutils.IdentificationDocTypeMilitary,
+				IdentificationDocNumber:         "IdentificationDocNumber",
+				IdentificationDocNumberUploadID: "IdentificationDocNumberUploadID",
+			},
+		},
+		RegistrationNumber:      "RegistrationNumber",
+		PracticeLicenseID:       "PracticeLicenseID",
+		PracticeLicenseUploadID: "PracticeLicenseUploadID",
+	}
 
-// 	kycJSON, err := json.Marshal(input1)
-// 	assert.Nil(t, err)
+	kycJSON, err := json.Marshal(input1)
+	assert.Nil(t, err)
 
-// 	var kycAsMap map[string]interface{}
-// 	err = json.Unmarshal(kycJSON, &kycAsMap)
-// 	assert.Nil(t, err)
+	var kycAsMap map[string]interface{}
+	err = json.Unmarshal(kycJSON, &kycAsMap)
+	assert.Nil(t, err)
 
-// 	// get the user profile
-// 	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, profile)
+	// get the user profile
+	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
+	assert.Nil(t, err)
+	assert.NotNil(t, profile)
 
-// 	// fetch the supplier profile
-// 	sup, err := fr.GetSupplierProfileByProfileID(ctx, profile.ID)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, sup)
+	// fetch the supplier profile
+	sup, err := fr.GetSupplierProfileByProfileID(ctx, profile.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, sup)
 
-// 	//call remove kyc process request. this should fail since the user has not added a kyc yet
-// 	err = fr.RemoveKYCProcessingRequest(ctx, sup.ID)
-// 	assert.NotNil(t, err)
+	//call remove kyc process request. this should fail since the user has not added a kyc yet
+	err = fr.RemoveKYCProcessingRequest(ctx, sup.ID)
+	assert.NotNil(t, err)
 
-// 	sup.SupplierKYC = kycAsMap
+	sup.SupplierKYC = kycAsMap
 
-// 	// now add the kyc processing request
-// 	req1 := &domain.KYCRequest{
-// 		ID:             uuid.New().String(),
-// 		ReqPartnerType: sup.PartnerType,
-// 		ReqRaw:         sup.SupplierKYC,
-// 		Processed:      false,
-// 		SupplierRecord: sup,
-// 		Status:         domain.KYCProcessStatusPending,
-// 	}
-// 	err = fr.StageKYCProcessingRequest(ctx, req1)
-// 	assert.Nil(t, err)
+	// now add the kyc processing request
+	req1 := &domain.KYCRequest{
+		ID:             uuid.New().String(),
+		ReqPartnerType: sup.PartnerType,
+		ReqRaw:         sup.SupplierKYC,
+		Processed:      false,
+		SupplierRecord: sup,
+		Status:         domain.KYCProcessStatusPending,
+	}
+	err = fr.StageKYCProcessingRequest(ctx, req1)
+	assert.Nil(t, err)
 
-// 	// call remove kypc processing request again. this should pass now since there is and existing processing request added
-// 	err = fr.RemoveKYCProcessingRequest(ctx, sup.ID)
-// 	assert.Nil(t, err)
+	// call remove kypc processing request again. this should pass now since there is and existing processing request added
+	err = fr.RemoveKYCProcessingRequest(ctx, sup.ID)
+	assert.Nil(t, err)
 
-// }
+}
 
-// func TestPurgeUserByPhoneNumber(t *testing.T) {
-// 	s, err := InitializeTestService(context.Background())
-// 	assert.Nil(t, err)
-// 	// clean up
-// 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), base.TestUserPhoneNumber)
-// 	ctx, auth, err := GetTestAuthenticatedContext(t)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, auth)
-// 	fsc, fbc := InitializeTestFirebaseClient(ctx)
-// 	if fsc == nil {
-// 		log.Panicf("failed to initialize test FireStore client")
-// 	}
-// 	if fbc == nil {
-// 		log.Panicf("failed to initialize test FireBase client")
-// 	}
-// 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-// 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
-// 	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, profile)
-// 	assert.Equal(t, base.TestUserPhoneNumber, *profile.PrimaryPhone)
+func TestPurgeUserByPhoneNumber(t *testing.T) {
+	s, err := InitializeTestService(context.Background())
+	assert.Nil(t, err)
+	// clean up
+	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), interserviceclient.TestUserPhoneNumber)
+	ctx, auth, err := GetTestAuthenticatedContext(t)
+	assert.Nil(t, err)
+	assert.NotNil(t, auth)
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
+	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
+	assert.Nil(t, err)
+	assert.NotNil(t, profile)
+	assert.Equal(t, interserviceclient.TestUserPhoneNumber, *profile.PrimaryPhone)
 
-// 	// fetch the same profile but now using the primary phone number
-// 	profile, err = fr.GetUserProfileByPrimaryPhoneNumber(ctx, base.TestUserPhoneNumber, false)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, profile)
-// 	assert.Equal(t, base.TestUserPhoneNumber, *profile.PrimaryPhone)
+	// fetch the same profile but now using the primary phone number
+	profile, err = fr.GetUserProfileByPrimaryPhoneNumber(ctx, interserviceclient.TestUserPhoneNumber, false)
+	assert.Nil(t, err)
+	assert.NotNil(t, profile)
+	assert.Equal(t, interserviceclient.TestUserPhoneNumber, *profile.PrimaryPhone)
 
-// 	// purge the record. this should not fail
-// 	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
-// 	assert.Nil(t, err)
+	// purge the record. this should not fail
+	err = fr.PurgeUserByPhoneNumber(ctx, interserviceclient.TestUserPhoneNumber)
+	assert.Nil(t, err)
 
-// 	// try purging the record again. this should fail since not user profile will be found with the phone number
-// 	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
-// 	assert.NotNil(t, err)
+	// try purging the record again. this should fail since not user profile will be found with the phone number
+	err = fr.PurgeUserByPhoneNumber(ctx, interserviceclient.TestUserPhoneNumber)
+	assert.NotNil(t, err)
 
-// 	// create an invalid user profile
-// 	fakeUID := uuid.New().String()
-// 	invalidpr1, err := fr.CreateUserProfile(context.Background(), base.TestUserPhoneNumber, fakeUID)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, invalidpr1)
+	// create an invalid user profile
+	fakeUID := uuid.New().String()
+	invalidpr1, err := fr.CreateUserProfile(context.Background(), interserviceclient.TestUserPhoneNumber, fakeUID)
+	assert.Nil(t, err)
+	assert.NotNil(t, invalidpr1)
 
-// 	// fetch the pins related to invalidpr1. this should fail since no pin has been associated with invalidpr1
-// 	pin, err := fr.GetPINByProfileID(ctx, invalidpr1.ID)
-// 	assert.NotNil(t, err)
-// 	assert.Nil(t, pin)
+	// fetch the pins related to invalidpr1. this should fail since no pin has been associated with invalidpr1
+	pin, err := fr.GetPINByProfileID(ctx, invalidpr1.ID)
+	assert.NotNil(t, err)
+	assert.Nil(t, pin)
 
-// 	// fetch the customer profile related to invalidpr1. this should fail since no customer profile has been associated with invalidpr
-// 	cpr, err := fr.GetCustomerProfileByProfileID(ctx, invalidpr1.ID)
-// 	assert.NotNil(t, err)
-// 	assert.Nil(t, cpr)
+	// fetch the customer profile related to invalidpr1. this should fail since no customer profile has been associated with invalidpr
+	cpr, err := fr.GetCustomerProfileByProfileID(ctx, invalidpr1.ID)
+	assert.NotNil(t, err)
+	assert.Nil(t, cpr)
 
-// 	// fetch the supplier profile related to invalidpr1. this should fail since no supplier profile has been associated with invalidpr
-// 	spr, err := fr.GetSupplierProfileByProfileID(ctx, invalidpr1.ID)
-// 	assert.NotNil(t, err)
-// 	assert.Nil(t, spr)
+	// fetch the supplier profile related to invalidpr1. this should fail since no supplier profile has been associated with invalidpr
+	spr, err := fr.GetSupplierProfileByProfileID(ctx, invalidpr1.ID)
+	assert.NotNil(t, err)
+	assert.Nil(t, spr)
 
-// 	// call PurgeUserByPhoneNumber using the phone number associated with invalidpr1. this should fail since it does not have
-// 	// an associated pin
-// 	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
-// 	assert.NotNil(t, err)
-// 	assert.Contains(t, err.Error(), "server error! unable to perform operation")
+	// call PurgeUserByPhoneNumber using the phone number associated with invalidpr1. this should fail since it does not have
+	// an associated pin
+	err = fr.PurgeUserByPhoneNumber(ctx, interserviceclient.TestUserPhoneNumber)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "server error! unable to perform operation")
 
-// 	// now set a  pin. this should not fail
-// 	userpin := "1234"
-// 	pset, err := s.UserPIN.SetUserPIN(ctx, userpin, invalidpr1.ID)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, pset)
-// 	assert.Equal(t, true, pset)
+	// now set a  pin. this should not fail
+	userpin := "1234"
+	pset, err := s.UserPIN.SetUserPIN(ctx, userpin, invalidpr1.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, pset)
+	assert.Equal(t, true, pset)
 
-// 	// retrieve the pin and assert it matches the one set
-// 	pin, err = fr.GetPINByProfileID(ctx, invalidpr1.ID)
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, pin)
-// 	var pinExt extension.PINExtensionImpl
-// 	matched := pinExt.ComparePIN(userpin, pin.Salt, pin.PINNumber, nil)
-// 	assert.Equal(t, true, matched)
+	// retrieve the pin and assert it matches the one set
+	pin, err = fr.GetPINByProfileID(ctx, invalidpr1.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, pin)
+	var pinExt extension.PINExtensionImpl
+	matched := pinExt.ComparePIN(userpin, pin.Salt, pin.PINNumber, nil)
+	assert.Equal(t, true, matched)
 
-// 	// now remove. this should pass even though customer/supplier profile don't exist. What must be removed is the pins
-// 	err = fr.PurgeUserByPhoneNumber(ctx, base.TestUserPhoneNumber)
-// 	assert.Nil(t, err)
+	// now remove. this should pass even though customer/supplier profile don't exist. What must be removed is the pins
+	err = fr.PurgeUserByPhoneNumber(ctx, interserviceclient.TestUserPhoneNumber)
+	assert.Nil(t, err)
 
-// 	// assert the pin has been removed
-// 	pin, err = fr.GetPINByProfileID(ctx, invalidpr1.ID)
-// 	assert.NotNil(t, err)
-// 	assert.Nil(t, pin)
+	// assert the pin has been removed
+	pin, err = fr.GetPINByProfileID(ctx, invalidpr1.ID)
+	assert.NotNil(t, err)
+	assert.Nil(t, pin)
 
-// }
+}
 
 func TestCreateEmptyCustomerProfile(t *testing.T) {
 	ctx := context.Background()
@@ -598,7 +605,7 @@ func TestRepository_GetCustomerOrSupplierProfileByProfileID(t *testing.T) {
 	}
 	type args struct {
 		ctx       context.Context
-		flavour   base.Flavour
+		flavour   feedlib.Flavour
 		profileID string
 	}
 	tests := []struct {
@@ -610,7 +617,7 @@ func TestRepository_GetCustomerOrSupplierProfileByProfileID(t *testing.T) {
 			name: "success: get the customer profile",
 			args: args{
 				ctx:       ctx,
-				flavour:   base.FlavourConsumer,
+				flavour:   feedlib.FlavourConsumer,
 				profileID: profileID,
 			},
 			wantErr: false,
@@ -619,7 +626,7 @@ func TestRepository_GetCustomerOrSupplierProfileByProfileID(t *testing.T) {
 			name: "success: get the supplier profile",
 			args: args{
 				ctx:       ctx,
-				flavour:   base.FlavourPro,
+				flavour:   feedlib.FlavourPro,
 				profileID: profileID,
 			},
 			wantErr: false,
@@ -637,7 +644,7 @@ func TestRepository_GetCustomerOrSupplierProfileByProfileID(t *testing.T) {
 			name: "failure: profile ID that does not exist",
 			args: args{
 				ctx:       ctx,
-				flavour:   base.FlavourPro,
+				flavour:   feedlib.FlavourPro,
 				profileID: "not-a-real-profile-ID",
 			},
 			wantErr: true,
@@ -747,7 +754,7 @@ func TestRepository_ExchangeRefreshTokenForIDToken(t *testing.T) {
 		return
 	}
 
-	user, err := fr.GenerateAuthCredentials(ctx, base.TestUserPhoneNumber, userProfile)
+	user, err := fr.GenerateAuthCredentials(ctx, interserviceclient.TestUserPhoneNumber, userProfile)
 	if err != nil {
 		t.Errorf("failed to generate auth credentials: %v", err)
 		return
@@ -799,7 +806,7 @@ func TestRepository_ExchangeRefreshTokenForIDToken(t *testing.T) {
 
 			if !tt.wantErr {
 				// obtain auth token details from the id token string
-				auth, err := base.ValidateBearerToken(ctx, *got.IDToken)
+				auth, err := firebasetools.ValidateBearerToken(ctx, *got.IDToken)
 				if err != nil {
 					t.Errorf("invalid token: %w", err)
 					return
@@ -842,7 +849,7 @@ func TestRepository_GetUserProfileByPhoneNumber(t *testing.T) {
 			name: "Happy Case - Get a user by valid phonenumber",
 			args: args{
 				ctx:         ctx,
-				phoneNumber: base.TestUserPhoneNumber,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
 			},
 			wantErr: false,
 		},
@@ -900,7 +907,7 @@ func TestRepository_GetUserProfileByPrimaryPhoneNumber(t *testing.T) {
 			name: "valid : primary phone number in context",
 			args: args{
 				ctx:         ctx,
-				phoneNumber: base.TestUserPhoneNumber,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
 			},
 			wantErr: false,
 		},
@@ -963,7 +970,7 @@ func TestRepository_GetSupplierProfileByProfileID(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Supplier
+		want    *profileutils.Supplier
 		wantErr bool
 	}{
 		{
@@ -1028,7 +1035,7 @@ func TestRepository_GetSupplierProfileByID(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Supplier
+		want    *profileutils.Supplier
 		wantErr bool
 	}{
 		{
@@ -1168,7 +1175,7 @@ func TestRepository_GetUserProfileByID(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.UserProfile
+		want    *profileutils.UserProfile
 		wantErr bool
 	}{
 		{
@@ -1488,7 +1495,7 @@ func TestRepository_SavePIN(t *testing.T) {
 		return
 	}
 
-	validPin := base.TestUserPin
+	validPin := interserviceclient.TestUserPin
 
 	var pin extension.PINExtensionImpl
 	salt, encryptedPin := pin.EncryptPIN(validPin, nil)
@@ -1566,7 +1573,7 @@ func TestRepository_UpdatePIN(t *testing.T) {
 		return
 	}
 
-	validPin := base.TestUserPin
+	validPin := interserviceclient.TestUserPin
 
 	var pin extension.PINExtensionImpl
 	salt, encryptedPin := pin.EncryptPIN(validPin, nil)
@@ -1645,9 +1652,9 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 		t.Errorf("failed to create an empty supplier: %v", err)
 	}
 
-	sup := base.Supplier{
+	sup := profileutils.Supplier{
 		Active: true,
-		PayablesAccount: &base.PayablesAccount{
+		PayablesAccount: &profileutils.PayablesAccount{
 			ID: uuid.New().String(),
 		},
 	}
@@ -1655,7 +1662,7 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 	type args struct {
 		ctx       context.Context
 		profileID string
-		supplier  base.Supplier
+		supplier  profileutils.Supplier
 	}
 	tests := []struct {
 		name    string
@@ -1712,11 +1719,11 @@ func TestRepository_AddPartnerType(t *testing.T) {
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
 	testRiderName := "Test Rider"
-	rider := base.PartnerTypeRider
+	rider := profileutils.PartnerTypeRider
 	testPractitionerName := "Test Practitioner"
-	practitioner := base.PartnerTypePractitioner
+	practitioner := profileutils.PartnerTypePractitioner
 	testProviderName := "Test Provider"
-	provider := base.PartnerTypeProvider
+	provider := profileutils.PartnerTypeProvider
 
 	profileID := uuid.New().String()
 
@@ -1729,7 +1736,7 @@ func TestRepository_AddPartnerType(t *testing.T) {
 		ctx         context.Context
 		profileID   string
 		name        *string
-		partnerType *base.PartnerType
+		partnerType *profileutils.PartnerType
 	}
 	tests := []struct {
 		name    string
@@ -2027,7 +2034,7 @@ func TestRepository_UpdateVerifiedIdentifiers(t *testing.T) {
 		return
 	}
 
-	presentIdentifiers := []base.VerifiedIdentifier{
+	presentIdentifiers := []profileutils.VerifiedIdentifier{
 		{
 			UID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 			LoginProvider: "Facebook",
@@ -2037,7 +2044,7 @@ func TestRepository_UpdateVerifiedIdentifiers(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		id          string
-		identifiers []base.VerifiedIdentifier
+		identifiers []profileutils.VerifiedIdentifier
 	}
 	tests := []struct {
 		name    string
@@ -2049,7 +2056,7 @@ func TestRepository_UpdateVerifiedIdentifiers(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				id:  userProfile.ID,
-				identifiers: []base.VerifiedIdentifier{
+				identifiers: []profileutils.VerifiedIdentifier{
 					{
 						UID:           auth.UID,
 						LoginProvider: "Facebook",
@@ -2072,7 +2079,7 @@ func TestRepository_UpdateVerifiedIdentifiers(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				id:  userProfile.ID,
-				identifiers: []base.VerifiedIdentifier{
+				identifiers: []profileutils.VerifiedIdentifier{
 					{
 						UID:           "5d46d3bd-a482-4787-9b87-3c94510c8b53",
 						LoginProvider: "Google",
@@ -2086,7 +2093,7 @@ func TestRepository_UpdateVerifiedIdentifiers(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				id:  "invalidid",
-				identifiers: []base.VerifiedIdentifier{
+				identifiers: []profileutils.VerifiedIdentifier{
 					{
 						UID:           auth.UID,
 						LoginProvider: "Facebook",
@@ -2128,7 +2135,7 @@ func TestRepository_UpdateCovers(t *testing.T) {
 		return
 	}
 
-	newCover := []base.Cover{
+	newCover := []profileutils.Cover{
 		{
 			PayerName:      "Payer 6",
 			PayerSladeCode: 27,
@@ -2140,7 +2147,7 @@ func TestRepository_UpdateCovers(t *testing.T) {
 	type args struct {
 		ctx    context.Context
 		id     string
-		covers []base.Cover
+		covers []profileutils.Cover
 	}
 	tests := []struct {
 		name    string
@@ -2152,7 +2159,7 @@ func TestRepository_UpdateCovers(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				id:  "invalidID",
-				covers: []base.Cover{
+				covers: []profileutils.Cover{
 					{
 						PayerName:      "payer1",
 						PayerSladeCode: 1,
@@ -2264,13 +2271,13 @@ func TestRepository_UpdateSupplierProfile(t *testing.T) {
 		t.Errorf("failed to create an empty supplier: %v", err)
 	}
 
-	validPayload := &base.Supplier{
+	validPayload := &profileutils.Supplier{
 		ID:        supplier.ID,
 		ProfileID: supplier.ProfileID,
 		Active:    true,
 	}
 	newprofileID := uuid.New().String()
-	invalidPayload := &base.Supplier{
+	invalidPayload := &profileutils.Supplier{
 		ID:        uuid.New().String(),
 		ProfileID: &newprofileID,
 		Active:    true,
@@ -2278,7 +2285,7 @@ func TestRepository_UpdateSupplierProfile(t *testing.T) {
 
 	type args struct {
 		ctx  context.Context
-		data *base.Supplier
+		data *profileutils.Supplier
 	}
 	tests := []struct {
 		name    string
@@ -2326,7 +2333,7 @@ func TestRepositoryFetchKYCProcessingRequests(t *testing.T) {
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
-	reqPartnerType := base.PartnerTypeCoach
+	reqPartnerType := profileutils.PartnerTypeCoach
 	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
 	id := uuid.New().String()
 	kycReq := &domain.KYCRequest{
@@ -2611,36 +2618,36 @@ func TestRepository_UpdateBioData(t *testing.T) {
 
 	firstName := "Jatelo"
 	lastName := "Mzima"
-	dateOfBirth := base.Date{
+	dateOfBirth := scalarutils.Date{
 		Year:  2000,
 		Month: 12,
 		Day:   17,
 	}
-	var gender base.Gender = "male"
+	var gender enumutils.Gender = "male"
 
-	updateAllData := base.BioData{
+	updateAllData := profileutils.BioData{
 		FirstName:   &firstName,
 		LastName:    &lastName,
 		DateOfBirth: &dateOfBirth,
 		Gender:      gender,
 	}
 
-	updateFirstName := base.BioData{
+	updateFirstName := profileutils.BioData{
 		FirstName: &firstName,
 	}
-	updateLastName := base.BioData{
+	updateLastName := profileutils.BioData{
 		LastName: &lastName,
 	}
-	updateDateOfBirth := base.BioData{
+	updateDateOfBirth := profileutils.BioData{
 		DateOfBirth: &dateOfBirth,
 	}
-	updateGender := base.BioData{
+	updateGender := profileutils.BioData{
 		Gender: gender,
 	}
 	type args struct {
 		ctx  context.Context
 		id   string
-		data base.BioData
+		data profileutils.BioData
 	}
 	tests := []struct {
 		name    string
@@ -2730,7 +2737,7 @@ func TestRepositoryFetchKYCProcessingRequestByID(t *testing.T) {
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
-	reqPartnerType := base.PartnerTypeCoach
+	reqPartnerType := profileutils.PartnerTypeCoach
 	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
 	id := uuid.New().String()
 	kycReq := &domain.KYCRequest{
@@ -2810,7 +2817,7 @@ func TestRepositoryUpdateKYCProcessingRequest(t *testing.T) {
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
-	reqPartnerType := base.PartnerTypeCoach
+	reqPartnerType := profileutils.PartnerTypeCoach
 	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
 	id := uuid.New().String()
 	kycReq := &domain.KYCRequest{
@@ -2903,13 +2910,13 @@ func TestRepositoryGenerateAuthCredentialsForAnonymousUser(t *testing.T) {
 		return
 	}
 
-	customToken, err := base.CreateFirebaseCustomToken(ctx, user.UID)
+	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, user.UID)
 	if err != nil {
 		t.Errorf("failed to create a custom auth token for the user")
 		return
 	}
 
-	_, err = base.AuthenticateCustomFirebaseToken(customToken)
+	_, err = firebasetools.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
 		t.Errorf("failed to fetch an ID token")
 		return
@@ -2921,7 +2928,7 @@ func TestRepositoryGenerateAuthCredentialsForAnonymousUser(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.AuthCredentialResponse
+		want    *profileutils.AuthCredentialResponse
 		wantErr bool
 	}{
 		{
@@ -2993,19 +3000,19 @@ func TestRepositoryGenerateAuthCredentials(t *testing.T) {
 		return
 	}
 
-	customToken, err := base.CreateFirebaseCustomToken(ctx, auth.UID)
+	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, auth.UID)
 	if err != nil {
 		t.Errorf("failed to create a custom auth token for the user")
 		return
 	}
 
-	userToken, err := base.AuthenticateCustomFirebaseToken(customToken)
+	userToken, err := firebasetools.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
 		t.Errorf("failed to fetch an ID token")
 		return
 	}
 
-	validCredentials := &base.AuthCredentialResponse{
+	validCredentials := &profileutils.AuthCredentialResponse{
 		CustomToken:  &customToken,
 		IDToken:      &userToken.IDToken,
 		ExpiresIn:    userToken.ExpiresIn,
@@ -3018,12 +3025,12 @@ func TestRepositoryGenerateAuthCredentials(t *testing.T) {
 	type args struct {
 		ctx     context.Context
 		phone   string
-		profile *base.UserProfile
+		profile *profileutils.UserProfile
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.AuthCredentialResponse
+		want    *profileutils.AuthCredentialResponse
 		wantErr bool
 	}{
 		{
@@ -3102,7 +3109,7 @@ func TestRepositoryFetchAdminUsers(t *testing.T) {
 		return
 	}
 
-	permissions := base.DefaultAdminPermissions
+	permissions := profileutils.DefaultAdminPermissions
 
 	err = fr.UpdatePermissions(ctx, userProfile.ID, permissions)
 	if err != nil {
@@ -3116,7 +3123,7 @@ func TestRepositoryFetchAdminUsers(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []*base.UserProfile
+		want    []*profileutils.UserProfile
 		wantErr bool
 	}{
 		{
@@ -3170,15 +3177,15 @@ func TestUpdateAddresses(t *testing.T) {
 		return
 	}
 
-	address := base.Address{
+	address := profileutils.Address{
 		Latitude:  "-1.2349035671",
 		Longitude: "36.79329309999994",
 	}
 	type args struct {
 		ctx         context.Context
 		id          string
-		address     base.Address
-		addressType base.AddressType
+		address     profileutils.Address
+		addressType enumutils.AddressType
 	}
 	tests := []struct {
 		name    string
@@ -3191,7 +3198,7 @@ func TestUpdateAddresses(t *testing.T) {
 				ctx:         ctx,
 				id:          userProfile.ID,
 				address:     address,
-				addressType: base.AddressTypeHome,
+				addressType: enumutils.AddressTypeHome,
 			},
 			wantErr: false,
 		},
@@ -3201,7 +3208,7 @@ func TestUpdateAddresses(t *testing.T) {
 				ctx:         ctx,
 				id:          userProfile.ID,
 				address:     address,
-				addressType: base.AddressTypeWork,
+				addressType: enumutils.AddressTypeWork,
 			},
 			wantErr: false,
 		},
@@ -3211,7 +3218,7 @@ func TestUpdateAddresses(t *testing.T) {
 				ctx:         ctx,
 				id:          "not-a-uid",
 				address:     address,
-				addressType: base.AddressTypeWork,
+				addressType: enumutils.AddressTypeWork,
 			},
 			wantErr: true,
 		},
@@ -3409,16 +3416,16 @@ func TestUpdateCustomerProfile(t *testing.T) {
 		return
 	}
 
-	customerData := base.Customer{
+	customerData := profileutils.Customer{
 		CustomerID: uuid.New().String(),
-		ReceivablesAccount: base.ReceivablesAccount{
+		ReceivablesAccount: profileutils.ReceivablesAccount{
 			ID: uuid.New().String(),
 		},
 	}
 	type args struct {
 		ctx       context.Context
 		profileID string
-		cus       base.Customer
+		cus       profileutils.Customer
 	}
 	tests := []struct {
 		name    string
@@ -3798,7 +3805,7 @@ func TestRepository_StageCRMPayload(t *testing.T) {
 	ContactValue := phoneNumber
 	FirstName := gofakeit.FirstName()
 	LastName := gofakeit.LastName()
-	DateOfBirth := base.Date{
+	DateOfBirth := scalarutils.Date{
 		Day:   0,
 		Month: 0,
 		Year:  0,
@@ -3888,7 +3895,7 @@ func TestRepository_GetStageCRMPayload(t *testing.T) {
 	ContactValue := phoneNumber
 	FirstName := gofakeit.FirstName()
 	LastName := gofakeit.LastName()
-	DateOfBirth := base.Date{
+	DateOfBirth := scalarutils.Date{
 		Day:   0,
 		Month: 0,
 		Year:  0,
@@ -3980,7 +3987,7 @@ func TestRepository_UpdateStageCRMPayload(t *testing.T) {
 	ContactValue := phoneNumber
 	FirstName := gofakeit.FirstName()
 	LastName := gofakeit.LastName()
-	DateOfBirth := base.Date{
+	DateOfBirth := scalarutils.Date{
 		Day:   0,
 		Month: 0,
 		Year:  0,
@@ -4073,7 +4080,7 @@ func TestRepository_UpdateOptOutCRMPayload(t *testing.T) {
 	ContactValue := phoneNumber
 	FirstName := gofakeit.FirstName()
 	LastName := gofakeit.LastName()
-	DateOfBirth := base.Date{
+	DateOfBirth := scalarutils.Date{
 		Day:   0,
 		Month: 0,
 		Year:  0,

@@ -11,8 +11,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/apiclient"
 )
 
 const (
@@ -30,13 +34,13 @@ const (
 // CreatedUserGraphQLHeaders updates the authorization header with the
 // bearer(ID) token of the created user during test
 // TODO:(muchogo)  create a reusable function in base that accepts a UID
-// 				or modify the base.GetGraphQLHeaders(ctx) extra UID argument
+// 				or modify the apiclient.GetGraphQLHeaders(ctx) extra UID argument
 func CreatedUserGraphQLHeaders(idToken *string) (map[string]string, error) {
 	ctx := context.Background()
 
 	authHeaderBearerToken := fmt.Sprintf("Bearer %v", *idToken)
 
-	headers, err := base.GetGraphQLHeaders(ctx)
+	headers, err := apiclient.GetGraphQLHeaders(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error in getting headers: %w", err)
 	}
@@ -47,7 +51,7 @@ func CreatedUserGraphQLHeaders(idToken *string) (map[string]string, error) {
 }
 func TestAddPartnerType(t *testing.T) {
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -199,7 +203,7 @@ func TestAddPartnerType(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -209,7 +213,7 @@ func TestAddPartnerType(t *testing.T) {
 func TestSetUpSupplier_acceptance(t *testing.T) {
 
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -361,7 +365,7 @@ func TestSetUpSupplier_acceptance(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -370,7 +374,7 @@ func TestSetUpSupplier_acceptance(t *testing.T) {
 func TestSuspendSupplier_acceptance(t *testing.T) {
 	ctx := context.Background()
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -384,19 +388,19 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -404,20 +408,20 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "practitioner"
-	partnerType := base.PartnerTypePractitioner
+	partnerType := profileutils.PartnerTypePractitioner
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	account, err := setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	account, err := setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -554,7 +558,7 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -562,7 +566,7 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 
 func TestSupplierEDILogin(t *testing.T) {
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -769,7 +773,7 @@ func TestSupplierEDILogin(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -778,7 +782,7 @@ func TestSupplierEDILogin(t *testing.T) {
 func TestAddIndividualPractitionerKYC(t *testing.T) {
 
 	ctx := context.Background()
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	log.Printf("the user is %v", user)
 	if err != nil {
@@ -792,19 +796,19 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -812,20 +816,20 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "practitioner"
-	partnerType := base.PartnerTypePractitioner
+	partnerType := profileutils.PartnerTypePractitioner
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	account, err := setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	account, err := setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -994,14 +998,14 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
 }
 func TestAddOrganizationProviderKYC(t *testing.T) {
 	ctx := context.Background()
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	log.Printf("the user is %v", user)
 	if err != nil {
@@ -1015,19 +1019,19 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -1035,20 +1039,20 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "provider"
-	partnerType := base.PartnerTypeProvider
+	partnerType := profileutils.PartnerTypeProvider
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -1225,7 +1229,7 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -1233,7 +1237,7 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 
 func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 	ctx := context.Background()
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	log.Printf("the user is %v", user)
 	if err != nil {
@@ -1247,19 +1251,19 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -1267,20 +1271,20 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "pharmaceutical"
-	partnerType := base.PartnerTypePharmaceutical
+	partnerType := profileutils.PartnerTypePharmaceutical
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -1445,7 +1449,7 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -1453,7 +1457,7 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 
 func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
 	ctx := context.Background()
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	log.Printf("the user is %v", user)
 	if err != nil {
@@ -1467,19 +1471,19 @@ func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -1487,20 +1491,20 @@ func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "pharmaceutical"
-	partnerType := base.PartnerTypePharmaceutical
+	partnerType := profileutils.PartnerTypePharmaceutical
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -1679,7 +1683,7 @@ func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -1687,7 +1691,7 @@ func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
 
 func TestAddIndividualCoachKYC(t *testing.T) {
 	ctx := context.Background()
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	log.Printf("the user is %v", user)
 	if err != nil {
@@ -1701,19 +1705,19 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -1721,20 +1725,20 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "coach"
-	partnerType := base.PartnerTypeCoach
+	partnerType := profileutils.PartnerTypeCoach
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -1901,7 +1905,7 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -1909,7 +1913,7 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 
 func TestAddOrganizationRiderKYC(t *testing.T) {
 	ctx := context.Background()
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	log.Printf("the user is %v", user)
 	if err != nil {
@@ -1923,19 +1927,19 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -1943,20 +1947,20 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "rider"
-	partnerType := base.PartnerTypeRider
+	partnerType := profileutils.PartnerTypeRider
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -2125,7 +2129,7 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -2133,7 +2137,7 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 
 func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 	ctx := context.Background()
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	log.Printf("the user is %v", user)
 	if err != nil {
@@ -2147,19 +2151,19 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -2167,20 +2171,20 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "rider"
-	partnerType := base.PartnerTypeRider
+	partnerType := profileutils.PartnerTypeRider
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -2344,7 +2348,7 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -2352,7 +2356,7 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 
 func TestFetchKYCProcessingRequests(t *testing.T) {
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -2501,7 +2505,7 @@ func TestFetchKYCProcessingRequests(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -2509,7 +2513,7 @@ func TestFetchKYCProcessingRequests(t *testing.T) {
 
 func TestFetchSupplierAllowedLocations(t *testing.T) {
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -2644,7 +2648,7 @@ func TestFetchSupplierAllowedLocations(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -2658,7 +2662,7 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 		return
 	}
 
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -2672,22 +2676,22 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	name := "Makmende"
-	partnerPractitioner := base.PartnerTypePractitioner
+	partnerPractitioner := profileutils.PartnerTypePractitioner
 	_, err = s.Supplier.AddPartnerType(authenticatedContext, &name, &partnerPractitioner)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeOrganisation)
+	_, err = s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
@@ -2836,7 +2840,7 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -2845,7 +2849,7 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 
 func TestAddOrganizationCoachKYC(t *testing.T) {
 	ctx := context.Background()
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	log.Printf("the user is %v", user)
 	if err != nil {
@@ -2859,19 +2863,19 @@ func TestAddOrganizationCoachKYC(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -2879,20 +2883,20 @@ func TestAddOrganizationCoachKYC(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "coach"
-	partnerType := base.PartnerTypeCoach
+	partnerType := profileutils.PartnerTypeCoach
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -3067,7 +3071,7 @@ func TestAddOrganizationCoachKYC(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -3075,7 +3079,7 @@ func TestAddOrganizationCoachKYC(t *testing.T) {
 
 func TestAddIndividualNutritionKYC(t *testing.T) {
 	ctx := context.Background()
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	log.Printf("the user is %v", user)
 	if err != nil {
@@ -3089,19 +3093,19 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -3109,20 +3113,20 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "nutrition"
-	partnerType := base.PartnerTypeNutrition
+	partnerType := profileutils.PartnerTypeNutrition
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeIndividual)
+	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -3286,7 +3290,7 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -3294,7 +3298,7 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 
 func TestAddOrganizationNutritionKyc(t *testing.T) {
 	ctx := context.Background()
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	log.Printf("the user is %v", user)
 	if err != nil {
@@ -3308,19 +3312,19 @@ func TestAddOrganizationNutritionKyc(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -3328,20 +3332,20 @@ func TestAddOrganizationNutritionKyc(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "nutrition"
-	partnerType := base.PartnerTypeNutrition
+	partnerType := profileutils.PartnerTypeNutrition
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -3474,7 +3478,7 @@ func TestAddOrganizationNutritionKyc(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -3482,7 +3486,7 @@ func TestAddOrganizationNutritionKyc(t *testing.T) {
 
 func TestSetupAsExperimentParticipant(t *testing.T) {
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -3606,7 +3610,7 @@ func TestSetupAsExperimentParticipant(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -3614,7 +3618,7 @@ func TestSetupAsExperimentParticipant(t *testing.T) {
 
 func TestAddOrganizationPractitionerKyc(t *testing.T) {
 	ctx := context.Background()
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	log.Printf("the user is %v", user)
 	if err != nil {
@@ -3628,19 +3632,19 @@ func TestAddOrganizationPractitionerKyc(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -3648,20 +3652,20 @@ func TestAddOrganizationPractitionerKyc(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
 	}
 	partnerName := "nutrition"
-	partnerType := base.PartnerTypePractitioner
+	partnerType := profileutils.PartnerTypePractitioner
 
 	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, base.AccountTypeOrganisation)
+	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
@@ -3846,7 +3850,7 @@ func TestAddOrganizationPractitionerKyc(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}

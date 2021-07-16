@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 
@@ -33,9 +34,10 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
@@ -65,7 +67,7 @@ var allowedHeaders = []string{
 
 // Router sets up the ginContext router
 func Router(ctx context.Context) (*mux.Router, error) {
-	fc := &base.FirebaseClient{}
+	fc := &firebasetools.FirebaseClient{}
 	firebaseApp, err := fc.InitFirebase()
 	if err != nil {
 		return nil, err
@@ -292,7 +294,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Authenticated routes
 	rs := r.PathPrefix("/roles").Subrouter()
-	rs.Use(base.AuthenticationMiddleware(firebaseApp))
+	rs.Use(apiclient.AuthenticationMiddleware(firebaseApp))
 	rs.Path("/add_user_role").Methods(
 		http.MethodPost,
 		http.MethodOptions).
@@ -305,7 +307,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()
-	isc.Use(base.InterServiceAuthenticationMiddleware())
+	isc.Use(interserviceclient.InterServiceAuthenticationMiddleware())
 	isc.Path("/supplier").Methods(
 		http.MethodPost,
 		http.MethodOptions).
@@ -333,7 +335,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// to run tests in other services that require an authenticated user.
 	// These endpoint have been used in the `Base` lib to create and delete the test users
 	iscTesting := r.PathPrefix("/testing").Subrouter()
-	iscTesting.Use(base.InterServiceAuthenticationMiddleware())
+	iscTesting.Use(interserviceclient.InterServiceAuthenticationMiddleware())
 	iscTesting.Path("/verify_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
@@ -373,7 +375,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()
-	authR.Use(base.AuthenticationMiddleware(firebaseApp))
+	authR.Use(apiclient.AuthenticationMiddleware(firebaseApp))
 	authR.Methods(
 		http.MethodPost,
 		http.MethodGet,

@@ -4,7 +4,11 @@ import (
 	"net/url"
 	"time"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 	dm "gitlab.slade360emr.com/go/commontools/accounting/pkg/domain"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -12,11 +16,11 @@ import (
 
 // UserProfileInput is used to create or update a user's profile.
 type UserProfileInput struct {
-	PhotoUploadID *string      `json:"photoUploadID"`
-	DateOfBirth   *base.Date   `json:"dateOfBirth,omitempty"`
-	Gender        *base.Gender `json:"gender,omitempty"`
-	FirstName     *string      `json:"lastName"`
-	LastName      *string      `json:"firstName"`
+	PhotoUploadID *string           `json:"photoUploadID"`
+	DateOfBirth   *scalarutils.Date `json:"dateOfBirth,omitempty"`
+	Gender        *enumutils.Gender `json:"gender,omitempty"`
+	FirstName     *string           `json:"lastName"`
+	LastName      *string           `json:"firstName"`
 }
 
 // PostVisitSurveyInput is used to send the results of post-visit surveys to the
@@ -51,22 +55,22 @@ func (i *BusinessPartnerFilterInput) ToURLValues() (values url.Values) {
 
 // BusinessPartnerSortInput is used to supply sort input for organization list queries
 type BusinessPartnerSortInput struct {
-	Name      *base.SortOrder `json:"name"`
-	SladeCode *base.SortOrder `json:"slade_code"`
+	Name      *enumutils.SortOrder `json:"name"`
+	SladeCode *enumutils.SortOrder `json:"slade_code"`
 }
 
 // ToURLValues transforms the filter input to `url.Values`
 func (i *BusinessPartnerSortInput) ToURLValues() (values url.Values) {
 	vals := url.Values{}
 	if i.Name != nil {
-		if *i.Name == base.SortOrderAsc {
+		if *i.Name == enumutils.SortOrderAsc {
 			vals.Add("order_by", "name")
 		} else {
 			vals.Add("order_by", "-name")
 		}
 	}
 	if i.SladeCode != nil {
-		if *i.Name == base.SortOrderAsc {
+		if *i.Name == enumutils.SortOrderAsc {
 			vals.Add("slade_code", "number")
 		} else {
 			vals.Add("slade_code", "-number")
@@ -77,22 +81,22 @@ func (i *BusinessPartnerSortInput) ToURLValues() (values url.Values) {
 
 // BranchSortInput is used to supply sorting input for location list queries
 type BranchSortInput struct {
-	Name      *base.SortOrder `json:"name"`
-	SladeCode *base.SortOrder `json:"slade_code"`
+	Name      *enumutils.SortOrder `json:"name"`
+	SladeCode *enumutils.SortOrder `json:"slade_code"`
 }
 
 // ToURLValues transforms the sort input to `url.Values`
 func (i *BranchSortInput) ToURLValues() (values url.Values) {
 	vals := url.Values{}
 	if i.Name != nil {
-		if *i.Name == base.SortOrderAsc {
+		if *i.Name == enumutils.SortOrderAsc {
 			vals.Add("order_by", "name")
 		} else {
 			vals.Add("order_by", "-name")
 		}
 	}
 	if i.SladeCode != nil {
-		if *i.SladeCode == base.SortOrderAsc {
+		if *i.SladeCode == enumutils.SortOrderAsc {
 			vals.Add("slade_code", "number")
 		} else {
 			vals.Add("slade_code", "-number")
@@ -103,10 +107,10 @@ func (i *BranchSortInput) ToURLValues() (values url.Values) {
 
 // SignUpInput represents the user information required to create a new account
 type SignUpInput struct {
-	PhoneNumber *string      `json:"phoneNumber"`
-	PIN         *string      `json:"pin"`
-	Flavour     base.Flavour `json:"flavour"`
-	OTP         *string      `json:"otp"`
+	PhoneNumber *string         `json:"phoneNumber"`
+	PIN         *string         `json:"pin"`
+	Flavour     feedlib.Flavour `json:"flavour"`
+	OTP         *string         `json:"otp"`
 }
 
 // BranchEdge is used to serialize GraphQL Relay edges for locations
@@ -117,8 +121,8 @@ type BranchEdge struct {
 
 // BranchConnection is used tu serialize GraphQL Relay connections for locations
 type BranchConnection struct {
-	Edges    []*BranchEdge  `json:"edges"`
-	PageInfo *base.PageInfo `json:"pageInfo"`
+	Edges    []*BranchEdge           `json:"edges"`
+	PageInfo *firebasetools.PageInfo `json:"pageInfo"`
 }
 
 // BranchFilterInput is used to supply filter parameters for locatioon list queries
@@ -169,9 +173,9 @@ type ChangePINRequest struct {
 
 // LoginPayload used when calling the REST API to log a user in
 type LoginPayload struct {
-	PhoneNumber *string      `json:"phoneNumber"`
-	PIN         *string      `json:"pin"`
-	Flavour     base.Flavour `json:"flavour"`
+	PhoneNumber *string         `json:"phoneNumber"`
+	PIN         *string         `json:"pin"`
+	Flavour     feedlib.Flavour `json:"flavour"`
 }
 
 // SendRetryOTPPayload is used when calling the REST API to resend an otp
@@ -231,12 +235,12 @@ type UserAddressInput struct {
 
 // NHIFDetailsInput represents a user's thin NHIF input details
 type NHIFDetailsInput struct {
-	MembershipNumber          string                     `json:"membershipNumber"`
-	Employment                domain.EmploymentType      `json:"employmentType"`
-	IDDocType                 base.IdentificationDocType `json:"IDDocType"`
-	IDNumber                  string                     `json:"IDNumber"`
-	IdentificationCardPhotoID string                     `json:"identificationCardPhotoID"`
-	NHIFCardPhotoID           string                     `json:"nhifCardPhotoID"`
+	MembershipNumber          string                          `json:"membershipNumber"`
+	Employment                domain.EmploymentType           `json:"employmentType"`
+	IDDocType                 enumutils.IdentificationDocType `json:"IDDocType"`
+	IDNumber                  string                          `json:"IDNumber"`
+	IdentificationCardPhotoID string                          `json:"identificationCardPhotoID"`
+	NHIFCardPhotoID           string                          `json:"nhifCardPhotoID"`
 }
 
 // PushTokenPayload represents user device push token
@@ -254,12 +258,12 @@ type CustomerPubSubMessage struct {
 // CustomerPayload is the customer data used to create a customer
 // business partner in the ERP
 type CustomerPayload struct {
-	Active       bool             `json:"active"`
-	PartnerName  string           `json:"partner_name"`
-	Country      string           `json:"country"`
-	Currency     string           `json:"currency"`
-	IsCustomer   bool             `json:"is_customer"`
-	CustomerType base.PartnerType `json:"customer_type"`
+	Active       bool                     `json:"active"`
+	PartnerName  string                   `json:"partner_name"`
+	Country      string                   `json:"country"`
+	Currency     string                   `json:"currency"`
+	IsCustomer   bool                     `json:"is_customer"`
+	CustomerType profileutils.PartnerType `json:"customer_type"`
 }
 
 // SupplierPubSubMessage is an `onboarding` PubSub message struct
@@ -271,12 +275,12 @@ type SupplierPubSubMessage struct {
 // SupplierPayload is the supplier data used to create a supplier
 // business partner in the ERP
 type SupplierPayload struct {
-	Active       bool             `json:"active"`
-	PartnerName  string           `json:"partner_name"`
-	Country      string           `json:"country"`
-	Currency     string           `json:"currency"`
-	IsSupplier   bool             `json:"is_supplier"`
-	SupplierType base.PartnerType `json:"supplier_type"`
+	Active       bool                     `json:"active"`
+	PartnerName  string                   `json:"partner_name"`
+	Country      string                   `json:"country"`
+	Currency     string                   `json:"currency"`
+	IsSupplier   bool                     `json:"is_supplier"`
+	SupplierType profileutils.PartnerType `json:"supplier_type"`
 }
 
 // EmailNotificationPayload is the email payload used to send email
@@ -294,12 +298,12 @@ type EmailNotificationPayload struct {
 // UserProfilePayload is used to update a user's profile.
 // This payload is used for REST endpoints
 type UserProfilePayload struct {
-	UID           *string      `json:"uid"`
-	PhotoUploadID *string      `json:"photoUploadID"`
-	DateOfBirth   *base.Date   `json:"dateOfBirth,omitempty"`
-	Gender        *base.Gender `json:"gender,omitempty"`
-	FirstName     *string      `json:"lastName"`
-	LastName      *string      `json:"firstName"`
+	UID           *string           `json:"uid"`
+	PhotoUploadID *string           `json:"photoUploadID"`
+	DateOfBirth   *scalarutils.Date `json:"dateOfBirth,omitempty"`
+	Gender        *enumutils.Gender `json:"gender,omitempty"`
+	FirstName     *string           `json:"lastName"`
+	LastName      *string           `json:"firstName"`
 }
 
 // PermissionInput input required to create a permission
@@ -316,28 +320,28 @@ type UpdateContactPSMessage struct {
 
 // RolePayload used when adding roles to a user
 type RolePayload struct {
-	PhoneNumber *string        `json:"phoneNumber"`
-	Role        *base.RoleType `json:"role"`
+	PhoneNumber *string                `json:"phoneNumber"`
+	Role        *profileutils.RoleType `json:"role"`
 }
 
 // RegisterAgentInput provides the data payload required to create an Agent
 type RegisterAgentInput struct {
-	FirstName   string      `json:"lastName"`
-	LastName    string      `json:"firstName"`
-	Gender      base.Gender `json:"gender"`
-	PhoneNumber string      `json:"phoneNumber"`
-	Email       string      `json:"email"`
-	DateOfBirth base.Date   `json:"dateOfBirth"`
+	FirstName   string           `json:"lastName"`
+	LastName    string           `json:"firstName"`
+	Gender      enumutils.Gender `json:"gender"`
+	PhoneNumber string           `json:"phoneNumber"`
+	Email       string           `json:"email"`
+	DateOfBirth scalarutils.Date `json:"dateOfBirth"`
 }
 
 // RegisterAdminInput provides the data payload required to create an Admin
 type RegisterAdminInput struct {
-	FirstName   string      `json:"lastName"`
-	LastName    string      `json:"firstName"`
-	Gender      base.Gender `json:"gender"`
-	PhoneNumber string      `json:"phoneNumber"`
-	Email       string      `json:"email"`
-	DateOfBirth base.Date   `json:"dateOfBirth"`
+	FirstName   string           `json:"lastName"`
+	LastName    string           `json:"firstName"`
+	Gender      enumutils.Gender `json:"gender"`
+	PhoneNumber string           `json:"phoneNumber"`
+	Email       string           `json:"email"`
+	DateOfBirth scalarutils.Date `json:"dateOfBirth"`
 }
 
 // ContactLeadInput ...
@@ -346,7 +350,7 @@ type ContactLeadInput struct {
 	ContactValue   string                      `json:"contact_value,omitempty"`
 	FirstName      string                      `json:"first_name,omitempty"`
 	LastName       string                      `json:"last_name,omitempty"`
-	DateOfBirth    base.Date                   `json:"date_of_birth,omitempty"`
+	DateOfBirth    scalarutils.Date            `json:"date_of_birth,omitempty"`
 	IsSync         bool                        `json:"isSync"  firestore:"IsSync"`
 	TimeSync       *time.Time                  `json:"timeSync"  firestore:"TimeSync"`
 	OptOut         CRMDomain.GeneralOptionType `json:"opt_out,omitempty"`

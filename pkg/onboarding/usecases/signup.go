@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -21,17 +24,17 @@ import (
 // SignUpUseCases represents all the business logic involved in setting up a user
 type SignUpUseCases interface {
 	// VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
-	VerifyPhoneNumber(ctx context.Context, phone string) (*base.OtpResponse, error)
+	VerifyPhoneNumber(ctx context.Context, phone string) (*profileutils.OtpResponse, error)
 
 	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE
 	// NUMBER
-	CreateUserByPhone(ctx context.Context, input *dto.SignUpInput) (*base.UserResponse, error)
+	CreateUserByPhone(ctx context.Context, input *dto.SignUpInput) (*profileutils.UserResponse, error)
 
 	// updates the user profile of the currently logged in user
 	UpdateUserProfile(
 		ctx context.Context,
 		input *dto.UserProfileInput,
-	) (*base.UserProfile, error)
+	) (*profileutils.UserProfile, error)
 
 	// adds a new push token in the users profile if the push token does not exist
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
@@ -39,7 +42,7 @@ type SignUpUseCases interface {
 	// called to create a customer account in the ERP. This API is only valid for `BEWELL CONSUMER`
 	// it should be the last call after updating the users bio data. Its should not return an error
 	// when it fails due to unreachable errors, rather it should retry
-	CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error)
+	CompleteSignup(ctx context.Context, flavour feedlib.Flavour) (bool, error)
 
 	// removes a push token from the users profile
 	RetirePushToken(ctx context.Context, token string) (bool, error)
@@ -98,7 +101,7 @@ func NewSignUpUseCases(
 func (s *SignUpUseCasesImpl) VerifyPhoneNumber(
 	ctx context.Context,
 	phone string,
-) (*base.OtpResponse, error) {
+) (*profileutils.OtpResponse, error) {
 	ctx, span := tracer.Start(ctx, "VerifyPhoneNumber")
 	defer span.End()
 
@@ -133,7 +136,7 @@ func (s *SignUpUseCasesImpl) VerifyPhoneNumber(
 func (s *SignUpUseCasesImpl) CreateUserByPhone(
 	ctx context.Context,
 	input *dto.SignUpInput,
-) (*base.UserResponse, error) {
+) (*profileutils.UserResponse, error) {
 	ctx, span := tracer.Start(ctx, "CreateUserByPhone")
 	defer span.End()
 
@@ -194,8 +197,8 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		return nil, err
 	}
 
-	var supplier *base.Supplier
-	var customer *base.Customer
+	var supplier *profileutils.Supplier
+	var customer *profileutils.Customer
 	supplier, err = s.onboardingRepository.CreateEmptySupplierProfile(ctx, profile.ID)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -242,7 +245,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	return &base.UserResponse{
+	return &profileutils.UserResponse{
 		Profile:               profile,
 		SupplierProfile:       supplier,
 		CustomerProfile:       customer,
@@ -256,7 +259,7 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 func (s *SignUpUseCasesImpl) UpdateUserProfile(
 	ctx context.Context,
 	input *dto.UserProfileInput,
-) (*base.UserProfile, error) {
+) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "UpdateUserProfile")
 	defer span.End()
 
@@ -275,7 +278,7 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(
 		}
 	}
 
-	if err := s.profileUsecase.UpdateBioData(ctx, base.BioData{
+	if err := s.profileUsecase.UpdateBioData(ctx, profileutils.BioData{
 		FirstName: func(n *string) *string {
 			if n != nil {
 				return n
@@ -288,13 +291,13 @@ func (s *SignUpUseCasesImpl) UpdateUserProfile(
 			}
 			return pr.UserBioData.LastName
 		}(input.LastName),
-		DateOfBirth: func(n *base.Date) *base.Date {
+		DateOfBirth: func(n *scalarutils.Date) *scalarutils.Date {
 			if n != nil {
 				return n
 			}
 			return pr.UserBioData.DateOfBirth
 		}(input.DateOfBirth),
-		Gender: func(n *base.Gender) base.Gender {
+		Gender: func(n *enumutils.Gender) enumutils.Gender {
 			if n != nil {
 				return *n
 			}
@@ -326,12 +329,12 @@ func (s *SignUpUseCasesImpl) RegisterPushToken(ctx context.Context, token string
 // CONSUMER`
 func (s *SignUpUseCasesImpl) CompleteSignup(
 	ctx context.Context,
-	flavour base.Flavour,
+	flavour feedlib.Flavour,
 ) (bool, error) {
 	ctx, span := tracer.Start(ctx, "CompleteSignup")
 	defer span.End()
 
-	if flavour != base.FlavourConsumer {
+	if flavour != feedlib.FlavourConsumer {
 		return false, exceptions.InvalidFlavourDefinedError()
 	}
 
@@ -371,7 +374,7 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 	err = s.supplierUsecase.CreateCustomerAccount(
 		ctx,
 		fullName,
-		base.PartnerTypeConsumer,
+		profileutils.PartnerTypeConsumer,
 	)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -418,7 +421,7 @@ func (s *SignUpUseCasesImpl) GetUserRecoveryPhoneNumbers(
 		return nil, err
 	}
 	// cherrypick the phone numbers and mask them
-	phones := func(p *base.UserProfile) []string {
+	phones := func(p *profileutils.UserProfile) []string {
 		phs := []string{}
 		phs = append(phs, *p.PrimaryPhone)
 		phs = append(phs, p.SecondaryPhoneNumbers...)

@@ -12,8 +12,10 @@ import (
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/serverutils"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -46,19 +48,19 @@ type ServiceEngagement interface {
 	PublishKYCNudge(
 		ctx context.Context,
 		uid string,
-		payload base.Nudge,
+		payload feedlib.Nudge,
 	) (*http.Response, error)
 
 	PublishKYCFeedItem(
 		ctx context.Context,
 		uid string,
-		payload base.Item,
+		payload feedlib.Item,
 	) (*http.Response, error)
 
 	ResolveDefaultNudgeByTitle(
 		ctx context.Context,
 		UID string,
-		flavour base.Flavour,
+		flavour feedlib.Flavour,
 		nudgeTitle string,
 	) error
 
@@ -78,13 +80,13 @@ type ServiceEngagement interface {
 	GenerateAndSendOTP(
 		ctx context.Context,
 		phone string,
-	) (*base.OtpResponse, error)
+	) (*profileutils.OtpResponse, error)
 
 	SendRetryOTP(
 		ctx context.Context,
 		msisdn string,
 		retryStep int,
-	) (*base.OtpResponse, error)
+	) (*profileutils.OtpResponse, error)
 
 	VerifyOTP(ctx context.Context, phone, OTP string) (bool, error)
 
@@ -110,7 +112,7 @@ func NewServiceEngagementImpl(eng extension.ISCClientExtension, ext extension.Ba
 func (en *ServiceEngagementImpl) PublishKYCNudge(
 	ctx context.Context,
 	uid string,
-	payload base.Nudge,
+	payload feedlib.Nudge,
 ) (*http.Response, error) {
 	return en.Engage.MakeRequest(ctx,
 		http.MethodPost,
@@ -124,7 +126,7 @@ func (en *ServiceEngagementImpl) PublishKYCNudge(
 func (en *ServiceEngagementImpl) PublishKYCFeedItem(
 	ctx context.Context,
 	uid string,
-	payload base.Item,
+	payload feedlib.Item,
 ) (*http.Response, error) {
 	return en.Engage.MakeRequest(ctx,
 		http.MethodPost,
@@ -138,7 +140,7 @@ func (en *ServiceEngagementImpl) PublishKYCFeedItem(
 func (en *ServiceEngagementImpl) ResolveDefaultNudgeByTitle(
 	ctx context.Context,
 	UID string,
-	flavour base.Flavour,
+	flavour feedlib.Flavour,
 	nudgeTitle string,
 ) error {
 	resp, err := en.Engage.MakeRequest(ctx,
@@ -283,7 +285,7 @@ func (en *ServiceEngagementImpl) NotifyAdmins(ctx context.Context, input dto.Ema
 func (en *ServiceEngagementImpl) GenerateAndSendOTP(
 	ctx context.Context,
 	phone string,
-) (*base.OtpResponse, error) {
+) (*profileutils.OtpResponse, error) {
 	body := map[string]interface{}{
 		"msisdn": phone,
 	}
@@ -306,7 +308,7 @@ func (en *ServiceEngagementImpl) GenerateAndSendOTP(
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal OTP: %v", err)
 	}
-	return &base.OtpResponse{OTP: OTP}, nil
+	return &profileutils.OtpResponse{OTP: OTP}, nil
 }
 
 // SendRetryOTP generates fallback OTPs when Africa is talking sms fails
@@ -314,7 +316,7 @@ func (en *ServiceEngagementImpl) SendRetryOTP(
 	ctx context.Context,
 	msisdn string,
 	retryStep int,
-) (*base.OtpResponse, error) {
+) (*profileutils.OtpResponse, error) {
 	phoneNumber, err := en.baseExt.NormalizeMSISDN(msisdn)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
@@ -347,7 +349,7 @@ func (en *ServiceEngagementImpl) SendRetryOTP(
 		return nil, fmt.Errorf("failed to unmarshal OTP: %v", err)
 	}
 
-	return &base.OtpResponse{OTP: RetryOTP}, nil
+	return &profileutils.OtpResponse{OTP: RetryOTP}, nil
 }
 
 // VerifyOTP takes a phone number and an OTP and checks for the validity of the OTP code
@@ -472,15 +474,15 @@ func (en *ServiceEngagementImpl) NotifySupplierOnSuspension(ctx context.Context,
 // SendSMS does the actual delivery of messages to the provided phone numbers
 func (en *ServiceEngagementImpl) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
 	type PayloadRequest struct {
-		To      []string      `json:"to"`
-		Message string        `json:"message"`
-		Sender  base.SenderID `json:"sender"`
+		To      []string           `json:"to"`
+		Message string             `json:"message"`
+		Sender  enumutils.SenderID `json:"sender"`
 	}
 
 	requestPayload := PayloadRequest{
 		To:      phoneNumbers,
 		Message: message,
-		Sender:  base.SenderIDBewell,
+		Sender:  enumutils.SenderIDBewell,
 	}
 
 	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, sendSMS, requestPayload)

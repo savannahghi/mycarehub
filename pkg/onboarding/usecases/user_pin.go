@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/errorcodeutil"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -26,7 +27,7 @@ type UserPINUseCases interface {
 		OTP string,
 	) (bool, error)
 	ChangeUserPIN(ctx context.Context, phone string, pin string) (bool, error)
-	RequestPINReset(ctx context.Context, phone string) (*base.OtpResponse, error)
+	RequestPINReset(ctx context.Context, phone string) (*profileutils.OtpResponse, error)
 	CheckHasPIN(ctx context.Context, profileID string) (bool, error)
 }
 
@@ -98,7 +99,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(
 func (u *UserPinUseCaseImpl) RequestPINReset(
 	ctx context.Context,
 	phone string,
-) (*base.OtpResponse, error) {
+) (*profileutils.OtpResponse, error) {
 	ctx, span := tracer.Start(ctx, "RequestPINReset")
 	defer span.End()
 
@@ -250,7 +251,7 @@ func (u *UserPinUseCaseImpl) CheckHasPIN(ctx context.Context, profileID string) 
 	}
 
 	if pinData == nil {
-		return false, fmt.Errorf("%v", base.PINNotFound)
+		return false, fmt.Errorf("%v", errorcodeutil.PINNotFound)
 	}
 
 	return true, nil

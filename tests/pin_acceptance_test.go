@@ -10,7 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
@@ -25,7 +27,7 @@ import (
 
 func composeValidChangePinPayload(t *testing.T, otp string) *domain.ChangePINRequest {
 	return &domain.ChangePINRequest{
-		PhoneNumber: base.TestUserPhoneNumberWithPin,
+		PhoneNumber: interserviceclient.TestUserPhoneNumberWithPin,
 		PIN:         "1234",
 		OTP:         otp,
 	}
@@ -42,14 +44,14 @@ func composeInValidChangePinPayload(t *testing.T, otp string) *domain.ChangePINR
 
 // func composeValidPinPayload(t *testing.T) *domain.SetPINRequest {
 // 	return &domain.SetPINRequest{
-// 		PhoneNumber: base.TestUserPhoneNumber,
+// 		PhoneNumber: interserviceclient.TestUserPhoneNumber,
 // 		PIN:         "1234",
 // 	}
 // }
 
 // func composeUnregisteredPhone(t *testing.T) *domain.SetPINRequest {
 // 	return &domain.SetPINRequest{
-// 		PhoneNumber: base.TestUserPhoneNumber,
+// 		PhoneNumber: interserviceclient.TestUserPhoneNumber,
 // 		PIN:         "1234",
 // 	}
 // }
@@ -63,7 +65,7 @@ func composeInValidPinResetPayload(t *testing.T) *dto.PhoneNumberPayload {
 }
 
 func composeValidPinResetPayload(t *testing.T) *dto.PhoneNumberPayload {
-	validNumber := base.TestUserPhoneNumberWithPin
+	validNumber := interserviceclient.TestUserPhoneNumberWithPin
 	return &dto.PhoneNumberPayload{
 		PhoneNumber: &validNumber,
 	}
@@ -72,7 +74,7 @@ func composeValidPinResetPayload(t *testing.T) *dto.PhoneNumberPayload {
 func TestResetPin(t *testing.T) {
 	client := http.DefaultClient
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumberWithPin
+	phoneNumber := interserviceclient.TestUserPhoneNumberWithPin
 	_, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -167,7 +169,7 @@ func TestResetPin(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "profile") {
 				r.Header.Add(k, v)
 			}
 
@@ -201,7 +203,7 @@ func TestResetPin(t *testing.T) {
 func TestRequestPINReset(t *testing.T) {
 	client := http.DefaultClient
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumberWithPin
+	phoneNumber := interserviceclient.TestUserPhoneNumberWithPin
 	_, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -283,7 +285,7 @@ func TestRequestPINReset(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "profile") {
 				r.Header.Add(k, v)
 			}
 
@@ -316,16 +318,16 @@ func TestRequestPINReset(t *testing.T) {
 
 func TestUpdateUserPIN(t *testing.T) {
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	_, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
-	ctx := base.GetAuthenticatedContext(t)
+	ctx := firebasetools.GetAuthenticatedContext(t)
 
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
-	headers, err := base.GetGraphQLHeaders(ctx)
+	headers, err := apiclient.GetGraphQLHeaders(ctx)
 	if err != nil {
 		t.Errorf("error in getting headers: %w", err)
 		return
@@ -352,7 +354,7 @@ func TestUpdateUserPIN(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phone": base.TestUserPhoneNumber,
+						"phone": interserviceclient.TestUserPhoneNumber,
 						"pin":   "1234",
 					},
 				},
@@ -366,7 +368,7 @@ func TestUpdateUserPIN(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phone": base.TestUserPhoneNumberWithPin,
+						"phone": interserviceclient.TestUserPhoneNumberWithPin,
 						"pin":   "1234",
 					},
 				},

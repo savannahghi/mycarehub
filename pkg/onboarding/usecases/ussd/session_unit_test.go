@@ -9,7 +9,9 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/pubsubtools"
+	"github.com/savannahghi/scalarutils"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -380,17 +382,17 @@ func TestImpl_CreateUserProfileUnittest(t *testing.T) {
 	suspended := false
 	uid := uuid.New().String()
 
-	userProfile := base.UserProfile{
+	userProfile := profileutils.UserProfile{
 		ID:            profileID,
 		UserName:      &username,
 		PrimaryPhone:  &phoneNumber,
 		TermsAccepted: termsAccepted,
 		Suspended:     suspended,
-		VerifiedIdentifiers: []base.VerifiedIdentifier{
+		VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 			{
 				UID:           uid,
-				LoginProvider: base.LoginProviderTypePhone,
-				Timestamp:     time.Now().In(base.TimeLocation),
+				LoginProvider: profileutils.LoginProviderTypePhone,
+				Timestamp:     time.Now().In(pubsubtools.TimeLocation),
 			},
 		},
 		VerifiedUIDS: []string{uid},
@@ -404,7 +406,7 @@ func TestImpl_CreateUserProfileUnittest(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.UserProfile
+		want    *profileutils.UserProfile
 		wantErr bool
 	}{
 		//test cases.
@@ -432,13 +434,13 @@ func TestImpl_CreateUserProfileUnittest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "success_create_user_profile" {
-				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
+				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*profileutils.UserProfile, error) {
 					return &userProfile, nil
 				}
 			}
 
 			if tt.name == "failed_create_user_profile" {
-				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
+				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("failed to create user profile")
 				}
 			}
@@ -481,7 +483,7 @@ func TestImpl_CreateEmptyCustomerProfileUnittest(t *testing.T) {
 	id := uuid.New().String()
 	profileId := uuid.New().String()
 
-	customer := base.Customer{
+	customer := profileutils.Customer{
 		ID:        id,
 		ProfileID: &profileId,
 	}
@@ -493,7 +495,7 @@ func TestImpl_CreateEmptyCustomerProfileUnittest(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Customer
+		want    *profileutils.Customer
 		wantErr bool
 	}{
 		//test cases.
@@ -519,12 +521,12 @@ func TestImpl_CreateEmptyCustomerProfileUnittest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "success_create_empty_customer_profile" {
-				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*base.Customer, error) {
+				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*profileutils.Customer, error) {
 					return &customer, nil
 				}
 			}
 			if tt.name == "failed_create_empty_customer_profile" {
-				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*base.Customer, error) {
+				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*profileutils.Customer, error) {
 					return nil, fmt.Errorf("failed to create empy customer profile")
 				}
 			}
@@ -569,7 +571,7 @@ func TestImpl_StageCRMPayloadUnittest(t *testing.T) {
 	contactValue := "+254702215783"
 	firstName := gofakeit.FirstName()
 	lastName := gofakeit.LastName()
-	dateOfBirth := base.Date{
+	dateOfBirth := scalarutils.Date{
 		Day:   0,
 		Month: 0,
 		Year:  0,
@@ -734,7 +736,7 @@ func TestImpl_UpdateOptOutCRMPayload(t *testing.T) {
 	ContactValue := phoneNumber
 	FirstName := gofakeit.FirstName()
 	LastName := gofakeit.LastName()
-	DateOfBirth := base.Date{
+	DateOfBirth := scalarutils.Date{
 		Day:   0,
 		Month: 0,
 		Year:  0,
@@ -822,17 +824,17 @@ func TestImpl_UpdateBioData_Unittest(t *testing.T) {
 	firstname := gofakeit.FirstName()
 	lastname := gofakeit.LastName()
 
-	biodata := &base.BioData{
+	biodata := &profileutils.BioData{
 		FirstName:   &firstname,
 		LastName:    &lastname,
-		DateOfBirth: &base.Date{},
+		DateOfBirth: &scalarutils.Date{},
 		Gender:      "Male",
 	}
 
 	type args struct {
 		ctx  context.Context
 		id   string
-		data base.BioData
+		data profileutils.BioData
 	}
 	tests := []struct {
 		name    string
@@ -861,13 +863,13 @@ func TestImpl_UpdateBioData_Unittest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Happy case" {
-				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data profileutils.BioData) error {
 					return nil
 				}
 			}
 
 			if tt.name == "Sad case" {
-				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data profileutils.BioData) error {
 					return err
 				}
 			}

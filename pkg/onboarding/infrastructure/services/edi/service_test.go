@@ -38,7 +38,7 @@ package edi_test
 // 		{
 // 			name: "Happy Case - Successfully link a cover",
 // 			args: args{
-// 				phoneNumber: base.TestUserPhoneNumber,
+// 				phoneNumber: interserviceclient.TestUserPhoneNumber,
 // 				uid:         uuid.New().String(),
 // 				pushToken:   []string{uuid.New().String()},
 // 			},

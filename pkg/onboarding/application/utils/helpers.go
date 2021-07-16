@@ -7,7 +7,8 @@ import (
 	"strconv"
 
 	"github.com/savannahghi/converterandformatter"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/profileutils"
+	"gitlab.slade360emr.com/go/apiclient"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -17,7 +18,7 @@ import (
 // match one if it does exist in the srcCovers. Hence;
 // - if the difference between `coversThatExists` and `coversThatDontExist` is less than 0, it means the cover is question  does not exist in srcCovers .
 // - if the difference between `coversThatExists` and `coversThatDontExist` is equal than 0, it means the cover is question does  exist in srcCovers.
-func IfCoverExistsInSlice(srcCovers []base.Cover, cover base.Cover) bool {
+func IfCoverExistsInSlice(srcCovers []profileutils.Cover, cover profileutils.Cover) bool {
 	existCount := 0
 	doesNotExistCount := 0
 
@@ -53,7 +54,7 @@ func IfCoverExistsInSlice(srcCovers []base.Cover, cover base.Cover) bool {
 }
 
 // CheckIdentifierExists check if an identifier exists
-func CheckIdentifierExists(profile *base.UserProfile, UID string) bool {
+func CheckIdentifierExists(profile *profileutils.UserProfile, UID string) bool {
 	foundVerifiedUIDs := []string{}
 	verifiedIDs := profile.VerifiedIdentifiers
 	for _, verifiedID := range verifiedIDs {
@@ -63,7 +64,7 @@ func CheckIdentifierExists(profile *base.UserProfile, UID string) bool {
 }
 
 // CheckUserHasFavNavAction checks if user has book marked the provided navaction
-func CheckUserHasFavNavAction(u *base.UserProfile, title string) bool {
+func CheckUserHasFavNavAction(u *profileutils.UserProfile, title string) bool {
 	if len(u.FavNavActions) == 0 {
 		return false
 	}
@@ -76,12 +77,12 @@ func CheckUserHasFavNavAction(u *base.UserProfile, title string) bool {
 }
 
 // AddHashToCovers add a hash identifier to provided unhashed covers
-func AddHashToCovers(unHashedCovers []base.Cover) []base.Cover {
-	hashed := []base.Cover{}
+func AddHashToCovers(unHashedCovers []profileutils.Cover) []profileutils.Cover {
+	hashed := []profileutils.Cover{}
 	for _, cvr := range unHashedCovers {
 		if cvr.IdentifierHash == nil {
-			hashed = append(hashed, base.Cover{
-				IdentifierHash: base.CreateCoverHash(base.Cover{
+			hashed = append(hashed, profileutils.Cover{
+				IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 					PayerName:             cvr.PayerName,
 					PayerSladeCode:        cvr.PayerSladeCode,
 					MemberNumber:          cvr.MemberNumber,
@@ -136,9 +137,9 @@ func ParseUSSDDateInput(date string) string {
 }
 
 // UniquePermissionsArray removes duplicate permissions in an array of permissions
-func UniquePermissionsArray(arr []base.PermissionType) []base.PermissionType {
-	occurred := map[base.PermissionType]bool{}
-	result := []base.PermissionType{}
+func UniquePermissionsArray(arr []profileutils.PermissionType) []profileutils.PermissionType {
+	occurred := map[profileutils.PermissionType]bool{}
+	result := []profileutils.PermissionType{}
 
 	for e := range arr {
 		// check if already the mapped

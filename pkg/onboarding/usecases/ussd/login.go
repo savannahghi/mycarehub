@@ -3,7 +3,7 @@ package ussd
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/feedlib"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"go.opentelemetry.io/otel"
@@ -36,7 +36,7 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 		return resp
 
 	default:
-		isLoggedIn, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, base.FlavourConsumer)
+		isLoggedIn, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, feedlib.FlavourConsumer)
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
@@ -63,7 +63,7 @@ func (u *Impl) LoginInUser(
 	ctx context.Context,
 	phone string,
 	PIN string,
-	flavour base.Flavour,
+	flavour feedlib.Flavour,
 ) (bool, error) {
 	ctx, span := tracer.Start(ctx, "LoginInUser")
 	defer span.End()

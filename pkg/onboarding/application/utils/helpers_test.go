@@ -4,15 +4,17 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
 func TestIfCoverExistsInSlice(t *testing.T) {
-	src := []base.Cover{
+	src := []profileutils.Cover{
 		{
-			IdentifierHash: base.CreateCoverHash(base.Cover{
+			IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 				PayerName:      "payer1",
 				PayerSladeCode: 1,
 				MemberNumber:   "mem1",
@@ -24,7 +26,7 @@ func TestIfCoverExistsInSlice(t *testing.T) {
 			MemberName:     "name1",
 		},
 		{
-			IdentifierHash: base.CreateCoverHash(base.Cover{
+			IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 				PayerName:      "payer2",
 				PayerSladeCode: 2,
 				MemberNumber:   "mem2",
@@ -39,14 +41,14 @@ func TestIfCoverExistsInSlice(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		args      base.Cover
-		srcCovers []base.Cover
+		args      profileutils.Cover
+		srcCovers []profileutils.Cover
 		want      bool
 	}{
 		{
 			name: "valid: exists_1",
-			args: base.Cover{
-				IdentifierHash: base.CreateCoverHash(base.Cover{
+			args: profileutils.Cover{
+				IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 					PayerName:      "payer1",
 					PayerSladeCode: 1,
 					MemberNumber:   "mem1",
@@ -63,8 +65,8 @@ func TestIfCoverExistsInSlice(t *testing.T) {
 
 		{
 			name: "valid: exists_2",
-			args: base.Cover{
-				IdentifierHash: base.CreateCoverHash(base.Cover{
+			args: profileutils.Cover{
+				IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 					PayerName:      "payer2",
 					PayerSladeCode: 2,
 					MemberNumber:   "mem2",
@@ -81,8 +83,8 @@ func TestIfCoverExistsInSlice(t *testing.T) {
 
 		{
 			name: "invalid: does not exist_1",
-			args: base.Cover{
-				IdentifierHash: base.CreateCoverHash(base.Cover{
+			args: profileutils.Cover{
+				IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 					PayerName:      "payer1",
 					PayerSladeCode: 1,
 					MemberNumber:   "mem11",
@@ -99,8 +101,8 @@ func TestIfCoverExistsInSlice(t *testing.T) {
 
 		{
 			name: "invalid: does not exist_2",
-			args: base.Cover{
-				IdentifierHash: base.CreateCoverHash(base.Cover{
+			args: profileutils.Cover{
+				IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 					PayerName:      "payer1",
 					PayerSladeCode: 1,
 					MemberNumber:   "mem1",
@@ -117,8 +119,8 @@ func TestIfCoverExistsInSlice(t *testing.T) {
 
 		{
 			name: "invalid: does not exist_3",
-			args: base.Cover{
-				IdentifierHash: base.CreateCoverHash(base.Cover{
+			args: profileutils.Cover{
+				IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 					PayerName:      "payer2",
 					PayerSladeCode: 2,
 					MemberNumber:   "mem22",
@@ -135,8 +137,8 @@ func TestIfCoverExistsInSlice(t *testing.T) {
 
 		{
 			name: "invalid: does not exist_4",
-			args: base.Cover{
-				IdentifierHash: base.CreateCoverHash(base.Cover{
+			args: profileutils.Cover{
+				IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 					PayerName:      "payer3",
 					PayerSladeCode: 2,
 					MemberNumber:   "mem2",
@@ -153,8 +155,8 @@ func TestIfCoverExistsInSlice(t *testing.T) {
 
 		{
 			name: "invalid: does not exist_5",
-			args: base.Cover{
-				IdentifierHash: base.CreateCoverHash(base.Cover{
+			args: profileutils.Cover{
+				IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 					PayerName:      "payer3",
 					PayerSladeCode: 2,
 					MemberNumber:   "mem2",
@@ -165,7 +167,7 @@ func TestIfCoverExistsInSlice(t *testing.T) {
 				MemberNumber:   "mem2",
 				MemberName:     "name2",
 			},
-			srcCovers: []base.Cover{},
+			srcCovers: []profileutils.Cover{},
 			want:      false,
 		},
 	}
@@ -179,7 +181,7 @@ func TestIfCoverExistsInSlice(t *testing.T) {
 }
 
 func TestAddHashToCovers(t *testing.T) {
-	unhashedCovers := []base.Cover{
+	unhashedCovers := []profileutils.Cover{
 		{
 
 			PayerName:      "payer1",
@@ -205,9 +207,9 @@ func TestAddHashToCovers(t *testing.T) {
 	hashedCovers1 := utils.AddHashToCovers(unhashedCovers)
 	assert.Equal(t, len(unhashedCovers), len(hashedCovers1))
 
-	hashedCovers2 := []base.Cover{
+	hashedCovers2 := []profileutils.Cover{
 		{
-			IdentifierHash: base.CreateCoverHash(base.Cover{
+			IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 				PayerName:      "payer1",
 				PayerSladeCode: 1,
 				MemberNumber:   "mem1",
@@ -219,7 +221,7 @@ func TestAddHashToCovers(t *testing.T) {
 			MemberName:     "name1",
 		},
 		{
-			IdentifierHash: base.CreateCoverHash(base.Cover{
+			IdentifierHash: apiclient.CreateCoverHash(profileutils.Cover{
 				PayerName:      "payer2",
 				PayerSladeCode: 2,
 				MemberNumber:   "mem2",
@@ -275,8 +277,8 @@ func TestFindNumber(t *testing.T) {
 		{
 			name: "happy case - Find existing number",
 			args: args{
-				slice: []string{base.TestUserPhoneNumber, "+254700998877"},
-				value: base.TestUserPhoneNumber,
+				slice: []string{interserviceclient.TestUserPhoneNumber, "+254700998877"},
+				value: interserviceclient.TestUserPhoneNumber,
 			},
 			// This is the index
 			want:  0,
@@ -285,7 +287,7 @@ func TestFindNumber(t *testing.T) {
 		{
 			name: "sad case - non existent number",
 			args: args{
-				slice: []string{base.TestUserPhoneNumber, "+254700998877"},
+				slice: []string{interserviceclient.TestUserPhoneNumber, "+254700998877"},
 				value: "invalid",
 			},
 			// This is the index
@@ -307,27 +309,27 @@ func TestFindNumber(t *testing.T) {
 }
 
 func TestUniquePermissionsArray(t *testing.T) {
-	duplicated := []base.PermissionType{}
-	duplicated = append(duplicated, base.DefaultAdminPermissions...)
-	duplicated = append(duplicated, base.DefaultAdminPermissions...)
-	duplicated = append(duplicated, base.DefaultAdminPermissions...)
+	duplicated := []profileutils.PermissionType{}
+	duplicated = append(duplicated, profileutils.DefaultAdminPermissions...)
+	duplicated = append(duplicated, profileutils.DefaultAdminPermissions...)
+	duplicated = append(duplicated, profileutils.DefaultAdminPermissions...)
 
-	duplicatedMixed := []base.PermissionType{}
-	duplicatedMixed = append(duplicatedMixed, base.DefaultAdminPermissions...)
-	duplicatedMixed = append(duplicatedMixed, base.DefaultAgentPermissions...)
-	duplicatedMixed = append(duplicatedMixed, base.DefaultAdminPermissions...)
-	duplicatedMixed = append(duplicatedMixed, base.DefaultAgentPermissions...)
-	mixed := []base.PermissionType{}
-	mixed = append(mixed, base.DefaultAdminPermissions...)
-	mixed = append(mixed, base.DefaultAgentPermissions...)
+	duplicatedMixed := []profileutils.PermissionType{}
+	duplicatedMixed = append(duplicatedMixed, profileutils.DefaultAdminPermissions...)
+	duplicatedMixed = append(duplicatedMixed, profileutils.DefaultAgentPermissions...)
+	duplicatedMixed = append(duplicatedMixed, profileutils.DefaultAdminPermissions...)
+	duplicatedMixed = append(duplicatedMixed, profileutils.DefaultAgentPermissions...)
+	mixed := []profileutils.PermissionType{}
+	mixed = append(mixed, profileutils.DefaultAdminPermissions...)
+	mixed = append(mixed, profileutils.DefaultAgentPermissions...)
 
 	type args struct {
-		arr []base.PermissionType
+		arr []profileutils.PermissionType
 	}
 	tests := []struct {
 		name string
 		args args
-		want []base.PermissionType
+		want []profileutils.PermissionType
 	}{
 		{
 			name: "success:return unique array of permissions",
@@ -341,21 +343,21 @@ func TestUniquePermissionsArray(t *testing.T) {
 			args: args{
 				arr: duplicated,
 			},
-			want: base.DefaultAdminPermissions,
+			want: profileutils.DefaultAdminPermissions,
 		},
 		{
 			name: "success:return same unique array",
 			args: args{
-				arr: base.DefaultAdminPermissions,
+				arr: profileutils.DefaultAdminPermissions,
 			},
-			want: base.DefaultAdminPermissions,
+			want: profileutils.DefaultAdminPermissions,
 		},
 		{
 			name: "success:empty array of permissions",
 			args: args{
-				arr: []base.PermissionType{},
+				arr: []profileutils.PermissionType{},
 			},
-			want: []base.PermissionType{},
+			want: []profileutils.PermissionType{},
 		},
 	}
 	for _, tt := range tests {

@@ -7,7 +7,8 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -103,8 +104,8 @@ func TestImpl_HandleChangePIN_Unittest(t *testing.T) {
 				}
 			}
 			if tt.name == "go back home" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{}, nil
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
 				}
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, ProfileID string) (*domain.PIN, error) {
 					return &domain.PIN{}, nil
@@ -117,8 +118,8 @@ func TestImpl_HandleChangePIN_Unittest(t *testing.T) {
 				}
 			}
 			if tt.name == "change pin option 2 selected" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{}, nil
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
 				}
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, ProfileID string) (*domain.PIN, error) {
 					return &domain.PIN{}, nil
@@ -132,7 +133,7 @@ func TestImpl_HandleChangePIN_Unittest(t *testing.T) {
 			}
 
 			if tt.name == "Sad case :invalid input" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("an error occured: %v", err)
 				}
 			}
@@ -210,8 +211,8 @@ func TestImpl_SetUSSDUserPin_Unittest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "Happy case: Reset PIN successfully" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{}, nil
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
 				}
 
 				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
@@ -292,7 +293,7 @@ func TestImpl_ChangeUSSDUserPIN_Unittest(t *testing.T) {
 			name: "Sad case: Unable to Change user PIN",
 			args: args{
 				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				phone: interserviceclient.TestUserPhoneNumber,
 				pin:   invalidPIN,
 			},
 			want:    false,
@@ -302,8 +303,8 @@ func TestImpl_ChangeUSSDUserPIN_Unittest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Happy case: Change user PIN successfully" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{}, nil
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
 				}
 
 				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
@@ -322,8 +323,8 @@ func TestImpl_ChangeUSSDUserPIN_Unittest(t *testing.T) {
 
 					return
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{}, nil
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
 				}
 
 				fakeRepo.UpdatePINFn = func(ctx context.Context, id string, pin *domain.PIN) (bool, error) {

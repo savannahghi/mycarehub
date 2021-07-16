@@ -6,12 +6,13 @@ package graph
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
 )
 
-func (r *verifiedIdentifierResolver) Timestamp(ctx context.Context, obj *base.VerifiedIdentifier) (*base.Date, error) {
-	return &base.Date{
+func (r *verifiedIdentifierResolver) Timestamp(ctx context.Context, obj *profileutils.VerifiedIdentifier) (*scalarutils.Date, error) {
+	return &scalarutils.Date{
 		Year:  obj.Timestamp.Year(),
 		Day:   obj.Timestamp.Day(),
 		Month: int(obj.Timestamp.Month()),

@@ -13,10 +13,11 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/profileutils"
 	"github.com/segmentio/ksuid"
 
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization/permission"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
@@ -64,19 +65,19 @@ const (
 
 // SupplierUseCases represent the business logic required for management of suppliers
 type SupplierUseCases interface {
-	AddPartnerType(ctx context.Context, name *string, partnerType *base.PartnerType) (bool, error)
+	AddPartnerType(ctx context.Context, name *string, partnerType *profileutils.PartnerType) (bool, error)
 
-	FindSupplierByID(ctx context.Context, id string) (*base.Supplier, error)
+	FindSupplierByID(ctx context.Context, id string) (*profileutils.Supplier, error)
 
-	FindSupplierByUID(ctx context.Context) (*base.Supplier, error)
+	FindSupplierByUID(ctx context.Context) (*profileutils.Supplier, error)
 
-	SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
+	SetUpSupplier(ctx context.Context, accountType profileutils.AccountType) (*profileutils.Supplier, error)
 
 	SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error)
 
-	EDIUserLogin(ctx context.Context, username, password *string) (*base.EDIUserProfile, error)
+	EDIUserLogin(ctx context.Context, username, password *string) (*profileutils.EDIUserProfile, error)
 
-	CoreEDIUserLogin(ctx context.Context, username, password string) (*base.EDIUserProfile, error)
+	CoreEDIUserLogin(ctx context.Context, username, password string) (*profileutils.EDIUserProfile, error)
 
 	FetchSupplierAllowedLocations(ctx context.Context) (*dto.BranchConnection, error)
 	CheckSupplierKYCSubmitted(ctx context.Context) (bool, error)
@@ -145,13 +146,13 @@ type SupplierUseCases interface {
 		sladeCode string,
 	) (*dto.SupplierLogin, error)
 
-	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error)
+	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*profileutils.Supplier, error)
 
-	SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *base.Supplier) error
+	SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *profileutils.Supplier) error
 
 	SendKYCEmail(ctx context.Context, text, emailaddress string) error
 
-	StageKYCProcessingRequest(ctx context.Context, sup *base.Supplier) error
+	StageKYCProcessingRequest(ctx context.Context, sup *profileutils.Supplier) error
 
 	ProcessKYCRequest(
 		ctx context.Context,
@@ -167,13 +168,13 @@ type SupplierUseCases interface {
 	CreateCustomerAccount(
 		ctx context.Context,
 		name string,
-		partnerType base.PartnerType,
+		partnerType profileutils.PartnerType,
 	) error
 
 	CreateSupplierAccount(
 		ctx context.Context,
 		name string,
-		partnerType base.PartnerType,
+		partnerType profileutils.PartnerType,
 	) error
 }
 
@@ -217,7 +218,7 @@ func NewSupplierUseCases(
 func (s SupplierUseCasesImpl) AddPartnerType(
 	ctx context.Context,
 	name *string,
-	partnerType *base.PartnerType,
+	partnerType *profileutils.PartnerType,
 ) (bool, error) {
 	ctx, span := tracer.Start(ctx, "AddPartnerType")
 	defer span.End()
@@ -230,7 +231,7 @@ func (s SupplierUseCasesImpl) AddPartnerType(
 		return false, exceptions.InvalidPartnerTypeError()
 	}
 
-	if *partnerType == base.PartnerTypeConsumer {
+	if *partnerType == profileutils.PartnerTypeConsumer {
 		return false, exceptions.WrongEnumTypeError(partnerType.String())
 	}
 
@@ -268,7 +269,7 @@ func (s SupplierUseCasesImpl) AddPartnerType(
 func (s SupplierUseCasesImpl) CreateCustomerAccount(
 	ctx context.Context,
 	name string,
-	partnerType base.PartnerType,
+	partnerType profileutils.PartnerType,
 ) error {
 	ctx, span := tracer.Start(ctx, "CreateCustomerAccount")
 	defer span.End()
@@ -287,7 +288,7 @@ func (s SupplierUseCasesImpl) CreateCustomerAccount(
 		return fmt.Errorf("user not authorized to access this resource")
 	}
 
-	if partnerType != base.PartnerTypeConsumer {
+	if partnerType != profileutils.PartnerTypeConsumer {
 		return exceptions.WrongEnumTypeError(partnerType.String())
 	}
 
@@ -324,7 +325,7 @@ func (s SupplierUseCasesImpl) CreateCustomerAccount(
 func (s SupplierUseCasesImpl) CreateSupplierAccount(
 	ctx context.Context,
 	name string,
-	partnerType base.PartnerType,
+	partnerType profileutils.PartnerType,
 ) error {
 	ctx, span := tracer.Start(ctx, "CreateSupplierAccount")
 	defer span.End()
@@ -343,7 +344,7 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 		return fmt.Errorf("user not authorized to access this resource")
 	}
 
-	if partnerType == base.PartnerTypeConsumer {
+	if partnerType == profileutils.PartnerTypeConsumer {
 		return exceptions.WrongEnumTypeError(partnerType.String())
 	}
 
@@ -379,7 +380,7 @@ func (s SupplierUseCasesImpl) CreateSupplierAccount(
 func (s SupplierUseCasesImpl) FindSupplierByID(
 	ctx context.Context,
 	id string,
-) (*base.Supplier, error) {
+) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "FindSupplierByID")
 	defer span.End()
 
@@ -387,7 +388,7 @@ func (s SupplierUseCasesImpl) FindSupplierByID(
 }
 
 // FindSupplierByUID fetches a supplier by logged in user uid
-func (s SupplierUseCasesImpl) FindSupplierByUID(ctx context.Context) (*base.Supplier, error) {
+func (s SupplierUseCasesImpl) FindSupplierByUID(ctx context.Context) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "FindSupplierByUID")
 	defer span.End()
 
@@ -424,8 +425,8 @@ func (s SupplierUseCasesImpl) CheckSupplierKYCSubmitted(ctx context.Context) (bo
 // SetUpSupplier performs initial account set up during onboarding
 func (s SupplierUseCasesImpl) SetUpSupplier(
 	ctx context.Context,
-	accountType base.AccountType,
-) (*base.Supplier, error) {
+	accountType profileutils.AccountType,
+) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "SetUpSupplier")
 	defer span.End()
 
@@ -460,8 +461,8 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
-	if *sup.AccountType == base.AccountTypeOrganisation ||
-		*sup.AccountType == base.AccountTypeIndividual {
+	if *sup.AccountType == profileutils.AccountTypeOrganisation ||
+		*sup.AccountType == profileutils.AccountTypeIndividual {
 		sup.OrganizationName = sup.SupplierName
 		err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup)
 		if err != nil {
@@ -470,7 +471,7 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 		}
 	}
 
-	go func(u string, pnt base.PartnerType, acnt base.AccountType) {
+	go func(u string, pnt profileutils.PartnerType, acnt profileutils.AccountType) {
 		op := func() error {
 			return s.PublishKYCNudge(ctx, u, &pnt, &acnt)
 		}
@@ -486,7 +487,7 @@ func (s SupplierUseCasesImpl) SetUpSupplier(
 			return s.engagement.ResolveDefaultNudgeByTitle(
 				ctx,
 				user.UID,
-				base.FlavourPro,
+				feedlib.FlavourPro,
 				PartnerAccountSetupNudgeTitle,
 			)
 		}
@@ -553,7 +554,7 @@ func (s SupplierUseCasesImpl) SuspendSupplier(ctx context.Context, suspensionRea
 func (s SupplierUseCasesImpl) EDIUserLogin(
 	ctx context.Context,
 	username, password *string,
-) (*base.EDIUserProfile, error) {
+) (*profileutils.EDIUserProfile, error) {
 	_, span := tracer.Start(ctx, "EDIUserLogin")
 	defer span.End()
 
@@ -582,7 +583,7 @@ func (s SupplierUseCasesImpl) EDIUserLogin(
 func (s SupplierUseCasesImpl) CoreEDIUserLogin(
 	ctx context.Context,
 	username, password string,
-) (*base.EDIUserProfile, error) {
+) (*profileutils.EDIUserProfile, error) {
 	_, span := tracer.Start(ctx, "CoreEDIUserLogin")
 	defer span.End()
 
@@ -643,12 +644,12 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 		return nil, err
 	}
 
-	accType := base.AccountTypeIndividual
+	accType := profileutils.AccountTypeIndividual
 	supplier.AccountType = &accType
 	supplier.UnderOrganization = true
 
-	ediUserProfile, err := func(sladeCode string) (*base.EDIUserProfile, error) {
-		var ediUserProfile *base.EDIUserProfile
+	ediUserProfile, err := func(sladeCode string) (*profileutils.EDIUserProfile, error) {
+		var ediUserProfile *profileutils.EDIUserProfile
 		var err error
 
 		switch sladeCode {
@@ -712,7 +713,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 			return nil, err
 		}
 
-		if err := s.profile.UpdatePermissions(ctx, base.DefaultAdminPermissions); err != nil {
+		if err := s.profile.UpdatePermissions(ctx, profileutils.DefaultAdminPermissions); err != nil {
 			utils.RecordSpanError(span, err)
 			return nil, err
 		}
@@ -761,7 +762,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 			return s.engagement.ResolveDefaultNudgeByTitle(
 				ctx,
 				uid,
-				base.FlavourPro,
+				feedlib.FlavourPro,
 				PartnerAccountSetupNudgeTitle,
 			)
 		}
@@ -828,7 +829,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 
 	// set the main branch as the supplier's location
 	supplier.OrganizationName = businessPartner.Name
-	loc := base.Location{
+	loc := profileutils.Location{
 		ID:   businessPartner.ID,
 		Name: businessPartner.Name,
 	}
@@ -849,7 +850,7 @@ func (s SupplierUseCasesImpl) SupplierEDILogin(
 func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
 	ctx context.Context,
 	locationID string,
-) (*base.Supplier, error) {
+) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "SupplierSetDefaultLocation")
 	defer span.End()
 
@@ -896,7 +897,7 @@ func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
 	}(brs, locationID)
 
 	if branch != nil {
-		loc := base.Location{
+		loc := profileutils.Location{
 			ID:              branch.Node.ID,
 			Name:            branch.Node.Name,
 			BranchSladeCode: &branch.Node.BranchSladeCode,
@@ -974,8 +975,8 @@ func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(
 func (s *SupplierUseCasesImpl) PublishKYCNudge(
 	ctx context.Context,
 	uid string,
-	partner *base.PartnerType,
-	account *base.AccountType,
+	partner *profileutils.PartnerType,
+	account *profileutils.AccountType,
 ) error {
 	ctx, span := tracer.Start(ctx, "PublishKYCNudge")
 	defer span.End()
@@ -986,7 +987,7 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 		)
 	}
 
-	if *partner == base.PartnerTypeConsumer {
+	if *partner == profileutils.PartnerTypeConsumer {
 		return exceptions.WrongEnumTypeError(partner.String())
 	}
 
@@ -1006,25 +1007,25 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 	)
 	text := "Fill in your Be.Well business KYC in order to start transacting."
 
-	nudge := base.Nudge{
+	nudge := feedlib.Nudge{
 		ID:             ksuid.New().String(),
 		SequenceNumber: int(time.Now().Unix()),
-		Visibility:     base.VisibilityShow,
-		Status:         base.StatusPending,
+		Visibility:     feedlib.VisibilityShow,
+		Status:         feedlib.StatusPending,
 		Expiry:         time.Now().Add(time.Hour * futureHours),
 		Title:          title,
 		Text:           text,
-		Links: []base.Link{
+		Links: []feedlib.Link{
 			{
 				ID:          ksuid.New().String(),
-				URL:         base.LogoURL,
-				LinkType:    base.LinkTypePngImage,
+				URL:         feedlib.LogoURL,
+				LinkType:    feedlib.LinkTypePngImage,
 				Title:       "KYC",
 				Description: fmt.Sprintf("KYC for %v", partner.String()),
-				Thumbnail:   base.LogoURL,
+				Thumbnail:   feedlib.LogoURL,
 			},
 		},
-		Actions: []base.Action{
+		Actions: []feedlib.Action{
 			{
 				ID:             ksuid.New().String(),
 				SequenceNumber: int(time.Now().Unix()),
@@ -1033,26 +1034,26 @@ func (s *SupplierUseCasesImpl) PublishKYCNudge(
 					account.String(),
 					partner.String(),
 				)),
-				ActionType:     base.ActionTypePrimary,
-				Handling:       base.HandlingFullPage,
+				ActionType:     feedlib.ActionTypePrimary,
+				Handling:       feedlib.HandlingFullPage,
 				AllowAnonymous: false,
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
-					URL:         base.LogoURL,
-					LinkType:    base.LinkTypePngImage,
+					URL:         feedlib.LogoURL,
+					LinkType:    feedlib.LinkTypePngImage,
 					Title:       title,
 					Description: text,
-					Thumbnail:   base.LogoURL,
+					Thumbnail:   feedlib.LogoURL,
 				},
 			},
 		},
 		Users:  []string{uid},
 		Groups: []string{uid},
-		NotificationChannels: []base.Channel{
-			base.ChannelEmail,
-			base.ChannelFcm,
+		NotificationChannels: []feedlib.Channel{
+			feedlib.ChannelEmail,
+			feedlib.ChannelFcm,
 		},
-		NotificationBody: base.NotificationBody{
+		NotificationBody: feedlib.NotificationBody{
 			PublishMessage: "Kindly complete your KYC details and await approval.",
 			ResolveMessage: "Thank you for adding your KYC details.",
 		},
@@ -1091,62 +1092,62 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 	defer span.End()
 
 	for _, uid := range uids {
-		payload := base.Item{
+		payload := feedlib.Item{
 			ID:             ksuid.New().String(),
 			SequenceNumber: int(time.Now().Unix()),
 			Expiry:         time.Now().Add(time.Hour * futureHours),
 			Persistent:     true,
-			Status:         base.StatusPending,
-			Visibility:     base.VisibilityShow,
+			Status:         feedlib.StatusPending,
+			Visibility:     feedlib.VisibilityShow,
 			Author:         "Be.Well Team",
 			Label:          "KYC",
 			Tagline:        "Process incoming KYC",
 			Text:           "Review KYC for the partner and either approve or reject",
-			TextType:       base.TextTypeMarkdown,
-			Icon: base.Link{
+			TextType:       feedlib.TextTypeMarkdown,
+			Icon: feedlib.Link{
 				ID:          ksuid.New().String(),
-				URL:         base.LogoURL,
-				LinkType:    base.LinkTypePngImage,
+				URL:         feedlib.LogoURL,
+				LinkType:    feedlib.LinkTypePngImage,
 				Title:       "KYC Review",
 				Description: "Review KYC for the partner and either approve or reject",
-				Thumbnail:   base.LogoURL,
+				Thumbnail:   feedlib.LogoURL,
 			},
 			Timestamp: time.Now(),
-			Actions: []base.Action{
+			Actions: []feedlib.Action{
 				{
 					ID:             ksuid.New().String(),
 					SequenceNumber: int(time.Now().Unix()),
 					Name:           "Review KYC details",
-					Icon: base.Link{
+					Icon: feedlib.Link{
 						ID:          ksuid.New().String(),
-						URL:         base.LogoURL,
-						LinkType:    base.LinkTypePngImage,
+						URL:         feedlib.LogoURL,
+						LinkType:    feedlib.LinkTypePngImage,
 						Title:       "Review KYC details",
 						Description: "Review and approve or reject KYC details for the supplier",
-						Thumbnail:   base.LogoURL,
+						Thumbnail:   feedlib.LogoURL,
 					},
-					ActionType:     base.ActionTypePrimary,
-					Handling:       base.HandlingFullPage,
+					ActionType:     feedlib.ActionTypePrimary,
+					Handling:       feedlib.HandlingFullPage,
 					AllowAnonymous: false,
 				},
 			},
-			Links: []base.Link{
+			Links: []feedlib.Link{
 				{
 					ID:          ksuid.New().String(),
-					URL:         base.LogoURL,
-					LinkType:    base.LinkTypePngImage,
+					URL:         feedlib.LogoURL,
+					LinkType:    feedlib.LinkTypePngImage,
 					Title:       "KYC process request",
 					Description: "Process KYC request",
-					Thumbnail:   base.LogoURL,
+					Thumbnail:   feedlib.LogoURL,
 				},
 			},
 
 			Summary: "Process incoming KYC",
 			Users:   uids,
-			NotificationChannels: []base.Channel{
-				base.ChannelFcm,
-				base.ChannelEmail,
-				base.ChannelSms,
+			NotificationChannels: []feedlib.Channel{
+				feedlib.ChannelFcm,
+				feedlib.ChannelEmail,
+				feedlib.ChannelSms,
 			},
 		}
 		resp, err := s.engagement.PublishKYCFeedItem(ctx, uid, payload)
@@ -1170,7 +1171,7 @@ func (s SupplierUseCasesImpl) PublishKYCFeedItem(ctx context.Context, uids ...st
 // identified by its id and sequenceNumber
 func (s *SupplierUseCasesImpl) SaveProfileNudge(
 	ctx context.Context,
-	nudge *base.Nudge,
+	nudge *feedlib.Nudge,
 ) error {
 	ctx, span := tracer.Start(ctx, "SaveProfileNudge")
 	defer span.End()
@@ -1197,7 +1198,7 @@ func (s *SupplierUseCasesImpl) parseKYCAsMap(data interface{}) (map[string]inter
 // and sends a notification to all admins for a pending KYC review request
 func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 	ctx context.Context,
-	sup *base.Supplier,
+	sup *profileutils.Supplier,
 ) error {
 	ctx, span := tracer.Start(ctx, "SaveKYCResponseAndNotifyAdmins")
 	defer span.End()
@@ -1290,7 +1291,7 @@ func (s *SupplierUseCasesImpl) SaveKYCResponseAndNotifyAdmins(
 // StageKYCProcessingRequest saves kyc processing requests
 func (s *SupplierUseCasesImpl) StageKYCProcessingRequest(
 	ctx context.Context,
-	sup *base.Supplier,
+	sup *profileutils.Supplier,
 ) error {
 	ctx, span := tracer.Start(ctx, "StageKYCProcessingRequest")
 	defer span.End()
@@ -2071,7 +2072,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 			if err = s.engagement.ResolveDefaultNudgeByTitle(
 				ctx,
 				UID,
-				base.FlavourPro,
+				feedlib.FlavourPro,
 				nudgeTitle,
 			); err != nil {
 				utils.RecordSpanError(span, err)
@@ -2080,7 +2081,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		}
 	}()
 
-	supplierEmails := func(profile *base.UserProfile) []string {
+	supplierEmails := func(profile *profileutils.UserProfile) []string {
 		var emails []string
 		if profile.PrimaryEmailAddress != nil {
 			emails = append(emails, *profile.PrimaryEmailAddress)
@@ -2097,7 +2098,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		}
 	}
 
-	supplierPhones := func(profile *base.UserProfile) []string {
+	supplierPhones := func(profile *profileutils.UserProfile) []string {
 		var phones []string
 		phones = append(phones, *profile.PrimaryPhone)
 		phones = append(phones, profile.SecondaryPhoneNumbers...)

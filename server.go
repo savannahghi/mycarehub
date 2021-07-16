@@ -11,7 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/stats/view"
 
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation"
 )
 
@@ -26,7 +25,7 @@ func main() {
 
 	// Firstly, we'll register Server views.
 	// A service can declare it's own additional views
-	if err := view.Register(base.DefaultServiceViews...); err != nil {
+	if err := view.Register(serverutils.DefaultServiceViews...); err != nil {
 		serverutils.LogStartupError(ctx, err)
 	}
 
@@ -39,7 +38,7 @@ func main() {
 	// initialize the tracing provider in prod and testing env only
 	env := serverutils.GetRunningEnvironment()
 	if env == serverutils.ProdEnv || env == serverutils.TestingEnv {
-		tp, err := base.InitOtelSDK(ctx, "onboarding")
+		tp, err := serverutils.InitOtelSDK(ctx, "onboarding")
 		if err != nil {
 			serverutils.LogStartupError(ctx, err)
 		}

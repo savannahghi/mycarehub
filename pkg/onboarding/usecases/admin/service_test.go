@@ -9,10 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.slade360emr.com/go/base"
-
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/google/uuid"
+	"github.com/savannahghi/firebasetools"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -33,7 +32,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestService_CheckPreconditions(t *testing.T) {
-	fc := &base.FirebaseClient{}
+	fc := &firebasetools.FirebaseClient{}
 	ext := extension.NewBaseExtensionImpl(fc)
 	goodService := admin.NewService(ext)
 	assert.NotNil(t, goodService)
@@ -59,12 +58,12 @@ func TestService_RegisterMicroservice(t *testing.T) {
 	r1 := rand.New(s1)
 	gofakeit.Seed(r1.Int63()) // seed the pseudo-random generator
 
-	fc := &base.FirebaseClient{}
+	fc := &firebasetools.FirebaseClient{}
 	ext := extension.NewBaseExtensionImpl(fc)
 	s := admin.NewService(ext)
 
 	// create authenticated context
-	ctx := base.GetAuthenticatedContext(t)
+	ctx := firebasetools.GetAuthenticatedContext(t)
 	cleanup(ctx, s, t)
 
 	type args struct {
@@ -118,7 +117,7 @@ func TestService_RegisterMicroservice(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fc := &base.FirebaseClient{}
+			fc := &firebasetools.FirebaseClient{}
 			ext := extension.NewBaseExtensionImpl(fc)
 			s := admin.NewService(ext)
 
@@ -155,10 +154,10 @@ func TestService_ListMicroservices(t *testing.T) {
 		URL:         "https://engagement-testing.healthcloud.co.ke/graphql",
 	}
 
-	fc := &base.FirebaseClient{}
+	fc := &firebasetools.FirebaseClient{}
 	ext := extension.NewBaseExtensionImpl(fc)
 	srv := admin.NewService(ext)
-	ctx := base.GetAuthenticatedContext(t)
+	ctx := firebasetools.GetAuthenticatedContext(t)
 
 	cleanup(ctx, srv, t)
 
@@ -183,7 +182,7 @@ func TestService_ListMicroservices(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fc := &base.FirebaseClient{}
+			fc := &firebasetools.FirebaseClient{}
 			ext := extension.NewBaseExtensionImpl(fc)
 			s := admin.NewService(ext)
 			got, err := s.ListMicroservices(tt.args.ctx)
@@ -217,10 +216,10 @@ func TestService_FindMicroserviceByID(t *testing.T) {
 		URL:         "https://engagement-testing.healthcloud.co.ke/graphql",
 	}
 
-	fc := &base.FirebaseClient{}
+	fc := &firebasetools.FirebaseClient{}
 	ext := extension.NewBaseExtensionImpl(fc)
 	srv := admin.NewService(ext)
-	ctx := base.GetAuthenticatedContext(t)
+	ctx := firebasetools.GetAuthenticatedContext(t)
 
 	cleanup(ctx, srv, t)
 
@@ -247,7 +246,7 @@ func TestService_FindMicroserviceByID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fc := &base.FirebaseClient{}
+			fc := &firebasetools.FirebaseClient{}
 			ext := extension.NewBaseExtensionImpl(fc)
 			s := admin.NewService(ext)
 			got, err := s.FindMicroserviceByID(tt.args.ctx, tt.args.id)
@@ -265,7 +264,7 @@ func TestService_FindMicroserviceByID(t *testing.T) {
 }
 
 func TestService_CheckHealthEndpoint(t *testing.T) {
-	fc := &base.FirebaseClient{}
+	fc := &firebasetools.FirebaseClient{}
 	ext := extension.NewBaseExtensionImpl(fc)
 	s := admin.NewService(ext)
 
@@ -294,10 +293,10 @@ func TestDeregisterAllServices(t *testing.T) {
 	r1 := rand.New(s1)
 	gofakeit.Seed(r1.Int63()) // seed the pseudo-random generator
 
-	fc := &base.FirebaseClient{}
+	fc := &firebasetools.FirebaseClient{}
 	ext := extension.NewBaseExtensionImpl(fc)
 	s := admin.NewService(ext)
-	ctx := base.GetAuthenticatedContext(t)
+	ctx := firebasetools.GetAuthenticatedContext(t)
 	cleanup(ctx, s, t)
 
 	// register a few services
@@ -350,10 +349,10 @@ func TestDeregisterServiceWithID(t *testing.T) {
 	r1 := rand.New(s1)
 	gofakeit.Seed(r1.Int63()) // seed the pseudo-random generator
 
-	fc := &base.FirebaseClient{}
+	fc := &firebasetools.FirebaseClient{}
 	ext := extension.NewBaseExtensionImpl(fc)
 	s := admin.NewService(ext)
-	ctx := base.GetAuthenticatedContext(t)
+	ctx := firebasetools.GetAuthenticatedContext(t)
 	cleanup(ctx, s, t)
 
 	// register a few services
@@ -417,7 +416,7 @@ func TestDeregisterServiceWithID(t *testing.T) {
 
 func TestService_PollMicroservicesStatus(t *testing.T) {
 
-	fc := &base.FirebaseClient{}
+	fc := &firebasetools.FirebaseClient{}
 	ext := extension.NewBaseExtensionImpl(fc)
 	s := admin.NewService(ext)
 
@@ -427,7 +426,7 @@ func TestService_PollMicroservicesStatus(t *testing.T) {
 		Description: uuid.New().String(),
 		URL:         "https://engagement-staging.healthcloud.co.ke/graphql",
 	}
-	ctx := base.GetAuthenticatedContext(t)
+	ctx := firebasetools.GetAuthenticatedContext(t)
 	cleanup(ctx, s, t)
 
 	_, err := s.RegisterMicroservice(ctx, input)

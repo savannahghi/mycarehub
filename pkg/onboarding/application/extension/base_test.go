@@ -2,7 +2,7 @@ package extension_test
 
 // func TestNewBaseExtensionImpl(t *testing.T) {
 // 	type args struct {
-// 		fc base.IFirebaseClient
+// 		fc firebasetools.IFirebaseClient
 // 	}
 // 	tests := []struct {
 // 		name string
@@ -12,11 +12,11 @@ package extension_test
 // 		{
 // 			name: "Happy test",
 // 			args: args{
-// 				fc: &base.MockFirebaseClient{},
+// 				fc: &firebasetools.MockFirebaseClient{},
 // 			},
 // 			want: &extension.BaseExtensionImpl{
-// 				fc:base.IFirebaseClient{
-// 					base.InitFirebase()
+// 				fc:firebasetools.IFirebaseClient{
+// 					firebasetools.InitFirebase()
 // 				},
 // 			},
 // 		},

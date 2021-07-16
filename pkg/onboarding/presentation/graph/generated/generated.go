@@ -15,9 +15,13 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/99designs/gqlgen/plugin/federation/fedruntime"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain/model"
@@ -248,7 +252,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		ActivateAgent                    func(childComplexity int, agentID string) int
-		AddAddress                       func(childComplexity int, input dto.UserAddressInput, addressType base.AddressType) int
+		AddAddress                       func(childComplexity int, input dto.UserAddressInput, addressType enumutils.AddressType) int
 		AddIndividualCoachKyc            func(childComplexity int, input domain.IndividualCoach) int
 		AddIndividualNutritionKyc        func(childComplexity int, input domain.IndividualNutrition) int
 		AddIndividualPharmaceuticalKyc   func(childComplexity int, input domain.IndividualPharmaceutical) int
@@ -261,10 +265,10 @@ type ComplexityRoot struct {
 		AddOrganizationPractitionerKyc   func(childComplexity int, input domain.OrganizationPractitioner) int
 		AddOrganizationProviderKyc       func(childComplexity int, input domain.OrganizationProvider) int
 		AddOrganizationRiderKyc          func(childComplexity int, input domain.OrganizationRider) int
-		AddPartnerType                   func(childComplexity int, name string, partnerType base.PartnerType) int
+		AddPartnerType                   func(childComplexity int, name string, partnerType profileutils.PartnerType) int
 		AddSecondaryEmailAddress         func(childComplexity int, email []string) int
 		AddSecondaryPhoneNumber          func(childComplexity int, phone []string) int
-		CompleteSignup                   func(childComplexity int, flavour base.Flavour) int
+		CompleteSignup                   func(childComplexity int, flavour feedlib.Flavour) int
 		DeactivateAgent                  func(childComplexity int, agentID string) int
 		DeleteFavoriteNavAction          func(childComplexity int, title string) int
 		DeregisterAllMicroservices       func(childComplexity int) int
@@ -282,7 +286,7 @@ type ComplexityRoot struct {
 		SetOptOut                        func(childComplexity int, option string, phoneNumber string) int
 		SetPrimaryEmailAddress           func(childComplexity int, email string, otp string) int
 		SetPrimaryPhoneNumber            func(childComplexity int, phone string, otp string) int
-		SetUpSupplier                    func(childComplexity int, accountType base.AccountType) int
+		SetUpSupplier                    func(childComplexity int, accountType profileutils.AccountType) int
 		SetUserCommunicationsSettings    func(childComplexity int, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) int
 		SetupAsExperimentParticipant     func(childComplexity int, participate *bool) int
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
@@ -430,8 +434,8 @@ type ComplexityRoot struct {
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FetchUserNavigationActions    func(childComplexity int) int
 		FindAgentbyPhone              func(childComplexity int, phoneNumber *string) int
-		FindBranch                    func(childComplexity int, pagination *base.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) int
-		FindProvider                  func(childComplexity int, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) int
+		FindBranch                    func(childComplexity int, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) int
+		FindProvider                  func(childComplexity int, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) int
 		GetAddresses                  func(childComplexity int) int
 		GetUserCommunicationsSettings func(childComplexity int) int
 		ListMicroservices             func(childComplexity int) int
@@ -539,12 +543,12 @@ type ComplexityRoot struct {
 
 type EntityResolver interface {
 	FindMicroserviceByID(ctx context.Context, id string) (*domain.Microservice, error)
-	FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*base.PageInfo, error)
-	FindUserProfileByID(ctx context.Context, id string) (*base.UserProfile, error)
+	FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*firebasetools.PageInfo, error)
+	FindUserProfileByID(ctx context.Context, id string) (*profileutils.UserProfile, error)
 }
 type MutationResolver interface {
-	CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error)
-	UpdateUserProfile(ctx context.Context, input dto.UserProfileInput) (*base.UserProfile, error)
+	CompleteSignup(ctx context.Context, flavour feedlib.Flavour) (bool, error)
+	UpdateUserProfile(ctx context.Context, input dto.UserProfileInput) (*profileutils.UserProfile, error)
 	UpdateUserPin(ctx context.Context, phone string, pin string) (bool, error)
 	SetPrimaryPhoneNumber(ctx context.Context, phone string, otp string) (bool, error)
 	SetPrimaryEmailAddress(ctx context.Context, email string, otp string) (bool, error)
@@ -555,11 +559,11 @@ type MutationResolver interface {
 	RetireSecondaryEmailAddresses(ctx context.Context, emails []string) (bool, error)
 	UpdateUserName(ctx context.Context, username string) (bool, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
-	AddPartnerType(ctx context.Context, name string, partnerType base.PartnerType) (bool, error)
+	AddPartnerType(ctx context.Context, name string, partnerType profileutils.PartnerType) (bool, error)
 	SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error)
-	SetUpSupplier(ctx context.Context, accountType base.AccountType) (*base.Supplier, error)
+	SetUpSupplier(ctx context.Context, accountType profileutils.AccountType) (*profileutils.Supplier, error)
 	SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*dto.SupplierLogin, error)
-	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*base.Supplier, error)
+	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*profileutils.Supplier, error)
 	AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error)
 	AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error)
 	AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error)
@@ -576,10 +580,10 @@ type MutationResolver interface {
 	RetireKYCProcessingRequest(ctx context.Context) (bool, error)
 	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
 	AddNHIFDetails(ctx context.Context, input dto.NHIFDetailsInput) (*domain.NHIFDetails, error)
-	AddAddress(ctx context.Context, input dto.UserAddressInput, addressType base.AddressType) (*base.Address, error)
-	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error)
-	RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*base.UserProfile, error)
-	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error)
+	AddAddress(ctx context.Context, input dto.UserAddressInput, addressType enumutils.AddressType) (*profileutils.Address, error)
+	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error)
+	RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*profileutils.UserProfile, error)
+	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*profileutils.UserProfile, error)
 	ActivateAgent(ctx context.Context, agentID string) (bool, error)
 	DeactivateAgent(ctx context.Context, agentID string) (bool, error)
 	SaveFavoriteNavAction(ctx context.Context, title string) (bool, error)
@@ -590,25 +594,25 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	DummyQuery(ctx context.Context) (*bool, error)
-	UserProfile(ctx context.Context) (*base.UserProfile, error)
-	SupplierProfile(ctx context.Context) (*base.Supplier, error)
+	UserProfile(ctx context.Context) (*profileutils.UserProfile, error)
+	SupplierProfile(ctx context.Context) (*profileutils.Supplier, error)
 	ResumeWithPin(ctx context.Context, pin string) (bool, error)
-	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error)
-	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) (*dto.BranchConnection, error)
+	FindProvider(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error)
+	FindBranch(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) (*dto.BranchConnection, error)
 	FetchSupplierAllowedLocations(ctx context.Context) (*dto.BranchConnection, error)
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 	GetAddresses(ctx context.Context) (*domain.UserAddresses, error)
 	NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error)
-	GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error)
+	GetUserCommunicationsSettings(ctx context.Context) (*profileutils.UserCommunicationsSetting, error)
 	CheckSupplierKYCSubmitted(ctx context.Context) (bool, error)
 	FetchAdmins(ctx context.Context) ([]*dto.Admin, error)
 	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
 	FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error)
-	FetchUserNavigationActions(ctx context.Context) (*base.NavigationActions, error)
+	FetchUserNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error)
 	ListMicroservices(ctx context.Context) ([]*domain.Microservice, error)
 }
 type VerifiedIdentifierResolver interface {
-	Timestamp(ctx context.Context, obj *base.VerifiedIdentifier) (*base.Date, error)
+	Timestamp(ctx context.Context, obj *profileutils.VerifiedIdentifier) (*scalarutils.Date, error)
 }
 
 type executableSchema struct {
@@ -1524,7 +1528,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddAddress(childComplexity, args["input"].(dto.UserAddressInput), args["addressType"].(base.AddressType)), true
+		return e.complexity.Mutation.AddAddress(childComplexity, args["input"].(dto.UserAddressInput), args["addressType"].(enumutils.AddressType)), true
 
 	case "Mutation.addIndividualCoachKYC":
 		if e.complexity.Mutation.AddIndividualCoachKyc == nil {
@@ -1680,7 +1684,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddPartnerType(childComplexity, args["name"].(string), args["partnerType"].(base.PartnerType)), true
+		return e.complexity.Mutation.AddPartnerType(childComplexity, args["name"].(string), args["partnerType"].(profileutils.PartnerType)), true
 
 	case "Mutation.addSecondaryEmailAddress":
 		if e.complexity.Mutation.AddSecondaryEmailAddress == nil {
@@ -1716,7 +1720,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CompleteSignup(childComplexity, args["flavour"].(base.Flavour)), true
+		return e.complexity.Mutation.CompleteSignup(childComplexity, args["flavour"].(feedlib.Flavour)), true
 
 	case "Mutation.deactivateAgent":
 		if e.complexity.Mutation.DeactivateAgent == nil {
@@ -1922,7 +1926,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetUpSupplier(childComplexity, args["accountType"].(base.AccountType)), true
+		return e.complexity.Mutation.SetUpSupplier(childComplexity, args["accountType"].(profileutils.AccountType)), true
 
 	case "Mutation.setUserCommunicationsSettings":
 		if e.complexity.Mutation.SetUserCommunicationsSettings == nil {
@@ -2735,7 +2739,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindBranch(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*dto.BranchFilterInput), args["sort"].([]*dto.BranchSortInput)), true
+		return e.complexity.Query.FindBranch(childComplexity, args["pagination"].(*firebasetools.PaginationInput), args["filter"].([]*dto.BranchFilterInput), args["sort"].([]*dto.BranchSortInput)), true
 
 	case "Query.findProvider":
 		if e.complexity.Query.FindProvider == nil {
@@ -2747,7 +2751,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindProvider(childComplexity, args["pagination"].(*base.PaginationInput), args["filter"].([]*dto.BusinessPartnerFilterInput), args["sort"].([]*dto.BusinessPartnerSortInput)), true
+		return e.complexity.Query.FindProvider(childComplexity, args["pagination"].(*firebasetools.PaginationInput), args["filter"].([]*dto.BusinessPartnerFilterInput), args["sort"].([]*dto.BusinessPartnerSortInput)), true
 
 	case "Query.getAddresses":
 		if e.complexity.Query.GetAddresses == nil {
@@ -4667,10 +4671,10 @@ func (ec *executionContext) field_Mutation_addAddress_args(ctx context.Context, 
 		}
 	}
 	args["input"] = arg0
-	var arg1 base.AddressType
+	var arg1 enumutils.AddressType
 	if tmp, ok := rawArgs["addressType"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addressType"))
-		arg1, err = ec.unmarshalNAddressType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddressType(ctx, tmp)
+		arg1, err = ec.unmarshalNAddressType2githubᚗcomᚋsavannahghiᚋenumutilsᚐAddressType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4871,10 +4875,10 @@ func (ec *executionContext) field_Mutation_addPartnerType_args(ctx context.Conte
 		}
 	}
 	args["name"] = arg0
-	var arg1 base.PartnerType
+	var arg1 profileutils.PartnerType
 	if tmp, ok := rawArgs["partnerType"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("partnerType"))
-		arg1, err = ec.unmarshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPartnerType(ctx, tmp)
+		arg1, err = ec.unmarshalNPartnerType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPartnerType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4916,10 +4920,10 @@ func (ec *executionContext) field_Mutation_addSecondaryPhoneNumber_args(ctx cont
 func (ec *executionContext) field_Mutation_completeSignup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 base.Flavour
+	var arg0 feedlib.Flavour
 	if tmp, ok := rawArgs["flavour"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
-		arg0, err = ec.unmarshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx, tmp)
+		arg0, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5201,10 +5205,10 @@ func (ec *executionContext) field_Mutation_setPrimaryPhoneNumber_args(ctx contex
 func (ec *executionContext) field_Mutation_setUpSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 base.AccountType
+	var arg0 profileutils.AccountType
 	if tmp, ok := rawArgs["accountType"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountType"))
-		arg0, err = ec.unmarshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx, tmp)
+		arg0, err = ec.unmarshalNAccountType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐAccountType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5435,10 +5439,10 @@ func (ec *executionContext) field_Query_findAgentbyPhone_args(ctx context.Contex
 func (ec *executionContext) field_Query_findBranch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *base.PaginationInput
+	var arg0 *firebasetools.PaginationInput
 	if tmp, ok := rawArgs["pagination"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
-		arg0, err = ec.unmarshalOPaginationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPaginationInput(ctx, tmp)
+		arg0, err = ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐPaginationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5468,10 +5472,10 @@ func (ec *executionContext) field_Query_findBranch_args(ctx context.Context, raw
 func (ec *executionContext) field_Query_findProvider_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *base.PaginationInput
+	var arg0 *firebasetools.PaginationInput
 	if tmp, ok := rawArgs["pagination"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
-		arg0, err = ec.unmarshalOPaginationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPaginationInput(ctx, tmp)
+		arg0, err = ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐPaginationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5551,7 +5555,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Address_latitude(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+func (ec *executionContext) _Address_latitude(ctx context.Context, field graphql.CollectedField, obj *profileutils.Address) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5586,7 +5590,7 @@ func (ec *executionContext) _Address_latitude(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Address_longitude(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+func (ec *executionContext) _Address_longitude(ctx context.Context, field graphql.CollectedField, obj *profileutils.Address) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5621,7 +5625,7 @@ func (ec *executionContext) _Address_longitude(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Address_locality(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+func (ec *executionContext) _Address_locality(ctx context.Context, field graphql.CollectedField, obj *profileutils.Address) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5653,7 +5657,7 @@ func (ec *executionContext) _Address_locality(ctx context.Context, field graphql
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Address_name(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+func (ec *executionContext) _Address_name(ctx context.Context, field graphql.CollectedField, obj *profileutils.Address) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5685,7 +5689,7 @@ func (ec *executionContext) _Address_name(ctx context.Context, field graphql.Col
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Address_placeID(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+func (ec *executionContext) _Address_placeID(ctx context.Context, field graphql.CollectedField, obj *profileutils.Address) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5717,7 +5721,7 @@ func (ec *executionContext) _Address_placeID(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Address_formattedAddress(ctx context.Context, field graphql.CollectedField, obj *base.Address) (ret graphql.Marshaler) {
+func (ec *executionContext) _Address_formattedAddress(ctx context.Context, field graphql.CollectedField, obj *profileutils.Address) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6038,9 +6042,9 @@ func (ec *executionContext) _Admin_userBioData(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(base.BioData)
+	res := resTmp.(profileutils.BioData)
 	fc.Result = res
-	return ec.marshalOBioData2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐBioData(ctx, field.Selections, res)
+	return ec.marshalOBioData2githubᚗcomᚋsavannahghiᚋprofileutilsᚐBioData(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Agent_id(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
@@ -6332,9 +6336,9 @@ func (ec *executionContext) _Agent_userBioData(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(base.BioData)
+	res := resTmp.(profileutils.BioData)
 	fc.Result = res
-	return ec.marshalOBioData2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐBioData(ctx, field.Selections, res)
+	return ec.marshalOBioData2githubᚗcomᚋsavannahghiᚋprofileutilsᚐBioData(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Beneficiary_name(ctx context.Context, field graphql.CollectedField, obj *model.Beneficiary) (ret graphql.Marshaler) {
@@ -6501,12 +6505,12 @@ func (ec *executionContext) _Beneficiary_dateOfBirth(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(base.Date)
+	res := resTmp.(scalarutils.Date)
 	fc.Result = res
-	return ec.marshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, field.Selections, res)
+	return ec.marshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BioData_firstName(ctx context.Context, field graphql.CollectedField, obj *base.BioData) (ret graphql.Marshaler) {
+func (ec *executionContext) _BioData_firstName(ctx context.Context, field graphql.CollectedField, obj *profileutils.BioData) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6538,7 +6542,7 @@ func (ec *executionContext) _BioData_firstName(ctx context.Context, field graphq
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BioData_lastName(ctx context.Context, field graphql.CollectedField, obj *base.BioData) (ret graphql.Marshaler) {
+func (ec *executionContext) _BioData_lastName(ctx context.Context, field graphql.CollectedField, obj *profileutils.BioData) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6570,7 +6574,7 @@ func (ec *executionContext) _BioData_lastName(ctx context.Context, field graphql
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BioData_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *base.BioData) (ret graphql.Marshaler) {
+func (ec *executionContext) _BioData_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *profileutils.BioData) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6597,12 +6601,12 @@ func (ec *executionContext) _BioData_dateOfBirth(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*base.Date)
+	res := resTmp.(*scalarutils.Date)
 	fc.Result = res
-	return ec.marshalODate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, field.Selections, res)
+	return ec.marshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _BioData_gender(ctx context.Context, field graphql.CollectedField, obj *base.BioData) (ret graphql.Marshaler) {
+func (ec *executionContext) _BioData_gender(ctx context.Context, field graphql.CollectedField, obj *profileutils.BioData) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6629,9 +6633,9 @@ func (ec *executionContext) _BioData_gender(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(base.Gender)
+	res := resTmp.(enumutils.Gender)
 	fc.Result = res
-	return ec.marshalOGender2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx, field.Selections, res)
+	return ec.marshalOGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Branch_id(ctx context.Context, field graphql.CollectedField, obj *domain.Branch) (ret graphql.Marshaler) {
@@ -6836,9 +6840,9 @@ func (ec *executionContext) _BranchConnection_pageInfo(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.PageInfo)
+	res := resTmp.(*firebasetools.PageInfo)
 	fc.Result = res
-	return ec.marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _BranchEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *dto.BranchEdge) (ret graphql.Marshaler) {
@@ -7104,9 +7108,9 @@ func (ec *executionContext) _BusinessPartnerConnection_pageInfo(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.PageInfo)
+	res := resTmp.(*firebasetools.PageInfo)
 	fc.Result = res
-	return ec.marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _BusinessPartnerEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *dto.BusinessPartnerEdge) (ret graphql.Marshaler) {
@@ -7173,7 +7177,7 @@ func (ec *executionContext) _BusinessPartnerEdge_node(ctx context.Context, field
 	return ec.marshalOBusinessPartner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐBusinessPartner(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Cover_payerName(ctx context.Context, field graphql.CollectedField, obj *base.Cover) (ret graphql.Marshaler) {
+func (ec *executionContext) _Cover_payerName(ctx context.Context, field graphql.CollectedField, obj *profileutils.Cover) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7208,7 +7212,7 @@ func (ec *executionContext) _Cover_payerName(ctx context.Context, field graphql.
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Cover_payerSladeCode(ctx context.Context, field graphql.CollectedField, obj *base.Cover) (ret graphql.Marshaler) {
+func (ec *executionContext) _Cover_payerSladeCode(ctx context.Context, field graphql.CollectedField, obj *profileutils.Cover) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7243,7 +7247,7 @@ func (ec *executionContext) _Cover_payerSladeCode(ctx context.Context, field gra
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Cover_memberNumber(ctx context.Context, field graphql.CollectedField, obj *base.Cover) (ret graphql.Marshaler) {
+func (ec *executionContext) _Cover_memberNumber(ctx context.Context, field graphql.CollectedField, obj *profileutils.Cover) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7278,7 +7282,7 @@ func (ec *executionContext) _Cover_memberNumber(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Cover_memberName(ctx context.Context, field graphql.CollectedField, obj *base.Cover) (ret graphql.Marshaler) {
+func (ec *executionContext) _Cover_memberName(ctx context.Context, field graphql.CollectedField, obj *profileutils.Cover) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7313,7 +7317,7 @@ func (ec *executionContext) _Cover_memberName(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Customer_id(ctx context.Context, field graphql.CollectedField, obj *base.Customer) (ret graphql.Marshaler) {
+func (ec *executionContext) _Customer_id(ctx context.Context, field graphql.CollectedField, obj *profileutils.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7348,7 +7352,7 @@ func (ec *executionContext) _Customer_id(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Customer_profileID(ctx context.Context, field graphql.CollectedField, obj *base.Customer) (ret graphql.Marshaler) {
+func (ec *executionContext) _Customer_profileID(ctx context.Context, field graphql.CollectedField, obj *profileutils.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7380,7 +7384,7 @@ func (ec *executionContext) _Customer_profileID(ctx context.Context, field graph
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Customer_customerID(ctx context.Context, field graphql.CollectedField, obj *base.Customer) (ret graphql.Marshaler) {
+func (ec *executionContext) _Customer_customerID(ctx context.Context, field graphql.CollectedField, obj *profileutils.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7412,7 +7416,7 @@ func (ec *executionContext) _Customer_customerID(ctx context.Context, field grap
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Customer_receivablesAccount(ctx context.Context, field graphql.CollectedField, obj *base.Customer) (ret graphql.Marshaler) {
+func (ec *executionContext) _Customer_receivablesAccount(ctx context.Context, field graphql.CollectedField, obj *profileutils.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7439,12 +7443,12 @@ func (ec *executionContext) _Customer_receivablesAccount(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(base.ReceivablesAccount)
+	res := resTmp.(profileutils.ReceivablesAccount)
 	fc.Result = res
-	return ec.marshalOReceivablesAccount2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐReceivablesAccount(ctx, field.Selections, res)
+	return ec.marshalOReceivablesAccount2githubᚗcomᚋsavannahghiᚋprofileutilsᚐReceivablesAccount(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Customer_active(ctx context.Context, field graphql.CollectedField, obj *base.Customer) (ret graphql.Marshaler) {
+func (ec *executionContext) _Customer_active(ctx context.Context, field graphql.CollectedField, obj *profileutils.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7555,9 +7559,9 @@ func (ec *executionContext) _Entity_findPageInfoByHasNextPage(ctx context.Contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.PageInfo)
+	res := resTmp.(*firebasetools.PageInfo)
 	fc.Result = res
-	return ec.marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Entity_findUserProfileByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -7597,9 +7601,9 @@ func (ec *executionContext) _Entity_findUserProfileByID(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.UserProfile)
+	res := resTmp.(*profileutils.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Identification_identificationDocType(ctx context.Context, field graphql.CollectedField, obj *domain.Identification) (ret graphql.Marshaler) {
@@ -7632,9 +7636,9 @@ func (ec *executionContext) _Identification_identificationDocType(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(base.IdentificationDocType)
+	res := resTmp.(enumutils.IdentificationDocType)
 	fc.Result = res
-	return ec.marshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx, field.Selections, res)
+	return ec.marshalNIdentificationDocType2githubᚗcomᚋsavannahghiᚋenumutilsᚐIdentificationDocType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Identification_identificationDocNumber(ctx context.Context, field graphql.CollectedField, obj *domain.Identification) (ret graphql.Marshaler) {
@@ -9043,9 +9047,9 @@ func (ec *executionContext) _KYCRequest_reqPartnerType(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(base.PartnerType)
+	res := resTmp.(profileutils.PartnerType)
 	fc.Result = res
-	return ec.marshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPartnerType(ctx, field.Selections, res)
+	return ec.marshalNPartnerType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPartnerType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _KYCRequest_reqOrganizationType(ctx context.Context, field graphql.CollectedField, obj *domain.KYCRequest) (ret graphql.Marshaler) {
@@ -9180,9 +9184,9 @@ func (ec *executionContext) _KYCRequest_supplierRecord(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.Supplier)
+	res := resTmp.(*profileutils.Supplier)
 	fc.Result = res
-	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
+	return ec.marshalNSupplier2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _KYCRequest_status(ctx context.Context, field graphql.CollectedField, obj *domain.KYCRequest) (ret graphql.Marshaler) {
@@ -9281,7 +9285,7 @@ func (ec *executionContext) _KYCRequest_processedTimestamp(ctx context.Context, 
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_ID(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_ID(ctx context.Context, field graphql.CollectedField, obj *feedlib.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9313,7 +9317,7 @@ func (ec *executionContext) _Link_ID(ctx context.Context, field graphql.Collecte
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_URL(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_URL(ctx context.Context, field graphql.CollectedField, obj *feedlib.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9345,7 +9349,7 @@ func (ec *executionContext) _Link_URL(ctx context.Context, field graphql.Collect
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_LinkType(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_LinkType(ctx context.Context, field graphql.CollectedField, obj *feedlib.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9372,12 +9376,12 @@ func (ec *executionContext) _Link_LinkType(ctx context.Context, field graphql.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(base.LinkType)
+	res := resTmp.(feedlib.LinkType)
 	fc.Result = res
-	return ec.marshalOLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx, field.Selections, res)
+	return ec.marshalOLinkType2githubᚗcomᚋsavannahghiᚋfeedlibᚐLinkType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_Title(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_Title(ctx context.Context, field graphql.CollectedField, obj *feedlib.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9409,7 +9413,7 @@ func (ec *executionContext) _Link_Title(ctx context.Context, field graphql.Colle
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_Description(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_Description(ctx context.Context, field graphql.CollectedField, obj *feedlib.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9441,7 +9445,7 @@ func (ec *executionContext) _Link_Description(ctx context.Context, field graphql
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Link_Thumbnail(ctx context.Context, field graphql.CollectedField, obj *base.Link) (ret graphql.Marshaler) {
+func (ec *executionContext) _Link_Thumbnail(ctx context.Context, field graphql.CollectedField, obj *feedlib.Link) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9473,7 +9477,7 @@ func (ec *executionContext) _Link_Thumbnail(ctx context.Context, field graphql.C
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Location_id(ctx context.Context, field graphql.CollectedField, obj *base.Location) (ret graphql.Marshaler) {
+func (ec *executionContext) _Location_id(ctx context.Context, field graphql.CollectedField, obj *profileutils.Location) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9508,7 +9512,7 @@ func (ec *executionContext) _Location_id(ctx context.Context, field graphql.Coll
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Location_name(ctx context.Context, field graphql.CollectedField, obj *base.Location) (ret graphql.Marshaler) {
+func (ec *executionContext) _Location_name(ctx context.Context, field graphql.CollectedField, obj *profileutils.Location) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9543,7 +9547,7 @@ func (ec *executionContext) _Location_name(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Location_branchSladeCode(ctx context.Context, field graphql.CollectedField, obj *base.Location) (ret graphql.Marshaler) {
+func (ec *executionContext) _Location_branchSladeCode(ctx context.Context, field graphql.CollectedField, obj *profileutils.Location) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9740,7 +9744,7 @@ func (ec *executionContext) _Mutation_completeSignup(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CompleteSignup(rctx, args["flavour"].(base.Flavour))
+		return ec.resolvers.Mutation().CompleteSignup(rctx, args["flavour"].(feedlib.Flavour))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9794,9 +9798,9 @@ func (ec *executionContext) _Mutation_updateUserProfile(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.UserProfile)
+	res := resTmp.(*profileutils.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateUserPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10244,7 +10248,7 @@ func (ec *executionContext) _Mutation_addPartnerType(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddPartnerType(rctx, args["name"].(string), args["partnerType"].(base.PartnerType))
+		return ec.resolvers.Mutation().AddPartnerType(rctx, args["name"].(string), args["partnerType"].(profileutils.PartnerType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10328,7 +10332,7 @@ func (ec *executionContext) _Mutation_setUpSupplier(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetUpSupplier(rctx, args["accountType"].(base.AccountType))
+		return ec.resolvers.Mutation().SetUpSupplier(rctx, args["accountType"].(profileutils.AccountType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10337,9 +10341,9 @@ func (ec *executionContext) _Mutation_setUpSupplier(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*base.Supplier)
+	res := resTmp.(*profileutils.Supplier)
 	fc.Result = res
-	return ec.marshalOSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
+	return ec.marshalOSupplier2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_supplierEDILogin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10421,9 +10425,9 @@ func (ec *executionContext) _Mutation_supplierSetDefaultLocation(ctx context.Con
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.Supplier)
+	res := resTmp.(*profileutils.Supplier)
 	fc.Result = res
-	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
+	return ec.marshalNSupplier2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addIndividualRiderKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11116,7 +11120,7 @@ func (ec *executionContext) _Mutation_addAddress(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddAddress(rctx, args["input"].(dto.UserAddressInput), args["addressType"].(base.AddressType))
+		return ec.resolvers.Mutation().AddAddress(rctx, args["input"].(dto.UserAddressInput), args["addressType"].(enumutils.AddressType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11128,9 +11132,9 @@ func (ec *executionContext) _Mutation_addAddress(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.Address)
+	res := resTmp.(*profileutils.Address)
 	fc.Result = res
-	return ec.marshalNAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx, field.Selections, res)
+	return ec.marshalNAddress2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐAddress(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_setUserCommunicationsSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11170,9 +11174,9 @@ func (ec *executionContext) _Mutation_setUserCommunicationsSettings(ctx context.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.UserCommunicationsSetting)
+	res := resTmp.(*profileutils.UserCommunicationsSetting)
 	fc.Result = res
-	return ec.marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserCommunicationsSetting(ctx, field.Selections, res)
+	return ec.marshalNUserCommunicationsSetting2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserCommunicationsSetting(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_registerAdmin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11212,9 +11216,9 @@ func (ec *executionContext) _Mutation_registerAdmin(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.UserProfile)
+	res := resTmp.(*profileutils.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_registerAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11254,9 +11258,9 @@ func (ec *executionContext) _Mutation_registerAgent(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.UserProfile)
+	res := resTmp.(*profileutils.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_activateAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11716,9 +11720,9 @@ func (ec *executionContext) _NHIFDetails_idDocType(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(base.IdentificationDocType)
+	res := resTmp.(enumutils.IdentificationDocType)
 	fc.Result = res
-	return ec.marshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx, field.Selections, res)
+	return ec.marshalNIdentificationDocType2githubᚗcomᚋsavannahghiᚋenumutilsᚐIdentificationDocType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NHIFDetails_idNumber(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
@@ -11826,7 +11830,7 @@ func (ec *executionContext) _NHIFDetails_NHIFCardPhotoID(ctx context.Context, fi
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavAction_title(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavAction_title(ctx context.Context, field graphql.CollectedField, obj *profileutils.NavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11858,7 +11862,7 @@ func (ec *executionContext) _NavAction_title(ctx context.Context, field graphql.
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavAction_onTapRoute(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavAction_onTapRoute(ctx context.Context, field graphql.CollectedField, obj *profileutils.NavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11890,7 +11894,7 @@ func (ec *executionContext) _NavAction_onTapRoute(ctx context.Context, field gra
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavAction_icon(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavAction_icon(ctx context.Context, field graphql.CollectedField, obj *profileutils.NavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11917,12 +11921,12 @@ func (ec *executionContext) _NavAction_icon(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(base.Link)
+	res := resTmp.(feedlib.Link)
 	fc.Result = res
-	return ec.marshalOLink2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLink(ctx, field.Selections, res)
+	return ec.marshalOLink2githubᚗcomᚋsavannahghiᚋfeedlibᚐLink(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavAction_favourite(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavAction_favourite(ctx context.Context, field graphql.CollectedField, obj *profileutils.NavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11954,7 +11958,7 @@ func (ec *executionContext) _NavAction_favourite(ctx context.Context, field grap
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavAction_nested(ctx context.Context, field graphql.CollectedField, obj *base.NavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavAction_nested(ctx context.Context, field graphql.CollectedField, obj *profileutils.NavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11981,12 +11985,12 @@ func (ec *executionContext) _NavAction_nested(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]base.NestedNavAction)
+	res := resTmp.([]profileutils.NestedNavAction)
 	fc.Result = res
-	return ec.marshalONestedNavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNestedNavAction(ctx, field.Selections, res)
+	return ec.marshalONestedNavAction2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐNestedNavAction(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavigationActions_primary(ctx context.Context, field graphql.CollectedField, obj *base.NavigationActions) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavigationActions_primary(ctx context.Context, field graphql.CollectedField, obj *profileutils.NavigationActions) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -12013,12 +12017,12 @@ func (ec *executionContext) _NavigationActions_primary(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]base.NavAction)
+	res := resTmp.([]profileutils.NavAction)
 	fc.Result = res
-	return ec.marshalONavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx, field.Selections, res)
+	return ec.marshalONavAction2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐNavAction(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NavigationActions_secondary(ctx context.Context, field graphql.CollectedField, obj *base.NavigationActions) (ret graphql.Marshaler) {
+func (ec *executionContext) _NavigationActions_secondary(ctx context.Context, field graphql.CollectedField, obj *profileutils.NavigationActions) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -12045,12 +12049,12 @@ func (ec *executionContext) _NavigationActions_secondary(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]base.NavAction)
+	res := resTmp.([]profileutils.NavAction)
 	fc.Result = res
-	return ec.marshalONavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx, field.Selections, res)
+	return ec.marshalONavAction2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐNavAction(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NestedNavAction_title(ctx context.Context, field graphql.CollectedField, obj *base.NestedNavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NestedNavAction_title(ctx context.Context, field graphql.CollectedField, obj *profileutils.NestedNavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -12082,7 +12086,7 @@ func (ec *executionContext) _NestedNavAction_title(ctx context.Context, field gr
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NestedNavAction_onTapRoute(ctx context.Context, field graphql.CollectedField, obj *base.NestedNavAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _NestedNavAction_onTapRoute(ctx context.Context, field graphql.CollectedField, obj *profileutils.NestedNavAction) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14299,7 +14303,7 @@ func (ec *executionContext) _OrganizationRider_supportingDocuments(ctx context.C
 	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *firebasetools.PageInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14334,7 +14338,7 @@ func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field gra
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_hasPreviousPage(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PageInfo_hasPreviousPage(ctx context.Context, field graphql.CollectedField, obj *firebasetools.PageInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14369,7 +14373,7 @@ func (ec *executionContext) _PageInfo_hasPreviousPage(ctx context.Context, field
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *firebasetools.PageInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14401,7 +14405,7 @@ func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *base.PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *firebasetools.PageInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14433,7 +14437,7 @@ func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graph
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_id(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_id(ctx context.Context, field graphql.CollectedField, obj *profileutils.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14468,7 +14472,7 @@ func (ec *executionContext) _PayablesAccount_id(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_name(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_name(ctx context.Context, field graphql.CollectedField, obj *profileutils.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14503,7 +14507,7 @@ func (ec *executionContext) _PayablesAccount_name(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_isActive(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_isActive(ctx context.Context, field graphql.CollectedField, obj *profileutils.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14538,7 +14542,7 @@ func (ec *executionContext) _PayablesAccount_isActive(ctx context.Context, field
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_number(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_number(ctx context.Context, field graphql.CollectedField, obj *profileutils.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14573,7 +14577,7 @@ func (ec *executionContext) _PayablesAccount_number(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_tag(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_tag(ctx context.Context, field graphql.CollectedField, obj *profileutils.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14608,7 +14612,7 @@ func (ec *executionContext) _PayablesAccount_tag(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PayablesAccount_description(ctx context.Context, field graphql.CollectedField, obj *base.PayablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _PayablesAccount_description(ctx context.Context, field graphql.CollectedField, obj *profileutils.PayablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -14705,9 +14709,9 @@ func (ec *executionContext) _Query_userProfile(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.UserProfile)
+	res := resTmp.(*profileutils.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_supplierProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14740,9 +14744,9 @@ func (ec *executionContext) _Query_supplierProfile(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.Supplier)
+	res := resTmp.(*profileutils.Supplier)
 	fc.Result = res
-	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
+	return ec.marshalNSupplier2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_resumeWithPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14812,7 +14816,7 @@ func (ec *executionContext) _Query_findProvider(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindProvider(rctx, args["pagination"].(*base.PaginationInput), args["filter"].([]*dto.BusinessPartnerFilterInput), args["sort"].([]*dto.BusinessPartnerSortInput))
+		return ec.resolvers.Query().FindProvider(rctx, args["pagination"].(*firebasetools.PaginationInput), args["filter"].([]*dto.BusinessPartnerFilterInput), args["sort"].([]*dto.BusinessPartnerSortInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14854,7 +14858,7 @@ func (ec *executionContext) _Query_findBranch(ctx context.Context, field graphql
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindBranch(rctx, args["pagination"].(*base.PaginationInput), args["filter"].([]*dto.BranchFilterInput), args["sort"].([]*dto.BranchSortInput))
+		return ec.resolvers.Query().FindBranch(rctx, args["pagination"].(*firebasetools.PaginationInput), args["filter"].([]*dto.BranchFilterInput), args["sort"].([]*dto.BranchSortInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15035,9 +15039,9 @@ func (ec *executionContext) _Query_getUserCommunicationsSettings(ctx context.Con
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.UserCommunicationsSetting)
+	res := resTmp.(*profileutils.UserCommunicationsSetting)
 	fc.Result = res
-	return ec.marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserCommunicationsSetting(ctx, field.Selections, res)
+	return ec.marshalNUserCommunicationsSetting2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserCommunicationsSetting(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_checkSupplierKYCSubmitted(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15205,9 +15209,9 @@ func (ec *executionContext) _Query_fetchUserNavigationActions(ctx context.Contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*base.NavigationActions)
+	res := resTmp.(*profileutils.NavigationActions)
 	fc.Result = res
-	return ec.marshalONavigationActions2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavigationActions(ctx, field.Selections, res)
+	return ec.marshalONavigationActions2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐNavigationActions(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_listMicroservices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15393,7 +15397,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_id(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_id(ctx context.Context, field graphql.CollectedField, obj *profileutils.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15428,7 +15432,7 @@ func (ec *executionContext) _ReceivablesAccount_id(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_name(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_name(ctx context.Context, field graphql.CollectedField, obj *profileutils.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15463,7 +15467,7 @@ func (ec *executionContext) _ReceivablesAccount_name(ctx context.Context, field 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_isActive(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_isActive(ctx context.Context, field graphql.CollectedField, obj *profileutils.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15498,7 +15502,7 @@ func (ec *executionContext) _ReceivablesAccount_isActive(ctx context.Context, fi
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_number(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_number(ctx context.Context, field graphql.CollectedField, obj *profileutils.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15533,7 +15537,7 @@ func (ec *executionContext) _ReceivablesAccount_number(ctx context.Context, fiel
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_tag(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_tag(ctx context.Context, field graphql.CollectedField, obj *profileutils.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15568,7 +15572,7 @@ func (ec *executionContext) _ReceivablesAccount_tag(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ReceivablesAccount_description(ctx context.Context, field graphql.CollectedField, obj *base.ReceivablesAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _ReceivablesAccount_description(ctx context.Context, field graphql.CollectedField, obj *profileutils.ReceivablesAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15673,7 +15677,7 @@ func (ec *executionContext) _ServicesOffered_otherServices(ctx context.Context, 
 	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_id(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_id(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15708,7 +15712,7 @@ func (ec *executionContext) _Supplier_id(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_profileID(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_profileID(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15743,7 +15747,7 @@ func (ec *executionContext) _Supplier_profileID(ctx context.Context, field graph
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_supplierId(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_supplierId(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15778,7 +15782,7 @@ func (ec *executionContext) _Supplier_supplierId(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_payablesAccount(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_payablesAccount(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15808,12 +15812,12 @@ func (ec *executionContext) _Supplier_payablesAccount(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.PayablesAccount)
+	res := resTmp.(*profileutils.PayablesAccount)
 	fc.Result = res
-	return ec.marshalNPayablesAccount2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPayablesAccount(ctx, field.Selections, res)
+	return ec.marshalNPayablesAccount2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPayablesAccount(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_supplierKYC(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_supplierKYC(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15848,7 +15852,7 @@ func (ec *executionContext) _Supplier_supplierKYC(ctx context.Context, field gra
 	return ec.marshalNMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_active(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_active(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15883,7 +15887,7 @@ func (ec *executionContext) _Supplier_active(ctx context.Context, field graphql.
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_accountType(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_accountType(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15910,12 +15914,12 @@ func (ec *executionContext) _Supplier_accountType(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*base.AccountType)
+	res := resTmp.(*profileutils.AccountType)
 	fc.Result = res
-	return ec.marshalOAccountType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx, field.Selections, res)
+	return ec.marshalOAccountType2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐAccountType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_underOrganization(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_underOrganization(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15950,7 +15954,7 @@ func (ec *executionContext) _Supplier_underOrganization(ctx context.Context, fie
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_isOrganizationVerified(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_isOrganizationVerified(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15985,7 +15989,7 @@ func (ec *executionContext) _Supplier_isOrganizationVerified(ctx context.Context
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_partnerType(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_partnerType(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16015,12 +16019,12 @@ func (ec *executionContext) _Supplier_partnerType(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(base.PartnerType)
+	res := resTmp.(profileutils.PartnerType)
 	fc.Result = res
-	return ec.marshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPartnerType(ctx, field.Selections, res)
+	return ec.marshalNPartnerType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPartnerType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_partnerSetupComplete(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_partnerSetupComplete(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16055,7 +16059,7 @@ func (ec *executionContext) _Supplier_partnerSetupComplete(ctx context.Context, 
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_KYCSubmitted(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_KYCSubmitted(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16090,7 +16094,7 @@ func (ec *executionContext) _Supplier_KYCSubmitted(ctx context.Context, field gr
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_organizationName(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_organizationName(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16122,7 +16126,7 @@ func (ec *executionContext) _Supplier_organizationName(ctx context.Context, fiel
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_sladeCode(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_sladeCode(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16154,7 +16158,7 @@ func (ec *executionContext) _Supplier_sladeCode(ctx context.Context, field graph
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_parentOrganizationID(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_parentOrganizationID(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16186,7 +16190,7 @@ func (ec *executionContext) _Supplier_parentOrganizationID(ctx context.Context, 
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_hasBranches(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_hasBranches(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16218,7 +16222,7 @@ func (ec *executionContext) _Supplier_hasBranches(ctx context.Context, field gra
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Supplier_location(ctx context.Context, field graphql.CollectedField, obj *base.Supplier) (ret graphql.Marshaler) {
+func (ec *executionContext) _Supplier_location(ctx context.Context, field graphql.CollectedField, obj *profileutils.Supplier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16245,9 +16249,9 @@ func (ec *executionContext) _Supplier_location(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*base.Location)
+	res := resTmp.(*profileutils.Location)
 	fc.Result = res
-	return ec.marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLocation(ctx, field.Selections, res)
+	return ec.marshalOLocation2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐLocation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SupplierLogin_branches(ctx context.Context, field graphql.CollectedField, obj *dto.SupplierLogin) (ret graphql.Marshaler) {
@@ -16315,9 +16319,9 @@ func (ec *executionContext) _SupplierLogin_supplier(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.Supplier)
+	res := resTmp.(*profileutils.Supplier)
 	fc.Result = res
-	return ec.marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx, field.Selections, res)
+	return ec.marshalNSupplier2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SupportingDocument_supportingDocumentTitle(ctx context.Context, field graphql.CollectedField, obj *domain.SupportingDocument) (ret graphql.Marshaler) {
@@ -16565,7 +16569,7 @@ func (ec *executionContext) _UserAddresses_workAddress(ctx context.Context, fiel
 	return ec.marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_id(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_id(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16600,7 +16604,7 @@ func (ec *executionContext) _UserCommunicationsSetting_id(ctx context.Context, f
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_profileID(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_profileID(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16635,7 +16639,7 @@ func (ec *executionContext) _UserCommunicationsSetting_profileID(ctx context.Con
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_allowWhatsApp(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_allowWhatsApp(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16670,7 +16674,7 @@ func (ec *executionContext) _UserCommunicationsSetting_allowWhatsApp(ctx context
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_allowTextSMS(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_allowTextSMS(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16705,7 +16709,7 @@ func (ec *executionContext) _UserCommunicationsSetting_allowTextSMS(ctx context.
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_allowPush(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_allowPush(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16740,7 +16744,7 @@ func (ec *executionContext) _UserCommunicationsSetting_allowPush(ctx context.Con
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserCommunicationsSetting_allowEmail(ctx context.Context, field graphql.CollectedField, obj *base.UserCommunicationsSetting) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserCommunicationsSetting_allowEmail(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserCommunicationsSetting) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16775,7 +16779,7 @@ func (ec *executionContext) _UserCommunicationsSetting_allowEmail(ctx context.Co
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16810,7 +16814,7 @@ func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_userName(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_userName(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16845,7 +16849,7 @@ func (ec *executionContext) _UserProfile_userName(ctx context.Context, field gra
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_verifiedIdentifiers(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_verifiedIdentifiers(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16872,12 +16876,12 @@ func (ec *executionContext) _UserProfile_verifiedIdentifiers(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]base.VerifiedIdentifier)
+	res := resTmp.([]profileutils.VerifiedIdentifier)
 	fc.Result = res
-	return ec.marshalOVerifiedIdentifier2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedIdentifier(ctx, field.Selections, res)
+	return ec.marshalOVerifiedIdentifier2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐVerifiedIdentifier(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_primaryPhone(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_primaryPhone(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16912,7 +16916,7 @@ func (ec *executionContext) _UserProfile_primaryPhone(ctx context.Context, field
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_primaryEmailAddress(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_primaryEmailAddress(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16944,7 +16948,7 @@ func (ec *executionContext) _UserProfile_primaryEmailAddress(ctx context.Context
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_secondaryPhoneNumbers(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_secondaryPhoneNumbers(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16976,7 +16980,7 @@ func (ec *executionContext) _UserProfile_secondaryPhoneNumbers(ctx context.Conte
 	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_secondaryEmailAddresses(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_secondaryEmailAddresses(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17008,7 +17012,7 @@ func (ec *executionContext) _UserProfile_secondaryEmailAddresses(ctx context.Con
 	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_pushTokens(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_pushTokens(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17040,7 +17044,7 @@ func (ec *executionContext) _UserProfile_pushTokens(ctx context.Context, field g
 	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_permissions(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_permissions(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17067,12 +17071,12 @@ func (ec *executionContext) _UserProfile_permissions(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]base.PermissionType)
+	res := resTmp.([]profileutils.PermissionType)
 	fc.Result = res
-	return ec.marshalOPermissionType2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPermissionTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalOPermissionType2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionTypeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_termsAccepted(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_termsAccepted(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17104,7 +17108,7 @@ func (ec *executionContext) _UserProfile_termsAccepted(ctx context.Context, fiel
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_suspended(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_suspended(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17136,7 +17140,7 @@ func (ec *executionContext) _UserProfile_suspended(ctx context.Context, field gr
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_photoUploadID(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_photoUploadID(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17168,7 +17172,7 @@ func (ec *executionContext) _UserProfile_photoUploadID(ctx context.Context, fiel
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_covers(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_covers(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17195,12 +17199,12 @@ func (ec *executionContext) _UserProfile_covers(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]base.Cover)
+	res := resTmp.([]profileutils.Cover)
 	fc.Result = res
-	return ec.marshalOCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐCover(ctx, field.Selections, res)
+	return ec.marshalOCover2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐCover(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_userBioData(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_userBioData(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17227,12 +17231,12 @@ func (ec *executionContext) _UserProfile_userBioData(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(base.BioData)
+	res := resTmp.(profileutils.BioData)
 	fc.Result = res
-	return ec.marshalOBioData2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐBioData(ctx, field.Selections, res)
+	return ec.marshalOBioData2githubᚗcomᚋsavannahghiᚋprofileutilsᚐBioData(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_homeAddress(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_homeAddress(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17259,12 +17263,12 @@ func (ec *executionContext) _UserProfile_homeAddress(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*base.Address)
+	res := resTmp.(*profileutils.Address)
 	fc.Result = res
-	return ec.marshalOAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx, field.Selections, res)
+	return ec.marshalOAddress2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐAddress(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserProfile_workAddress(ctx context.Context, field graphql.CollectedField, obj *base.UserProfile) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserProfile_workAddress(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17291,12 +17295,12 @@ func (ec *executionContext) _UserProfile_workAddress(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*base.Address)
+	res := resTmp.(*profileutils.Address)
 	fc.Result = res
-	return ec.marshalOAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx, field.Selections, res)
+	return ec.marshalOAddress2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐAddress(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VerifiedIdentifier_uid(ctx context.Context, field graphql.CollectedField, obj *base.VerifiedIdentifier) (ret graphql.Marshaler) {
+func (ec *executionContext) _VerifiedIdentifier_uid(ctx context.Context, field graphql.CollectedField, obj *profileutils.VerifiedIdentifier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17331,7 +17335,7 @@ func (ec *executionContext) _VerifiedIdentifier_uid(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VerifiedIdentifier_timestamp(ctx context.Context, field graphql.CollectedField, obj *base.VerifiedIdentifier) (ret graphql.Marshaler) {
+func (ec *executionContext) _VerifiedIdentifier_timestamp(ctx context.Context, field graphql.CollectedField, obj *profileutils.VerifiedIdentifier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17361,12 +17365,12 @@ func (ec *executionContext) _VerifiedIdentifier_timestamp(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*base.Date)
+	res := resTmp.(*scalarutils.Date)
 	fc.Result = res
-	return ec.marshalNDate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, field.Selections, res)
+	return ec.marshalNDate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VerifiedIdentifier_loginProvider(ctx context.Context, field graphql.CollectedField, obj *base.VerifiedIdentifier) (ret graphql.Marshaler) {
+func (ec *executionContext) _VerifiedIdentifier_loginProvider(ctx context.Context, field graphql.CollectedField, obj *profileutils.VerifiedIdentifier) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -17396,9 +17400,9 @@ func (ec *executionContext) _VerifiedIdentifier_loginProvider(ctx context.Contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.(base.LoginProviderType)
+	res := resTmp.(profileutils.LoginProviderType)
 	fc.Result = res
-	return ec.marshalNLoginProviderType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLoginProviderType(ctx, field.Selections, res)
+	return ec.marshalNLoginProviderType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐLoginProviderType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) __Service_sdl(ctx context.Context, field graphql.CollectedField, obj *fedruntime.Service) (ret graphql.Marshaler) {
@@ -18562,7 +18566,7 @@ func (ec *executionContext) unmarshalInputBeneficiaryInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
-			it.DateOfBirth, err = ec.unmarshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, v)
+			it.DateOfBirth, err = ec.unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18618,7 +18622,7 @@ func (ec *executionContext) unmarshalInputBranchSortInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOSortOrder2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx, v)
+			it.Name, err = ec.unmarshalOSortOrder2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐSortOrder(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18626,7 +18630,7 @@ func (ec *executionContext) unmarshalInputBranchSortInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sladeCode"))
-			it.SladeCode, err = ec.unmarshalOSortOrder2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx, v)
+			it.SladeCode, err = ec.unmarshalOSortOrder2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐSortOrder(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18682,7 +18686,7 @@ func (ec *executionContext) unmarshalInputBusinessPartnerSortInput(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOSortOrder2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx, v)
+			it.Name, err = ec.unmarshalOSortOrder2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐSortOrder(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18690,7 +18694,7 @@ func (ec *executionContext) unmarshalInputBusinessPartnerSortInput(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sladeCode"))
-			it.SladeCode, err = ec.unmarshalOSortOrder2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx, v)
+			it.SladeCode, err = ec.unmarshalOSortOrder2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐSortOrder(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18700,8 +18704,8 @@ func (ec *executionContext) unmarshalInputBusinessPartnerSortInput(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputFilterInput(ctx context.Context, obj interface{}) (base.FilterInput, error) {
-	var it base.FilterInput
+func (ec *executionContext) unmarshalInputFilterInput(ctx context.Context, obj interface{}) (firebasetools.FilterInput, error) {
+	var it firebasetools.FilterInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -18718,7 +18722,7 @@ func (ec *executionContext) unmarshalInputFilterInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterBy"))
-			it.FilterBy, err = ec.unmarshalOFilterParam2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFilterParam(ctx, v)
+			it.FilterBy, err = ec.unmarshalOFilterParam2ᚕᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterParam(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18728,8 +18732,8 @@ func (ec *executionContext) unmarshalInputFilterInput(ctx context.Context, obj i
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj interface{}) (base.FilterParam, error) {
-	var it base.FilterParam
+func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj interface{}) (firebasetools.FilterParam, error) {
+	var it firebasetools.FilterParam
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -18746,7 +18750,7 @@ func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fieldType"))
-			it.FieldType, err = ec.unmarshalNFieldType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFieldType(ctx, v)
+			it.FieldType, err = ec.unmarshalNFieldType2githubᚗcomᚋsavannahghiᚋenumutilsᚐFieldType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18754,7 +18758,7 @@ func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("comparisonOperation"))
-			it.ComparisonOperation, err = ec.unmarshalNOperation2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐOperation(ctx, v)
+			it.ComparisonOperation, err = ec.unmarshalNOperation2githubᚗcomᚋsavannahghiᚋenumutilsᚐOperation(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18782,7 +18786,7 @@ func (ec *executionContext) unmarshalInputIdentificationInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDocType"))
-			it.IdentificationDocType, err = ec.unmarshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx, v)
+			it.IdentificationDocType, err = ec.unmarshalNIdentificationDocType2githubᚗcomᚋsavannahghiᚋenumutilsᚐIdentificationDocType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19262,7 +19266,7 @@ func (ec *executionContext) unmarshalInputNHIFDetailsInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idDocType"))
-			it.IDDocType, err = ec.unmarshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx, v)
+			it.IDDocType, err = ec.unmarshalNIdentificationDocType2githubᚗcomᚋsavannahghiᚋenumutilsᚐIdentificationDocType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19916,8 +19920,8 @@ func (ec *executionContext) unmarshalInputOtherPractitionerServiceInput(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, obj interface{}) (base.PaginationInput, error) {
-	var it base.PaginationInput
+func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, obj interface{}) (firebasetools.PaginationInput, error) {
+	var it firebasetools.PaginationInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -20042,7 +20046,7 @@ func (ec *executionContext) unmarshalInputRegisterAdminInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
-			it.Gender, err = ec.unmarshalNGender2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx, v)
+			it.Gender, err = ec.unmarshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20066,7 +20070,7 @@ func (ec *executionContext) unmarshalInputRegisterAdminInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
-			it.DateOfBirth, err = ec.unmarshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, v)
+			it.DateOfBirth, err = ec.unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20102,7 +20106,7 @@ func (ec *executionContext) unmarshalInputRegisterAgentInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
-			it.Gender, err = ec.unmarshalNGender2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx, v)
+			it.Gender, err = ec.unmarshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20126,7 +20130,7 @@ func (ec *executionContext) unmarshalInputRegisterAgentInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
-			it.DateOfBirth, err = ec.unmarshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, v)
+			it.DateOfBirth, err = ec.unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20136,8 +20140,8 @@ func (ec *executionContext) unmarshalInputRegisterAgentInput(ctx context.Context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSortInput(ctx context.Context, obj interface{}) (base.SortInput, error) {
-	var it base.SortInput
+func (ec *executionContext) unmarshalInputSortInput(ctx context.Context, obj interface{}) (firebasetools.SortInput, error) {
+	var it firebasetools.SortInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -20146,7 +20150,7 @@ func (ec *executionContext) unmarshalInputSortInput(ctx context.Context, obj int
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortBy"))
-			it.SortBy, err = ec.unmarshalOSortParam2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortParam(ctx, v)
+			it.SortBy, err = ec.unmarshalOSortParam2ᚕᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐSortParam(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20156,8 +20160,8 @@ func (ec *executionContext) unmarshalInputSortInput(ctx context.Context, obj int
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSortParam(ctx context.Context, obj interface{}) (base.SortParam, error) {
-	var it base.SortParam
+func (ec *executionContext) unmarshalInputSortParam(ctx context.Context, obj interface{}) (firebasetools.SortParam, error) {
+	var it firebasetools.SortParam
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -20174,7 +20178,7 @@ func (ec *executionContext) unmarshalInputSortParam(ctx context.Context, obj int
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortOrder"))
-			it.SortOrder, err = ec.unmarshalNSortOrder2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx, v)
+			it.SortOrder, err = ec.unmarshalNSortOrder2githubᚗcomᚋsavannahghiᚋenumutilsᚐSortOrder(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20298,7 +20302,7 @@ func (ec *executionContext) unmarshalInputUserProfileInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
-			it.DateOfBirth, err = ec.unmarshalODate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx, v)
+			it.DateOfBirth, err = ec.unmarshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20306,7 +20310,7 @@ func (ec *executionContext) unmarshalInputUserProfileInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
-			it.Gender, err = ec.unmarshalOGender2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx, v)
+			it.Gender, err = ec.unmarshalOGender2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20345,16 +20349,16 @@ func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, 
 			return graphql.Null
 		}
 		return ec._Microservice(ctx, sel, obj)
-	case base.PageInfo:
+	case firebasetools.PageInfo:
 		return ec._PageInfo(ctx, sel, &obj)
-	case *base.PageInfo:
+	case *firebasetools.PageInfo:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._PageInfo(ctx, sel, obj)
-	case base.UserProfile:
+	case profileutils.UserProfile:
 		return ec._UserProfile(ctx, sel, &obj)
-	case *base.UserProfile:
+	case *profileutils.UserProfile:
 		if obj == nil {
 			return graphql.Null
 		}
@@ -20370,7 +20374,7 @@ func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, 
 
 var addressImplementors = []string{"Address"}
 
-func (ec *executionContext) _Address(ctx context.Context, sel ast.SelectionSet, obj *base.Address) graphql.Marshaler {
+func (ec *executionContext) _Address(ctx context.Context, sel ast.SelectionSet, obj *profileutils.Address) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, addressImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -20543,7 +20547,7 @@ func (ec *executionContext) _Beneficiary(ctx context.Context, sel ast.SelectionS
 
 var bioDataImplementors = []string{"BioData"}
 
-func (ec *executionContext) _BioData(ctx context.Context, sel ast.SelectionSet, obj *base.BioData) graphql.Marshaler {
+func (ec *executionContext) _BioData(ctx context.Context, sel ast.SelectionSet, obj *profileutils.BioData) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, bioDataImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -20764,7 +20768,7 @@ func (ec *executionContext) _BusinessPartnerEdge(ctx context.Context, sel ast.Se
 
 var coverImplementors = []string{"Cover"}
 
-func (ec *executionContext) _Cover(ctx context.Context, sel ast.SelectionSet, obj *base.Cover) graphql.Marshaler {
+func (ec *executionContext) _Cover(ctx context.Context, sel ast.SelectionSet, obj *profileutils.Cover) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, coverImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -20806,7 +20810,7 @@ func (ec *executionContext) _Cover(ctx context.Context, sel ast.SelectionSet, ob
 
 var customerImplementors = []string{"Customer"}
 
-func (ec *executionContext) _Customer(ctx context.Context, sel ast.SelectionSet, obj *base.Customer) graphql.Marshaler {
+func (ec *executionContext) _Customer(ctx context.Context, sel ast.SelectionSet, obj *profileutils.Customer) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, customerImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -21272,7 +21276,7 @@ func (ec *executionContext) _KYCRequest(ctx context.Context, sel ast.SelectionSe
 
 var linkImplementors = []string{"Link"}
 
-func (ec *executionContext) _Link(ctx context.Context, sel ast.SelectionSet, obj *base.Link) graphql.Marshaler {
+func (ec *executionContext) _Link(ctx context.Context, sel ast.SelectionSet, obj *feedlib.Link) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, linkImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -21306,7 +21310,7 @@ func (ec *executionContext) _Link(ctx context.Context, sel ast.SelectionSet, obj
 
 var locationImplementors = []string{"Location"}
 
-func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet, obj *base.Location) graphql.Marshaler {
+func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet, obj *profileutils.Location) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, locationImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -21687,7 +21691,7 @@ func (ec *executionContext) _NHIFDetails(ctx context.Context, sel ast.SelectionS
 
 var navActionImplementors = []string{"NavAction"}
 
-func (ec *executionContext) _NavAction(ctx context.Context, sel ast.SelectionSet, obj *base.NavAction) graphql.Marshaler {
+func (ec *executionContext) _NavAction(ctx context.Context, sel ast.SelectionSet, obj *profileutils.NavAction) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, navActionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -21719,7 +21723,7 @@ func (ec *executionContext) _NavAction(ctx context.Context, sel ast.SelectionSet
 
 var navigationActionsImplementors = []string{"NavigationActions"}
 
-func (ec *executionContext) _NavigationActions(ctx context.Context, sel ast.SelectionSet, obj *base.NavigationActions) graphql.Marshaler {
+func (ec *executionContext) _NavigationActions(ctx context.Context, sel ast.SelectionSet, obj *profileutils.NavigationActions) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, navigationActionsImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -21745,7 +21749,7 @@ func (ec *executionContext) _NavigationActions(ctx context.Context, sel ast.Sele
 
 var nestedNavActionImplementors = []string{"NestedNavAction"}
 
-func (ec *executionContext) _NestedNavAction(ctx context.Context, sel ast.SelectionSet, obj *base.NestedNavAction) graphql.Marshaler {
+func (ec *executionContext) _NestedNavAction(ctx context.Context, sel ast.SelectionSet, obj *profileutils.NestedNavAction) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, nestedNavActionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -22138,7 +22142,7 @@ func (ec *executionContext) _OrganizationRider(ctx context.Context, sel ast.Sele
 
 var pageInfoImplementors = []string{"PageInfo", "_Entity"}
 
-func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *base.PageInfo) graphql.Marshaler {
+func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *firebasetools.PageInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, pageInfoImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -22174,7 +22178,7 @@ func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet,
 
 var payablesAccountImplementors = []string{"PayablesAccount"}
 
-func (ec *executionContext) _PayablesAccount(ctx context.Context, sel ast.SelectionSet, obj *base.PayablesAccount) graphql.Marshaler {
+func (ec *executionContext) _PayablesAccount(ctx context.Context, sel ast.SelectionSet, obj *profileutils.PayablesAccount) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, payablesAccountImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -22501,7 +22505,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 var receivablesAccountImplementors = []string{"ReceivablesAccount"}
 
-func (ec *executionContext) _ReceivablesAccount(ctx context.Context, sel ast.SelectionSet, obj *base.ReceivablesAccount) graphql.Marshaler {
+func (ec *executionContext) _ReceivablesAccount(ctx context.Context, sel ast.SelectionSet, obj *profileutils.ReceivablesAccount) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, receivablesAccountImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -22585,7 +22589,7 @@ func (ec *executionContext) _ServicesOffered(ctx context.Context, sel ast.Select
 
 var supplierImplementors = []string{"Supplier"}
 
-func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet, obj *base.Supplier) graphql.Marshaler {
+func (ec *executionContext) _Supplier(ctx context.Context, sel ast.SelectionSet, obj *profileutils.Supplier) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, supplierImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -22807,7 +22811,7 @@ func (ec *executionContext) _UserAddresses(ctx context.Context, sel ast.Selectio
 
 var userCommunicationsSettingImplementors = []string{"UserCommunicationsSetting"}
 
-func (ec *executionContext) _UserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, obj *base.UserCommunicationsSetting) graphql.Marshaler {
+func (ec *executionContext) _UserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, obj *profileutils.UserCommunicationsSetting) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userCommunicationsSettingImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -22859,7 +22863,7 @@ func (ec *executionContext) _UserCommunicationsSetting(ctx context.Context, sel 
 
 var userProfileImplementors = []string{"UserProfile", "_Entity"}
 
-func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionSet, obj *base.UserProfile) graphql.Marshaler {
+func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionSet, obj *profileutils.UserProfile) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userProfileImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -22922,7 +22926,7 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 
 var verifiedIdentifierImplementors = []string{"VerifiedIdentifier"}
 
-func (ec *executionContext) _VerifiedIdentifier(ctx context.Context, sel ast.SelectionSet, obj *base.VerifiedIdentifier) graphql.Marshaler {
+func (ec *executionContext) _VerifiedIdentifier(ctx context.Context, sel ast.SelectionSet, obj *profileutils.VerifiedIdentifier) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, verifiedIdentifierImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -23235,21 +23239,21 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx context.Context, v interface{}) (base.AccountType, error) {
-	var res base.AccountType
+func (ec *executionContext) unmarshalNAccountType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐAccountType(ctx context.Context, v interface{}) (profileutils.AccountType, error) {
+	var res profileutils.AccountType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAccountType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx context.Context, sel ast.SelectionSet, v base.AccountType) graphql.Marshaler {
+func (ec *executionContext) marshalNAccountType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐAccountType(ctx context.Context, sel ast.SelectionSet, v profileutils.AccountType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNAddress2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx context.Context, sel ast.SelectionSet, v base.Address) graphql.Marshaler {
+func (ec *executionContext) marshalNAddress2githubᚗcomᚋsavannahghiᚋprofileutilsᚐAddress(ctx context.Context, sel ast.SelectionSet, v profileutils.Address) graphql.Marshaler {
 	return ec._Address(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx context.Context, sel ast.SelectionSet, v *base.Address) graphql.Marshaler {
+func (ec *executionContext) marshalNAddress2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐAddress(ctx context.Context, sel ast.SelectionSet, v *profileutils.Address) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23259,13 +23263,13 @@ func (ec *executionContext) marshalNAddress2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 	return ec._Address(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAddressType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddressType(ctx context.Context, v interface{}) (base.AddressType, error) {
-	var res base.AddressType
+func (ec *executionContext) unmarshalNAddressType2githubᚗcomᚋsavannahghiᚋenumutilsᚐAddressType(ctx context.Context, v interface{}) (enumutils.AddressType, error) {
+	var res enumutils.AddressType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAddressType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddressType(ctx context.Context, sel ast.SelectionSet, v base.AddressType) graphql.Marshaler {
+func (ec *executionContext) marshalNAddressType2githubᚗcomᚋsavannahghiᚋenumutilsᚐAddressType(ctx context.Context, sel ast.SelectionSet, v enumutils.AddressType) graphql.Marshaler {
 	return v
 }
 
@@ -23343,23 +23347,23 @@ func (ec *executionContext) marshalNBusinessPartnerConnection2ᚖgitlabᚗslade3
 	return ec._BusinessPartnerConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, v interface{}) (base.Date, error) {
-	var res base.Date
+func (ec *executionContext) unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, v interface{}) (scalarutils.Date, error) {
+	var res scalarutils.Date
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDate2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, sel ast.SelectionSet, v base.Date) graphql.Marshaler {
+func (ec *executionContext) marshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, sel ast.SelectionSet, v scalarutils.Date) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNDate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, v interface{}) (*base.Date, error) {
-	var res = new(base.Date)
+func (ec *executionContext) unmarshalNDate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, v interface{}) (*scalarutils.Date, error) {
+	var res = new(scalarutils.Date)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, sel ast.SelectionSet, v *base.Date) graphql.Marshaler {
+func (ec *executionContext) marshalNDate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, sel ast.SelectionSet, v *scalarutils.Date) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23379,23 +23383,23 @@ func (ec *executionContext) marshalNEmploymentType2gitlabᚗslade360emrᚗcomᚋ
 	return v
 }
 
-func (ec *executionContext) unmarshalNFieldType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFieldType(ctx context.Context, v interface{}) (base.FieldType, error) {
-	var res base.FieldType
+func (ec *executionContext) unmarshalNFieldType2githubᚗcomᚋsavannahghiᚋenumutilsᚐFieldType(ctx context.Context, v interface{}) (enumutils.FieldType, error) {
+	var res enumutils.FieldType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNFieldType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFieldType(ctx context.Context, sel ast.SelectionSet, v base.FieldType) graphql.Marshaler {
+func (ec *executionContext) marshalNFieldType2githubᚗcomᚋsavannahghiᚋenumutilsᚐFieldType(ctx context.Context, sel ast.SelectionSet, v enumutils.FieldType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx context.Context, v interface{}) (base.Flavour, error) {
-	var res base.Flavour
+func (ec *executionContext) unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx context.Context, v interface{}) (feedlib.Flavour, error) {
+	var res feedlib.Flavour
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNFlavour2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFlavour(ctx context.Context, sel ast.SelectionSet, v base.Flavour) graphql.Marshaler {
+func (ec *executionContext) marshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx context.Context, sel ast.SelectionSet, v feedlib.Flavour) graphql.Marshaler {
 	return v
 }
 
@@ -23414,13 +23418,13 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNGender2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx context.Context, v interface{}) (base.Gender, error) {
-	var res base.Gender
+func (ec *executionContext) unmarshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, v interface{}) (enumutils.Gender, error) {
+	var res enumutils.Gender
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNGender2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx context.Context, sel ast.SelectionSet, v base.Gender) graphql.Marshaler {
+func (ec *executionContext) marshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, sel ast.SelectionSet, v enumutils.Gender) graphql.Marshaler {
 	return v
 }
 
@@ -23443,13 +23447,13 @@ func (ec *executionContext) marshalNIdentification2gitlabᚗslade360emrᚗcomᚋ
 	return ec._Identification(ctx, sel, &v)
 }
 
-func (ec *executionContext) unmarshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx context.Context, v interface{}) (base.IdentificationDocType, error) {
-	var res base.IdentificationDocType
+func (ec *executionContext) unmarshalNIdentificationDocType2githubᚗcomᚋsavannahghiᚋenumutilsᚐIdentificationDocType(ctx context.Context, v interface{}) (enumutils.IdentificationDocType, error) {
+	var res enumutils.IdentificationDocType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNIdentificationDocType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐIdentificationDocType(ctx context.Context, sel ast.SelectionSet, v base.IdentificationDocType) graphql.Marshaler {
+func (ec *executionContext) marshalNIdentificationDocType2githubᚗcomᚋsavannahghiᚋenumutilsᚐIdentificationDocType(ctx context.Context, sel ast.SelectionSet, v enumutils.IdentificationDocType) graphql.Marshaler {
 	return v
 }
 
@@ -23578,13 +23582,13 @@ func (ec *executionContext) marshalNKYCProcessStatus2gitlabᚗslade360emrᚗcom�
 	return v
 }
 
-func (ec *executionContext) unmarshalNLoginProviderType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLoginProviderType(ctx context.Context, v interface{}) (base.LoginProviderType, error) {
+func (ec *executionContext) unmarshalNLoginProviderType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐLoginProviderType(ctx context.Context, v interface{}) (profileutils.LoginProviderType, error) {
 	tmp, err := graphql.UnmarshalString(v)
-	res := base.LoginProviderType(tmp)
+	res := profileutils.LoginProviderType(tmp)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNLoginProviderType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLoginProviderType(ctx context.Context, sel ast.SelectionSet, v base.LoginProviderType) graphql.Marshaler {
+func (ec *executionContext) marshalNLoginProviderType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐLoginProviderType(ctx context.Context, sel ast.SelectionSet, v profileutils.LoginProviderType) graphql.Marshaler {
 	res := graphql.MarshalString(string(v))
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -23690,13 +23694,13 @@ func (ec *executionContext) unmarshalNNHIFDetailsInput2gitlabᚗslade360emrᚗco
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNOperation2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐOperation(ctx context.Context, v interface{}) (base.Operation, error) {
-	var res base.Operation
+func (ec *executionContext) unmarshalNOperation2githubᚗcomᚋsavannahghiᚋenumutilsᚐOperation(ctx context.Context, v interface{}) (enumutils.Operation, error) {
+	var res enumutils.Operation
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOperation2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐOperation(ctx context.Context, sel ast.SelectionSet, v base.Operation) graphql.Marshaler {
+func (ec *executionContext) marshalNOperation2githubᚗcomᚋsavannahghiᚋenumutilsᚐOperation(ctx context.Context, sel ast.SelectionSet, v enumutils.Operation) graphql.Marshaler {
 	return v
 }
 
@@ -23824,11 +23828,11 @@ func (ec *executionContext) marshalNOrganizationType2gitlabᚗslade360emrᚗcom�
 	return v
 }
 
-func (ec *executionContext) marshalNPageInfo2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v base.PageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋsavannahghiᚋfirebasetoolsᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v firebasetools.PageInfo) graphql.Marshaler {
 	return ec._PageInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *base.PageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *firebasetools.PageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23838,17 +23842,17 @@ func (ec *executionContext) marshalNPageInfo2ᚖgitlabᚗslade360emrᚗcomᚋgo�
 	return ec._PageInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPartnerType(ctx context.Context, v interface{}) (base.PartnerType, error) {
-	var res base.PartnerType
+func (ec *executionContext) unmarshalNPartnerType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPartnerType(ctx context.Context, v interface{}) (profileutils.PartnerType, error) {
+	var res profileutils.PartnerType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPartnerType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPartnerType(ctx context.Context, sel ast.SelectionSet, v base.PartnerType) graphql.Marshaler {
+func (ec *executionContext) marshalNPartnerType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPartnerType(ctx context.Context, sel ast.SelectionSet, v profileutils.PartnerType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNPayablesAccount2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPayablesAccount(ctx context.Context, sel ast.SelectionSet, v *base.PayablesAccount) graphql.Marshaler {
+func (ec *executionContext) marshalNPayablesAccount2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPayablesAccount(ctx context.Context, sel ast.SelectionSet, v *profileutils.PayablesAccount) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23858,13 +23862,13 @@ func (ec *executionContext) marshalNPayablesAccount2ᚖgitlabᚗslade360emrᚗco
 	return ec._PayablesAccount(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPermissionType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPermissionType(ctx context.Context, v interface{}) (base.PermissionType, error) {
+func (ec *executionContext) unmarshalNPermissionType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionType(ctx context.Context, v interface{}) (profileutils.PermissionType, error) {
 	tmp, err := graphql.UnmarshalString(v)
-	res := base.PermissionType(tmp)
+	res := profileutils.PermissionType(tmp)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPermissionType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPermissionType(ctx context.Context, sel ast.SelectionSet, v base.PermissionType) graphql.Marshaler {
+func (ec *executionContext) marshalNPermissionType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionType(ctx context.Context, sel ast.SelectionSet, v profileutils.PermissionType) graphql.Marshaler {
 	res := graphql.MarshalString(string(v))
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -23967,13 +23971,13 @@ func (ec *executionContext) unmarshalNRegisterAgentInput2gitlabᚗslade360emrᚗ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNSortOrder2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx context.Context, v interface{}) (base.SortOrder, error) {
-	var res base.SortOrder
+func (ec *executionContext) unmarshalNSortOrder2githubᚗcomᚋsavannahghiᚋenumutilsᚐSortOrder(ctx context.Context, v interface{}) (enumutils.SortOrder, error) {
+	var res enumutils.SortOrder
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSortOrder2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx context.Context, sel ast.SelectionSet, v base.SortOrder) graphql.Marshaler {
+func (ec *executionContext) marshalNSortOrder2githubᚗcomᚋsavannahghiᚋenumutilsᚐSortOrder(ctx context.Context, sel ast.SelectionSet, v enumutils.SortOrder) graphql.Marshaler {
 	return v
 }
 
@@ -24043,11 +24047,11 @@ func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalNSupplier2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx context.Context, sel ast.SelectionSet, v base.Supplier) graphql.Marshaler {
+func (ec *executionContext) marshalNSupplier2githubᚗcomᚋsavannahghiᚋprofileutilsᚐSupplier(ctx context.Context, sel ast.SelectionSet, v profileutils.Supplier) graphql.Marshaler {
 	return ec._Supplier(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *base.Supplier) graphql.Marshaler {
+func (ec *executionContext) marshalNSupplier2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *profileutils.Supplier) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -24094,11 +24098,11 @@ func (ec *executionContext) marshalNUserAddresses2ᚖgitlabᚗslade360emrᚗcom�
 	return ec._UserAddresses(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUserCommunicationsSetting2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, v base.UserCommunicationsSetting) graphql.Marshaler {
+func (ec *executionContext) marshalNUserCommunicationsSetting2githubᚗcomᚋsavannahghiᚋprofileutilsᚐUserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, v profileutils.UserCommunicationsSetting) graphql.Marshaler {
 	return ec._UserCommunicationsSetting(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUserCommunicationsSetting2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, v *base.UserCommunicationsSetting) graphql.Marshaler {
+func (ec *executionContext) marshalNUserCommunicationsSetting2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserCommunicationsSetting(ctx context.Context, sel ast.SelectionSet, v *profileutils.UserCommunicationsSetting) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -24108,11 +24112,11 @@ func (ec *executionContext) marshalNUserCommunicationsSetting2ᚖgitlabᚗslade3
 	return ec._UserCommunicationsSetting(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUserProfile2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v base.UserProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNUserProfile2githubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v profileutils.UserProfile) graphql.Marshaler {
 	return ec._UserProfile(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUserProfile2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v *base.UserProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v *profileutils.UserProfile) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -24463,23 +24467,23 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalOAccountType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx context.Context, v interface{}) (*base.AccountType, error) {
+func (ec *executionContext) unmarshalOAccountType2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐAccountType(ctx context.Context, v interface{}) (*profileutils.AccountType, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(base.AccountType)
+	var res = new(profileutils.AccountType)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOAccountType2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAccountType(ctx context.Context, sel ast.SelectionSet, v *base.AccountType) graphql.Marshaler {
+func (ec *executionContext) marshalOAccountType2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐAccountType(ctx context.Context, sel ast.SelectionSet, v *profileutils.AccountType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) marshalOAddress2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐAddress(ctx context.Context, sel ast.SelectionSet, v *base.Address) graphql.Marshaler {
+func (ec *executionContext) marshalOAddress2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐAddress(ctx context.Context, sel ast.SelectionSet, v *profileutils.Address) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -24580,7 +24584,7 @@ func (ec *executionContext) marshalOAgent2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋp
 	return ec._Agent(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOBioData2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐBioData(ctx context.Context, sel ast.SelectionSet, v base.BioData) graphql.Marshaler {
+func (ec *executionContext) marshalOBioData2githubᚗcomᚋsavannahghiᚋprofileutilsᚐBioData(ctx context.Context, sel ast.SelectionSet, v profileutils.BioData) graphql.Marshaler {
 	return ec._BioData(ctx, sel, &v)
 }
 
@@ -24844,11 +24848,11 @@ func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚖgitlabᚗslade
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOCover2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐCover(ctx context.Context, sel ast.SelectionSet, v base.Cover) graphql.Marshaler {
+func (ec *executionContext) marshalOCover2githubᚗcomᚋsavannahghiᚋprofileutilsᚐCover(ctx context.Context, sel ast.SelectionSet, v profileutils.Cover) graphql.Marshaler {
 	return ec._Cover(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐCover(ctx context.Context, sel ast.SelectionSet, v []base.Cover) graphql.Marshaler {
+func (ec *executionContext) marshalOCover2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐCover(ctx context.Context, sel ast.SelectionSet, v []profileutils.Cover) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -24875,7 +24879,7 @@ func (ec *executionContext) marshalOCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋb
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOCover2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐCover(ctx, sel, v[i])
+			ret[i] = ec.marshalOCover2githubᚗcomᚋsavannahghiᚋprofileutilsᚐCover(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -24888,23 +24892,23 @@ func (ec *executionContext) marshalOCover2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋb
 	return ret
 }
 
-func (ec *executionContext) unmarshalODate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, v interface{}) (*base.Date, error) {
+func (ec *executionContext) unmarshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, v interface{}) (*scalarutils.Date, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(base.Date)
+	var res = new(scalarutils.Date)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalODate2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐDate(ctx context.Context, sel ast.SelectionSet, v *base.Date) graphql.Marshaler {
+func (ec *executionContext) marshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, sel ast.SelectionSet, v *scalarutils.Date) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOFilterParam2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFilterParam(ctx context.Context, v interface{}) ([]*base.FilterParam, error) {
+func (ec *executionContext) unmarshalOFilterParam2ᚕᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterParam(ctx context.Context, v interface{}) ([]*firebasetools.FilterParam, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24917,10 +24921,10 @@ func (ec *executionContext) unmarshalOFilterParam2ᚕᚖgitlabᚗslade360emrᚗc
 		}
 	}
 	var err error
-	res := make([]*base.FilterParam, len(vSlice))
+	res := make([]*firebasetools.FilterParam, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOFilterParam2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFilterParam(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOFilterParam2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterParam(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -24928,7 +24932,7 @@ func (ec *executionContext) unmarshalOFilterParam2ᚕᚖgitlabᚗslade360emrᚗc
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOFilterParam2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐFilterParam(ctx context.Context, v interface{}) (*base.FilterParam, error) {
+func (ec *executionContext) unmarshalOFilterParam2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterParam(ctx context.Context, v interface{}) (*firebasetools.FilterParam, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24936,26 +24940,26 @@ func (ec *executionContext) unmarshalOFilterParam2ᚖgitlabᚗslade360emrᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOGender2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx context.Context, v interface{}) (base.Gender, error) {
-	var res base.Gender
+func (ec *executionContext) unmarshalOGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, v interface{}) (enumutils.Gender, error) {
+	var res enumutils.Gender
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOGender2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx context.Context, sel ast.SelectionSet, v base.Gender) graphql.Marshaler {
+func (ec *executionContext) marshalOGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, sel ast.SelectionSet, v enumutils.Gender) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalOGender2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx context.Context, v interface{}) (*base.Gender, error) {
+func (ec *executionContext) unmarshalOGender2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, v interface{}) (*enumutils.Gender, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(base.Gender)
+	var res = new(enumutils.Gender)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOGender2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐGender(ctx context.Context, sel ast.SelectionSet, v *base.Gender) graphql.Marshaler {
+func (ec *executionContext) marshalOGender2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, sel ast.SelectionSet, v *enumutils.Gender) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -25101,21 +25105,21 @@ func (ec *executionContext) marshalOKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋg
 	return ec._KYCRequest(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOLink2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLink(ctx context.Context, sel ast.SelectionSet, v base.Link) graphql.Marshaler {
+func (ec *executionContext) marshalOLink2githubᚗcomᚋsavannahghiᚋfeedlibᚐLink(ctx context.Context, sel ast.SelectionSet, v feedlib.Link) graphql.Marshaler {
 	return ec._Link(ctx, sel, &v)
 }
 
-func (ec *executionContext) unmarshalOLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx context.Context, v interface{}) (base.LinkType, error) {
-	var res base.LinkType
+func (ec *executionContext) unmarshalOLinkType2githubᚗcomᚋsavannahghiᚋfeedlibᚐLinkType(ctx context.Context, v interface{}) (feedlib.LinkType, error) {
+	var res feedlib.LinkType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOLinkType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLinkType(ctx context.Context, sel ast.SelectionSet, v base.LinkType) graphql.Marshaler {
+func (ec *executionContext) marshalOLinkType2githubᚗcomᚋsavannahghiᚋfeedlibᚐLinkType(ctx context.Context, sel ast.SelectionSet, v feedlib.LinkType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalOLocation2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐLocation(ctx context.Context, sel ast.SelectionSet, v *base.Location) graphql.Marshaler {
+func (ec *executionContext) marshalOLocation2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐLocation(ctx context.Context, sel ast.SelectionSet, v *profileutils.Location) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -25129,11 +25133,11 @@ func (ec *executionContext) marshalONHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋ
 	return ec._NHIFDetails(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalONavAction2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx context.Context, sel ast.SelectionSet, v base.NavAction) graphql.Marshaler {
+func (ec *executionContext) marshalONavAction2githubᚗcomᚋsavannahghiᚋprofileutilsᚐNavAction(ctx context.Context, sel ast.SelectionSet, v profileutils.NavAction) graphql.Marshaler {
 	return ec._NavAction(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalONavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx context.Context, sel ast.SelectionSet, v []base.NavAction) graphql.Marshaler {
+func (ec *executionContext) marshalONavAction2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐNavAction(ctx context.Context, sel ast.SelectionSet, v []profileutils.NavAction) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -25160,7 +25164,7 @@ func (ec *executionContext) marshalONavAction2ᚕgitlabᚗslade360emrᚗcomᚋgo
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalONavAction2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavAction(ctx, sel, v[i])
+			ret[i] = ec.marshalONavAction2githubᚗcomᚋsavannahghiᚋprofileutilsᚐNavAction(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -25173,18 +25177,18 @@ func (ec *executionContext) marshalONavAction2ᚕgitlabᚗslade360emrᚗcomᚋgo
 	return ret
 }
 
-func (ec *executionContext) marshalONavigationActions2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNavigationActions(ctx context.Context, sel ast.SelectionSet, v *base.NavigationActions) graphql.Marshaler {
+func (ec *executionContext) marshalONavigationActions2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐNavigationActions(ctx context.Context, sel ast.SelectionSet, v *profileutils.NavigationActions) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._NavigationActions(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalONestedNavAction2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNestedNavAction(ctx context.Context, sel ast.SelectionSet, v base.NestedNavAction) graphql.Marshaler {
+func (ec *executionContext) marshalONestedNavAction2githubᚗcomᚋsavannahghiᚋprofileutilsᚐNestedNavAction(ctx context.Context, sel ast.SelectionSet, v profileutils.NestedNavAction) graphql.Marshaler {
 	return ec._NestedNavAction(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalONestedNavAction2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNestedNavAction(ctx context.Context, sel ast.SelectionSet, v []base.NestedNavAction) graphql.Marshaler {
+func (ec *executionContext) marshalONestedNavAction2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐNestedNavAction(ctx context.Context, sel ast.SelectionSet, v []profileutils.NestedNavAction) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -25211,7 +25215,7 @@ func (ec *executionContext) marshalONestedNavAction2ᚕgitlabᚗslade360emrᚗco
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalONestedNavAction2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐNestedNavAction(ctx, sel, v[i])
+			ret[i] = ec.marshalONestedNavAction2githubᚗcomᚋsavannahghiᚋprofileutilsᚐNestedNavAction(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -25234,7 +25238,7 @@ func (ec *executionContext) marshalOOrganizationType2gitlabᚗslade360emrᚗcom�
 	return v
 }
 
-func (ec *executionContext) unmarshalOPaginationInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPaginationInput(ctx context.Context, v interface{}) (*base.PaginationInput, error) {
+func (ec *executionContext) unmarshalOPaginationInput2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐPaginationInput(ctx context.Context, v interface{}) (*firebasetools.PaginationInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -25242,7 +25246,7 @@ func (ec *executionContext) unmarshalOPaginationInput2ᚖgitlabᚗslade360emrᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOPermissionType2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPermissionTypeᚄ(ctx context.Context, v interface{}) ([]base.PermissionType, error) {
+func (ec *executionContext) unmarshalOPermissionType2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionTypeᚄ(ctx context.Context, v interface{}) ([]profileutils.PermissionType, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -25255,10 +25259,10 @@ func (ec *executionContext) unmarshalOPermissionType2ᚕgitlabᚗslade360emrᚗc
 		}
 	}
 	var err error
-	res := make([]base.PermissionType, len(vSlice))
+	res := make([]profileutils.PermissionType, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNPermissionType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPermissionType(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNPermissionType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionType(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -25266,7 +25270,7 @@ func (ec *executionContext) unmarshalOPermissionType2ᚕgitlabᚗslade360emrᚗc
 	return res, nil
 }
 
-func (ec *executionContext) marshalOPermissionType2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPermissionTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []base.PermissionType) graphql.Marshaler {
+func (ec *executionContext) marshalOPermissionType2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []profileutils.PermissionType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -25293,7 +25297,7 @@ func (ec *executionContext) marshalOPermissionType2ᚕgitlabᚗslade360emrᚗcom
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPermissionType2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐPermissionType(ctx, sel, v[i])
+			ret[i] = ec.marshalNPermissionType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -25306,27 +25310,27 @@ func (ec *executionContext) marshalOPermissionType2ᚕgitlabᚗslade360emrᚗcom
 	return ret
 }
 
-func (ec *executionContext) marshalOReceivablesAccount2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐReceivablesAccount(ctx context.Context, sel ast.SelectionSet, v base.ReceivablesAccount) graphql.Marshaler {
+func (ec *executionContext) marshalOReceivablesAccount2githubᚗcomᚋsavannahghiᚋprofileutilsᚐReceivablesAccount(ctx context.Context, sel ast.SelectionSet, v profileutils.ReceivablesAccount) graphql.Marshaler {
 	return ec._ReceivablesAccount(ctx, sel, &v)
 }
 
-func (ec *executionContext) unmarshalOSortOrder2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx context.Context, v interface{}) (*base.SortOrder, error) {
+func (ec *executionContext) unmarshalOSortOrder2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐSortOrder(ctx context.Context, v interface{}) (*enumutils.SortOrder, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(base.SortOrder)
+	var res = new(enumutils.SortOrder)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSortOrder2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortOrder(ctx context.Context, sel ast.SelectionSet, v *base.SortOrder) graphql.Marshaler {
+func (ec *executionContext) marshalOSortOrder2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐSortOrder(ctx context.Context, sel ast.SelectionSet, v *enumutils.SortOrder) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOSortParam2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortParam(ctx context.Context, v interface{}) ([]*base.SortParam, error) {
+func (ec *executionContext) unmarshalOSortParam2ᚕᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐSortParam(ctx context.Context, v interface{}) ([]*firebasetools.SortParam, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -25339,10 +25343,10 @@ func (ec *executionContext) unmarshalOSortParam2ᚕᚖgitlabᚗslade360emrᚗcom
 		}
 	}
 	var err error
-	res := make([]*base.SortParam, len(vSlice))
+	res := make([]*firebasetools.SortParam, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOSortParam2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortParam(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOSortParam2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐSortParam(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -25350,7 +25354,7 @@ func (ec *executionContext) unmarshalOSortParam2ᚕᚖgitlabᚗslade360emrᚗcom
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOSortParam2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSortParam(ctx context.Context, v interface{}) (*base.SortParam, error) {
+func (ec *executionContext) unmarshalOSortParam2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐSortParam(ctx context.Context, v interface{}) (*firebasetools.SortParam, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -25454,7 +25458,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return graphql.MarshalString(*v)
 }
 
-func (ec *executionContext) marshalOSupplier2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *base.Supplier) graphql.Marshaler {
+func (ec *executionContext) marshalOSupplier2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *profileutils.Supplier) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -25543,11 +25547,11 @@ func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel as
 	return graphql.MarshalTime(v)
 }
 
-func (ec *executionContext) marshalOVerifiedIdentifier2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedIdentifier(ctx context.Context, sel ast.SelectionSet, v base.VerifiedIdentifier) graphql.Marshaler {
+func (ec *executionContext) marshalOVerifiedIdentifier2githubᚗcomᚋsavannahghiᚋprofileutilsᚐVerifiedIdentifier(ctx context.Context, sel ast.SelectionSet, v profileutils.VerifiedIdentifier) graphql.Marshaler {
 	return ec._VerifiedIdentifier(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOVerifiedIdentifier2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedIdentifier(ctx context.Context, sel ast.SelectionSet, v []base.VerifiedIdentifier) graphql.Marshaler {
+func (ec *executionContext) marshalOVerifiedIdentifier2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐVerifiedIdentifier(ctx context.Context, sel ast.SelectionSet, v []profileutils.VerifiedIdentifier) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -25574,7 +25578,7 @@ func (ec *executionContext) marshalOVerifiedIdentifier2ᚕgitlabᚗslade360emr�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOVerifiedIdentifier2gitlabᚗslade360emrᚗcomᚋgoᚋbaseᚐVerifiedIdentifier(ctx, sel, v[i])
+			ret[i] = ec.marshalOVerifiedIdentifier2githubᚗcomᚋsavannahghiᚋprofileutilsᚐVerifiedIdentifier(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

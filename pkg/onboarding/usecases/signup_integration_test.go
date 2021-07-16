@@ -5,8 +5,11 @@ import (
 	"testing"
 
 	"firebase.google.com/go/auth"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/scalarutils"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
@@ -17,7 +20,7 @@ func TestVerifyPhoneNumber(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	validPhoneNumber := base.TestUserPhoneNumber
+	validPhoneNumber := interserviceclient.TestUserPhoneNumber
 	validPIN := "1234"
 
 	invalidPhoneNumber := "+25471865"
@@ -48,7 +51,7 @@ func TestVerifyPhoneNumber(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &validPhoneNumber,
 			PIN:         &validPIN,
-			Flavour:     base.FlavourPro,
+			Flavour:     feedlib.FlavourPro,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -71,7 +74,7 @@ func TestCreateUserWithPhoneNumber_Consumer(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	phone := base.TestUserPhoneNumber
+	phone := interserviceclient.TestUserPhoneNumber
 	pin := "1234"
 
 	// clean up
@@ -86,7 +89,7 @@ func TestCreateUserWithPhoneNumber_Consumer(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &phone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -111,7 +114,7 @@ func TestCreateUserWithPhoneNumber_Pro(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	phone := base.TestUserPhoneNumber
+	phone := interserviceclient.TestUserPhoneNumber
 	pin := "1234"
 
 	// clean up
@@ -126,7 +129,7 @@ func TestCreateUserWithPhoneNumber_Pro(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &phone,
 			PIN:         &pin,
-			Flavour:     base.FlavourPro,
+			Flavour:     feedlib.FlavourPro,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -157,10 +160,10 @@ func TestCreateUserByPhone(t *testing.T) {
 	invalidPinLength2 := "12345678"
 	invalidOtp := "00001234"
 
-	validPhoneNumber := base.TestUserPhoneNumber
+	validPhoneNumber := interserviceclient.TestUserPhoneNumber
 	validPIN := "1234"
 
-	validFlavourConsumer := base.FlavourConsumer
+	validFlavourConsumer := feedlib.FlavourConsumer
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
@@ -276,10 +279,10 @@ func TestUpdateUserProfile(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	validPhoneNumber := base.TestUserPhoneNumber
+	validPhoneNumber := interserviceclient.TestUserPhoneNumber
 	validPIN := "1234"
 
-	validFlavourConsumer := base.FlavourConsumer
+	validFlavourConsumer := feedlib.FlavourConsumer
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
@@ -312,18 +315,18 @@ func TestUpdateUserProfile(t *testing.T) {
 	authCred := &auth.Token{UID: resp.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 
 	s, _ = InitializeTestService(authenticatedContext)
 
-	dateOfBirth1 := base.Date{
+	dateOfBirth1 := scalarutils.Date{
 		Day:   12,
 		Year:  1998,
 		Month: 2,
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -407,7 +410,7 @@ func TestRegisterPushToken(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	pin := "1234"
 
 	// clean up
@@ -422,7 +425,7 @@ func TestRegisterPushToken(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -432,7 +435,7 @@ func TestRegisterPushToken(t *testing.T) {
 	assert.NotNil(t, resp.CustomerProfile)
 	assert.NotNil(t, resp.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -441,7 +444,7 @@ func TestRegisterPushToken(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -486,11 +489,11 @@ func TestCompleteSignup(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	pin := "1234"
 
-	validFlavour := base.FlavourConsumer
-	invalidFlavour := base.FlavourPro
+	validFlavour := feedlib.FlavourConsumer
+	invalidFlavour := feedlib.FlavourPro
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -504,7 +507,7 @@ func TestCompleteSignup(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -525,7 +528,7 @@ func TestCompleteSignup(t *testing.T) {
 	authCred := &auth.Token{UID: resp.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -542,7 +545,7 @@ func TestCompleteSignup(t *testing.T) {
 	assert.NotNil(t, respCmp)
 	assert.Equal(t, false, respCmp)
 
-	dateOfBirth := base.Date{
+	dateOfBirth := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -578,7 +581,7 @@ func TestRetirePushToken(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	pin := "1234"
 
 	// clean up
@@ -593,7 +596,7 @@ func TestRetirePushToken(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -603,7 +606,7 @@ func TestRetirePushToken(t *testing.T) {
 	assert.NotNil(t, resp.CustomerProfile)
 	assert.NotNil(t, resp.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -612,7 +615,7 @@ func TestRetirePushToken(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -674,10 +677,10 @@ func TestGetUserRecoveryPhoneNumbers(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	pin := "1234"
 	invalidPhoneNumber := "+25471865"
-	nonExistentPhone := base.TestUserPhoneNumberWithPin
+	nonExistentPhone := interserviceclient.TestUserPhoneNumberWithPin
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -692,7 +695,7 @@ func TestGetUserRecoveryPhoneNumbers(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -739,7 +742,7 @@ func TestRemoveUserByPhoneNumber(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &phone,
 			PIN:         &pin,
-			Flavour:     base.FlavourPro,
+			Flavour:     feedlib.FlavourPro,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -751,7 +754,7 @@ func TestRemoveUserByPhoneNumber(t *testing.T) {
 	assert.NotNil(t, resp.SupplierProfile)
 
 	// login to asser that the user has really been created. Should pass
-	login1, err := s.Login.LoginByPhone(context.Background(), phone, pin, base.FlavourPro)
+	login1, err := s.Login.LoginByPhone(context.Background(), phone, pin, feedlib.FlavourPro)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 	assert.Equal(t, login1.Profile.ID, resp.Profile.ID)
@@ -762,7 +765,7 @@ func TestRemoveUserByPhoneNumber(t *testing.T) {
 	assert.Nil(t, err)
 
 	// login again. It should fail since the user has been removed
-	login2, err := s.Login.LoginByPhone(context.Background(), phone, pin, base.FlavourPro)
+	login2, err := s.Login.LoginByPhone(context.Background(), phone, pin, feedlib.FlavourPro)
 	assert.NotNil(t, err)
 	assert.Contains(t, "7: failed to get a user profile", err.Error())
 	assert.Nil(t, login2)

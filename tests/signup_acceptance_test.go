@@ -12,14 +12,17 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 func TestCreateUserWithPhoneNumber(t *testing.T) {
 	client := http.DefaultClient
 
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	validPayload, err := composeValidUserPayload(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to compose a valid payload")
@@ -110,7 +113,7 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "profile") {
 				r.Header.Add(k, v)
 			}
 
@@ -145,7 +148,7 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 func TestVerifySignUpPhoneNumber(t *testing.T) {
 	client := http.DefaultClient
 	// create a test user
-	_, err := CreateTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := CreateTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
@@ -154,7 +157,7 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 	registeredPhone := struct {
 		PhoneNumber string
 	}{
-		PhoneNumber: base.TestUserPhoneNumberWithPin,
+		PhoneNumber: interserviceclient.TestUserPhoneNumberWithPin,
 	}
 	bs, err := json.Marshal(registeredPhone)
 	if err != nil {
@@ -167,7 +170,7 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 	unregisteredPhone := struct {
 		PhoneNumber string
 	}{
-		PhoneNumber: base.TestUserPhoneNumber,
+		PhoneNumber: interserviceclient.TestUserPhoneNumber,
 	}
 	bs2, err := json.Marshal(unregisteredPhone)
 	if err != nil {
@@ -235,7 +238,7 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "profile") {
 				r.Header.Add(k, v)
 			}
 
@@ -276,7 +279,7 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -285,7 +288,7 @@ func TestVerifySignUpPhoneNumber(t *testing.T) {
 func TestUserRecoveryPhoneNumbers(t *testing.T) {
 	client := http.DefaultClient
 	// create a test user
-	validPhoneNumber := base.TestUserPhoneNumber
+	validPhoneNumber := interserviceclient.TestUserPhoneNumber
 	_, err := CreateTestUserByPhone(t, validPhoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -301,7 +304,7 @@ func TestUserRecoveryPhoneNumbers(t *testing.T) {
 	payload := bytes.NewBuffer(bs)
 
 	// phone number not registered
-	inValidNumber := base.TestUserPhoneNumberWithPin
+	inValidNumber := interserviceclient.TestUserPhoneNumberWithPin
 	badPayload := dto.PhoneNumberPayload{
 		PhoneNumber: &inValidNumber,
 	}
@@ -371,7 +374,7 @@ func TestUserRecoveryPhoneNumbers(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "profile") {
 				r.Header.Add(k, v)
 			}
 
@@ -429,7 +432,7 @@ func TestRegisterPushToken(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phone": base.TestUserPhoneNumberWithPin,
+						"phone": interserviceclient.TestUserPhoneNumberWithPin,
 						"token": "QP18DqWVyuOcPG8CcDUNcEDzU3A2",
 					},
 				},
@@ -528,7 +531,7 @@ func TestRegisterPushToken(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -542,7 +545,7 @@ func TestCompleteSignup(t *testing.T) {
 		return
 	}
 
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -556,16 +559,16 @@ func TestCompleteSignup(t *testing.T) {
 		return
 	}
 
-	authToken, err := base.ValidateBearerToken(ctx, *idToken)
+	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
 	if err != nil {
 		t.Errorf("invalid token: %w", err)
 		return
 	}
-	authenticatedContext := context.WithValue(ctx, base.AuthTokenContextKey, authToken)
+	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
 
 	firstName := "Be.Well"
 	lastName := "Consumer"
-	bioData := base.BioData{
+	bioData := profileutils.BioData{
 		FirstName: &firstName,
 		LastName:  &lastName,
 	}
@@ -600,7 +603,7 @@ func TestCompleteSignup(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"flavour": base.FlavourConsumer,
+						"flavour": feedlib.FlavourConsumer,
 					},
 				},
 			},
@@ -613,7 +616,7 @@ func TestCompleteSignup(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"flavour": base.FlavourPro, // invalid flavour
+						"flavour": feedlib.FlavourPro, // invalid flavour
 					},
 				},
 			},
@@ -698,7 +701,7 @@ func TestCompleteSignup(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}

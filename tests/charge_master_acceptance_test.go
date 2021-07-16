@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/interserviceclient"
 )
 
 func TestGraphQLFindProvider(t *testing.T) {
@@ -158,7 +158,7 @@ func TestGraphQLFindProvider(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -313,7 +313,7 @@ func TestGraphQLFindBranch(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}

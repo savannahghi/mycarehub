@@ -7,10 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-
-	"gitlab.slade360emr.com/go/base"
 )
 
 // OTP service endpoints
@@ -27,12 +26,12 @@ type ServiceOTP interface {
 	GenerateAndSendOTP(
 		ctx context.Context,
 		phone string,
-	) (*base.OtpResponse, error)
+	) (*profileutils.OtpResponse, error)
 	SendRetryOTP(
 		ctx context.Context,
 		msisdn string,
 		retryStep int,
-	) (*base.OtpResponse, error)
+	) (*profileutils.OtpResponse, error)
 	VerifyOTP(ctx context.Context, phone, OTP string) (bool, error)
 	VerifyEmailOTP(ctx context.Context, email, OTP string) (bool, error)
 }
@@ -52,7 +51,7 @@ func NewOTPService(otp extension.ISCClientExtension, ext extension.BaseExtension
 func (o *ServiceOTPImpl) GenerateAndSendOTP(
 	ctx context.Context,
 	phone string,
-) (*base.OtpResponse, error) {
+) (*profileutils.OtpResponse, error) {
 	body := map[string]interface{}{
 		"msisdn": phone,
 	}
@@ -75,7 +74,7 @@ func (o *ServiceOTPImpl) GenerateAndSendOTP(
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal OTP: %v", err)
 	}
-	return &base.OtpResponse{OTP: OTP}, nil
+	return &profileutils.OtpResponse{OTP: OTP}, nil
 }
 
 // SendRetryOTP generates fallback OTPs when Africa is talking sms fails
@@ -83,7 +82,7 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 	ctx context.Context,
 	msisdn string,
 	retryStep int,
-) (*base.OtpResponse, error) {
+) (*profileutils.OtpResponse, error) {
 	phoneNumber, err := o.baseExt.NormalizeMSISDN(msisdn)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
@@ -116,7 +115,7 @@ func (o *ServiceOTPImpl) SendRetryOTP(
 		return nil, fmt.Errorf("failed to unmarshal OTP: %v", err)
 	}
 
-	return &base.OtpResponse{OTP: RetryOTP}, nil
+	return &profileutils.OtpResponse{OTP: RetryOTP}, nil
 }
 
 // VerifyOTP takes a phone number and an OTP and checks for the validity of the OTP code

@@ -4,10 +4,10 @@ import (
 	"context"
 	"log"
 
+	"github.com/savannahghi/firebasetools"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
 
 	"firebase.google.com/go/auth"
-	"gitlab.slade360emr.com/go/base"
 )
 
 //go:generate go run github.com/99designs/gqlgen
@@ -46,7 +46,7 @@ func (r Resolver) checkPreconditions() {
 
 // CheckUserTokenInContext ensures that the context has a valid Firebase auth token
 func (r *Resolver) CheckUserTokenInContext(ctx context.Context) *auth.Token {
-	token, err := base.GetUserTokenFromContext(ctx)
+	token, err := firebasetools.GetUserTokenFromContext(ctx)
 	if err != nil {
 		log.Panicf("graph.Resolver: context user token is nil")
 	}

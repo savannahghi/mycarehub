@@ -11,8 +11,12 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/base"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -194,7 +198,7 @@ func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		profile *base.UserProfile
+		profile *profileutils.UserProfile
 	}
 	tests := []struct {
 		name     string
@@ -206,7 +210,7 @@ func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 			name: "valid:add",
 			args: args{
 				ctx: ctx,
-				profile: &base.UserProfile{
+				profile: &profileutils.UserProfile{
 					ID: uuid.New().String(),
 				},
 			},
@@ -216,7 +220,7 @@ func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 			name: "valid:already_exists",
 			args: args{
 				ctx: ctx,
-				profile: &base.UserProfile{
+				profile: &profileutils.UserProfile{
 					ID: uuid.New().String(),
 				},
 			},
@@ -227,7 +231,7 @@ func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 			name: "invalid:throws_internal_server_error_while_checking_existence",
 			args: args{
 				ctx: ctx,
-				profile: &base.UserProfile{
+				profile: &profileutils.UserProfile{
 					ID: uuid.New().String(),
 				},
 			},
@@ -239,7 +243,7 @@ func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 			name: "invalid:throws_internal_server_error_while_creating",
 			args: args{
 				ctx: ctx,
-				profile: &base.UserProfile{
+				profile: &profileutils.UserProfile{
 					ID: uuid.New().String(),
 				},
 			},
@@ -312,7 +316,7 @@ func TestRepository_RemoveUserAsExperimentParticipant(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		profile *base.UserProfile
+		profile *profileutils.UserProfile
 	}
 	tests := []struct {
 		name     string
@@ -324,7 +328,7 @@ func TestRepository_RemoveUserAsExperimentParticipant(t *testing.T) {
 			name: "valid:remove_user_as_experiment_participant",
 			args: args{
 				ctx: ctx,
-				profile: &base.UserProfile{
+				profile: &profileutils.UserProfile{
 					ID: uuid.New().String(),
 				},
 			},
@@ -335,7 +339,7 @@ func TestRepository_RemoveUserAsExperimentParticipant(t *testing.T) {
 			name: "invalid:throws_internal_server_error_while_removing",
 			args: args{
 				ctx: ctx,
-				profile: &base.UserProfile{
+				profile: &profileutils.UserProfile{
 					ID: uuid.New().String(),
 				},
 			},
@@ -387,7 +391,7 @@ func TestRepository_StageProfileNudge(t *testing.T) {
 
 	type args struct {
 		ctx   context.Context
-		nudge *base.Nudge
+		nudge *feedlib.Nudge
 	}
 	tests := []struct {
 		name    string
@@ -398,7 +402,7 @@ func TestRepository_StageProfileNudge(t *testing.T) {
 			name: "valid:create",
 			args: args{
 				ctx:   ctx,
-				nudge: &base.Nudge{},
+				nudge: &feedlib.Nudge{},
 			},
 			wantErr: false,
 		},
@@ -406,7 +410,7 @@ func TestRepository_StageProfileNudge(t *testing.T) {
 			name: "valid:return_internal_server_error",
 			args: args{
 				ctx:   ctx,
-				nudge: &base.Nudge{},
+				nudge: &feedlib.Nudge{},
 			},
 			wantErr: true,
 		},
@@ -506,7 +510,7 @@ func TestRepository_UpdateRole(t *testing.T) {
 	type args struct {
 		ctx  context.Context
 		id   string
-		role base.RoleType
+		role profileutils.RoleType
 	}
 
 	tests := []struct {
@@ -519,7 +523,7 @@ func TestRepository_UpdateRole(t *testing.T) {
 			args: args{
 				ctx:  ctx,
 				id:   "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-				role: base.RoleTypeEmployee,
+				role: profileutils.RoleTypeEmployee,
 			},
 			wantErr: true,
 		},
@@ -528,7 +532,7 @@ func TestRepository_UpdateRole(t *testing.T) {
 			args: args{
 				ctx:  ctx,
 				id:   "12333",
-				role: base.RoleTypeEmployee,
+				role: profileutils.RoleTypeEmployee,
 			},
 			wantErr: true,
 		},
@@ -540,7 +544,7 @@ func TestRepository_UpdateRole(t *testing.T) {
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					return nil, fmt.Errorf("unable to get user profile docs")
 				}
-				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("error: unable to get profile")
 				}
 			}
@@ -548,8 +552,8 @@ func TestRepository_UpdateRole(t *testing.T) {
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					return nil, fmt.Errorf("unable to get user profile docs")
 				}
-				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 					}, nil
@@ -652,13 +656,13 @@ func TestRepository_UpdateFavNavActions(t *testing.T) {
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					return nil, fmt.Errorf("unable to get user profile docs")
 				}
-				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("error: unable to get profile")
 				}
 			}
 			if tt.name == "invalid:unable_to_pass_userprofile" {
-				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{}, nil
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
 				}
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					return nil, fmt.Errorf("unable to get user profile docs")
@@ -668,8 +672,8 @@ func TestRepository_UpdateFavNavActions(t *testing.T) {
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					return nil, fmt.Errorf("unable to get user profile docs")
 				}
-				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{}, nil
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
 				}
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					docs := []*firestore.DocumentSnapshot{}
@@ -680,8 +684,8 @@ func TestRepository_UpdateFavNavActions(t *testing.T) {
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					return nil, fmt.Errorf("unable to get user profile docs")
 				}
-				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{}, nil
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
 				}
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					docs := []*firestore.DocumentSnapshot{
@@ -702,8 +706,8 @@ func TestRepository_UpdateFavNavActions(t *testing.T) {
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					return nil, fmt.Errorf("unable to get user profile docs")
 				}
-				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeFireBaseClientExt.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
 					}, nil
@@ -746,12 +750,12 @@ func TestRepository_CreateDetailedSupplierProfile(t *testing.T) {
 	type args struct {
 		ctx       context.Context
 		profileID string
-		supplier  base.Supplier
+		supplier  profileutils.Supplier
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Supplier
+		want    *profileutils.Supplier
 		wantErr bool
 	}{
 		{
@@ -759,11 +763,11 @@ func TestRepository_CreateDetailedSupplierProfile(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				profileID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-				supplier: base.Supplier{
+				supplier: profileutils.Supplier{
 					ProfileID: &prID,
 				},
 			},
-			want: &base.Supplier{
+			want: &profileutils.Supplier{
 				ID:        "5e6e41f4-846b-4ba5-ae3f-a92cc7a997ba",
 				ProfileID: &prID,
 			},
@@ -774,7 +778,7 @@ func TestRepository_CreateDetailedSupplierProfile(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				profileID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-				supplier: base.Supplier{
+				supplier: profileutils.Supplier{
 					ProfileID: &prID,
 				},
 			},
@@ -786,7 +790,7 @@ func TestRepository_CreateDetailedSupplierProfile(t *testing.T) {
 			args: args{
 				ctx:       ctx,
 				profileID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-				supplier: base.Supplier{
+				supplier: profileutils.Supplier{
 					ProfileID: &prID,
 				},
 			},
@@ -832,37 +836,37 @@ func TestRepository_CreateDetailedUserProfile(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		phoneNumber string
-		profile     base.UserProfile
+		profile     profileutils.UserProfile
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.UserProfile
+		want    *profileutils.UserProfile
 		wantErr bool
 	}{
 		{
 			name: "valid:create_user_profile",
 			args: args{
 				ctx:         ctx,
-				phoneNumber: base.TestUserPhoneNumber,
-				profile: base.UserProfile{
-					UserBioData: base.BioData{
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				profile: profileutils.UserProfile{
+					UserBioData: profileutils.BioData{
 						FirstName: &fName,
 						LastName:  &lName,
-						Gender:    base.GenderMale,
+						Gender:    enumutils.GenderMale,
 					},
-					Role: base.RoleTypeAgent,
+					Role: profileutils.RoleTypeAgent,
 				},
 			},
-			want: &base.UserProfile{
+			want: &profileutils.UserProfile{
 				ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 				VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-				UserBioData: base.BioData{
+				UserBioData: profileutils.BioData{
 					FirstName: &fName,
 					LastName:  &lName,
-					Gender:    base.GenderMale,
+					Gender:    enumutils.GenderMale,
 				},
-				Role: base.RoleTypeAgent,
+				Role: profileutils.RoleTypeAgent,
 			},
 			wantErr: false,
 		},
@@ -870,14 +874,14 @@ func TestRepository_CreateDetailedUserProfile(t *testing.T) {
 			name: "invalid:create_user_profile_phone_exists_error",
 			args: args{
 				ctx:         ctx,
-				phoneNumber: base.TestUserPhoneNumber,
-				profile: base.UserProfile{
-					UserBioData: base.BioData{
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				profile: profileutils.UserProfile{
+					UserBioData: profileutils.BioData{
 						FirstName: &fName,
 						LastName:  &lName,
-						Gender:    base.GenderMale,
+						Gender:    enumutils.GenderMale,
 					},
-					Role: base.RoleTypeAgent,
+					Role: profileutils.RoleTypeAgent,
 				},
 			},
 			want:    nil,
@@ -887,14 +891,14 @@ func TestRepository_CreateDetailedUserProfile(t *testing.T) {
 			name: "invalid:create_user_profile_phone_exists",
 			args: args{
 				ctx:         ctx,
-				phoneNumber: base.TestUserPhoneNumber,
-				profile: base.UserProfile{
-					UserBioData: base.BioData{
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				profile: profileutils.UserProfile{
+					UserBioData: profileutils.BioData{
 						FirstName: &fName,
 						LastName:  &lName,
-						Gender:    base.GenderMale,
+						Gender:    enumutils.GenderMale,
 					},
-					Role: base.RoleTypeAgent,
+					Role: profileutils.RoleTypeAgent,
 				},
 			},
 			want:    nil,
@@ -904,14 +908,14 @@ func TestRepository_CreateDetailedUserProfile(t *testing.T) {
 			name: "invalid:create_firebase_user_error",
 			args: args{
 				ctx:         ctx,
-				phoneNumber: base.TestUserPhoneNumber,
-				profile: base.UserProfile{
-					UserBioData: base.BioData{
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				profile: profileutils.UserProfile{
+					UserBioData: profileutils.BioData{
 						FirstName: &fName,
 						LastName:  &lName,
-						Gender:    base.GenderMale,
+						Gender:    enumutils.GenderMale,
 					},
-					Role: base.RoleTypeAgent,
+					Role: profileutils.RoleTypeAgent,
 				},
 			},
 			want:    nil,
@@ -921,14 +925,14 @@ func TestRepository_CreateDetailedUserProfile(t *testing.T) {
 			name: "invalid:create_user_profile_firestore_error",
 			args: args{
 				ctx:         ctx,
-				phoneNumber: base.TestUserPhoneNumber,
-				profile: base.UserProfile{
-					UserBioData: base.BioData{
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+				profile: profileutils.UserProfile{
+					UserBioData: profileutils.BioData{
 						FirstName: &fName,
 						LastName:  &lName,
-						Gender:    base.GenderMale,
+						Gender:    enumutils.GenderMale,
 					},
-					Role: base.RoleTypeAgent,
+					Role: profileutils.RoleTypeAgent,
 				},
 			},
 			want:    nil,
@@ -1070,28 +1074,28 @@ func TestRepository_ListAgentUserProfiles(t *testing.T) {
 
 	type args struct {
 		ctx  context.Context
-		role base.RoleType
+		role profileutils.RoleType
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    []*base.UserProfile
+		want    []*profileutils.UserProfile
 		wantErr bool
 	}{
 		{
 			name: "success:fetch_agent_user_profiles",
 			args: args{
 				ctx:  ctx,
-				role: base.RoleTypeEmployee,
+				role: profileutils.RoleTypeEmployee,
 			},
-			want:    []*base.UserProfile{},
+			want:    []*profileutils.UserProfile{},
 			wantErr: false,
 		},
 		{
 			name: "fail:fetch_agent_user_profiles_error",
 			args: args{
 				ctx:  ctx,
-				role: base.RoleTypeAgent,
+				role: profileutils.RoleTypeAgent,
 			},
 			want:    nil,
 			wantErr: true,
@@ -1144,7 +1148,7 @@ func TestRepository_GetUserMarketingData(t *testing.T) {
 			name: "Happy Case -> Get a user's data",
 			args: args{
 				ctx:         ctx,
-				phoneNumber: base.TestUserPhoneNumber,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
 			},
 			wantErr: false,
 		},
@@ -1343,7 +1347,7 @@ func TestRepository_StageCRMPayload_Unittest(t *testing.T) {
 	ContactValue := phoneNumber
 	FirstName := gofakeit.FirstName()
 	LastName := gofakeit.LastName()
-	DateOfBirth := base.Date{
+	DateOfBirth := scalarutils.Date{
 		Day:   0,
 		Month: 0,
 		Year:  0,

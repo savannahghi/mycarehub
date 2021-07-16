@@ -9,10 +9,11 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/profileutils"
 	"github.com/segmentio/ksuid"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -102,8 +103,8 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -130,7 +131,7 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, nil
 				}
 
@@ -144,8 +145,8 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -163,8 +164,8 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -182,8 +183,8 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -236,12 +237,12 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 		ctx     context.Context
 		phone   string
 		PIN     string
-		flavour base.Flavour
+		flavour feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.UserResponse
+		want    *profileutils.UserResponse
 		wantErr bool
 	}{
 		{
@@ -250,7 +251,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				ctx:     ctx,
 				phone:   "+254761829103",
 				PIN:     "1234",
-				flavour: base.FlavourConsumer,
+				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: false,
 		},
@@ -260,7 +261,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				ctx:     ctx,
 				phone:   "+21",
 				PIN:     "1234",
-				flavour: base.FlavourConsumer,
+				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -270,7 +271,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				ctx:     ctx,
 				phone:   "+254761829103",
 				PIN:     "1234",
-				flavour: base.FlavourConsumer,
+				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -280,7 +281,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				ctx:     ctx,
 				phone:   "+254761829103",
 				PIN:     "1234",
-				flavour: base.FlavourConsumer,
+				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -290,7 +291,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				ctx:     ctx,
 				phone:   "+254761829103",
 				PIN:     "1234",
-				flavour: base.FlavourConsumer,
+				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -300,7 +301,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				ctx:     ctx,
 				phone:   "+254761829103",
 				PIN:     "1234",
-				flavour: base.FlavourConsumer,
+				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -310,7 +311,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				ctx:     ctx,
 				phone:   "+254761829103",
 				PIN:     "1234",
-				flavour: base.FlavourConsumer,
+				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -325,8 +326,8 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 					}, nil
@@ -339,35 +340,35 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return true
 				}
 
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *profileutils.UserProfile) (*profileutils.AuthCredentialResponse, error) {
 					customToken := uuid.New().String()
 					idToken := uuid.New().String()
 					refreshToken := uuid.New().String()
-					return &base.AuthCredentialResponse{
+					return &profileutils.AuthCredentialResponse{
 						CustomToken:  &customToken,
 						IDToken:      &idToken,
 						RefreshToken: refreshToken,
 					}, nil
 				}
 
-				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour base.Flavour, profileID string) (*base.Customer, *base.Supplier, error) {
-					return &base.Customer{ID: "5550"}, &base.Supplier{ID: "5550"}, nil
+				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour feedlib.Flavour, profileID string) (*profileutils.Customer, *profileutils.Supplier, error) {
+					return &profileutils.Customer{ID: "5550"}, &profileutils.Supplier{ID: "5550"}, nil
 				}
 
-				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
-					return &base.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
+					return &profileutils.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
 				}
 
-				fakeRepo.GetNavActionsFn = func(ctx context.Context, role base.RoleType) (*base.NavigationActions, error) {
-					navs := base.NavigationActions{
-						Primary: []base.NavAction{
+				fakeRepo.GetNavActionsFn = func(ctx context.Context, role profileutils.RoleType) (*profileutils.NavigationActions, error) {
+					navs := profileutils.NavigationActions{
+						Primary: []profileutils.NavAction{
 							{
 								Title:      common.HomeNavActionTitle,
 								OnTapRoute: common.HomeRoute,
-								Icon: base.Link{
+								Icon: feedlib.Link{
 									ID:          ksuid.New().String(),
 									URL:         common.HomeNavActionURL,
-									LinkType:    base.LinkTypeSvgImage,
+									LinkType:    feedlib.LinkTypeSvgImage,
 									Title:       common.HomeNavActionTitle,
 									Description: common.HomeNavActionDescription,
 									Thumbnail:   common.HomeNavActionURL,
@@ -377,10 +378,10 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 							{
 								Title:      common.HelpNavActionTitle,
 								OnTapRoute: common.GetHelpRouteRoute,
-								Icon: base.Link{
+								Icon: feedlib.Link{
 									ID:          ksuid.New().String(),
 									URL:         common.HelpNavActionURL,
-									LinkType:    base.LinkTypeSvgImage,
+									LinkType:    feedlib.LinkTypeSvgImage,
 									Title:       common.HelpNavActionTitle,
 									Description: common.HelpNavActionDescription,
 									Thumbnail:   common.HelpNavActionURL,
@@ -388,7 +389,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 								Favourite: false,
 							},
 						},
-						Secondary: []base.NavAction{},
+						Secondary: []profileutils.NavAction{},
 					}
 					return &navs, nil
 				}
@@ -407,7 +408,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("failed to user profile by phone number")
 				}
 			}
@@ -418,8 +419,8 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 					}, nil
@@ -436,8 +437,8 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 					}, nil
@@ -450,7 +451,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return true
 				}
 
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *profileutils.UserProfile) (*profileutils.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("failed to generate auth credentials")
 				}
 			}
@@ -461,8 +462,8 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 					}, nil
@@ -475,18 +476,18 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return true
 				}
 
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *profileutils.UserProfile) (*profileutils.AuthCredentialResponse, error) {
 					customToken := uuid.New().String()
 					idToken := uuid.New().String()
 					refreshToken := uuid.New().String()
-					return &base.AuthCredentialResponse{
+					return &profileutils.AuthCredentialResponse{
 						CustomToken:  &customToken,
 						IDToken:      &idToken,
 						RefreshToken: refreshToken,
 					}, nil
 				}
 
-				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour base.Flavour, profileID string) (*base.Customer, *base.Supplier, error) {
+				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour feedlib.Flavour, profileID string) (*profileutils.Customer, *profileutils.Supplier, error) {
 					return nil, nil, fmt.Errorf("failed to get customer or supplier profile by ID")
 				}
 			}
@@ -497,8 +498,8 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 					}, nil
@@ -553,7 +554,7 @@ func TestProfileUseCaseImpl_RefreshToken(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.AuthCredentialResponse
+		want    *profileutils.AuthCredentialResponse
 		wantErr bool
 	}{
 		{
@@ -578,11 +579,11 @@ func TestProfileUseCaseImpl_RefreshToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:successfully_refreshToken" {
-				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*profileutils.AuthCredentialResponse, error) {
 					customToken := uuid.New().String()
 					idToken := uuid.New().String()
 					refreshToken := uuid.New().String()
-					return &base.AuthCredentialResponse{
+					return &profileutils.AuthCredentialResponse{
 						CustomToken:  &customToken,
 						IDToken:      &idToken,
 						RefreshToken: refreshToken,
@@ -591,7 +592,7 @@ func TestProfileUseCaseImpl_RefreshToken(t *testing.T) {
 			}
 
 			if tt.name == "invalid:invalid_refreshtoken" {
-				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*profileutils.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("invalid refresh token")
 				}
 			}
@@ -635,7 +636,7 @@ func TestProfileUseCaseImpl_LoginAsAnonymous(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.AuthCredentialResponse
+		want    *profileutils.AuthCredentialResponse
 		wantErr bool
 	}{
 		{
@@ -658,11 +659,11 @@ func TestProfileUseCaseImpl_LoginAsAnonymous(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:successfully_LoginAsAnonymous" {
-				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*profileutils.AuthCredentialResponse, error) {
 					customToken := uuid.New().String()
 					idToken := uuid.New().String()
 					refreshToken := uuid.New().String()
-					return &base.AuthCredentialResponse{
+					return &profileutils.AuthCredentialResponse{
 						CustomToken:  &customToken,
 						IDToken:      &idToken,
 						RefreshToken: refreshToken,
@@ -671,7 +672,7 @@ func TestProfileUseCaseImpl_LoginAsAnonymous(t *testing.T) {
 			}
 
 			if tt.name == "invalid:fail_to_generateAuthCredentials" {
-				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*profileutils.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("failed to generate auth credentials")
 				}
 			}

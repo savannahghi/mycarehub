@@ -13,8 +13,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
@@ -40,7 +42,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		UID        string
-		flavour    base.Flavour
+		flavour    feedlib.Flavour
 		nudgeTitle string
 	}
 	tests := []struct {
@@ -54,7 +56,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				UID:        uuid.New().String(),
-				flavour:    base.FlavourConsumer,
+				flavour:    feedlib.FlavourConsumer,
 				nudgeTitle: "Nudge Title",
 			},
 			wantErr:    false,
@@ -65,7 +67,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				UID:        uuid.New().String(),
-				flavour:    base.FlavourConsumer,
+				flavour:    feedlib.FlavourConsumer,
 				nudgeTitle: "Nudge Title",
 			},
 			wantErr:    true,
@@ -76,7 +78,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				UID:        uuid.New().String(),
-				flavour:    base.FlavourConsumer,
+				flavour:    feedlib.FlavourConsumer,
 				nudgeTitle: "Nudge Title",
 			},
 			wantErr:    true,
@@ -87,7 +89,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				UID:        uuid.New().String(),
-				flavour:    base.FlavourConsumer,
+				flavour:    feedlib.FlavourConsumer,
 				nudgeTitle: "Nudge Title",
 			},
 			wantErr: true,
@@ -176,60 +178,60 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
-	payload := base.Item{
+	payload := feedlib.Item{
 		ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
 		SequenceNumber: int(time.Now().Unix()) + 20,               // add 20 to make it unique
 		Expiry:         time.Now().Add(time.Hour * futureHours),
 		Persistent:     true,
-		Status:         base.StatusPending,
-		Visibility:     base.VisibilityShow,
+		Status:         feedlib.StatusPending,
+		Visibility:     feedlib.VisibilityShow,
 		Author:         "Be.Well Team",
 		Label:          "KYC",
 		Tagline:        "Process incoming KYC",
 		Text:           "Review KYC for the partner and either approve or reject",
-		TextType:       base.TextTypeMarkdown,
-		Icon: base.Link{
+		TextType:       feedlib.TextTypeMarkdown,
+		Icon: feedlib.Link{
 			ID:          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique,
-			URL:         base.LogoURL,
-			LinkType:    base.LinkTypePngImage,
+			URL:         feedlib.LogoURL,
+			LinkType:    feedlib.LinkTypePngImage,
 			Title:       "KYC Review",
 			Description: "Review KYC for the partner and either approve or reject",
-			Thumbnail:   base.LogoURL,
+			Thumbnail:   feedlib.LogoURL,
 		},
 		Timestamp: time.Now(),
-		Actions: []base.Action{
+		Actions: []feedlib.Action{
 			{
 				ID:             strconv.Itoa(int(time.Now().Unix()) + 40), // add 40 to make it unique
 				SequenceNumber: int(time.Now().Unix()) + 50,               // add 50 to make it unique
 				Name:           "Review KYC details",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          strconv.Itoa(int(time.Now().Unix()) + 60), // add 60 to make it unique
-					URL:         base.LogoURL,
-					LinkType:    base.LinkTypePngImage,
+					URL:         feedlib.LogoURL,
+					LinkType:    feedlib.LinkTypePngImage,
 					Title:       "Review KYC details",
 					Description: "Review and approve or reject KYC details for the supplier",
-					Thumbnail:   base.LogoURL,
+					Thumbnail:   feedlib.LogoURL,
 				},
-				ActionType:     base.ActionTypePrimary,
-				Handling:       base.HandlingFullPage,
+				ActionType:     feedlib.ActionTypePrimary,
+				Handling:       feedlib.HandlingFullPage,
 				AllowAnonymous: false,
 			},
 		},
-		Links: []base.Link{
+		Links: []feedlib.Link{
 			{
 				ID:          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique,
-				URL:         base.LogoURL,
-				LinkType:    base.LinkTypePngImage,
+				URL:         feedlib.LogoURL,
+				LinkType:    feedlib.LinkTypePngImage,
 				Title:       "KYC process request",
 				Description: "Process KYC request",
-				Thumbnail:   base.LogoURL,
+				Thumbnail:   feedlib.LogoURL,
 			},
 		},
 	}
 	type args struct {
 		ctx     context.Context
 		uid     string
-		payload base.Item
+		payload feedlib.Item
 	}
 	tests := []struct {
 		name    string
@@ -322,7 +324,7 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
 
-	payload := base.Nudge{
+	payload := feedlib.Nudge{
 		ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
 		SequenceNumber: int(time.Now().Unix()) + 20,               // add 20 to make it unique
 		Visibility:     "SHOW",
@@ -330,43 +332,43 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 		Expiry:         time.Now().Add(time.Hour * futureHours),
 		Title:          "Complete your KYC",
 		Text:           "Fill in your Be.Well business KYC in order to start transacting",
-		Links: []base.Link{
+		Links: []feedlib.Link{
 			{
 				ID:          strconv.Itoa(int(time.Now().Unix()) + 30), // add 30 to make it unique,
-				URL:         base.LogoURL,
-				LinkType:    base.LinkTypePngImage,
+				URL:         feedlib.LogoURL,
+				LinkType:    feedlib.LinkTypePngImage,
 				Title:       "KYC",
-				Description: fmt.Sprintf("KYC for %v", base.PartnerTypeRider),
-				Thumbnail:   base.LogoURL,
+				Description: fmt.Sprintf("KYC for %v", profileutils.PartnerTypeRider),
+				Thumbnail:   feedlib.LogoURL,
 			},
 		},
-		Actions: []base.Action{
+		Actions: []feedlib.Action{
 			{
 				ID:             strconv.Itoa(int(time.Now().Unix()) + 40), // add 40 to make it unique
 				SequenceNumber: int(time.Now().Unix()) + 50,               // add 50 to make it unique
-				Name:           strings.ToUpper(fmt.Sprintf("COMPLETE_%v_%v_KYC", base.AccountTypeIndividual, base.PartnerTypeRider)),
-				ActionType:     base.ActionTypePrimary,
-				Handling:       base.HandlingFullPage,
+				Name:           strings.ToUpper(fmt.Sprintf("COMPLETE_%v_%v_KYC", profileutils.AccountTypeIndividual, profileutils.PartnerTypeRider)),
+				ActionType:     feedlib.ActionTypePrimary,
+				Handling:       feedlib.HandlingFullPage,
 				AllowAnonymous: false,
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          strconv.Itoa(int(time.Now().Unix()) + 60), // add 60 to make it unique
-					URL:         base.LogoURL,
-					LinkType:    base.LinkTypePngImage,
-					Title:       fmt.Sprintf("Complete your %v KYC", base.PartnerTypeRider),
+					URL:         feedlib.LogoURL,
+					LinkType:    feedlib.LinkTypePngImage,
+					Title:       fmt.Sprintf("Complete your %v KYC", profileutils.PartnerTypeRider),
 					Description: "Fill in your Be.Well business KYC in order to start transacting",
-					Thumbnail:   base.LogoURL,
+					Thumbnail:   feedlib.LogoURL,
 				},
 			},
 		},
 		Users:                []string{uuid.New().String()},
 		Groups:               []string{uuid.New().String()},
-		NotificationChannels: []base.Channel{base.ChannelEmail, base.ChannelFcm},
+		NotificationChannels: []feedlib.Channel{feedlib.ChannelEmail, feedlib.ChannelFcm},
 	}
 
 	type args struct {
 		ctx     context.Context
 		uid     string
-		payload base.Nudge
+		payload feedlib.Nudge
 	}
 	tests := []struct {
 		name    string
@@ -726,7 +728,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.OtpResponse
+		want    *profileutils.OtpResponse
 		wantErr bool
 	}{
 		{
@@ -735,7 +737,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 				ctx:   ctx,
 				phone: "+2547345678",
 			},
-			want: &base.OtpResponse{
+			want: &profileutils.OtpResponse{
 				OTP: "234234",
 			},
 			wantErr: false,
@@ -764,7 +766,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 				ctx:   ctx,
 				phone: "+2547345678",
 			},
-			want: &base.OtpResponse{
+			want: &profileutils.OtpResponse{
 				OTP: "234234",
 			},
 			wantErr: true,
@@ -850,7 +852,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.OtpResponse
+		want    *profileutils.OtpResponse
 		wantErr bool
 	}{
 		{
@@ -860,7 +862,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 				msisdn:    "+2547345678",
 				retryStep: 1,
 			},
-			want: &base.OtpResponse{
+			want: &profileutils.OtpResponse{
 				OTP: "123123",
 			},
 			wantErr: false,
@@ -892,7 +894,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 				msisdn:    "+2547345678",
 				retryStep: 1,
 			},
-			want: &base.OtpResponse{
+			want: &profileutils.OtpResponse{
 				OTP: "234234",
 			},
 			wantErr: true,
@@ -1128,7 +1130,7 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 	subjectTitle := "Suspension from Be.Well"
 	emailBody := suspensionReason
 	emailAddress := firebasetools.TestUserEmail
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	validInput := dto.EmailNotificationPayload{
 		SupplierName: supplierName,
 		SubjectTitle: subjectTitle,
@@ -1231,7 +1233,7 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 		SubjectTitle: "Test Subject Title",
 		EmailBody:    "This is the test email body",
 		EmailAddress: firebasetools.TestUserEmail,
-		PrimaryPhone: base.TestUserPhoneNumber,
+		PrimaryPhone: interserviceclient.TestUserPhoneNumber,
 	}
 
 	type args struct {
@@ -1309,7 +1311,7 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 		SubjectTitle: "Test Subject Title",
 		EmailBody:    "This is the test email body",
 		EmailAddress: firebasetools.TestUserEmail,
-		PrimaryPhone: base.TestUserPhoneNumber,
+		PrimaryPhone: interserviceclient.TestUserPhoneNumber,
 	}
 
 	type args struct {

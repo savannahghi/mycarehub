@@ -10,7 +10,13 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
+	"gitlab.slade360emr.com/go/apiclient"
 	dm "gitlab.slade360emr.com/go/commontools/accounting/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -60,8 +66,8 @@ func TestProfileUseCaseImpl_FindSupplierByID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:_find_supplier_by_id" {
-				fakeRepo.GetSupplierProfileByIDFn = func(ctx context.Context, id string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByIDFn = func(ctx context.Context, id string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -69,7 +75,7 @@ func TestProfileUseCaseImpl_FindSupplierByID(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_find_supplier_by_id_fails" {
-				fakeRepo.GetSupplierProfileByIDFn = func(ctx context.Context, id string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByIDFn = func(ctx context.Context, id string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("unable to get supp;ier profile")
 				}
 
@@ -219,7 +225,7 @@ func TestProfileUseCaseImpl_PublishKYCFeedItem(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "valid:_publish_kyc_item" {
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -229,13 +235,13 @@ func TestProfileUseCaseImpl_PublishKYCFeedItem(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_publish_kyc_item" {
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return nil, fmt.Errorf("unable to publish kyc item")
 				}
 			}
 
 			if tt.name == "invalid:_unexpected_status_code" {
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "",
 						StatusCode: 400,
@@ -324,14 +330,14 @@ func TestProfileUseCaseImpl_RetireKYCRequest(t *testing.T) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID: "hj539af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -352,7 +358,7 @@ func TestProfileUseCaseImpl_RetireKYCRequest(t *testing.T) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get userprofile")
 				}
 			}
@@ -362,13 +368,13 @@ func TestProfileUseCaseImpl_RetireKYCRequest(t *testing.T) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("unable to get supplier profile")
 				}
 			}
@@ -378,14 +384,14 @@ func TestProfileUseCaseImpl_RetireKYCRequest(t *testing.T) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID: "hj539af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -534,13 +540,13 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:          uuid.New().String(),
-						Permissions: []base.PermissionType{base.PermissionTypeAdmin},
+						Permissions: []profileutils.PermissionType{profileutils.PermissionTypeAdmin},
 					}, nil
 				}
-				fakeRepo.CheckIfAdminFn = func(profile *base.UserProfile) bool {
+				fakeRepo.CheckIfAdminFn = func(profile *profileutils.UserProfile) bool {
 					return true
 				}
 
@@ -551,7 +557,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					profileID := uuid.New().String()
 					return &domain.KYCRequest{
 						ID: uuid.New().String(),
-						SupplierRecord: &base.Supplier{
+						SupplierRecord: &profileutils.Supplier{
 							ProfileID: &profileID,
 						},
 					}, nil
@@ -568,24 +574,24 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					id string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					email := base.GenerateRandomEmail()
-					phone := base.TestUserPhoneNumber
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					email := converterandformatter.GenerateRandomEmail()
+					phone := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &email,
 						PrimaryPhone:        &phone,
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
+				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
+					return &apiclient.ServerClient{}
 				}
 
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client,
-				) (*base.FinancialYearAndCurrency, error) {
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client,
+				) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
-					return &base.FinancialYearAndCurrency{
+					return &apiclient.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
 				}
@@ -604,8 +610,8 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
 					ctx context.Context,
 					profileID string,
-				) (*base.Supplier, error) {
-					return &base.Supplier{
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -613,7 +619,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				fakeRepo.UpdateSupplierProfileFn = func(
 					ctx context.Context,
 					profileID string,
-					data *base.Supplier,
+					data *profileutils.Supplier,
 				) error {
 					return nil
 				}
@@ -621,9 +627,9 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				fakeRepo.ActivateSupplierProfileFn = func(
 					ctx context.Context,
 					profileID string,
-					supplier base.Supplier,
-				) (*base.Supplier, error) {
-					return &base.Supplier{}, nil
+					supplier profileutils.Supplier,
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{}, nil
 				}
 
 				fakeEngagementSvs.SendMailFn = func(
@@ -654,13 +660,13 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:          uuid.New().String(),
-						Permissions: []base.PermissionType{base.PermissionTypeAdmin},
+						Permissions: []profileutils.PermissionType{profileutils.PermissionTypeAdmin},
 					}, nil
 				}
-				fakeRepo.CheckIfAdminFn = func(profile *base.UserProfile) bool {
+				fakeRepo.CheckIfAdminFn = func(profile *profileutils.UserProfile) bool {
 					return true
 				}
 
@@ -671,7 +677,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					profileID := uuid.New().String()
 					return &domain.KYCRequest{
 						ID: uuid.New().String(),
-						SupplierRecord: &base.Supplier{
+						SupplierRecord: &profileutils.Supplier{
 							ProfileID: &profileID,
 						},
 					}, nil
@@ -688,10 +694,10 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					id string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					email := base.GenerateRandomEmail()
-					phone := base.TestUserPhoneNumber
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					email := converterandformatter.GenerateRandomEmail()
+					phone := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &email,
 						PrimaryPhone:        &phone,
@@ -733,7 +739,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					profileID := uuid.New().String()
 					return &domain.KYCRequest{
 						ID: uuid.New().String(),
-						SupplierRecord: &base.Supplier{
+						SupplierRecord: &profileutils.Supplier{
 							ProfileID: &profileID,
 						},
 					}, nil
@@ -755,7 +761,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					profileID := uuid.New().String()
 					return &domain.KYCRequest{
 						ID: uuid.New().String(),
-						SupplierRecord: &base.Supplier{
+						SupplierRecord: &profileutils.Supplier{
 							ProfileID: &profileID,
 						},
 					}, nil
@@ -772,7 +778,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					id string,
 					suspended bool,
-				) (*base.UserProfile, error) {
+				) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}
@@ -785,7 +791,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					profileID := uuid.New().String()
 					return &domain.KYCRequest{
 						ID: uuid.New().String(),
-						SupplierRecord: &base.Supplier{
+						SupplierRecord: &profileutils.Supplier{
 							ProfileID: &profileID,
 						},
 					}, nil
@@ -802,10 +808,10 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					id string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					email := base.GenerateRandomEmail()
-					phone := base.TestUserPhoneNumber
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					email := converterandformatter.GenerateRandomEmail()
+					phone := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &email,
 						PrimaryPhone:        &phone,
@@ -821,34 +827,34 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
+				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
+					return &apiclient.ServerClient{}
 				}
 
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client,
-				) (*base.FinancialYearAndCurrency, error) {
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client,
+				) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
-					return &base.FinancialYearAndCurrency{
+					return &apiclient.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
 				}
 
 				fakeEPRSvc.CreateSupplierFn = func(
 					supplierPayload dm.SupplierPayload,
-				) (*base.Supplier, error) {
-					return &base.Supplier{}, nil
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{}, nil
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
 					ctx context.Context,
 					profileID string,
-				) (*base.Supplier, error) {
+				) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to get supplier profile")
 				}
 			}
@@ -861,7 +867,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					profileID := uuid.New().String()
 					return &domain.KYCRequest{
 						ID: uuid.New().String(),
-						SupplierRecord: &base.Supplier{
+						SupplierRecord: &profileutils.Supplier{
 							ProfileID: &profileID,
 						},
 					}, nil
@@ -878,10 +884,10 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					id string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					email := base.GenerateRandomEmail()
-					phone := base.TestUserPhoneNumber
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					email := converterandformatter.GenerateRandomEmail()
+					phone := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &email,
 						PrimaryPhone:        &phone,
@@ -897,35 +903,35 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
+				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
+					return &apiclient.ServerClient{}
 				}
 
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client,
-				) (*base.FinancialYearAndCurrency, error) {
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client,
+				) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
-					return &base.FinancialYearAndCurrency{
+					return &apiclient.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
 				}
 
 				fakeEPRSvc.CreateSupplierFn = func(
 					supplierPayload dm.SupplierPayload,
-				) (*base.Supplier, error) {
-					return &base.Supplier{}, nil
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{}, nil
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
 					ctx context.Context,
 					profileID string,
-				) (*base.Supplier, error) {
-					return &base.Supplier{
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -933,7 +939,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 				fakeRepo.UpdateSupplierProfileFn = func(
 					ctx context.Context,
 					profileID string,
-					data *base.Supplier,
+					data *profileutils.Supplier,
 				) error {
 					return fmt.Errorf("failed to update supplier profile")
 				}
@@ -947,7 +953,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					profileID := uuid.New().String()
 					return &domain.KYCRequest{
 						ID: uuid.New().String(),
-						SupplierRecord: &base.Supplier{
+						SupplierRecord: &profileutils.Supplier{
 							ProfileID: &profileID,
 						},
 					}, nil
@@ -964,10 +970,10 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					id string,
 					suspended bool,
-				) (*base.UserProfile, error) {
+				) (*profileutils.UserProfile, error) {
 					email := testEmail
-					phone := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					phone := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &email,
 						PrimaryPhone:        &phone,
@@ -983,8 +989,8 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -1007,7 +1013,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					profileID := uuid.New().String()
 					return &domain.KYCRequest{
 						ID: uuid.New().String(),
-						SupplierRecord: &base.Supplier{
+						SupplierRecord: &profileutils.Supplier{
 							ProfileID: &profileID,
 						},
 					}, nil
@@ -1024,10 +1030,10 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					id string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					email := base.GenerateRandomEmail()
-					phone := base.TestUserPhoneNumber
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					email := converterandformatter.GenerateRandomEmail()
+					phone := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &email,
 						PrimaryPhone:        &phone,
@@ -1043,8 +1049,8 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -1100,10 +1106,10 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 	validRespPayload := `{"IsPublished":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
-	admin1 := &base.UserProfile{
+	admin1 := &profileutils.UserProfile{
 		ID: "VALID-ID-TYPE",
 	}
-	adminUsers := []*base.UserProfile{}
+	adminUsers := []*profileutils.UserProfile{}
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.OrganizationPharmaceutical{
@@ -1121,7 +1127,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "certificate_of_incorporation_upload_id",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345",
 				IdentificationDocNumberUploadID: "upload_id",
 			},
@@ -1203,24 +1209,24 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 					return "400d-8716-5cf354a2-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-42b3af3-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 						AccountType:  &accountType,
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 						AccountType:  &accountType,
@@ -1229,26 +1235,26 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumber := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumber := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
@@ -1260,10 +1266,10 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -1277,21 +1283,21 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 					return "400d-8716-5cf354a2-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-42b3af3-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -1301,10 +1307,10 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -1312,11 +1318,11 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
 
@@ -1330,27 +1336,27 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 					return "400d-8716-5cf354a2-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-42b3af3-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("invalid organization name")
 				}
 			}
@@ -1360,17 +1366,17 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 					return "400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "-91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to get the supplier profile")
 				}
 			}
@@ -1380,7 +1386,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -1485,8 +1491,8 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 					return "FSO798-AD3-bvihjskdn", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -1495,39 +1501,39 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 					return "7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumber := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumber := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID: "-91bd-42b3af315a4e",
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeEngagementSvs.NotifySupplierOnSuspensionFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
@@ -1540,8 +1546,8 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 					return "FSO798-AD3-bvihjskdn", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -1550,29 +1556,29 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 					return "7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID: "-91bd-42b3af315a4e",
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("failed tp suspend supplier")
 				}
 			}
@@ -1582,7 +1588,7 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get a user profile")
 				}
 			}
@@ -1592,8 +1598,8 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 					return "FSO798-AD3-bvihjskdn", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -1602,23 +1608,23 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 					return "7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to get supplier profile")
 				}
 			}
@@ -1665,10 +1671,10 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 	validRespPayload := `{"IsPublished":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
-	admin1 := &base.UserProfile{
+	admin1 := &profileutils.UserProfile{
 		ID: "VALID-ID-TYPE1",
 	}
-	adminUsers := []*base.UserProfile{}
+	adminUsers := []*profileutils.UserProfile{}
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.OrganizationRider{
@@ -1686,7 +1692,7 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 		},
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345678910",
 				IdentificationDocNumberUploadID: "id-upload-id",
 			},
@@ -1763,23 +1769,23 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 					return "400d-8716-5cf354a2-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-42b3af3-5b64-4c2f-15a4e",
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 						AccountType:  &accountType,
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 						AccountType:  &accountType,
@@ -1788,26 +1794,26 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumer := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumer := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumer,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
@@ -1819,10 +1825,10 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -1836,21 +1842,21 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 					return "400d-8716-5cf354a2-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-42b3af3-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -1860,10 +1866,10 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -1871,11 +1877,11 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
 
@@ -1889,27 +1895,27 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 					return "400d-8716-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("invalid organization name")
 				}
 			}
@@ -1919,20 +1925,20 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 					return "400d-8716-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to get supplier")
 				}
 			}
@@ -1942,7 +1948,7 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -1988,10 +1994,10 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 	validRespPayload := `{"IsPublished":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
-	admin1 := &base.UserProfile{
+	admin1 := &profileutils.UserProfile{
 		ID: "91bd-42b3af315a5c-p4f39af7-5b64-4c2f",
 	}
-	adminUsers := []*base.UserProfile{}
+	adminUsers := []*profileutils.UserProfile{}
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.OrganizationPractitioner{
@@ -2009,7 +2015,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "provider-incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345678910",
 				IdentificationDocNumberUploadID: "provider-id-upload",
 			},
@@ -2082,24 +2088,24 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 					return "91bd-42b3af3-15a4e-f4f39af7-5b64-4c2f-", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-42b3af3-42b3af315a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 						AccountType:  &accountType,
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 						AccountType:  &accountType,
@@ -2108,26 +2114,26 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumber := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumber := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
@@ -2139,10 +2145,10 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -2156,27 +2162,27 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 					return "400d-8716-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("invalid organization name")
 				}
 			}
@@ -2186,20 +2192,20 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 					return "400d-8716-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to get supplier")
 				}
 			}
@@ -2209,7 +2215,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -2257,10 +2263,10 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 	validRespPayload := `{"IsPublished":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
-	admin1 := &base.UserProfile{
+	admin1 := &profileutils.UserProfile{
 		ID: "8716-7e2aead29f2c-8716-7e2aead29f2c",
 	}
-	adminUsers := []*base.UserProfile{}
+	adminUsers := []*profileutils.UserProfile{}
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.OrganizationProvider{
@@ -2278,7 +2284,7 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345678910",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -2350,24 +2356,24 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 					return "400d-8716-5cf354a2-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-42b3af3-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 						AccountType:  &accountType,
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 						AccountType:  &accountType,
@@ -2376,26 +2382,26 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumber := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumber := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
@@ -2407,10 +2413,10 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -2424,27 +2430,27 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 					return "400d-8716-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("invalid organization name")
 				}
 			}
@@ -2454,20 +2460,20 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 					return "400d-8716-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to get supplier")
 				}
 			}
@@ -2477,7 +2483,7 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -2522,10 +2528,10 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 	validRespPayload := `{"IsPublished":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
-	admin1 := &base.UserProfile{
+	admin1 := &profileutils.UserProfile{
 		ID: "8716-7e2aead29f2c-8716-7e2aead29f2c",
 	}
-	adminUsers := []*base.UserProfile{}
+	adminUsers := []*profileutils.UserProfile{}
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.OrganizationCoach{
@@ -2543,7 +2549,7 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345678910",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -2613,24 +2619,24 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 						AccountType:  &accountType,
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 						AccountType:  &accountType,
@@ -2639,26 +2645,26 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumber := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumber := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
@@ -2670,10 +2676,10 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -2687,27 +2693,27 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 					return "400d-8716-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("invalid organization name")
 				}
 			}
@@ -2717,20 +2723,20 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 					return "400d-8716-1d3e-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af791bd-5b64-4c2f-15a4e",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to get supplier")
 				}
 			}
@@ -2740,7 +2746,7 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -2787,10 +2793,10 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 	validRespPayload := `{"IsPublished":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
-	admin1 := &base.UserProfile{
+	admin1 := &profileutils.UserProfile{
 		ID: "8716-7e2aead29f2c-8716-7e2aead29f2c",
 	}
-	adminUsers := []*base.UserProfile{}
+	adminUsers := []*profileutils.UserProfile{}
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.OrganizationNutrition{
@@ -2808,7 +2814,7 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "incorp-certificate-uploadID",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "12345678910",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -2861,23 +2867,23 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 						AccountType:  &accountType,
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accountType := base.AccountTypeOrganisation
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeOrganisation
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 						AccountType:  &accountType,
@@ -2886,26 +2892,26 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumber := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumber := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
@@ -2917,10 +2923,10 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -2934,21 +2940,21 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -2958,10 +2964,10 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -2969,11 +2975,11 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
 
@@ -2987,20 +2993,20 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to get supplier")
 				}
 			}
@@ -3090,14 +3096,14 @@ func TestSupplierUseCasesImpl_RetireKYCRequest(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
@@ -3113,14 +3119,14 @@ func TestSupplierUseCasesImpl_RetireKYCRequest(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
@@ -3142,7 +3148,7 @@ func TestSupplierUseCasesImpl_RetireKYCRequest(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get userprofile")
 				}
 			}
@@ -3152,13 +3158,13 @@ func TestSupplierUseCasesImpl_RetireKYCRequest(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to get supplier profile")
 				}
 			}
@@ -3196,15 +3202,15 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 	validRespPayload := `{"IsPublished":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
-	admin1 := &base.UserProfile{
+	admin1 := &profileutils.UserProfile{
 		ID: "8716-8716-7e2aead29f2c-7e2aead29f2c",
 	}
-	adminUsers := []*base.UserProfile{}
+	adminUsers := []*profileutils.UserProfile{}
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.IndividualRider{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           base.IdentificationDocTypeNationalid,
+			IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -3304,24 +3310,24 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					accountType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 						AccountType:  &accountType,
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accountType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 						AccountType:  &accountType,
@@ -3330,26 +3336,26 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumber := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumber := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
@@ -3361,10 +3367,10 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -3378,27 +3384,27 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: true,
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("kyc already submitted")
 				}
 			}
@@ -3408,21 +3414,21 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -3432,10 +3438,10 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -3443,11 +3449,11 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
 
@@ -3461,20 +3467,20 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("supplier not found")
 				}
 			}
@@ -3484,21 +3490,21 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -3508,10 +3514,10 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -3519,7 +3525,7 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("invalid doctype used")
 				}
 			}
@@ -3529,7 +3535,7 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -3577,15 +3583,15 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 	validRespPayload := `{"IsPublished":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
-	admin1 := &base.UserProfile{
+	admin1 := &profileutils.UserProfile{
 		ID: "8716-8716-7e2aead29f2c-7e2aead29f2c",
 	}
-	adminUsers := []*base.UserProfile{}
+	adminUsers := []*profileutils.UserProfile{}
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.IndividualPractitioner{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           base.IdentificationDocTypeNationalid,
+			IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -3689,23 +3695,23 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					accountType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 						AccountType:  &accountType,
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accountType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 						AccountType:  &accountType,
@@ -3714,26 +3720,26 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumber := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumber := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
@@ -3745,10 +3751,10 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -3762,27 +3768,27 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: true,
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("kyc already submitted")
 				}
 			}
@@ -3792,21 +3798,21 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -3816,10 +3822,10 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -3827,11 +3833,11 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
 
@@ -3845,20 +3851,20 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("supplier not found")
 				}
 			}
@@ -3868,21 +3874,21 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -3892,10 +3898,10 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -3903,7 +3909,7 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("invalid PracticeService used")
 				}
 			}
@@ -3913,7 +3919,7 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -3961,15 +3967,15 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 	validRespPayload := `{"IsPublished":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
-	admin1 := &base.UserProfile{
+	admin1 := &profileutils.UserProfile{
 		ID: "8716-8716-7e2aead29f2c-7e2aead29f2c",
 	}
-	adminUsers := []*base.UserProfile{}
+	adminUsers := []*profileutils.UserProfile{}
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.IndividualPharmaceutical{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           base.IdentificationDocTypeNationalid,
+			IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -4067,23 +4073,23 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					accountType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 						AccountType:  &accountType,
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accountType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 						AccountType:  &accountType,
@@ -4092,26 +4098,26 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumber := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumber := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
@@ -4123,10 +4129,10 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -4140,27 +4146,27 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: true,
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("kyc already submitted")
 				}
 			}
@@ -4170,21 +4176,21 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -4194,10 +4200,10 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -4205,11 +4211,11 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
 
@@ -4223,20 +4229,20 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("supplier not found")
 				}
 			}
@@ -4246,21 +4252,21 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -4270,10 +4276,10 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -4281,7 +4287,7 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("invalid IdentificationDocType used")
 				}
 			}
@@ -4291,7 +4297,7 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -4339,15 +4345,15 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 	validRespPayload := `{"IsPublished":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
-	admin1 := &base.UserProfile{
+	admin1 := &profileutils.UserProfile{
 		ID: "8716-8716-7e2aead29f2c-7e2aead29f2c",
 	}
-	adminUsers := []*base.UserProfile{}
+	adminUsers := []*profileutils.UserProfile{}
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.IndividualCoach{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           base.IdentificationDocTypeNationalid,
+			IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -4444,23 +4450,23 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					accountType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 						AccountType:  &accountType,
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accountType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 						AccountType:  &accountType,
@@ -4469,26 +4475,26 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumber := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumber := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
@@ -4500,10 +4506,10 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -4517,27 +4523,27 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: true,
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("kyc already submitted")
 				}
 			}
@@ -4547,21 +4553,21 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -4571,10 +4577,10 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -4582,11 +4588,11 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
 
@@ -4600,20 +4606,20 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("supplier not found")
 				}
 			}
@@ -4623,21 +4629,21 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -4647,10 +4653,10 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -4658,7 +4664,7 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("invalid IdentificationDocType used")
 				}
 			}
@@ -4668,7 +4674,7 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -4716,15 +4722,15 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 	validRespPayload := `{"IsPublished":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
 
-	admin1 := &base.UserProfile{
+	admin1 := &profileutils.UserProfile{
 		ID: "8716-8716-7e2aead29f2c-7e2aead29f2c",
 	}
-	adminUsers := []*base.UserProfile{}
+	adminUsers := []*profileutils.UserProfile{}
 	adminUsers = append(adminUsers, admin1)
 
 	validInput := domain.IndividualNutrition{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           base.IdentificationDocTypeNationalid,
+			IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "12345678910",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -4809,23 +4815,23 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					accountType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						ID:           "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID:    &profileID,
 						KYCSubmitted: false,
 						AccountType:  &accountType,
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accountType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accountType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 						AccountType:  &accountType,
@@ -4834,26 +4840,26 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "7e2aea-d29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := testEmail
 					firstName := "Makmende"
-					primaryPhoneNumber := base.TestUserPhoneNumber
-					return &base.UserProfile{
+					primaryPhoneNumber := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						ID:                  "400d-8716--91bd-42b3af315a4e",
 						PrimaryPhone:        &primaryPhoneNumber,
 						PrimaryEmailAddress: &email,
-						UserBioData: base.BioData{
+						UserBioData: profileutils.BioData{
 							FirstName: &firstName,
 							LastName:  &firstName,
 						},
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
 						},
 					}, nil
 				}
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 				fakeRepo.StageKYCProcessingRequestFn = func(ctx context.Context, data *domain.KYCRequest) error {
@@ -4865,10 +4871,10 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 				fakeEngagementSvs.NotifyAdminsFn = func(ctx context.Context, input dto.EmailNotificationPayload) error {
 					return nil
 				}
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
-				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload base.Item) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCFeedItemFn = func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
@@ -4882,27 +4888,27 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: true,
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("kyc already submitted")
 				}
 			}
@@ -4912,21 +4918,21 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID:   "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 						KYCSubmitted: false,
 					}, nil
@@ -4936,10 +4942,10 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -4947,11 +4953,11 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*base.UserProfile, error) {
+				fakeRepo.FetchAdminUsersFn = func(ctx context.Context) ([]*profileutils.UserProfile, error) {
 					return adminUsers, nil
 				}
 
@@ -4965,20 +4971,20 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("supplier not found")
 				}
 			}
@@ -4988,7 +4994,7 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -5037,7 +5043,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		name        string
-		partnerType base.PartnerType
+		partnerType profileutils.PartnerType
 	}
 	tests := []struct {
 		name    string
@@ -5049,7 +5055,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeCoach,
+				partnerType: profileutils.PartnerTypeCoach,
 			},
 			wantErr: false,
 		},
@@ -5058,7 +5064,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeRider,
+				partnerType: profileutils.PartnerTypeRider,
 			},
 			wantErr: true,
 		},
@@ -5067,7 +5073,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeRider,
+				partnerType: profileutils.PartnerTypeRider,
 			},
 			wantErr: true,
 		},
@@ -5076,7 +5082,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeRider,
+				partnerType: profileutils.PartnerTypeRider,
 			},
 			wantErr: false, //TODO: Fix and return to true
 		},
@@ -5093,13 +5099,13 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
+				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
+					return &apiclient.ServerClient{}
 				}
 
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
-					return &base.FinancialYearAndCurrency{
+					return &apiclient.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
 				}
@@ -5136,11 +5142,11 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
+				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
+					return &apiclient.ServerClient{}
 				}
 
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
 					return nil, fmt.Errorf("fail to fetch default currency")
 				}
 			}
@@ -5154,13 +5160,13 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
+				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
+					return &apiclient.ServerClient{}
 				}
 
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
-					return &base.FinancialYearAndCurrency{
+					return &apiclient.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
 				}
@@ -5285,10 +5291,10 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					return "83d3479d-e902-4aab-a27d-6d5067454daf", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: uid,
 							},
@@ -5300,10 +5306,10 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					return "83d3479d-e902-4aab-a27d-6d5067454daf", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "94294577-6b27-4091-9802-1ce0f2ce4153",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -5311,30 +5317,30 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID: "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput,
 					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 					return &dto.BranchConnection{
 						Edges: newEdges,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
@@ -5342,10 +5348,10 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -5353,15 +5359,15 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID: "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 					}, nil
 				}
@@ -5373,10 +5379,10 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: uid,
 							},
@@ -5388,10 +5394,10 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -5399,30 +5405,30 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID: "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput,
 					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 					return &dto.BranchConnection{
 						Edges: newEdges,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("fail to get the location")
 				}
 			}
@@ -5438,10 +5444,10 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: uid,
 							},
@@ -5453,10 +5459,10 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -5464,7 +5470,7 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("supplier not found")
 
 				}
@@ -5475,7 +5481,7 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -5485,10 +5491,10 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: uid,
 							},
@@ -5500,10 +5506,10 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -5511,20 +5517,20 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID: "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput,
 					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 					return nil, fmt.Errorf("unable to find branch")
 				}
@@ -5645,10 +5651,10 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -5656,11 +5662,11 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
-						Location: &base.Location{
+						Location: &profileutils.Location{
 							ID:              testChargeMasterParentOrgId,
 							Name:            "BRANCH-NAME",
 							BranchSladeCode: &sladeCode,
@@ -5668,10 +5674,10 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID: "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
-						Location: &base.Location{
+						Location: &profileutils.Location{
 							ID:              testChargeMasterParentOrgId,
 							Name:            "BRANCH-NAME",
 							BranchSladeCode: &sladeCode,
@@ -5679,11 +5685,11 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput,
 					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 					return &dto.BranchConnection{
 						Edges: newEdges,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, nil
@@ -5695,10 +5701,10 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -5706,11 +5712,11 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
-						Location: &base.Location{
+						Location: &profileutils.Location{
 							ID:              testChargeMasterParentOrgId,
 							Name:            "BRANCH-NAME",
 							BranchSladeCode: &sladeCode,
@@ -5718,10 +5724,10 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID: "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
-						Location: &base.Location{
+						Location: &profileutils.Location{
 							ID:              testChargeMasterParentOrgId,
 							Name:            "BRANCH-NAME",
 							BranchSladeCode: &sladeCode,
@@ -5729,11 +5735,11 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput,
 					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 					return &dto.BranchConnection{
 						Edges: newPayload,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, nil
@@ -5745,10 +5751,10 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -5757,24 +5763,24 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 				}
 
 				// Here we dont pass a location
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID: "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput,
 					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 					return &dto.BranchConnection{
 						Edges: newPayload,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, nil
@@ -5786,10 +5792,10 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -5797,11 +5803,11 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
-						Location: &base.Location{
+						Location: &profileutils.Location{
 							ID:              testChargeMasterParentOrgId,
 							Name:            "BRANCH-NAME",
 							BranchSladeCode: &sladeCode,
@@ -5809,10 +5815,10 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						SupplierID: "8716-7e2ae-5cf354a2-1d3e-ad29f2c-400d",
-						Location: &base.Location{
+						Location: &profileutils.Location{
 							ID:              testChargeMasterParentOrgId,
 							Name:            "BRANCH-NAME",
 							BranchSladeCode: &sladeCode,
@@ -5820,11 +5826,11 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 					}, nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput,
 					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 					return &dto.BranchConnection{
 						Edges: newEdges,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, fmt.Errorf("failed to find branch")
@@ -6065,8 +6071,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
@@ -6075,22 +6081,22 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
 						AccountType:       &accType,
@@ -6098,12 +6104,12 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (apiclient.Client, error) {
 					return nil, nil
 				}
 
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
-					return &base.EDIUserProfile{
+				fakeBaseExt.FetchUserProfileFn = func(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
+					return &profileutils.EDIUserProfile{
 						ID:        578278332,
 						GUID:      uuid.New().String(),
 						Email:     "juhakalulu@gmail.com",
@@ -6112,11 +6118,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role base.RoleType) error {
+				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role profileutils.RoleType) error {
 					return nil
 				}
 
@@ -6124,25 +6130,25 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: "12334"}, nil
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: "12334"}, nil
 				}
 
-				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
 					sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
 					return &dto.BusinessPartnerConnection{
 						Edges: newEdges,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload base.Nudge) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload feedlib.Nudge) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: http.StatusOK,
@@ -6159,21 +6165,21 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput,
 					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 					return &dto.BranchConnection{
 						Edges: newPayload,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
@@ -6184,8 +6190,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
@@ -6194,13 +6200,13 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("unable to get supplier profile by profile id")
 				}
 			}
@@ -6210,8 +6216,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
@@ -6220,22 +6226,22 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
 						AccountType:       &accType,
@@ -6243,12 +6249,12 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (apiclient.Client, error) {
 					return nil, nil
 				}
 
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
-					return &base.EDIUserProfile{
+				fakeBaseExt.FetchUserProfileFn = func(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
+					return &profileutils.EDIUserProfile{
 						ID:              578278332,
 						GUID:            uuid.New().String(),
 						Email:           "juhakalulu@gmail.com",
@@ -6258,11 +6264,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role base.RoleType) error {
+				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role profileutils.RoleType) error {
 					return nil
 				}
 
@@ -6270,25 +6276,25 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: "12334"}, nil
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: "12334"}, nil
 				}
 
-				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
 					sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
 					return &dto.BusinessPartnerConnection{
 						Edges: newPayload3,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload base.Nudge) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload feedlib.Nudge) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: http.StatusOK,
@@ -6306,21 +6312,21 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+				fakeChargeMasterSvc.FindBranchFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput,
 					sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 					return &dto.BranchConnection{
 						Edges: newPayload4,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
@@ -6331,8 +6337,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
@@ -6341,22 +6347,22 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
 						AccountType:       &accType,
@@ -6364,12 +6370,12 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (apiclient.Client, error) {
 					return nil, nil
 				}
 
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
-					return &base.EDIUserProfile{
+				fakeBaseExt.FetchUserProfileFn = func(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
+					return &profileutils.EDIUserProfile{
 						ID:              578278332,
 						GUID:            uuid.New().String(),
 						Email:           "juhakalulu@gmail.com",
@@ -6379,11 +6385,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role base.RoleType) error {
+				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role profileutils.RoleType) error {
 					return nil
 				}
 
@@ -6391,25 +6397,25 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: "12334"}, nil
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: "12334"}, nil
 				}
 
-				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
 					sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
 					return &dto.BusinessPartnerConnection{
 						Edges: newPayload5,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload base.Nudge) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload feedlib.Nudge) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: http.StatusOK,
@@ -6417,7 +6423,7 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 			}
@@ -6427,8 +6433,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
@@ -6437,22 +6443,22 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
 						AccountType:       &accType,
@@ -6460,12 +6466,12 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (apiclient.Client, error) {
 					return nil, nil
 				}
 
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
-					return &base.EDIUserProfile{
+				fakeBaseExt.FetchUserProfileFn = func(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
+					return &profileutils.EDIUserProfile{
 						ID:              578278332,
 						GUID:            uuid.New().String(),
 						Email:           "juhakalulu@gmail.com",
@@ -6475,11 +6481,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role base.RoleType) error {
+				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role profileutils.RoleType) error {
 					return nil
 				}
 
@@ -6487,25 +6493,25 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: "12334"}, nil
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: "12334"}, nil
 				}
 
-				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 					return nil
 				}
 
-				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+				fakeChargeMasterSvc.FindProviderFn = func(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
 					sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
 					return &dto.BusinessPartnerConnection{
 						Edges: newPayload5,
-						PageInfo: &base.PageInfo{
+						PageInfo: &firebasetools.PageInfo{
 							HasNextPage: false,
 						},
 					}, nil
 				}
 
-				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload base.Nudge) (*http.Response, error) {
+				fakeEngagementSvs.PublishKYCNudgeFn = func(ctx context.Context, uid string, payload feedlib.Nudge) (*http.Response, error) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: http.StatusOK,
@@ -6513,7 +6519,7 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return fmt.Errorf("failed to update supplier profile")
 				}
 			}
@@ -6523,8 +6529,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
@@ -6533,22 +6539,22 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
 						AccountType:       &accType,
@@ -6556,12 +6562,12 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (apiclient.Client, error) {
 					return nil, nil
 				}
 
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
-					return &base.EDIUserProfile{
+				fakeBaseExt.FetchUserProfileFn = func(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
+					return &profileutils.EDIUserProfile{
 						ID:        578278332,
 						GUID:      uuid.New().String(),
 						Email:     "juhakalulu@gmail.com",
@@ -6570,11 +6576,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *base.Supplier) error {
+				fakeRepo.UpdateSupplierProfileFn = func(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 					return nil
 				}
 
-				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role base.RoleType) error {
+				fakeRepo.AddRoleToUserfn = func(ctx context.Context, phone string, role profileutils.RoleType) error {
 					return nil
 				}
 
@@ -6582,11 +6588,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "f4f39af7-5b64-4c2f-91bd-42b3af315a4e", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: "12334"}, nil
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: "12334"}, nil
 				}
 
-				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 					return fmt.Errorf("failed to update permissions")
 				}
 			}
@@ -6596,8 +6602,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
@@ -6606,22 +6612,22 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
 						AccountType:       &accType,
@@ -6629,11 +6635,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (apiclient.Client, error) {
 					return nil, nil
 				}
 
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+				fakeBaseExt.FetchUserProfileFn = func(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
 					return nil, fmt.Errorf("cannot get edi user profile")
 				}
 			}
@@ -6643,8 +6649,8 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
@@ -6653,22 +6659,22 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "42b3af315a4e-f4f39af7-5b64-4c2f-91bd",
 						ProfileID: &profileID,
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*base.Supplier, error) {
-					accType := base.AccountTypeIndividual
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByUIDFn = func(ctx context.Context, uid string) (*profileutils.Supplier, error) {
+					accType := profileutils.AccountTypeIndividual
+					return &profileutils.Supplier{
 						SupplierID:        "5cf354a2-8716-7e2ae-1d3e-ad29f2c-400d",
 						ID:                uid,
 						AccountType:       &accType,
@@ -6676,11 +6682,11 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (apiclient.Client, error) {
 					return nil, fmt.Errorf("edi user profile not found")
 				}
 
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+				fakeBaseExt.FetchUserProfileFn = func(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
 					return nil, fmt.Errorf("cannot get edi user profile")
 				}
 			}
@@ -6696,7 +6702,7 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get user profile by UID")
 				}
 			}
@@ -6706,10 +6712,10 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					return "7e2aea-d29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "400d-8716--91bd-42b3af315a4e",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: "f4f39af7-91bd-42b3af-315a4e",
 							},
@@ -6717,7 +6723,7 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("supplier not found")
 				}
 			}
@@ -6760,12 +6766,12 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 	}
 
 	testRiderName := "Test Rider"
-	rider := base.PartnerTypeRider
+	rider := profileutils.PartnerTypeRider
 
 	type args struct {
 		ctx         context.Context
 		name        *string
-		partnerType *base.PartnerType
+		partnerType *profileutils.PartnerType
 	}
 	tests := []struct {
 		name        string
@@ -6835,12 +6841,12 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
-				fakeRepo.AddPartnerTypeFn = func(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error) {
+				fakeRepo.AddPartnerTypeFn = func(ctx context.Context, profileID string, name *string, partnerType *profileutils.PartnerType) (bool, error) {
 					return true, nil
 				}
 			}
@@ -6859,7 +6865,7 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile by uid")
 				}
 
@@ -6873,12 +6879,12 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
-				fakeRepo.AddPartnerTypeFn = func(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error) {
+				fakeRepo.AddPartnerTypeFn = func(ctx context.Context, profileID string, name *string, partnerType *profileutils.PartnerType) (bool, error) {
 					return false, fmt.Errorf("unable to add partner type")
 				}
 			}
@@ -6915,7 +6921,7 @@ func TestProfileUseCaseImpl_FindSupplierByUID(t *testing.T) {
 		return
 	}
 	profileID := "93ca42bb-5cfc-4499-b137-2df4d67b4a21"
-	supplier := &base.Supplier{
+	supplier := &profileutils.Supplier{
 		ProfileID: &profileID,
 	}
 
@@ -6925,7 +6931,7 @@ func TestProfileUseCaseImpl_FindSupplierByUID(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Supplier
+		want    *profileutils.Supplier
 		wantErr bool
 	}{
 		{
@@ -6953,13 +6959,13 @@ func TestProfileUseCaseImpl_FindSupplierByUID(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:        "93ca42bb-5cfc-4499-b137-2df4d67b4a21",
 						ProfileID: &profileID,
 					}, nil
@@ -6972,12 +6978,12 @@ func TestProfileUseCaseImpl_FindSupplierByUID(t *testing.T) {
 					return "5cf354a2-1d3e-400d-87167-e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "5b64-4c2f-15a4e-f4f39af791bd-42b3af3",
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to get supplier")
 				}
 
@@ -7014,12 +7020,12 @@ func TestSupplierUseCase_StageKYCProcessingRequest(t *testing.T) {
 	}
 
 	profileID := "93ca42bb-5cfc-4499-b137-2df4d67b4a21"
-	supplier := &base.Supplier{
+	supplier := &profileutils.Supplier{
 		ProfileID: &profileID,
 	}
 	type args struct {
 		ctx context.Context
-		sup *base.Supplier
+		sup *profileutils.Supplier
 	}
 	tests := []struct {
 		name    string
@@ -7079,8 +7085,8 @@ func TestSupplierUseCase_StageKYCProcessingRequest(t *testing.T) {
 func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 	ctx := context.Background()
 
-	individualPartner := base.AccountTypeIndividual
-	organizationPartner := base.AccountTypeOrganisation
+	individualPartner := profileutils.AccountTypeIndividual
+	organizationPartner := profileutils.AccountTypeOrganisation
 
 	s, err := InitializeFakeOnboaridingInteractor()
 	if err != nil {
@@ -7090,7 +7096,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 
 	type args struct {
 		ctx         context.Context
-		accountType base.AccountType
+		accountType profileutils.AccountType
 	}
 
 	tests := []struct {
@@ -7158,8 +7164,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -7167,8 +7173,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
 					ctx context.Context,
 					profileID string,
-				) (*base.Supplier, error) {
-					return &base.Supplier{
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -7176,9 +7182,9 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeRepo.AddSupplierAccountTypeFn = func(
 					ctx context.Context,
 					profileID string,
-					accountType base.AccountType,
-				) (*base.Supplier, error) {
-					return &base.Supplier{
+					accountType profileutils.AccountType,
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:          uuid.New().String(),
 						AccountType: &individualPartner,
 					}, nil
@@ -7186,14 +7192,14 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeRepo.UpdateSupplierProfileFn = func(
 					ctx context.Context,
 					profileID string,
-					data *base.Supplier,
+					data *profileutils.Supplier,
 				) error {
 					return nil
 				}
 				fakeEngagementSvs.PublishKYCNudgeFn = func(
 					ctx context.Context,
 					uid string,
-					payload base.Nudge,
+					payload feedlib.Nudge,
 				) (*http.Response, error) {
 					return &http.Response{StatusCode: 200}, nil
 				}
@@ -7201,7 +7207,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					ctx context.Context,
 					UID string,
-					flavour base.Flavour,
+					flavour feedlib.Flavour,
 					nudgeTitle string,
 				) error {
 					return nil
@@ -7217,8 +7223,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -7226,8 +7232,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
 					ctx context.Context,
 					profileID string,
-				) (*base.Supplier, error) {
-					return &base.Supplier{
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -7235,9 +7241,9 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeRepo.AddSupplierAccountTypeFn = func(
 					ctx context.Context,
 					profileID string,
-					accountType base.AccountType,
-				) (*base.Supplier, error) {
-					return &base.Supplier{
+					accountType profileutils.AccountType,
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:           uuid.New().String(),
 						AccountType:  &organizationPartner,
 						SupplierName: "Juha Kalulu",
@@ -7246,7 +7252,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeRepo.UpdateSupplierProfileFn = func(
 					ctx context.Context,
 					profileID string,
-					data *base.Supplier,
+					data *profileutils.Supplier,
 				) error {
 					return nil
 				}
@@ -7254,7 +7260,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeEngagementSvs.PublishKYCNudgeFn = func(
 					ctx context.Context,
 					uid string,
-					payload base.Nudge,
+					payload feedlib.Nudge,
 				) (*http.Response, error) {
 					return &http.Response{StatusCode: 200}, nil
 				}
@@ -7262,7 +7268,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					ctx context.Context,
 					UID string,
-					flavour base.Flavour,
+					flavour feedlib.Flavour,
 					nudgeTitle string,
 				) error {
 					return nil
@@ -7278,7 +7284,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
+				) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -7292,7 +7298,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
+				) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -7306,8 +7312,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -7315,8 +7321,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
 					ctx context.Context,
 					profileID string,
-				) (*base.Supplier, error) {
-					return &base.Supplier{
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -7324,8 +7330,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeRepo.AddSupplierAccountTypeFn = func(
 					ctx context.Context,
 					profileID string,
-					accountType base.AccountType,
-				) (*base.Supplier, error) {
+					accountType profileutils.AccountType,
+				) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -7339,8 +7345,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspend bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -7348,8 +7354,8 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
 					ctx context.Context,
 					profileID string,
-				) (*base.Supplier, error) {
-					return &base.Supplier{
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -7357,9 +7363,9 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeRepo.AddSupplierAccountTypeFn = func(
 					ctx context.Context,
 					profileID string,
-					accountType base.AccountType,
-				) (*base.Supplier, error) {
-					return &base.Supplier{
+					accountType profileutils.AccountType,
+				) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:          uuid.New().String(),
 						AccountType: &individualPartner,
 					}, nil
@@ -7368,7 +7374,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeEngagementSvs.PublishKYCNudgeFn = func(
 					ctx context.Context,
 					uid string,
-					payload base.Nudge,
+					payload feedlib.Nudge,
 				) (*http.Response, error) {
 					return &http.Response{StatusCode: 200}, nil
 				}
@@ -7376,7 +7382,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					ctx context.Context,
 					UID string,
-					flavour base.Flavour,
+					flavour feedlib.Flavour,
 					nudgeTitle string,
 				) error {
 					return fmt.Errorf("an error occurred")
@@ -7460,11 +7466,11 @@ func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
 			fakeBaseExt.LoginClientFn = nil
 			fakeBaseExt.FetchUserProfileFn = nil
 			if tt.name == "valid:login_user_with_username_and_password" {
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (apiclient.Client, error) {
 					return nil, nil
 				}
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
-					return &base.EDIUserProfile{
+				fakeBaseExt.FetchUserProfileFn = func(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
+					return &profileutils.EDIUserProfile{
 						ID:              578278332,
 						GUID:            uuid.New().String(),
 						Email:           "juhakalulu@gmail.com",
@@ -7477,17 +7483,17 @@ func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
 			}
 
 			if tt.name == "invalid:unable_to_initialize_login_client" {
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (apiclient.Client, error) {
 					return nil, fmt.Errorf("unable to login the client")
 				}
 
 			}
 
 			if tt.name == "invalid:unable_to_fetch_user_profile" {
-				fakeBaseExt.LoginClientFn = func(username string, password string) (base.Client, error) {
+				fakeBaseExt.LoginClientFn = func(username string, password string) (apiclient.Client, error) {
 					return nil, nil
 				}
-				fakeBaseExt.FetchUserProfileFn = func(authClient base.Client) (*base.EDIUserProfile, error) {
+				fakeBaseExt.FetchUserProfileFn = func(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
 					return nil, fmt.Errorf("unable to fetch user profile")
 				}
 			}
@@ -7529,7 +7535,7 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		name        string
-		partnerType base.PartnerType
+		partnerType profileutils.PartnerType
 	}
 	tests := []struct {
 		name    string
@@ -7541,7 +7547,7 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeConsumer,
+				partnerType: profileutils.PartnerTypeConsumer,
 			},
 			wantErr: false,
 		},
@@ -7550,7 +7556,7 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeConsumer,
+				partnerType: profileutils.PartnerTypeConsumer,
 			},
 			wantErr: true,
 		},
@@ -7559,7 +7565,7 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeConsumer,
+				partnerType: profileutils.PartnerTypeConsumer,
 			},
 			wantErr: true,
 		},
@@ -7568,7 +7574,7 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeConsumer,
+				partnerType: profileutils.PartnerTypeConsumer,
 			},
 			wantErr: false, // TODO: Fix and return  to false
 		},
@@ -7585,13 +7591,13 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
+				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
+					return &apiclient.ServerClient{}
 				}
 
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
-					return &base.FinancialYearAndCurrency{
+					return &apiclient.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
 				}
@@ -7624,11 +7630,11 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 					return uuid.New().String(), nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
+				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
+					return &apiclient.ServerClient{}
 				}
 
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
 					return nil, fmt.Errorf("fail to fetch default currency")
 				}
 			}
@@ -7638,13 +7644,13 @@ func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 					return uuid.New().String(), nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *base.ServerClient {
-					return &base.ServerClient{}
+				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
+					return &apiclient.ServerClient{}
 				}
 
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c base.Client) (*base.FinancialYearAndCurrency, error) {
+				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
-					return &base.FinancialYearAndCurrency{
+					return &apiclient.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
 				}

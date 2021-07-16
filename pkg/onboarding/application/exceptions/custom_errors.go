@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/savannahghi/errorcodeutil"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/feedlib"
 )
 
 // UserNotFoundError returns an error message when a user is not found
@@ -401,7 +401,7 @@ func InvalidSladeCodeError() error {
 // being able to resolve a given nudge
 func ResolveNudgeErr(
 	err error,
-	flavour base.Flavour,
+	flavour feedlib.Flavour,
 	name string,
 	statusCode *int,
 ) error {

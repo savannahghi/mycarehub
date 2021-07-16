@@ -6,8 +6,9 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/firebasetools"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
@@ -17,7 +18,7 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 	assert.NotNil(t, cm)
 	type args struct {
 		ctx        context.Context
-		pagination *base.PaginationInput
+		pagination *firebasetools.PaginationInput
 		filter     []*dto.BusinessPartnerFilterInput
 		sort       []*dto.BusinessPartnerSortInput
 	}
@@ -26,7 +27,7 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 	last := 10
 	before := "20"
 	testSladeCode := "PRO-50"
-	ascSort := base.SortOrderAsc
+	ascSort := enumutils.SortOrderAsc
 	invalidPage := "invalidpage"
 
 	tests := []struct {
@@ -43,7 +44,7 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 			wantErr:                false,
 			args: args{
 				ctx:        context.Background(),
-				pagination: &base.PaginationInput{},
+				pagination: &firebasetools.PaginationInput{},
 				filter:     []*dto.BusinessPartnerFilterInput{},
 				sort:       []*dto.BusinessPartnerSortInput{},
 			},
@@ -55,7 +56,7 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 			wantErr:                false,
 			args: args{
 				ctx: context.Background(),
-				pagination: &base.PaginationInput{
+				pagination: &firebasetools.PaginationInput{
 					First: first,
 					After: after,
 				},
@@ -70,7 +71,7 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 			wantErr:                false,
 			args: args{
 				ctx: context.Background(),
-				pagination: &base.PaginationInput{
+				pagination: &firebasetools.PaginationInput{
 					Last:   last,
 					Before: before,
 				},
@@ -85,7 +86,7 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 			wantErr:                false,
 			args: args{
 				ctx:        context.Background(),
-				pagination: &base.PaginationInput{},
+				pagination: &firebasetools.PaginationInput{},
 				filter: []*dto.BusinessPartnerFilterInput{
 					{
 						SladeCode: &testSladeCode,
@@ -101,7 +102,7 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 			wantErr:                false,
 			args: args{
 				ctx:        context.Background(),
-				pagination: &base.PaginationInput{},
+				pagination: &firebasetools.PaginationInput{},
 				filter:     []*dto.BusinessPartnerFilterInput{},
 				sort: []*dto.BusinessPartnerSortInput{
 					{
@@ -118,7 +119,7 @@ func TestServiceChargeMasterImpl_FindProvider(t *testing.T) {
 			wantErr:                true,
 			args: args{
 				ctx: context.Background(),
-				pagination: &base.PaginationInput{
+				pagination: &firebasetools.PaginationInput{
 					After: invalidPage,
 				},
 				filter: []*dto.BusinessPartnerFilterInput{},
@@ -149,7 +150,7 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 	assert.NotNil(t, cm)
 	type args struct {
 		ctx        context.Context
-		pagination *base.PaginationInput
+		pagination *firebasetools.PaginationInput
 		filter     []*dto.BranchFilterInput
 		sort       []*dto.BranchSortInput
 	}
@@ -158,7 +159,7 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 	last := 10
 	before := "20"
 	testSladeCode := "PRO-50"
-	ascSort := base.SortOrderAsc
+	ascSort := enumutils.SortOrderAsc
 	invalidPage := "invalidpage"
 
 	tests := []struct {
@@ -175,7 +176,7 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 			wantErr:                false,
 			args: args{
 				ctx:        context.Background(),
-				pagination: &base.PaginationInput{},
+				pagination: &firebasetools.PaginationInput{},
 				filter:     []*dto.BranchFilterInput{},
 				sort:       []*dto.BranchSortInput{},
 			},
@@ -187,7 +188,7 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 			wantErr:                false,
 			args: args{
 				ctx: context.Background(),
-				pagination: &base.PaginationInput{
+				pagination: &firebasetools.PaginationInput{
 					First: first,
 					After: after,
 				},
@@ -202,7 +203,7 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 			wantErr:                false,
 			args: args{
 				ctx: context.Background(),
-				pagination: &base.PaginationInput{
+				pagination: &firebasetools.PaginationInput{
 					Last:   last,
 					Before: before,
 				},
@@ -217,7 +218,7 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 			wantErr:                false,
 			args: args{
 				ctx:        context.Background(),
-				pagination: &base.PaginationInput{},
+				pagination: &firebasetools.PaginationInput{},
 				filter: []*dto.BranchFilterInput{
 					{
 						SladeCode: &testSladeCode,
@@ -233,7 +234,7 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 			wantErr:                false,
 			args: args{
 				ctx:        context.Background(),
-				pagination: &base.PaginationInput{},
+				pagination: &firebasetools.PaginationInput{},
 				filter:     []*dto.BranchFilterInput{},
 				sort: []*dto.BranchSortInput{
 					{
@@ -250,7 +251,7 @@ func TestServiceChargeMasterImpl_FindBranch(t *testing.T) {
 			wantErr:                true,
 			args: args{
 				ctx: context.Background(),
-				pagination: &base.PaginationInput{
+				pagination: &firebasetools.PaginationInput{
 					After: invalidPage,
 				},
 				filter: []*dto.BranchFilterInput{},
@@ -335,7 +336,7 @@ func TestServiceChargeMasterImpl_FetchProviderByID(t *testing.T) {
 	ctx := context.Background()
 	cm := NewChargeMasterUseCasesImpl()
 
-	pagination := &base.PaginationInput{}
+	pagination := &firebasetools.PaginationInput{}
 	filter := []*dto.BusinessPartnerFilterInput{}
 	sort := []*dto.BusinessPartnerSortInput{}
 

@@ -8,8 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -25,7 +25,7 @@ const (
 
 // AgentUseCase represent the business logic required for management of agents
 type AgentUseCase interface {
-	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*base.UserProfile, error)
+	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*profileutils.UserProfile, error)
 	ActivateAgent(ctx context.Context, agentID string) (bool, error)
 	DeactivateAgent(ctx context.Context, agentID string) (bool, error)
 	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
@@ -60,7 +60,7 @@ func NewAgentUseCases(
 func (a *AgentUseCaseImpl) RegisterAgent(
 	ctx context.Context,
 	input dto.RegisterAgentInput,
-) (*base.UserProfile, error) {
+) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "RegisterAgent")
 	defer span.End()
 
@@ -84,23 +84,24 @@ func (a *AgentUseCaseImpl) RegisterAgent(
 		return nil, err
 	}
 
-	if !usp.HasPermission(base.PermissionTypeRegisterAgent) {
+	if !usp.HasPermission(profileutils.PermissionTypeRegisterAgent) {
 		return nil, exceptions.RoleNotValid(
 			fmt.Errorf("error: logged in user does not have permissions to create agent"),
 		)
 	}
 
 	timestamp := time.Now().In(pubsubtools.TimeLocation)
-	agentProfile := base.UserProfile{
+
+	agentProfile := profileutils.UserProfile{
 		PrimaryEmailAddress: &input.Email,
-		UserBioData: base.BioData{
+		UserBioData: profileutils.BioData{
 			FirstName:   &input.FirstName,
 			LastName:    &input.LastName,
 			Gender:      input.Gender,
 			DateOfBirth: &input.DateOfBirth,
 		},
-		Role:        base.RoleTypeAgent,
-		Permissions: base.RoleTypeAgent.Permissions(),
+		Role:        profileutils.RoleTypeAgent,
+		Permissions: profileutils.RoleTypeAgent.Permissions(),
 		CreatedByID: &usp.ID,
 		Created:     &timestamp,
 	}
@@ -119,7 +120,7 @@ func (a *AgentUseCaseImpl) RegisterAgent(
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	sup := base.Supplier{
+	sup := profileutils.Supplier{
 		IsOrganizationVerified: true,
 		SladeCode:              SavannahSladeCode,
 		KYCSubmitted:           true,
@@ -219,7 +220,7 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, agentID string) (b
 		return false, err
 	}
 
-	if !usp.HasPermission(base.PermissionTypeUnsuspendAgent) {
+	if !usp.HasPermission(profileutils.PermissionTypeUnsuspendAgent) {
 		return false, exceptions.RoleNotValid(
 			fmt.Errorf("error: logged in user does not have permissions to activate agent"),
 		)
@@ -256,7 +257,7 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) 
 		return false, err
 	}
 
-	if !usp.HasPermission(base.PermissionTypeSuspendAgent) {
+	if !usp.HasPermission(profileutils.PermissionTypeSuspendAgent) {
 		return false, exceptions.RoleNotValid(
 			fmt.Errorf("error: logged in user does not have permissions to suspend agent"),
 		)
@@ -269,7 +270,7 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) 
 		return false, exceptions.InternalServerError(err)
 	}
 
-	if agent.Role != base.RoleTypeAgent {
+	if agent.Role != profileutils.RoleTypeAgent {
 		return false, exceptions.InternalServerError(fmt.Errorf("this user is not an agent"))
 	}
 
@@ -286,7 +287,7 @@ func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error
 	ctx, span := tracer.Start(ctx, "FetchAgents")
 	defer span.End()
 
-	profiles, err := a.repo.ListUserProfiles(ctx, base.RoleTypeAgent)
+	profiles, err := a.repo.ListUserProfiles(ctx, profileutils.RoleTypeAgent)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err

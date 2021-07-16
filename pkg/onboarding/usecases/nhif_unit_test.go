@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
@@ -24,7 +26,7 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 		MembershipNumber:          "123456",
 		Employment:                domain.EmploymentTypeEmployed,
 		NHIFCardPhotoID:           uuid.New().String(),
-		IDDocType:                 base.IdentificationDocTypeMilitary,
+		IDDocType:                 enumutils.IdentificationDocTypeMilitary,
 		IdentificationCardPhotoID: uuid.New().String(),
 		IDNumber:                  "11111111",
 	}
@@ -86,8 +88,8 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 					return uuid.New().String(), nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: uuid.New().String()}, nil
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeRepo.AddNHIFDetailsFn = func(ctx context.Context, input dto.NHIFDetailsInput, profileID string) (*domain.NHIFDetails, error) {
@@ -102,7 +104,7 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					ctx context.Context,
 					UID string,
-					flavour base.Flavour,
+					flavour feedlib.Flavour,
 					nudgeTitle string,
 				) error {
 					return nil
@@ -114,8 +116,8 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 					return uuid.New().String(), nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: uuid.New().String()}, nil
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeRepo.AddNHIFDetailsFn = func(ctx context.Context, input dto.NHIFDetailsInput, profileID string) (*domain.NHIFDetails, error) {
@@ -128,7 +130,7 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 					return uuid.New().String(), nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}
@@ -144,8 +146,8 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 					return uuid.New().String(), nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: uuid.New().String()}, nil
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: uuid.New().String()}, nil
 				}
 
 				fakeRepo.AddNHIFDetailsFn = func(ctx context.Context, input dto.NHIFDetailsInput, profileID string) (*domain.NHIFDetails, error) {
@@ -160,7 +162,7 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					ctx context.Context,
 					UID string,
-					flavour base.Flavour,
+					flavour feedlib.Flavour,
 					nudgeTitle string,
 				) error {
 					return fmt.Errorf("an error occurred")
@@ -259,10 +261,10 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: uid,
 							},
@@ -289,10 +291,10 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: uid,
 							},
@@ -314,10 +316,10 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID: uid,
 							},
@@ -339,7 +341,7 @@ func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}

@@ -7,9 +7,14 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 	"github.com/segmentio/ksuid"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -70,8 +75,8 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -98,7 +103,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -177,9 +182,9 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					email := firebasetools.TestUserEmail
-					return &base.UserProfile{
+					return &profileutils.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &email,
 					}, nil
@@ -197,8 +202,8 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -217,7 +222,7 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -284,8 +289,8 @@ func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -326,7 +331,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 
 	type args struct {
 		ctx         context.Context
-		identifiers []base.VerifiedIdentifier
+		identifiers []profileutils.VerifiedIdentifier
 	}
 	tests := []struct {
 		name    string
@@ -337,7 +342,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 			name: "valid:_update_name_succeeds",
 			args: args{
 				ctx: ctx,
-				identifiers: []base.VerifiedIdentifier{
+				identifiers: []profileutils.VerifiedIdentifier{
 					{
 						UID:           "a4f39af7-5b64-4c2f-91bd-42b3af315a5h",
 						LoginProvider: "Facebook",
@@ -350,7 +355,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 			name: "invalid:_unable_to_get_logged_in_user",
 			args: args{
 				ctx: ctx,
-				identifiers: []base.VerifiedIdentifier{
+				identifiers: []profileutils.VerifiedIdentifier{
 					{
 						UID:           "j4f39af7-5b64-4c2f-91bd-42b3af225a5c",
 						LoginProvider: "Phone",
@@ -364,7 +369,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 			name: "invalid:_unable_to_get_profile_of_logged_in_user",
 			args: args{
 				ctx: ctx,
-				identifiers: []base.VerifiedIdentifier{
+				identifiers: []profileutils.VerifiedIdentifier{
 					{
 						UID:           "p4f39af7-5b64-4c2f-91bd-42b3af315a5c",
 						LoginProvider: "Google",
@@ -384,12 +389,12 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
-				fakeRepo.UpdateVerifiedIdentifiersFn = func(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error {
+				fakeRepo.UpdateVerifiedIdentifiersFn = func(ctx context.Context, id string, identifiers []profileutils.VerifiedIdentifier) error {
 					return nil
 				}
 			}
@@ -409,12 +414,12 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -506,8 +511,8 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
@@ -528,8 +533,8 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
@@ -547,8 +552,8 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &primaryEmail,
 						SecondaryEmailAddresses: []string{
@@ -578,7 +583,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -701,8 +706,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					return &dto.UserInfo{}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
 						PrimaryPhone:        &phone,
@@ -723,8 +728,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
 						PrimaryPhone:        &phone,
@@ -750,7 +755,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					ctx context.Context,
 					UID string,
-					flavour base.Flavour,
+					flavour feedlib.Flavour,
 					nudgeTitle string,
 				) error {
 					return nil
@@ -760,7 +765,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					ctx context.Context,
 					UID string,
-					flavour base.Flavour,
+					flavour feedlib.Flavour,
 					nudgeTitle string,
 				) error {
 					return nil
@@ -768,14 +773,14 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_failed_to_get_logged_in_uid" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("an error has occurred")
 				}
 			}
 
 			if tt.name == "invalid:_verify_otp_fails" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
@@ -786,8 +791,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_verify_otp_returns_false" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
@@ -798,8 +803,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_update_primary_address_fails" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
 					}, nil
@@ -816,8 +821,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_resolving_the_consumer_nudge_fails" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
 						PrimaryPhone:        &phone,
@@ -832,8 +837,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return uuid.New().String(), nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
 						PrimaryPhone:        &phone,
@@ -858,7 +863,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					ctx context.Context,
 					UID string,
-					flavour base.Flavour,
+					flavour feedlib.Flavour,
 					nudgeTitle string,
 				) error {
 					return fmt.Errorf("an error occurred")
@@ -866,8 +871,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_resolving_the_pro_nudge_fails" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
 						PrimaryPhone:        &phone,
@@ -882,8 +887,8 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return uuid.New().String(), nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:                  uuid.New().String(),
 						PrimaryEmailAddress: &primaryEmail,
 						PrimaryPhone:        &phone,
@@ -908,7 +913,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					ctx context.Context,
 					UID string,
-					flavour base.Flavour,
+					flavour feedlib.Flavour,
 					nudgeTitle string,
 				) error {
 					return nil
@@ -918,7 +923,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 				fakeEngagementSvs.ResolveDefaultNudgeByTitleFn = func(
 					ctx context.Context,
 					UID string,
-					flavour base.Flavour,
+					flavour feedlib.Flavour,
 					nudgeTitle string,
 				) error {
 					return fmt.Errorf("an error occurred")
@@ -956,7 +961,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 	}
 	type args struct {
 		ctx   context.Context
-		perms []base.PermissionType
+		perms []profileutils.PermissionType
 	}
 	tests := []struct {
 		name    string
@@ -967,7 +972,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 			name: "valid: successfully updates permissions",
 			args: args{
 				ctx:   ctx,
-				perms: []base.PermissionType{base.PermissionTypeSuperAdmin},
+				perms: []profileutils.PermissionType{profileutils.PermissionTypeSuperAdmin},
 			},
 			wantErr: false,
 		},
@@ -975,7 +980,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 			name: "invalid: get logged in user uid fails",
 			args: args{
 				ctx:   ctx,
-				perms: []base.PermissionType{base.PermissionTypeSuperAdmin},
+				perms: []profileutils.PermissionType{profileutils.PermissionTypeSuperAdmin},
 			},
 			wantErr: true,
 		},
@@ -983,7 +988,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 			name: "invalid: get user profile by UID fails",
 			args: args{
 				ctx:   ctx,
-				perms: []base.PermissionType{base.PermissionTypeSuperAdmin},
+				perms: []profileutils.PermissionType{profileutils.PermissionTypeSuperAdmin},
 			},
 			wantErr: true,
 		},
@@ -991,7 +996,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 			name: "invalid: update permissions fails",
 			args: args{
 				ctx:   ctx,
-				perms: []base.PermissionType{base.PermissionTypeSuperAdmin},
+				perms: []profileutils.PermissionType{profileutils.PermissionTypeSuperAdmin},
 			},
 			wantErr: true,
 		},
@@ -1007,10 +1012,10 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: "12334"}, nil
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: "12334"}, nil
 				}
-				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 					return nil
 				}
 			}
@@ -1029,7 +1034,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get user profile by UID")
 				}
 			}
@@ -1042,10 +1047,10 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{ID: "12334"}, nil
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: "12334"}, nil
 				}
-				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 					return fmt.Errorf("unable to update permissions")
 				}
 			}
@@ -1077,7 +1082,7 @@ func TestProfileUseCaseImpl_AddRoleToUser(t *testing.T) {
 	type args struct {
 		ctx   context.Context
 		phone string
-		role  base.RoleType
+		role  profileutils.RoleType
 	}
 	tests := []struct {
 		name    string
@@ -1089,7 +1094,7 @@ func TestProfileUseCaseImpl_AddRoleToUser(t *testing.T) {
 			args: args{
 				ctx:   ctx,
 				phone: "+254721123123",
-				role:  base.RoleTypeEmployee,
+				role:  profileutils.RoleTypeEmployee,
 			},
 			wantErr: false,
 		},
@@ -1098,7 +1103,7 @@ func TestProfileUseCaseImpl_AddRoleToUser(t *testing.T) {
 			args: args{
 				ctx:   ctx,
 				phone: "+254721123123",
-				role:  base.RoleTypeEmployee,
+				role:  profileutils.RoleTypeEmployee,
 			},
 			wantErr: true,
 		},
@@ -1110,8 +1115,8 @@ func TestProfileUseCaseImpl_AddRoleToUser(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 						SecondaryPhoneNumbers: []string{
@@ -1120,7 +1125,7 @@ func TestProfileUseCaseImpl_AddRoleToUser(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role profileutils.RoleType) error {
 					return nil
 				}
 			}
@@ -1130,10 +1135,10 @@ func TestProfileUseCaseImpl_AddRoleToUser(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeBaseExt.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phone string, suspended bool) (*base.UserProfile, error) {
+				fakeBaseExt.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phone string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("UserProfile matching PhoneNumber not found")
 				}
-				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role profileutils.RoleType) error {
 					return fmt.Errorf("User Roles not updated")
 				}
 			}
@@ -1196,8 +1201,8 @@ func TestProfileUseCaseImpl_RemoveRoleToUser(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 						SecondaryPhoneNumbers: []string{
@@ -1206,7 +1211,7 @@ func TestProfileUseCaseImpl_RemoveRoleToUser(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role profileutils.RoleType) error {
 					return nil
 				}
 			}
@@ -1216,10 +1221,10 @@ func TestProfileUseCaseImpl_RemoveRoleToUser(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeBaseExt.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phone string, suspended bool) (*base.UserProfile, error) {
+				fakeBaseExt.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phone string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("UserProfile matching PhoneNumber not found")
 				}
-				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role profileutils.RoleType) error {
 					return fmt.Errorf("User Roles not updated")
 				}
 			}
@@ -1313,12 +1318,12 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					email := base.GenerateRandomEmail()
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					email := converterandformatter.GenerateRandomEmail()
+					return &profileutils.UserProfile{
 						PrimaryEmailAddress: &email,
 						SecondaryEmailAddresses: []string{
-							base.GenerateRandomEmail(),
+							converterandformatter.GenerateRandomEmail(),
 						},
 					}, nil
 				}
@@ -1329,9 +1334,9 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					phone := base.TestUserPhoneNumber
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					phone := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						PrimaryPhone:          &phone,
 						SecondaryPhoneNumbers: []string{"+254700000000"},
 					}, nil
@@ -1343,8 +1348,8 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						PushTokens: []string{uuid.New().String()},
 					}, nil
 				}
@@ -1355,13 +1360,13 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					email := base.GenerateRandomEmail()
-					phone := base.TestUserPhoneNumber
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					email := converterandformatter.GenerateRandomEmail()
+					phone := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						PrimaryEmailAddress: &email,
 						SecondaryEmailAddresses: []string{
-							base.GenerateRandomEmail(),
+							converterandformatter.GenerateRandomEmail(),
 						},
 						PrimaryPhone:          &phone,
 						SecondaryPhoneNumbers: []string{"+254700000000"},
@@ -1375,7 +1380,7 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
+				) (*profileutils.UserProfile, error) {
 					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 				}
 			}
@@ -1445,12 +1450,12 @@ func TestProfileUseCaseImpl_ConfirmedEmailAddresses(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					email := base.GenerateRandomEmail()
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					email := converterandformatter.GenerateRandomEmail()
+					return &profileutils.UserProfile{
 						PrimaryEmailAddress: &email,
 						SecondaryEmailAddresses: []string{
-							base.GenerateRandomEmail(),
+							converterandformatter.GenerateRandomEmail(),
 						},
 					}, nil
 				}
@@ -1461,7 +1466,7 @@ func TestProfileUseCaseImpl_ConfirmedEmailAddresses(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
+				) (*profileutils.UserProfile, error) {
 					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 				}
 			}
@@ -1529,9 +1534,9 @@ func TestProfileUseCaseImpl_ConfirmedPhoneNumbers(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					phone := base.TestUserPhoneNumber
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					phone := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						PrimaryPhone:          &phone,
 						SecondaryPhoneNumbers: []string{"+254700000000"},
 					}, nil
@@ -1543,7 +1548,7 @@ func TestProfileUseCaseImpl_ConfirmedPhoneNumbers(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
+				) (*profileutils.UserProfile, error) {
 					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 				}
 			}
@@ -1611,8 +1616,8 @@ func TestProfileUseCaseImpl_validFCM(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						PushTokens: []string{uuid.New().String()},
 					}, nil
 				}
@@ -1623,7 +1628,7 @@ func TestProfileUseCaseImpl_validFCM(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
+				) (*profileutils.UserProfile, error) {
 					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 				}
 			}
@@ -1720,12 +1725,12 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					email := base.GenerateRandomEmail()
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					email := converterandformatter.GenerateRandomEmail()
+					return &profileutils.UserProfile{
 						PrimaryEmailAddress: &email,
 						SecondaryEmailAddresses: []string{
-							base.GenerateRandomEmail(),
+							converterandformatter.GenerateRandomEmail(),
 						},
 					}, nil
 				}
@@ -1736,9 +1741,9 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					phone := base.TestUserPhoneNumber
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					phone := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						PrimaryPhone:          &phone,
 						SecondaryPhoneNumbers: []string{"+254700000000"},
 					}, nil
@@ -1750,8 +1755,8 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						PushTokens: []string{uuid.New().String()},
 					}, nil
 				}
@@ -1762,13 +1767,13 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
-					email := base.GenerateRandomEmail()
-					phone := base.TestUserPhoneNumber
-					return &base.UserProfile{
+				) (*profileutils.UserProfile, error) {
+					email := converterandformatter.GenerateRandomEmail()
+					phone := interserviceclient.TestUserPhoneNumber
+					return &profileutils.UserProfile{
 						PrimaryEmailAddress: &email,
 						SecondaryEmailAddresses: []string{
-							base.GenerateRandomEmail(),
+							converterandformatter.GenerateRandomEmail(),
 						},
 						PrimaryPhone:          &phone,
 						SecondaryPhoneNumbers: []string{"+254700000000"},
@@ -1782,7 +1787,7 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 					ctx context.Context,
 					uid string,
 					suspended bool,
-				) (*base.UserProfile, error) {
+				) (*profileutils.UserProfile, error) {
 					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 				}
 			}
@@ -1909,8 +1914,8 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 						SecondaryPhoneNumbers: []string{
@@ -1930,8 +1935,8 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 						SecondaryPhoneNumbers: []string{
@@ -1954,8 +1959,8 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -1986,7 +1991,7 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get userprofile")
 				}
 
@@ -2004,7 +2009,7 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get user profile")
 				}
 			}
@@ -2138,8 +2143,8 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "ABCDE",
 						PrimaryPhone: &phoneNumber,
 						SecondaryPhoneNumbers: []string{
@@ -2171,8 +2176,8 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "f4f39af7--91bd-42b3af315a4e",
 						PrimaryPhone: &primaryPhone1,
 						SecondaryPhoneNumbers: []string{
@@ -2213,7 +2218,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get user profile by phonenumber")
 				}
 			}
@@ -2226,7 +2231,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -2237,8 +2242,8 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "ABCDE",
 						PrimaryPhone: &phoneNumber,
 						SecondaryPhoneNumbers: []string{
@@ -2262,8 +2267,8 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "ABCDE",
 						PrimaryPhone: &phoneNumber,
 						SecondaryPhoneNumbers: []string{
@@ -2305,7 +2310,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 		return
 	}
 	phone := gofakeit.Phone()
-	dateOfBirth := base.Date{
+	dateOfBirth := scalarutils.Date{
 		Day:   12,
 		Year:  2000,
 		Month: 2,
@@ -2313,31 +2318,31 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 	firstName := "Jatelo"
 	lastName := "Omera"
-	bioData := base.BioData{
+	bioData := profileutils.BioData{
 		FirstName:   &firstName,
 		LastName:    &lastName,
 		DateOfBirth: &dateOfBirth,
 	}
 
-	var gender base.Gender = "female"
-	updateGender := base.BioData{
+	var gender enumutils.Gender = "female"
+	updateGender := profileutils.BioData{
 		Gender: gender,
 	}
 
-	updateDOB := base.BioData{
+	updateDOB := profileutils.BioData{
 		DateOfBirth: &dateOfBirth,
 	}
 
-	updateFirstName := base.BioData{
+	updateFirstName := profileutils.BioData{
 		FirstName: &firstName,
 	}
 
-	updateLastName := base.BioData{
+	updateLastName := profileutils.BioData{
 		LastName: &lastName,
 	}
 	type args struct {
 		ctx  context.Context
-		data base.BioData
+		data profileutils.BioData
 	}
 	tests := []struct {
 		name    string
@@ -2420,8 +2425,8 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryPhone: &phone,
 					}, nil
@@ -2431,7 +2436,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					return nil
 				}
 
-				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data profileutils.BioData) error {
 					return nil
 				}
 
@@ -2457,8 +2462,8 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryPhone: &phone,
 					}, nil
@@ -2468,7 +2473,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					return nil
 				}
 
-				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data profileutils.BioData) error {
 					return nil
 				}
 
@@ -2494,8 +2499,8 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryPhone: &phone,
 					}, nil
@@ -2504,7 +2509,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					return nil
 				}
 
-				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data profileutils.BioData) error {
 					return nil
 				}
 
@@ -2518,8 +2523,8 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryPhone: &phone,
 					}, nil
@@ -2529,7 +2534,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					return nil
 				}
 
-				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data profileutils.BioData) error {
 					return nil
 				}
 
@@ -2555,8 +2560,8 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryPhone: &phone,
 					}, nil
@@ -2566,7 +2571,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					return nil
 				}
 
-				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data profileutils.BioData) error {
 					return nil
 				}
 
@@ -2597,7 +2602,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 						PhoneNumber: "0721568526",
 					}, nil
 				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get user profile by UID")
 				}
 			}
@@ -2611,14 +2616,14 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryPhone: &phone,
 					}, nil
 				}
 
-				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data profileutils.BioData) error {
 					return fmt.Errorf("failed update primary biodata of a user profile")
 				}
 
@@ -2854,8 +2859,8 @@ func TestProfileUseCaseImpl_UpdatePhotoUploadID(t *testing.T) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -2876,7 +2881,7 @@ func TestProfileUseCaseImpl_UpdatePhotoUploadID(t *testing.T) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}
@@ -2886,8 +2891,8 @@ func TestProfileUseCaseImpl_UpdatePhotoUploadID(t *testing.T) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
@@ -2932,7 +2937,7 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		input       dto.UserAddressInput
-		addressType base.AddressType
+		addressType enumutils.AddressType
 	}
 	tests := []struct {
 		name    string
@@ -2944,7 +2949,7 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				input:       addr,
-				addressType: base.AddressTypeHome,
+				addressType: enumutils.AddressTypeHome,
 			},
 			wantErr: false,
 		},
@@ -2953,7 +2958,7 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				input:       addr,
-				addressType: base.AddressTypeWork,
+				addressType: enumutils.AddressTypeWork,
 			},
 			wantErr: false,
 		},
@@ -2962,7 +2967,7 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				input:       addr,
-				addressType: base.AddressTypeWork,
+				addressType: enumutils.AddressTypeWork,
 			},
 			wantErr: true,
 		},
@@ -2971,7 +2976,7 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				input:       addr,
-				addressType: base.AddressTypeWork,
+				addressType: enumutils.AddressTypeWork,
 			},
 			wantErr: true,
 		},
@@ -2980,7 +2985,7 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				input:       addr,
-				addressType: base.AddressTypeWork,
+				addressType: enumutils.AddressTypeWork,
 			},
 			wantErr: true,
 		},
@@ -2996,13 +3001,13 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
 
-				fakeRepo.UpdateAddressesFn = func(ctx context.Context, id string, address base.Address, addressType base.AddressType) error {
+				fakeRepo.UpdateAddressesFn = func(ctx context.Context, id string, address profileutils.Address, addressType enumutils.AddressType) error {
 					return nil
 				}
 			}
@@ -3016,13 +3021,13 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
 
-				fakeRepo.UpdateAddressesFn = func(ctx context.Context, id string, address base.Address, addressType base.AddressType) error {
+				fakeRepo.UpdateAddressesFn = func(ctx context.Context, id string, address profileutils.Address, addressType enumutils.AddressType) error {
 					return nil
 				}
 			}
@@ -3042,7 +3047,7 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -3056,13 +3061,13 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
 
-				fakeRepo.UpdateAddressesFn = func(ctx context.Context, id string, address base.Address, addressType base.AddressType) error {
+				fakeRepo.UpdateAddressesFn = func(ctx context.Context, id string, address profileutils.Address, addressType enumutils.AddressType) error {
 					return fmt.Errorf("an error occurred")
 				}
 			}
@@ -3142,14 +3147,14 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
-						HomeAddress: &base.Address{
+						HomeAddress: &profileutils.Address{
 							Latitude:  "123",
 							Longitude: "-1.2",
 						},
-						WorkAddress: &base.Address{
+						WorkAddress: &profileutils.Address{
 							Latitude:  "123",
 							Longitude: "-1.2",
 						},
@@ -3172,7 +3177,7 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -3186,11 +3191,11 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:          uuid.New().String(),
-						HomeAddress: &base.Address{},
-						WorkAddress: &base.Address{
+						HomeAddress: &profileutils.Address{},
+						WorkAddress: &profileutils.Address{
 							Latitude:  "123",
 							Longitude: "-1.2",
 						},
@@ -3207,14 +3212,14 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
-						HomeAddress: &base.Address{
+						HomeAddress: &profileutils.Address{
 							Latitude:  "123",
 							Longitude: "-1.2",
 						},
-						WorkAddress: &base.Address{},
+						WorkAddress: &profileutils.Address{},
 					}, nil
 				}
 			}
@@ -3284,8 +3289,8 @@ func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
-					return &base.UserCommunicationsSetting{
+				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
+					return &profileutils.UserCommunicationsSetting{
 						ID:            uuid.New().String(),
 						AllowWhatsApp: true,
 						AllowTextSMS:  true,
@@ -3294,8 +3299,8 @@ func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -3316,7 +3321,7 @@ func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -3409,8 +3414,8 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 				}
 
 				fakeRepo.SetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string,
-					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
-					return &base.UserCommunicationsSetting{
+					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error) {
+					return &profileutils.UserCommunicationsSetting{
 						ID:            uuid.New().String(),
 						AllowWhatsApp: true,
 						AllowTextSMS:  true,
@@ -3419,8 +3424,8 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
@@ -3441,7 +3446,7 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspend bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -3478,15 +3483,15 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 		return
 	}
 
-	defaultActions := &base.NavigationActions{
-		Primary: []base.NavAction{
+	defaultActions := &profileutils.NavigationActions{
+		Primary: []profileutils.NavAction{
 			{
 				Title:      "Home",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HomeNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Home",
 					Description: "Home Navigation action",
 					Thumbnail:   common.HomeNavActionURL,
@@ -3496,10 +3501,10 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			{
 				Title:      "Help",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HelpNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Help",
 					Description: "Help Navigation action",
 					Thumbnail:   common.HelpNavActionURL,
@@ -3509,16 +3514,16 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 		},
 	}
 
-	employee := base.RoleTypeEmployee
-	employeeActions := &base.NavigationActions{
-		Primary: []base.NavAction{
+	employee := profileutils.RoleTypeEmployee
+	employeeActions := &profileutils.NavigationActions{
+		Primary: []profileutils.NavAction{
 			{
 				Title:      "Home",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HomeNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Home",
 					Description: "Home Navigation action",
 					Thumbnail:   common.HomeNavActionURL,
@@ -3528,10 +3533,10 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			{
 				Title:      "KYC",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.RequestNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "KYC",
 					Description: "KYC Navigation action",
 					Thumbnail:   common.RequestNavActionURL,
@@ -3541,10 +3546,10 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			{
 				Title:      "Partner",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.PartnerNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Partner",
 					Description: "Partner Navigation action",
 					Thumbnail:   common.PartnerNavActionURL,
@@ -3554,10 +3559,10 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			{
 				Title:      "Consumer",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.ConsumerNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Consumer",
 					Description: "Consumer Navigation action",
 					Thumbnail:   common.ConsumerNavActionURL,
@@ -3565,20 +3570,20 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 				Favourite: false,
 			},
 		},
-		Secondary: []base.NavAction{
+		Secondary: []profileutils.NavAction{
 			{
 				Title:      "Agent",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.AgentNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Agent",
 					Description: "Agent Navigation action",
 					Thumbnail:   common.AgentNavActionURL,
 				},
 				Favourite: false,
-				Nested: []base.NestedNavAction{
+				Nested: []profileutils.NestedNavAction{
 					{
 						Title:      common.AgentRegistrationActionTitle,
 						OnTapRoute: "",
@@ -3592,16 +3597,16 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			{
 				Title:      "Patient",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.PatientNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Patient",
 					Description: "Patient Navigation action",
 					Thumbnail:   common.PatientNavActionURL,
 				},
 				Favourite: false,
-				Nested: []base.NestedNavAction{
+				Nested: []profileutils.NestedNavAction{
 					{
 						Title:      "Patient Registration",
 						OnTapRoute: "",
@@ -3615,10 +3620,10 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			{
 				Title:      "Help",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HelpNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Help",
 					Description: "Help Navigation action",
 					Thumbnail:   common.HelpNavActionURL,
@@ -3628,16 +3633,16 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 		},
 	}
 
-	agent := base.RoleTypeAgent
-	agentActions := &base.NavigationActions{
-		Primary: []base.NavAction{
+	agent := profileutils.RoleTypeAgent
+	agentActions := &profileutils.NavigationActions{
+		Primary: []profileutils.NavAction{
 			{
 				Title:      "Home",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HomeNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Home",
 					Description: "Home Navigation action",
 					Thumbnail:   common.HomeNavActionURL,
@@ -3647,10 +3652,10 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			{
 				Title:      "Partner",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.PartnerNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Partner",
 					Description: "Partner Navigation action",
 					Thumbnail:   common.PartnerNavActionURL,
@@ -3660,10 +3665,10 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			{
 				Title:      "Consumer",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.ConsumerNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Consumer",
 					Description: "Consumer Navigation action",
 					Thumbnail:   common.ConsumerNavActionURL,
@@ -3673,10 +3678,10 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			{
 				Title:      "Help",
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HelpNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       "Help",
 					Description: "Help Navigation action",
 					Thumbnail:   common.HelpNavActionURL,
@@ -3687,12 +3692,12 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 	}
 	type args struct {
 		ctx  context.Context
-		user base.UserProfile
+		user profileutils.UserProfile
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.NavigationActions
+		want    *profileutils.NavigationActions
 		wantNil bool
 		wantErr bool
 	}{
@@ -3700,7 +3705,7 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			name: "valid:success_no_role_default_action",
 			args: args{
 				ctx: ctx,
-				user: base.UserProfile{
+				user: profileutils.UserProfile{
 					Role: "",
 				},
 			},
@@ -3711,7 +3716,7 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			name: "valid:success_employee_role_actions",
 			args: args{
 				ctx: ctx,
-				user: base.UserProfile{
+				user: profileutils.UserProfile{
 					Role:          employee,
 					FavNavActions: []string{"Agent"},
 				},
@@ -3723,7 +3728,7 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 			name: "valid:success_agent_role_actions",
 			args: args{
 				ctx: ctx,
-				user: base.UserProfile{
+				user: profileutils.UserProfile{
 					Role:          agent,
 					FavNavActions: []string{"Partner", "Consumer"},
 				},
@@ -3826,7 +3831,7 @@ func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 					return &dto.UserInfo{}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get user profile")
 				}
 			}
@@ -3835,8 +3840,8 @@ func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 					return &dto.UserInfo{}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:            uuid.New().String(),
 						FavNavActions: finalfavActions,
 					}, nil
@@ -3850,8 +3855,8 @@ func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 					return &dto.UserInfo{}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:            uuid.New().String(),
 						FavNavActions: initialFavActions,
 					}, nil
@@ -3865,8 +3870,8 @@ func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 					return &dto.UserInfo{}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:            uuid.New().String(),
 						FavNavActions: initialFavActions,
 					}, nil
@@ -3966,7 +3971,7 @@ func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
 					return &dto.UserInfo{}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get user profile")
 				}
 			}
@@ -3975,8 +3980,8 @@ func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
 					return &dto.UserInfo{}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:            uuid.New().String(),
 						FavNavActions: finalFavActions,
 					}, nil
@@ -3990,8 +3995,8 @@ func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
 					return &dto.UserInfo{}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:            uuid.New().String(),
 						FavNavActions: initialFavActions,
 					}, nil
@@ -4005,8 +4010,8 @@ func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
 					return &dto.UserInfo{}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:            uuid.New().String(),
 						FavNavActions: initialFavActions,
 					}, nil
@@ -4079,7 +4084,7 @@ func TestProfileUseCaseImpl_RefreshNavigationActions(t *testing.T) {
 					return &dto.UserInfo{}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get user profile")
 				}
 			}
@@ -4088,12 +4093,12 @@ func TestProfileUseCaseImpl_RefreshNavigationActions(t *testing.T) {
 					return &dto.UserInfo{}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{}, nil
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
 				}
 
-				fakeRepo.GetNavActionsFn = func(ctx context.Context, role base.RoleType) (*base.NavigationActions, error) {
-					return &base.NavigationActions{}, nil
+				fakeRepo.GetNavActionsFn = func(ctx context.Context, role profileutils.RoleType) (*profileutils.NavigationActions, error) {
+					return &profileutils.NavigationActions{}, nil
 				}
 			}
 

@@ -3,7 +3,9 @@ package domain
 import (
 	"time"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/profileutils"
 )
 
 // Branch represents a Slade 360 Charge Master branch
@@ -18,16 +20,16 @@ type Branch struct {
 
 // KYCRequest represent payload required to stage kyc processing request
 type KYCRequest struct {
-	ID                  string                 `json:"id" firestore:"id"`
-	ReqPartnerType      base.PartnerType       `json:"reqPartnerType" firestore:"reqPartnerType"`
-	ReqOrganizationType OrganizationType       `json:"reqOrganizationType" firestore:"reqOrganizationType"`
-	ReqRaw              map[string]interface{} `json:"reqRaw" firestore:"reqRaw"`
-	Processed           bool                   `json:"processed" firestore:"processed"`
-	SupplierRecord      *base.Supplier         `json:"supplierRecord" firestore:"supplierRecord"`
-	Status              KYCProcessStatus       `json:"status" firestore:"status"`
-	RejectionReason     *string                `json:"rejectionRejection" firestore:"rejectionRejection"`
-	FiledTimestamp      time.Time              `json:"filedTimeStamp" firestore:"filedTimeStamp"`
-	ProcessedTimestamp  time.Time              `json:"processedTimeStamp" firestore:"processedTimeStamp"`
+	ID                  string                   `json:"id" firestore:"id"`
+	ReqPartnerType      profileutils.PartnerType `json:"reqPartnerType" firestore:"reqPartnerType"`
+	ReqOrganizationType OrganizationType         `json:"reqOrganizationType" firestore:"reqOrganizationType"`
+	ReqRaw              map[string]interface{}   `json:"reqRaw" firestore:"reqRaw"`
+	Processed           bool                     `json:"processed" firestore:"processed"`
+	SupplierRecord      *profileutils.Supplier   `json:"supplierRecord" firestore:"supplierRecord"`
+	Status              KYCProcessStatus         `json:"status" firestore:"status"`
+	RejectionReason     *string                  `json:"rejectionRejection" firestore:"rejectionRejection"`
+	FiledTimestamp      time.Time                `json:"filedTimeStamp" firestore:"filedTimeStamp"`
+	ProcessedTimestamp  time.Time                `json:"processedTimeStamp" firestore:"processedTimeStamp"`
 
 	// points to the userProfile id of the addmin that has processed the KYC
 	ProcessedBy string `json:"processedBy" firestore:"processedBy"`
@@ -88,14 +90,14 @@ type ThinAddress struct {
 
 // NHIFDetails represents a user's thin NHIF details
 type NHIFDetails struct {
-	ID                        string                     `json:"id" firestore:"id"`
-	ProfileID                 string                     `json:"profileID" firestore:"profileID"`
-	MembershipNumber          string                     `json:"membershipNumber" firestore:"membershipNumber"`
-	Employment                EmploymentType             `json:"employmentType"`
-	IDDocType                 base.IdentificationDocType `json:"IDDocType"`
-	IDNumber                  string                     `json:"IDNumber" firestore:"IDNumber"`
-	IdentificationCardPhotoID string                     `json:"identificationCardPhotoID" firestore:"identificationCardPhotoID"`
-	NHIFCardPhotoID           string                     `json:"nhifCardPhotoID" firestore:"nhifCardPhotoID"`
+	ID                        string                          `json:"id" firestore:"id"`
+	ProfileID                 string                          `json:"profileID" firestore:"profileID"`
+	MembershipNumber          string                          `json:"membershipNumber" firestore:"membershipNumber"`
+	Employment                EmploymentType                  `json:"employmentType"`
+	IDDocType                 enumutils.IdentificationDocType `json:"IDDocType"`
+	IDNumber                  string                          `json:"IDNumber" firestore:"IDNumber"`
+	IdentificationCardPhotoID string                          `json:"identificationCardPhotoID" firestore:"identificationCardPhotoID"`
+	NHIFCardPhotoID           string                          `json:"nhifCardPhotoID" firestore:"nhifCardPhotoID"`
 }
 
 //USSDLeadDetails represents ussd details from AIT
@@ -135,8 +137,8 @@ type Microservice struct {
 func (m *Microservice) IsNode() {}
 
 // GetID returns the micro-service's ID
-func (m *Microservice) GetID() base.ID {
-	return base.IDValue(m.ID)
+func (m *Microservice) GetID() firebasetools.ID {
+	return firebasetools.IDValue(m.ID)
 }
 
 // SetID sets the microservice's ID

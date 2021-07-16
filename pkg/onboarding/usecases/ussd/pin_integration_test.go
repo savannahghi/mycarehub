@@ -7,7 +7,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/interserviceclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -509,7 +509,7 @@ func TestImpl_ChangeUSSDUserPIN(t *testing.T) {
 			name: "Sad case: Unable to Change user PIN",
 			args: args{
 				ctx:   ctx,
-				phone: base.TestUserPhoneNumber,
+				phone: interserviceclient.TestUserPhoneNumber,
 				pin:   invalidPIN,
 			},
 			want:    false,

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/interserviceclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
@@ -15,7 +15,7 @@ func TestGenerateUSSD_acceptance_tests(t *testing.T) {
 	client := http.DefaultClient
 
 	level := 0
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	sessionID := "123456"
 
 	// valid payload
@@ -97,7 +97,7 @@ func TestGenerateUSSD_acceptance_tests(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "profile") {
 				r.Header.Add(k, v)
 			}
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/savannahghi/interserviceclient"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
@@ -18,22 +18,22 @@ func TestISCClient(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		want    *base.InterServiceClient
+		want    *interserviceclient.InterServiceClient
 		wantErr bool
 	}{
 		{
 			name:    "should_load_yaml_and_start_isc_client",
-			want:    &base.InterServiceClient{},
+			want:    &interserviceclient.InterServiceClient{},
 			wantErr: false,
 		},
 		{
 			name:    "should_fail_to_load_yaml",
-			want:    &base.InterServiceClient{},
+			want:    &interserviceclient.InterServiceClient{},
 			wantErr: true,
 		},
 		{
 			name:    "should_fail_to_start_isc_service",
-			want:    &base.InterServiceClient{},
+			want:    &interserviceclient.InterServiceClient{},
 			wantErr: true,
 		},
 	}
@@ -42,25 +42,25 @@ func TestISCClient(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.name == "should_load_yaml_and_start_isc_client" {
-				baseExt.LoadDepsFromYAMLFn = func() (*base.DepsConfig, error) {
-					return &base.DepsConfig{}, nil
+				baseExt.LoadDepsFromYAMLFn = func() (*interserviceclient.DepsConfig, error) {
+					return &interserviceclient.DepsConfig{}, nil
 				}
-				baseExt.SetupISCclientFn = func(config base.DepsConfig, serviceName string) (*base.InterServiceClient, error) {
-					return &base.InterServiceClient{}, nil
+				baseExt.SetupISCclientFn = func(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error) {
+					return &interserviceclient.InterServiceClient{}, nil
 				}
 			}
 
 			if tt.name == "should_fail_to_load_yaml" {
-				baseExt.LoadDepsFromYAMLFn = func() (*base.DepsConfig, error) {
+				baseExt.LoadDepsFromYAMLFn = func() (*interserviceclient.DepsConfig, error) {
 					return nil, fmt.Errorf("error")
 				}
 			}
 
 			if tt.name == "should_fail_to_start_isc_service" {
-				baseExt.LoadDepsFromYAMLFn = func() (*base.DepsConfig, error) {
-					return &base.DepsConfig{}, nil
+				baseExt.LoadDepsFromYAMLFn = func() (*interserviceclient.DepsConfig, error) {
+					return &interserviceclient.DepsConfig{}, nil
 				}
-				baseExt.SetupISCclientFn = func(config base.DepsConfig, serviceName string) (*base.InterServiceClient, error) {
+				baseExt.SetupISCclientFn = func(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error) {
 					return nil, fmt.Errorf("error")
 				}
 			}

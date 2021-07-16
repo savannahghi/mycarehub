@@ -8,8 +8,9 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/serverutils"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -49,7 +50,7 @@ const (
 )
 
 func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) {
-	fc := base.FirebaseClient{}
+	fc := firebasetools.FirebaseClient{}
 	fa, err := fc.InitFirebase()
 	if err != nil {
 		log.Fatalf("unable to initialize Firestore for the Feed: %s", err)
@@ -85,7 +86,8 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
 	}
 
-	ext := extension.NewBaseExtensionImpl(&base.FirebaseClient{})
+	ext := extension.NewBaseExtensionImpl(&firebasetools.FirebaseClient{})
+
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 	ediClient := utils.NewInterServiceClient(ediService, ext)
@@ -187,7 +189,7 @@ func TestImpl_HandleResponseFromUSSDGateway(t *testing.T) {
 	}
 	sessionID := uuid.New().String()
 	unregisteredPhoneNumber := "0723456756"
-	registeredPhoneNumber := base.TestUserPhoneNumber
+	registeredPhoneNumber := interserviceclient.TestUserPhoneNumber
 
 	unregisteredValidPayload := &dto.SessionDetails{
 		SessionID:   sessionID,

@@ -1,10 +1,10 @@
 package dto
 
 import (
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/profileutils"
 	crmDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-
-	"gitlab.slade360emr.com/go/base"
 )
 
 // BusinessPartnerEdge is used to serialize GraphQL Relay edges for organization
@@ -15,14 +15,14 @@ type BusinessPartnerEdge struct {
 
 // BusinessPartnerConnection is used to serialize GraphQL Relay connections for organizations
 type BusinessPartnerConnection struct {
-	Edges    []*BusinessPartnerEdge `json:"edges"`
-	PageInfo *base.PageInfo         `json:"pageInfo"`
+	Edges    []*BusinessPartnerEdge  `json:"edges"`
+	PageInfo *firebasetools.PageInfo `json:"pageInfo"`
 }
 
 // AgentConnection is used to serialize GraphQL Relay connections for agents
 type AgentConnection struct {
-	Edges    []AgentEdge   `json:"edges"`
-	PageInfo base.PageInfo `json:"pageInfo"`
+	Edges    []AgentEdge            `json:"edges"`
+	PageInfo firebasetools.PageInfo `json:"pageInfo"`
 }
 
 // AgentEdge is used to serialize GraphQL Edges for an agent
@@ -49,7 +49,7 @@ type Agent struct {
 
 	PhotoUploadID string `json:"photoUploadID,omitempty"`
 
-	UserBioData base.BioData `json:"userBioData,omitempty"`
+	UserBioData profileutils.BioData `json:"userBioData,omitempty"`
 }
 
 // Admin represents agent with details inferred from their user profile
@@ -70,7 +70,7 @@ type Admin struct {
 
 	PhotoUploadID string `json:"photoUploadID,omitempty"`
 
-	UserBioData base.BioData `json:"userBioData,omitempty"`
+	UserBioData profileutils.BioData `json:"userBioData,omitempty"`
 }
 
 // AccountRecoveryPhonesResponse  payload sent back to the frontend when recovery an account
@@ -105,8 +105,8 @@ type CreatedUserResponse struct {
 
 // SupplierLogin is the response returned after the user has successfully login to edi
 type SupplierLogin struct {
-	Branches *BranchConnection `json:"branches,omitempty"`
-	Supplier *base.Supplier    `json:"supplier,omitempty"`
+	Branches *BranchConnection      `json:"branches,omitempty"`
+	Supplier *profileutils.Supplier `json:"supplier,omitempty"`
 }
 
 // UserInfo is a collection of standard profile information for a user.

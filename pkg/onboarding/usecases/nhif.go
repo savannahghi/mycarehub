@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/cenkalti/backoff"
+	"github.com/savannahghi/feedlib"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -89,7 +89,7 @@ func (n NHIFUseCaseImpl) AddNHIFDetails(
 			return n.engagement.ResolveDefaultNudgeByTitle(
 				ctx,
 				UID,
-				base.FlavourConsumer,
+				feedlib.FlavourConsumer,
 				AddNHIFNudgeTitle,
 			)
 		}

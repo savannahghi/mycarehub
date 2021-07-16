@@ -12,8 +12,11 @@ import (
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/serverutils"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -102,7 +105,7 @@ func TestMain(m *testing.M) {
 			}
 			for _, collection := range collections {
 				ref := fsc.Collection(collection)
-				base.DeleteCollection(ctx, fsc, ref, 10)
+				firebasetools.DeleteCollection(ctx, fsc, ref, 10)
 			}
 		}
 
@@ -128,7 +131,7 @@ func TestMain(m *testing.M) {
 }
 
 func InitializeTestFirebaseClient(ctx context.Context) (*firestore.Client, *auth.Client) {
-	fc := base.FirebaseClient{}
+	fc := firebasetools.FirebaseClient{}
 	fa, err := fc.InitFirebase()
 	if err != nil {
 		log.Panicf("unable to initialize Firebase: %s", err)
@@ -147,7 +150,7 @@ func InitializeTestFirebaseClient(ctx context.Context) (*firestore.Client, *auth
 }
 
 func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) {
-	fc := base.FirebaseClient{}
+	fc := firebasetools.FirebaseClient{}
 	fa, err := fc.InitFirebase()
 	if err != nil {
 		log.Fatalf("unable to initialize Firestore for the Feed: %s", err)
@@ -183,7 +186,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
 	}
 
-	ext := extension.NewBaseExtensionImpl(&base.FirebaseClient{})
+	ext := extension.NewBaseExtensionImpl(&firebasetools.FirebaseClient{})
 
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
@@ -237,7 +240,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}, nil
 }
 
-func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {
+func generateTestOTP(t *testing.T, phone string) (*profileutils.OtpResponse, error) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {
@@ -256,16 +259,16 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize test service")
 	}
-	phone := base.TestUserPhoneNumber
-	flavour := base.FlavourConsumer
-	pin := base.TestUserPin
+	phone := interserviceclient.TestUserPhoneNumber
+	flavour := feedlib.FlavourConsumer
+	pin := interserviceclient.TestUserPin
 	otp, err := s.Signup.VerifyPhoneNumber(ctx, phone)
 	if err != nil {
 		if strings.Contains(err.Error(), exceptions.CheckPhoneNumberExistError().Error()) {
 			logInCreds, err := s.Login.LoginByPhone(
 				ctx,
 				phone,
-				base.TestUserPin,
+				interserviceclient.TestUserPin,
 				flavour,
 			)
 			if err != nil {
@@ -310,7 +313,7 @@ func GetTestAuthenticatedContext(t *testing.T) (context.Context, *auth.Token, er
 	}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		auth,
 	)
 	return authenticatedContext, auth, nil
@@ -338,7 +341,7 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 		t.Errorf("failed to get test authenticated context: %v", err)
 		return
 	}
-	flavour := base.FlavourConsumer
+	flavour := feedlib.FlavourConsumer
 	s, err := InitializeTestService(ctx)
 	if err != nil {
 		t.Errorf("unable to initialize test service")
@@ -349,7 +352,7 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 		ctx     context.Context
 		phone   string
 		PIN     string
-		flavour base.Flavour
+		flavour feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -360,8 +363,8 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 			name: "happy case: valid login",
 			args: args{
 				ctx:     ctx,
-				phone:   base.TestUserPhoneNumber,
-				PIN:     base.TestUserPin,
+				phone:   interserviceclient.TestUserPhoneNumber,
+				PIN:     interserviceclient.TestUserPin,
 				flavour: flavour,
 			},
 			wantErr: false,
@@ -370,7 +373,7 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 			name: "sad case: wrong pin number supplied",
 			args: args{
 				ctx:     ctx,
-				phone:   base.TestUserPhoneNumber,
+				phone:   interserviceclient.TestUserPhoneNumber,
 				PIN:     "4567",
 				flavour: flavour,
 			},
@@ -381,7 +384,7 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 			args: args{
 				ctx:     ctx,
 				phone:   "+2547900900", // not a primary phone number
-				PIN:     base.TestUserPin,
+				PIN:     interserviceclient.TestUserPin,
 				flavour: flavour,
 			},
 			wantErr: true,
@@ -391,7 +394,7 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 			args: args{
 				ctx:     ctx,
 				phone:   "+2541234",
-				PIN:     base.TestUserPin,
+				PIN:     interserviceclient.TestUserPin,
 				flavour: flavour,
 			},
 			wantErr: true,
@@ -400,8 +403,8 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 			name: "sad case: incorrect flavour",
 			args: args{
 				ctx:     ctx,
-				phone:   base.TestUserPhoneNumber,
-				PIN:     base.TestUserPin,
+				phone:   interserviceclient.TestUserPhoneNumber,
+				PIN:     interserviceclient.TestUserPin,
 				flavour: "not-a-correct-flavour",
 			},
 			wantErr: true,

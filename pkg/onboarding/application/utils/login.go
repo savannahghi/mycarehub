@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 )
 
@@ -19,7 +19,7 @@ const (
 
 // LoginClient returns an API client that is logged in with the supplied username and password
 // to EDI Core authserver
-func LoginClient(username string, password string, baseExt extension.BaseExtension) (base.Client, error) {
+func LoginClient(username string, password string, baseExt extension.BaseExtension) (apiclient.Client, error) {
 	clientID, clientIDErr := baseExt.GetEnvVar(CoreEDIClientIDEnvVarName)
 	if clientIDErr != nil {
 		return nil, clientIDErr

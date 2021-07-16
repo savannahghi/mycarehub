@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/interserviceclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
@@ -86,7 +86,7 @@ func TestCreateSMSData_acceptance(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "onboarding") {
 				r.Header.Add(k, v)
 			}
 

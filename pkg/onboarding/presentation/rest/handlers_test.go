@@ -16,7 +16,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
 	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 	erpMock "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases/mock"
 	crmDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
@@ -108,7 +110,7 @@ func composeValidPhonePayload(t *testing.T, phone string) *bytes.Buffer {
 	return bytes.NewBuffer(bs)
 }
 
-func composeValidRolePayload(t *testing.T, phone string, role base.RoleType) *bytes.Buffer {
+func composeValidRolePayload(t *testing.T, phone string, role profileutils.RoleType) *bytes.Buffer {
 	payload := &dto.RolePayload{
 		PhoneNumber: &phone,
 		Role:        &role,
@@ -120,7 +122,7 @@ func composeValidRolePayload(t *testing.T, phone string, role base.RoleType) *by
 	return bytes.NewBuffer(bs)
 }
 
-func composeSignupPayload(t *testing.T, phone, pin, otp string, flavour base.Flavour) *bytes.Buffer {
+func composeSignupPayload(t *testing.T, phone, pin, otp string, flavour feedlib.Flavour) *bytes.Buffer {
 	payload := dto.SignUpInput{
 		PhoneNumber: &phone,
 		PIN:         &pin,
@@ -179,7 +181,7 @@ func composePushTokenPayload(t *testing.T, UID, token string) *bytes.Buffer {
 	return bytes.NewBuffer(bs)
 }
 
-func composeLoginPayload(t *testing.T, phone, pin string, flavour base.Flavour) *bytes.Buffer {
+func composeLoginPayload(t *testing.T, phone, pin string, flavour feedlib.Flavour) *bytes.Buffer {
 	payload := dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
@@ -264,10 +266,10 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 
 	h := rest.NewHandlersInterfaces(i)
 	// valid:_successfully_verifies_a_phone_number
-	payload := composeValidPhonePayload(t, base.TestUserPhoneNumber)
+	payload := composeValidPhonePayload(t, interserviceclient.TestUserPhoneNumber)
 
 	// payload 2
-	payload2 := composeValidPhonePayload(t, base.TestUserPhoneNumberWithPin)
+	payload2 := composeValidPhonePayload(t, interserviceclient.TestUserPhoneNumberWithPin)
 
 	// payload 3
 	payload3 := composeValidPhonePayload(t, "0700100200")
@@ -367,8 +369,8 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
 				}
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
-					return &base.OtpResponse{OTP: "1234"}, nil
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+					return &profileutils.OtpResponse{OTP: "1234"}, nil
 				}
 			}
 			// we mock `CheckPhoneExists` to return true
@@ -389,7 +391,7 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
 				}
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("unable generate and send otp")
 				}
 			}
@@ -445,28 +447,28 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 
 	// payload
 	pin := "2030"
-	flavour := base.FlavourPro
+	flavour := feedlib.FlavourPro
 	otp := "1234"
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	payload := composeSignupPayload(t, phoneNumber, pin, otp, flavour)
 
 	// payload 2
 	pin2 := "1000"
-	flavour2 := base.FlavourConsumer
+	flavour2 := feedlib.FlavourConsumer
 	otp2 := "9000"
 	phoneNumber2 := "+254720125456"
 	payload2 := composeSignupPayload(t, phoneNumber2, pin2, otp2, flavour2)
 
 	// payload 3
 	pin3 := "2000"
-	flavour3 := base.FlavourConsumer
+	flavour3 := feedlib.FlavourConsumer
 	otp3 := "3000"
 	phoneNumber3 := "+254721100200"
 	payload3 := composeSignupPayload(t, phoneNumber3, pin3, otp3, flavour3)
 
 	// payload6
 	pin6 := "0000"
-	flavour6 := base.FlavourConsumer
+	flavour6 := feedlib.FlavourConsumer
 	otp6 := "9520"
 	phoneNumber6 := "+254721410589"
 	payload6 := composeSignupPayload(t, phoneNumber6, pin6, otp6, flavour6)
@@ -557,10 +559,10 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 						ProviderID:  "google.com",
 					}, nil
 				}
-				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "123",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID:           "125",
 								LoginProvider: "Phone",
@@ -569,8 +571,8 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 						PrimaryPhone: &phoneNumber,
 					}, nil
 				}
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
-					return &base.AuthCredentialResponse{
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *profileutils.UserProfile) (*profileutils.AuthCredentialResponse, error) {
+					return &profileutils.AuthCredentialResponse{
 						UID:          "5550",
 						RefreshToken: "55550",
 					}, nil
@@ -581,23 +583,23 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				fakePubSub.NotifyCoverLinkingFn = func(ctx context.Context, data dto.LinkCoverPubSubMessage) error {
 					return nil
 				}
-				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ID:         "5550",
 						SupplierID: "5555",
 					}, nil
 				}
-				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*base.Customer, error) {
-					return &base.Customer{
+				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*profileutils.Customer, error) {
+					return &profileutils.Customer{
 						ID:         "0000",
 						CustomerID: "22222",
 					}, nil
 				}
 				// should return a profile with an ID
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "123",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID:           "125",
 								LoginProvider: "Phone",
@@ -612,16 +614,16 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				}
 
 				fakeRepo.SetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string,
-					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
-					return &base.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error) {
+					return &profileutils.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
 				}
 
 				fakePubSub.NotifyCreateContactFn = func(ctx context.Context, contact crmDomain.CRMContact) error {
 					return nil
 				}
 
-				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
-					return &base.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
+					return &profileutils.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
 				}
 
 				fakePubSub.TopicIDsFn = func() []string {
@@ -710,7 +712,7 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 
 	h := rest.NewHandlersInterfaces(i)
 	// payload 1
-	payload := composeValidPhonePayload(t, base.TestUserPhoneNumber)
+	payload := composeValidPhonePayload(t, interserviceclient.TestUserPhoneNumber)
 
 	// payload 2
 	payload2 := composeValidPhonePayload(t, "0710100595")
@@ -765,8 +767,8 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 						SecondaryPhoneNumbers: []string{
@@ -782,7 +784,7 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to retrieve profile")
 				}
 			}
@@ -835,7 +837,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 
 	h := rest.NewHandlersInterfaces(i)
 	// payload successfully_request_pin_reset
-	payload := composeValidPhonePayload(t, base.TestUserPhoneNumber)
+	payload := composeValidPhonePayload(t, interserviceclient.TestUserPhoneNumber)
 	// _phone_number_invalid
 	payload1 := composeValidPhonePayload(t, "")
 	//invalid:_inable_to_get_primary_phone
@@ -929,8 +931,8 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 			}
 
 			if tt.name == "valid:successfully_request_pin_reset" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 					}, nil
@@ -938,14 +940,14 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
-					return &base.OtpResponse{OTP: "1234"}, nil
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+					return &profileutils.OtpResponse{OTP: "1234"}, nil
 				}
 			}
 
 			if tt.name == "invalid:otp_generation_fails" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 					}, nil
@@ -953,20 +955,20 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to generate otp")
 				}
 			}
 
 			if tt.name == "invalid:_inable_to_get_primary_phone" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to fetch profile")
 				}
 			}
 
 			if tt.name == "invalid:check_has_pin_failed" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 					}, nil
@@ -1096,8 +1098,8 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 			response := httptest.NewRecorder()
 			// we mock the required methods for a valid case
 			if tt.name == "valid:successfully_reset_pin" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 					}, nil
@@ -1115,8 +1117,8 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 
 			// we set `UpdatePIN` to return an error
 			if tt.name == "invalid:unable_to_update_pin" {
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 					}, nil
@@ -1226,8 +1228,8 @@ func TestHandlersInterfacesImpl_RefreshToken(t *testing.T) {
 			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 			response := httptest.NewRecorder()
 			if tt.name == "valid:_successfully_refresh_token" {
-				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*base.AuthCredentialResponse, error) {
-					return &base.AuthCredentialResponse{
+				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*profileutils.AuthCredentialResponse, error) {
+					return &profileutils.AuthCredentialResponse{
 						UID:          "5550",
 						RefreshToken: "55550",
 					}, nil
@@ -1235,7 +1237,7 @@ func TestHandlersInterfacesImpl_RefreshToken(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_refresh_token_fails" {
-				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*base.AuthCredentialResponse, error) {
+				fakeRepo.ExchangeRefreshTokenForIDTokenFn = func(ctx context.Context, token string) (*profileutils.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("unable to refresh token")
 				}
 			}
@@ -1335,15 +1337,15 @@ func TestHandlersInterfacesImpl_GetUserProfileByUID(t *testing.T) {
 			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 			response := httptest.NewRecorder()
 			if tt.name == "valid:_successfully_get_profile_by_uid" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					}, nil
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_get_profile_by_uid" {
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -1380,7 +1382,7 @@ func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
 
 	h := rest.NewHandlersInterfaces(i)
 
-	payload := composeValidPhonePayload(t, base.TestUserPhoneNumber)
+	payload := composeValidPhonePayload(t, interserviceclient.TestUserPhoneNumber)
 
 	type args struct {
 		url        string
@@ -1427,13 +1429,13 @@ func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
 			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 			response := httptest.NewRecorder()
 			if tt.name == "valid:_successfully_send_otp" {
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
-					return &base.OtpResponse{OTP: "1234"}, nil
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+					return &profileutils.OtpResponse{OTP: "1234"}, nil
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_send_otp" {
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*base.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to send otp")
 				}
 			}
@@ -1472,31 +1474,31 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 	// payload
 	phone := "0712456784"
 	pin := "1897"
-	flavour := base.FlavourPro
+	flavour := feedlib.FlavourPro
 	payload := composeLoginPayload(t, phone, pin, flavour)
 
 	// payload1 : invalid:_get_userprofile_by_primary_phone_fails
 	phone1 := "0708598520"
 	pin1 := "1800"
-	flavour1 := base.FlavourConsumer
+	flavour1 := feedlib.FlavourConsumer
 	payload1 := composeLoginPayload(t, phone1, pin1, flavour1)
 
 	// payload2 : invalid:_get_pinbyprofileid_fails
 	phone2 := "0708590000"
 	pin2 := "1000"
-	flavour2 := base.FlavourConsumer
+	flavour2 := feedlib.FlavourConsumer
 	payload2 := composeLoginPayload(t, phone2, pin2, flavour2)
 
 	// payload4 invalid:_pin_mismatch
 	phone4 := "0702960230"
 	pin4 := "1023"
-	flavour4 := base.FlavourConsumer
+	flavour4 := feedlib.FlavourConsumer
 	payload4 := composeLoginPayload(t, phone4, pin4, flavour4)
 
 	// payload5 invalid:_generate_auth_credentials_fails
 	phone5 := "0705222888"
 	pin5 := "1093"
-	flavour5 := base.FlavourConsumer
+	flavour5 := feedlib.FlavourConsumer
 	payload5 := composeLoginPayload(t, phone5, pin5, flavour5)
 
 	// payload7 invalid:_invalid_flavour_used
@@ -1593,10 +1595,10 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "123",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID:           "125",
 								LoginProvider: "Phone",
@@ -1611,18 +1613,18 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				fakePinExt.ComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
 					return true
 				}
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
-					return &base.AuthCredentialResponse{
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *profileutils.UserProfile) (*profileutils.AuthCredentialResponse, error) {
+					return &profileutils.AuthCredentialResponse{
 						UID: "5550",
 						// IDToken:      "555",
 						RefreshToken: "55550",
 					}, nil
 				}
-				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour base.Flavour, profileID string) (*base.Customer, *base.Supplier, error) {
-					return &base.Customer{ID: "5550"}, &base.Supplier{ID: "5550"}, nil
+				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour feedlib.Flavour, profileID string) (*profileutils.Customer, *profileutils.Supplier, error) {
+					return &profileutils.Customer{ID: "5550"}, &profileutils.Supplier{ID: "5550"}, nil
 				}
-				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
-					return &base.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
+					return &profileutils.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
 				}
 			}
 
@@ -1631,7 +1633,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get user profile")
 				}
 			}
@@ -1642,8 +1644,8 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "123",
 					}, nil
 				}
@@ -1658,10 +1660,10 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "123",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID:           "125",
 								LoginProvider: "Phone",
@@ -1683,10 +1685,10 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					phone := "+254721123123"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "123",
-						VerifiedIdentifiers: []base.VerifiedIdentifier{
+						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
 							{
 								UID:           "125",
 								LoginProvider: "Phone",
@@ -1701,7 +1703,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				fakePinExt.ComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
 					return true
 				}
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *base.UserProfile) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *profileutils.UserProfile) (*profileutils.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("unable to generate auth credentials")
 				}
 			}
@@ -1760,7 +1762,7 @@ func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 	h := rest.NewHandlersInterfaces(i)
 
 	// valid payload
-	validPayload := composeSendRetryOTPPayload(t, base.TestUserPhoneNumber, 1)
+	validPayload := composeSendRetryOTPPayload(t, interserviceclient.TestUserPhoneNumber, 1)
 
 	invalidPayload := composeSendRetryOTPPayload(t, "", 2)
 	type args struct {
@@ -1817,21 +1819,21 @@ func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 			response := httptest.NewRecorder()
 
 			if tt.name == "valid:_successfully_send_retry_otp" {
-				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
-					return &base.OtpResponse{
+				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*profileutils.OtpResponse, error) {
+					return &profileutils.OtpResponse{
 						OTP: "123456",
 					}, nil
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_send_otp" {
-				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
+				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to send OTP")
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_send_otp_due_to_missing_msisdn" {
-				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
+				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to send OTP")
 				}
 			}
@@ -1867,7 +1869,7 @@ func TestHandlersInterfacesImpl_LoginAnonymous(t *testing.T) {
 
 	h := rest.NewHandlersInterfaces(i)
 
-	validPayload := composeLoginPayload(t, "", "", base.FlavourConsumer)
+	validPayload := composeLoginPayload(t, "", "", feedlib.FlavourConsumer)
 	invalidPayload := composeLoginPayload(t, "", "", " ")
 
 	type args struct {
@@ -1922,8 +1924,8 @@ func TestHandlersInterfacesImpl_LoginAnonymous(t *testing.T) {
 			}
 
 			if tt.name == "valid:_successfully_login_as_anonymous" {
-				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*base.AuthCredentialResponse, error) {
-					return &base.AuthCredentialResponse{
+				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*profileutils.AuthCredentialResponse, error) {
+					return &profileutils.AuthCredentialResponse{
 						UID:          "6660",
 						RefreshToken: "6660",
 					}, nil
@@ -1931,13 +1933,13 @@ func TestHandlersInterfacesImpl_LoginAnonymous(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_invalid_flavour_defined" {
-				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*profileutils.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("an invalid `flavour` defined")
 				}
 			}
 
 			if tt.name == "invalid:_missing_flavour" {
-				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*base.AuthCredentialResponse, error) {
+				fakeRepo.GenerateAuthCredentialsForAnonymousUserFn = func(ctx context.Context) (*profileutils.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("expected `flavour` to be defined")
 				}
 			}
@@ -2085,13 +2087,13 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 					return "8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7",
 					}, nil
 				}
 
-				fakeRepo.UpdateCoversFn = func(ctx context.Context, id string, covers []base.Cover) error {
+				fakeRepo.UpdateCoversFn = func(ctx context.Context, id string, covers []profileutils.Cover) error {
 					return nil
 				}
 			}
@@ -2107,13 +2109,13 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "f4f39af7",
 					}, nil
 				}
 
-				fakeRepo.UpdateCoversFn = func(ctx context.Context, id string, covers []base.Cover) error {
+				fakeRepo.UpdateCoversFn = func(ctx context.Context, id string, covers []profileutils.Cover) error {
 					return fmt.Errorf("unable to update covers")
 				}
 			}
@@ -2220,13 +2222,13 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "AD-FSO798",
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
-					return &base.Supplier{
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+					return &profileutils.Supplier{
 						ProfileID: &profileID,
 					}, nil
 				}
@@ -2237,12 +2239,12 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: "AD-FSO798",
 					}, nil
 				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*base.Supplier, error) {
+				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to get the supplier profile")
 				}
 			}
@@ -2252,7 +2254,7 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 					return "FSO798-AD3", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 					return nil, fmt.Errorf("unable to get profile")
 				}
 			}
@@ -2518,8 +2520,8 @@ func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 						SecondaryPhoneNumbers: []string{
@@ -2552,8 +2554,8 @@ func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:           "123",
 						PrimaryPhone: &phoneNumber,
 						SecondaryPhoneNumbers: []string{
@@ -2659,8 +2661,8 @@ func TestHandlersInterfacesImpl_RegisterPushToken(t *testing.T) {
 					return "400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:         "f4f39af7--91bd-42b3af315a4e",
 						PushTokens: []string{"token12", "token23", "token34"},
 					}, nil
@@ -2675,8 +2677,8 @@ func TestHandlersInterfacesImpl_RegisterPushToken(t *testing.T) {
 					return "400d-8716-7e2aead29f2c", nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID:         "f4f39af7--91bd-42b3af315a4e",
 						PushTokens: []string{"token12", "token23", "token34"},
 					}, nil
@@ -2799,13 +2801,13 @@ func TestHandlersInterfacesImpl_AddAdminPermsToUser(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
 
-				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 					return nil
 				}
 
@@ -2821,13 +2823,13 @@ func TestHandlersInterfacesImpl_AddAdminPermsToUser(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
 
-				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 					return fmt.Errorf("unable to update user permissions")
 				}
 
@@ -2962,13 +2964,13 @@ func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
 
-				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 					return nil
 				}
 
@@ -2985,13 +2987,13 @@ func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
 					return &phone, nil
 				}
 
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
 
-				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []base.PermissionType) error {
+				fakeRepo.UpdatePermissionsFn = func(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 					return fmt.Errorf("unable to update user permissions")
 				}
 
@@ -3054,8 +3056,8 @@ func TestHandlersInterfacesImpl_AddRoleToUser(t *testing.T) {
 
 	validPhone := "+254711445566"
 	invalidPhone := "+254777882200"
-	validRole := base.RoleTypeEmployee
-	var invalidRole base.RoleType = "STANGER"
+	validRole := profileutils.RoleTypeEmployee
+	var invalidRole profileutils.RoleType = "STANGER"
 	payload := composeValidRolePayload(t, validPhone, validRole)
 	payload1 := composeValidRolePayload(t, invalidPhone, validRole)
 	payload2 := composeValidRolePayload(t, validPhone, invalidRole)
@@ -3119,12 +3121,12 @@ func TestHandlersInterfacesImpl_AddRoleToUser(t *testing.T) {
 					phone := "+254721026491"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
-				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role profileutils.RoleType) error {
 					return nil
 				}
 			}
@@ -3141,12 +3143,12 @@ func TestHandlersInterfacesImpl_AddRoleToUser(t *testing.T) {
 					phone := "+254721026491"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
-				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role profileutils.RoleType) error {
 					return fmt.Errorf("Invalid role provided")
 				}
 			}
@@ -3236,12 +3238,12 @@ func TestHandlersInterfacesImpl_RemoveRoleToUser(t *testing.T) {
 					phone := "+254721026491"
 					return &phone, nil
 				}
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
-					return &base.UserProfile{
+				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
 						ID: uuid.New().String(),
 					}, nil
 				}
-				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role base.RoleType) error {
+				fakeRepo.UpdateRoleFn = func(ctx context.Context, id string, role profileutils.RoleType) error {
 					return nil
 				}
 			}

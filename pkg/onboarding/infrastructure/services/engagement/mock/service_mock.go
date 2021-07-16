@@ -4,15 +4,16 @@ import (
 	"context"
 	"net/http"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 // FakeServiceEngagement is an `engagement` service mock .
 type FakeServiceEngagement struct {
-	PublishKYCNudgeFn            func(ctx context.Context, uid string, payload base.Nudge) (*http.Response, error)
-	PublishKYCFeedItemFn         func(ctx context.Context, uid string, payload base.Item) (*http.Response, error)
-	ResolveDefaultNudgeByTitleFn func(ctx context.Context, UID string, flavour base.Flavour, nudgeTitle string) error
+	PublishKYCNudgeFn            func(ctx context.Context, uid string, payload feedlib.Nudge) (*http.Response, error)
+	PublishKYCFeedItemFn         func(ctx context.Context, uid string, payload feedlib.Item) (*http.Response, error)
+	ResolveDefaultNudgeByTitleFn func(ctx context.Context, UID string, flavour feedlib.Flavour, nudgeTitle string) error
 	SendMailFn                   func(ctx context.Context, email string, message string, subject string) error
 	SendAlertToSupplierFn        func(ctx context.Context, input dto.EmailNotificationPayload) error
 	NotifySupplierOnSuspensionFn func(ctx context.Context, input dto.EmailNotificationPayload) error
@@ -20,13 +21,13 @@ type FakeServiceEngagement struct {
 	GenerateAndSendOTPFn         func(
 		ctx context.Context,
 		phone string,
-	) (*base.OtpResponse, error)
+	) (*profileutils.OtpResponse, error)
 
 	SendRetryOTPFn func(
 		ctx context.Context,
 		msisdn string,
 		retryStep int,
-	) (*base.OtpResponse, error)
+	) (*profileutils.OtpResponse, error)
 
 	VerifyOTPFn func(ctx context.Context, phone, OTP string) (bool, error)
 
@@ -39,7 +40,7 @@ type FakeServiceEngagement struct {
 func (f *FakeServiceEngagement) PublishKYCNudge(
 	ctx context.Context,
 	uid string,
-	payload base.Nudge,
+	payload feedlib.Nudge,
 ) (*http.Response, error) {
 	return f.PublishKYCNudgeFn(ctx, uid, payload)
 }
@@ -48,7 +49,7 @@ func (f *FakeServiceEngagement) PublishKYCNudge(
 func (f *FakeServiceEngagement) PublishKYCFeedItem(
 	ctx context.Context,
 	uid string,
-	payload base.Item,
+	payload feedlib.Item,
 ) (*http.Response, error) {
 	return f.PublishKYCFeedItemFn(ctx, uid, payload)
 }
@@ -57,7 +58,7 @@ func (f *FakeServiceEngagement) PublishKYCFeedItem(
 func (f *FakeServiceEngagement) ResolveDefaultNudgeByTitle(
 	ctx context.Context,
 	UID string,
-	flavour base.Flavour,
+	flavour feedlib.Flavour,
 	nudgeTitle string,
 ) error {
 	return f.ResolveDefaultNudgeByTitleFn(
@@ -92,7 +93,7 @@ func (f *FakeServiceEngagement) NotifyAdmins(ctx context.Context, input dto.Emai
 func (f *FakeServiceEngagement) GenerateAndSendOTP(
 	ctx context.Context,
 	phone string,
-) (*base.OtpResponse, error) {
+) (*profileutils.OtpResponse, error) {
 	return f.GenerateAndSendOTPFn(ctx, phone)
 }
 
@@ -101,7 +102,7 @@ func (f *FakeServiceEngagement) SendRetryOTP(
 	ctx context.Context,
 	msisdn string,
 	retryStep int,
-) (*base.OtpResponse, error) {
+) (*profileutils.OtpResponse, error) {
 	return f.SendRetryOTPFn(ctx, msisdn, retryStep)
 }
 

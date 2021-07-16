@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/scalarutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -195,7 +195,7 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		day, _ := strconv.Atoi(date[0:2])
 		month, _ := strconv.Atoi(date[2:4])
 		year, _ := strconv.Atoi(date[4:8])
-		dateofBirth := &base.Date{
+		dateofBirth := &scalarutils.Date{
 			Month: month,
 			Day:   day,
 			Year:  year,

@@ -17,10 +17,14 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
+	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/base"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -64,90 +68,90 @@ func NewFirebaseRepository(firestoreClient FirestoreClientExtension, firebaseCli
 
 // GetUserProfileCollectionName ...
 func (fr Repository) GetUserProfileCollectionName() string {
-	suffixed := base.SuffixCollection(userProfileCollectionName)
+	suffixed := firebasetools.SuffixCollection(userProfileCollectionName)
 	return suffixed
 }
 
 // GetSupplierProfileCollectionName ...
 func (fr Repository) GetSupplierProfileCollectionName() string {
-	suffixed := base.SuffixCollection(supplierProfileCollectionName)
+	suffixed := firebasetools.SuffixCollection(supplierProfileCollectionName)
 	return suffixed
 }
 
 // GetCustomerProfileCollectionName ...
 func (fr Repository) GetCustomerProfileCollectionName() string {
-	suffixed := base.SuffixCollection(customerProfileCollectionName)
+	suffixed := firebasetools.SuffixCollection(customerProfileCollectionName)
 	return suffixed
 }
 
 // GetSurveyCollectionName returns a well suffixed PINs collection name
 func (fr Repository) GetSurveyCollectionName() string {
-	suffixed := base.SuffixCollection(surveyCollectionName)
+	suffixed := firebasetools.SuffixCollection(surveyCollectionName)
 	return suffixed
 }
 
 // GetPINsCollectionName returns a well suffixed PINs collection name
 func (fr Repository) GetPINsCollectionName() string {
-	suffixed := base.SuffixCollection(pinsCollectionName)
+	suffixed := firebasetools.SuffixCollection(pinsCollectionName)
 	return suffixed
 }
 
 // GetProfileNudgesCollectionName return the storage location of profile nudges
 func (fr Repository) GetProfileNudgesCollectionName() string {
-	suffixed := base.SuffixCollection(profileNudgesCollectionName)
+	suffixed := firebasetools.SuffixCollection(profileNudgesCollectionName)
 	return suffixed
 }
 
 // GetKCYProcessCollectionName fetches collection where kyc processing request will be saved
 func (fr Repository) GetKCYProcessCollectionName() string {
-	suffixed := base.SuffixCollection(kycProcessCollectionName)
+	suffixed := firebasetools.SuffixCollection(kycProcessCollectionName)
 	return suffixed
 }
 
 // GetExperimentParticipantCollectionName fetches the collection where experiment participant will be saved
 func (fr *Repository) GetExperimentParticipantCollectionName() string {
-	suffixed := base.SuffixCollection(experimentParticipantCollectionName)
+	suffixed := firebasetools.SuffixCollection(experimentParticipantCollectionName)
 	return suffixed
 }
 
 // GetNHIFDetailsCollectionName ...
 func (fr Repository) GetNHIFDetailsCollectionName() string {
-	suffixed := base.SuffixCollection(nhifDetailsCollectionName)
+	suffixed := firebasetools.SuffixCollection(nhifDetailsCollectionName)
 	return suffixed
 }
 
 // GetCommunicationsSettingsCollectionName ...
 func (fr Repository) GetCommunicationsSettingsCollectionName() string {
-	suffixed := base.SuffixCollection(communicationsSettingsCollectionName)
+	suffixed := firebasetools.SuffixCollection(communicationsSettingsCollectionName)
 	return suffixed
 }
 
 // GetSMSCollectionName gets the collection name from firestore
 func (fr Repository) GetSMSCollectionName() string {
-	suffixed := base.SuffixCollection(smsCollectionName)
+	suffixed := firebasetools.SuffixCollection(smsCollectionName)
 	return suffixed
 }
 
 //GetUSSDCollectionName ...
 func (fr Repository) GetUSSDCollectionName() string {
-	suffixed := base.SuffixCollection(ussdCollectioName)
+	suffixed := firebasetools.SuffixCollection(ussdCollectioName)
 	return suffixed
 }
 
 //GetCRMStagingCollectionName ...
 func (fr Repository) GetCRMStagingCollectionName() string {
-	suffixed := base.SuffixCollection(crmStagingCollectionName)
+	suffixed := firebasetools.SuffixCollection(crmStagingCollectionName)
 	return suffixed
 }
 
 // GetMarketingDataCollectionName ...
 func (fr Repository) GetMarketingDataCollectionName() string {
-	suffixed := base.SuffixCollection(marketingDataCollectionName)
+	suffixed := firebasetools.SuffixCollection(marketingDataCollectionName)
 	return suffixed
 }
 
 // GetUserProfileByUID retrieves the user profile by UID
-func (fr *Repository) GetUserProfileByUID(ctx context.Context, uid string, suspended bool) (*base.UserProfile, error) {
+func (fr *Repository) GetUserProfileByUID(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "GetUserProfileByUID")
 	defer span.End()
 
@@ -178,7 +182,7 @@ func (fr *Repository) GetUserProfileByUID(ctx context.Context, uid string, suspe
 	}
 
 	dsnap := docs[0]
-	userProfile := &base.UserProfile{}
+	userProfile := &profileutils.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -201,7 +205,7 @@ func (fr *Repository) GetUserProfileByID(
 	ctx context.Context,
 	id string,
 	suspended bool,
-) (*base.UserProfile, error) {
+) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "GetUserProfileByID")
 	defer span.End()
 
@@ -224,7 +228,7 @@ func (fr *Repository) GetUserProfileByID(
 		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 	}
 	dsnap := docs[0]
-	userProfile := &base.UserProfile{}
+	userProfile := &profileutils.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -249,7 +253,7 @@ func (fr *Repository) fetchUserRandomName(ctx context.Context) *string {
 }
 
 // CreateUserProfile creates a user profile of using the provided phone number and uid
-func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
+func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "CreateUserProfile")
 	defer span.End()
 
@@ -265,13 +269,13 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 	}
 
 	profileID := uuid.New().String()
-	pr := &base.UserProfile{
+	pr := &profileutils.UserProfile{
 		ID:           profileID,
 		UserName:     fr.fetchUserRandomName(ctx),
 		PrimaryPhone: &phoneNumber,
-		VerifiedIdentifiers: []base.VerifiedIdentifier{{
+		VerifiedIdentifiers: []profileutils.VerifiedIdentifier{{
 			UID:           uid,
-			LoginProvider: base.LoginProviderTypePhone,
+			LoginProvider: profileutils.LoginProviderTypePhone,
 			Timestamp:     time.Now().In(pubsubtools.TimeLocation),
 		}},
 		VerifiedUIDS:  []string{uid},
@@ -298,7 +302,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created user profile: %w", err))
 	}
 	// return the newly created user profile
-	userProfile := &base.UserProfile{}
+	userProfile := &profileutils.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -309,7 +313,7 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 }
 
 // CreateDetailedUserProfile creates a new user profile that is pre-filled using the provided phone number
-func (fr *Repository) CreateDetailedUserProfile(ctx context.Context, phoneNumber string, profile base.UserProfile) (*base.UserProfile, error) {
+func (fr *Repository) CreateDetailedUserProfile(ctx context.Context, phoneNumber string, profile profileutils.UserProfile) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "CreateDetailedUserProfile")
 	defer span.End()
 
@@ -333,9 +337,9 @@ func (fr *Repository) CreateDetailedUserProfile(ctx context.Context, phoneNumber
 		return nil, err
 	}
 
-	phoneIdentifier := base.VerifiedIdentifier{
+	phoneIdentifier := profileutils.VerifiedIdentifier{
 		UID:           user.UID,
-		LoginProvider: base.LoginProviderTypePhone,
+		LoginProvider: profileutils.LoginProviderTypePhone,
 		Timestamp:     time.Now().In(pubsubtools.TimeLocation),
 	}
 
@@ -364,11 +368,11 @@ func (fr *Repository) CreateDetailedUserProfile(ctx context.Context, phoneNumber
 }
 
 // CreateEmptySupplierProfile creates an empty supplier profile
-func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID string) (*base.Supplier, error) {
+func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "CreateEmptySupplierProfile")
 	defer span.End()
 
-	sup := &base.Supplier{
+	sup := &profileutils.Supplier{
 		ID:        uuid.New().String(),
 		ProfileID: &profileID,
 	}
@@ -392,7 +396,7 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created supplier profile: %w", err))
 	}
 	// return the newly created supplier profile
-	supplier := &base.Supplier{}
+	supplier := &profileutils.Supplier{}
 	err = dsnap.DataTo(supplier)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -403,7 +407,7 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 }
 
 // CreateDetailedSupplierProfile create a new supplier profile that is pre-filled using the provided profile ID
-func (fr *Repository) CreateDetailedSupplierProfile(ctx context.Context, profileID string, supplier base.Supplier) (*base.Supplier, error) {
+func (fr *Repository) CreateDetailedSupplierProfile(ctx context.Context, profileID string, supplier profileutils.Supplier) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "CreateDetailedSupplierProfile")
 	defer span.End()
 
@@ -427,11 +431,11 @@ func (fr *Repository) CreateDetailedSupplierProfile(ctx context.Context, profile
 }
 
 // CreateEmptyCustomerProfile creates an empty customer profile
-func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*base.Customer, error) {
+func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*profileutils.Customer, error) {
 	ctx, span := tracer.Start(ctx, "CreateEmptyCustomerProfile")
 	defer span.End()
 
-	cus := &base.Customer{
+	cus := &profileutils.Customer{
 		ID:        uuid.New().String(),
 		ProfileID: &profileID,
 	}
@@ -457,7 +461,7 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 	}
 
 	// return the newly created customer profile
-	customer := &base.Customer{}
+	customer := &profileutils.Customer{}
 	err = dsnap.DataTo(customer)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -467,7 +471,7 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 }
 
 //GetUserProfileByPrimaryPhoneNumber fetches a user profile by primary phone number
-func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "GetUserProfileByPrimaryPhoneNumber")
 	defer span.End()
 
@@ -486,7 +490,7 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 		return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 	}
 	dsnap := docs[0]
-	profile := &base.UserProfile{}
+	profile := &profileutils.UserProfile{}
 	err = dsnap.DataTo(profile)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -504,7 +508,7 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 
 // GetUserProfileByPhoneNumber fetches a user profile by phone number. This method traverses both PRIMARY PHONE numbers
 // and SECONDARY PHONE numbers.
-func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*base.UserProfile, error) {
+func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "GetUserProfileByPhoneNumber")
 	defer span.End()
 
@@ -522,7 +526,7 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 	}
 	if len(docs) == 1 {
 		dsnap := docs[0]
-		pr := &base.UserProfile{}
+		pr := &profileutils.UserProfile{}
 		if err := dsnap.DataTo(pr); err != nil {
 			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 		}
@@ -544,7 +548,7 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 
 	if len(docs1) == 1 {
 		dsnap := docs1[0]
-		pr := &base.UserProfile{}
+		pr := &profileutils.UserProfile{}
 		if err := dsnap.DataTo(pr); err != nil {
 			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
 		}
@@ -708,7 +712,7 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 // GenerateAuthCredentialsForAnonymousUser generates auth credentials for the anonymous user. This method is here since we don't
 // want to delegate sign-in of anonymous users to the frontend. This is an effort the over reliance on firebase and lettin us
 // handle all the heavy lifting
-func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*base.AuthCredentialResponse, error) {
+func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*profileutils.AuthCredentialResponse, error) {
 	ctx, span := tracer.Start(ctx, "GenerateAuthCredentialsForAnonymousUser")
 	defer span.End()
 
@@ -721,18 +725,18 @@ func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Contex
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	customToken, err := base.CreateFirebaseCustomToken(ctx, u.UID)
+	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, u.UID)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.CustomTokenError(err)
 	}
-	userTokens, err := base.AuthenticateCustomFirebaseToken(customToken)
+	userTokens, err := firebasetools.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.AuthenticateTokenError(err)
 	}
 
-	return &base.AuthCredentialResponse{
+	return &profileutils.AuthCredentialResponse{
 		CustomToken:  &customToken,
 		IDToken:      &userTokens.IDToken,
 		ExpiresIn:    userTokens.ExpiresIn,
@@ -747,8 +751,8 @@ func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Contex
 func (fr *Repository) GenerateAuthCredentials(
 	ctx context.Context,
 	phone string,
-	profile *base.UserProfile,
-) (*base.AuthCredentialResponse, error) {
+	profile *profileutils.UserProfile,
+) (*profileutils.AuthCredentialResponse, error) {
 	ctx, span := tracer.Start(ctx, "GenerateAuthCredentials")
 	defer span.End()
 
@@ -761,20 +765,20 @@ func (fr *Repository) GenerateAuthCredentials(
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	customToken, err := base.CreateFirebaseCustomToken(ctx, resp.UID)
+	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, resp.UID)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.CustomTokenError(err)
 	}
-	userTokens, err := base.AuthenticateCustomFirebaseToken(customToken)
+	userTokens, err := firebasetools.AuthenticateCustomFirebaseToken(customToken)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.AuthenticateTokenError(err)
 	}
 
-	if err := fr.UpdateVerifiedIdentifiers(ctx, profile.ID, []base.VerifiedIdentifier{{
+	if err := fr.UpdateVerifiedIdentifiers(ctx, profile.ID, []profileutils.VerifiedIdentifier{{
 		UID:           resp.UID,
-		LoginProvider: base.LoginProviderTypePhone,
+		LoginProvider: profileutils.LoginProviderTypePhone,
 		Timestamp:     time.Now().In(pubsubtools.TimeLocation),
 	}}); err != nil {
 		return nil, exceptions.UpdateProfileError(err)
@@ -791,7 +795,7 @@ func (fr *Repository) GenerateAuthCredentials(
 		return nil, err
 	}
 
-	return &base.AuthCredentialResponse{
+	return &profileutils.AuthCredentialResponse{
 		CustomToken:   &customToken,
 		IDToken:       &userTokens.IDToken,
 		ExpiresIn:     userTokens.ExpiresIn,
@@ -804,13 +808,13 @@ func (fr *Repository) GenerateAuthCredentials(
 }
 
 // CheckIfAdmin checks if a user has admin permissions
-func (fr *Repository) CheckIfAdmin(profile *base.UserProfile) bool {
+func (fr *Repository) CheckIfAdmin(profile *profileutils.UserProfile) bool {
 	if len(profile.Permissions) == 0 {
 		return false
 	}
 	exists := false
 	for _, p := range profile.Permissions {
-		if p == base.PermissionTypeSuperAdmin || p == base.PermissionTypeAdmin {
+		if p == profileutils.PermissionTypeSuperAdmin || p == profileutils.PermissionTypeAdmin {
 			exists = true
 			break
 		}
@@ -1163,7 +1167,7 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 }
 
 // UpdateCovers updates the covers attribute of the profile that matches the id
-func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base.Cover) error {
+func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []profileutils.Cover) error {
 	ctx, span := tracer.Start(ctx, "UpdateCovers")
 	defer span.End()
 
@@ -1175,7 +1179,7 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []base
 	}
 
 	// check that the new cover been added is unique and does not currently exist in the user's profile.
-	newCovers := []base.Cover{}
+	newCovers := []profileutils.Cover{}
 	if len(profile.Covers) >= 1 {
 		for _, cover := range covers {
 			if !utils.IfCoverExistsInSlice(profile.Covers, cover) {
@@ -1261,7 +1265,7 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 }
 
 // UpdatePermissions update the permissions of the user profile
-func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []base.PermissionType) error {
+func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []profileutils.PermissionType) error {
 	ctx, span := tracer.Start(ctx, "UpdatePermissions")
 	defer span.End()
 
@@ -1276,7 +1280,7 @@ func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []
 	// Used for cleaning existing records
 	profile.Permissions = utils.UniquePermissionsArray(profile.Permissions)
 
-	newPerms := []base.PermissionType{}
+	newPerms := []profileutils.PermissionType{}
 	// Check if has perms
 	if len(profile.Permissions) >= 1 {
 		// copy the existing perms
@@ -1324,7 +1328,7 @@ func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []
 }
 
 // UpdateRole update the permissions of the user profile
-func (fr *Repository) UpdateRole(ctx context.Context, id string, role base.RoleType) error {
+func (fr *Repository) UpdateRole(ctx context.Context, id string, role profileutils.RoleType) error {
 	ctx, span := tracer.Start(ctx, "UpdateRole")
 	defer span.End()
 
@@ -1402,7 +1406,7 @@ func (fr *Repository) UpdateFavNavActions(ctx context.Context, id string, favAct
 }
 
 // UpdateBioData updates the biodate of the profile that matches the id
-func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.BioData) error {
+func (fr *Repository) UpdateBioData(ctx context.Context, id string, data profileutils.BioData) error {
 	ctx, span := tracer.Start(ctx, "UpdateBioData")
 	defer span.End()
 
@@ -1413,25 +1417,25 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 		return err
 	}
 
-	profile.UserBioData.FirstName = func(pr *base.UserProfile, dt base.BioData) *string {
+	profile.UserBioData.FirstName = func(pr *profileutils.UserProfile, dt profileutils.BioData) *string {
 		if dt.FirstName != nil {
 			return dt.FirstName
 		}
 		return pr.UserBioData.FirstName
 	}(profile, data)
-	profile.UserBioData.LastName = func(pr *base.UserProfile, dt base.BioData) *string {
+	profile.UserBioData.LastName = func(pr *profileutils.UserProfile, dt profileutils.BioData) *string {
 		if dt.LastName != nil {
 			return dt.LastName
 		}
 		return pr.UserBioData.LastName
 	}(profile, data)
-	profile.UserBioData.Gender = func(pr *base.UserProfile, dt base.BioData) base.Gender {
+	profile.UserBioData.Gender = func(pr *profileutils.UserProfile, dt profileutils.BioData) enumutils.Gender {
 		if dt.Gender.String() != "" {
 			return dt.Gender
 		}
 		return pr.UserBioData.Gender
 	}(profile, data)
-	profile.UserBioData.DateOfBirth = func(pr *base.UserProfile, dt base.BioData) *base.Date {
+	profile.UserBioData.DateOfBirth = func(pr *profileutils.UserProfile, dt profileutils.BioData) *scalarutils.Date {
 		if dt.DateOfBirth != nil {
 			return dt.DateOfBirth
 		}
@@ -1466,7 +1470,7 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data base.Bi
 }
 
 // UpdateVerifiedIdentifiers adds a UID to a user profile during login if it does not exist
-func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []base.VerifiedIdentifier) error {
+func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []profileutils.VerifiedIdentifier) error {
 	ctx, span := tracer.Start(ctx, "UpdateVerifiedIdentifiers")
 	defer span.End()
 
@@ -1672,11 +1676,11 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 // ExchangeRefreshTokenForIDToken takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func (fr Repository) ExchangeRefreshTokenForIDToken(ctx context.Context, refreshToken string) (*base.AuthCredentialResponse, error) {
+func (fr Repository) ExchangeRefreshTokenForIDToken(ctx context.Context, refreshToken string) (*profileutils.AuthCredentialResponse, error) {
 	_, span := tracer.Start(ctx, "ExchangeRefreshTokenForIDToken")
 	defer span.End()
 
-	apiKey, err := serverutils.GetEnvVar(base.FirebaseWebAPIKeyEnvVarName)
+	apiKey, err := serverutils.GetEnvVar(firebasetools.FirebaseWebAPIKeyEnvVarName)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
@@ -1694,14 +1698,14 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(ctx context.Context, refresh
 
 	url := firebaseExchangeRefreshTokenURL + apiKey
 	httpClient := http.DefaultClient
-	httpClient.Timeout = time.Second * base.HTTPClientTimeoutSecs
+	httpClient.Timeout = time.Second * firebasetools.HTTPClientTimeoutSecs
 	resp, err := httpClient.Post(
 		url,
 		"application/json",
 		bytes.NewReader(payloadBytes),
 	)
 
-	defer base.CloseRespBody(resp)
+	defer firebasetools.CloseRespBody(resp)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
@@ -1718,7 +1722,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(ctx context.Context, refresh
 			))
 	}
 
-	var tokenResp base.AuthCredentialResponse
+	var tokenResp profileutils.AuthCredentialResponse
 	err = json.NewDecoder(resp.Body).Decode(&tokenResp)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -1729,7 +1733,7 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(ctx context.Context, refresh
 }
 
 // GetCustomerProfileByID fetch the customer profile by profile id.
-func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*base.Customer, error) {
+func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*profileutils.Customer, error) {
 	ctx, span := tracer.Start(ctx, "GetCustomerProfileByID")
 	defer span.End()
 
@@ -1752,7 +1756,7 @@ func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*b
 		return nil, exceptions.InternalServerError(fmt.Errorf("customer profile not found: %w", err))
 	}
 	dsnap := docs[0]
-	cus := &base.Customer{}
+	cus := &profileutils.Customer{}
 	err = dsnap.DataTo(cus)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -1762,7 +1766,7 @@ func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*b
 }
 
 // GetCustomerProfileByProfileID fetches customer profile by given ID
-func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*base.Customer, error) {
+func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*profileutils.Customer, error) {
 	ctx, span := tracer.Start(ctx, "GetCustomerProfileByProfileID")
 	defer span.End()
 
@@ -1782,7 +1786,7 @@ func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profile
 		return nil, exceptions.CustomerNotFoundError()
 	}
 	dsnap := docs[0]
-	cus := &base.Customer{}
+	cus := &profileutils.Customer{}
 	err = dsnap.DataTo(cus)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -1796,7 +1800,7 @@ func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profile
 func (fr *Repository) GetSupplierProfileByProfileID(
 	ctx context.Context,
 	profileID string,
-) (*base.Supplier, error) {
+) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "GetSupplierProfileByProfileID")
 	defer span.End()
 
@@ -1819,7 +1823,7 @@ func (fr *Repository) GetSupplierProfileByProfileID(
 		return nil, exceptions.SupplierNotFoundError()
 	}
 	dsnap := docs[0]
-	sup := &base.Supplier{}
+	sup := &profileutils.Supplier{}
 	err = dsnap.DataTo(sup)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -1829,7 +1833,7 @@ func (fr *Repository) GetSupplierProfileByProfileID(
 }
 
 // GetSupplierProfileByID fetches supplier profile by given ID
-func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*base.Supplier, error) {
+func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "GetSupplierProfileByID")
 	defer span.End()
 
@@ -1849,7 +1853,7 @@ func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*b
 		return nil, exceptions.InternalServerError(fmt.Errorf("supplier profile not found: %w", err))
 	}
 	dsnap := docs[0]
-	sup := &base.Supplier{}
+	sup := &profileutils.Supplier{}
 	err = dsnap.DataTo(sup)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -1859,7 +1863,7 @@ func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*b
 }
 
 // UpdateSupplierProfile does a generic update of supplier profile.
-func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID string, data *base.Supplier) error {
+func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID string, data *profileutils.Supplier) error {
 	ctx, span := tracer.Start(ctx, "UpdateSupplierProfile")
 	defer span.End()
 
@@ -1915,7 +1919,7 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID strin
 }
 
 // AddSupplierAccountType update the supplier profile with the correct account type
-func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID string, accountType base.AccountType) (*base.Supplier, error) {
+func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID string, accountType profileutils.AccountType) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "AddSupplierAccountType")
 	defer span.End()
 
@@ -1962,7 +1966,7 @@ func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID stri
 }
 
 // AddPartnerType updates the suppier profile with the provided name and  partner type.
-func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *base.PartnerType) (bool, error) {
+func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *profileutils.PartnerType) (bool, error) {
 	ctx, span := tracer.Start(ctx, "AddPartnerType")
 	defer span.End()
 
@@ -2011,8 +2015,8 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 func (fr *Repository) ActivateSupplierProfile(
 	ctx context.Context,
 	profileID string,
-	supplier base.Supplier,
-) (*base.Supplier, error) {
+	supplier profileutils.Supplier,
+) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "AddPartnerType")
 	defer span.End()
 
@@ -2055,7 +2059,7 @@ func (fr *Repository) ActivateSupplierProfile(
 // StageProfileNudge stages nudges published from this service.
 func (fr *Repository) StageProfileNudge(
 	ctx context.Context,
-	nudge *base.Nudge,
+	nudge *feedlib.Nudge,
 ) error {
 	ctx, span := tracer.Start(ctx, "StageProfileNudge")
 	defer span.End()
@@ -2224,14 +2228,14 @@ func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, kycRequest
 }
 
 // FetchAdminUsers fetches all admins
-func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile, error) {
+func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "FetchAdminUsers")
 	defer span.End()
 
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "permissions",
-		Value:          base.DefaultAdminPermissions,
+		Value:          profileutils.DefaultAdminPermissions,
 		Operator:       "array-contains-any",
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
@@ -2239,9 +2243,9 @@ func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*base.UserProfile,
 		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("unable to read user profile: %w", err)
 	}
-	var admins []*base.UserProfile
+	var admins []*profileutils.UserProfile
 	for _, doc := range docs {
-		u := &base.UserProfile{}
+		u := &profileutils.UserProfile{}
 		err = doc.DataTo(u)
 		if err != nil {
 			utils.RecordSpanError(span, err)
@@ -2378,17 +2382,17 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 // given the flavour and the profile ID that has been provided
 func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
 	ctx context.Context,
-	flavour base.Flavour,
+	flavour feedlib.Flavour,
 	profileID string,
-) (*base.Customer, *base.Supplier, error) {
+) (*profileutils.Customer, *profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "GetCustomerOrSupplierProfileByProfileID")
 	defer span.End()
 
-	var customer *base.Customer
-	var supplier *base.Supplier
+	var customer *profileutils.Customer
+	var supplier *profileutils.Supplier
 
 	switch flavour {
-	case base.FlavourConsumer:
+	case feedlib.FlavourConsumer:
 		{
 			customerProfile, err := fr.GetCustomerProfileByProfileID(ctx, profileID)
 			if err != nil {
@@ -2397,7 +2401,7 @@ func (fr *Repository) GetCustomerOrSupplierProfileByProfileID(
 			}
 			customer = customerProfile
 		}
-	case base.FlavourPro:
+	case feedlib.FlavourPro:
 		{
 			supplierProfile, err := fr.GetSupplierProfileByProfileID(ctx, profileID)
 			if err != nil {
@@ -2462,7 +2466,7 @@ func (fr *Repository) GetOrCreatePhoneNumberUser(
 // the new secondary phone numbers as an argument.
 func (fr *Repository) HardResetSecondaryPhoneNumbers(
 	ctx context.Context,
-	profile *base.UserProfile,
+	profile *profileutils.UserProfile,
 	newSecondaryPhoneNumbers []string,
 ) error {
 	ctx, span := tracer.Start(ctx, "HardResetSecondaryPhoneNumbers")
@@ -2502,7 +2506,7 @@ func (fr *Repository) HardResetSecondaryPhoneNumbers(
 // secondary email addresses and passing in the new secondary email address as an argument.
 func (fr *Repository) HardResetSecondaryEmailAddress(
 	ctx context.Context,
-	profile *base.UserProfile,
+	profile *profileutils.UserProfile,
 	newSecondaryEmails []string,
 ) error {
 	ctx, span := tracer.Start(ctx, "HardResetSecondaryEmailAddress")
@@ -2563,7 +2567,7 @@ func (fr *Repository) CheckIfExperimentParticipant(ctx context.Context, profileI
 
 // AddUserAsExperimentParticipant adds the provided user profile as an experiment participant if does not already exist.
 // this method is idempotent.
-func (fr *Repository) AddUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error) {
+func (fr *Repository) AddUserAsExperimentParticipant(ctx context.Context, profile *profileutils.UserProfile) (bool, error) {
 	ctx, span := tracer.Start(ctx, "AddUserAsExperimentParticipant")
 	defer span.End()
 
@@ -2592,7 +2596,7 @@ func (fr *Repository) AddUserAsExperimentParticipant(ctx context.Context, profil
 
 // RemoveUserAsExperimentParticipant removes the provide user profile as an experiment participant. This methold does not check
 // for existence before deletion since non-existence is relatively equivalent to a removal
-func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, profile *base.UserProfile) (bool, error) {
+func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, profile *profileutils.UserProfile) (bool, error) {
 	ctx, span := tracer.Start(ctx, "RemoveUserAsExperimentParticipant")
 	defer span.End()
 
@@ -2629,8 +2633,8 @@ func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, pro
 func (fr *Repository) UpdateAddresses(
 	ctx context.Context,
 	id string,
-	address base.Address,
-	addressType base.AddressType,
+	address profileutils.Address,
+	addressType enumutils.AddressType,
 ) error {
 	ctx, span := tracer.Start(ctx, "UpdateAddresses")
 	defer span.End()
@@ -2642,11 +2646,11 @@ func (fr *Repository) UpdateAddresses(
 	}
 
 	switch addressType {
-	case base.AddressTypeHome:
+	case enumutils.AddressTypeHome:
 		{
 			profile.HomeAddress = &address
 		}
-	case base.AddressTypeWork:
+	case enumutils.AddressTypeWork:
 		{
 			profile.WorkAddress = &address
 		}
@@ -2788,7 +2792,7 @@ func (fr *Repository) GetNHIFDetailsByProfileID(
 }
 
 // GetUserCommunicationsSettings fetches the communication settings of a specific user.
-func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profileID string) (*base.UserCommunicationsSetting, error) {
+func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
 	ctx, span := tracer.Start(ctx, "GetUserCommunicationsSettings")
 	defer span.End()
 
@@ -2813,10 +2817,10 @@ func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profile
 	}
 
 	if len(docs) == 0 {
-		return &base.UserCommunicationsSetting{ProfileID: profileID}, nil
+		return &profileutils.UserCommunicationsSetting{ProfileID: profileID}, nil
 	}
 
-	comms := &base.UserCommunicationsSetting{}
+	comms := &profileutils.UserCommunicationsSetting{}
 	err = docs[0].DataTo(comms)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -2827,7 +2831,7 @@ func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profile
 
 // SetUserCommunicationsSettings sets communication settings for a specific user
 func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profileID string,
-	allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*base.UserCommunicationsSetting, error) {
+	allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error) {
 
 	ctx, span := tracer.Start(ctx, "SetUserCommunicationsSettings")
 	defer span.End()
@@ -2839,7 +2843,7 @@ func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profile
 		return nil, err
 	}
 
-	setCommsSettings := base.UserCommunicationsSetting{
+	setCommsSettings := profileutils.UserCommunicationsSetting{
 		ID:            uuid.New().String(),
 		ProfileID:     profileID,
 		AllowWhatsApp: utils.MatchAndReturn(comms.AllowWhatsApp, *allowWhatsApp),
@@ -2867,8 +2871,8 @@ func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profile
 func (fr *Repository) UpdateCustomerProfile(
 	ctx context.Context,
 	profileID string,
-	cus base.Customer,
-) (*base.Customer, error) {
+	cus profileutils.Customer,
+) (*profileutils.Customer, error) {
 	ctx, span := tracer.Start(ctx, "UpdateCustomerProfile")
 	defer span.End()
 
@@ -2981,7 +2985,7 @@ func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.Sessi
 }
 
 // ListUserProfiles fetches all users with the specified role from the database
-func (fr *Repository) ListUserProfiles(ctx context.Context, role base.RoleType) ([]*base.UserProfile, error) {
+func (fr *Repository) ListUserProfiles(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error) {
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "role",
@@ -2994,10 +2998,10 @@ func (fr *Repository) ListUserProfiles(ctx context.Context, role base.RoleType) 
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	profiles := []*base.UserProfile{}
+	profiles := []*profileutils.UserProfile{}
 
 	for _, doc := range docs {
-		profile := &base.UserProfile{}
+		profile := &profileutils.UserProfile{}
 		err = doc.DataTo(profile)
 		if err != nil {
 			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read agent user profile: %w", err))

@@ -5,15 +5,16 @@ import (
 	"os"
 	"testing"
 
+	"github.com/savannahghi/firebasetools"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
 func TestLoginClientMissingEnvs(t *testing.T) {
 
-	baseExt := extension.NewBaseExtensionImpl(&base.FirebaseClient{})
+	baseExt := extension.NewBaseExtensionImpl(&firebasetools.FirebaseClient{})
 
 	username := "username"
 	password := "password"
@@ -117,7 +118,7 @@ func TestLoginClient(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		want    base.Client
+		want    apiclient.Client
 		wantErr bool
 	}{
 		{
@@ -152,8 +153,8 @@ func TestLoginClient(t *testing.T) {
 					username string,
 					password string,
 					extraHeaders map[string]string,
-				) (*base.ServerClient, error) {
-					return &base.ServerClient{}, nil
+				) (*apiclient.ServerClient, error) {
+					return &apiclient.ServerClient{}, nil
 				}
 			}
 			client, err := utils.LoginClient(username, password, baseExt)

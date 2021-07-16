@@ -7,8 +7,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/serverutils"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/graph/generated"
@@ -16,7 +19,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func (r *mutationResolver) CompleteSignup(ctx context.Context, flavour base.Flavour) (bool, error) {
+func (r *mutationResolver) CompleteSignup(ctx context.Context, flavour feedlib.Flavour) (bool, error) {
 	startTime := time.Now()
 
 	completeSignup, err := r.interactor.Signup.CompleteSignup(ctx, flavour)
@@ -26,10 +29,7 @@ func (r *mutationResolver) CompleteSignup(ctx context.Context, flavour base.Flav
 	return completeSignup, err
 }
 
-func (r *mutationResolver) UpdateUserProfile(
-	ctx context.Context,
-	input dto.UserProfileInput,
-) (*base.UserProfile, error) {
+func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input dto.UserProfileInput) (*profileutils.UserProfile, error) {
 	startTime := time.Now()
 
 	updateUserProfile, err := r.interactor.Signup.UpdateUserProfile(ctx, &input)
@@ -39,11 +39,7 @@ func (r *mutationResolver) UpdateUserProfile(
 	return updateUserProfile, err
 }
 
-func (r *mutationResolver) UpdateUserPin(
-	ctx context.Context,
-	phone string,
-	pin string,
-) (bool, error) {
+func (r *mutationResolver) UpdateUserPin(ctx context.Context, phone string, pin string) (bool, error) {
 	startTime := time.Now()
 
 	updateUserPIN, err := r.interactor.UserPIN.ChangeUserPIN(ctx, phone, pin)
@@ -53,11 +49,7 @@ func (r *mutationResolver) UpdateUserPin(
 	return updateUserPIN, err
 }
 
-func (r *mutationResolver) SetPrimaryPhoneNumber(
-	ctx context.Context,
-	phone string,
-	otp string,
-) (bool, error) {
+func (r *mutationResolver) SetPrimaryPhoneNumber(ctx context.Context, phone string, otp string) (bool, error) {
 	startTime := time.Now()
 
 	err := r.interactor.Onboarding.SetPrimaryPhoneNumber(ctx, phone, otp, true)
@@ -71,11 +63,7 @@ func (r *mutationResolver) SetPrimaryPhoneNumber(
 	return true, nil
 }
 
-func (r *mutationResolver) SetPrimaryEmailAddress(
-	ctx context.Context,
-	email string,
-	otp string,
-) (bool, error) {
+func (r *mutationResolver) SetPrimaryEmailAddress(ctx context.Context, email string, otp string) (bool, error) {
 	startTime := time.Now()
 
 	err := r.interactor.Onboarding.SetPrimaryEmailAddress(ctx, email, otp)
@@ -89,11 +77,7 @@ func (r *mutationResolver) SetPrimaryEmailAddress(
 	return true, nil
 }
 
-func (r *mutationResolver) SetOptOut(
-	ctx context.Context,
-	option string,
-	phoneNumber string,
-) (bool, error) {
+func (r *mutationResolver) SetOptOut(ctx context.Context, option string, phoneNumber string) (bool, error) {
 	startTime := time.Now()
 
 	err := r.interactor.Onboarding.SetOptOut(ctx, option, phoneNumber)
@@ -107,10 +91,7 @@ func (r *mutationResolver) SetOptOut(
 	return true, nil
 }
 
-func (r *mutationResolver) AddSecondaryPhoneNumber(
-	ctx context.Context,
-	phone []string,
-) (bool, error) {
+func (r *mutationResolver) AddSecondaryPhoneNumber(ctx context.Context, phone []string) (bool, error) {
 	startTime := time.Now()
 
 	err := r.interactor.Onboarding.UpdateSecondaryPhoneNumbers(ctx, phone)
@@ -124,10 +105,7 @@ func (r *mutationResolver) AddSecondaryPhoneNumber(
 	return true, nil
 }
 
-func (r *mutationResolver) RetireSecondaryPhoneNumbers(
-	ctx context.Context,
-	phones []string,
-) (bool, error) {
+func (r *mutationResolver) RetireSecondaryPhoneNumbers(ctx context.Context, phones []string) (bool, error) {
 	startTime := time.Now()
 
 	retireSecondaryPhoneNumbers, err := r.interactor.Onboarding.RetireSecondaryPhoneNumbers(
@@ -145,10 +123,7 @@ func (r *mutationResolver) RetireSecondaryPhoneNumbers(
 	return retireSecondaryPhoneNumbers, err
 }
 
-func (r *mutationResolver) AddSecondaryEmailAddress(
-	ctx context.Context,
-	email []string,
-) (bool, error) {
+func (r *mutationResolver) AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error) {
 	startTime := time.Now()
 
 	err := r.interactor.Onboarding.UpdateSecondaryEmailAddresses(ctx, email)
@@ -162,10 +137,7 @@ func (r *mutationResolver) AddSecondaryEmailAddress(
 	return true, nil
 }
 
-func (r *mutationResolver) RetireSecondaryEmailAddresses(
-	ctx context.Context,
-	emails []string,
-) (bool, error) {
+func (r *mutationResolver) RetireSecondaryEmailAddresses(ctx context.Context, emails []string) (bool, error) {
 	startTime := time.Now()
 
 	retireSecondaryEmailAddresses, err := r.interactor.Onboarding.RetireSecondaryEmailAddress(
@@ -207,11 +179,7 @@ func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) 
 	return registerPushToken, err
 }
 
-func (r *mutationResolver) AddPartnerType(
-	ctx context.Context,
-	name string,
-	partnerType base.PartnerType,
-) (bool, error) {
+func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, partnerType profileutils.PartnerType) (bool, error) {
 	startTime := time.Now()
 
 	addPartnerType, err := r.interactor.Supplier.AddPartnerType(ctx, &name, &partnerType)
@@ -221,10 +189,7 @@ func (r *mutationResolver) AddPartnerType(
 	return addPartnerType, err
 }
 
-func (r *mutationResolver) SuspendSupplier(
-	ctx context.Context,
-	suspensionReason *string,
-) (bool, error) {
+func (r *mutationResolver) SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error) {
 	startTime := time.Now()
 
 	suspendSupplier, err := r.interactor.Supplier.SuspendSupplier(ctx, suspensionReason)
@@ -234,10 +199,7 @@ func (r *mutationResolver) SuspendSupplier(
 	return suspendSupplier, err
 }
 
-func (r *mutationResolver) SetUpSupplier(
-	ctx context.Context,
-	accountType base.AccountType,
-) (*base.Supplier, error) {
+func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType profileutils.AccountType) (*profileutils.Supplier, error) {
 	startTime := time.Now()
 
 	supplier, err := r.interactor.Supplier.SetUpSupplier(ctx, accountType)
@@ -247,12 +209,7 @@ func (r *mutationResolver) SetUpSupplier(
 	return supplier, err
 }
 
-func (r *mutationResolver) SupplierEDILogin(
-	ctx context.Context,
-	username string,
-	password string,
-	sladeCode string,
-) (*dto.SupplierLogin, error) {
+func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*dto.SupplierLogin, error) {
 	startTime := time.Now()
 
 	supplierEDILogin, err := r.interactor.Supplier.SupplierEDILogin(
@@ -267,10 +224,7 @@ func (r *mutationResolver) SupplierEDILogin(
 	return supplierEDILogin, err
 }
 
-func (r *mutationResolver) SupplierSetDefaultLocation(
-	ctx context.Context,
-	locationID string,
-) (*base.Supplier, error) {
+func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locationID string) (*profileutils.Supplier, error) {
 	startTime := time.Now()
 
 	supplier, err := r.interactor.Supplier.SupplierSetDefaultLocation(ctx, locationID)
@@ -285,10 +239,7 @@ func (r *mutationResolver) SupplierSetDefaultLocation(
 	return supplier, err
 }
 
-func (r *mutationResolver) AddIndividualRiderKyc(
-	ctx context.Context,
-	input domain.IndividualRider,
-) (*domain.IndividualRider, error) {
+func (r *mutationResolver) AddIndividualRiderKyc(ctx context.Context, input domain.IndividualRider) (*domain.IndividualRider, error) {
 	startTime := time.Now()
 
 	individualRider, err := r.interactor.Supplier.AddIndividualRiderKyc(ctx, input)
@@ -298,10 +249,7 @@ func (r *mutationResolver) AddIndividualRiderKyc(
 	return individualRider, err
 }
 
-func (r *mutationResolver) AddOrganizationRiderKyc(
-	ctx context.Context,
-	input domain.OrganizationRider,
-) (*domain.OrganizationRider, error) {
+func (r *mutationResolver) AddOrganizationRiderKyc(ctx context.Context, input domain.OrganizationRider) (*domain.OrganizationRider, error) {
 	startTime := time.Now()
 
 	organizationRider, err := r.interactor.Supplier.AddOrganizationRiderKyc(ctx, input)
@@ -311,10 +259,7 @@ func (r *mutationResolver) AddOrganizationRiderKyc(
 	return organizationRider, err
 }
 
-func (r *mutationResolver) AddIndividualPractitionerKyc(
-	ctx context.Context,
-	input domain.IndividualPractitioner,
-) (*domain.IndividualPractitioner, error) {
+func (r *mutationResolver) AddIndividualPractitionerKyc(ctx context.Context, input domain.IndividualPractitioner) (*domain.IndividualPractitioner, error) {
 	startTime := time.Now()
 
 	individualPractitioner, err := r.interactor.Supplier.AddIndividualPractitionerKyc(ctx, input)
@@ -329,10 +274,7 @@ func (r *mutationResolver) AddIndividualPractitionerKyc(
 	return individualPractitioner, err
 }
 
-func (r *mutationResolver) AddOrganizationPractitionerKyc(
-	ctx context.Context,
-	input domain.OrganizationPractitioner,
-) (*domain.OrganizationPractitioner, error) {
+func (r *mutationResolver) AddOrganizationPractitionerKyc(ctx context.Context, input domain.OrganizationPractitioner) (*domain.OrganizationPractitioner, error) {
 	startTime := time.Now()
 
 	organizationPractitioner, err := r.interactor.Supplier.AddOrganizationPractitionerKyc(
@@ -350,10 +292,7 @@ func (r *mutationResolver) AddOrganizationPractitionerKyc(
 	return organizationPractitioner, err
 }
 
-func (r *mutationResolver) AddOrganizationProviderKyc(
-	ctx context.Context,
-	input domain.OrganizationProvider,
-) (*domain.OrganizationProvider, error) {
+func (r *mutationResolver) AddOrganizationProviderKyc(ctx context.Context, input domain.OrganizationProvider) (*domain.OrganizationProvider, error) {
 	startTime := time.Now()
 
 	organizationProvider, err := r.interactor.Supplier.AddOrganizationProviderKyc(ctx, input)
@@ -368,10 +307,7 @@ func (r *mutationResolver) AddOrganizationProviderKyc(
 	return organizationProvider, err
 }
 
-func (r *mutationResolver) AddIndividualPharmaceuticalKyc(
-	ctx context.Context,
-	input domain.IndividualPharmaceutical,
-) (*domain.IndividualPharmaceutical, error) {
+func (r *mutationResolver) AddIndividualPharmaceuticalKyc(ctx context.Context, input domain.IndividualPharmaceutical) (*domain.IndividualPharmaceutical, error) {
 	startTime := time.Now()
 
 	individualPharmaceutical, err := r.interactor.Supplier.AddIndividualPharmaceuticalKyc(
@@ -389,10 +325,7 @@ func (r *mutationResolver) AddIndividualPharmaceuticalKyc(
 	return individualPharmaceutical, err
 }
 
-func (r *mutationResolver) AddOrganizationPharmaceuticalKyc(
-	ctx context.Context,
-	input domain.OrganizationPharmaceutical,
-) (*domain.OrganizationPharmaceutical, error) {
+func (r *mutationResolver) AddOrganizationPharmaceuticalKyc(ctx context.Context, input domain.OrganizationPharmaceutical) (*domain.OrganizationPharmaceutical, error) {
 	startTime := time.Now()
 
 	organizationPharmaceutical, err := r.interactor.Supplier.AddOrganizationPharmaceuticalKyc(
@@ -410,10 +343,7 @@ func (r *mutationResolver) AddOrganizationPharmaceuticalKyc(
 	return organizationPharmaceutical, err
 }
 
-func (r *mutationResolver) AddIndividualCoachKyc(
-	ctx context.Context,
-	input domain.IndividualCoach,
-) (*domain.IndividualCoach, error) {
+func (r *mutationResolver) AddIndividualCoachKyc(ctx context.Context, input domain.IndividualCoach) (*domain.IndividualCoach, error) {
 	startTime := time.Now()
 
 	individualCoach, err := r.interactor.Supplier.AddIndividualCoachKyc(ctx, input)
@@ -423,10 +353,7 @@ func (r *mutationResolver) AddIndividualCoachKyc(
 	return individualCoach, err
 }
 
-func (r *mutationResolver) AddOrganizationCoachKyc(
-	ctx context.Context,
-	input domain.OrganizationCoach,
-) (*domain.OrganizationCoach, error) {
+func (r *mutationResolver) AddOrganizationCoachKyc(ctx context.Context, input domain.OrganizationCoach) (*domain.OrganizationCoach, error) {
 	startTime := time.Now()
 
 	organizationCoach, err := r.interactor.Supplier.AddOrganizationCoachKyc(ctx, input)
@@ -436,10 +363,7 @@ func (r *mutationResolver) AddOrganizationCoachKyc(
 	return organizationCoach, err
 }
 
-func (r *mutationResolver) AddIndividualNutritionKyc(
-	ctx context.Context,
-	input domain.IndividualNutrition,
-) (*domain.IndividualNutrition, error) {
+func (r *mutationResolver) AddIndividualNutritionKyc(ctx context.Context, input domain.IndividualNutrition) (*domain.IndividualNutrition, error) {
 	startTime := time.Now()
 
 	individualNutrition, err := r.interactor.Supplier.AddIndividualNutritionKyc(ctx, input)
@@ -449,10 +373,7 @@ func (r *mutationResolver) AddIndividualNutritionKyc(
 	return individualNutrition, err
 }
 
-func (r *mutationResolver) AddOrganizationNutritionKyc(
-	ctx context.Context,
-	input domain.OrganizationNutrition,
-) (*domain.OrganizationNutrition, error) {
+func (r *mutationResolver) AddOrganizationNutritionKyc(ctx context.Context, input domain.OrganizationNutrition) (*domain.OrganizationNutrition, error) {
 	startTime := time.Now()
 
 	organizationNutrition, err := r.interactor.Supplier.AddOrganizationNutritionKyc(ctx, input)
@@ -467,12 +388,7 @@ func (r *mutationResolver) AddOrganizationNutritionKyc(
 	return organizationNutrition, err
 }
 
-func (r *mutationResolver) ProcessKYCRequest(
-	ctx context.Context,
-	id string,
-	status domain.KYCProcessStatus,
-	rejectionReason *string,
-) (bool, error) {
+func (r *mutationResolver) ProcessKYCRequest(ctx context.Context, id string, status domain.KYCProcessStatus, rejectionReason *string) (bool, error) {
 	startTime := time.Now()
 
 	processKYCRequest, err := r.interactor.Supplier.ProcessKYCRequest(
@@ -487,10 +403,7 @@ func (r *mutationResolver) ProcessKYCRequest(
 	return processKYCRequest, err
 }
 
-func (r *mutationResolver) RecordPostVisitSurvey(
-	ctx context.Context,
-	input dto.PostVisitSurveyInput,
-) (bool, error) {
+func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input dto.PostVisitSurveyInput) (bool, error) {
 	startTime := time.Now()
 
 	recordPostVisitSurvey, err := r.interactor.Survey.RecordPostVisitSurvey(ctx, input)
@@ -519,10 +432,7 @@ func (r *mutationResolver) RetireKYCProcessingRequest(ctx context.Context) (bool
 	return true, nil
 }
 
-func (r *mutationResolver) SetupAsExperimentParticipant(
-	ctx context.Context,
-	participate *bool,
-) (bool, error) {
+func (r *mutationResolver) SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error) {
 	startTime := time.Now()
 
 	setupAsExperimentParticipant, err := r.interactor.Onboarding.SetupAsExperimentParticipant(
@@ -540,10 +450,7 @@ func (r *mutationResolver) SetupAsExperimentParticipant(
 	return setupAsExperimentParticipant, err
 }
 
-func (r *mutationResolver) AddNHIFDetails(
-	ctx context.Context,
-	input dto.NHIFDetailsInput,
-) (*domain.NHIFDetails, error) {
+func (r *mutationResolver) AddNHIFDetails(ctx context.Context, input dto.NHIFDetailsInput) (*domain.NHIFDetails, error) {
 	startTime := time.Now()
 
 	addNHIFDetails, err := r.interactor.NHIF.AddNHIFDetails(ctx, input)
@@ -553,11 +460,7 @@ func (r *mutationResolver) AddNHIFDetails(
 	return addNHIFDetails, err
 }
 
-func (r *mutationResolver) AddAddress(
-	ctx context.Context,
-	input dto.UserAddressInput,
-	addressType base.AddressType,
-) (*base.Address, error) {
+func (r *mutationResolver) AddAddress(ctx context.Context, input dto.UserAddressInput, addressType enumutils.AddressType) (*profileutils.Address, error) {
 	startTime := time.Now()
 
 	addAddress, err := r.interactor.Onboarding.AddAddress(
@@ -571,13 +474,7 @@ func (r *mutationResolver) AddAddress(
 	return addAddress, err
 }
 
-func (r *mutationResolver) SetUserCommunicationsSettings(
-	ctx context.Context,
-	allowWhatsApp *bool,
-	allowTextSms *bool,
-	allowPush *bool,
-	allowEmail *bool,
-) (*base.UserCommunicationsSetting, error) {
+func (r *mutationResolver) SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error) {
 	startTime := time.Now()
 
 	setUserCommunicationsSettings, err := r.interactor.Onboarding.SetUserCommunicationsSettings(
@@ -598,10 +495,7 @@ func (r *mutationResolver) SetUserCommunicationsSettings(
 	return setUserCommunicationsSettings, err
 }
 
-func (r *mutationResolver) RegisterAdmin(
-	ctx context.Context,
-	input dto.RegisterAdminInput,
-) (*base.UserProfile, error) {
+func (r *mutationResolver) RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*profileutils.UserProfile, error) {
 	startTime := time.Now()
 
 	userProfile, err := r.interactor.Admin.RegisterAdmin(ctx, input)
@@ -611,10 +505,7 @@ func (r *mutationResolver) RegisterAdmin(
 	return userProfile, err
 }
 
-func (r *mutationResolver) RegisterAgent(
-	ctx context.Context,
-	input dto.RegisterAgentInput,
-) (*base.UserProfile, error) {
+func (r *mutationResolver) RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*profileutils.UserProfile, error) {
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(
 		attribute.String("resolver.name", "registerAgent"),
@@ -658,10 +549,7 @@ func (r *mutationResolver) SaveFavoriteNavAction(ctx context.Context, title stri
 	return success, err
 }
 
-func (r *mutationResolver) DeleteFavoriteNavAction(
-	ctx context.Context,
-	title string,
-) (bool, error) {
+func (r *mutationResolver) DeleteFavoriteNavAction(ctx context.Context, title string) (bool, error) {
 	startTime := time.Now()
 
 	success, err := r.interactor.Onboarding.DeleteFavoriteNavActions(ctx, title)
@@ -671,19 +559,11 @@ func (r *mutationResolver) DeleteFavoriteNavAction(
 	return success, err
 }
 
-func (r *queryResolver) DummyQuery(ctx context.Context) (*bool, error) {
-	dummy := true
-	return &dummy, nil
-}
-
-func (r *mutationResolver) RegisterMicroservice(
-	ctx context.Context,
-	input domain.Microservice,
-) (*domain.Microservice, error) {
+func (r *mutationResolver) RegisterMicroservice(ctx context.Context, input domain.Microservice) (*domain.Microservice, error) {
 	startTime := time.Now()
 
 	service, err := r.interactor.AdminSrv.RegisterMicroservice(ctx, input)
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "registerMicroservice", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "registerMicroservice", err)
 
 	return service, err
 }
@@ -692,7 +572,7 @@ func (r *mutationResolver) DeregisterMicroservice(ctx context.Context, id string
 	startTime := time.Now()
 
 	status, err := r.interactor.AdminSrv.DeregisterMicroservice(ctx, id)
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "deregisterMicroservice", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "deregisterMicroservice", err)
 
 	return status, err
 }
@@ -701,12 +581,17 @@ func (r *mutationResolver) DeregisterAllMicroservices(ctx context.Context) (bool
 	startTime := time.Now()
 
 	status, err := r.interactor.AdminSrv.DeregisterAllMicroservices(ctx)
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "deregisterAllMicroservices", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "deregisterAllMicroservices", err)
 
 	return status, err
 }
 
-func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, error) {
+func (r *queryResolver) DummyQuery(ctx context.Context) (*bool, error) {
+	dummy := true
+	return &dummy, nil
+}
+
+func (r *queryResolver) UserProfile(ctx context.Context) (*profileutils.UserProfile, error) {
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(
 		attribute.String("resolver.name", "userProfile"),
@@ -721,7 +606,7 @@ func (r *queryResolver) UserProfile(ctx context.Context) (*base.UserProfile, err
 	return userProfile, err
 }
 
-func (r *queryResolver) SupplierProfile(ctx context.Context) (*base.Supplier, error) {
+func (r *queryResolver) SupplierProfile(ctx context.Context) (*profileutils.Supplier, error) {
 	startTime := time.Now()
 
 	supplier, err := r.interactor.Supplier.FindSupplierByUID(ctx)
@@ -741,12 +626,7 @@ func (r *queryResolver) ResumeWithPin(ctx context.Context, pin string) (bool, er
 	return resumeWithPin, err
 }
 
-func (r *queryResolver) FindProvider(
-	ctx context.Context,
-	pagination *base.PaginationInput,
-	filter []*dto.BusinessPartnerFilterInput,
-	sort []*dto.BusinessPartnerSortInput,
-) (*dto.BusinessPartnerConnection, error) {
+func (r *queryResolver) FindProvider(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
 	startTime := time.Now()
 
 	provider, err := r.interactor.ChargeMaster.FindProvider(ctx, pagination, filter, sort)
@@ -756,12 +636,7 @@ func (r *queryResolver) FindProvider(
 	return provider, err
 }
 
-func (r *queryResolver) FindBranch(
-	ctx context.Context,
-	pagination *base.PaginationInput,
-	filter []*dto.BranchFilterInput,
-	sort []*dto.BranchSortInput,
-) (*dto.BranchConnection, error) {
+func (r *queryResolver) FindBranch(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 	startTime := time.Now()
 
 	branch, err := r.interactor.ChargeMaster.FindBranch(ctx, pagination, filter, sort)
@@ -771,9 +646,7 @@ func (r *queryResolver) FindBranch(
 	return branch, err
 }
 
-func (r *queryResolver) FetchSupplierAllowedLocations(
-	ctx context.Context,
-) (*dto.BranchConnection, error) {
+func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*dto.BranchConnection, error) {
 	startTime := time.Now()
 
 	supplierAllowedLocations, err := r.interactor.Supplier.FetchSupplierAllowedLocations(ctx)
@@ -788,9 +661,7 @@ func (r *queryResolver) FetchSupplierAllowedLocations(
 	return supplierAllowedLocations, err
 }
 
-func (r *queryResolver) FetchKYCProcessingRequests(
-	ctx context.Context,
-) ([]*domain.KYCRequest, error) {
+func (r *queryResolver) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
 	startTime := time.Now()
 
 	kycProcessingRequests, err := r.interactor.Supplier.FetchKYCProcessingRequests(ctx)
@@ -825,9 +696,7 @@ func (r *queryResolver) NHIFDetails(ctx context.Context) (*domain.NHIFDetails, e
 	return NHIFDetails, err
 }
 
-func (r *queryResolver) GetUserCommunicationsSettings(
-	ctx context.Context,
-) (*base.UserCommunicationsSetting, error) {
+func (r *queryResolver) GetUserCommunicationsSettings(ctx context.Context) (*profileutils.UserCommunicationsSetting, error) {
 	startTime := time.Now()
 
 	userCommunicationsSettings, err := r.interactor.Onboarding.GetUserCommunicationsSettings(ctx)
@@ -872,10 +741,7 @@ func (r *queryResolver) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {
 	return agents, err
 }
 
-func (r *queryResolver) FindAgentbyPhone(
-	ctx context.Context,
-	phoneNumber *string,
-) (*dto.Agent, error) {
+func (r *queryResolver) FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error) {
 	startTime := time.Now()
 
 	agent, err := r.interactor.Agent.FindAgentbyPhone(ctx, phoneNumber)
@@ -885,9 +751,7 @@ func (r *queryResolver) FindAgentbyPhone(
 	return agent, err
 }
 
-func (r *queryResolver) FetchUserNavigationActions(
-	ctx context.Context,
-) (*base.NavigationActions, error) {
+func (r *queryResolver) FetchUserNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error) {
 	startTime := time.Now()
 
 	navactions, err := r.interactor.Onboarding.RefreshNavigationActions(ctx)
@@ -906,7 +770,7 @@ func (r *queryResolver) ListMicroservices(ctx context.Context) ([]*domain.Micros
 	startTime := time.Now()
 
 	services, err := r.interactor.AdminSrv.ListMicroservices(ctx)
-	defer base.RecordGraphqlResolverMetrics(ctx, startTime, "listMicroservices", err)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "listMicroservices", err)
 
 	return services, err
 }

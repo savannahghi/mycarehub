@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 )
 
@@ -92,9 +92,9 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 
 	statusCode1 := 1
-	err = exceptions.ResolveNudgeErr(fmt.Errorf("error"), base.FlavourConsumer, "name1", &statusCode1)
+	err = exceptions.ResolveNudgeErr(fmt.Errorf("error"), feedlib.FlavourConsumer, "name1", &statusCode1)
 	assert.NotNil(t, err)
-	err = exceptions.ResolveNudgeErr(fmt.Errorf("error"), base.FlavourConsumer, "name2", nil)
+	err = exceptions.ResolveNudgeErr(fmt.Errorf("error"), feedlib.FlavourConsumer, "name2", nil)
 	assert.NotNil(t, err)
 
 	err = exceptions.RoleNotValid(fmt.Errorf("error"))

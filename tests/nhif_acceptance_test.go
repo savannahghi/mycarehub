@@ -11,13 +11,16 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 func TestAddNHIFDetails(t *testing.T) {
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -188,7 +191,7 @@ func TestAddNHIFDetails(t *testing.T) {
 	}
 }
 
-func AddTestNHIFDetails(t *testing.T, user *base.UserResponse) error {
+func AddTestNHIFDetails(t *testing.T, user *profileutils.UserResponse) error {
 	ctx := context.Background()
 	i, err := InitializeTestService(ctx)
 	if err != nil {
@@ -198,7 +201,7 @@ func AddTestNHIFDetails(t *testing.T, user *base.UserResponse) error {
 	authCred := &auth.Token{UID: user.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 
@@ -208,7 +211,7 @@ func AddTestNHIFDetails(t *testing.T, user *base.UserResponse) error {
 			MembershipNumber:          fmt.Sprintln(time.Now().Unix()),
 			Employment:                domain.EmploymentTypeEmployed,
 			NHIFCardPhotoID:           uuid.New().String(),
-			IDDocType:                 base.IdentificationDocTypeMilitary,
+			IDDocType:                 enumutils.IdentificationDocTypeMilitary,
 			IdentificationCardPhotoID: uuid.New().String(),
 			IDNumber:                  fmt.Sprintln(time.Now().Unix()),
 		},
@@ -221,7 +224,7 @@ func AddTestNHIFDetails(t *testing.T, user *base.UserResponse) error {
 }
 
 func TestAddTestNHIFDetails(t *testing.T) {
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -241,7 +244,7 @@ func TestAddTestNHIFDetails(t *testing.T) {
 	}
 }
 func TestGetNHIFDetails(t *testing.T) {
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)

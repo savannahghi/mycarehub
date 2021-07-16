@@ -3,7 +3,7 @@ package messaging
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/interserviceclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
@@ -23,15 +23,15 @@ const (
 
 // ServiceMessaging represents messaging via sms and/or twilio
 type ServiceMessaging interface {
-	FetchSMSClient() *base.InterServiceClient
-	FetchTwilioClient() *base.InterServiceClient
+	FetchSMSClient() *interserviceclient.InterServiceClient
+	FetchTwilioClient() *interserviceclient.InterServiceClient
 	SendSMS(ctx context.Context, phoneNumbers []string, message string) error
 }
 
 // ServiceMessagingImpl represents our messaging struct
 type ServiceMessagingImpl struct {
-	SMS    *base.InterServiceClient
-	Twilio *base.InterServiceClient
+	SMS    *interserviceclient.InterServiceClient
+	Twilio *interserviceclient.InterServiceClient
 }
 
 // NewServiceMessagingImpl returns new initialized instance of ServiceOnboardingImpl
@@ -42,25 +42,25 @@ func NewServiceMessagingImpl(baseExt extension.BaseExtension) ServiceMessaging {
 }
 
 // FetchSMSClient returns engagement's service SMS ISC
-func (s *ServiceMessagingImpl) FetchSMSClient() *base.InterServiceClient {
+func (s *ServiceMessagingImpl) FetchSMSClient() *interserviceclient.InterServiceClient {
 	return s.SMS
 }
 
 // FetchTwilioClient returns twilio's service SMS ISC
-func (s *ServiceMessagingImpl) FetchTwilioClient() *base.InterServiceClient {
+func (s *ServiceMessagingImpl) FetchTwilioClient() *interserviceclient.InterServiceClient {
 	return s.Twilio
 }
 
 // SendSMS does the actual delvery of messages to the provided phone numbers
 func (s *ServiceMessagingImpl) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
-	smsISC := base.SmsISC{
+	smsISC := interserviceclient.SmsISC{
 		Isc:      s.FetchSMSClient(),
 		EndPoint: sendSMS,
 	}
 
-	twilioISC := base.SmsISC{
+	twilioISC := interserviceclient.SmsISC{
 		Isc:      s.FetchTwilioClient(),
 		EndPoint: sendTwilioSMS,
 	}
-	return base.SendSMS(ctx, phoneNumbers, message, smsISC, twilioISC)
+	return interserviceclient.SendSMS(ctx, phoneNumbers, message, smsISC, twilioISC)
 }

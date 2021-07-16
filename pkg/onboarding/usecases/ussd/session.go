@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/savannahghi/converterandformatter"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -52,7 +52,7 @@ func (u *Impl) UpdateSessionPIN(ctx context.Context, pin string, sessionID strin
 }
 
 // GetUserProfileByPrimaryPhoneNumber ...
-func (u *Impl) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspend bool) (*base.UserProfile, error) {
+func (u *Impl) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspend bool) (*profileutils.UserProfile, error) {
 	profile, err := u.onboardingRepository.GetUserProfileByPrimaryPhoneNumber(ctx, phoneNumber, false)
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (u *Impl) GetOrCreatePhoneNumberUser(ctx context.Context, phone string) (*d
 }
 
 // CreateUserProfile ...
-func (u *Impl) CreateUserProfile(ctx context.Context, phoneNumber string, uid string) (*base.UserProfile, error) {
+func (u *Impl) CreateUserProfile(ctx context.Context, phoneNumber string, uid string) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "GetOrCreatePhoneNumberUser")
 	defer span.End()
 
@@ -161,7 +161,7 @@ func (u *Impl) CreateUserProfile(ctx context.Context, phoneNumber string, uid st
 }
 
 // CreateEmptyCustomerProfile ...
-func (u *Impl) CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*base.Customer, error) {
+func (u *Impl) CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*profileutils.Customer, error) {
 	ctx, span := tracer.Start(ctx, "GetOrCreatePhoneNumberUser")
 	defer span.End()
 
@@ -175,7 +175,7 @@ func (u *Impl) CreateEmptyCustomerProfile(ctx context.Context, profileID string)
 }
 
 // UpdateBioData ...
-func (u *Impl) UpdateBioData(ctx context.Context, id string, data base.BioData) error {
+func (u *Impl) UpdateBioData(ctx context.Context, id string, data profileutils.BioData) error {
 	ctx, span := tracer.Start(ctx, "GetOrCreatePhoneNumberUser")
 	defer span.End()
 

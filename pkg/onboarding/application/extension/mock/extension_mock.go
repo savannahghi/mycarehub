@@ -4,12 +4,14 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
+	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"cloud.google.com/go/pubsub"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 )
 
@@ -18,11 +20,11 @@ type FakeBaseExtensionImpl struct {
 	GetLoggedInUserFn      func(ctx context.Context) (*dto.UserInfo, error)
 	GetLoggedInUserUIDFn   func(ctx context.Context) (string, error)
 	NormalizeMSISDNFn      func(msisdn string) (*string, error)
-	FetchDefaultCurrencyFn func(c base.Client) (*base.FinancialYearAndCurrency, error)
-	FetchUserProfileFn     func(authClient base.Client) (*base.EDIUserProfile, error)
-	LoginClientFn          func(username string, password string) (base.Client, error)
-	LoadDepsFromYAMLFn     func() (*base.DepsConfig, error)
-	SetupISCclientFn       func(config base.DepsConfig, serviceName string) (*base.InterServiceClient, error)
+	FetchDefaultCurrencyFn func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error)
+	FetchUserProfileFn     func(authClient apiclient.Client) (*profileutils.EDIUserProfile, error)
+	LoginClientFn          func(username string, password string) (apiclient.Client, error)
+	LoadDepsFromYAMLFn     func() (*interserviceclient.DepsConfig, error)
+	SetupISCclientFn       func(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error)
 	GetEnvVarFn            func(envName string) (string, error)
 	NewServerClientFn      func(
 		clientID string,
@@ -34,7 +36,7 @@ type FakeBaseExtensionImpl struct {
 		username string,
 		password string,
 		extraHeaders map[string]string,
-	) (*base.ServerClient, error)
+	) (*apiclient.ServerClient, error)
 	EnsureTopicsExistFn func(
 		ctx context.Context,
 		pubsubClient *pubsub.Client,
@@ -80,7 +82,7 @@ type FakeBaseExtensionImpl struct {
 	GetLogoutFuncFn                      func(ctx context.Context) http.HandlerFunc
 	GetRefreshFuncFn                     func() http.HandlerFunc
 	GetVerifyTokenFuncFn                 func(ctx context.Context) http.HandlerFunc
-	GetUserProfileByPrimaryPhoneNumberFn func(ctx context.Context, phone string, suspended bool) (*base.UserProfile, error)
+	GetUserProfileByPrimaryPhoneNumberFn func(ctx context.Context, phone string, suspended bool) (*profileutils.UserProfile, error)
 }
 
 // GetLoggedInUser retrieves logged in user information
@@ -99,28 +101,28 @@ func (b *FakeBaseExtensionImpl) NormalizeMSISDN(msisdn string) (*string, error) 
 }
 
 // FetchDefaultCurrency ...
-func (b *FakeBaseExtensionImpl) FetchDefaultCurrency(c base.Client,
-) (*base.FinancialYearAndCurrency, error) {
+func (b *FakeBaseExtensionImpl) FetchDefaultCurrency(c apiclient.Client,
+) (*apiclient.FinancialYearAndCurrency, error) {
 	return b.FetchDefaultCurrencyFn(c)
 }
 
 // FetchUserProfile ...
-func (b *FakeBaseExtensionImpl) FetchUserProfile(authClient base.Client) (*base.EDIUserProfile, error) {
+func (b *FakeBaseExtensionImpl) FetchUserProfile(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
 	return b.FetchUserProfileFn(authClient)
 }
 
 // LoginClient returns a logged in client with the supplied username and password
-func (b *FakeBaseExtensionImpl) LoginClient(username, password string) (base.Client, error) {
+func (b *FakeBaseExtensionImpl) LoginClient(username, password string) (apiclient.Client, error) {
 	return b.LoginClientFn(username, password)
 }
 
 // LoadDepsFromYAML ...
-func (b *FakeBaseExtensionImpl) LoadDepsFromYAML() (*base.DepsConfig, error) {
+func (b *FakeBaseExtensionImpl) LoadDepsFromYAML() (*interserviceclient.DepsConfig, error) {
 	return b.LoadDepsFromYAMLFn()
 }
 
 // SetupISCclient ...
-func (b *FakeBaseExtensionImpl) SetupISCclient(config base.DepsConfig, serviceName string) (*base.InterServiceClient, error) {
+func (b *FakeBaseExtensionImpl) SetupISCclient(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error) {
 	return b.SetupISCclientFn(config, serviceName)
 }
 
@@ -160,7 +162,7 @@ func (b *FakeBaseExtensionImpl) NewServerClient(
 	username string,
 	password string,
 	extraHeaders map[string]string,
-) (*base.ServerClient, error) {
+) (*apiclient.ServerClient, error) {
 	return b.NewServerClientFn(clientID, clientSecret, apiTokenURL, apiHost, apiScheme, grantType, username, password, extraHeaders)
 }
 
@@ -304,7 +306,7 @@ func (i *ISCClientExtension) MakeRequest(ctx context.Context, method string, pat
 }
 
 // GetUserProfileByPrimaryPhoneNumber ..
-func (b *FakeBaseExtensionImpl) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phone string, suspended bool) (*base.UserProfile, error) {
+func (b *FakeBaseExtensionImpl) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phone string, suspended bool) (*profileutils.UserProfile, error) {
 	return b.GetUserProfileByPrimaryPhoneNumberFn(ctx, phone, suspended)
 }
 

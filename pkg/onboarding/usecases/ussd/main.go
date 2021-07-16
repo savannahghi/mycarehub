@@ -3,7 +3,7 @@ package ussd
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 
@@ -52,10 +52,10 @@ type Usecase interface {
 	IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error)
 	// Onboarding
 	GetOrCreatePhoneNumberUser(ctx context.Context, phone string) (*dto.CreatedUserResponse, error)
-	CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error)
-	CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*base.Customer, error)
-	UpdateBioData(ctx context.Context, id string, data base.BioData) error
-	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspend bool) (*base.UserProfile, error)
+	CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*profileutils.UserProfile, error)
+	CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*profileutils.Customer, error)
+	UpdateBioData(ctx context.Context, id string, data profileutils.BioData) error
+	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspend bool) (*profileutils.UserProfile, error)
 	RemoveUserByPhoneNumber(ctx context.Context, phone string) error
 	SetUserPIN(ctx context.Context, pin string, profileID string) (bool, error)
 }

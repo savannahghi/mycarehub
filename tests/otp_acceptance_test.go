@@ -10,12 +10,12 @@ import (
 	"net/http/httputil"
 	"testing"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/interserviceclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 func composeValidWARetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	step := 1
 	return &dto.SendRetryOTPPayload{
 		Phone:     &phoneNumber,
@@ -24,7 +24,7 @@ func composeValidWARetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {
 }
 
 // func composeValidMessageRetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {
-// 	phoneNumber := base.TestUserPhoneNumber
+// 	phoneNumber := interserviceclient.TestUserPhoneNumber
 // 	step := 2
 // 	return &dto.SendRetryOTPPayload{
 // 		Phone:     &phoneNumber,
@@ -33,7 +33,7 @@ func composeValidWARetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {
 // }
 
 func composeInvalidRetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	step := 3 // There is no retry step > 2
 	return &dto.SendRetryOTPPayload{
 		Phone:     &phoneNumber,
@@ -43,7 +43,7 @@ func composeInvalidRetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {
 
 func TestSendRetryOTP(t *testing.T) {
 	client := http.DefaultClient
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -144,7 +144,7 @@ func TestSendRetryOTP(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "profile") {
 				r.Header.Add(k, v)
 			}
 
@@ -178,7 +178,7 @@ func TestSendRetryOTP(t *testing.T) {
 func TestSendOTP(t *testing.T) {
 	client := http.DefaultClient
 
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	validPayload := &dto.PhoneNumberPayload{
 		PhoneNumber: &phoneNumber,
 	}
@@ -248,7 +248,7 @@ func TestSendOTP(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "profile") {
 				r.Header.Add(k, v)
 			}
 

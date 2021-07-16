@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/interserviceclient"
 )
 
 func main() {
@@ -20,8 +20,8 @@ func main() {
 }
 
 func getInterserviceBearerTokenHeader(ctx context.Context) (string, error) {
-	service := base.ISCService{} // name and domain not necessary for our use case
-	isc, err := base.NewInterserviceClient(service)
+	service := interserviceclient.ISCService{} // name and domain not necessary for our use case
+	isc, err := interserviceclient.NewInterserviceClient(service)
 	if err != nil {
 		return "", fmt.Errorf("can't initialize interservice client: %w", err)
 	}

@@ -16,10 +16,13 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/cenkalti/backoff"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/errorcodeutil"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/profileutils"
 	"github.com/segmentio/ksuid"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/base"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
@@ -54,29 +57,29 @@ var tracer = otel.Tracer("gitlab.slade360emr.com/go/profile/pkg/onboarding/useca
 // ProfileUseCase represents all the profile business logic
 type ProfileUseCase interface {
 	// profile related
-	UserProfile(ctx context.Context) (*base.UserProfile, error)
-	GetProfileByID(ctx context.Context, id *string) (*base.UserProfile, error)
+	UserProfile(ctx context.Context) (*profileutils.UserProfile, error)
+	GetProfileByID(ctx context.Context, id *string) (*profileutils.UserProfile, error)
 	UpdateUserName(ctx context.Context, userName string) error
 	UpdatePrimaryPhoneNumber(ctx context.Context, phoneNumber string, useContext bool) error
 	UpdatePrimaryEmailAddress(ctx context.Context, emailAddress string) error
 	UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error
 	UpdateSecondaryEmailAddresses(ctx context.Context, emailAddresses []string) error
-	UpdateVerifiedIdentifiers(ctx context.Context, identifiers []base.VerifiedIdentifier) error
+	UpdateVerifiedIdentifiers(ctx context.Context, identifiers []profileutils.VerifiedIdentifier) error
 	UpdateVerifiedUIDS(ctx context.Context, uids []string) error
 	UpdateSuspended(ctx context.Context, status bool, phoneNumber string, useContext bool) error
 	UpdatePhotoUploadID(ctx context.Context, uploadID string) error
-	UpdateCovers(ctx context.Context, covers []base.Cover) error
+	UpdateCovers(ctx context.Context, covers []profileutils.Cover) error
 	UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error
-	UpdatePermissions(ctx context.Context, perms []base.PermissionType) error
+	UpdatePermissions(ctx context.Context, perms []profileutils.PermissionType) error
 	AddAdminPermsToUser(ctx context.Context, phone string) error
 	RemoveAdminPermsToUser(ctx context.Context, phone string) error
-	AddRoleToUser(ctx context.Context, phone string, role base.RoleType) error
+	AddRoleToUser(ctx context.Context, phone string, role profileutils.RoleType) error
 	RemoveRoleToUser(ctx context.Context, phone string) error
-	UpdateBioData(ctx context.Context, data base.BioData) error
+	UpdateBioData(ctx context.Context, data profileutils.BioData) error
 	GetUserProfileByUID(
 		ctx context.Context,
 		UID string,
-	) (*base.UserProfile, error)
+	) (*profileutils.UserProfile, error)
 
 	// masks phone number.
 	MaskPhoneNumbers(phones []string) []string
@@ -140,12 +143,12 @@ type ProfileUseCase interface {
 	AddAddress(
 		ctx context.Context,
 		input dto.UserAddressInput,
-		addressType base.AddressType,
-	) (*base.Address, error)
+		addressType enumutils.AddressType,
+	) (*profileutils.Address, error)
 
 	GetAddresses(ctx context.Context) (*domain.UserAddresses, error)
 
-	GetUserCommunicationsSettings(ctx context.Context) (*base.UserCommunicationsSetting, error)
+	GetUserCommunicationsSettings(ctx context.Context) (*profileutils.UserCommunicationsSetting, error)
 
 	SetUserCommunicationsSettings(
 		ctx context.Context,
@@ -153,16 +156,16 @@ type ProfileUseCase interface {
 		allowTextSms *bool,
 		allowPush *bool,
 		allowEmail *bool,
-	) (*base.UserCommunicationsSetting, error)
+	) (*profileutils.UserCommunicationsSetting, error)
 
-	GetNavActions(ctx context.Context, user base.UserProfile) (*base.NavigationActions, error)
-	GenerateDefaultNavActions(ctx context.Context) (base.NavigationActions, error)
-	GenerateAgentNavActions(ctx context.Context) (base.NavigationActions, error)
-	GenerateEmployeeNavActions(ctx context.Context) (base.NavigationActions, error)
+	GetNavActions(ctx context.Context, user profileutils.UserProfile) (*profileutils.NavigationActions, error)
+	GenerateDefaultNavActions(ctx context.Context) (profileutils.NavigationActions, error)
+	GenerateAgentNavActions(ctx context.Context) (profileutils.NavigationActions, error)
+	GenerateEmployeeNavActions(ctx context.Context) (profileutils.NavigationActions, error)
 
 	SaveFavoriteNavActions(ctx context.Context, title string) (bool, error)
 	DeleteFavoriteNavActions(ctx context.Context, title string) (bool, error)
-	RefreshNavigationActions(ctx context.Context) (*base.NavigationActions, error)
+	RefreshNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error)
 	SwitchUserFlaggedFeatures(ctx context.Context, phoneNumber string) (*dto.OKResp, error)
 }
 
@@ -190,7 +193,7 @@ func NewProfileUseCase(
 }
 
 // UserProfile retrieves the profile of the logged in user, if they have one
-func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile, error) {
+func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "UserProfile")
 	defer span.End()
 
@@ -220,7 +223,7 @@ func (p *ProfileUseCaseImpl) UserProfile(ctx context.Context) (*base.UserProfile
 func (p *ProfileUseCaseImpl) GetProfileByID(
 	ctx context.Context,
 	id *string,
-) (*base.UserProfile, error) {
+) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "GetProfileByID")
 	defer span.End()
 
@@ -257,7 +260,7 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(
 	ctx, span := tracer.Start(ctx, "UpdatePrimaryPhoneNumber")
 	defer span.End()
 
-	var profile *base.UserProfile
+	var profile *profileutils.UserProfile
 
 	phoneNumber, err := p.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
@@ -529,7 +532,7 @@ func (p *ProfileUseCaseImpl) UpdateVerifiedUIDS(ctx context.Context, uids []stri
 // UpdateVerifiedIdentifiers updates the profile's verified identifiers
 func (p *ProfileUseCaseImpl) UpdateVerifiedIdentifiers(
 	ctx context.Context,
-	identifiers []base.VerifiedIdentifier,
+	identifiers []profileutils.VerifiedIdentifier,
 ) error {
 	ctx, span := tracer.Start(ctx, "UpdateVerifiedIdentifiers")
 	defer span.End()
@@ -568,7 +571,7 @@ func (p *ProfileUseCaseImpl) UpdateSuspended(
 	ctx, span := tracer.Start(ctx, "UpdateSuspended")
 	defer span.End()
 
-	var profile *base.UserProfile
+	var profile *profileutils.UserProfile
 
 	phoneNumber, err := p.baseExt.NormalizeMSISDN(phone)
 	if err != nil {
@@ -640,7 +643,7 @@ func (p *ProfileUseCaseImpl) UpdatePhotoUploadID(ctx context.Context, uploadID s
 }
 
 // UpdateCovers updates primary covers of a specific user profile
-func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []base.Cover) error {
+func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []profileutils.Cover) error {
 	ctx, span := tracer.Start(ctx, "UpdateCovers")
 	defer span.End()
 
@@ -716,7 +719,7 @@ func (p *ProfileUseCaseImpl) UpdatePushTokens(
 // UpdatePermissions updates the profiles permissions
 func (p *ProfileUseCaseImpl) UpdatePermissions(
 	ctx context.Context,
-	perms []base.PermissionType,
+	perms []profileutils.PermissionType,
 ) error {
 	ctx, span := tracer.Start(ctx, "UpdatePermissions")
 	defer span.End()
@@ -764,7 +767,7 @@ func (p *ProfileUseCaseImpl) AddAdminPermsToUser(ctx context.Context, phone stri
 		utils.RecordSpanError(span, err)
 		return err
 	}
-	perms := base.DefaultSuperAdminPermissions
+	perms := profileutils.DefaultSuperAdminPermissions
 	return p.onboardingRepository.UpdatePermissions(ctx, profile.ID, perms)
 }
 
@@ -800,7 +803,7 @@ func (p *ProfileUseCaseImpl) RemoveAdminPermsToUser(ctx context.Context, phone s
 func (p *ProfileUseCaseImpl) AddRoleToUser(
 	ctx context.Context,
 	phone string,
-	role base.RoleType,
+	role profileutils.RoleType,
 ) error {
 	ctx, span := tracer.Start(ctx, "AddRoleToUser")
 	defer span.End()
@@ -852,7 +855,7 @@ func (p *ProfileUseCaseImpl) RemoveRoleToUser(ctx context.Context, phone string)
 }
 
 // UpdateBioData updates primary biodata of a specific user profile
-func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data base.BioData) error {
+func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data profileutils.BioData) error {
 	ctx, span := tracer.Start(ctx, "UpdateBioData")
 	defer span.End()
 
@@ -933,7 +936,7 @@ func (p *ProfileUseCaseImpl) MaskPhoneNumbers(phones []string) []string {
 func (p *ProfileUseCaseImpl) GetUserProfileByUID(
 	ctx context.Context,
 	UID string,
-) (*base.UserProfile, error) {
+) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "GetUserProfileByUID")
 	defer span.End()
 
@@ -1074,7 +1077,7 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 			return p.engagement.ResolveDefaultNudgeByTitle(
 				newctx,
 				UID,
-				base.FlavourConsumer,
+				feedlib.FlavourConsumer,
 				VerifyEmailNudgeTitle,
 			)
 		}
@@ -1102,7 +1105,7 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 			return p.engagement.ResolveDefaultNudgeByTitle(
 				newctx,
 				UID,
-				base.FlavourPro,
+				feedlib.FlavourPro,
 				VerifyEmailNudgeTitle,
 			)
 		}
@@ -1436,19 +1439,19 @@ func (p *ProfileUseCaseImpl) SetupAsExperimentParticipant(
 func (p *ProfileUseCaseImpl) AddAddress(
 	ctx context.Context,
 	input dto.UserAddressInput,
-	addressType base.AddressType,
-) (*base.Address, error) {
+	addressType enumutils.AddressType,
+) (*profileutils.Address, error) {
 	ctx, span := tracer.Start(ctx, "AddAddress")
 	defer span.End()
 
-	var address *base.Address
+	var address *profileutils.Address
 	profile, err := p.UserProfile(ctx)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
-	address = &base.Address{
+	address = &profileutils.Address{
 		// Longitude and latitude coordinates are stored with
 		// 15 decimal digits right of the decimal points
 		Latitude:         fmt.Sprintf("%.15f", input.Latitude),
@@ -1546,7 +1549,7 @@ func (p *ProfileUseCaseImpl) GetAddresses(
 // GetUserCommunicationsSettings  retrives the logged in user communications settings.
 func (p *ProfileUseCaseImpl) GetUserCommunicationsSettings(
 	ctx context.Context,
-) (*base.UserCommunicationsSetting, error) {
+) (*profileutils.UserCommunicationsSetting, error) {
 	ctx, span := tracer.Start(ctx, "GetUserCommunicationsSettings")
 	defer span.End()
 
@@ -1565,7 +1568,7 @@ func (p *ProfileUseCaseImpl) SetUserCommunicationsSettings(
 	allowTextSms *bool,
 	allowPush *bool,
 	allowEmail *bool,
-) (*base.UserCommunicationsSetting, error) {
+) (*profileutils.UserCommunicationsSetting, error) {
 	ctx, span := tracer.Start(ctx, "SetUserCommunicationsSettings")
 	defer span.End()
 
@@ -1588,23 +1591,23 @@ func (p *ProfileUseCaseImpl) SetUserCommunicationsSettings(
 // GetNavActions Generates and returns the navigation actions for a user based on their role
 func (p *ProfileUseCaseImpl) GetNavActions(
 	ctx context.Context,
-	user base.UserProfile,
-) (*base.NavigationActions, error) {
+	user profileutils.UserProfile,
+) (*profileutils.NavigationActions, error) {
 	ctx, span := tracer.Start(ctx, "GetNavActions")
 	defer span.End()
 
-	var navActions base.NavigationActions
+	var navActions profileutils.NavigationActions
 	var err error
 
 	switch user.Role {
-	case base.RoleTypeEmployee:
+	case profileutils.RoleTypeEmployee:
 		navActions, err = p.GenerateEmployeeNavActions(ctx)
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			return nil, err
 		}
 
-	case base.RoleTypeAgent:
+	case profileutils.RoleTypeAgent:
 		navActions, err = p.GenerateAgentNavActions(ctx)
 		if err != nil {
 			utils.RecordSpanError(span, err)
@@ -1620,7 +1623,7 @@ func (p *ProfileUseCaseImpl) GetNavActions(
 	}
 
 	// set favorite navigation actions in response
-	primaryActions := []base.NavAction{}
+	primaryActions := []profileutils.NavAction{}
 	for _, navAction := range navActions.Primary {
 		if utils.CheckUserHasFavNavAction(&user, navAction.Title) {
 			navAction.Favourite = true
@@ -1628,7 +1631,7 @@ func (p *ProfileUseCaseImpl) GetNavActions(
 		primaryActions = append(primaryActions, navAction)
 	}
 
-	secondaryActions := []base.NavAction{}
+	secondaryActions := []profileutils.NavAction{}
 	for _, navAction := range navActions.Secondary {
 		if utils.CheckUserHasFavNavAction(&user, navAction.Title) {
 			navAction.Favourite = true
@@ -1644,17 +1647,17 @@ func (p *ProfileUseCaseImpl) GetNavActions(
 //GenerateEmployeeNavActions generates the navigation actions for a SIL employee
 func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(
 	ctx context.Context,
-) (base.NavigationActions, error) {
+) (profileutils.NavigationActions, error) {
 
-	actions := base.NavigationActions{
-		Primary: []base.NavAction{
+	actions := profileutils.NavigationActions{
+		Primary: []profileutils.NavAction{
 			{
 				Title:      common.HomeNavActionTitle,
 				OnTapRoute: common.HomeRoute,
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HomeNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.HomeNavActionTitle,
 					Description: common.HomeNavActionDescription,
 					Thumbnail:   common.HomeNavActionURL,
@@ -1664,10 +1667,10 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(
 			{
 				Title:      common.RequestsNavActionTitle,
 				OnTapRoute: common.RequestsRoute,
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.RequestNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.RequestsNavActionTitle,
 					Description: common.RequestsNavActionDescription,
 					Thumbnail:   common.RequestNavActionURL,
@@ -1678,10 +1681,10 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(
 				Title: common.PartnerNavActionTitle,
 				// Not provided yet
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.PartnerNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.PartnerNavActionTitle,
 					Description: common.PartnerNavActionDescription,
 					Thumbnail:   common.PartnerNavActionURL,
@@ -1692,10 +1695,10 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(
 				Title: common.ConsumerNavActionTitle,
 				// Not provided yet
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.ConsumerNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.ConsumerNavActionTitle,
 					Description: common.ConsumerNavActionDescription,
 					Thumbnail:   common.ConsumerNavActionURL,
@@ -1703,20 +1706,20 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(
 				Favourite: false,
 			},
 		},
-		Secondary: []base.NavAction{
+		Secondary: []profileutils.NavAction{
 			{
 				Title:      common.AgentNavActionTitle,
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.AgentNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.AgentNavActionTitle,
 					Description: common.AgentNavActionDescription,
 					Thumbnail:   common.AgentNavActionURL,
 				},
 				Favourite: false,
-				Nested: []base.NestedNavAction{
+				Nested: []profileutils.NestedNavAction{
 					{
 						Title:      common.AgentRegistrationActionTitle,
 						OnTapRoute: common.AgentRegistrationRoute,
@@ -1731,16 +1734,16 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(
 				Title: common.PatientNavActionTitle,
 				// Empty string for parent with nested actions
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.PatientNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.PatientNavActionTitle,
 					Description: common.PatientNavActionDescription,
 					Thumbnail:   common.PatientNavActionURL,
 				},
 				Favourite: false,
-				Nested: []base.NestedNavAction{
+				Nested: []profileutils.NestedNavAction{
 					{
 						Title:      common.PatientRegistrationActionTitle,
 						OnTapRoute: common.PatientRegistrationRoute,
@@ -1754,10 +1757,10 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(
 			{
 				Title:      common.HelpNavActionTitle,
 				OnTapRoute: common.GetHelpRouteRoute,
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HelpNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.HelpNavActionTitle,
 					Description: common.HelpNavActionDescription,
 					Thumbnail:   common.HelpNavActionURL,
@@ -1773,16 +1776,16 @@ func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(
 //GenerateAgentNavActions generates the navigation actions for a SIL employee
 func (p *ProfileUseCaseImpl) GenerateAgentNavActions(
 	ctx context.Context,
-) (base.NavigationActions, error) {
-	actions := base.NavigationActions{
-		Primary: []base.NavAction{
+) (profileutils.NavigationActions, error) {
+	actions := profileutils.NavigationActions{
+		Primary: []profileutils.NavAction{
 			{
 				Title:      common.HomeNavActionTitle,
 				OnTapRoute: common.HomeRoute,
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HomeNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.HomeNavActionTitle,
 					Description: common.HomeNavActionDescription,
 					Thumbnail:   common.HomeNavActionURL,
@@ -1792,10 +1795,10 @@ func (p *ProfileUseCaseImpl) GenerateAgentNavActions(
 			{
 				Title:      common.PartnerNavActionTitle,
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.PartnerNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.PartnerNavActionTitle,
 					Description: common.PartnerNavActionDescription,
 					Thumbnail:   common.PartnerNavActionURL,
@@ -1805,10 +1808,10 @@ func (p *ProfileUseCaseImpl) GenerateAgentNavActions(
 			{
 				Title:      common.ConsumerNavActionTitle,
 				OnTapRoute: "",
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.ConsumerNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.ConsumerNavActionTitle,
 					Description: common.ConsumerNavActionDescription,
 					Thumbnail:   common.ConsumerNavActionURL,
@@ -1818,10 +1821,10 @@ func (p *ProfileUseCaseImpl) GenerateAgentNavActions(
 			{
 				Title:      common.HelpNavActionTitle,
 				OnTapRoute: common.GetHelpRouteRoute,
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HelpNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.HelpNavActionTitle,
 					Description: common.HelpNavActionDescription,
 					Thumbnail:   common.HelpNavActionURL,
@@ -1836,16 +1839,16 @@ func (p *ProfileUseCaseImpl) GenerateAgentNavActions(
 //GenerateDefaultNavActions generates the navigation actions for a SIL employee
 func (p *ProfileUseCaseImpl) GenerateDefaultNavActions(
 	ctx context.Context,
-) (base.NavigationActions, error) {
-	actions := base.NavigationActions{
-		Primary: []base.NavAction{
+) (profileutils.NavigationActions, error) {
+	actions := profileutils.NavigationActions{
+		Primary: []profileutils.NavAction{
 			{
 				Title:      common.HomeNavActionTitle,
 				OnTapRoute: common.HomeRoute,
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HomeNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.HomeNavActionTitle,
 					Description: common.HomeNavActionDescription,
 					Thumbnail:   common.HomeNavActionURL,
@@ -1855,10 +1858,10 @@ func (p *ProfileUseCaseImpl) GenerateDefaultNavActions(
 			{
 				Title:      common.HelpNavActionTitle,
 				OnTapRoute: common.GetHelpRouteRoute,
-				Icon: base.Link{
+				Icon: feedlib.Link{
 					ID:          ksuid.New().String(),
 					URL:         common.HelpNavActionURL,
-					LinkType:    base.LinkTypeSvgImage,
+					LinkType:    feedlib.LinkTypeSvgImage,
 					Title:       common.HelpNavActionTitle,
 					Description: common.HelpNavActionDescription,
 					Thumbnail:   common.HelpNavActionURL,
@@ -1943,7 +1946,7 @@ func (p *ProfileUseCaseImpl) DeleteFavoriteNavActions(
 // RefreshNavigationActions gets user navigation actions only
 func (p *ProfileUseCaseImpl) RefreshNavigationActions(
 	ctx context.Context,
-) (*base.NavigationActions, error) {
+) (*profileutils.NavigationActions, error) {
 	user, err := p.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
 		return nil, exceptions.UserNotFoundError(err)
@@ -1981,7 +1984,7 @@ func (p *ProfileUseCaseImpl) SwitchUserFlaggedFeatures(
 
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		&auth.Token{
 			UID: profile.VerifiedUIDS[0],
 		},

@@ -8,8 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -25,7 +25,7 @@ const (
 
 // AdminUseCase represent the business logic required for management of admins
 type AdminUseCase interface {
-	RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*base.UserProfile, error)
+	RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*profileutils.UserProfile, error)
 	FetchAdmins(ctx context.Context) ([]*dto.Admin, error)
 }
 
@@ -54,7 +54,7 @@ func NewAdminUseCases(
 }
 
 // RegisterAdmin creates a new Admin in bewell
-func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*base.UserProfile, error) {
+func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "RegisterAdmin")
 	defer span.End()
 
@@ -78,21 +78,21 @@ func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.Register
 		return nil, err
 	}
 
-	if !usp.HasPermission(base.PermissionTypeCreateAdmin) {
+	if !usp.HasPermission(profileutils.PermissionTypeCreateAdmin) {
 		return nil, exceptions.RoleNotValid(fmt.Errorf("error: logged in user does not have permissions to create admin"))
 	}
 
 	timestamp := time.Now().In(pubsubtools.TimeLocation)
-	adminProfile := base.UserProfile{
+	adminProfile := profileutils.UserProfile{
 		PrimaryEmailAddress: &input.Email,
-		UserBioData: base.BioData{
+		UserBioData: profileutils.BioData{
 			FirstName:   &input.FirstName,
 			LastName:    &input.LastName,
 			Gender:      input.Gender,
 			DateOfBirth: &input.DateOfBirth,
 		},
-		Role:        base.RoleTypeEmployee,
-		Permissions: base.RoleTypeEmployee.Permissions(),
+		Role:        profileutils.RoleTypeEmployee,
+		Permissions: profileutils.RoleTypeEmployee.Permissions(),
 		CreatedByID: &usp.ID,
 		Created:     &timestamp,
 	}
@@ -111,7 +111,7 @@ func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.Register
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	sup := base.Supplier{
+	sup := profileutils.Supplier{
 		IsOrganizationVerified: true,
 		SladeCode:              SavannahSladeCode,
 		KYCSubmitted:           true,
@@ -189,7 +189,7 @@ func (a *AdminUseCaseImpl) FetchAdmins(ctx context.Context) ([]*dto.Admin, error
 	ctx, span := tracer.Start(ctx, "FetchAdmins")
 	defer span.End()
 
-	profiles, err := a.repo.ListUserProfiles(ctx, base.RoleTypeEmployee)
+	profiles, err := a.repo.ListUserProfiles(ctx, profileutils.RoleTypeEmployee)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err

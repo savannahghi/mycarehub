@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"testing"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
@@ -192,7 +192,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.OtpResponse
+		want    *profileutils.OtpResponse
 		wantErr bool
 	}{
 		{
@@ -201,7 +201,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 				ctx:   ctx,
 				phone: "+2547345678",
 			},
-			want: &base.OtpResponse{
+			want: &profileutils.OtpResponse{
 				OTP: "234234",
 			},
 			wantErr: false,
@@ -230,7 +230,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 				ctx:   ctx,
 				phone: "+2547345678",
 			},
-			want: &base.OtpResponse{
+			want: &profileutils.OtpResponse{
 				OTP: "234234",
 			},
 			wantErr: true,
@@ -316,7 +316,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.OtpResponse
+		want    *profileutils.OtpResponse
 		wantErr bool
 	}{
 		{
@@ -326,7 +326,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 				msisdn:    "+2547345678",
 				retryStep: 1,
 			},
-			want: &base.OtpResponse{
+			want: &profileutils.OtpResponse{
 				OTP: "123123",
 			},
 			wantErr: false,
@@ -358,7 +358,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 				msisdn:    "+2547345678",
 				retryStep: 1,
 			},
-			want: &base.OtpResponse{
+			want: &profileutils.OtpResponse{
 				OTP: "234234",
 			},
 			wantErr: true,

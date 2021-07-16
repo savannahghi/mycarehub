@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/enumutils"
 )
 
 func TestBusinessPartnerFilterInput_ToURLValues(t *testing.T) {
@@ -61,9 +61,9 @@ func TestBusinessPartnerFilterInput_ToURLValues(t *testing.T) {
 
 func TestBusinessPartnerSortInput_ToURLValues(t *testing.T) {
 
-	var name base.SortOrder = base.SortOrderAsc
-	var sladeCode base.SortOrder = base.SortOrderAsc
-	var sladeCode2 base.SortOrder = base.SortOrderDesc
+	var name enumutils.SortOrder = enumutils.SortOrderAsc
+	var sladeCode enumutils.SortOrder = enumutils.SortOrderAsc
+	var sladeCode2 enumutils.SortOrder = enumutils.SortOrderDesc
 
 	correctFilters := BusinessPartnerSortInput{
 		Name:      &name,
@@ -109,9 +109,9 @@ func TestBusinessPartnerSortInput_ToURLValues(t *testing.T) {
 }
 
 func TestBranchSortInput_ToURLValues(t *testing.T) {
-	var name base.SortOrder = base.SortOrderAsc
-	var sladeCode base.SortOrder = base.SortOrderDesc
-	var sladeCode2 base.SortOrder = base.SortOrderAsc
+	var name enumutils.SortOrder = enumutils.SortOrderAsc
+	var sladeCode enumutils.SortOrder = enumutils.SortOrderDesc
+	var sladeCode2 enumutils.SortOrder = enumutils.SortOrderAsc
 
 	correctFilters := BranchSortInput{
 		Name:      &name,

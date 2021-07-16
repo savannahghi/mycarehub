@@ -15,8 +15,9 @@ import (
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization"
 
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/firebasetools"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
@@ -111,17 +112,17 @@ func (s *Service) RegisterMicroservice(
 	}
 
 	// check if the service exists first
-	filter := &base.FilterInput{
-		FilterBy: []*base.FilterParam{
+	filter := &firebasetools.FilterInput{
+		FilterBy: []*firebasetools.FilterParam{
 			{
 				FieldName:           "url",
-				FieldType:           base.FieldTypeString,
-				ComparisonOperation: base.OperationEqual,
+				FieldType:           enumutils.FieldTypeString,
+				ComparisonOperation: enumutils.OperationEqual,
 				FieldValue:          input.URL,
 			},
 		},
 	}
-	existing, _, err := base.QueryNodes(ctx, nil, filter, nil, &domain.Microservice{})
+	existing, _, err := firebasetools.QueryNodes(ctx, nil, filter, nil, &domain.Microservice{})
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("unable to query microservices: %w", err)
@@ -135,7 +136,7 @@ func (s *Service) RegisterMicroservice(
 		URL:         input.URL,
 		Description: input.Description,
 	}
-	id, _, err := base.CreateNode(ctx, node)
+	id, _, err := firebasetools.CreateNode(ctx, node)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("unable to register microservice: %w", err)
@@ -183,7 +184,7 @@ func (s *Service) ListMicroservices(ctx context.Context) ([]*domain.Microservice
 	ctx, span := tracer.Start(ctx, "ListMicroservices")
 	defer span.End()
 
-	docs, _, err := base.QueryNodes(ctx, nil, nil, nil, &domain.Microservice{})
+	docs, _, err := firebasetools.QueryNodes(ctx, nil, nil, nil, &domain.Microservice{})
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("unable to query microservices: %w", err)
@@ -222,7 +223,7 @@ func (s *Service) DeregisterMicroservice(ctx context.Context, id string) (bool, 
 	if !isAuthorized {
 		return false, fmt.Errorf("user not authorized to access this resource")
 	}
-	return base.DeleteNode(ctx, id, &domain.Microservice{})
+	return firebasetools.DeleteNode(ctx, id, &domain.Microservice{})
 }
 
 // DeregisterAllMicroservices removes all services at once. This is called internally when running in CLI mode
@@ -253,7 +254,7 @@ func (s *Service) DeregisterAllMicroservices(ctx context.Context) (bool, error) 
 	successCount := 0
 
 	for _, srv := range services {
-		_, err := base.DeleteNode(ctx, srv.ID, &domain.Microservice{})
+		_, err := firebasetools.DeleteNode(ctx, srv.ID, &domain.Microservice{})
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			// silent
@@ -276,7 +277,7 @@ func (s *Service) FindMicroserviceByID(ctx context.Context, id string) (*domain.
 	ctx, span := tracer.Start(ctx, "FindMicroserviceByID")
 	defer span.End()
 
-	node, err := base.RetrieveNode(ctx, id, &domain.Microservice{})
+	node, err := firebasetools.RetrieveNode(ctx, id, &domain.Microservice{})
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("can't get microservice with ID %s: %w", id, err)

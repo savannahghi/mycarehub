@@ -18,9 +18,12 @@ import (
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 	"github.com/imroc/req"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/serverutils"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -67,7 +70,7 @@ func mapToJSONReader(m map[string]interface{}) (io.Reader, error) {
 }
 
 func initializeAcceptanceTestFirebaseClient(ctx context.Context) (*firestore.Client, *auth.Client) {
-	fc := base.FirebaseClient{}
+	fc := firebasetools.FirebaseClient{}
 	fa, err := fc.InitFirebase()
 	if err != nil {
 		log.Panicf("unable to initialize Firestore for the Feed: %s", err)
@@ -107,7 +110,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		return nil, fmt.Errorf("unable to initialize pubsub client: %w", err)
 	}
 
-	ext := extension.NewBaseExtensionImpl(&base.FirebaseClient{})
+	ext := extension.NewBaseExtensionImpl(&firebasetools.FirebaseClient{})
 
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
@@ -159,9 +162,9 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 }
 
 func composeInValidUserPayload(t *testing.T) *dto.SignUpInput {
-	phone := base.TestUserPhoneNumber
+	phone := interserviceclient.TestUserPhoneNumber
 	pin := "" // empty string
-	flavour := base.FlavourPro
+	flavour := feedlib.FlavourPro
 	payload := &dto.SignUpInput{
 		PhoneNumber: &phone,
 		PIN:         &pin,
@@ -172,7 +175,7 @@ func composeInValidUserPayload(t *testing.T) *dto.SignUpInput {
 
 func composeValidUserPayload(t *testing.T, phone string) (*dto.SignUpInput, error) {
 	pin := "2030"
-	flavour := base.FlavourPro
+	flavour := feedlib.FlavourPro
 	otp, err := generateTestOTP(t, phone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate test OTP: %v", err)
@@ -208,7 +211,7 @@ func composeUSSDPayload(t *testing.T, payload *dto.SessionDetails) *strings.Read
 	return smspayload
 }
 
-func CreateTestUserByPhone(t *testing.T, phone string) (*base.UserResponse, error) {
+func CreateTestUserByPhone(t *testing.T, phone string) (*profileutils.UserResponse, error) {
 	client := http.DefaultClient
 	validPayload, err := composeValidUserPayload(t, phone)
 	if err != nil {
@@ -251,7 +254,7 @@ func CreateTestUserByPhone(t *testing.T, phone string) (*base.UserResponse, erro
 		log.Printf("HTTP error: %v", err)
 	}
 
-	var userResponse base.UserResponse
+	var userResponse profileutils.UserResponse
 	err = json.Unmarshal(data, &userResponse)
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshall response: %v", err)
@@ -260,7 +263,7 @@ func CreateTestUserByPhone(t *testing.T, phone string) (*base.UserResponse, erro
 }
 
 func TestCreateTestUserByPhone(t *testing.T) {
-	userResponse, err := CreateTestUserByPhone(t, base.TestUserPhoneNumber)
+	userResponse, err := CreateTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("failed to create test user")
 		return
@@ -310,7 +313,7 @@ func RemoveTestUserByPhone(t *testing.T, phone string) (bool, error) {
 }
 
 func TestRemoveTestUserByPhone(t *testing.T) {
-	phone := base.TestUserPhoneNumber
+	phone := interserviceclient.TestUserPhoneNumber
 	userResponse, err := CreateTestUserByPhone(t, phone)
 	if err != nil {
 		t.Errorf("failed to create test user")
@@ -332,7 +335,7 @@ func TestRemoveTestUserByPhone(t *testing.T) {
 	}
 }
 
-func generateTestOTP(t *testing.T, phone string) (*base.OtpResponse, error) {
+func generateTestOTP(t *testing.T, phone string) (*profileutils.OtpResponse, error) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
 	if err != nil {
@@ -350,7 +353,7 @@ func setPrimaryEmailAddress(ctx context.Context, t *testing.T, emailAddress stri
 	return s.Onboarding.UpdatePrimaryEmailAddress(ctx, emailAddress)
 }
 
-func updateBioData(ctx context.Context, t *testing.T, data base.BioData) error {
+func updateBioData(ctx context.Context, t *testing.T, data profileutils.BioData) error {
 	s, err := InitializeTestService(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to initialize test service: %v", err)
@@ -359,7 +362,7 @@ func updateBioData(ctx context.Context, t *testing.T, data base.BioData) error {
 	return s.Onboarding.UpdateBioData(ctx, data)
 }
 
-func addPartnerType(ctx context.Context, t *testing.T, name *string, partnerType base.PartnerType) (bool, error) {
+func addPartnerType(ctx context.Context, t *testing.T, name *string, partnerType profileutils.PartnerType) (bool, error) {
 	s, err := InitializeTestService(ctx)
 	if err != nil {
 		return false, fmt.Errorf("unable to initialize test service: %v", err)
@@ -368,7 +371,7 @@ func addPartnerType(ctx context.Context, t *testing.T, name *string, partnerType
 	return s.Supplier.AddPartnerType(ctx, name, &partnerType)
 }
 
-func setUpSupplier(ctx context.Context, t *testing.T, accountType base.AccountType) (*base.Supplier, error) {
+func setUpSupplier(ctx context.Context, t *testing.T, accountType profileutils.AccountType) (*profileutils.Supplier, error) {
 	s, err := InitializeTestService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize test service: %v", err)
@@ -378,7 +381,7 @@ func setUpSupplier(ctx context.Context, t *testing.T, accountType base.AccountTy
 
 func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	resp, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		log.Printf("unable to create a test user: %s", err)
@@ -402,7 +405,7 @@ func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {
 	return getGraphHeaders(*resp.Auth.IDToken)
 }
 
-// func setRoleForUserWithPhone(phoneNumber string, role base.RoleType, headers map[string]string) error {
+// func setRoleForUserWithPhone(phoneNumber string, role profileutils.RoleType, headers map[string]string) error {
 // 	url := fmt.Sprintf("%s/roles/add_user_role", baseURL)
 
 // 	payload := dto.RolePayload{
@@ -486,7 +489,7 @@ func TestMain(m *testing.M) {
 			}
 			for _, collection := range collections {
 				ref := fsc.Collection(collection)
-				base.DeleteCollection(ctx, fsc, ref, 10)
+				firebasetools.DeleteCollection(ctx, fsc, ref, 10)
 			}
 		}
 
@@ -569,7 +572,7 @@ func TestHealthStatusCheck(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "profile") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "profile") {
 				r.Header.Add(k, v)
 			}
 

@@ -3,23 +3,23 @@ package mock
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/interserviceclient"
 )
 
 // FakeServiceMessaging is an `Messaging` service mock .
 type FakeServiceMessaging struct {
-	FetchSMSClientFn    func() *base.InterServiceClient
-	FetchTwilioClientFn func() *base.InterServiceClient
+	FetchSMSClientFn    func() *interserviceclient.InterServiceClient
+	FetchTwilioClientFn func() *interserviceclient.InterServiceClient
 	SendSMSFn           func(ctx context.Context, phoneNumbers []string, message string) error
 }
 
 // FetchSMSClient ...
-func (f *FakeServiceMessaging) FetchSMSClient() *base.InterServiceClient {
+func (f *FakeServiceMessaging) FetchSMSClient() *interserviceclient.InterServiceClient {
 	return f.FetchSMSClientFn()
 }
 
 // FetchTwilioClient ...
-func (f *FakeServiceMessaging) FetchTwilioClient() *base.InterServiceClient {
+func (f *FakeServiceMessaging) FetchTwilioClient() *interserviceclient.InterServiceClient {
 	return f.FetchTwilioClientFn()
 }
 

@@ -5,9 +5,14 @@ import (
 	"testing"
 
 	"firebase.google.com/go/auth"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -34,7 +39,7 @@ func cleanUpFirebase(ctx context.Context, t *testing.T) {
 	r := fb.Repository{}
 	fsc, _ := InitializeTestFirebaseClient(ctx)
 	ref := fsc.Collection(r.GetKCYProcessCollectionName())
-	base.DeleteCollection(ctx, fsc, ref, 10)
+	firebasetools.DeleteCollection(ctx, fsc, ref, 10)
 }
 
 func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
@@ -49,7 +54,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -65,7 +70,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -75,7 +80,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -84,7 +89,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -96,7 +101,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	assert.Equal(t, 0, len(pr.Permissions))
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -108,7 +113,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -116,7 +121,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -128,7 +133,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
-	partnerType := base.PartnerTypeRider
+	partnerType := profileutils.PartnerTypeRider
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)
@@ -146,10 +151,10 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 	assert.Equal(t, partnerName, spr1.SupplierName)
 	assert.Equal(t, true, spr1.PartnerSetupComplete)
 
-	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
+	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual, *spr2.AccountType)
+	assert.Equal(t, profileutils.AccountTypeIndividual, *spr2.AccountType)
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -157,7 +162,7 @@ func TestSubmitProcessAddIndividualRiderKycRequest(t *testing.T) {
 
 	validInput := domain.IndividualRider{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           base.IdentificationDocTypeNationalid,
+			IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "123456789",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -211,7 +216,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -227,7 +232,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -237,7 +242,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -246,7 +251,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -258,7 +263,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	assert.Equal(t, 0, len(pr.Permissions))
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -271,7 +276,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -279,7 +284,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -291,7 +296,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
-	partnerType := base.PartnerTypeRider
+	partnerType := profileutils.PartnerTypeRider
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)
@@ -309,10 +314,10 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 	assert.Equal(t, partnerName, spr1.SupplierName)
 	assert.Equal(t, true, spr1.PartnerSetupComplete)
 
-	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
+	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual.String(), spr2.AccountType.String())
+	assert.Equal(t, profileutils.AccountTypeIndividual.String(), spr2.AccountType.String())
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -331,7 +336,7 @@ func TestSubmitProcessOrganizationRiderKycRequest(t *testing.T) {
 		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -375,7 +380,7 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -391,7 +396,7 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -401,7 +406,7 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -410,7 +415,7 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -422,7 +427,7 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	assert.Equal(t, 0, len(pr.Permissions))
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -435,7 +440,7 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -443,7 +448,7 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -455,7 +460,7 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
-	partnerType := base.PartnerTypeRider
+	partnerType := profileutils.PartnerTypeRider
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)
@@ -473,10 +478,10 @@ func TestSubmitProcessIndividualPractitionerKyc(t *testing.T) {
 	assert.Equal(t, partnerName, spr1.SupplierName)
 	assert.Equal(t, true, spr1.PartnerSetupComplete)
 
-	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
+	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual.String(), spr2.AccountType.String())
+	assert.Equal(t, profileutils.AccountTypeIndividual.String(), spr2.AccountType.String())
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -536,7 +541,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -552,7 +557,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -562,7 +567,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -571,7 +576,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -583,7 +588,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	assert.Equal(t, 0, len(pr.Permissions))
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -596,7 +601,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -604,7 +609,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -616,7 +621,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
-	partnerType := base.PartnerTypeRider
+	partnerType := profileutils.PartnerTypeRider
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)
@@ -634,10 +639,10 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 	assert.Equal(t, partnerName, spr1.SupplierName)
 	assert.Equal(t, true, spr1.PartnerSetupComplete)
 
-	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
+	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual.String(), spr2.AccountType.String())
+	assert.Equal(t, profileutils.AccountTypeIndividual.String(), spr2.AccountType.String())
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -661,7 +666,7 @@ func TestSubmitProcessOrganizationPractitionerKyc(t *testing.T) {
 		Cadre:                   domain.PractitionerCadreDoctor,
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -705,7 +710,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -721,7 +726,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -731,7 +736,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -740,7 +745,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -752,7 +757,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	assert.Equal(t, 0, len(pr.Permissions))
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -765,7 +770,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -773,7 +778,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -785,7 +790,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
-	partnerType := base.PartnerTypeRider
+	partnerType := profileutils.PartnerTypeRider
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)
@@ -803,10 +808,10 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 	assert.Equal(t, partnerName, spr1.SupplierName)
 	assert.Equal(t, true, spr1.PartnerSetupComplete)
 
-	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
+	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual.String(), spr2.AccountType.String())
+	assert.Equal(t, profileutils.AccountTypeIndividual.String(), spr2.AccountType.String())
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -829,7 +834,7 @@ func TestSubmitProcessOrganizationProviderKyc(t *testing.T) {
 		PracticeServices:        []domain.PractitionerService{domain.PractitionerServiceOutpatientServices},
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -873,7 +878,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -889,7 +894,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -899,7 +904,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -908,7 +913,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -920,7 +925,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	assert.Equal(t, 0, len(pr.Permissions))
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -933,7 +938,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -941,7 +946,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -953,7 +958,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
-	partnerType := base.PartnerTypeRider
+	partnerType := profileutils.PartnerTypeRider
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)
@@ -971,10 +976,10 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 	assert.Equal(t, partnerName, spr1.SupplierName)
 	assert.Equal(t, true, spr1.PartnerSetupComplete)
 
-	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
+	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual.String(), spr2.AccountType.String())
+	assert.Equal(t, profileutils.AccountTypeIndividual.String(), spr2.AccountType.String())
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -982,7 +987,7 @@ func TestSubmitProcessIndividualPharmaceuticalKyc(t *testing.T) {
 
 	validInput := domain.IndividualPharmaceutical{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           base.IdentificationDocTypeNationalid,
+			IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "123456789",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -1037,7 +1042,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -1053,7 +1058,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -1063,7 +1068,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -1072,7 +1077,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -1084,7 +1089,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	assert.Equal(t, 0, len(pr.Permissions))
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -1097,7 +1102,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -1105,7 +1110,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -1117,7 +1122,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
-	partnerType := base.PartnerTypeRider
+	partnerType := profileutils.PartnerTypeRider
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)
@@ -1135,10 +1140,10 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 	assert.Equal(t, partnerName, spr1.SupplierName)
 	assert.Equal(t, true, spr1.PartnerSetupComplete)
 
-	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
+	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual.String(), spr2.AccountType.String())
+	assert.Equal(t, profileutils.AccountTypeIndividual.String(), spr2.AccountType.String())
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -1162,7 +1167,7 @@ func TestSubmitProcessOrganizationPharmaceuticalKyc(t *testing.T) {
 		CertificateOfInCorporationUploadID: "cert-org-upload",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -1206,7 +1211,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -1222,7 +1227,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -1232,7 +1237,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -1241,7 +1246,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -1253,7 +1258,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	assert.Equal(t, 0, len(pr.Permissions))
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -1266,7 +1271,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -1274,7 +1279,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -1286,7 +1291,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
-	partnerType := base.PartnerTypeRider
+	partnerType := profileutils.PartnerTypeRider
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)
@@ -1304,10 +1309,10 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 	assert.Equal(t, partnerName, spr1.SupplierName)
 	assert.Equal(t, true, spr1.PartnerSetupComplete)
 
-	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
+	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual.String(), spr2.AccountType.String())
+	assert.Equal(t, profileutils.AccountTypeIndividual.String(), spr2.AccountType.String())
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -1315,7 +1320,7 @@ func TestSubmitProcessIndividualCoachKyc(t *testing.T) {
 
 	validInput := domain.IndividualCoach{
 		IdentificationDoc: domain.Identification{
-			IdentificationDocType:           base.IdentificationDocTypeNationalid,
+			IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 			IdentificationDocNumber:         "123456789",
 			IdentificationDocNumberUploadID: "id-upload",
 		},
@@ -1371,7 +1376,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -1387,7 +1392,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -1397,7 +1402,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -1406,7 +1411,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -1418,7 +1423,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	assert.Equal(t, 0, len(pr.Permissions))
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -1431,7 +1436,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -1439,7 +1444,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -1451,7 +1456,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 
 	// add a partner type for the logged in user
 	partnerName := "rider"
-	partnerType := base.PartnerTypeCoach
+	partnerType := profileutils.PartnerTypeCoach
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)
@@ -1469,10 +1474,10 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 	assert.Equal(t, partnerName, spr1.SupplierName)
 	assert.Equal(t, true, spr1.PartnerSetupComplete)
 
-	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
+	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual.String(), spr2.AccountType.String())
+	assert.Equal(t, profileutils.AccountTypeIndividual.String(), spr2.AccountType.String())
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -1491,7 +1496,7 @@ func TestSubmitProcessOrganizationCoachKycRequest(t *testing.T) {
 		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -1535,7 +1540,7 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -1551,7 +1556,7 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -1561,7 +1566,7 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -1570,7 +1575,7 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -1585,7 +1590,7 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	assert.Nil(t, err)
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -1595,7 +1600,7 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	assert.NotNil(t, pr)
 	assert.Equal(t, 1, len(pr.Permissions))
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -1603,7 +1608,7 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -1615,7 +1620,7 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 
 	// add a partner type for the logged in user
 	partnerName := "nutrition"
-	partnerType := base.PartnerTypeNutrition
+	partnerType := profileutils.PartnerTypeNutrition
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)
@@ -1633,10 +1638,10 @@ func TestSubmitProcessIndividualNutritionKycRequest(t *testing.T) {
 	assert.Equal(t, partnerName, spr1.SupplierName)
 	assert.Equal(t, true, spr1.PartnerSetupComplete)
 
-	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
+	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual.String(), spr2.AccountType.String())
+	assert.Equal(t, profileutils.AccountTypeIndividual.String(), spr2.AccountType.String())
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -1692,7 +1697,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -1708,7 +1713,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -1718,7 +1723,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -1727,7 +1732,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -1739,7 +1744,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	assert.Equal(t, 0, len(pr.Permissions))
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -1752,7 +1757,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	err = s.Onboarding.UpdatePrimaryEmailAddress(authenticatedContext, primaryEmail)
 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -1760,7 +1765,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -1771,7 +1776,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	assert.Nil(t, err)
 	// add a partner type for the logged in user
 	partnerName := "nutrition"
-	partnerType := base.PartnerTypeNutrition
+	partnerType := profileutils.PartnerTypeNutrition
 
 	resp2, err := s.Supplier.AddPartnerType(authenticatedContext, &partnerName, &partnerType)
 	assert.Nil(t, err)
@@ -1789,10 +1794,10 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	assert.Equal(t, partnerName, spr1.SupplierName)
 	assert.Equal(t, true, spr1.PartnerSetupComplete)
 
-	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, base.AccountTypeIndividual)
+	spr2, err := s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeIndividual)
 	assert.Nil(t, err)
 	assert.NotNil(t, spr2)
-	assert.Equal(t, base.AccountTypeIndividual.String(), spr2.AccountType.String())
+	assert.Equal(t, profileutils.AccountTypeIndividual.String(), spr2.AccountType.String())
 	assert.Equal(t, false, spr2.UnderOrganization)
 	assert.Equal(t, false, spr2.IsOrganizationVerified)
 	assert.Equal(t, false, spr2.HasBranches)
@@ -1814,7 +1819,7 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 		PracticeLicenseUploadID: "org-practice-license-upload",
 		DirectorIdentifications: []domain.Identification{
 			{
-				IdentificationDocType:           base.IdentificationDocTypeNationalid,
+				IdentificationDocType:           enumutils.IdentificationDocTypeNationalid,
 				IdentificationDocNumber:         "123456789",
 				IdentificationDocNumberUploadID: "id-upload",
 			},
@@ -1856,7 +1861,7 @@ func TestSupplierSetDefaultLocation(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
@@ -1872,7 +1877,7 @@ func TestSupplierSetDefaultLocation(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -1882,7 +1887,7 @@ func TestSupplierSetDefaultLocation(t *testing.T) {
 	assert.NotNil(t, resp1.CustomerProfile)
 	assert.NotNil(t, resp1.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -1891,7 +1896,7 @@ func TestSupplierSetDefaultLocation(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -1933,7 +1938,7 @@ func TestFindSupplierByUID(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Supplier
+		want    *profileutils.Supplier
 		wantErr bool
 	}{
 		{
@@ -1984,13 +1989,13 @@ func TestFindSupplierByID(t *testing.T) {
 	}
 
 	name := "Makmende And Sons"
-	partnerPractitioner := base.PartnerTypePractitioner
+	partnerPractitioner := profileutils.PartnerTypePractitioner
 	partnerType, err := s.Supplier.AddPartnerType(ctx, &name, &partnerPractitioner)
 	assert.Nil(t, err)
 	assert.NotNil(t, partnerType)
 	assert.Equal(t, true, partnerType)
 
-	supplier, err := s.Supplier.SetUpSupplier(ctx, base.AccountTypeOrganisation)
+	supplier, err := s.Supplier.SetUpSupplier(ctx, profileutils.AccountTypeOrganisation)
 	assert.Nil(t, err)
 
 	type args struct {
@@ -2000,7 +2005,7 @@ func TestFindSupplierByID(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Supplier
+		want    *profileutils.Supplier
 		wantErr bool
 	}{
 		{
@@ -2061,7 +2066,7 @@ func TestSupplierEDIUserLogin(t *testing.T) {
 	}
 
 	name := "Makmende And Sons"
-	partnerPractitioner := base.PartnerTypePractitioner
+	partnerPractitioner := profileutils.PartnerTypePractitioner
 
 	// TestEDIPortalUsername is a test username for `test` EDI Login
 	TestEDIPortalUsername := "malibu.pharmacy-3873@healthcloud.co.ke"
@@ -2078,7 +2083,7 @@ func TestSupplierEDIUserLogin(t *testing.T) {
 	assert.NotNil(t, resp2)
 	assert.Equal(t, true, resp2)
 
-	resp3, err := s.Supplier.SetUpSupplier(ctx, base.AccountTypeOrganisation)
+	resp3, err := s.Supplier.SetUpSupplier(ctx, profileutils.AccountTypeOrganisation)
 	assert.Nil(t, err)
 	assert.NotNil(t, resp3)
 	assert.Equal(t, false, resp3.Active)
@@ -2092,7 +2097,7 @@ func TestSupplierEDIUserLogin(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.EDIUserProfile
+		want    *profileutils.EDIUserProfile
 		wantErr bool
 	}{
 		{
@@ -2206,7 +2211,7 @@ func TestSuspendSupplier(t *testing.T) {
 	err = s.Onboarding.UpdatePrimaryEmailAddress(ctx, primaryEmail)
 	assert.Nil(t, err)
 
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -2214,7 +2219,7 @@ func TestSuspendSupplier(t *testing.T) {
 	firstName2 := "makmende"
 	lastName2 := "juha"
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -2225,7 +2230,7 @@ func TestSuspendSupplier(t *testing.T) {
 	assert.Nil(t, err)
 
 	name := "Makmende And Sons"
-	partnerPractitioner := base.PartnerTypePractitioner
+	partnerPractitioner := profileutils.PartnerTypePractitioner
 
 	// Add PartnerType
 	resp2, err := s.Supplier.AddPartnerType(ctx, &name, &partnerPractitioner)
@@ -2283,19 +2288,19 @@ func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 	}
 
 	testRiderName := "Test Rider"
-	rider := base.PartnerTypeRider
+	rider := profileutils.PartnerTypeRider
 	testPractitionerName := "Test Practitioner"
-	practitioner := base.PartnerTypePractitioner
+	practitioner := profileutils.PartnerTypePractitioner
 	testProviderName := "Test Provider"
-	provider := base.PartnerTypeProvider
+	provider := profileutils.PartnerTypeProvider
 	testPharmaceuticalName := "Test Pharmaceutical"
-	pharmaceutical := base.PartnerTypePharmaceutical
+	pharmaceutical := profileutils.PartnerTypePharmaceutical
 	testCoachName := "Test Coach"
-	coach := base.PartnerTypeCoach
+	coach := profileutils.PartnerTypeCoach
 	testNutritionName := "Test Nutrition"
-	nutrition := base.PartnerTypeNutrition
+	nutrition := profileutils.PartnerTypeNutrition
 	testConsumerName := "Test Consumer"
-	consumer := base.PartnerTypeConsumer
+	consumer := profileutils.PartnerTypeConsumer
 
 	s, err := InitializeTestService(ctx)
 	if err != nil {
@@ -2305,7 +2310,7 @@ func TestSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		name        *string
-		partnerType *base.PartnerType
+		partnerType *profileutils.PartnerType
 	}
 	tests := []struct {
 		name        string
@@ -2445,8 +2450,8 @@ func TestSetUpSupplier(t *testing.T) {
 		return
 	}
 
-	individualPartner := base.AccountTypeIndividual
-	organizationPartner := base.AccountTypeOrganisation
+	individualPartner := profileutils.AccountTypeIndividual
+	organizationPartner := profileutils.AccountTypeOrganisation
 
 	s, err := InitializeTestService(ctx)
 	if err != nil {
@@ -2456,7 +2461,7 @@ func TestSetUpSupplier(t *testing.T) {
 
 	type args struct {
 		ctx         context.Context
-		accountType base.AccountType
+		accountType profileutils.AccountType
 	}
 
 	tests := []struct {
@@ -2688,7 +2693,7 @@ func TestCreateCustomerAccount(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		name        string
-		partnerType base.PartnerType
+		partnerType profileutils.PartnerType
 	}
 	tests := []struct {
 		name    string
@@ -2700,7 +2705,7 @@ func TestCreateCustomerAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeConsumer,
+				partnerType: profileutils.PartnerTypeConsumer,
 			},
 			wantErr: false,
 		},
@@ -2709,7 +2714,7 @@ func TestCreateCustomerAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeCoach,
+				partnerType: profileutils.PartnerTypeCoach,
 			},
 			wantErr: true,
 		},
@@ -2746,12 +2751,12 @@ func TestCreateSupplierAccount(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		name        string
-		partnerType base.PartnerType
+		partnerType profileutils.PartnerType
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *base.Supplier
+		want    *profileutils.Supplier
 		wantErr bool
 	}{
 		{
@@ -2759,7 +2764,7 @@ func TestCreateSupplierAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeRider,
+				partnerType: profileutils.PartnerTypeRider,
 			},
 			wantErr: false,
 		},
@@ -2768,7 +2773,7 @@ func TestCreateSupplierAccount(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				name:        *utils.GetRandomName(),
-				partnerType: base.PartnerTypeConsumer,
+				partnerType: profileutils.PartnerTypeConsumer,
 			},
 			wantErr: true,
 		},
@@ -2799,7 +2804,7 @@ func TestCreateSupplierAccount(t *testing.T) {
 // 	err = s.Onboarding.UpdatePrimaryEmailAddress(ctx, primaryEmail)
 // 	assert.Nil(t, err)
 
-// 	dateOfBirth2 := base.Date{
+// 	dateOfBirth2 := scalarutils.Date{
 // 		Day:   12,
 // 		Year:  1995,
 // 		Month: 10,
@@ -2807,7 +2812,7 @@ func TestCreateSupplierAccount(t *testing.T) {
 // 	firstName2 := "makmende"
 // 	lastName2 := "juha"
 
-// 	completeUserDetails := base.BioData{
+// 	completeUserDetails := profileutils.BioData{
 // 		DateOfBirth: &dateOfBirth2,
 // 		FirstName:   &firstName2,
 // 		LastName:    &lastName2,
@@ -2819,12 +2824,12 @@ func TestCreateSupplierAccount(t *testing.T) {
 
 // 	// add a partner type for the logged in user
 // 	partnerName := "nutrition"
-// 	partnerType := base.PartnerTypeNutrition
+// 	partnerType := profileutils.PartnerTypeNutrition
 
 // 	resp2, err := s.Supplier.AddPartnerType(ctx, &partnerName, &partnerType)
 // 	assert.Nil(t, err)
 // 	assert.Equal(t, true, resp2)
-// 	_, err = s.Supplier.SetUpSupplier(ctx, base.AccountTypeIndividual)
+// 	_, err = s.Supplier.SetUpSupplier(ctx, profileutils.AccountTypeIndividual)
 // 	if err != nil {
 // 		t.Errorf("unable to setup supplier")
 // 		return

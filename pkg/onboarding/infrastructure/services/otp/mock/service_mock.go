@@ -3,24 +3,24 @@ package mock
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/profileutils"
 )
 
 // FakeServiceOTP is an `OTP` service mock .
 type FakeServiceOTP struct {
-	GenerateAndSendOTPFn func(ctx context.Context, phone string) (*base.OtpResponse, error)
-	SendRetryOTPFn       func(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error)
+	GenerateAndSendOTPFn func(ctx context.Context, phone string) (*profileutils.OtpResponse, error)
+	SendRetryOTPFn       func(ctx context.Context, msisdn string, retryStep int) (*profileutils.OtpResponse, error)
 	VerifyOTPFn          func(ctx context.Context, phone, OTP string) (bool, error)
 	VerifyEmailOTPFn     func(ctx context.Context, email, OTP string) (bool, error)
 }
 
 // GenerateAndSendOTP ...
-func (f *FakeServiceOTP) GenerateAndSendOTP(ctx context.Context, phone string) (*base.OtpResponse, error) {
+func (f *FakeServiceOTP) GenerateAndSendOTP(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
 	return f.GenerateAndSendOTPFn(ctx, phone)
 }
 
 // SendRetryOTP ...
-func (f *FakeServiceOTP) SendRetryOTP(ctx context.Context, msisdn string, retryStep int) (*base.OtpResponse, error) {
+func (f *FakeServiceOTP) SendRetryOTP(ctx context.Context, msisdn string, retryStep int) (*profileutils.OtpResponse, error) {
 	return f.SendRetryOTPFn(ctx, msisdn, retryStep)
 }
 

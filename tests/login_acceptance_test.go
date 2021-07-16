@@ -12,15 +12,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 func composeInvalidUserPINPayload(t *testing.T) *dto.LoginPayload {
-	phone := base.TestUserPhoneNumberWithPin
+	phone := interserviceclient.TestUserPhoneNumberWithPin
 	pin := "" // empty pin
-	flavour := base.FlavourPro
+	flavour := feedlib.FlavourPro
 	payload := &dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
@@ -30,10 +31,10 @@ func composeInvalidUserPINPayload(t *testing.T) *dto.LoginPayload {
 }
 
 func composeWrongUserPINPayload(t *testing.T) *dto.LoginPayload {
-	phone := base.TestUserPhoneNumber // This number should be the same as the
+	phone := interserviceclient.TestUserPhoneNumber // This number should be the same as the
 	// used to create the user
 	pin := "qwer"
-	flavour := base.FlavourPro
+	flavour := feedlib.FlavourPro
 	payload := &dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
@@ -44,8 +45,8 @@ func composeWrongUserPINPayload(t *testing.T) *dto.LoginPayload {
 
 func composeWrongUserPhonePayload(t *testing.T) *dto.LoginPayload {
 	phone := "+254700000000"
-	pin := base.TestUserPin
-	flavour := base.FlavourPro
+	pin := interserviceclient.TestUserPin
+	flavour := feedlib.FlavourPro
 	payload := &dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
@@ -56,8 +57,8 @@ func composeWrongUserPhonePayload(t *testing.T) *dto.LoginPayload {
 
 func composeInvalidUserPhonePayload(t *testing.T) *dto.LoginPayload {
 	phone := "+254-not-a-number"
-	pin := base.TestUserPin
-	flavour := base.FlavourPro
+	pin := interserviceclient.TestUserPin
+	flavour := feedlib.FlavourPro
 	payload := &dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
@@ -67,8 +68,8 @@ func composeInvalidUserPhonePayload(t *testing.T) *dto.LoginPayload {
 }
 
 func composeWrongFlavourPayload(t *testing.T) *dto.LoginPayload {
-	phone := base.TestUserPhoneNumberWithPin
-	pin := base.TestUserPin
+	phone := interserviceclient.TestUserPhoneNumberWithPin
+	pin := interserviceclient.TestUserPin
 	payload := &dto.LoginPayload{
 		PhoneNumber: &phone,
 		PIN:         &pin,
@@ -78,7 +79,7 @@ func composeWrongFlavourPayload(t *testing.T) *dto.LoginPayload {
 }
 
 func TestLoginInByPhone(t *testing.T) {
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -244,7 +245,7 @@ func TestLoginInByPhone(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "onboarding") {
 				r.Header.Add(k, v)
 			}
 
@@ -303,7 +304,7 @@ func TestLoginAsAnonymous(t *testing.T) {
 	client := http.DefaultClient
 
 	p1, err := json.Marshal(&dto.LoginPayload{
-		Flavour: base.FlavourConsumer,
+		Flavour: feedlib.FlavourConsumer,
 	})
 	if err != nil {
 		t.Errorf("unable to marshal payload to JSON: %s", err)
@@ -311,7 +312,7 @@ func TestLoginAsAnonymous(t *testing.T) {
 	validPayload := bytes.NewBuffer(p1)
 
 	p2, err := json.Marshal(&dto.LoginPayload{
-		Flavour: base.FlavourPro,
+		Flavour: feedlib.FlavourPro,
 	})
 	if err != nil {
 		t.Errorf("unable to marshal payload to JSON: %s", err)
@@ -370,7 +371,7 @@ func TestLoginAsAnonymous(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "onboarding") {
 				r.Header.Add(k, v)
 			}
 
@@ -423,7 +424,7 @@ func TestLoginAsAnonymous(t *testing.T) {
 
 func TestRefreshToken(t *testing.T) {
 	client := http.DefaultClient
-	phoneNumber := base.TestUserPhoneNumberWithPin
+	phoneNumber := interserviceclient.TestUserPhoneNumberWithPin
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -516,7 +517,7 @@ func TestRefreshToken(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "onboarding") {
 				r.Header.Add(k, v)
 			}
 
@@ -568,7 +569,7 @@ func TestRefreshToken(t *testing.T) {
 
 func TestResumeWithPin(t *testing.T) {
 	// create a user and their profile
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -692,7 +693,7 @@ func TestResumeWithPin(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}

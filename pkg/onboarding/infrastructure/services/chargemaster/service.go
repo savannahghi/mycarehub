@@ -7,9 +7,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
@@ -57,17 +58,17 @@ const (
 
 // ServiceChargeMaster represents logic required to communicate with chargemaster
 type ServiceChargeMaster interface {
-	FetchChargeMasterClient() *base.ServerClient
-	FindProvider(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
+	FetchChargeMasterClient() *apiclient.ServerClient
+	FindProvider(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput,
 		sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error)
-	FindBranch(ctx context.Context, pagination *base.PaginationInput, filter []*dto.BranchFilterInput,
+	FindBranch(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput,
 		sort []*dto.BranchSortInput) (*dto.BranchConnection, error)
 	FetchProviderByID(ctx context.Context, id string) (*domain.BusinessPartner, error)
 }
 
 // ServiceChargeMasterImpl ..
 type ServiceChargeMasterImpl struct {
-	ChargeMasterClient *base.ServerClient
+	ChargeMasterClient *apiclient.ServerClient
 }
 
 // NewChargeMasterUseCasesImpl ...
@@ -82,7 +83,7 @@ func NewChargeMasterUseCasesImpl() ServiceChargeMaster {
 	username := serverutils.MustGetEnvVar(ChargeMasterUsernameEnvVarName)
 	password := serverutils.MustGetEnvVar(ChargeMasterPasswordEnvVarName)
 	extraHeaders := make(map[string]string)
-	client, err := base.NewServerClient(
+	client, err := apiclient.NewServerClient(
 		clientID, clientSecret, apiTokenURL, apiHost, apiScheme, grantType, username, password, extraHeaders)
 	if err != nil {
 		log.Panicf("unable to initialize Chargemaster client for profile service: %s", err)
@@ -93,17 +94,17 @@ func NewChargeMasterUseCasesImpl() ServiceChargeMaster {
 }
 
 // FetchChargeMasterClient ...
-func (chr ServiceChargeMasterImpl) FetchChargeMasterClient() *base.ServerClient {
+func (chr ServiceChargeMasterImpl) FetchChargeMasterClient() *apiclient.ServerClient {
 	return chr.ChargeMasterClient
 }
 
 // FindProvider search for a provider in chargemaster using their name
 //
 // Example https://base.chargemaster.slade360emr.com/v1/business_partners/?bp_type=PROVIDER&search={name}
-func (chr ServiceChargeMasterImpl) FindProvider(ctx context.Context, pagination *base.PaginationInput,
+func (chr ServiceChargeMasterImpl) FindProvider(ctx context.Context, pagination *firebasetools.PaginationInput,
 	filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
 
-	paginationParams, err := base.GetAPIPaginationParams(pagination)
+	paginationParams, err := firebasetools.GetAPIPaginationParams(pagination)
 	if err != nil {
 		return nil, err
 	}
@@ -121,23 +122,23 @@ func (chr ServiceChargeMasterImpl) FindProvider(ctx context.Context, pagination 
 		queryParams = append(queryParams, fp.ToURLValues())
 	}
 
-	mergedParams := base.MergeURLValues(queryParams...)
+	mergedParams := apiclient.MergeURLValues(queryParams...)
 	queryFragment := mergedParams.Encode()
 
 	type apiResp struct {
-		base.SladeAPIListRespBase
+		apiclient.SladeAPIListRespBase
 
 		Results []*domain.BusinessPartner `json:"results,omitempty"`
 	}
 
 	r := apiResp{}
-	err = base.ReadRequestToTarget(chr.FetchChargeMasterClient(), "GET", ChargeMasterBusinessPartnerPath, queryFragment, nil, &r)
+	err = apiclient.ReadRequestToTarget(chr.FetchChargeMasterClient(), "GET", ChargeMasterBusinessPartnerPath, queryFragment, nil, &r)
 	if err != nil {
 		return nil, err
 	}
 
-	startOffset := base.CreateAndEncodeCursor(r.StartIndex)
-	endOffset := base.CreateAndEncodeCursor(r.EndIndex)
+	startOffset := firebasetools.CreateAndEncodeCursor(r.StartIndex)
+	endOffset := firebasetools.CreateAndEncodeCursor(r.EndIndex)
 	hasNextPage := r.Next != ""
 	hasPreviousPage := r.Previous != ""
 
@@ -150,11 +151,11 @@ func (chr ServiceChargeMasterImpl) FindProvider(ctx context.Context, pagination 
 				SladeCode: org.SladeCode,
 				Parent:    org.Parent,
 			},
-			Cursor: base.CreateAndEncodeCursor(pos + 1),
+			Cursor: firebasetools.CreateAndEncodeCursor(pos + 1),
 		}
 		edges = append(edges, edge)
 	}
-	pageInfo := &base.PageInfo{
+	pageInfo := &firebasetools.PageInfo{
 		HasNextPage:     hasNextPage,
 		HasPreviousPage: hasPreviousPage,
 		StartCursor:     startOffset,
@@ -173,7 +174,7 @@ func (chr ServiceChargeMasterImpl) FetchProviderByID(ctx context.Context, id str
 	partner := &domain.BusinessPartner{}
 	BusinessPartnerPath := fmt.Sprintf("%v%v/", ChargeMasterBusinessPartnerPath, id)
 
-	err := base.ReadRequestToTarget(chr.FetchChargeMasterClient(), "GET", BusinessPartnerPath, "", nil, partner)
+	err := apiclient.ReadRequestToTarget(chr.FetchChargeMasterClient(), "GET", BusinessPartnerPath, "", nil, partner)
 	if err != nil {
 		return nil, err
 	}
@@ -188,10 +189,10 @@ func (chr ServiceChargeMasterImpl) FetchProviderByID(ctx context.Context, id str
 
 // FindBranch lists all locations known to Slade 360 Charge Master
 // Example URL: https://base.chargemaster.slade360emr.com/v1/business_partners/?format=json&page_size=100&parent=6ba48d97-93d2-4815-a447-f51240cbcab8&fields=id,name,slade_code
-func (chr ServiceChargeMasterImpl) FindBranch(ctx context.Context, pagination *base.PaginationInput,
+func (chr ServiceChargeMasterImpl) FindBranch(ctx context.Context, pagination *firebasetools.PaginationInput,
 	filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
 
-	paginationParams, err := base.GetAPIPaginationParams(pagination)
+	paginationParams, err := firebasetools.GetAPIPaginationParams(pagination)
 	if err != nil {
 		return nil, err
 	}
@@ -207,22 +208,22 @@ func (chr ServiceChargeMasterImpl) FindBranch(ctx context.Context, pagination *b
 	for _, fp := range sort {
 		queryParams = append(queryParams, fp.ToURLValues())
 	}
-	mergedParams := base.MergeURLValues(queryParams...)
+	mergedParams := apiclient.MergeURLValues(queryParams...)
 	queryFragment := mergedParams.Encode()
 
 	type apiResp struct {
-		base.SladeAPIListRespBase
+		apiclient.SladeAPIListRespBase
 
 		Results []*domain.BusinessPartner `json:"results,omitempty"`
 	}
 
 	r := apiResp{}
-	err = base.ReadRequestToTarget(chr.FetchChargeMasterClient(), "GET", ChargeMasterBusinessPartnerPath, queryFragment, nil, &r)
+	err = apiclient.ReadRequestToTarget(chr.FetchChargeMasterClient(), "GET", ChargeMasterBusinessPartnerPath, queryFragment, nil, &r)
 	if err != nil {
 		return nil, err
 	}
-	startOffset := base.CreateAndEncodeCursor(r.StartIndex)
-	endOffset := base.CreateAndEncodeCursor(r.EndIndex)
+	startOffset := firebasetools.CreateAndEncodeCursor(r.StartIndex)
+	endOffset := firebasetools.CreateAndEncodeCursor(r.EndIndex)
 	hasNextPage := r.Next != ""
 	hasPreviousPage := r.Previous != ""
 
@@ -240,11 +241,11 @@ func (chr ServiceChargeMasterImpl) FindBranch(ctx context.Context, pagination *b
 				BranchSladeCode:       branch.SladeCode,
 				OrganizationSladeCode: orgSladeCode,
 			},
-			Cursor: base.CreateAndEncodeCursor(pos + 1),
+			Cursor: firebasetools.CreateAndEncodeCursor(pos + 1),
 		}
 		edges = append(edges, edge)
 	}
-	pageInfo := &base.PageInfo{
+	pageInfo := &firebasetools.PageInfo{
 		HasNextPage:     hasNextPage,
 		HasPreviousPage: hasPreviousPage,
 		StartCursor:     startOffset,

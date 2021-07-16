@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -18,10 +19,10 @@ type LoginUseCases interface {
 		ctx context.Context,
 		phone string,
 		PIN string,
-		flavour base.Flavour,
-	) (*base.UserResponse, error)
-	RefreshToken(ctx context.Context, token string) (*base.AuthCredentialResponse, error)
-	LoginAsAnonymous(ctx context.Context) (*base.AuthCredentialResponse, error)
+		flavour feedlib.Flavour,
+	) (*profileutils.UserResponse, error)
+	RefreshToken(ctx context.Context, token string) (*profileutils.AuthCredentialResponse, error)
+	LoginAsAnonymous(ctx context.Context) (*profileutils.AuthCredentialResponse, error)
 	ResumeWithPin(ctx context.Context, pin string) (bool, error)
 }
 
@@ -51,8 +52,8 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	ctx context.Context,
 	phone string,
 	PIN string,
-	flavour base.Flavour,
-) (*base.UserResponse, error) {
+	flavour feedlib.Flavour,
+) (*profileutils.UserResponse, error) {
 	ctx, span := tracer.Start(ctx, "LoginByPhone")
 	defer span.End()
 
@@ -123,7 +124,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, err
 	}
 
-	return &base.UserResponse{
+	return &profileutils.UserResponse{
 		Profile:               profile,
 		CustomerProfile:       customer,
 		SupplierProfile:       supplier,
@@ -136,7 +137,7 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 // RefreshToken takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func (l *LoginUseCasesImpl) RefreshToken(ctx context.Context, token string) (*base.AuthCredentialResponse, error) {
+func (l *LoginUseCasesImpl) RefreshToken(ctx context.Context, token string) (*profileutils.AuthCredentialResponse, error) {
 	ctx, span := tracer.Start(ctx, "RefreshToken")
 	defer span.End()
 
@@ -148,7 +149,7 @@ func (l *LoginUseCasesImpl) RefreshToken(ctx context.Context, token string) (*ba
 // their phone number. All that we return is auth credentials and an error
 func (l *LoginUseCasesImpl) LoginAsAnonymous(
 	ctx context.Context,
-) (*base.AuthCredentialResponse, error) {
+) (*profileutils.AuthCredentialResponse, error) {
 	ctx, span := tracer.Start(ctx, "LoginAsAnonymous")
 	defer span.End()
 

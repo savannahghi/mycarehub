@@ -8,7 +8,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/scalarutils"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -54,7 +54,7 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 	ContactValue := phoneNumber
 	FirstName := gofakeit.FirstName()
 	LastName := gofakeit.LastName()
-	DateOfBirth := base.Date{
+	DateOfBirth := scalarutils.Date{
 		Day:   0,
 		Month: 0,
 		Year:  0,

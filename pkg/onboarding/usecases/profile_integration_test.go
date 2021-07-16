@@ -9,9 +9,14 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
+	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
@@ -22,7 +27,7 @@ func TestSetuserProfileOptOut(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
 	otp, err := generateTestOTP(t, primaryPhone)
@@ -34,7 +39,7 @@ func TestSetuserProfileOptOut(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -44,7 +49,7 @@ func TestSetuserProfileOptOut(t *testing.T) {
 	assert.NotNil(t, resp.Profile.UserName)
 
 	// login and assert whether the profile matches the one created earlier
-	login, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login)
 	assert.NotNil(t, login.Profile.UserName)
@@ -67,7 +72,7 @@ func TestSwitchUserFlaggedFeature(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
 	otp, err := generateTestOTP(t, primaryPhone)
@@ -79,7 +84,7 @@ func TestSwitchUserFlaggedFeature(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -90,7 +95,7 @@ func TestSwitchUserFlaggedFeature(t *testing.T) {
 	assert.NotNil(t, resp.Profile.UserName)
 
 	// login and assert whether the profile matches the one created earlier
-	login, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login)
 	assert.NotNil(t, login.Profile.UserName)
@@ -102,7 +107,7 @@ func TestSwitchUserFlaggedFeature(t *testing.T) {
 	assert.Equal(t, res1.Status, "SUCCESS")
 
 	// login again to verify the switch is set to true
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 	assert.Equal(t, login1.Auth.CanExperiment, true)
@@ -113,7 +118,7 @@ func TestSwitchUserFlaggedFeature(t *testing.T) {
 	assert.Equal(t, res2.Status, "SUCCESS")
 
 	// login again to verify the switch is set to false
-	login2, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login2, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login2)
 	assert.Equal(t, login2.Auth.CanExperiment, false)
@@ -124,7 +129,7 @@ func TestUpdateUserProfileUserName(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
 
@@ -139,7 +144,7 @@ func TestUpdateUserProfileUserName(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -149,7 +154,7 @@ func TestUpdateUserProfileUserName(t *testing.T) {
 	assert.NotNil(t, resp.Profile.UserName)
 
 	// login and assert whether the profile matches the one created earlier
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 	assert.NotNil(t, login1.Profile.UserName)
@@ -160,7 +165,7 @@ func TestUpdateUserProfileUserName(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -198,8 +203,8 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
-	secondaryPhone := base.TestUserPhoneNumberWithPin
+	primaryPhone := interserviceclient.TestUserPhoneNumber
+	secondaryPhone := interserviceclient.TestUserPhoneNumberWithPin
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), secondaryPhone)
@@ -215,7 +220,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -229,7 +234,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 		return
 	}
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	if err != nil {
 		t.Errorf("an error occurred while logging in by phone")
 		return
@@ -245,13 +250,13 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
 
 	// try to login with secondaryPhone. This should fail because secondaryPhone != primaryPhone
-	login2, err := s.Login.LoginByPhone(context.Background(), secondaryPhone, pin, base.FlavourConsumer)
+	login2, err := s.Login.LoginByPhone(context.Background(), secondaryPhone, pin, feedlib.FlavourConsumer)
 	if err == nil {
 		t.Errorf("expected an error :%v", err)
 		return
@@ -286,7 +291,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	}
 
 	// login to add assert the secondary phone number has been added
-	login3, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login3, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	if err != nil {
 		t.Errorf("expected an error :%v", err)
 		return
@@ -328,7 +333,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	}
 
 	// login with the old primary phone number. This should fail
-	login4, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login4, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	if err == nil {
 		t.Errorf("unexpected error occurred! :%v", err)
 		return
@@ -341,7 +346,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 
 	// login with the new primary phone number. This should not fail. Assert that the primary phone number
 	// is the new one and the secondary phone slice contains the old primary phone number.
-	login5, err := s.Login.LoginByPhone(context.Background(), secondaryPhone, pin, base.FlavourConsumer)
+	login5, err := s.Login.LoginByPhone(context.Background(), secondaryPhone, pin, feedlib.FlavourConsumer)
 	if err != nil {
 		t.Errorf("failed to login by phone :%v", err)
 		return
@@ -375,8 +380,8 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
-	secondaryPhone1 := base.TestUserPhoneNumberWithPin
+	primaryPhone := interserviceclient.TestUserPhoneNumber
+	secondaryPhone1 := interserviceclient.TestUserPhoneNumberWithPin
 	secondaryPhone2 := "+25712345690"
 	secondaryPhone3 := "+25710375600"
 
@@ -394,7 +399,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -423,7 +428,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 		return
 	}
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	if err != nil {
 		t.Errorf("an error occurred while logging in by phone :%v", err)
 		return
@@ -439,7 +444,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -544,7 +549,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 	}
 
 	// try to login with each secondary phone number. This should fail
-	login2, err := s.Login.LoginByPhone(context.Background(), secondaryPhone1, pin, base.FlavourConsumer)
+	login2, err := s.Login.LoginByPhone(context.Background(), secondaryPhone1, pin, feedlib.FlavourConsumer)
 	if err == nil {
 		t.Errorf("an error %v was expected ", err)
 		return
@@ -554,7 +559,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 		t.Errorf("an unexpected error occurred :%v", err)
 	}
 
-	login3, err := s.Login.LoginByPhone(context.Background(), secondaryPhone2, pin, base.FlavourConsumer)
+	login3, err := s.Login.LoginByPhone(context.Background(), secondaryPhone2, pin, feedlib.FlavourConsumer)
 	if err == nil {
 		t.Errorf("an error %v was expected ", err)
 		return
@@ -564,7 +569,7 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 		t.Errorf("an unexpected error occurred :%v", err)
 	}
 
-	login4, err := s.Login.LoginByPhone(context.Background(), secondaryPhone3, pin, base.FlavourConsumer)
+	login4, err := s.Login.LoginByPhone(context.Background(), secondaryPhone3, pin, feedlib.FlavourConsumer)
 	if err == nil {
 		t.Errorf("an error %v was expected ", err)
 		return
@@ -580,7 +585,7 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	primaryEmail := "test@bewell.co.ke"
 	secondaryemail1 := "user1@gmail.com"
 	secondaryemail2 := "user2@gmail.com"
@@ -600,7 +605,7 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -629,7 +634,7 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 		return
 	}
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	if err != nil {
 		t.Errorf("an error occurred while logging in by phone :%v", err)
 		return
@@ -645,7 +650,7 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -765,7 +770,7 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
 
@@ -780,7 +785,7 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -790,7 +795,7 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 	assert.NotNil(t, resp.CustomerProfile)
 	assert.NotNil(t, resp.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -799,7 +804,7 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -858,7 +863,7 @@ func TestCheckPhoneExists(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	phone := base.TestUserPhoneNumber
+	phone := interserviceclient.TestUserPhoneNumber
 
 	// remove user then signup user with the phone number then run phone number check
 	// ignore the error since it is of no consequence to us
@@ -869,13 +874,13 @@ func TestCheckPhoneExists(t *testing.T) {
 		t.Errorf("failed to generate test OTP: %v", err)
 		return
 	}
-	pin := base.TestUserPin
+	pin := interserviceclient.TestUserPin
 	resp, err := s.Signup.CreateUserByPhone(
 		context.Background(),
 		&dto.SignUpInput{
 			PhoneNumber: &phone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -897,7 +902,7 @@ func TestGetUserProfileByUID(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	pin := "1234"
 
 	// clean up
@@ -912,7 +917,7 @@ func TestGetUserProfileByUID(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -922,7 +927,7 @@ func TestGetUserProfileByUID(t *testing.T) {
 	assert.NotNil(t, resp.CustomerProfile)
 	assert.NotNil(t, resp.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -931,7 +936,7 @@ func TestGetUserProfileByUID(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -956,7 +961,7 @@ func TestUserProfile(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	pin := "1234"
 
 	// clean up
@@ -971,7 +976,7 @@ func TestUserProfile(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -981,7 +986,7 @@ func TestUserProfile(t *testing.T) {
 	assert.NotNil(t, resp.CustomerProfile)
 	assert.NotNil(t, resp.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -990,7 +995,7 @@ func TestUserProfile(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -1014,7 +1019,7 @@ func TestGetProfileByID(t *testing.T) {
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
-	primaryPhone := base.TestUserPhoneNumber
+	primaryPhone := interserviceclient.TestUserPhoneNumber
 	pin := "1234"
 
 	// clean up
@@ -1029,7 +1034,7 @@ func TestGetProfileByID(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -1039,7 +1044,7 @@ func TestGetProfileByID(t *testing.T) {
 	assert.NotNil(t, resp.CustomerProfile)
 	assert.NotNil(t, resp.SupplierProfile)
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, base.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
 	assert.NotNil(t, login1)
 
@@ -1048,7 +1053,7 @@ func TestGetProfileByID(t *testing.T) {
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 	s, _ = InitializeTestService(authenticatedContext)
@@ -1075,10 +1080,10 @@ func TestUpdateBioData(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	validPhoneNumber := base.TestUserPhoneNumber
+	validPhoneNumber := interserviceclient.TestUserPhoneNumber
 	validPIN := "1234"
 
-	validFlavourConsumer := base.FlavourConsumer
+	validFlavourConsumer := feedlib.FlavourConsumer
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
@@ -1111,18 +1116,18 @@ func TestUpdateBioData(t *testing.T) {
 	authCred := &auth.Token{UID: resp.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 
 	s, _ = InitializeTestService(authenticatedContext)
 
-	dateOfBirth1 := base.Date{
+	dateOfBirth1 := scalarutils.Date{
 		Day:   12,
 		Year:  1998,
 		Month: 2,
 	}
-	dateOfBirth2 := base.Date{
+	dateOfBirth2 := scalarutils.Date{
 		Day:   12,
 		Year:  1995,
 		Month: 10,
@@ -1133,19 +1138,19 @@ func TestUpdateBioData(t *testing.T) {
 	firstName2 := "makmende2"
 	lastName2 := "Omera2"
 
-	justDOB := base.BioData{
+	justDOB := profileutils.BioData{
 		DateOfBirth: &dateOfBirth1,
 	}
 
-	justFirstName := base.BioData{
+	justFirstName := profileutils.BioData{
 		FirstName: &firstName1,
 	}
 
-	justLastName := base.BioData{
+	justLastName := profileutils.BioData{
 		LastName: &lastName1,
 	}
 
-	completeUserDetails := base.BioData{
+	completeUserDetails := profileutils.BioData{
 		DateOfBirth: &dateOfBirth2,
 		FirstName:   &firstName2,
 		LastName:    &lastName2,
@@ -1209,10 +1214,10 @@ func TestUpdatePhotoUploadID(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	validPhoneNumber := base.TestUserPhoneNumber
+	validPhoneNumber := interserviceclient.TestUserPhoneNumber
 	validPIN := "1234"
 
-	validFlavourConsumer := base.FlavourConsumer
+	validFlavourConsumer := feedlib.FlavourConsumer
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
@@ -1245,7 +1250,7 @@ func TestUpdatePhotoUploadID(t *testing.T) {
 	authCred := &auth.Token{UID: resp.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 
@@ -1282,10 +1287,10 @@ func TestUpdateSuspended(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	validPhoneNumber := base.TestUserPhoneNumber
+	validPhoneNumber := interserviceclient.TestUserPhoneNumber
 	validPIN := "1234"
 
-	validFlavourConsumer := base.FlavourConsumer
+	validFlavourConsumer := feedlib.FlavourConsumer
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
@@ -1318,7 +1323,7 @@ func TestUpdateSuspended(t *testing.T) {
 	authCred := &auth.Token{UID: resp.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 
@@ -1346,10 +1351,10 @@ func TestUpdatePermissions(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	validPhoneNumber := base.TestUserPhoneNumber
+	validPhoneNumber := interserviceclient.TestUserPhoneNumber
 	validPIN := "1234"
 
-	validFlavourConsumer := base.FlavourConsumer
+	validFlavourConsumer := feedlib.FlavourConsumer
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
@@ -1382,7 +1387,7 @@ func TestUpdatePermissions(t *testing.T) {
 	authCred := &auth.Token{UID: resp.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 
@@ -1395,7 +1400,7 @@ func TestUpdatePermissions(t *testing.T) {
 	assert.Equal(t, 0, len(pr.Permissions))
 
 	// now update the permissions
-	perms := []base.PermissionType{base.PermissionTypeAdmin}
+	perms := []profileutils.PermissionType{profileutils.PermissionTypeAdmin}
 	err = s.Onboarding.UpdatePermissions(authenticatedContext, perms)
 	assert.Nil(t, err)
 
@@ -1420,10 +1425,10 @@ func TestSetupAsExperimentParticipant(t *testing.T) {
 		t.Error("failed to setup signup usecase")
 	}
 
-	validPhoneNumber := base.TestUserPhoneNumber
+	validPhoneNumber := interserviceclient.TestUserPhoneNumber
 	validPIN := "1234"
 
-	validFlavourConsumer := base.FlavourConsumer
+	validFlavourConsumer := feedlib.FlavourConsumer
 
 	// clean up
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
@@ -1458,7 +1463,7 @@ func TestSetupAsExperimentParticipant(t *testing.T) {
 	authCred := &auth.Token{UID: resp.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 
@@ -1574,7 +1579,7 @@ func TestAddAddress(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		input       dto.UserAddressInput
-		addressType base.AddressType
+		addressType enumutils.AddressType
 	}
 	tests := []struct {
 		name    string
@@ -1586,7 +1591,7 @@ func TestAddAddress(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				input:       addr,
-				addressType: base.AddressTypeHome,
+				addressType: enumutils.AddressTypeHome,
 			},
 			wantErr: false,
 		},
@@ -1595,7 +1600,7 @@ func TestAddAddress(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				input:       addr,
-				addressType: base.AddressTypeWork,
+				addressType: enumutils.AddressTypeWork,
 			},
 			wantErr: false,
 		},
@@ -1604,7 +1609,7 @@ func TestAddAddress(t *testing.T) {
 			args: args{
 				ctx:         context.Background(),
 				input:       addr,
-				addressType: base.AddressTypeWork,
+				addressType: enumutils.AddressTypeWork,
 			},
 			wantErr: true,
 		},
@@ -1637,7 +1642,7 @@ func TestGetAddresses(t *testing.T) {
 		Longitude: -34.001,
 	}
 
-	_, err = s.Onboarding.AddAddress(ctx, addr, base.AddressTypeWork)
+	_, err = s.Onboarding.AddAddress(ctx, addr, enumutils.AddressTypeWork)
 	if err != nil {
 		t.Errorf("unable to add test address")
 		return
@@ -1679,9 +1684,9 @@ func TestIntegrationGetAddresses(t *testing.T) {
 		t.Error("failed to setup profile usecase")
 	}
 
-	validPhoneNumber := base.TestUserPhoneNumber
-	validPIN := base.TestUserPin
-	validFlavourConsumer := base.FlavourConsumer
+	validPhoneNumber := interserviceclient.TestUserPhoneNumber
+	validPIN := interserviceclient.TestUserPin
+	validFlavourConsumer := feedlib.FlavourConsumer
 
 	_ = s.Signup.RemoveUserByPhoneNumber(
 		context.Background(),
@@ -1721,7 +1726,7 @@ func TestIntegrationGetAddresses(t *testing.T) {
 	authCred := &auth.Token{UID: resp.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
-		base.AuthTokenContextKey,
+		firebasetools.AuthTokenContextKey,
 		authCred,
 	)
 
@@ -1734,7 +1739,7 @@ func TestIntegrationGetAddresses(t *testing.T) {
 			Latitude:  lat,
 			Longitude: long,
 		},
-		base.AddressTypeHome,
+		enumutils.AddressTypeHome,
 	)
 	if err != nil {
 		t.Errorf("an error occurred: %v", err)
@@ -1795,7 +1800,7 @@ func TestProfileUseCaseImpl_UpdateCovers(t *testing.T) {
 	}
 
 	memberNumber := uuid.New().String()
-	cover := base.Cover{
+	cover := profileutils.Cover{
 		PayerName:      *utils.GetRandomName(),
 		PayerSladeCode: 123,
 		MemberNumber:   memberNumber,
@@ -1804,7 +1809,7 @@ func TestProfileUseCaseImpl_UpdateCovers(t *testing.T) {
 
 	type args struct {
 		ctx    context.Context
-		covers []base.Cover
+		covers []profileutils.Cover
 	}
 	tests := []struct {
 		name    string
@@ -1815,7 +1820,7 @@ func TestProfileUseCaseImpl_UpdateCovers(t *testing.T) {
 			name: "happy case:) update covers",
 			args: args{
 				ctx:    ctx,
-				covers: []base.Cover{cover},
+				covers: []profileutils.Cover{cover},
 			},
 			wantErr: false,
 		},
@@ -1823,7 +1828,7 @@ func TestProfileUseCaseImpl_UpdateCovers(t *testing.T) {
 			name: "happy case:) update the same covers",
 			args: args{
 				ctx:    ctx,
-				covers: []base.Cover{cover},
+				covers: []profileutils.Cover{cover},
 			},
 			wantErr: false,
 		},
@@ -1831,7 +1836,7 @@ func TestProfileUseCaseImpl_UpdateCovers(t *testing.T) {
 			name: "sad case:( unauthenticated context",
 			args: args{
 				ctx:    context.Background(),
-				covers: []base.Cover{cover},
+				covers: []profileutils.Cover{cover},
 			},
 			wantErr: true,
 		},
@@ -1839,7 +1844,7 @@ func TestProfileUseCaseImpl_UpdateCovers(t *testing.T) {
 			name: "sad case:( update the nil covers",
 			args: args{
 				ctx:    ctx,
-				covers: []base.Cover{},
+				covers: []profileutils.Cover{},
 			},
 			wantErr: true,
 		},
@@ -1909,7 +1914,7 @@ func TestRetireSecondaryPhoneNumbers(t *testing.T) {
 		{
 			name: "sad :( adding an already existent phone number",
 			args: args{
-				phoneNumbers: []string{base.TestUserPhoneNumber},
+				phoneNumbers: []string{interserviceclient.TestUserPhoneNumber},
 			},
 			want:    false,
 			wantErr: true,
@@ -2027,7 +2032,7 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 		{
 			name: "sad :( unable to get the user profile",
 			args: args{
-				emailAddresses: []string{base.GenerateRandomEmail()},
+				emailAddresses: []string{converterandformatter.GenerateRandomEmail()},
 			},
 			want:    false,
 			wantErr: true,
@@ -2035,7 +2040,7 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 		{
 			name: "sad :( profile with no secondary email addresses",
 			args: args{
-				emailAddresses: []string{base.GenerateRandomEmail()},
+				emailAddresses: []string{converterandformatter.GenerateRandomEmail()},
 			},
 			want:    false,
 			wantErr: true,
@@ -2082,7 +2087,7 @@ func TestRetireSecondaryEmailAddress(t *testing.T) {
 			}
 
 			if tt.name == "sad :( adding an already existent email addresses" {
-				err := p.Onboarding.UpdatePrimaryEmailAddress(ctx, base.GenerateRandomEmail())
+				err := p.Onboarding.UpdatePrimaryEmailAddress(ctx, converterandformatter.GenerateRandomEmail())
 				if err != nil {
 					t.Errorf("unable to set primary email address: %v", err)
 					return
@@ -2157,7 +2162,7 @@ func TestProfileUseCaseImpl_RemoveAdminPermsToUser(t *testing.T) {
 		return
 	}
 
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
 		t.Error("failed to setup profile usecase")
@@ -2179,7 +2184,7 @@ func TestProfileUseCaseImpl_RemoveAdminPermsToUser(t *testing.T) {
 		&dto.SignUpInput{
 			PhoneNumber: &phoneNumber,
 			PIN:         &pin,
-			Flavour:     base.FlavourConsumer,
+			Flavour:     feedlib.FlavourConsumer,
 			OTP:         &otp.OTP,
 		},
 	)
@@ -2239,11 +2244,11 @@ func TestAddRoleToUser(t *testing.T) {
 	type args struct {
 		ctx   context.Context
 		phone *string
-		role  *base.RoleType
+		role  *profileutils.RoleType
 	}
-	validPhone := base.TestUserPhoneNumber
+	validPhone := interserviceclient.TestUserPhoneNumber
 	invalidPhone := "+2547000"
-	validRole := base.RoleTypeEmployee
+	validRole := profileutils.RoleTypeEmployee
 	tests := []struct {
 		name    string
 		args    args
@@ -2295,7 +2300,7 @@ func TestRemoveRoleToUser(t *testing.T) {
 		ctx   context.Context
 		phone *string
 	}
-	validPhone := base.TestUserPhoneNumber
+	validPhone := interserviceclient.TestUserPhoneNumber
 	invalidPhone := "+2547000"
 	tests := []struct {
 		name    string

@@ -12,8 +12,10 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/gorilla/mux"
 	"github.com/savannahghi/errorcodeutil"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/serverutils"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
@@ -77,7 +79,7 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -140,7 +142,7 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -338,7 +340,7 @@ func (h *HandlersInterfacesImpl) LoginAnonymous(
 			return
 		}
 
-		if !p.Flavour.IsValid() || p.Flavour != base.FlavourConsumer {
+		if !p.Flavour.IsValid() || p.Flavour != feedlib.FlavourConsumer {
 			err := fmt.Errorf("an invalid `flavour` defined")
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -371,7 +373,7 @@ func (h *HandlersInterfacesImpl) RequestPINReset(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -455,7 +457,7 @@ func (h *HandlersInterfacesImpl) SendOTP(
 		span := trace.SpanFromContext(ctx)
 		payload, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -589,11 +591,11 @@ func (h *HandlersInterfacesImpl) FindSupplierByUID(
 			return
 		}
 
-		var supplier *base.Supplier
+		var supplier *profileutils.Supplier
 		authCred := &auth.Token{UID: *s.UID}
 		newContext := context.WithValue(
 			ctx,
-			base.AuthTokenContextKey,
+			firebasetools.AuthTokenContextKey,
 			authCred,
 		)
 		supplier, err = h.interactor.Supplier.FindSupplierByUID(newContext)
@@ -619,7 +621,7 @@ func (h *HandlersInterfacesImpl) RemoveUserByPhoneNumber(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -701,7 +703,7 @@ func (h *HandlersInterfacesImpl) RegisterPushToken(
 		authCred := &auth.Token{UID: t.UID}
 		newContext := context.WithValue(
 			ctx,
-			base.AuthTokenContextKey,
+			firebasetools.AuthTokenContextKey,
 			authCred,
 		)
 		profile, err := h.interactor.Signup.RegisterPushToken(
@@ -727,37 +729,37 @@ func (h *HandlersInterfacesImpl) UpdateCovers(
 		serverutils.DecodeJSONToTargetStruct(w, r, p)
 		if p.UID == nil {
 			err := fmt.Errorf("expected `UID` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
 		if p.BeneficiaryID == nil {
 			err := fmt.Errorf("expected `BeneficiaryID` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
 		if p.EffectivePolicyNumber == nil {
 			err := fmt.Errorf("expected `EffectivePolicyNumber` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
 		if p.ValidFrom == nil {
 			err := fmt.Errorf("expected `ValidFrom` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
 		if p.ValidTo == nil {
 			err := fmt.Errorf("expected `ValidTo` to be defined")
-			base.ReportErr(w, err, http.StatusBadRequest)
+			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
 		auth := &auth.Token{UID: *p.UID}
-		newContext := context.WithValue(ctx, base.AuthTokenContextKey, auth)
-		cover := base.Cover{
+		newContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, auth)
+		cover := profileutils.Cover{
 			PayerName:             *p.PayerName,
 			MemberNumber:          *p.MemberNumber,
 			MemberName:            *p.MemberName,
@@ -767,11 +769,11 @@ func (h *HandlersInterfacesImpl) UpdateCovers(
 			ValidFrom:             *p.ValidFrom,
 			ValidTo:               *p.ValidTo,
 		}
-		var covers []base.Cover
+		var covers []profileutils.Cover
 		covers = append(covers, cover)
 		err := h.interactor.Onboarding.UpdateCovers(newContext, covers)
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
@@ -816,7 +818,7 @@ func (h *HandlersInterfacesImpl) ProfileAttributes(
 			attribute,
 		)
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
@@ -834,7 +836,7 @@ func (h *HandlersInterfacesImpl) AddAdminPermsToUser(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -884,7 +886,7 @@ func (h *HandlersInterfacesImpl) RemoveAdminPermsToUser(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -977,7 +979,7 @@ func (h *HandlersInterfacesImpl) RemoveRoleToUser(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -1017,7 +1019,7 @@ func (h *HandlersInterfacesImpl) UpdateUserProfile(
 		authCred := &auth.Token{UID: *payload.UID}
 		newContext := context.WithValue(
 			ctx,
-			base.AuthTokenContextKey,
+			firebasetools.AuthTokenContextKey,
 			authCred,
 		)
 
@@ -1032,7 +1034,7 @@ func (h *HandlersInterfacesImpl) UpdateUserProfile(
 			},
 		)
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
@@ -1050,7 +1052,7 @@ func (h *HandlersInterfacesImpl) IncomingATSMS(
 
 		err := r.ParseForm()
 		if err != nil {
-			base.ReportErr(w, err, http.StatusUnsupportedMediaType)
+			errorcodeutil.ReportErr(w, err, http.StatusUnsupportedMediaType)
 		}
 
 		payload.Date = r.PostForm.Get("date")
@@ -1096,7 +1098,7 @@ func (h *HandlersInterfacesImpl) IncomingUSSDHandler(
 
 		err := r.ParseForm()
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 
@@ -1106,7 +1108,7 @@ func (h *HandlersInterfacesImpl) IncomingUSSDHandler(
 		p.Text = r.PostForm.Get("text")
 		sessionDetails, err := utils.ValidateUSSDDetails(p)
 		if err != nil {
-			base.ReportErr(w, err, http.StatusBadRequest)
+			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
 			return
 		}
 		resp := h.interactor.AITUSSD.HandleResponseFromUSSDGateway(
@@ -1125,7 +1127,7 @@ func (h *HandlersInterfacesImpl) SwitchFlaggedFeaturesHandler(
 		span := trace.SpanFromContext(ctx)
 		p, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -1137,13 +1139,13 @@ func (h *HandlersInterfacesImpl) SwitchFlaggedFeaturesHandler(
 			*p.PhoneNumber,
 		)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
 			return
 		}
-		base.WriteJSONResponse(w, okRes, http.StatusOK)
+		serverutils.WriteJSONResponse(w, okRes, http.StatusOK)
 
 	}
 }
@@ -1156,7 +1158,7 @@ func (h *HandlersInterfacesImpl) IsOptedOuted(
 		span := trace.SpanFromContext(ctx)
 		payload, err := decodePhoneNumberPayload(w, r, span)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -1167,7 +1169,7 @@ func (h *HandlersInterfacesImpl) IsOptedOuted(
 			*payload.PhoneNumber,
 		)
 		if err != nil {
-			base.WriteJSONResponse(w, errorcodeutil.CustomError{
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
@@ -1177,7 +1179,7 @@ func (h *HandlersInterfacesImpl) IsOptedOuted(
 			"opted_out": optedOut,
 		}
 
-		base.WriteJSONResponse(w, resp, http.StatusOK)
+		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
 	}
 }
 
@@ -1186,9 +1188,9 @@ func (h *HandlersInterfacesImpl) PollServices(ctx context.Context) http.HandlerF
 	return func(rw http.ResponseWriter, r *http.Request) {
 		services, err := h.interactor.AdminSrv.PollMicroservicesStatus(r.Context())
 		if err != nil {
-			base.WriteJSONResponse(rw, err, http.StatusInternalServerError)
+			serverutils.WriteJSONResponse(rw, err, http.StatusInternalServerError)
 		}
 
-		base.WriteJSONResponse(rw, services, http.StatusOK)
+		serverutils.WriteJSONResponse(rw, services, http.StatusOK)
 	}
 }

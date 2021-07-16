@@ -36,7 +36,17 @@ resolver:
 autobind:
   - "gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
   - "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-  - "gitlab.slade360emr.com/go/base"
+  - "github.com/savannahghi/enumutils"
+  - "github.com/savannahghi/scalarutils"
+  - "github.com/savannahghi/serverutils"
+  - "github.com/savannahghi/errorcodeutil"
+  - "github.com/savannahghi/feedlib"
+  - "github.com/savannahghi/interserviceclient"
+  - "github.com/savannahghi/firebasetools"
+  - "github.com/savannahghi/converterandformatter"
+  - "github.com/savannahghi/profileutils"
+  - "github.com/savannahghi/pubsubtools"
+  - "gitlab.slade360emr.com/go/apiclient"
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -57,10 +67,10 @@ models:
       - github.com/99designs/gqlgen/graphql.Int32
   Decimal:
     model:
-      - "gitlab.slade360emr.com/go/base.Decimal"
+      - "github.com/savannahghi/scalarutils.Decimal"
   Date:
     model:
-      - "gitlab.slade360emr.com/go/base.Date"
+      - "github.com/savannahghi/scalarutils.Date"
   IdentificationInput:
     model:
       - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.Identification

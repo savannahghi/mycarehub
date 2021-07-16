@@ -18,19 +18,25 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/imroc/req v0.3.0
-	github.com/savannahghi/converterandformatter v0.0.3
-	github.com/savannahghi/errorcodeutil v0.0.0-20210715070815-98283e9f49c6
-	github.com/savannahghi/firebasetools v0.0.9
-	github.com/savannahghi/profileutils v0.0.7 // indirect
+	github.com/mitchellh/mapstructure v1.4.1 // indirect
+	github.com/savannahghi/converterandformatter v0.0.7
+	github.com/savannahghi/enumutils v0.0.0-20210719133832-d7a34e2f65c4
+	github.com/savannahghi/errorcodeutil v0.0.1
+	github.com/savannahghi/feedlib v0.0.0-20210628122532-ef88e353d4d6
+	github.com/savannahghi/firebasetools v0.0.12
+	github.com/savannahghi/interserviceclient v0.0.9
+	github.com/savannahghi/profileutils v0.0.7
 	github.com/savannahghi/pubsubtools v0.0.0-20210624135722-0393c6ad97a0
-	github.com/savannahghi/serverutils v0.0.2
+	github.com/savannahghi/scalarutils v0.0.0-20210622091443-bad5089abdad
+	github.com/savannahghi/serverutils v0.0.3
 	github.com/segmentio/ksuid v1.0.3
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/vektah/gqlparser/v2 v2.1.0
-	gitlab.slade360emr.com/go/base v0.0.204
-	gitlab.slade360emr.com/go/commontools/accounting v0.0.0-20210713100200-0e0064bc5c30
-	gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210705092445-b51dcd0a40cc
+	gitlab.slade360emr.com/go/apiclient v0.0.8
+	gitlab.slade360emr.com/go/base v0.0.157
+	gitlab.slade360emr.com/go/commontools/accounting v0.0.0-20210722060018-194f0af94560
+	gitlab.slade360emr.com/go/commontools/crm v0.0.0-20210722060018-194f0af94560
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.21.0
 	go.opentelemetry.io/otel v1.0.0-RC1

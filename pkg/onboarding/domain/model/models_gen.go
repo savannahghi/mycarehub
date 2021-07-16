@@ -7,7 +7,7 @@ import (
 	"io"
 	"strconv"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/scalarutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
@@ -16,7 +16,7 @@ type Beneficiary struct {
 	Msisdns      []string                       `json:"msisdns"`
 	Emails       []string                       `json:"emails"`
 	Relationship domain.BeneficiaryRelationship `json:"relationship"`
-	DateOfBirth  base.Date                      `json:"dateOfBirth"`
+	DateOfBirth  scalarutils.Date               `json:"dateOfBirth"`
 }
 
 type BeneficiaryInput struct {
@@ -24,7 +24,7 @@ type BeneficiaryInput struct {
 	Msisdns      []string                       `json:"msisdns"`
 	Emails       []string                       `json:"emails"`
 	Relationship domain.BeneficiaryRelationship `json:"relationship"`
-	DateOfBirth  base.Date                      `json:"dateOfBirth"`
+	DateOfBirth  scalarutils.Date               `json:"dateOfBirth"`
 }
 
 type LocationInput struct {

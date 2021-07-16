@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
@@ -23,12 +25,12 @@ func TestImpl_CreateUsddUserProfile_Unittest(t *testing.T) {
 		return
 	}
 
-	date := &base.Date{
+	date := &scalarutils.Date{
 		Year:  2000,
 		Month: 10,
 		Day:   01,
 	}
-	gender := base.GenderMale
+	gender := enumutils.GenderMale
 	firstname := gofakeit.FirstName()
 	lastname := gofakeit.LastName()
 	phone := "+254700100200"
@@ -92,15 +94,15 @@ func TestImpl_CreateUsddUserProfile_Unittest(t *testing.T) {
 					return &dto.CreatedUserResponse{}, nil
 				}
 
-				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*base.UserProfile, error) {
-					return &base.UserProfile{}, nil
+				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
 				}
 
-				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*base.Customer, error) {
-					return &base.Customer{}, nil
+				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*profileutils.Customer, error) {
+					return &profileutils.Customer{}, nil
 				}
 
-				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data base.BioData) error {
+				fakeRepo.UpdateBioDataFn = func(ctx context.Context, id string, data profileutils.BioData) error {
 					return nil
 				}
 

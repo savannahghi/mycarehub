@@ -8,13 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/firebasetools"
+	"gitlab.slade360emr.com/go/apiclient"
 )
 
 func TestGraphQLRecordPostVisitSurvey(t *testing.T) {
-	ctx := base.GetAuthenticatedContext(t)
+	ctx := firebasetools.GetAuthenticatedContext(t)
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
-	headers, err := base.GetGraphQLHeaders(ctx)
+	headers, err := apiclient.GetGraphQLHeaders(ctx)
 	if err != nil {
 		t.Errorf("error in getting headers: %w", err)
 		return

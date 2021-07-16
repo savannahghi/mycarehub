@@ -3,7 +3,7 @@ package ussd
 import (
 	"context"
 
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -44,7 +44,7 @@ func (u *Impl) CreateUsddUserProfile(ctx context.Context, phoneNumber string, PI
 		return exceptions.InternalServerError(err)
 	}
 
-	data := base.BioData{
+	data := profileutils.BioData{
 		FirstName:   &userFirstName,
 		LastName:    &userLastName,
 		DateOfBirth: userProfile.DateOfBirth,

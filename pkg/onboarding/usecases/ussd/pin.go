@@ -6,7 +6,8 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/scalarutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -55,7 +56,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	}
 
 	if userResponse == GoBackHomeInput {
-		isLoggedInUser, err := u.LoginInUser(ctx, session.PhoneNumber, session.PIN, base.FlavourConsumer)
+		isLoggedInUser, err := u.LoginInUser(ctx, session.PhoneNumber, session.PIN, feedlib.FlavourConsumer)
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
@@ -73,7 +74,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	}
 
 	if session.Level == ChangePINEnterNewPINState {
-		isLoggedInUser, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, base.FlavourConsumer)
+		isLoggedInUser, err := u.LoginInUser(ctx, session.PhoneNumber, userResponse, feedlib.FlavourConsumer)
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
@@ -195,7 +196,7 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 		day, _ := strconv.Atoi(date[0:2])
 		month, _ := strconv.Atoi(date[2:4])
 		year, _ := strconv.Atoi(date[4:8])
-		dateofBirth := &base.Date{
+		dateofBirth := &scalarutils.Date{
 			Month: month,
 			Day:   day,
 			Year:  year,

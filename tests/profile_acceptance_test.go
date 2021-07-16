@@ -11,7 +11,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/base"
+	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/scalarutils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
@@ -21,7 +22,7 @@ func TestUpdateUserProfile(t *testing.T) {
 	headers := setUpLoggedInTestUserGraphHeaders(t)
 
 	// update the user profile that was created
-	dateOfBirth := base.Date{
+	dateOfBirth := scalarutils.Date{
 		Day:   1,
 		Year:  2019,
 		Month: 4,
@@ -286,7 +287,7 @@ func TestUpdateUserProfile(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -436,8 +437,8 @@ func TestUserProfile(t *testing.T) {
 							t.Errorf("PrimaryPhone not present in output")
 							return
 						}
-						if registeredPhone != base.TestUserPhoneNumber {
-							t.Errorf("invalid registered phone number expected %v but got %v", base.TestUserPhoneNumber, registeredPhone)
+						if registeredPhone != interserviceclient.TestUserPhoneNumber {
+							t.Errorf("invalid registered phone number expected %v but got %v", interserviceclient.TestUserPhoneNumber, registeredPhone)
 							return
 						}
 					}
@@ -446,7 +447,7 @@ func TestUserProfile(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -567,7 +568,7 @@ func TestSupplierProfile(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -576,7 +577,7 @@ func TestSupplierProfile(t *testing.T) {
 func TestUpdateCovers(t *testing.T) {
 	client := http.DefaultClient
 
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -681,7 +682,7 @@ func TestUpdateCovers(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "onboarding") {
 				r.Header.Add(k, v)
 			}
 
@@ -737,7 +738,7 @@ func TestUpdateCovers(t *testing.T) {
 
 func TestEmailsProfileAttributes(t *testing.T) {
 	client := http.DefaultClient
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -821,7 +822,7 @@ func TestEmailsProfileAttributes(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "onboarding") {
 				r.Header.Add(k, v)
 			}
 
@@ -870,7 +871,7 @@ func TestEmailsProfileAttributes(t *testing.T) {
 
 func TestPhoneNumbersProfileAttributes(t *testing.T) {
 	client := http.DefaultClient
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -954,7 +955,7 @@ func TestPhoneNumbersProfileAttributes(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "onboarding") {
 				r.Header.Add(k, v)
 			}
 
@@ -1003,7 +1004,7 @@ func TestPhoneNumbersProfileAttributes(t *testing.T) {
 
 func TestTokensProfileAttributes(t *testing.T) {
 	client := http.DefaultClient
-	phoneNumber := base.TestUserPhoneNumber
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
@@ -1087,7 +1088,7 @@ func TestTokensProfileAttributes(t *testing.T) {
 				return
 			}
 
-			for k, v := range base.GetDefaultHeaders(t, baseURL, "onboarding") {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "onboarding") {
 				r.Header.Add(k, v)
 			}
 
@@ -1138,7 +1139,7 @@ func TestSetPrimaryPhoneNumber(t *testing.T) {
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-	otpResp, err := generateTestOTP(t, base.TestUserPhoneNumber)
+	otpResp, err := generateTestOTP(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("failed to generate test OTP: %v", err)
 		return
@@ -1165,7 +1166,7 @@ func TestSetPrimaryPhoneNumber(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phone": base.TestUserPhoneNumber,
+						"phone": interserviceclient.TestUserPhoneNumber,
 						"otp":   otpResp.OTP,
 					},
 				},
@@ -1179,7 +1180,7 @@ func TestSetPrimaryPhoneNumber(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phone": base.TestUserPhoneNumber,
+						"phone": interserviceclient.TestUserPhoneNumber,
 						"otp":   "bogus otp",
 					},
 				},
@@ -1261,7 +1262,7 @@ func TestSetPrimaryPhoneNumber(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -1271,7 +1272,7 @@ func TestSetPrimaryEmailAddress(t *testing.T) {
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-	otpResp, err := generateTestOTP(t, base.TestUserPhoneNumber)
+	otpResp, err := generateTestOTP(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("failed to generate test OTP: %v", err)
 		return
@@ -1394,7 +1395,7 @@ func TestSetPrimaryEmailAddress(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -1425,7 +1426,7 @@ func TestAddSecondaryPhoneNumber(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phone": []string{base.TestUserPhoneNumberWithPin},
+						"phone": []string{interserviceclient.TestUserPhoneNumberWithPin},
 					},
 				},
 			},
@@ -1438,7 +1439,7 @@ func TestAddSecondaryPhoneNumber(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phone": []string{base.TestUserPhoneNumber},
+						"phone": []string{interserviceclient.TestUserPhoneNumber},
 					},
 				},
 			},
@@ -1519,7 +1520,7 @@ func TestAddSecondaryPhoneNumber(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -1631,7 +1632,7 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -1743,7 +1744,7 @@ func TestUpdateUserName(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -1908,7 +1909,7 @@ func TestGraphQLAddAddress(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -2030,7 +2031,7 @@ func TestGraphQLGetAddresses(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}

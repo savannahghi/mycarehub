@@ -8,16 +8,17 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/base"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
 func TestValidateSignUpInput(t *testing.T) {
-	phone := base.TestUserPhoneNumber
-	pin := base.TestUserPin
-	flavour := base.FlavourConsumer
+	phone := interserviceclient.TestUserPhoneNumber
+	pin := interserviceclient.TestUserPin
+	flavour := feedlib.FlavourConsumer
 	otp := "12345"
 
 	alphanumericPhone := "+254-not-valid-123"

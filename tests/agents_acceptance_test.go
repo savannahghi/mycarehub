@@ -10,7 +10,7 @@ package tests
 // 		Gender:      "male",
 // 		PhoneNumber: "0700011122",
 // 		Email:       "test.agent@test.com",
-// 		DateOfBirth: base.Date{Year: 1990, Month: 1, Day: 1},
+// 		DateOfBirth: scalarutils.Date{Year: 1990, Month: 1, Day: 1},
 // 	}
 
 // 	graphqlMutation := `
@@ -237,7 +237,7 @@ package tests
 // 		})
 // 	}
 // 	// perform tear down; remove user
-// 	_, err := RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+// 	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 // 	if err != nil {
 // 		t.Errorf("unable to remove test user employee: %s", err)
 // 	}
@@ -247,7 +247,7 @@ package tests
 // 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 // 	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-// 	err := setRoleForUserWithPhone(base.TestUserPhoneNumber, base.RoleTypeEmployee, headers)
+// 	err := setRoleForUserWithPhone(interserviceclient.TestUserPhoneNumber, profileutils.RoleTypeEmployee, headers)
 // 	if err != nil {
 // 		t.Errorf("failed to set employee role for logged in user: %s", err)
 // 		return
@@ -259,7 +259,7 @@ package tests
 // 		Gender:      "male",
 // 		PhoneNumber: "0704711122",
 // 		Email:       "test.agent@test.com",
-// 		DateOfBirth: base.Date{Year: 1990, Month: 1, Day: 1},
+// 		DateOfBirth: scalarutils.Date{Year: 1990, Month: 1, Day: 1},
 // 	}
 // 	agent, err := registerTestAgent(agentInput, headers)
 // 	if err != nil {
@@ -420,7 +420,7 @@ package tests
 // 		})
 // 	}
 // 	// perform tear down; remove user
-// 	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+// 	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 // 	if err != nil {
 // 		t.Errorf("unable to remove test user employee: %s", err)
 // 	}
@@ -435,7 +435,7 @@ package tests
 // 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 // 	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-// 	err := setRoleForUserWithPhone(base.TestUserPhoneNumber, base.RoleTypeEmployee, headers)
+// 	err := setRoleForUserWithPhone(interserviceclient.TestUserPhoneNumber, profileutils.RoleTypeEmployee, headers)
 // 	if err != nil {
 // 		t.Errorf("failed to set employee role for logged in user: %s", err)
 // 		return
@@ -447,7 +447,7 @@ package tests
 // 		Gender:      "male",
 // 		PhoneNumber: "0704711122",
 // 		Email:       "test.agent@test.com",
-// 		DateOfBirth: base.Date{Year: 1990, Month: 1, Day: 1},
+// 		DateOfBirth: scalarutils.Date{Year: 1990, Month: 1, Day: 1},
 // 	}
 // 	agent, err := registerTestAgent(agentInput, headers)
 // 	if err != nil {
@@ -608,7 +608,7 @@ package tests
 // 		})
 // 	}
 // 	// perform tear down; remove user
-// 	_, err = RemoveTestUserByPhone(t, base.TestUserPhoneNumber)
+// 	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 // 	if err != nil {
 // 		t.Errorf("unable to remove test user employee: %s", err)
 // 	}
@@ -619,7 +619,7 @@ package tests
 // 	}
 // }
 
-// func registerTestAgent(agentInput dto.RegisterAgentInput, headers map[string]string) (*base.UserProfile, error) {
+// func registerTestAgent(agentInput dto.RegisterAgentInput, headers map[string]string) (*profileutils.UserProfile, error) {
 // 	url := fmt.Sprintf("%s/graphql", baseURL)
 
 // 	graphqlMutation := `
@@ -701,7 +701,7 @@ package tests
 // 		return nil, fmt.Errorf("unable to marshal agent data to JSON: %s", err)
 // 	}
 
-// 	var agent base.UserProfile
+// 	var agent profileutils.UserProfile
 // 	err = json.Unmarshal(agentDataAsJSON, &agent)
 // 	if err != nil {
 // 		return nil, fmt.Errorf("unable to unmarshall response: %v", err)

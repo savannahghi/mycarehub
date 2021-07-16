@@ -1,8 +1,6 @@
 package domain
 
-import (
-	"gitlab.slade360emr.com/go/base"
-)
+import "github.com/savannahghi/enumutils"
 
 // SupportingDocument used to add more documents when
 type SupportingDocument struct {
@@ -13,9 +11,9 @@ type SupportingDocument struct {
 
 // Identification identify model
 type Identification struct {
-	IdentificationDocType           base.IdentificationDocType `json:"identificationDocType" mapstructure:"identificationDocType"`
-	IdentificationDocNumber         string                     `json:"identificationDocNumber" mapstructure:"identificationDocNumber"`
-	IdentificationDocNumberUploadID string                     `json:"identificationDocNumberUploadID" mapstructure:"identificationDocNumberUploadID"`
+	IdentificationDocType           enumutils.IdentificationDocType `json:"identificationDocType" mapstructure:"identificationDocType"`
+	IdentificationDocNumber         string                          `json:"identificationDocNumber" mapstructure:"identificationDocNumber"`
+	IdentificationDocNumberUploadID string                          `json:"identificationDocNumberUploadID" mapstructure:"identificationDocNumberUploadID"`
 }
 
 // IndividualRider represents the KYC information required for an Individual Rider
