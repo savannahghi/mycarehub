@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"text/template"
 
-	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
+	"gitlab.slade360emr.com/go/apiclient"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/savannahghi/enumutils"
@@ -41,6 +42,8 @@ const (
 	VerifyOTPEndPoint = "internal/verify_otp/"
 
 	sendSMS = "internal/send_sms"
+
+	getSladerDataEndpoint = "internal/slader_data?%s"
 )
 
 // ServiceEngagement represents engagement usecases
@@ -93,18 +96,25 @@ type ServiceEngagement interface {
 	VerifyEmailOTP(ctx context.Context, email, OTP string) (bool, error)
 
 	SendSMS(ctx context.Context, phoneNumbers []string, message string) error
+
+	GetSladerData(ctx context.Context, phoneNumber string) (*apiclient.Segment, error)
 }
 
 // ServiceEngagementImpl represents engagement usecases
 type ServiceEngagementImpl struct {
 	Engage  extension.ISCClientExtension
 	baseExt extension.BaseExtension
-	pubsub  pubsubmessaging.ServicePubSub
 }
 
 // NewServiceEngagementImpl returns new instance of ServiceEngagementImpl
-func NewServiceEngagementImpl(eng extension.ISCClientExtension, ext extension.BaseExtension, pubsub pubsubmessaging.ServicePubSub) ServiceEngagement {
-	return &ServiceEngagementImpl{Engage: eng, baseExt: ext, pubsub: pubsub}
+func NewServiceEngagementImpl(
+	eng extension.ISCClientExtension,
+	ext extension.BaseExtension,
+) *ServiceEngagementImpl {
+	return &ServiceEngagementImpl{
+		Engage:  eng,
+		baseExt: ext,
+	}
 }
 
 // PublishKYCNudge calls the `engagement service` to publish
@@ -494,4 +504,42 @@ func (en *ServiceEngagementImpl) SendSMS(ctx context.Context, phoneNumbers []str
 	}
 
 	return nil
+}
+
+// GetSladerData calls the `engagement service`	to fetch the details of a particular slader
+// It searches by the phoneNumber
+func (en *ServiceEngagementImpl) GetSladerData(ctx context.Context, phoneNumber string) (*apiclient.Segment, error) {
+	params := url.Values{}
+	params.Add("phoneNumber", phoneNumber)
+
+	resp, err := en.Engage.MakeRequest(
+		ctx,
+		http.MethodGet,
+		fmt.Sprintf(
+			getSladerDataEndpoint,
+			params.Encode(),
+		),
+		nil,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get slader data:%w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unable to get data, with status code %v", resp.StatusCode)
+	}
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("unable to convert response to string: %v", err)
+	}
+
+	var sladerData apiclient.Segment
+	err = json.Unmarshal(data, &sladerData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal slader data: %v", err)
+	}
+
+	return &sladerData, nil
 }

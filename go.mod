@@ -23,8 +23,8 @@ require (
 	github.com/savannahghi/enumutils v0.0.0-20210719133832-d7a34e2f65c4
 	github.com/savannahghi/errorcodeutil v0.0.1
 	github.com/savannahghi/feedlib v0.0.0-20210628122532-ef88e353d4d6
-	github.com/savannahghi/firebasetools v0.0.12
-	github.com/savannahghi/interserviceclient v0.0.9
+	github.com/savannahghi/firebasetools v0.0.13
+	github.com/savannahghi/interserviceclient v0.0.13
 	github.com/savannahghi/profileutils v0.0.7
 	github.com/savannahghi/pubsubtools v0.0.0-20210624135722-0393c6ad97a0
 	github.com/savannahghi/scalarutils v0.0.0-20210622091443-bad5089abdad

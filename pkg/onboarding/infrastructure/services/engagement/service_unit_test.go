@@ -21,23 +21,19 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub/mock"
 )
 
 var fakeISCExt extMock.ISCClientExtension
 var engClient extension.ISCClientExtension = &fakeISCExt
 var fakeBaseExt extMock.FakeBaseExtensionImpl
 var baseExt extension.BaseExtension = &fakeBaseExt
-var fakePubSub mock.FakeServicePubSub
-var ps pubsubmessaging.ServicePubSub = &fakePubSub
 
 const (
 	futureHours = 878400
 )
 
 func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
 
 	type args struct {
 		ctx        context.Context
@@ -176,7 +172,7 @@ func TestServiceEngagementImpl_ResolveDefaultNudgeByTitle(t *testing.T) {
 }
 
 func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
 
 	payload := feedlib.Item{
 		ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
@@ -322,7 +318,7 @@ func TestServiceEngagementImpl_PublishKYCFeedItem(t *testing.T) {
 }
 
 func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
 
 	payload := feedlib.Nudge{
 		ID:             strconv.Itoa(int(time.Now().Unix()) + 10), // add 10 to make it unique
@@ -459,7 +455,7 @@ func TestServiceEngagementImpl_PublishKYCNudge(t *testing.T) {
 }
 
 func TestServiceEngagementImpl_SendMail(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
 
 	type args struct {
 		ctx     context.Context
@@ -557,7 +553,7 @@ func TestServiceEngagementImpl_SendMail(t *testing.T) {
 
 func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 	ctx := context.Background()
-	p := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	p := engagement.NewServiceEngagementImpl(engClient, baseExt)
 
 	validRespPayload := `{"IsVerified":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
@@ -713,7 +709,7 @@ func TestServiceOTPImpl_VerifyOTP(t *testing.T) {
 
 func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 	ctx := context.Background()
-	p := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	p := engagement.NewServiceEngagementImpl(engClient, baseExt)
 
 	validRespPayload := `"234234"`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
@@ -836,7 +832,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 
 func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 	ctx := context.Background()
-	p := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	p := engagement.NewServiceEngagementImpl(engClient, baseExt)
 
 	validRespPayload := `"123123"`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
@@ -997,7 +993,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 
 func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 	ctx := context.Background()
-	p := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	p := engagement.NewServiceEngagementImpl(engClient, baseExt)
 
 	validRespPayload := `{"IsVerified":true}`
 	respReader := ioutil.NopCloser(bytes.NewReader([]byte(validRespPayload)))
@@ -1118,7 +1114,7 @@ func TestServiceOTPImpl_VerifyEmailOTP(t *testing.T) {
 }
 
 func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
 	type args struct {
 		ctx   context.Context
 		input dto.EmailNotificationPayload
@@ -1225,7 +1221,7 @@ func TestServiceEngagementImpl_NotifySupplierOnSuspension(t *testing.T) {
 }
 
 func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
 	input := dto.EmailNotificationPayload{
 		SupplierName: "Supplier",
 		PartnerType:  "INDIVIDUAL",
@@ -1303,7 +1299,7 @@ func TestServiceEngagementImpl_SendAlertToSupplier(t *testing.T) {
 }
 
 func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
-	e := engagement.NewServiceEngagementImpl(engClient, baseExt, ps)
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
 	input := dto.EmailNotificationPayload{
 		SupplierName: "Supplier",
 		PartnerType:  "INDIVIDUAL",

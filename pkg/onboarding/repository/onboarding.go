@@ -177,7 +177,6 @@ type OnboardingRepository interface {
 	UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
 	GetStageCRMPayload(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error)
 
-	GetUserMarketingData(ctx context.Context, phoneNumber string) (*dto.Segment, error)
 	IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error)
 }
 

@@ -114,7 +114,8 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	crm := hubspot.NewHubSpotService()
-	edi := edi.NewEdiService(ediClient, repo)
+	engage := engagement.NewServiceEngagementImpl(engagementClient, baseExt)
+	edi := edi.NewEdiService(ediClient, repo, engage)
 	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		baseExt,
@@ -126,7 +127,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
 	}
-	engage := engagement.NewServiceEngagementImpl(engagementClient, baseExt, pubSub)
 	mes := messaging.NewServiceMessagingImpl(baseExt)
 	pinExt := extension.NewPINExtensionImpl()
 

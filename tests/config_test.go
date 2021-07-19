@@ -119,7 +119,8 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	crm := hubspot.NewHubSpotService()
-	edi := edi.NewEdiService(ediClient, repo)
+	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
+	edi := edi.NewEdiService(ediClient, repo, engage)
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		ext,
@@ -131,7 +132,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
 	}
-	engage := engagement.NewServiceEngagementImpl(engagementClient, ext, ps)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	profile := usecases.NewProfileUseCase(repo, ext, engage, ps)

@@ -1129,66 +1129,6 @@ func TestRepository_ListAgentUserProfiles(t *testing.T) {
 	}
 }
 
-func TestRepository_GetUserMarketingData(t *testing.T) {
-	ctx := context.Background()
-	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
-	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
-
-	type args struct {
-		ctx         context.Context
-		phoneNumber string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *dto.Segment
-		wantErr bool
-	}{
-		{
-			name: "Happy Case -> Get a user's data",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: interserviceclient.TestUserPhoneNumber,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad Case -> Fail to Get a user's data",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: "",
-			},
-			want:    nil,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Happy Case -> Get a user's data" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
-					docs := []*firestore.DocumentSnapshot{}
-					return docs, nil
-				}
-			}
-
-			if tt.name == "Sad Case -> Fail to Get a user's data" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
-					return nil, fmt.Errorf("cannot fetch firebase docs")
-				}
-			}
-
-			got, err := repo.GetUserMarketingData(tt.args.ctx, tt.args.phoneNumber)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetUserMarketingData() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Repository.GetUserMarketingData() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestRepository_AddAITSessionDetails_Unittest(t *testing.T) {
 	ctx := context.Background()
 	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt

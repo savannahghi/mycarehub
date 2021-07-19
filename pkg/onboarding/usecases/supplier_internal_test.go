@@ -73,7 +73,8 @@ func TestParseKYCAsMap(t *testing.T) {
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 	ediClient := utils.NewInterServiceClient(ediService, ext)
-	edi := edi.NewEdiService(ediClient, repo)
+	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
+	edi := edi.NewEdiService(ediClient, repo, engage)
 	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	crm := hubspot.NewHubSpotService()
@@ -89,7 +90,6 @@ func TestParseKYCAsMap(t *testing.T) {
 		t.Errorf("unable to initialize new pubsub messaging service: %w", err)
 		return
 	}
-	engage := engagement.NewServiceEngagementImpl(engagementClient, ext, ps)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	profile := NewProfileUseCase(repo, ext, engage, ps)
 

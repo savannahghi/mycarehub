@@ -191,7 +191,8 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 	ediClient := utils.NewInterServiceClient(ediService, ext)
-	edi := edi.NewEdiService(ediClient, repo)
+	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
+	edi := edi.NewEdiService(ediClient, repo, engage)
 
 	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
@@ -207,7 +208,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
 	}
-	engage := engagement.NewServiceEngagementImpl(engagementClient, ext, ps)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	profile := usecases.NewProfileUseCase(repo, ext, engage, ps)

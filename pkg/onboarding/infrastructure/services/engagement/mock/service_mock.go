@@ -6,6 +6,7 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/profileutils"
+	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
@@ -34,6 +35,8 @@ type FakeServiceEngagement struct {
 	VerifyEmailOTPFn func(ctx context.Context, email, OTP string) (bool, error)
 
 	SendSMSFn func(ctx context.Context, phoneNumbers []string, message string) error
+
+	GetSladerDataFn func(ctx context.Context, phoneNumber string) (*apiclient.Segment, error)
 }
 
 // PublishKYCNudge ...
@@ -124,4 +127,9 @@ func (f *FakeServiceEngagement) NotifySupplierOnSuspension(ctx context.Context, 
 // SendSMS ...
 func (f *FakeServiceEngagement) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
 	return f.SendSMSFn(ctx, phoneNumbers, message)
+}
+
+// GetSladerData ...
+func (f *FakeServiceEngagement) GetSladerData(ctx context.Context, phoneNumber string) (*apiclient.Segment, error) {
+	return f.GetSladerDataFn(ctx, phoneNumber)
 }

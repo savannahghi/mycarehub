@@ -18,7 +18,7 @@ services:
 lint:
   variables:
     REGISTRY_URL: $TEST_SCHEMA_REGISTRY_URL
-  stage: linter  
+  stage: linter 
   before_script:
     - bash decrypt_service_account.sh
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"

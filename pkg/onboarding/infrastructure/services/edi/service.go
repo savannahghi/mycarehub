@@ -8,6 +8,7 @@ import (
 
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
@@ -31,13 +32,19 @@ type ServiceEdi interface {
 type ServiceEDIImpl struct {
 	EdiExt               extension.ISCClientExtension
 	onboardingRepository repository.OnboardingRepository
+	engagement           engagement.ServiceEngagement
 }
 
 // NewEdiService returns a new instance of edi implementations
-func NewEdiService(edi extension.ISCClientExtension, r repository.OnboardingRepository) *ServiceEDIImpl {
+func NewEdiService(
+	edi extension.ISCClientExtension,
+	r repository.OnboardingRepository,
+	engagement engagement.ServiceEngagement,
+) ServiceEdi {
 	return &ServiceEDIImpl{
 		EdiExt:               edi,
 		onboardingRepository: r,
+		engagement:           engagement,
 	}
 }
 
@@ -48,7 +55,7 @@ func (e *ServiceEDIImpl) LinkCover(
 	uid string,
 	pushToken []string,
 ) (*http.Response, error) {
-	userMarketingData, err := e.onboardingRepository.GetUserMarketingData(ctx, phoneNumber)
+	userMarketingData, err := e.engagement.GetSladerData(ctx, phoneNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query the user's marketing details :%w", err)
 	}

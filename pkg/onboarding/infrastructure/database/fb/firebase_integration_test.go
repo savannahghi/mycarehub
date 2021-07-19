@@ -150,7 +150,8 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 	erp := erp.NewAccounting()
 	crm := hubspot.NewHubSpotService()
-	edi := edi.NewEdiService(ediClient, fr)
+	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
+	edi := edi.NewEdiService(ediClient, fr, engage)
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		ext,
@@ -162,7 +163,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
 	}
-	engage := engagement.NewServiceEngagementImpl(engagementClient, ext, ps)
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	profile := usecases.NewProfileUseCase(fr, ext, engage, ps)

@@ -3263,38 +3263,6 @@ func (fr *Repository) UpdateOptOutCRMPayload(ctx context.Context, phoneNumber st
 	return nil
 }
 
-// GetUserMarketingData retrieves a user's data from a collection.
-func (fr *Repository) GetUserMarketingData(ctx context.Context, phoneNumber string) (*dto.Segment, error) {
-	ctx, span := tracer.Start(ctx, "fetchMarketingData")
-	defer span.End()
-
-	query := &GetAllQuery{
-		CollectionName: fr.GetMarketingDataCollectionName(),
-		FieldName:      "properties.Phone",
-		Value:          phoneNumber,
-		Operator:       "==",
-	}
-
-	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	if err != nil {
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	if len(docs) == 0 {
-		return nil, nil
-	}
-
-	var data dto.Segment
-	err = docs[0].DataTo(&data)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"error unmarshalling saved data: %w",
-			err,
-		)
-	}
-	return &data, nil
-}
-
 // IsOptedOuted checks if a phone number is opted out or not
 func (fr Repository) IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error) {
 	query := &GetAllQuery{
