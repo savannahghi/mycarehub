@@ -35,42 +35,42 @@ type AgentEdge struct {
 type Agent struct {
 	ID string `json:"id"`
 
-	PrimaryPhone string `json:"primaryPhone" `
+	PrimaryPhone string `json:"primaryPhone"`
 
-	PrimaryEmailAddress string `json:"primaryEmailAddress" `
+	PrimaryEmailAddress *string `json:"primaryEmailAddress"`
 
-	SecondaryPhoneNumbers []string `json:"secondaryPhoneNumbers" `
+	SecondaryPhoneNumbers []string `json:"secondaryPhoneNumbers"`
 
-	SecondaryEmailAddresses []string `json:"secondaryEmailAddresses" `
+	SecondaryEmailAddresses []string `json:"secondaryEmailAddresses"`
 
-	TermsAccepted bool `json:"termsAccepted,omitempty" `
+	TermsAccepted bool `json:"termsAccepted,omitempty"`
 
 	Suspended bool `json:"suspended"`
 
-	PhotoUploadID string `json:"photoUploadID,omitempty" `
+	PhotoUploadID string `json:"photoUploadID,omitempty"`
 
-	UserBioData base.BioData `json:"userBioData,omitempty" `
+	UserBioData base.BioData `json:"userBioData,omitempty"`
 }
 
 // Admin represents agent with details inferred from their user profile
 type Admin struct {
 	ID string `json:"id"`
 
-	PrimaryPhone string `json:"primaryPhone" `
+	PrimaryPhone string `json:"primaryPhone"`
 
-	PrimaryEmailAddress string `json:"primaryEmailAddress" `
+	PrimaryEmailAddress string `json:"primaryEmailAddress"`
 
-	SecondaryPhoneNumbers []string `json:"secondaryPhoneNumbers" `
+	SecondaryPhoneNumbers []string `json:"secondaryPhoneNumbers"`
 
-	SecondaryEmailAddresses []string `json:"secondaryEmailAddresses" `
+	SecondaryEmailAddresses []string `json:"secondaryEmailAddresses"`
 
-	TermsAccepted bool `json:"termsAccepted,omitempty" `
+	TermsAccepted bool `json:"termsAccepted,omitempty"`
 
 	Suspended bool `json:"suspended"`
 
-	PhotoUploadID string `json:"photoUploadID,omitempty" `
+	PhotoUploadID string `json:"photoUploadID,omitempty"`
 
-	UserBioData base.BioData `json:"userBioData,omitempty" `
+	UserBioData base.BioData `json:"userBioData,omitempty"`
 }
 
 // AccountRecoveryPhonesResponse  payload sent back to the frontend when recovery an account
@@ -124,11 +124,11 @@ type UserInfo struct {
 
 // Segment represents the Segments data
 type Segment struct {
-	Properties     crmDomain.ContactProperties `json:"properties" firestore:"properties"`
-	Wing           string                      `json:"wing" firestore:"wing"`
-	MessageSent    string                      `json:"message_sent" firestore:"message_sent"`
-	IsSynced       string                      `json:"is_synced" firestore:"is_synced"`
-	TimeSynced     string                      `json:"time_synced" firestore:"time_synced"`
+	Properties     crmDomain.ContactProperties `json:"properties"       firestore:"properties"`
+	Wing           string                      `json:"wing"             firestore:"wing"`
+	MessageSent    string                      `json:"message_sent"     firestore:"message_sent"`
+	IsSynced       string                      `json:"is_synced"        firestore:"is_synced"`
+	TimeSynced     string                      `json:"time_synced"      firestore:"time_synced"`
 	PayerSladeCode string                      `json:"payer_slade_code" firestore:"payersladecode"`
-	MemberNumber   string                      `json:"member_number" firestore:"membernumber"`
+	MemberNumber   string                      `json:"member_number"    firestore:"membernumber"`
 }

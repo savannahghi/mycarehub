@@ -1060,11 +1060,13 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 	// we need to `Resolve` the nudge for this user in both flavours
 	// Resolve the nudge in `CONSUMER`
 	go func() {
+		// get details of the current trace span
 		s := trace.SpanContextFromContext(ctx)
+		// create a new context using the span configuration
 		newctx := trace.ContextWithSpanContext(context.Background(), s)
 
-		// releases resources
-		newctx, cancel := context.WithTimeout(newctx, time.Duration(5*time.Minute))
+		// releases resources if retry fails after a set duration
+		newctx, cancel := context.WithTimeout(newctx, time.Duration(10*time.Minute))
 		defer cancel()
 
 		b := backoff.WithContext(backoff.NewExponentialBackOff(), newctx)
@@ -1080,16 +1082,19 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 			cons,
 			b,
 		); err != nil {
+			utils.RecordSpanError(span, err)
 			logrus.Error(err)
 		}
 	}()
 
 	go func() {
+		// get details of the current trace span
 		s := trace.SpanContextFromContext(ctx)
+		// create a new context using the span configuration
 		newctx := trace.ContextWithSpanContext(context.Background(), s)
 
-		// releases resources
-		newctx, cancel := context.WithTimeout(newctx, time.Duration(5*time.Minute))
+		// releases resources if retry fails after a set duration
+		newctx, cancel := context.WithTimeout(newctx, time.Duration(10*time.Minute))
 		defer cancel()
 
 		b := backoff.WithContext(backoff.NewExponentialBackOff(), newctx)
@@ -1105,6 +1110,7 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 			pro,
 			b,
 		); err != nil {
+			utils.RecordSpanError(span, err)
 			logrus.Error(err)
 		}
 	}()

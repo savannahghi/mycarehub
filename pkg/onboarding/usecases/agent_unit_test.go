@@ -1133,7 +1133,11 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 
 			got, err := i.Agent.DeactivateAgent(tt.args.ctx, tt.args.agentID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AgentUseCaseImpl.DeactivateAgent() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"AgentUseCaseImpl.DeactivateAgent() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -1154,6 +1158,8 @@ func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 		return
 	}
 
+	email := base.TestUserEmail
+
 	type args struct {
 		ctx context.Context
 	}
@@ -1172,12 +1178,12 @@ func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 				{
 					ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 					PrimaryPhone:        base.TestUserPhoneNumber,
-					PrimaryEmailAddress: base.TestUserEmail,
+					PrimaryEmailAddress: &email,
 				},
 				{
 					ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					PrimaryPhone:        base.TestUserPhoneNumber,
-					PrimaryEmailAddress: base.TestUserEmail,
+					PrimaryEmailAddress: &email,
 				},
 			},
 			wantErr: false,
@@ -1258,10 +1264,12 @@ func TestAgentUseCaseImpl_FindAgentbyPhone(t *testing.T) {
 	}
 
 	msisdn := base.TestUserPhoneNumber
+	email := base.TestUserEmail
+
 	agent := dto.Agent{
 		ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 		PrimaryPhone:        base.TestUserPhoneNumber,
-		PrimaryEmailAddress: base.TestUserEmail,
+		PrimaryEmailAddress: &email,
 	}
 
 	type args struct {
@@ -1340,7 +1348,11 @@ func TestAgentUseCaseImpl_FindAgentbyPhone(t *testing.T) {
 
 			got, err := i.Agent.FindAgentbyPhone(tt.args.ctx, tt.args.phoneNumber)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AgentUseCaseImpl.FindAgentbyPhone() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"AgentUseCaseImpl.FindAgentbyPhone() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
