@@ -58,6 +58,8 @@ type Usecase interface {
 	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspend bool) (*profileutils.UserProfile, error)
 	RemoveUserByPhoneNumber(ctx context.Context, phone string) error
 	SetUserPIN(ctx context.Context, pin string, profileID string) (bool, error)
+	//USSD Metrics Event
+	SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
 }
 
 //Impl represents usecase implementation

@@ -50,6 +50,7 @@ const (
 	crmStagingCollectionName             = "crm_staging"
 	firebaseExchangeRefreshTokenURL      = "https://securetoken.googleapis.com/v1/token?key="
 	marketingDataCollectionName          = "marketing_data"
+	ussdEventsCollectionName             = "ussd_events"
 )
 
 // Repository accesses and updates an item that is stored on Firebase
@@ -135,6 +136,12 @@ func (fr Repository) GetSMSCollectionName() string {
 //GetUSSDCollectionName ...
 func (fr Repository) GetUSSDCollectionName() string {
 	suffixed := firebasetools.SuffixCollection(ussdCollectioName)
+	return suffixed
+}
+
+//GetUSSDEventsCollectionName ...
+func (fr Repository) GetUSSDEventsCollectionName() string {
+	suffixed := firebasetools.SuffixCollection(ussdEventsCollectionName)
 	return suffixed
 }
 
@@ -2945,6 +2952,59 @@ func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *dto.Afr
 
 	return nil
 
+}
+
+// SaveUSSDEvent saves the USSD event that has taken place while interacting with the USSD
+func (fr *Repository) SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error) {
+	ctx, span := tracer.Start(ctx, "SaveUSSDEvent")
+	defer span.End()
+
+	logrus.Print("FIREBASE: SaveUSSDEvent")
+
+	ussdEvent := &dto.USSDEvent{
+		SessionID:         input.SessionID,
+		PhoneNumber:       input.PhoneNumber,
+		USSDEventDateTime: input.USSDEventDateTime,
+		Level:             input.Level,
+		USSDEventName:     input.USSDEventName,
+	}
+
+	validatesUSSDEvent, err := utils.ValidateUSSDEvent(ussdEvent)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	createCommand := &CreateCommand{
+		CollectionName: fr.GetUSSDEventsCollectionName(),
+		Data:           validatesUSSDEvent,
+	}
+
+	docRef, err := fr.FirestoreClient.Create(ctx, createCommand)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	getUSSDEventsQuery := &GetSingleQuery{
+		CollectionName: fr.GetUSSDEventsCollectionName(),
+		Value:          docRef.ID,
+	}
+
+	docsnapshot, err := fr.FirestoreClient.Get(ctx, getUSSDEventsQuery)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	event := &dto.USSDEvent{}
+	err = docsnapshot.DataTo(event)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	return event, nil
 }
 
 // AddAITSessionDetails ...

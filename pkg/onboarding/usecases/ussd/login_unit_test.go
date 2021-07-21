@@ -115,6 +115,10 @@ func TestUSSDImpl_HandleLogin_Unittest(t *testing.T) {
 				fakeRepo.GetAITSessionDetailsFn = func(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error) {
 					return &domain.USSDLeadDetails{}, nil
 				}
+
+				fakeRepo.SaveUSSDEventFn = func(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error) {
+					return &dto.USSDEvent{}, nil
+				}
 			}
 
 			if tt.name == "Sad case : bad login PIN" {

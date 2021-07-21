@@ -112,6 +112,33 @@ func ValidateAficasTalkingSMSData(input *dto.AfricasTalkingMessage) (*dto.Africa
 	}, nil
 }
 
+//ValidateUSSDEvent validates a USSD event
+func ValidateUSSDEvent(input *dto.USSDEvent) (*dto.USSDEvent, error) {
+	if input.SessionID == "" {
+		return nil, fmt.Errorf("ussd event's session id cannot be empty")
+	}
+
+	if input.PhoneNumber == "" {
+		return nil, fmt.Errorf("ussd event's phone number cannot be empty")
+	}
+
+	if input.USSDEventDateTime == nil {
+		return nil, fmt.Errorf("ussd event's date and time cannot be empty")
+	}
+
+	if input.USSDEventName == "" {
+		return nil, fmt.Errorf("ussd event's name cannot be empty")
+	}
+
+	return &dto.USSDEvent{
+		SessionID:         input.SessionID,
+		PhoneNumber:       input.PhoneNumber,
+		USSDEventDateTime: input.USSDEventDateTime,
+		Level:             input.Level,
+		USSDEventName:     input.USSDEventName,
+	}, nil
+}
+
 //ValidateUSSDDetails checks if the phonenumber supplied is valid , that a session ID is provided
 // and returns valid USSD session details.
 func ValidateUSSDDetails(payload *dto.SessionDetails) (*dto.SessionDetails, error) {

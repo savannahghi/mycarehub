@@ -31,6 +31,23 @@ const (
 	RegOptOutInput = "2"
 	//RegChangePINInput ...
 	RegChangePINInput = "2"
+
+	//USSDDialled ...
+	USSDDialled = "dialled"
+	//USSDSelectRegister ...
+	USSDSelectRegister = "select register"
+	//USSDEnterFirstname ...
+	USSDEnterFirstname = "entered firstname"
+	//USSDEnterLastname ...
+	USSDEnterLastname = "entered lastname"
+	//USSDEnterDOB ...
+	USSDEnterDOB = "entered date of birth"
+	//USSDEnterPIN ...
+	USSDEnterPIN = "entered PIN"
+	//USSDConfirmPIN ...
+	USSDConfirmPIN = "confirmed PIN"
+	//USSDOptOut ...
+	USSDOptOut = "opted out"
 )
 
 var userFirstName string
@@ -42,9 +59,10 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	ctx, span := tracer.Start(ctx, "HandleUserRegistration")
 	defer span.End()
 
+	time := time.Now()
+
 	if userResponse == EmptyInput || userResponse == GoBackHomeInput && session.Level == InitialState {
 		//Creating contact stub on first USSD Dial
-		time := time.Now()
 		if err := u.onboardingRepository.StageCRMPayload(ctx, &dto.ContactLeadInput{
 			ContactType:    "phone",
 			ContactValue:   session.PhoneNumber,
@@ -56,6 +74,17 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 			IsRegistered:   false,
 		}); err != nil {
 			utils.RecordSpanError(span, err)
+			return "END Something went wrong. Please try again."
+		}
+
+		// Capture dialling event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             InitialState,
+			USSDEventName:     USSDDialled,
+		}); err != nil {
 			return "END Something went wrong. Please try again."
 		}
 
@@ -72,6 +101,17 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 			return "END Something went wrong. Please try again."
 		}
 
+		// Capture opt out event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             InitialState,
+			USSDEventName:     USSDOptOut,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
+
 		resp := "CON We have successfully opted you\r\n"
 		resp += "out of marketing messages\r\n"
 		resp += "0. Go back home"
@@ -79,6 +119,16 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 	}
 
 	if userResponse == RegisterInput && session.Level == InitialState {
+		// Capture opt out event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             InitialState,
+			USSDEventName:     USSDSelectRegister,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
 		err := u.UpdateSessionLevel(ctx, GetFirstNameState, session.SessionID)
 		if err != nil {
 			utils.RecordSpanError(span, err)
@@ -107,6 +157,18 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
+
+		// Capture first name event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             GetFirstNameState,
+			USSDEventName:     USSDEnterFirstname,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
+
 		resp := "CON Please enter your lastname(e.g.\r\n"
 		resp += "Doe)\r\n"
 		return resp
@@ -131,6 +193,17 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			return err.Error()
+		}
+
+		// Capture last name event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             GetLastNameState,
+			USSDEventName:     USSDEnterLastname,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
 		}
 
 		resp := "CON Please enter your date of birth in\r\n"
@@ -163,6 +236,18 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 			utils.RecordSpanError(span, err)
 			return err.Error()
 		}
+
+		// Capture date of birth event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             GetDOBState,
+			USSDEventName:     USSDEnterDOB,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
+
 		return "CON Please enter a 4 digit PIN to secure your account"
 	}
 
@@ -182,6 +267,18 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 			utils.RecordSpanError(span, err)
 			return err.Error()
 		}
+
+		// Capture PIN entry event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             GetPINState,
+			USSDEventName:     USSDEnterPIN,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
+
 		return "CON Please enter a 4 digit PIN again to confirm"
 
 	}
@@ -225,6 +322,18 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
+
+		// Capture confirm PIN entry event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             SaveRecordState,
+			USSDEventName:     USSDConfirmPIN,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
+
 		userResponse := ""
 		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/profileutils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
@@ -101,6 +102,9 @@ func TestImpl_HandleChangePIN_Unittest(t *testing.T) {
 			if tt.name == "change pin" {
 				fakeRepo.UpdateSessionLevelFn = func(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error) {
 					return &domain.USSDLeadDetails{}, nil
+				}
+				fakeRepo.SaveUSSDEventFn = func(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error) {
+					return &dto.USSDEvent{}, nil
 				}
 			}
 			if tt.name == "go back home" {

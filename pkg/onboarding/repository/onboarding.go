@@ -178,6 +178,7 @@ type OnboardingRepository interface {
 	GetStageCRMPayload(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error)
 
 	IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error)
+	SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
 }
 
 // UserProfileRepository interface that provide access to all persistent storage operations for user profile

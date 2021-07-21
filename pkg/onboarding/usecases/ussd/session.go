@@ -216,3 +216,8 @@ func (u *Impl) SetUserPIN(ctx context.Context, pin string, profileID string) (bo
 	}
 	return setPIN, nil
 }
+
+// SaveUSSDEvent saves USSD event in the database
+func (u *Impl) SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error) {
+	return u.onboardingRepository.SaveUSSDEvent(ctx, input)
+}

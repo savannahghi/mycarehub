@@ -97,6 +97,11 @@ func TestImpl_HandleUserRegistration_Unittest(t *testing.T) {
 				fakeRepo.UpdateOptOutCRMPayloadFn = func(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
 					return nil
 				}
+				fakeRepo.SaveUSSDEventFn = func(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error) {
+					return &dto.USSDEvent{
+						SessionID: uuid.NewString(),
+					}, nil
+				}
 			}
 
 			if tt.name == "Sad_case:optout" {

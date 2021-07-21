@@ -2,11 +2,18 @@ package ussd
 
 import (
 	"context"
+	"time"
 
 	"github.com/savannahghi/feedlib"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 	"go.opentelemetry.io/otel"
+)
+
+const (
+	//USSDLoginDialEvent ...
+	USSDLoginDialEvent = "dialled to login"
 )
 
 var tracer = otel.Tracer("gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd")
@@ -16,11 +23,22 @@ func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails,
 	ctx, span := tracer.Start(ctx, "HandleLogin")
 	defer span.End()
 
+	time := time.Now()
+
 	switch userResponse {
 	case EmptyInput:
 		resp := "CON Welcome to Be.Well.Please enter\r\n"
 		resp += "your PIN to continue(enter 00 if\r\n"
 		resp += "you forgot your PIN)\r\n"
+		// Capture login event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			USSDEventName:     USSDLoginDialEvent,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
 		return resp
 
 	case ForgotPINInput:

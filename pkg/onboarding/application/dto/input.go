@@ -390,3 +390,12 @@ type SupplierPubSubMessagePayload struct {
 	SupplierPayload dm.SupplierPayload `json:"supplierPayload"`
 	UID             string             `json:"uid"`
 }
+
+// USSDEvent records any USSD event(e.g. entering firstname, lastname etc.) that happens for every session and the time
+type USSDEvent struct {
+	SessionID         string     `firestore:"sessionID"`
+	PhoneNumber       string     `firestore:"phoneNumber"`
+	USSDEventDateTime *time.Time `firestore:"ussdEventDateTime"`
+	Level             int        `firestore:"level"`
+	USSDEventName     string     `firestore:"ussdEventName"`
+}

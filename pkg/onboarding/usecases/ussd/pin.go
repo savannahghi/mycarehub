@@ -4,10 +4,12 @@ import (
 	"context"
 	"reflect"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/scalarutils"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
@@ -32,6 +34,24 @@ const (
 	ForgetPINResetState = 13
 	//ForgotPINVerifyDate indicates the state when a use wants to reset PIN
 	ForgotPINVerifyDate = 15
+
+	//USSDChooseToChangePIN ...
+	USSDChooseToChangePIN = "chose to change PIN"
+	//USSDEnterOldPIN ...
+	USSDEnterOldPIN = "entered old PIN"
+	//USSDEnterNewPIN ...
+	USSDEnterNewPIN = "entered a new 4 digit PIN"
+	//USSDConfirmChangePIN ...
+	USSDConfirmChangePIN = "confirmed new PIN"
+	//USSDChooseToGoBackHome ...
+	USSDChooseToGoBackHome = "chose to go back home"
+
+	//USSDChooseToResetPIN ...
+	USSDChooseToResetPIN = "chose to reset PIN"
+	//USSDChooseToConfirmResetPIN ...
+	USSDChooseToConfirmResetPIN = "confirm reset PIN"
+	//USSDPINResetVerifyDate ...
+	USSDPINResetVerifyDate = "verify date of birth"
 )
 
 // HandleChangePIN represents workflow used to change a user PIN
@@ -43,6 +63,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		resp := "CON Invalid choice. Please try again."
 		return resp
 	}
+	time := time.Now()
 
 	if userResponse == EmptyInput || userResponse == ChangePINInput {
 		err := u.UpdateSessionLevel(ctx, ChangePINEnterNewPINState, session.SessionID)
@@ -50,8 +71,19 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
+		// Capture choose to change PIN
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             ChangePINEnterNewPINState,
+			USSDEventName:     USSDChooseToChangePIN,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
 		resp := "CON Enter your old PIN to continue\r\n"
 		resp += "0. Go back home\r\n"
+
 		return resp
 	}
 
@@ -68,6 +100,16 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
+		}
+		// Capture go back home event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             HomeMenuState,
+			USSDEventName:     USSDChooseToGoBackHome,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
 		}
 		userResponse := ""
 		return u.HandleHomeMenu(ctx, HomeMenuState, session, userResponse)
@@ -87,6 +129,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
+
 		resp := "CON Enter a new four digit PIN\r\n"
 		return resp
 	}
@@ -106,6 +149,18 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 			utils.RecordSpanError(span, err)
 			return err.Error()
 		}
+
+		// Capture enter new PIN event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             ChangePINEnterNewPINState,
+			USSDEventName:     USSDEnterNewPIN,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
+
 		return "CON Please enter a 4 digit PIN again to confirm"
 	}
 
@@ -125,6 +180,18 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
+
+		// Capture confirm new PIN
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             ConfirmNewPINState,
+			USSDEventName:     USSDConfirmChangePIN,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
+
 		return u.ResetPinMenu()
 	}
 
@@ -135,6 +202,7 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
 	ctx, span := tracer.Start(ctx, "HandlePINReset")
 	defer span.End()
+	time := time.Now()
 	if session.Level == ForgetPINResetState {
 		resp := "CON Please enter a new 4 digit PIN to\r\n"
 		resp += "secure your account\r\n"
@@ -163,6 +231,18 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again"
 		}
+
+		// Capture reset PIN
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             PINResetEnterNewPINState,
+			USSDEventName:     USSDChooseToResetPIN,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
+
 		resp := "CON Please enter a 4 digit PIN again to\r\n"
 		resp += "confirm.\r\n"
 		return resp
@@ -184,6 +264,18 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."
 		}
+
+		// Capture confirm reset PIN
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             PINResetProcessState,
+			USSDEventName:     USSDChooseToConfirmResetPIN,
+		}); err != nil {
+			return "END Something went wrong. Please try again."
+		}
+
 		return u.ResetPinMenu()
 	}
 	if session.Level == ForgotPINVerifyDate {
@@ -207,6 +299,17 @@ func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetai
 		err = u.UpdateSessionLevel(ctx, UserPINResetState, session.SessionID)
 		if err != nil {
 			utils.RecordSpanError(span, err)
+			return "END Something went wrong. Please try again."
+		}
+
+		// Capture verify DOB
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			Level:             ForgotPINVerifyDate,
+			USSDEventName:     USSDPINResetVerifyDate,
+		}); err != nil {
 			return "END Something went wrong. Please try again."
 		}
 

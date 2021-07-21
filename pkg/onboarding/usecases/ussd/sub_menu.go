@@ -2,7 +2,9 @@ package ussd
 
 import (
 	"context"
+	"time"
 
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
@@ -33,6 +35,8 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 	ctx, span := tracer.Start(ctx, "HandleHomeMenu")
 	defer span.End()
 
+	time := time.Now()
+
 	if userResponse == EmptyInput || userResponse == GoBackHomeInput {
 		return u.WelcomeMenu()
 
@@ -41,6 +45,16 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 		err := u.profile.SetOptOut(ctx, option, session.PhoneNumber)
 		if err != nil {
 			utils.RecordSpanError(span, err)
+			return "END Something went wrong. Please try again."
+		}
+
+		// Capture enter old PIN event
+		if _, err := u.onboardingRepository.SaveUSSDEvent(ctx, &dto.USSDEvent{
+			SessionID:         session.SessionID,
+			PhoneNumber:       session.PhoneNumber,
+			USSDEventDateTime: &time,
+			USSDEventName:     USSDOptOut,
+		}); err != nil {
 			return "END Something went wrong. Please try again."
 		}
 

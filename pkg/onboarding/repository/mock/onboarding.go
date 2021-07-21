@@ -184,6 +184,7 @@ type FakeOnboardingRepository struct {
 	IsOptedOutedFn                  func(ctx context.Context, phoneNumber string) (bool, error)
 	HandleResponseFromUSSDGatewayFn func(context context.Context, input *dto.SessionDetails) string
 	SetUSSDUserPinFn                func(ctx context.Context, phoneNumber string, PIN string) error
+	SaveUSSDEventFn                 func(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
 }
 
 // GetSupplierProfileByID ...
@@ -613,7 +614,7 @@ func (f *FakeOnboardingRepository) GetUserMarketingData(ctx context.Context, pho
 	return f.GetUserMarketingDataFn(ctx, phoneNumber)
 }
 
-// IsOptedOuted ..
+// IsOptedOuted ...
 func (f *FakeOnboardingRepository) IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error) {
 	return f.IsOptedOutedFn(ctx, phoneNumber)
 }
@@ -626,4 +627,9 @@ func (f *FakeOnboardingRepository) HandleResponseFromUSSDGateway(context context
 // SetUSSDUserPin ...
 func (f *FakeOnboardingRepository) SetUSSDUserPin(ctx context.Context, phoneNumber string, PIN string) error {
 	return f.SetUSSDUserPinFn(ctx, phoneNumber, PIN)
+}
+
+// SaveUSSDEvent ...
+func (f *FakeOnboardingRepository) SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error) {
+	return f.SaveUSSDEventFn(ctx, input)
 }

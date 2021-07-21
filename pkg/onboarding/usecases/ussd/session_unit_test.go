@@ -879,3 +879,74 @@ func TestImpl_UpdateBioData_Unittest(t *testing.T) {
 		})
 	}
 }
+
+func TestImpl_SaveUSSDEvent_Unittest(t *testing.T) {
+	ctx := context.Background()
+	currentTime := time.Now()
+
+	u, err := InitializeFakeUSSDTestService()
+
+	if err != nil {
+		t.Errorf("failed to initialize test service")
+		return
+	}
+
+	type args struct {
+		ctx   context.Context
+		input *dto.USSDEvent
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.USSDEvent
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				input: &dto.USSDEvent{
+					SessionID:         "0001000",
+					PhoneNumber:       "+254700000000",
+					USSDEventDateTime: &currentTime,
+					Level:             10,
+					USSDEventName:     "chose to reset PIN",
+				},
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Sad case",
+			args: args{
+				ctx:   ctx,
+				input: nil,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Happy case" {
+				fakeRepo.SaveUSSDEventFn = func(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error) {
+					return &dto.USSDEvent{}, nil
+				}
+			}
+			if tt.name == "Sad case" {
+				fakeRepo.SaveUSSDEventFn = func(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error) {
+					return nil, fmt.Errorf("an error occurred %v", err)
+				}
+			}
+			got, err := u.AITUSSD.SaveUSSDEvent(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Impl.SaveUSSDEvent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("Impl.SaveUSSDEvent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
