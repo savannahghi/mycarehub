@@ -202,7 +202,9 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 func (u *Impl) HandlePINReset(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {
 	ctx, span := tracer.Start(ctx, "HandlePINReset")
 	defer span.End()
+
 	time := time.Now()
+
 	if session.Level == ForgetPINResetState {
 		resp := "CON Please enter a new 4 digit PIN to\r\n"
 		resp += "secure your account\r\n"

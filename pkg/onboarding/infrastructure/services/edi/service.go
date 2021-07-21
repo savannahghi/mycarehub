@@ -3,9 +3,12 @@ package edi
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
@@ -16,6 +19,9 @@ import (
 const (
 	// LinkCover ISC endpoint to link user cover
 	LinkCover = "internal/link_cover"
+
+	// CoverLinkingStatusCompleted ...
+	CoverLinkingStatusCompleted = "coverlinking completed"
 )
 
 // ServiceEdi defines the business logic required to interact with EDI
@@ -72,12 +78,31 @@ func (e *ServiceEDIImpl) LinkCover(
 			PushToken:      pushToken,
 		}
 
-		return e.EdiExt.MakeRequest(
+		resp, err := e.EdiExt.MakeRequest(
 			ctx,
 			http.MethodPost,
 			LinkCover,
 			payload,
 		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to make an edi request for coverlinking: %w", err)
+		}
+
+		currentTime := time.Now()
+		coverLinkingEvent := &dto.CoverLinkingEvent{
+			ID:                    uuid.NewString(),
+			CoverLinkingEventTime: &currentTime,
+			CoverStatus:           CoverLinkingStatusCompleted,
+			MemberNumber:          userMarketingData.MemberNumber,
+			PhoneNumber:           userMarketingData.Properties.Phone,
+		}
+
+		if _, err := e.onboardingRepository.SaveCoverAutolinkingEvents(ctx, coverLinkingEvent); err != nil {
+			log.Printf("failed to save coverlinking `completed` event: %v", err)
+		}
+
+		return resp, nil
+
 	}
 	return nil, nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/base"
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
@@ -83,6 +84,9 @@ func TestServiceEDIImpl_LinkCover(t *testing.T) {
 						StatusCode: 200,
 						Body:       nil,
 					}, nil
+				}
+				fakeRepo.SaveCoverAutolinkingEventsFn = func(ctx context.Context, input *dto.CoverLinkingEvent) (*dto.CoverLinkingEvent, error) {
+					return &dto.CoverLinkingEvent{ID: uuid.NewString()}, nil
 				}
 			}
 

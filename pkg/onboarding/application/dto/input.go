@@ -399,3 +399,12 @@ type USSDEvent struct {
 	Level             int        `firestore:"level"`
 	USSDEventName     string     `firestore:"ussdEventName"`
 }
+
+// CoverLinkingEvent is a cover linking struct for cover linking events(started or completed)
+type CoverLinkingEvent struct {
+	ID                    string     `firestore:"id"`
+	CoverLinkingEventTime *time.Time `firestore:"coverLinkingEventTime"`
+	CoverStatus           string     `firestore:"coverStatus"`
+	MemberNumber          string     `firestore:"memberNumber"`
+	PhoneNumber           string     `firestore:"phoneNumber"`
+}

@@ -139,6 +139,33 @@ func ValidateUSSDEvent(input *dto.USSDEvent) (*dto.USSDEvent, error) {
 	}, nil
 }
 
+//ValidateCoverLinkingEvent validates a coverlinking event
+func ValidateCoverLinkingEvent(input *dto.CoverLinkingEvent) (*dto.CoverLinkingEvent, error) {
+	if input.MemberNumber == "" {
+		return nil, fmt.Errorf("events member cannot be empty")
+	}
+
+	if input.PhoneNumber == "" {
+		return nil, fmt.Errorf("event's phone number cannot be empty")
+	}
+
+	if input.CoverLinkingEventTime == nil {
+		return nil, fmt.Errorf("event's date and time cannot be empty")
+	}
+
+	if input.CoverStatus == "" {
+		return nil, fmt.Errorf("event's status cannot be empty")
+	}
+
+	return &dto.CoverLinkingEvent{
+		ID:                    input.ID,
+		CoverLinkingEventTime: input.CoverLinkingEventTime,
+		CoverStatus:           input.CoverStatus,
+		MemberNumber:          input.MemberNumber,
+		PhoneNumber:           input.PhoneNumber,
+	}, nil
+}
+
 //ValidateUSSDDetails checks if the phonenumber supplied is valid , that a session ID is provided
 // and returns valid USSD session details.
 func ValidateUSSDDetails(payload *dto.SessionDetails) (*dto.SessionDetails, error) {

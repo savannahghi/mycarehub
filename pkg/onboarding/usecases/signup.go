@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/profileutils"
@@ -19,6 +21,11 @@ import (
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
+)
+
+const (
+	// CoverLinkingStatusStarted ...
+	CoverLinkingStatusStarted = "coverlinking started"
 )
 
 // SignUpUseCases represents all the business logic involved in setting up a user
@@ -361,6 +368,20 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 			utils.RecordSpanError(span, err)
 			log.Printf("failed to publish to covers.link topic: %v", err)
 		}
+
+		currentTime := time.Now()
+		coverLinkingEvent := &dto.CoverLinkingEvent{
+			ID:                    uuid.NewString(),
+			CoverLinkingEventTime: &currentTime,
+			CoverStatus:           CoverLinkingStatusStarted,
+			PhoneNumber:           *profile.PrimaryPhone,
+		}
+
+		if _, err := s.onboardingRepository.SaveCoverAutolinkingEvents(ctx, coverLinkingEvent); err != nil {
+			utils.RecordSpanError(span, err)
+			log.Printf("failed to save coverlinking `started` event: %v", err)
+		}
+
 	}
 
 	if profile.UserBioData.FirstName == nil || profile.UserBioData.LastName == nil {

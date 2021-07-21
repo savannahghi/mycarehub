@@ -4301,3 +4301,73 @@ func TestRepository_SaveUSSDEvent_IntegrationTest(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_SaveCoverAutolinkingEvents_Integration_Test(t *testing.T) {
+	ctx := context.Background()
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
+
+	currentTime := time.Now()
+
+	type args struct {
+		ctx   context.Context
+		input *dto.CoverLinkingEvent
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.CoverLinkingEvent
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: ctx,
+				input: &dto.CoverLinkingEvent{
+					ID:                    uuid.NewString(),
+					CoverLinkingEventTime: &currentTime,
+					CoverStatus:           "started autolinking",
+					MemberNumber:          "877386",
+					PhoneNumber:           "+254703754685",
+				},
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Sad case",
+			args: args{
+				ctx: ctx,
+				input: &dto.CoverLinkingEvent{
+					ID:                    uuid.NewString(),
+					CoverLinkingEventTime: &currentTime,
+					CoverStatus:           "cover autolinking started",
+					MemberNumber:          "",
+					PhoneNumber:           "+254703754685",
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := firestoreDB.SaveCoverAutolinkingEvents(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.SaveCoverAutolinkingEvents() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("Repository.SaveCoverAutolinkingEvents() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

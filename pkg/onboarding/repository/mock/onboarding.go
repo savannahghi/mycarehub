@@ -185,6 +185,7 @@ type FakeOnboardingRepository struct {
 	HandleResponseFromUSSDGatewayFn func(context context.Context, input *dto.SessionDetails) string
 	SetUSSDUserPinFn                func(ctx context.Context, phoneNumber string, PIN string) error
 	SaveUSSDEventFn                 func(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
+	SaveCoverAutolinkingEventsFn    func(ctx context.Context, input *dto.CoverLinkingEvent) (*dto.CoverLinkingEvent, error)
 }
 
 // GetSupplierProfileByID ...
@@ -632,4 +633,9 @@ func (f *FakeOnboardingRepository) SetUSSDUserPin(ctx context.Context, phoneNumb
 // SaveUSSDEvent ...
 func (f *FakeOnboardingRepository) SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error) {
 	return f.SaveUSSDEventFn(ctx, input)
+}
+
+// SaveCoverAutolinkingEvents ...
+func (f *FakeOnboardingRepository) SaveCoverAutolinkingEvents(ctx context.Context, input *dto.CoverLinkingEvent) (*dto.CoverLinkingEvent, error) {
+	return f.SaveCoverAutolinkingEventsFn(ctx, input)
 }
