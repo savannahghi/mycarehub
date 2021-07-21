@@ -169,7 +169,7 @@ func (a *AdminUseCaseImpl) notifyNewAdmin(ctx context.Context, emails []string, 
 		log.Fatalf("error while generating admin approval email template: %s", err)
 	}
 
-	message := fmt.Sprintf("%sPlease use this One Time PIN: %s to log onto Bewell with your phone number", adminWelcomeMessage, otp)
+	message := fmt.Sprintf("%sPlease use this One Time PIN: %s to log onto Bewell with your phone number. For enquiries call us on 0790360360", adminWelcomeMessage, otp)
 	if err := a.engagement.SendSMS(ctx, phoneNumbers, message); err != nil {
 		return fmt.Errorf("unable to send admin registration message: %w", err)
 	}

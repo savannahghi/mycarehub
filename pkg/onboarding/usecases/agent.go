@@ -183,7 +183,7 @@ func (a *AgentUseCaseImpl) notifyNewAgent(
 	}
 
 	message := fmt.Sprintf(
-		"%sPlease use this One Time PIN: %s to log onto Bewell with your phone number. You will be prompted to change the PIN on login.",
+		"%sPlease use this One Time PIN: %s to log onto Bewell with your phone number. You will be prompted to change the PIN on login. For enquiries call us on 0790360360",
 		agentWelcomeMessage,
 		otp,
 	)

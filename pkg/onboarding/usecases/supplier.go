@@ -2036,7 +2036,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 		}()
 
 		email = s.generateProcessKYCApprovalEmailTemplate()
-		message = "Your KYC details have been reviewed and approved. We look forward to working with you."
+		message = "Your KYC details have been reviewed and approved. We look forward to working with you. For enquiries call us on 0790360360"
 
 		supplier, err := s.FindSupplierByUID(ctx)
 		if err != nil {
@@ -2057,7 +2057,7 @@ func (s *SupplierUseCasesImpl) ProcessKYCRequest(
 
 	case domain.KYCProcessStatusRejected:
 		email = s.generateProcessKYCRejectionEmailTemplate(*rejectionReason)
-		message = "Your KYC details have been reviewed and have not been approved. Please check your email for detailed information. Incase of any queries, please contact us via +254 790 360 360"
+		message = "Your KYC details have been reviewed and have not been approved. Please check your email for detailed information. For enquiries call us on 0790360360"
 
 	}
 
