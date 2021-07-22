@@ -192,3 +192,27 @@ func (u *Impl) UpdateBioData(ctx context.Context, id string, data base.BioData) 
 
 	return nil
 }
+
+// RemoveUserByPhoneNumber ...
+func (u *Impl) RemoveUserByPhoneNumber(ctx context.Context, phone string) error {
+	ctx, span := tracer.Start(ctx, "PurgeUserByPhoneNumber")
+	defer span.End()
+	err := u.signUp.RemoveUserByPhoneNumber(ctx, phone)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return err
+	}
+	return nil
+}
+
+// SetUserPIN ...
+func (u *Impl) SetUserPIN(ctx context.Context, pin string, profileID string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "SetUserPIN")
+	defer span.End()
+	setPIN, err := u.pinUsecase.SetUserPIN(ctx, pin, profileID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+	return setPIN, nil
+}

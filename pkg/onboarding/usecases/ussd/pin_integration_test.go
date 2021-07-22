@@ -165,13 +165,13 @@ func TestImpl_HandlePINReset(t *testing.T) {
 		return
 	}
 
-	phoneNumber := "+254790009009"
+	phoneNumber := "+254733333333"
 	dateOfBirth := "12122000"
 	PIN := "1234"
 	FirstName := gofakeit.LastName()
 	LastName := gofakeit.LastName()
 	SessionID := uuid.New().String()
-	Level := 0
+	Level := 15
 
 	ussdDet := &domain.USSDLeadDetails{
 		ID:          gofakeit.UUID(),
@@ -297,13 +297,20 @@ func TestImpl_HandlePINReset(t *testing.T) {
 			}
 
 			if tt.name == "Sad case : Forgot PIN verify date" {
-				userResponse, err := u.AITUSSD.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
+
+				user, err := u.AITUSSD.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
 				if err != nil {
 					t.Errorf("an error occured %v", err)
 					return
 				}
 
-				userProfile, err := u.AITUSSD.CreateUserProfile(ctx, userResponse.PhoneNumber, userResponse.UID)
+				userProfile, err := u.AITUSSD.CreateUserProfile(ctx, user.PhoneNumber, user.UID)
+				if err != nil {
+					t.Errorf("an error occured %v", err)
+					return
+				}
+
+				_, err = u.AITUSSD.SetUserPIN(ctx, ussdDet.PIN, userProfile.ID)
 				if err != nil {
 					t.Errorf("an error occured %v", err)
 					return
@@ -319,6 +326,7 @@ func TestImpl_HandlePINReset(t *testing.T) {
 					t.Errorf("an error occured %v", err)
 					return
 				}
+
 			}
 
 			session, err := u.AITUSSD.GetOrCreateSessionState(ctx, sessionDet)
@@ -330,7 +338,13 @@ func TestImpl_HandlePINReset(t *testing.T) {
 			if got := u.AITUSSD.HandlePINReset(tt.args.ctx, session, tt.args.userResponse); got != tt.want {
 				t.Errorf("Impl.HandlePINReset() = %v, want %v", got, tt.want)
 			}
+
 		})
+	}
+	err = u.AITUSSD.RemoveUserByPhoneNumber(ctx, phoneNumber)
+	if err != nil {
+		t.Errorf("removing user: an error occured %v", err)
+		return
 	}
 }
 

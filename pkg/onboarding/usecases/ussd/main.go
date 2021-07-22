@@ -56,6 +56,8 @@ type Usecase interface {
 	CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*base.Customer, error)
 	UpdateBioData(ctx context.Context, id string, data base.BioData) error
 	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspend bool) (*base.UserProfile, error)
+	RemoveUserByPhoneNumber(ctx context.Context, phone string) error
+	SetUserPIN(ctx context.Context, pin string, profileID string) (bool, error)
 }
 
 //Impl represents usecase implementation

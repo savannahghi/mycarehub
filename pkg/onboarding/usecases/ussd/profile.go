@@ -10,7 +10,6 @@ import (
 )
 
 //CreateUsddUserProfile creates and updates a user profile
-// TODO FIXME ```getorcreateProfile```
 func (u *Impl) CreateUsddUserProfile(ctx context.Context, phoneNumber string, PIN string, userProfile *dto.UserProfileInput) error {
 	ctx, span := tracer.Start(ctx, "CreateUsddUserProfile")
 	defer span.End()
