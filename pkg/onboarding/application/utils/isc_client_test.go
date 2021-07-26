@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension/mock"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
 var baseExt mock.FakeBaseExtensionImpl

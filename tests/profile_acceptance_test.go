@@ -12,9 +12,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	"github.com/savannahghi/scalarutils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
 )
 
 func TestUpdateUserProfile(t *testing.T) {

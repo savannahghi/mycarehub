@@ -12,11 +12,11 @@ import (
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/google/uuid"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/admin"
 )
 
 func TestMain(m *testing.M) {

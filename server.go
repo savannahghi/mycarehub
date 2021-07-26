@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/stats/view"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation"
+	"github.com/savannahghi/onboarding/pkg/onboarding/presentation"
 )
 
 const waitSeconds = 30

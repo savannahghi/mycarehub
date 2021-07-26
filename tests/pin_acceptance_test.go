@@ -12,9 +12,9 @@ import (
 
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"gitlab.slade360emr.com/go/apiclient"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 // func composeInValidPinPayload(t *testing.T) *domain.SetPINRequest {

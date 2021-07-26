@@ -5,14 +5,14 @@ import (
 	"net/http"
 
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
 	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"cloud.google.com/go/pubsub"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 )
 
 // FakeBaseExtensionImpl is a `base` library fake  .

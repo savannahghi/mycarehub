@@ -14,8 +14,8 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 func composeInvalidUserPINPayload(t *testing.T) *dto.LoginPayload {

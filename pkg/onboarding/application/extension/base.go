@@ -8,11 +8,11 @@ import (
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/apiclient"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 
 	"cloud.google.com/go/pubsub"
 )

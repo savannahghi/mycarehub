@@ -8,14 +8,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
+	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 const (

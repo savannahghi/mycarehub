@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/apiclient"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 // FakeServiceEngagement is an `engagement` service mock .

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"firebase.google.com/go/auth"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization/permission"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization/permission"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 
@@ -20,18 +20,18 @@ import (
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
+	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
+	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/profileutils"
 	"github.com/segmentio/ksuid"
 	"github.com/sirupsen/logrus"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 const (
@@ -52,7 +52,7 @@ const (
 // for the `VerifyEmail` nudge
 const VerifyEmailNudgeTitle = "Add Primary Email Address"
 
-var tracer = otel.Tracer("gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases")
+var tracer = otel.Tracer("github.com/savannahghi/onboarding/pkg/onboarding/usecases")
 
 // ProfileUseCase represents all the profile business logic
 type ProfileUseCase interface {

@@ -6,12 +6,12 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
+	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 
 	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 )

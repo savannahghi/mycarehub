@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 )
 
 func TestNewOKResp(t *testing.T) {

@@ -2,9 +2,9 @@ package dto
 
 import (
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
 	crmDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 // BusinessPartnerEdge is used to serialize GraphQL Relay edges for organization

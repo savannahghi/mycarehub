@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"testing"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/profileutils"
-	"github.com/segmentio/ksuid"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 )
 
 func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {

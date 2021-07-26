@@ -7,8 +7,8 @@ import (
 	"io"
 	"strconv"
 
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/scalarutils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 type Beneficiary struct {

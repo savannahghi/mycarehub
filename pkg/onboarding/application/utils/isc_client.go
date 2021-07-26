@@ -2,8 +2,8 @@ package utils
 
 import (
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 )
 
 // NewInterServiceClient initializes an external service in the correct environment given its name

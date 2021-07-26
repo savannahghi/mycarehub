@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
+	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 )
 
 // SurveyUseCases represents all the business logic involved in user post visit surveys.

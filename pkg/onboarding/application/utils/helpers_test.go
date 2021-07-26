@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/profileutils"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/apiclient"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 )
 
 func TestIfCoverExistsInSlice(t *testing.T) {

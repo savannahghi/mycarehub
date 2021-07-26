@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
 )
 
 // FakeServicePubSub ...

@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"go.opentelemetry.io/otel"
 )
 
@@ -16,7 +16,7 @@ const (
 	USSDLoginDialEvent = "dialled to login"
 )
 
-var tracer = otel.Tracer("gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd")
+var tracer = otel.Tracer("github.com/savannahghi/onboarding/pkg/onboarding/usecases/ussd")
 
 // HandleLogin represents the workflow for authenticating a user
 func (u *Impl) HandleLogin(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string {

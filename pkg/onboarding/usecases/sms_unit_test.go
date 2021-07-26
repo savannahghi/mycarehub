@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 )
 
 func TestSMSImpl_CreateSMSData(t *testing.T) {

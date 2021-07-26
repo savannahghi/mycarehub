@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/savannahghi/interserviceclient"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 )
 
 func composeValidWARetryOTPPayload(t *testing.T) *dto.SendRetryOTPPayload {

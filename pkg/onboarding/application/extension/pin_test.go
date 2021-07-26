@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 
 	"github.com/stretchr/testify/assert"
 )

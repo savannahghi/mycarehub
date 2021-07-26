@@ -16,11 +16,11 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	extMock "github.com/savannahghi/onboarding/pkg/onboarding/application/extension/mock"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"github.com/savannahghi/profileutils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 )
 
 var fakeISCExt extMock.ISCClientExtension

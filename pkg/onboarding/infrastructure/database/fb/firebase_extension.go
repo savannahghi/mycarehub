@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"

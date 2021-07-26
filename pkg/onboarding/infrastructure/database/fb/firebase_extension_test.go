@@ -7,8 +7,8 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/google/uuid"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 )
 
 func TestNewFirebaseClientExtensionImpl(t *testing.T) {

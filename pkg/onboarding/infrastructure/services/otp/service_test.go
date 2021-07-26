@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	extMock "github.com/savannahghi/onboarding/pkg/onboarding/application/extension/mock"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/otp"
 	"github.com/savannahghi/profileutils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/otp"
 )
 
 var fakeBaseExt extMock.FakeBaseExtensionImpl

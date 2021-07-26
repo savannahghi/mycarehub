@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 )
 
 func TestKYCProcessStatus_String(t *testing.T) {

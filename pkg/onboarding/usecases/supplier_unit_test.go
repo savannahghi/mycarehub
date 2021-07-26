@@ -15,13 +15,13 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/apiclient"
 	dm "gitlab.slade360emr.com/go/commontools/accounting/pkg/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 )
 
 const (

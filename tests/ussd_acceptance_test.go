@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/savannahghi/interserviceclient"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 )
 
 func TestGenerateUSSD_acceptance_tests(t *testing.T) {

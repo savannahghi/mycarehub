@@ -1,7 +1,7 @@
 # Onboarding service
 
-[![pipeline status](https://gitlab.slade360emr.com/go/profile/badges/develop/pipeline.svg)](https://gitlab.slade360emr.com/go/profile/-/commits/develop)
-[![coverage report](https://gitlab.slade360emr.com/go/profile/badges/develop/coverage.svg)](https://gitlab.slade360emr.com/go/profile/-/commits/develop)
+[![pipeline status](https://github.com/savannahghi/onboarding/badges/develop/pipeline.svg)](https://github.com/savannahghi/onboarding/-/commits/develop)
+[![coverage report](https://github.com/savannahghi/onboarding/badges/develop/coverage.svg)](https://github.com/savannahghi/onboarding/-/commits/develop)
 
 This service manages user onboarding process.
 

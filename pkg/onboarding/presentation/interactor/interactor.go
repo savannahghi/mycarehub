@@ -3,18 +3,18 @@
 package interactor
 
 import (
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
+	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
+	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
+	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
+	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
+	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/ussd"
 	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
-	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/admin"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/ussd"
 )
 
 // Interactor represents an assemble of all use cases into a single object that can be instantiated anywhere

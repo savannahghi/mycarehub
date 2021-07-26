@@ -34,8 +34,8 @@ resolver:
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-  - "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
+  - "github.com/savannahghi/onboarding/pkg/onboarding/domain"
+  - "github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
   - "github.com/savannahghi/enumutils"
   - "github.com/savannahghi/scalarutils"
   - "github.com/savannahghi/serverutils"
@@ -73,43 +73,43 @@ models:
       - "github.com/savannahghi/scalarutils.Date"
   IdentificationInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.Identification
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.Identification
   SupportingDocumentInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.SupportingDocument    
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.SupportingDocument    
   IndividualRiderInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.IndividualRider
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.IndividualRider
   IndividualPractitionerInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.IndividualPractitioner
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.IndividualPractitioner
   IndividualPharmaceuticalInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.IndividualPharmaceutical
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.IndividualPharmaceutical
   IndividualCoachInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.IndividualCoach
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.IndividualCoach
   IndividualNutritionInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.IndividualNutrition
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.IndividualNutrition
   OrganizationRiderInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationRider
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationRider
   OrganizationPractitionerInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationPractitioner
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationPractitioner
   OrganizationProviderInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationProvider
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationProvider
   OrganizationNutritionInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationNutrition
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationNutrition
   OrganizationCoachInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationCoach
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationCoach
   OrganizationPharmaceuticalInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.OrganizationPharmaceutical
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationPharmaceutical
   MicroserviceInput:
     model:
-      - gitlab.slade360emr.com/go/profile/pkg/onboarding/domain.Microservice
+      - github.com/savannahghi/onboarding/pkg/onboarding/domain.Microservice

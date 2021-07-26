@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/common"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/savannahghi/converterandformatter"

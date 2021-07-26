@@ -7,11 +7,11 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
 	dm "gitlab.slade360emr.com/go/commontools/accounting/pkg/domain"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 // UserProfileInput is used to create or update a user's profile.

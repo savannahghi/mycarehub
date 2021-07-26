@@ -1,7 +1,7 @@
 package permission
 
 import (
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 )
 
 // UserProfileView describes read permissions on viewing a user profile

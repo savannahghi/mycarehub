@@ -7,16 +7,16 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	extMock "github.com/savannahghi/onboarding/pkg/onboarding/application/extension/mock"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
+	engagementMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement/mock"
+	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
+	mockRepo "github.com/savannahghi/onboarding/pkg/onboarding/repository/mock"
 	"gitlab.slade360emr.com/go/apiclient"
 	"gitlab.slade360emr.com/go/base"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	extMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension/mock"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
-	engagementMock "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement/mock"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
-	mockRepo "gitlab.slade360emr.com/go/profile/pkg/onboarding/repository/mock"
 )
 
 var fakeISCExt extMock.ISCClientExtension

@@ -6,10 +6,10 @@ import (
 	"log"
 	"testing"
 
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
 
 	"fmt"
 
@@ -24,27 +24,27 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
 	"github.com/stretchr/testify/assert"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
 
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
-	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
+	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
+	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
+	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 )
 
 const (

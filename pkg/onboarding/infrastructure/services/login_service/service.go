@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 )
 
 // ServiceLogin represents external login service logic

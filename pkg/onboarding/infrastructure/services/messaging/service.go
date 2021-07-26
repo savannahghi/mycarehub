@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/savannahghi/interserviceclient"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 )
 
 // TODO: Move `messaging` service to engagement after complete Twilio's migration

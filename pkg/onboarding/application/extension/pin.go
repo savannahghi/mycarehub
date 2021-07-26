@@ -10,7 +10,7 @@ import (
 	"math/big"
 	"strconv"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 
 	"golang.org/x/crypto/pbkdf2"
 )

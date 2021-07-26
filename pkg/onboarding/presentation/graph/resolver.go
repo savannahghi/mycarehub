@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/savannahghi/firebasetools"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/presentation/interactor"
+	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
 
 	"firebase.google.com/go/auth"
 )

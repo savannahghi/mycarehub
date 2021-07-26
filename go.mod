@@ -1,4 +1,4 @@
-module gitlab.slade360emr.com/go/profile
+module github.com/savannahghi/onboarding
 
 go 1.16
 

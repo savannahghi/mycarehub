@@ -1,8 +1,8 @@
 package utils
 
 import (
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"gitlab.slade360emr.com/go/apiclient"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
 )
 
 // Default login client settings (env var names)

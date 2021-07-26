@@ -17,21 +17,21 @@ import (
 	"github.com/savannahghi/profileutils"
 	"github.com/segmentio/ksuid"
 
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization/permission"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization/permission"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
 
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
+	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
+	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
-	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 )
 
 // Supplier constants

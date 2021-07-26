@@ -9,20 +9,20 @@ import (
 	"net/url"
 	"time"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization/permission"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization/permission"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"go.opentelemetry.io/otel"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/authorization"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization"
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
-var tracer = otel.Tracer("gitlab.slade360emr.com/go/profile/pkg/onboarding/usecases/admin")
+var tracer = otel.Tracer("github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin")
 
 const (
 	validURLSchema         = "https"

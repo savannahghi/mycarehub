@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/dto"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"go.opentelemetry.io/otel"
 
 	"firebase.google.com/go/auth"
@@ -20,19 +20,19 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
 	"github.com/sirupsen/logrus"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/exceptions"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 // Package that generates trace information
-var tracer = otel.Tracer("gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb")
+var tracer = otel.Tracer("github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb")
 
 const (
 	userProfileCollectionName            = "user_profiles"

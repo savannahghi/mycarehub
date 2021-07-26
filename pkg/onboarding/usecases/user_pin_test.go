@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
 )
 
 func TestUserPinUseCaseUnitTest_SetUserPIN(t *testing.T) {

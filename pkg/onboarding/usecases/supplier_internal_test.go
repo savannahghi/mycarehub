@@ -8,21 +8,21 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/extension"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/application/utils"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/repository"
 
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/chargemaster"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/edi"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/engagement"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
+	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/messaging"
-	pubsubmessaging "gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/services/pubsub"
 )
 
 const (
