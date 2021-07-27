@@ -1,11 +1,11 @@
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$(echo $COMMIT_SHA | cut -c1-8)', '.']
+    args: ['build', '-t', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA', '.']
 
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$(echo $COMMIT_SHA | cut -c1-8)']
+    args: ['push', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA']
 
     # Deploy an image from Container Registry to Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -14,7 +14,7 @@ steps:
       'run',
       'deploy',
       "${_SERVICE_NAME}",
-      '--image', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$(echo $COMMIT_SHA | cut -c1-8)',
+      '--image', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA',
       '--region', 'europe-west1',
       '--platform', 'managed',
       '--allow-unauthenticated',
@@ -27,7 +27,7 @@ steps:
   ]
 
 images:
-- 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$(echo $COMMIT_SHA | cut -c1-8)'
+- 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA'
 
 timeout: 1200s
 queueTtl: 3600s
