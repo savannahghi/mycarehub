@@ -20,7 +20,7 @@ steps:
       '--allow-unauthenticated',
       '--min-instances', '1',
       '--max-instances', '4',
-      '--memory', '1GiB',
+      '--memory', '1Gi',
       '--cpu', '1',
       '--set-secrets', '/tmp/secrets/.env=onboarding-staging:latest',
       '--timeout', '59m59s'
