@@ -174,10 +174,8 @@ type OnboardingRepository interface {
 
 	StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error
 	UpdateStageCRMPayload(ctx context.Context, phoneNumber string, payload *dto.ContactLeadInput) error
-	UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
 	GetStageCRMPayload(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error)
 
-	IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error)
 	SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
 
 	SaveCoverAutolinkingEvents(ctx context.Context, input *dto.CoverLinkingEvent) (*dto.CoverLinkingEvent, error)

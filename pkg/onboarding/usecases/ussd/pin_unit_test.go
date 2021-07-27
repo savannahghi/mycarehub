@@ -138,7 +138,7 @@ func TestImpl_HandleChangePIN_Unittest(t *testing.T) {
 
 			if tt.name == "Sad case :invalid input" {
 				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
-					return nil, fmt.Errorf("an error occured: %v", err)
+					return nil, fmt.Errorf("an error occurred: %v", err)
 				}
 			}
 

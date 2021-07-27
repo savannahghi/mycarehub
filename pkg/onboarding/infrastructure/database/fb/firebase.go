@@ -28,7 +28,6 @@ import (
 	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
 	"github.com/sirupsen/logrus"
-	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 // Package that generates trace information
@@ -3346,68 +3345,4 @@ func (fr *Repository) UpdateStageCRMPayload(ctx context.Context, phoneNumber str
 		return exceptions.InternalServerError(err)
 	}
 	return nil
-}
-
-// UpdateOptOutCRMPayload ...
-func (fr *Repository) UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
-	CRMDetails, err := fr.GetStageCRMPayload(ctx, phoneNumber)
-	log.Printf("the crm details is %v", CRMDetails)
-	if err != nil {
-		return err
-	}
-
-	collectionName := fr.GetCRMStagingCollectionName()
-	query := &GetAllQuery{
-		CollectionName: collectionName,
-		FieldName:      "ContactValue",
-		Value:          phoneNumber,
-		Operator:       "==",
-	}
-	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	if err != nil {
-		return err
-	}
-	CRMDetails.OptOut = contactLead.OptOut
-
-	updateCommand := &UpdateCommand{
-		CollectionName: collectionName,
-		ID:             docs[0].Ref.ID,
-		Data:           CRMDetails,
-	}
-	err = fr.FirestoreClient.Update(ctx, updateCommand)
-	if err != nil {
-		return exceptions.InternalServerError(err)
-	}
-	return nil
-}
-
-// IsOptedOuted checks if a phone number is opted out or not
-func (fr Repository) IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error) {
-	query := &GetAllQuery{
-		CollectionName: fr.GetCRMStagingCollectionName(),
-		FieldName:      "ContactValue",
-		Value:          phoneNumber,
-		Operator:       "==",
-	}
-	logrus.Print(fr.GetCRMStagingCollectionName())
-	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	if err != nil {
-		return false, exceptions.InternalServerError(err)
-	}
-	if len(docs) == 0 {
-		return false, nil
-	}
-
-	var data dto.ContactLeadInput
-	err = docs[0].DataTo(&data)
-	if err != nil {
-		return false, fmt.Errorf(
-			"unable to unmarshal contact lead data from doc snapshot: %w", err)
-	}
-
-	if data.OptOut == CRMDomain.GeneralOptionTypeNo {
-		return false, nil
-	}
-
-	return true, nil
 }

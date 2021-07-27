@@ -19,6 +19,7 @@ import (
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
 	"github.com/segmentio/ksuid"
+	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
@@ -736,7 +737,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 					}, nil
 				}
 
-				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, contact CRMDomain.CRMContact) error {
 					return nil
 				}
 
@@ -2432,7 +2433,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					}, nil
 				}
 
-				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, contact CRMDomain.CRMContact) error {
 					return nil
 				}
 
@@ -2469,7 +2470,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					}, nil
 				}
 
-				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, contact CRMDomain.CRMContact) error {
 					return nil
 				}
 
@@ -2505,7 +2506,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 						PrimaryPhone: &phone,
 					}, nil
 				}
-				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, contact CRMDomain.CRMContact) error {
 					return nil
 				}
 
@@ -2530,7 +2531,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					}, nil
 				}
 
-				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, contact CRMDomain.CRMContact) error {
 					return nil
 				}
 
@@ -2567,7 +2568,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 					}, nil
 				}
 
-				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, contact CRMDomain.CRMContact) error {
 					return nil
 				}
 

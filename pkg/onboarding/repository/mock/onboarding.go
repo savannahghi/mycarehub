@@ -178,10 +178,8 @@ type FakeOnboardingRepository struct {
 	StageCRMPayloadFn               func(ctx context.Context, payload *dto.ContactLeadInput) error
 	UpdateStageCRMPayloadFn         func(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
 	GetStageCRMPayloadFn            func(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error)
-	UpdateOptOutCRMPayloadFn        func(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
 	UpdateFavNavActionsFn           func(ctx context.Context, id string, favActions []string) error
 	GetUserMarketingDataFn          func(ctx context.Context, phoneNumber string) (*dto.Segment, error)
-	IsOptedOutedFn                  func(ctx context.Context, phoneNumber string) (bool, error)
 	HandleResponseFromUSSDGatewayFn func(context context.Context, input *dto.SessionDetails) string
 	SetUSSDUserPinFn                func(ctx context.Context, phoneNumber string, PIN string) error
 	SaveUSSDEventFn                 func(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
@@ -600,11 +598,6 @@ func (f *FakeOnboardingRepository) GetStageCRMPayload(ctx context.Context, phone
 	return f.GetStageCRMPayloadFn(ctx, phoneNumber)
 }
 
-// UpdateOptOutCRMPayload ...
-func (f *FakeOnboardingRepository) UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
-	return f.UpdateOptOutCRMPayloadFn(ctx, phoneNumber, contactLead)
-}
-
 // UpdateFavNavActions ...
 func (f *FakeOnboardingRepository) UpdateFavNavActions(ctx context.Context, id string, favActions []string) error {
 	return f.UpdateFavNavActionsFn(ctx, id, favActions)
@@ -613,11 +606,6 @@ func (f *FakeOnboardingRepository) UpdateFavNavActions(ctx context.Context, id s
 // GetUserMarketingData ...
 func (f *FakeOnboardingRepository) GetUserMarketingData(ctx context.Context, phoneNumber string) (*dto.Segment, error) {
 	return f.GetUserMarketingDataFn(ctx, phoneNumber)
-}
-
-// IsOptedOuted ...
-func (f *FakeOnboardingRepository) IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error) {
-	return f.IsOptedOutedFn(ctx, phoneNumber)
 }
 
 // HandleResponseFromUSSDGateway ...

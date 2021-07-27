@@ -94,19 +94,13 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 	//Staging
 	err = u.AITUSSD.StageCRMPayload(ctx, contactLeadPayload)
 	if err != nil {
-		t.Errorf("an error occured %v", err)
+		t.Errorf("an error occurred %v", err)
 		return
 	}
 
 	sessionDetails, err := u.AITUSSD.AddAITSessionDetails(ctx, sessionDet)
 	if err != nil {
-		t.Errorf("an error occured %v", err)
-		return
-	}
-
-	err = u.Onboarding.SetOptOut(ctx, "STOP", sessionDetails.PhoneNumber)
-	if err != nil {
-		t.Errorf("an error occured %v", err)
+		t.Errorf("an error occurred %v", err)
 		return
 	}
 
@@ -119,6 +113,17 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 		LastName:    LastName,
 		DateOfBirth: dateOfBirth,
 		PIN:         PIN,
+	}
+
+	// create a contact
+	_, err = u.CrmExt.CreateHubSpotContact(ctx, &CRMDomain.CRMContact{
+		Properties: CRMDomain.ContactProperties{
+			Phone: phoneNumber,
+		},
+	})
+	if err != nil {
+		t.Errorf("failed to create test contact: %w", err)
+		return
 	}
 
 	type args struct {
@@ -235,7 +240,7 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 				//Get firstname state
 				err = u.AITUSSD.UpdateSessionLevel(ctx, GetFirstNameState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 
@@ -247,7 +252,7 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 				fmt.Println("updating level ")
 				err = u.AITUSSD.UpdateSessionLevel(ctx, GetLastNameState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 
@@ -257,7 +262,7 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 				//Get dob state
 				err = u.AITUSSD.UpdateSessionLevel(ctx, GetDOBState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
@@ -266,7 +271,7 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 				//Get pin state
 				err = u.AITUSSD.UpdateSessionLevel(ctx, GetPINState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
@@ -274,7 +279,7 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 			if tt.name == "Sad_case:_invalid_firstname" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, GetFirstNameState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 
@@ -283,7 +288,7 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 			if tt.name == "Sad_case:_invalid_lastname" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, GetLastNameState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 
@@ -292,7 +297,7 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 			if tt.name == "Sad_case:_invalid_dob" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, GetDOBState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
@@ -300,21 +305,20 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 			if tt.name == "Sad case:_invalid_pin_one" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, GetPINState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
 
 			updatedSession, err := u.AITUSSD.GetOrCreateSessionState(ctx, sessionDet)
 			if err != nil {
-				t.Errorf("an error occured %v", err)
+				t.Errorf("an error occurred %v", err)
 				return
 			}
 
 			if gotresp := u.AITUSSD.HandleUserRegistration(tt.args.ctx, updatedSession, tt.args.userResponse); gotresp != tt.want {
 				t.Errorf("Impl.HandleUserRegistration() = %v, want %v", gotresp, tt.want)
 			}
-
 		})
 	}
 }

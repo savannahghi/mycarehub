@@ -36,6 +36,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
+	crmExt "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/graph"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/graph/generated"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
@@ -43,6 +44,8 @@ import (
 	adminSrv "github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
 	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
+	hubspotRepo "gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/database/fs"
+	hubspotUsecases "gitlab.slade360emr.com/go/commontools/crm/pkg/usecases"
 )
 
 const (
@@ -113,32 +116,40 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Initialize new instance of our infrastructure services
 	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	crm := hubspot.NewHubSpotService()
 	engage := engagement.NewServiceEngagementImpl(engagementClient, baseExt)
 	edi := edi.NewEdiService(ediClient, repo, engage)
+	mes := messaging.NewServiceMessagingImpl(baseExt)
+	pinExt := extension.NewPINExtensionImpl()
+
+	// hubspot usecases
+	hubspotService := hubspot.NewHubSpotService()
+	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(ctx, hubspotService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize hubspot crm repository: %w", err)
+	}
+	hubspotUsecases := hubspotUsecases.NewHubSpotUsecases(hubspotfr)
+	crmExt := crmExt.NewCrmService(hubspotUsecases)
 	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		baseExt,
 		erp,
-		crm,
+		crmExt,
 		edi,
 		repo,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
 	}
-	mes := messaging.NewServiceMessagingImpl(baseExt)
-	pinExt := extension.NewPINExtensionImpl()
 
 	// Initialize the usecases
-	profile := usecases.NewProfileUseCase(repo, baseExt, engage, pubSub)
+	profile := usecases.NewProfileUseCase(repo, baseExt, engage, pubSub, crmExt)
 	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mes, baseExt, pubSub)
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage, pubSub, edi)
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
-	aitUssd := ussd.NewUssdUsecases(repo, baseExt, profile, userpin, su, pinExt, pubSub)
+	aitUssd := ussd.NewUssdUsecases(repo, baseExt, profile, userpin, su, pinExt, pubSub, crmExt)
 	sms := usecases.NewSMSUsecase(repo, baseExt)
 	admin := usecases.NewAdminUseCases(repo, engage, baseExt, userpin)
 	agent := usecases.NewAgentUseCases(repo, engage, baseExt, userpin)
@@ -147,7 +158,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	i, err := interactor.NewOnboardingInteractor(
 		repo, profile, su, supplier, login, survey,
 		userpin, erp, chrg, engage, mes, nhif, pubSub,
-		sms, aitUssd, crm, agent, admin, edi, adminSrv,
+		sms, aitUssd, agent, admin, edi, adminSrv, crmExt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -170,15 +181,17 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Use(serverutils.CustomHTTPRequestMetricsMiddleware())
 
 	//USSD routes
-	r.Path("/ait_ussd").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.IncomingUSSDHandler(ctx))
+	r.Path("/ait_ussd").
+		Methods(http.MethodPost, http.MethodOptions).
+		HandlerFunc(h.IncomingUSSDHandler())
 
 	// Unauthenticated routes
-	r.Path("/optout").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.SetOptOut(ctx))
+	r.Path("/optout").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.OptOut())
 	r.Path("/switch_flagged_features").Methods(
 		http.MethodPost,
 		http.MethodOptions,
 	).HandlerFunc(
-		h.SwitchFlaggedFeaturesHandler(ctx),
+		h.SwitchFlaggedFeaturesHandler(),
 	)
 
 	// login service routes
@@ -216,81 +229,81 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Path("/health").HandlerFunc(HealthStatusCheck)
 
 	// Admin service polling
-	r.Path("/poll_services").Methods(http.MethodGet).HandlerFunc(h.PollServices(ctx))
+	r.Path("/poll_services").Methods(http.MethodGet).HandlerFunc(h.PollServices())
 
 	// signup routes
 	r.Path("/verify_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.VerifySignUpPhoneNumber(ctx))
+		HandlerFunc(h.VerifySignUpPhoneNumber())
 	r.Path("/create_user_by_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.CreateUserWithPhoneNumber(ctx))
+		HandlerFunc(h.CreateUserWithPhoneNumber())
 	r.Path("/user_recovery_phonenumbers").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.UserRecoveryPhoneNumbers(ctx))
+		HandlerFunc(h.UserRecoveryPhoneNumbers())
 	r.Path("/set_primary_phonenumber").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.SetPrimaryPhoneNumber(ctx))
+		HandlerFunc(h.SetPrimaryPhoneNumber())
 
 	// LoginByPhone routes
 	r.Path("/login_by_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.LoginByPhone(ctx))
+		HandlerFunc(h.LoginByPhone())
 	r.Path("/login_anonymous").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.LoginAnonymous(ctx))
+		HandlerFunc(h.LoginAnonymous())
 	r.Path("/refresh_token").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.RefreshToken(ctx))
+		HandlerFunc(h.RefreshToken())
 
 	// PIN Routes
 	r.Path("/reset_pin").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.ResetPin(ctx))
+		HandlerFunc(h.ResetPin())
 
 	r.Path("/request_pin_reset").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.RequestPINReset(ctx))
+		HandlerFunc(h.RequestPINReset())
 
 	//OTP routes
 	r.Path("/send_otp").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.SendOTP(ctx))
+		HandlerFunc(h.SendOTP())
 
 	r.Path("/send_retry_otp").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.SendRetryOTP(ctx))
+		HandlerFunc(h.SendRetryOTP())
 
 	r.Path("/remove_user").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.RemoveUserByPhoneNumber(ctx))
+		HandlerFunc(h.RemoveUserByPhoneNumber())
 
 	r.Path("/add_admin_permissions").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.AddAdminPermsToUser(ctx))
+		HandlerFunc(h.AddAdminPermsToUser())
 
 	r.Path("/remove_admin_permissions").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.RemoveAdminPermsToUser(ctx))
+		HandlerFunc(h.RemoveAdminPermsToUser())
 
 	r.Path("/incoming_ait_messages").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.IncomingATSMS(ctx))
+		HandlerFunc(h.IncomingATSMS())
 
 	// Authenticated routes
 	rs := r.PathPrefix("/roles").Subrouter()
@@ -298,12 +311,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	rs.Path("/add_user_role").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.AddRoleToUser(ctx))
+		HandlerFunc(h.AddRoleToUser())
 
 	rs.Path("/remove_user_role").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.RemoveRoleToUser(ctx))
+		HandlerFunc(h.RemoveRoleToUser())
 
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()
@@ -311,23 +324,19 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	isc.Path("/supplier").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.FindSupplierByUID(ctx))
+		HandlerFunc(h.FindSupplierByUID())
 	isc.Path("/user_profile").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.GetUserProfileByUID(ctx))
+		HandlerFunc(h.GetUserProfileByUID())
 	isc.Path("/update_covers").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.UpdateCovers(ctx))
+		HandlerFunc(h.UpdateCovers())
 	isc.Path("/contactdetails/{attribute}/").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.ProfileAttributes(ctx))
-	isc.Path("/is_opted_out").Methods(
-		http.MethodPost,
-		http.MethodOptions,
-	).HandlerFunc(h.IsOptedOuted(ctx))
+		HandlerFunc(h.ProfileAttributes())
 
 	// Interservice Authenticated routes
 	// The reason for the below endpoints to be used for interservice communication
@@ -339,39 +348,39 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	iscTesting.Path("/verify_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.VerifySignUpPhoneNumber(ctx))
+		HandlerFunc(h.VerifySignUpPhoneNumber())
 	iscTesting.Path("/create_user_by_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.CreateUserWithPhoneNumber(ctx))
+		HandlerFunc(h.CreateUserWithPhoneNumber())
 	iscTesting.Path("/login_by_phone").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.LoginByPhone(ctx))
+		HandlerFunc(h.LoginByPhone())
 	iscTesting.Path("/remove_user").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.RemoveUserByPhoneNumber(ctx))
+		HandlerFunc(h.RemoveUserByPhoneNumber())
 	iscTesting.Path("/register_push_token").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.RegisterPushToken(ctx))
+		HandlerFunc(h.RegisterPushToken())
 	iscTesting.Path("/add_admin_permissions").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.AddAdminPermsToUser(ctx))
+		HandlerFunc(h.AddAdminPermsToUser())
 	iscTesting.Path("/add_user_role").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.AddRoleToUser(ctx))
+		HandlerFunc(h.AddRoleToUser())
 	iscTesting.Path("/remove_user_role").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.RemoveRoleToUser(ctx))
+		HandlerFunc(h.RemoveRoleToUser())
 	iscTesting.Path("/update_user_profile").Methods(
 		http.MethodPost,
 		http.MethodOptions).
-		HandlerFunc(h.UpdateUserProfile(ctx))
+		HandlerFunc(h.UpdateUserProfile())
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()

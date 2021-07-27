@@ -108,7 +108,7 @@ func TestServiceEDIImpl_LinkCover(t *testing.T) {
 						Status:     "BAD REQUEST",
 						StatusCode: http.StatusBadRequest,
 						Body:       nil,
-					}, fmt.Errorf("an error occured!")
+					}, fmt.Errorf("an error occurred!")
 				}
 			}
 

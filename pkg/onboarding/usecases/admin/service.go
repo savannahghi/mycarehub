@@ -11,6 +11,7 @@ import (
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization/permission"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization"
@@ -19,7 +20,6 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
-	"github.com/sirupsen/logrus"
 )
 
 var tracer = otel.Tracer("github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin")

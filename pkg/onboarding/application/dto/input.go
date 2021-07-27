@@ -158,12 +158,6 @@ type SetPrimaryPhoneNumberPayload struct {
 	OTP         *string `json:"otp"`
 }
 
-// SetOptOutPayload used when setting optout option in crm via REST
-type SetOptOutPayload struct {
-	Option      *string `json:"option"`
-	PhoneNumber *string `json:"phoneNumber"`
-}
-
 // ChangePINRequest payload to set or change PIN information
 type ChangePINRequest struct {
 	PhoneNumber string `json:"phoneNumber"`
@@ -310,12 +304,6 @@ type UserProfilePayload struct {
 type PermissionInput struct {
 	Action   string
 	Resource string
-}
-
-// UpdateContactPSMessage represents CRM update contact Pub/Sub message
-type UpdateContactPSMessage struct {
-	Properties CRMDomain.ContactProperties `json:"properties"`
-	Phone      string                      `json:"phone"`
 }
 
 // RolePayload used when adding roles to a user

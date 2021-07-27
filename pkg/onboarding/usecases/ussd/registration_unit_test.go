@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
+	hubspotDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 func TestImpl_HandleUserRegistration_Unittest(t *testing.T) {
@@ -94,9 +95,10 @@ func TestImpl_HandleUserRegistration_Unittest(t *testing.T) {
 					return &domain.USSDLeadDetails{}, nil
 				}
 
-				fakeRepo.UpdateOptOutCRMPayloadFn = func(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
-					return nil
+				fakeCrm.OptOutFn = func(ctx context.Context, phoneNumber string) (*hubspotDomain.CRMContact, error) {
+					return &hubspotDomain.CRMContact{ContactID: uuid.NewString()}, nil
 				}
+
 				fakeRepo.SaveUSSDEventFn = func(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error) {
 					return &dto.USSDEvent{
 						SessionID: uuid.NewString(),
@@ -112,7 +114,7 @@ func TestImpl_HandleUserRegistration_Unittest(t *testing.T) {
 
 			updatedSession, err := u.AITUSSD.GetOrCreateSessionState(ctx, sessionDet)
 			if err != nil {
-				t.Errorf("an error occured %v", err)
+				t.Errorf("an error occurred %v", err)
 				return
 			}
 

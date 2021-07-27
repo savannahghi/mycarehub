@@ -1476,7 +1476,7 @@ func TestSetupAsExperimentParticipant(t *testing.T) {
 	assert.NotNil(t, status)
 	assert.Equal(t, true, status)
 
-	// try to add the user as an experiment participant. This should return the the same respones since th method internally is idempotent
+	// try to add the user as an experiment participant. This should return the the same response since th method internally is idempotent
 	status, err = s.Onboarding.SetupAsExperimentParticipant(authenticatedContext, &input)
 	assert.Nil(t, err)
 	assert.NotNil(t, status)
@@ -1495,7 +1495,7 @@ func TestSetupAsExperimentParticipant(t *testing.T) {
 	assert.NotNil(t, status)
 	assert.Equal(t, true, status)
 
-	// try removing the user as an experiment participant.This should return the the same respones since th method internally is idempotent
+	// try removing the user as an experiment participant.This should return the the same response since th method internally is idempotent
 	status, err = s.Onboarding.SetupAsExperimentParticipant(authenticatedContext, &input2)
 	assert.Nil(t, err)
 	assert.NotNil(t, status)

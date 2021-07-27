@@ -6,8 +6,8 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
@@ -33,11 +33,11 @@ type Interactor struct {
 	PubSub       pubsubmessaging.ServicePubSub
 	SMS          usecases.SMSUsecase
 	AITUSSD      ussd.Usecase
-	CRM          hubspot.ServiceHubSpotInterface
 	Agent        usecases.AgentUseCase
 	Admin        usecases.AdminUseCase
 	EDI          edi.ServiceEdi
 	AdminSrv     admin.Usecase
+	CrmExt       crm.ServiceCrm
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -57,11 +57,11 @@ func NewOnboardingInteractor(
 	pubsub pubsubmessaging.ServicePubSub,
 	sms usecases.SMSUsecase,
 	aitussd ussd.Usecase,
-	crm hubspot.ServiceHubSpotInterface,
 	agt usecases.AgentUseCase,
 	adm usecases.AdminUseCase,
 	edi edi.ServiceEdi,
 	admin admin.Usecase,
+	crmExt crm.ServiceCrm,
 ) (*Interactor, error) {
 
 	return &Interactor{
@@ -79,10 +79,10 @@ func NewOnboardingInteractor(
 		PubSub:       pubsub,
 		SMS:          sms,
 		AITUSSD:      aitussd,
-		CRM:          crm,
 		Agent:        agt,
 		Admin:        adm,
 		EDI:          edi,
 		AdminSrv:     admin,
+		CrmExt:       crmExt,
 	}, nil
 }

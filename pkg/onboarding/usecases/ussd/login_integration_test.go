@@ -55,7 +55,7 @@ func TestImpl_HandleLogin_Integration_Test(t *testing.T) {
 
 	sessionDetails, err := u.AITUSSD.AddAITSessionDetails(ctx, sessionDet)
 	if err != nil {
-		t.Errorf("an error occured %v", err)
+		t.Errorf("an error occurred %v", err)
 		return
 	}
 
@@ -110,7 +110,7 @@ func TestImpl_HandleLogin_Integration_Test(t *testing.T) {
 
 				err = u.AITUSSD.UpdateSessionLevel(ctx, HomeMenuState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
@@ -118,7 +118,7 @@ func TestImpl_HandleLogin_Integration_Test(t *testing.T) {
 			if tt.name == "Happy case : forgot PIN" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, ForgotPINVerifyDate, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
@@ -126,14 +126,14 @@ func TestImpl_HandleLogin_Integration_Test(t *testing.T) {
 			if tt.name == "Sad case : forgot PIN" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, HomeMenuState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
 
 			session, err := u.AITUSSD.GetOrCreateSessionState(ctx, sessionDet)
 			if err != nil {
-				t.Errorf("an error occured %v", err)
+				t.Errorf("an error occurred %v", err)
 				return
 			}
 			login := u

@@ -41,10 +41,13 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 
+	crmExt "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
+	hubspotRepo "gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/database/fs"
+	hubspotUsecases "gitlab.slade360emr.com/go/commontools/crm/pkg/usecases"
 )
 
 const (
@@ -149,14 +152,21 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 	erp := erp.NewAccounting()
-	crm := hubspot.NewHubSpotService()
 	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
 	edi := edi.NewEdiService(ediClient, fr, engage)
+	// hubspot usecases
+	hubspotService := hubspot.NewHubSpotService()
+	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(ctx, hubspotService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize hubspot crm repository: %w", err)
+	}
+	hubspotUsecases := hubspotUsecases.NewHubSpotUsecases(hubspotfr)
+	crmExt := crmExt.NewCrmService(hubspotUsecases)
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		ext,
 		erp,
-		crm,
+		crmExt,
 		edi,
 		fr,
 	)
@@ -165,7 +175,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
-	profile := usecases.NewProfileUseCase(fr, ext, engage, ps)
+	profile := usecases.NewProfileUseCase(fr, ext, engage, ps, crmExt)
 	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
@@ -183,8 +193,8 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		ChargeMaster: chrg,
 		Engagement:   engage,
 		PubSub:       ps,
-		CRM:          crm,
 		EDI:          edi,
+		CrmExt:       crmExt,
 	}, nil
 }
 
@@ -3612,7 +3622,7 @@ func TestRepository_AddAITSessionDetails(t *testing.T) {
 			if tt.name == "Happy case" {
 				_, err := utils.ValidateUSSDDetails(sessionDet)
 				if err != nil {
-					t.Errorf("an error occured")
+					t.Errorf("an error occurred")
 				}
 			}
 
@@ -4058,101 +4068,6 @@ func TestRepository_UpdateStageCRMPayload(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := firestoreDB.UpdateStageCRMPayload(tt.args.ctx, tt.args.phoneNumber, tt.args.contactLead); (err != nil) != tt.wantErr {
 				t.Errorf("Repository.UpdateStageCRMPayload() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestRepository_UpdateOptOutCRMPayload(t *testing.T) {
-	ctx := context.Background()
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		log.Panicf("failed to initialize test FireStore client")
-	}
-	if fbc == nil {
-		log.Panicf("failed to initialize test FireBase client")
-	}
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
-
-	phoneNumber := "+254700100200"
-	ContactType := "phone"
-	ContactValue := phoneNumber
-	FirstName := gofakeit.FirstName()
-	LastName := gofakeit.LastName()
-	DateOfBirth := scalarutils.Date{
-		Day:   0,
-		Month: 0,
-		Year:  0,
-	}
-	IsSync := false
-	TimeSync := time.Now()
-	OptOut := "NO"
-	WantCover := false
-	ContactChannel := "USSD"
-	IsRegistered := false
-
-	contactLeadPayload := &dto.ContactLeadInput{
-		ContactType:    ContactType,
-		ContactValue:   ContactValue,
-		FirstName:      FirstName,
-		LastName:       LastName,
-		DateOfBirth:    DateOfBirth,
-		IsSync:         IsSync,
-		TimeSync:       &TimeSync,
-		OptOut:         CRMDomain.GeneralOptionType(OptOut),
-		WantCover:      WantCover,
-		ContactChannel: ContactChannel,
-		IsRegistered:   IsRegistered,
-	}
-
-	err := firestoreDB.StageCRMPayload(ctx, contactLeadPayload)
-	if err != nil {
-		t.Errorf("unable to get CRMDetails")
-		return
-	}
-
-	CRMDetails, err := firestoreDB.GetStageCRMPayload(ctx, phoneNumber)
-	if err != nil {
-		t.Errorf("unable to get CRMDetails")
-		return
-	}
-
-	type args struct {
-		ctx         context.Context
-		phoneNumber string
-		contactLead *dto.ContactLeadInput
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: CRMDetails.ContactValue,
-				contactLead: contactLeadPayload,
-			},
-			wantErr: false,
-		},
-
-		{
-			name: "Sad case",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: "",
-				contactLead: contactLeadPayload,
-			},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := firestoreDB.UpdateOptOutCRMPayload(tt.args.ctx, tt.args.phoneNumber, tt.args.contactLead); (err != nil) != tt.wantErr {
-				t.Errorf("Repository.UpdateOptOutCRMPayload() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -3,6 +3,7 @@ package admin_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"reflect"
@@ -15,7 +16,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -122,7 +122,7 @@ func TestService_RegisterMicroservice(t *testing.T) {
 			s := admin.NewService(ext)
 
 			got, err := s.RegisterMicroservice(tt.args.ctx, tt.args.input)
-			// an error occured yet it was not expected
+			// an error occurred yet it was not expected
 			if tt.wantErr == false && err != nil {
 				t.Errorf("Service.RegisterMicroservice() error = %v, wantErr %v", err, tt.wantErr)
 				return

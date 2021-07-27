@@ -9,7 +9,6 @@ import (
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
 	"gitlab.slade360emr.com/go/apiclient"
-	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
@@ -308,26 +307,4 @@ func (i *ISCClientExtension) MakeRequest(ctx context.Context, method string, pat
 // GetUserProfileByPrimaryPhoneNumber ..
 func (b *FakeBaseExtensionImpl) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phone string, suspended bool) (*profileutils.UserProfile, error) {
 	return b.GetUserProfileByPrimaryPhoneNumberFn(ctx, phone, suspended)
-}
-
-// CRMExtensionImpl is a fake CRM extension implementation
-type CRMExtensionImpl struct {
-	CreateContactFn func(contact domain.CRMContact) (*domain.CRMContact, error)
-	UpdateContactFn func(
-		phone string,
-		properties domain.ContactProperties,
-	) (*domain.CRMContact, error)
-}
-
-// CreateContact ..
-func (c *CRMExtensionImpl) CreateContact(contact domain.CRMContact) (*domain.CRMContact, error) {
-	return c.CreateContactFn(contact)
-}
-
-// UpdateContact ..
-func (c *CRMExtensionImpl) UpdateContact(
-	phone string,
-	properties domain.ContactProperties,
-) (*domain.CRMContact, error) {
-	return c.UpdateContactFn(phone, properties)
 }

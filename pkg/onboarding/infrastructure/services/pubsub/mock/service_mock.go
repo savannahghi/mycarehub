@@ -31,7 +31,7 @@ type FakeServicePubSub struct {
 	)
 	AddEngagementPubsubNameSpaceFn func(topic string) string
 	NotifyCreateContactFn          func(ctx context.Context, contact domain.CRMContact) error
-	NotifyUpdateContactFn          func(ctx context.Context, updateData dto.UpdateContactPSMessage) error
+	NotifyUpdateContactFn          func(ctx context.Context, contact domain.CRMContact) error
 	NotifyCreateCustomerFn         func(ctx context.Context, data dto.CustomerPubSubMessage) error
 	NotifyCreateSupplierFn         func(ctx context.Context, data dto.SupplierPubSubMessage) error
 	NotifyCoverLinkingFn           func(ctx context.Context, data dto.LinkCoverPubSubMessage) error
@@ -99,8 +99,8 @@ func (m *FakeServicePubSub) NotifyCreateContact(ctx context.Context, contact dom
 }
 
 // NotifyUpdateContact ..
-func (m *FakeServicePubSub) NotifyUpdateContact(ctx context.Context, updateData dto.UpdateContactPSMessage) error {
-	return m.NotifyUpdateContactFn(ctx, updateData)
+func (m *FakeServicePubSub) NotifyUpdateContact(ctx context.Context, contact domain.CRMContact) error {
+	return m.NotifyUpdateContactFn(ctx, contact)
 }
 
 // NotifyCreateCustomer ..

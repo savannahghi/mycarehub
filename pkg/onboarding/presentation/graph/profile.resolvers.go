@@ -77,20 +77,6 @@ func (r *mutationResolver) SetPrimaryEmailAddress(ctx context.Context, email str
 	return true, nil
 }
 
-func (r *mutationResolver) SetOptOut(ctx context.Context, option string, phoneNumber string) (bool, error) {
-	startTime := time.Now()
-
-	err := r.interactor.Onboarding.SetOptOut(ctx, option, phoneNumber)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "setOptOut", err)
-
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
 func (r *mutationResolver) AddSecondaryPhoneNumber(ctx context.Context, phone []string) (bool, error) {
 	startTime := time.Now()
 

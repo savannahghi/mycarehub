@@ -16,6 +16,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/profileutils"
 	"github.com/segmentio/ksuid"
+	"github.com/sirupsen/logrus"
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization/permission"
@@ -26,11 +27,10 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
-	"github.com/sirupsen/logrus"
+	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
-	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 )
 

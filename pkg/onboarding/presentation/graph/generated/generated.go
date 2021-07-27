@@ -283,7 +283,6 @@ type ComplexityRoot struct {
 		RetireSecondaryEmailAddresses    func(childComplexity int, emails []string) int
 		RetireSecondaryPhoneNumbers      func(childComplexity int, phones []string) int
 		SaveFavoriteNavAction            func(childComplexity int, title string) int
-		SetOptOut                        func(childComplexity int, option string, phoneNumber string) int
 		SetPrimaryEmailAddress           func(childComplexity int, email string, otp string) int
 		SetPrimaryPhoneNumber            func(childComplexity int, phone string, otp string) int
 		SetUpSupplier                    func(childComplexity int, accountType profileutils.AccountType) int
@@ -552,7 +551,6 @@ type MutationResolver interface {
 	UpdateUserPin(ctx context.Context, phone string, pin string) (bool, error)
 	SetPrimaryPhoneNumber(ctx context.Context, phone string, otp string) (bool, error)
 	SetPrimaryEmailAddress(ctx context.Context, email string, otp string) (bool, error)
-	SetOptOut(ctx context.Context, option string, phoneNumber string) (bool, error)
 	AddSecondaryPhoneNumber(ctx context.Context, phone []string) (bool, error)
 	RetireSecondaryPhoneNumbers(ctx context.Context, phones []string) (bool, error)
 	AddSecondaryEmailAddress(ctx context.Context, email []string) (bool, error)
@@ -1879,18 +1877,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SaveFavoriteNavAction(childComplexity, args["title"].(string)), true
-
-	case "Mutation.setOptOut":
-		if e.complexity.Mutation.SetOptOut == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_setOptOut_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SetOptOut(childComplexity, args["option"].(string), args["phoneNumber"].(string)), true
 
 	case "Mutation.setPrimaryEmailAddress":
 		if e.complexity.Mutation.SetPrimaryEmailAddress == nil {
@@ -3972,7 +3958,6 @@ extend type Mutation {
   setPrimaryPhoneNumber(phone: String!, otp: String!): Boolean!
 
   setPrimaryEmailAddress(email: String!, otp: String!): Boolean!
-  setOptOut(option: String!, phoneNumber: String!): Boolean!
 
   addSecondaryPhoneNumber(phone: [String!]): Boolean!
 
@@ -5127,30 +5112,6 @@ func (ec *executionContext) field_Mutation_saveFavoriteNavAction_args(ctx contex
 		}
 	}
 	args["title"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_setOptOut_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["option"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("option"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["option"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["phoneNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["phoneNumber"] = arg1
 	return args, nil
 }
 
@@ -9913,48 +9874,6 @@ func (ec *executionContext) _Mutation_setPrimaryEmailAddress(ctx context.Context
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().SetPrimaryEmailAddress(rctx, args["email"].(string), args["otp"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_setOptOut(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_setOptOut_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetOptOut(rctx, args["option"].(string), args["phoneNumber"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21421,11 +21340,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "setPrimaryEmailAddress":
 			out.Values[i] = ec._Mutation_setPrimaryEmailAddress(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "setOptOut":
-			out.Values[i] = ec._Mutation_setOptOut(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

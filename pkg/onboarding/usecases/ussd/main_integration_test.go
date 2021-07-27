@@ -31,6 +31,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/ussd"
 
+	mockCrm "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm/mock"
 	mockRepo "github.com/savannahghi/onboarding/pkg/onboarding/repository/mock"
 
 	extMock "github.com/savannahghi/onboarding/pkg/onboarding/application/extension/mock"
@@ -38,9 +39,12 @@ import (
 	ediMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi/mock"
 	engagementMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement/mock"
 
+	crmExt "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	messagingMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging/mock"
 	pubsubmessagingMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub/mock"
 	adminSrv "github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
+	hubspotRepo "gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/database/fs"
+	hubspotUsecases "gitlab.slade360emr.com/go/commontools/crm/pkg/usecases"
 )
 
 const (
@@ -94,14 +98,20 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 
 	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
-	crm := hubspot.NewHubSpotService()
+	hubspotService := hubspot.NewHubSpotService()
+	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(context.Background(), hubspotService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize hubspot crm repository: %w", err)
+	}
+	hubspotUsecases := hubspotUsecases.NewHubSpotUsecases(hubspotfr)
+	crmExt := crmExt.NewCrmService(hubspotUsecases)
 	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
 	edi := edi.NewEdiService(ediClient, repo, engage)
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		ext,
 		erp,
-		crm,
+		crmExt,
 		edi,
 		repo,
 	)
@@ -110,7 +120,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
-	profile := usecases.NewProfileUseCase(repo, ext, engage, ps)
+	profile := usecases.NewProfileUseCase(repo, ext, engage, ps, crmExt)
 
 	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
@@ -119,7 +129,8 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage, ps, edi)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 	sms := usecases.NewSMSUsecase(repo, ext)
-	aitUssd := ussd.NewUssdUsecases(repo, ext, profile, userpin, su, pinExt, ps)
+
+	aitUssd := ussd.NewUssdUsecases(repo, ext, profile, userpin, su, pinExt, ps, crmExt)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -135,7 +146,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		PubSub:       ps,
 		SMS:          sms,
 		AITUSSD:      aitUssd,
-		CRM:          crm,
+		CrmExt:       crmExt,
 	}, nil
 }
 
@@ -151,26 +162,33 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	var ps pubsubmessaging.ServicePubSub = &fakePubSub
 	var ediSvc edi.ServiceEdi = &fakeEDISvc
 
-	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps)
+	hubspotService := hubspot.NewHubSpotService()
+	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(context.Background(), hubspotService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize hubspot crm repository: %w", err)
+	}
+	hubspotUsecases := hubspotUsecases.NewHubSpotUsecases(hubspotfr)
+	crmExt := crmExt.NewCrmService(hubspotUsecases)
+	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps, crmExt)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
 		r, profile, erpSvc, chargemasterSvc, engagementSvc, messagingSvc, ext, ps,
 	)
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
-	crm := hubspot.NewHubSpotService()
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps, ediSvc)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
 	admin := usecases.NewAdminUseCases(r, engagementSvc, ext, userpin)
 	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
-	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps)
+
+	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps, crmExt)
 	adminSrv := adminSrv.NewService(ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, crm, agent, admin, ediSvc, adminSrv,
+		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -265,6 +283,7 @@ var fakeEPRSvc erpMock.FakeServiceCommonTools
 var fakeChargeMasterSvc chargemasterMock.FakeServiceChargeMaster
 var fakePubSub pubsubmessagingMock.FakeServicePubSub
 var fakeEDISvc ediMock.FakeServiceEDI
+var fakeCrm mockCrm.FakeServiceCrm
 
 // InitializeFakeUSSDTestService represents a fakeussd interactor
 func InitializeFakeUSSDTestService() (*interactor.Interactor, error) {
@@ -277,27 +296,34 @@ func InitializeFakeUSSDTestService() (*interactor.Interactor, error) {
 	var pinExt extension.PINExtension = &fakePinExt
 	var ps pubsubmessaging.ServicePubSub = &fakePubSub
 	var ediSvc edi.ServiceEdi = &fakeEDISvc
+	var crmSvc crmExt.ServiceCrm = &fakeCrm
 
-	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps)
+	hubspotService := hubspot.NewHubSpotService()
+	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(context.Background(), hubspotService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize hubspot crm repository: %w", err)
+	}
+	hubspotUsecases := hubspotUsecases.NewHubSpotUsecases(hubspotfr)
+	crmExt := crmExt.NewCrmService(hubspotUsecases)
+	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps, crmExt)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
 		r, profile, erpSvc, chargemasterSvc, engagementSvc, messagingSvc, ext, ps,
 	)
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
-	crm := hubspot.NewHubSpotService()
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps, ediSvc)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
 	admin := usecases.NewAdminUseCases(r, engagementSvc, ext, userpin)
 	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
-	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps)
+	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps, crmSvc)
 	adminSrv := adminSrv.NewService(ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, crm, agent, admin, ediSvc, adminSrv,
+		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

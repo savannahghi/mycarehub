@@ -1,0 +1,103 @@
+name: Test
+
+on: [push]
+
+env:
+  DOCKER_BUILDKIT: 1 # Enable Buildkit and let compose use it to speed up image building
+  COMPOSE_DOCKER_CLI_BUILD: 1
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+  GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+  ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
+  ROOT_COLLECTION_SUFFIX: ${{ secrets.ROOT_COLLECTION_SUFFIX }}
+  ERP_HOST: ${{ secrets.ERP_HOST }}
+  ERP_TOKEN_URL: ${{ secrets.ERP_TOKEN_URL }}
+  ERP_CLIENT_ID: ${{ secrets.ERP_CLIENT_ID }}
+  ERP_CLIENT_SECRET: ${{ secrets.ERP_CLIENT_SECRET }}
+  ERP_GRANT_TYPE: ${{ secrets.ERP_GRANT_TYPE }}
+  ERP_API_SCHEME: ${{ secrets.ERP_API_SCHEME }}
+  ERP_USERNAME: ${{ secrets.ERP_USERNAME }}
+  ERP_PASSWORD: ${{ secrets.ERP_PASSWORD }}
+  ERP_DEFAULT_WORKSTATION_ID: ${{ secrets.ERP_DEFAULT_WORKSTATION_ID }}
+  HUBSPOT_API_KEY: ${{ secrets.HUBSPOT_API_KEY }}
+  HUBSPOT_API_URL: ${{ secrets.HUBSPOT_API_URL }}
+  PORT: ${{ secrets.PORT }}
+  HOST: ${{ secrets.HOST }}
+  TOKEN_URL: ${{ secrets.TOKEN_URL }}
+  AUTH_SERVER_DOMAIN: ${{ secrets.AUTH_SERVER_DOMAIN }}
+  API_SCHEME: ${{ secrets.API_SCHEME }}
+  CLIENT_ID: ${{ secrets.CLIENT_ID }}
+  CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+  PASSWORD: ${{ secrets.PASSWORD }}
+  USERNAME: ${{ secrets.USERNAME }}
+  GRANT_TYPE: ${{ secrets.GRANT_TYPE }}
+  REPOSITORY: ${{ secrets.REPOSITORY }}
+  MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+  MAILGUN_DOMAIN: ${{ secrets.MAILGUN_DOMAIN }}
+  MAILGUN_FROM: ${{ secrets.MAILGUN_FROM }}
+  SEND_IN_BLUE_API_KEY: ${{ secrets.SEND_IN_BLUE_API_KEY }}
+  SEND_IN_BLUE_ENABLED: ${{ secrets.SEND_IN_BLUE_ENABLED }}
+  CHARGE_MASTER_API_HOST: ${{ secrets.CHARGE_MASTER_API_HOST }}
+  CHARGE_MASTER_API_SCHEME: ${{ secrets.CHARGE_MASTER_API_SCHEME }}
+  CHARGE_MASTER_TOKEN_URL: ${{ secrets.CHARGE_MASTER_TOKEN_URL }}
+  CHARGE_MASTER_CLIENT_ID: ${{ secrets.CHARGE_MASTER_CLIENT_ID }}
+  CHARGE_MASTER_CLIENT_SECRET: ${{ secrets.CHARGE_MASTER_CLIENT_SECRET }}
+  CHARGE_MASTER_USERNAME: ${{ secrets.CHARGE_MASTER_USERNAME }}
+  CHARGE_MASTER_PASSWORD: ${{ secrets.CHARGE_MASTER_PASSWORD }}
+  CHARGE_MASTER_GRANT_TYPE: ${{ secrets.CHARGE_MASTER_GRANT_TYPE }}
+  SERVICE_HOST: ${{ secrets.SERVICE_HOST }}
+  GOOGLE_PROJECT_NUMBER: ${{ secrets.GOOGLE_PROJECT_NUMBER }}
+  JWT_KEY: ${{ secrets.JWT_KEY }}
+  SAVANNAH_ADMIN_EMAIL: ${{ secrets.SAVANNAH_ADMIN_EMAIL }}
+
+jobs:
+  lint_and_test:
+    strategy:
+      matrix:
+        go-version: [1.16.x]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v2
+      - run: git config --global url."https://${user}:${ACCESS_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+            project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+            service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+            export_default_credentials: true
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Install Go dependencies
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.37.1
+          go get -u github.com/kisielk/errcheck
+          go get -u golang.org/x/lint/golint
+          go get -u honnef.co/go/tools/cmd/staticcheck
+          go get -u github.com/axw/gocov/gocov
+          go get -u github.com/securego/gosec/cmd/gosec
+          go get -u github.com/ory/go-acc
+          go get -u github.com/client9/misspell/cmd/misspell
+          go get -u github.com/gordonklaus/ineffassign
+          go get github.com/fzipp/gocyclo
+          go get github.com/stretchr/testify/assert@v1.7.0
+
+      - name: Run lint and test
+        run: |
+          staticcheck ./...
+          go fmt $(go list ./... | grep -v /vendor/)
+          go vet $(go list ./... | grep -v /vendor/)
+          golint -set_exit_status $(go list ./... | grep -v /vendor/)
+          errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
+          misspell -error .
+          gosec -exclude=G304,G101 ./...
+          touch ./coverage.out
+          echo 'mode: atomic' > coverage.txt
+          go list ./... | grep -v /cmd | grep -v /vendor | grep -v /generated | xargs -n1 -I{} sh -c 'go test -timeout 99999s -coverprofile=coverage.out -coverpkg $(go list ./... | grep -v /vendor | tr "\n" ",") {} && tail -n +2 coverage.out >> coverage.txt || exit 255' && rm coverage.out
+          go tool cover -html=coverage.txt -o coverage.html
+          gocov convert coverage.txt > coverage.json
+          gocov report coverage.json > coverage_report.txt

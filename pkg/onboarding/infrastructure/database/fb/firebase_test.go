@@ -1261,7 +1261,7 @@ func TestRepository_GetAITSessionDetails_Unittests(t *testing.T) {
 
 			if tt.name == "Sad case" {
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -1354,7 +1354,7 @@ func TestRepository_StageCRMPayload_Unittest(t *testing.T) {
 
 			if tt.name == "Sad case" {
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -1422,7 +1422,7 @@ func TestRepository_GetStageCRMPayload_Unittest(t *testing.T) {
 
 			if tt.name == "Sad case" {
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 

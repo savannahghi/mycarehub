@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
@@ -57,7 +58,7 @@ type ServicePubSub interface {
 	NotifyCoverLinking(ctx context.Context, data dto.LinkCoverPubSubMessage) error
 	NotifyUpdateContact(
 		ctx context.Context,
-		updateData dto.UpdateContactPSMessage,
+		contact domain.CRMContact,
 	) error
 	NotifyCreateCustomer(
 		ctx context.Context,
@@ -74,7 +75,7 @@ type ServicePubSubMessaging struct {
 	client  *pubsub.Client
 	baseExt extension.BaseExtension
 	erp     erp.AccountingUsecase
-	crm     extension.CRMExtension
+	crm     crm.ServiceCrm
 	edi     edi.ServiceEdi
 	repo    repository.OnboardingRepository
 }
@@ -84,7 +85,7 @@ func NewServicePubSubMessaging(
 	client *pubsub.Client,
 	ext extension.BaseExtension,
 	erp erp.AccountingUsecase,
-	crm extension.CRMExtension,
+	crm crm.ServiceCrm,
 	edi edi.ServiceEdi,
 	repo repository.OnboardingRepository,
 ) (*ServicePubSubMessaging, error) {

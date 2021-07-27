@@ -17,7 +17,7 @@ func (ps *ServicePubSubMessaging) newPublish(
 ) error {
 	payload, err := json.Marshal(data)
 	if err != nil {
-		return fmt.Errorf("unable to marshal data recieved: %v", err)
+		return fmt.Errorf("unable to marshal data received: %v", err)
 	}
 	return ps.PublishToPubsub(
 		ctx,
@@ -37,9 +37,9 @@ func (ps *ServicePubSubMessaging) NotifyCreateContact(
 // NotifyUpdateContact publishes to crm.contact.update topic
 func (ps *ServicePubSubMessaging) NotifyUpdateContact(
 	ctx context.Context,
-	updateData dto.UpdateContactPSMessage,
+	contact domain.CRMContact,
 ) error {
-	return ps.newPublish(ctx, updateData, common.UpdateCRMContact)
+	return ps.newPublish(ctx, contact, common.UpdateCRMContact)
 }
 
 // NotifyCreateCustomer publishes to customers.create topic

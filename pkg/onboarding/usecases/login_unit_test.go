@@ -7,12 +7,12 @@ import (
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/segmentio/ksuid"
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/profileutils"
-	"github.com/savannahghi/onboarding
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 )

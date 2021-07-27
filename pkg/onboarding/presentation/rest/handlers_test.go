@@ -35,6 +35,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	engagementMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement/mock"
 
+	crmExt "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	messagingMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging/mock"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
@@ -46,6 +47,8 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	adminSrv "github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/ussd"
+	hubspotRepo "gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/database/fs"
+	hubspotUsecases "gitlab.slade360emr.com/go/commontools/crm/pkg/usecases"
 )
 
 var fakeRepo mockRepo.FakeOnboardingRepository
@@ -68,27 +71,35 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	var ps pubsubmessaging.ServicePubSub = &fakePubSub
 	var ediSvc edi.ServiceEdi = &fakeEDISvc
 
-	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps)
+	// hubspot usecases
+	hubspotService := hubspot.NewHubSpotService()
+	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(context.Background(), hubspotService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize hubspot crm repository: %w", err)
+	}
+	hubspotUsecases := hubspotUsecases.NewHubSpotUsecases(hubspotfr)
+	crmExt := crmExt.NewCrmService(hubspotUsecases)
+	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps, crmExt)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
 		r, profile, erpSvc, chargemasterSvc, engagementSvc, messagingSvc, ext, ps,
 	)
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
-	crm := hubspot.NewHubSpotService()
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps, ediSvc)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
 	admin := usecases.NewAdminUseCases(r, engagementSvc, ext, userpin)
 	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
-	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps)
+
+	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps, crmExt)
 	adminSrv := adminSrv.NewService(ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
 		engagementSvc, messagingSvc, nhif, ps, sms,
-		aitUssd, crm, agent, admin, ediSvc, adminSrv,
+		aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -122,7 +133,11 @@ func composeValidRolePayload(t *testing.T, phone string, role profileutils.RoleT
 	return bytes.NewBuffer(bs)
 }
 
-func composeSignupPayload(t *testing.T, phone, pin, otp string, flavour feedlib.Flavour) *bytes.Buffer {
+func composeSignupPayload(
+	t *testing.T,
+	phone, pin, otp string,
+	flavour feedlib.Flavour,
+) *bytes.Buffer {
 	payload := dto.SignUpInput{
 		PhoneNumber: &phone,
 		PIN:         &pin,
@@ -232,7 +247,10 @@ func composeSetPrimaryPhoneNumberPayload(t *testing.T, phone, otp string) *bytes
 	return bytes.NewBuffer(bs)
 }
 
-func composeSMSMessageDataPayload(t *testing.T, payload *dto.AfricasTalkingMessage) *strings.Reader {
+func composeSMSMessageDataPayload(
+	t *testing.T,
+	payload *dto.AfricasTalkingMessage,
+) *strings.Reader {
 	data := url.Values{}
 	data.Set("date", payload.Date)
 	data.Set("from", payload.From)
@@ -257,7 +275,7 @@ func composeUssdPayload(t *testing.T, payload *dto.SessionDetails) *strings.Read
 }
 
 func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -397,7 +415,7 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 			}
 			// Our handlers satisfy http.Handler, so we can call its ServeHTTP method
 			// directly and pass in our Request and ResponseRecorder.
-			svr := h.VerifySignUpPhoneNumber(ctx)
+			svr := h.VerifySignUpPhoneNumber()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -436,7 +454,7 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -615,7 +633,14 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 
 				fakeRepo.SetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string,
 					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error) {
-					return &profileutils.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+					return &profileutils.UserCommunicationsSetting{
+						ID:            "111",
+						ProfileID:     "profile-id",
+						AllowWhatsApp: true,
+						AllowEmail:    true,
+						AllowTextSMS:  true,
+						AllowPush:     true,
+					}, nil
 				}
 
 				fakePubSub.NotifyCreateContactFn = func(ctx context.Context, contact crmDomain.CRMContact) error {
@@ -623,7 +648,14 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				}
 
 				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
-					return &profileutils.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+					return &profileutils.UserCommunicationsSetting{
+						ID:            "111",
+						ProfileID:     "profile-id",
+						AllowWhatsApp: true,
+						AllowEmail:    true,
+						AllowTextSMS:  true,
+						AllowPush:     true,
+					}, nil
 				}
 
 				fakePubSub.TopicIDsFn = func() []string {
@@ -673,7 +705,7 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 
 			// Our handlers satisfy http.Handler, so we can call its ServeHTTP method
 			// directly and pass in our Request and ResponseRecorder.
-			svr := h.CreateUserWithPhoneNumber(ctx)
+			svr := h.CreateUserWithPhoneNumber()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -703,7 +735,7 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -791,7 +823,7 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 
 			// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 			// directly and pass in our Request and ResponseRecorder.
-			svr := h.UserRecoveryPhoneNumbers(ctx)
+			svr := h.UserRecoveryPhoneNumbers()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -828,7 +860,7 @@ func TestHandlersInterfacesImpl_UserRecoveryPhoneNumbers(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -980,7 +1012,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 
 			// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 			// directly and pass in our Request and ResponseRecorder.
-			svr := h.RequestPINReset(ctx)
+			svr := h.RequestPINReset()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -1018,7 +1050,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -1133,7 +1165,7 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 					return false, fmt.Errorf("unable to update pin")
 				}
 			}
-			svr := h.ResetPin(ctx)
+			svr := h.ResetPin()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -1155,7 +1187,7 @@ func TestHandlersInterfacesImpl_ResetPin(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_RefreshToken(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -1242,7 +1274,7 @@ func TestHandlersInterfacesImpl_RefreshToken(t *testing.T) {
 				}
 			}
 
-			svr := h.RefreshToken(ctx)
+			svr := h.RefreshToken()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -1264,7 +1296,7 @@ func TestHandlersInterfacesImpl_RefreshToken(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_GetUserProfileByUID(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -1350,7 +1382,7 @@ func TestHandlersInterfacesImpl_GetUserProfileByUID(t *testing.T) {
 				}
 			}
 
-			svr := h.GetUserProfileByUID(ctx)
+			svr := h.GetUserProfileByUID()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -1373,7 +1405,7 @@ func TestHandlersInterfacesImpl_GetUserProfileByUID(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -1440,7 +1472,7 @@ func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
 				}
 			}
 
-			svr := h.SendOTP(ctx)
+			svr := h.SendOTP()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -1463,7 +1495,7 @@ func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -1621,10 +1653,21 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 					}, nil
 				}
 				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour feedlib.Flavour, profileID string) (*profileutils.Customer, *profileutils.Supplier, error) {
-					return &profileutils.Customer{ID: "5550"}, &profileutils.Supplier{ID: "5550"}, nil
+					return &profileutils.Customer{
+							ID: "5550",
+						}, &profileutils.Supplier{
+							ID: "5550",
+						}, nil
 				}
 				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
-					return &profileutils.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+					return &profileutils.UserCommunicationsSetting{
+						ID:            "111",
+						ProfileID:     "profile-id",
+						AllowWhatsApp: true,
+						AllowEmail:    true,
+						AllowTextSMS:  true,
+						AllowPush:     true,
+					}, nil
 				}
 			}
 
@@ -1714,7 +1757,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				}
 			}
 
-			svr := h.LoginByPhone(ctx)
+			svr := h.LoginByPhone()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -1752,7 +1795,7 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -1838,7 +1881,7 @@ func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 				}
 			}
 
-			svr := h.SendRetryOTP(ctx)
+			svr := h.SendRetryOTP()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -1860,7 +1903,7 @@ func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_LoginAnonymous(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -1946,7 +1989,7 @@ func TestHandlersInterfacesImpl_LoginAnonymous(t *testing.T) {
 
 			response := httptest.NewRecorder()
 
-			svr := h.LoginAnonymous(ctx)
+			svr := h.LoginAnonymous()
 
 			svr.ServeHTTP(response, req)
 
@@ -1969,7 +2012,7 @@ func TestHandlersInterfacesImpl_LoginAnonymous(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -2120,7 +2163,7 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 				}
 			}
 
-			svr := h.UpdateCovers(ctx)
+			svr := h.UpdateCovers()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -2142,7 +2185,7 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -2259,7 +2302,7 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 				}
 			}
 
-			svr := h.FindSupplierByUID(ctx)
+			svr := h.FindSupplierByUID()
 			svr.ServeHTTP(response, req)
 			if tt.wantStatus != response.Code {
 				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
@@ -2281,7 +2324,7 @@ func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_RemoveUserByPhoneNumber(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -2410,7 +2453,7 @@ func TestHandlersInterfacesImpl_RemoveUserByPhoneNumber(t *testing.T) {
 
 			}
 
-			svr := h.RemoveUserByPhoneNumber(ctx)
+			svr := h.RemoveUserByPhoneNumber()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -2433,7 +2476,7 @@ func TestHandlersInterfacesImpl_RemoveUserByPhoneNumber(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -2577,7 +2620,7 @@ func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 
 			response := httptest.NewRecorder()
 
-			svr := h.SetPrimaryPhoneNumber(ctx)
+			svr := h.SetPrimaryPhoneNumber()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -2599,7 +2642,7 @@ func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_RegisterPushToken(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -2690,7 +2733,7 @@ func TestHandlersInterfacesImpl_RegisterPushToken(t *testing.T) {
 			}
 			response := httptest.NewRecorder()
 
-			svr := h.RegisterPushToken(ctx)
+			svr := h.RegisterPushToken()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -2712,7 +2755,7 @@ func TestHandlersInterfacesImpl_RegisterPushToken(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_AddAdminPermsToUser(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -2851,7 +2894,7 @@ func TestHandlersInterfacesImpl_AddAdminPermsToUser(t *testing.T) {
 
 			}
 
-			svr := h.AddAdminPermsToUser(ctx)
+			svr := h.AddAdminPermsToUser()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -2874,7 +2917,7 @@ func TestHandlersInterfacesImpl_AddAdminPermsToUser(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -3022,7 +3065,7 @@ func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
 
 			}
 
-			svr := h.RemoveAdminPermsToUser(ctx)
+			svr := h.RemoveAdminPermsToUser()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -3045,7 +3088,7 @@ func TestHandlersInterfacesImpl_RemoveAdminPermsToUser(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_AddRoleToUser(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -3153,7 +3196,7 @@ func TestHandlersInterfacesImpl_AddRoleToUser(t *testing.T) {
 				}
 			}
 
-			serverResponse := h.AddRoleToUser(ctx)
+			serverResponse := h.AddRoleToUser()
 			serverResponse.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -3176,7 +3219,7 @@ func TestHandlersInterfacesImpl_AddRoleToUser(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_RemoveRoleToUser(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -3254,7 +3297,7 @@ func TestHandlersInterfacesImpl_RemoveRoleToUser(t *testing.T) {
 				}
 			}
 
-			serverResponse := h.RemoveRoleToUser(ctx)
+			serverResponse := h.RemoveRoleToUser()
 			serverResponse.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -3276,7 +3319,10 @@ func TestHandlersInterfacesImpl_RemoveRoleToUser(t *testing.T) {
 	}
 }
 
-func composeSMSMessageDataJSONPayload(t *testing.T, payload *dto.AfricasTalkingMessage) *bytes.Buffer {
+func composeSMSMessageDataJSONPayload(
+	t *testing.T,
+	payload *dto.AfricasTalkingMessage,
+) *bytes.Buffer {
 
 	bs, err := json.Marshal(payload)
 	if err != nil {
@@ -3287,7 +3333,7 @@ func composeSMSMessageDataJSONPayload(t *testing.T, payload *dto.AfricasTalkingM
 }
 
 func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -3394,7 +3440,7 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 				}
 			}
 
-			svr := h.IncomingATSMS(ctx)
+			svr := h.IncomingATSMS()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -3415,7 +3461,7 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 }
 
 func TestHandlersInterfacesImpl_USSDHandler(t *testing.T) {
-	ctx := context.Background()
+
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -3535,7 +3581,7 @@ func TestHandlersInterfacesImpl_USSDHandler(t *testing.T) {
 					return nil, fmt.Errorf("empty phone number")
 				}
 			}
-			svr := h.IncomingUSSDHandler(ctx)
+			svr := h.IncomingUSSDHandler()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {
@@ -3558,7 +3604,6 @@ func TestHandlersInterfacesImpl_USSDHandler(t *testing.T) {
 }
 
 func TestHandlers_PollServices(t *testing.T) {
-	ctx := context.Background()
 	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize onboarding interactor: %v", err)
@@ -3604,7 +3649,7 @@ func TestHandlers_PollServices(t *testing.T) {
 			*/
 
 			// call its ServeHTTP method and pass in our Request and ResponseRecorder.
-			svr := h.PollServices(ctx)
+			svr := h.PollServices()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {

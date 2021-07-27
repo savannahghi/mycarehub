@@ -70,7 +70,7 @@ func TestImpl_HandleChangePIN_IntegrationTest(t *testing.T) {
 
 	sessionDetails, err := u.AITUSSD.AddAITSessionDetails(ctx, sessionDet)
 	if err != nil {
-		t.Errorf("an error occured %v", err)
+		t.Errorf("an error occurred %v", err)
 		return
 	}
 
@@ -122,7 +122,7 @@ func TestImpl_HandleChangePIN_IntegrationTest(t *testing.T) {
 			if tt.name == "Happy case : empty input" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, ChangePINEnterNewPINState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
@@ -130,7 +130,7 @@ func TestImpl_HandleChangePIN_IntegrationTest(t *testing.T) {
 			if tt.name == "Happy case :_Change PIN_selected" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, ChangePINEnterNewPINState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
@@ -138,14 +138,14 @@ func TestImpl_HandleChangePIN_IntegrationTest(t *testing.T) {
 			if tt.name == "Sad case :bad choice selected" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, HomeMenuState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
 
 			session, err := u.AITUSSD.GetOrCreateSessionState(ctx, sessionDet)
 			if err != nil {
-				t.Errorf("an error occured %v", err)
+				t.Errorf("an error occurred %v", err)
 				return
 			}
 
@@ -193,7 +193,7 @@ func TestImpl_HandlePINReset(t *testing.T) {
 
 	sessionDetails, err := u.AITUSSD.AddAITSessionDetails(ctx, sessionDet)
 	if err != nil {
-		t.Errorf("an error occured %v", err)
+		t.Errorf("an error occurred %v", err)
 		return
 	}
 
@@ -267,7 +267,7 @@ func TestImpl_HandlePINReset(t *testing.T) {
 			if tt.name == "Happy case : Reset PIN_new_PIN" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, ForgetPINResetState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
@@ -275,7 +275,7 @@ func TestImpl_HandlePINReset(t *testing.T) {
 			if tt.name == "Happy case : Reset Confirm new_PIN" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, PINResetEnterNewPINState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
@@ -283,7 +283,7 @@ func TestImpl_HandlePINReset(t *testing.T) {
 			if tt.name == "Sad case : Reset Confirm invalid_PIN" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, PINResetEnterNewPINState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
@@ -291,7 +291,7 @@ func TestImpl_HandlePINReset(t *testing.T) {
 			if tt.name == "Sad case : Reset Confirm PIN do not match" {
 				err = u.AITUSSD.UpdateSessionLevel(ctx, PINResetProcessState, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}
@@ -300,30 +300,30 @@ func TestImpl_HandlePINReset(t *testing.T) {
 
 				user, err := u.AITUSSD.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 
 				userProfile, err := u.AITUSSD.CreateUserProfile(ctx, user.PhoneNumber, user.UID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 
 				_, err = u.AITUSSD.SetUserPIN(ctx, ussdDet.PIN, userProfile.ID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 
 				_, err = u.AITUSSD.GetUserProfileByPrimaryPhoneNumber(ctx, *userProfile.PrimaryPhone, false)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 				err = u.AITUSSD.UpdateSessionLevel(ctx, ForgotPINVerifyDate, sessionDetails.SessionID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 
@@ -331,7 +331,7 @@ func TestImpl_HandlePINReset(t *testing.T) {
 
 			session, err := u.AITUSSD.GetOrCreateSessionState(ctx, sessionDet)
 			if err != nil {
-				t.Errorf("an error occured %v", err)
+				t.Errorf("an error occurred %v", err)
 				return
 			}
 
@@ -343,7 +343,7 @@ func TestImpl_HandlePINReset(t *testing.T) {
 	}
 	err = u.AITUSSD.RemoveUserByPhoneNumber(ctx, phoneNumber)
 	if err != nil {
-		t.Errorf("removing user: an error occured %v", err)
+		t.Errorf("removing user: an error occurred %v", err)
 		return
 	}
 }
@@ -421,19 +421,19 @@ func TestImpl_SetUSSDUserPin(t *testing.T) {
 
 				userResponse, err := u.AITUSSD.GetOrCreatePhoneNumberUser(ctx, phone)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 
 				userProfile, err := u.AITUSSD.CreateUserProfile(ctx, userResponse.PhoneNumber, userResponse.UID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 
 				_, err = u.AITUSSD.GetUserProfileByPrimaryPhoneNumber(ctx, *userProfile.PrimaryPhone, false)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 
@@ -526,17 +526,17 @@ func TestImpl_ChangeUSSDUserPIN(t *testing.T) {
 				}
 				userResp, err := u.AITUSSD.GetOrCreatePhoneNumberUser(ctx, phoneNumber)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 				userprofile, err := u.AITUSSD.CreateUserProfile(ctx, phoneNumber, userResp.UID)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 				_, err = u.AITUSSD.GetUserProfileByPrimaryPhoneNumber(ctx, *userprofile.PrimaryPhone, false)
 				if err != nil {
-					t.Errorf("an error occured %v", err)
+					t.Errorf("an error occurred %v", err)
 					return
 				}
 			}

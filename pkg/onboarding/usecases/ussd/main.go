@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 )
@@ -39,7 +40,6 @@ type Usecase interface {
 	// session usecases
 	GetOrCreateSessionState(ctx context.Context, payload *dto.SessionDetails) (*domain.USSDLeadDetails, error)
 	AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error)
-	UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
 	StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error
 	UpdateSessionLevel(ctx context.Context, level int, sessionID string) error
 	UpdateSessionPIN(ctx context.Context, pin string, sessionID string) (*domain.USSDLeadDetails, error)
@@ -48,8 +48,7 @@ type Usecase interface {
 	HandlePINReset(ctx context.Context, session *domain.USSDLeadDetails, userResponse string) string
 	SetUSSDUserPin(ctx context.Context, phoneNumber string, PIN string) error
 	ChangeUSSDUserPIN(ctx context.Context, phone string, pin string) (bool, error)
-	// OptedOut
-	IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error)
+
 	// Onboarding
 	GetOrCreatePhoneNumberUser(ctx context.Context, phone string) (*dto.CreatedUserResponse, error)
 	CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*profileutils.UserProfile, error)
@@ -71,6 +70,7 @@ type Impl struct {
 	signUp               usecases.SignUpUseCases
 	pinExt               extension.PINExtension
 	pubsub               pubsubmessaging.ServicePubSub
+	crm                  crm.ServiceCrm
 }
 
 //NewUssdUsecases returns a new USSD usecase
@@ -82,6 +82,7 @@ func NewUssdUsecases(
 	signUp usecases.SignUpUseCases,
 	pinExt extension.PINExtension,
 	pubsub pubsubmessaging.ServicePubSub,
+	crm crm.ServiceCrm,
 ) Usecase {
 	return &Impl{
 		baseExt:              ext,
@@ -91,6 +92,7 @@ func NewUssdUsecases(
 		signUp:               signUp,
 		pinExt:               pinExt,
 		pubsub:               pubsub,
+		crm:                  crm,
 	}
 }
 

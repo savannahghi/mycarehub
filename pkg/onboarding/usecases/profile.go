@@ -12,6 +12,8 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization/permission"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
+	"github.com/savannahghi/profileutils"
+	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 
@@ -25,13 +27,11 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
-	"github.com/savannahghi/profileutils"
 	"github.com/segmentio/ksuid"
-	"github.com/sirupsen/logrus"
-	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 const (
@@ -96,7 +96,6 @@ type ProfileUseCase interface {
 		emailAddress string,
 		otp string,
 	) error
-	SetOptOut(ctx context.Context, option string, phoneNumber string) error
 	// checks whether a phone number has been registered by another user. Checks both primary and
 	// secondary phone numbers. If the the phone number is foreign, it returns false
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
@@ -175,6 +174,7 @@ type ProfileUseCaseImpl struct {
 	baseExt              extension.BaseExtension
 	engagement           engagement.ServiceEngagement
 	pubsub               pubsubmessaging.ServicePubSub
+	crm                  crm.ServiceCrm
 }
 
 // NewProfileUseCase returns a new a onboarding usecase
@@ -183,12 +183,14 @@ func NewProfileUseCase(
 	ext extension.BaseExtension,
 	eng engagement.ServiceEngagement,
 	pubsub pubsubmessaging.ServicePubSub,
+	crm crm.ServiceCrm,
 ) ProfileUseCase {
 	return &ProfileUseCaseImpl{
 		onboardingRepository: r,
 		baseExt:              ext,
 		engagement:           eng,
 		pubsub:               pubsub,
+		crm:                  crm,
 	}
 }
 
@@ -884,29 +886,32 @@ func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data profileutil
 		return err
 	}
 
-	var CRMContactProperties CRMDomain.ContactProperties
+	contact, err := p.crm.GetContactByPhone(ctx, *profile.PrimaryPhone)
+	if err != nil {
+		return fmt.Errorf("failed to get contact %s: %w", *profile.PrimaryPhone, err)
+	}
+	if contact == nil {
+		return nil
+	}
+
 	if data.FirstName != nil {
-		CRMContactProperties.FirstName = *data.FirstName
+		contact.Properties.FirstName = *data.FirstName
 	}
 
 	if data.LastName != nil {
-		CRMContactProperties.LastName = *data.LastName
+		contact.Properties.LastName = *data.LastName
 	}
 
 	if data.DateOfBirth != nil {
 		dob := data.DateOfBirth.AsTime()
-		CRMContactProperties.DateOfBirth = dob
+		contact.Properties.DateOfBirth = dob
 	}
 
 	if data.Gender != "" {
-		CRMContactProperties.Gender = data.Gender.String()
+		contact.Properties.Gender = data.Gender.String()
 	}
 
-	updateData := dto.UpdateContactPSMessage{
-		Properties: CRMContactProperties,
-		Phone:      *profile.PrimaryPhone,
-	}
-	if err = p.pubsub.NotifyUpdateContact(ctx, updateData); err != nil {
+	if err = p.pubsub.NotifyUpdateContact(ctx, *contact); err != nil {
 		utils.RecordSpanError(span, err)
 		log.Printf("failed to publish to crm.contact.update topic: %v", err)
 	}
@@ -977,35 +982,6 @@ func (p *ProfileUseCaseImpl) SetPrimaryPhoneNumber(
 	return nil
 }
 
-//SetOptOut toggles the optout attribute to yes or no enabling the crm to stop or start sending promotional messages
-func (p *ProfileUseCaseImpl) SetOptOut(
-	ctx context.Context,
-	option string,
-	phoneNumber string,
-) error {
-	ctx, span := tracer.Start(ctx, "SetOptOut")
-	defer span.End()
-
-	if option != "STOP" && option != "START" {
-		return fmt.Errorf("invalid input")
-	}
-	generalOption := CRMDomain.GeneralOptionTypeNotGiven
-	if option == "STOP" {
-		generalOption = CRMDomain.GeneralOptionTypeYes
-	}
-	if option == "START" {
-		generalOption = CRMDomain.GeneralOptionTypeNo
-	}
-
-	contactLead := &dto.ContactLeadInput{
-		OptOut: generalOption,
-	}
-	err := p.onboardingRepository.UpdateOptOutCRMPayload(ctx, phoneNumber, contactLead)
-	log.Printf("the error that has occurred is %v", err)
-
-	return nil
-}
-
 // SetPrimaryEmailAddress set the primary email address of the user after verifying the otp code
 func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 	ctx context.Context,
@@ -1046,14 +1022,16 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 		return err
 	}
 
-	CRMContactProperties := CRMDomain.ContactProperties{
-		Email: emailAddress,
+	contact, err := p.crm.GetContactByPhone(ctx, *profile.PrimaryPhone)
+	if err != nil {
+		return fmt.Errorf("failed to get contact %s: %w", *profile.PrimaryPhone, err)
 	}
-	updateData := dto.UpdateContactPSMessage{
-		Properties: CRMContactProperties,
-		Phone:      *profile.PrimaryPhone,
+	if contact == nil {
+		return nil
 	}
-	if err = p.pubsub.NotifyUpdateContact(ctx, updateData); err != nil {
+	contact.Properties.Email = *profile.PrimaryPhone
+
+	if err = p.pubsub.NotifyUpdateContact(ctx, *contact); err != nil {
 		utils.RecordSpanError(span, err)
 		log.Printf("failed to publish to crm.contact.update topic: %v", err)
 	}

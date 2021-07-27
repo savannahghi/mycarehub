@@ -60,20 +60,6 @@ func (u *Impl) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumb
 	return profile, err
 }
 
-// UpdateOptOutCRMPayload ...
-func (u *Impl) UpdateOptOutCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
-	validPhoneNumber, err := utils.CheckEmptyString(phoneNumber)
-	if err != nil {
-		return err
-	}
-
-	err = u.onboardingRepository.UpdateOptOutCRMPayload(ctx, *validPhoneNumber, contactLead)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // StageCRMPayload ...
 func (u *Impl) StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error {
 	err := u.onboardingRepository.StageCRMPayload(ctx, payload)
@@ -125,11 +111,6 @@ func (u *Impl) GetOrCreateSessionState(ctx context.Context, payload *dto.Session
 		}
 	}
 	return sessionDetails, nil
-}
-
-// IsOptedOuted checks if a user is opted out
-func (u *Impl) IsOptedOuted(ctx context.Context, phoneNumber string) (bool, error) {
-	return u.onboardingRepository.IsOptedOuted(ctx, phoneNumber)
 }
 
 // GetOrCreatePhoneNumberUser ...

@@ -158,7 +158,7 @@ func TestUSSDImpl_HandleLogin_Unittest(t *testing.T) {
 
 			session, err := u.AITUSSD.GetOrCreateSessionState(ctx, sessionDet)
 			if err != nil {
-				t.Errorf("an error occured %v", err)
+				t.Errorf("an error occurred %v", err)
 				return
 			}
 

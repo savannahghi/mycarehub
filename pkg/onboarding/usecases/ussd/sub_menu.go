@@ -41,8 +41,7 @@ func (u *Impl) HandleHomeMenu(ctx context.Context, level int, session *domain.US
 		return u.WelcomeMenu()
 
 	} else if userResponse == OptOutFromMarketingInput {
-		option := "STOP"
-		err := u.profile.SetOptOut(ctx, option, session.PhoneNumber)
+		_, err := u.crm.OptOut(ctx, session.PhoneNumber)
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			return "END Something went wrong. Please try again."

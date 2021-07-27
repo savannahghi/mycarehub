@@ -137,7 +137,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			)
 			return
 		}
-		if _, err = ps.crm.CreateContact(CRMContact); err != nil {
+		if _, err = ps.crm.CreateHubSpotContact(ctx, &CRMContact); err != nil {
 			ps.baseExt.WriteJSONResponse(
 				w,
 				ps.baseExt.ErrorMap(err),
@@ -147,8 +147,8 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		}
 
 	case ps.AddPubSubNamespace(common.UpdateCRMContact):
-		var contactProperties dto.UpdateContactPSMessage
-		err := json.Unmarshal(message.Message.Data, &contactProperties)
+		var CRMContact domain.CRMContact
+		err := json.Unmarshal(message.Message.Data, &CRMContact)
 		if err != nil {
 			ps.baseExt.WriteJSONResponse(
 				w,
@@ -157,10 +157,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			)
 			return
 		}
-		if _, err = ps.crm.UpdateContact(
-			contactProperties.Phone,
-			contactProperties.Properties,
-		); err != nil {
+		if _, err = ps.crm.UpdateHubSpotContact(ctx, &CRMContact); err != nil {
 			ps.baseExt.WriteJSONResponse(
 				w,
 				ps.baseExt.ErrorMap(err),
