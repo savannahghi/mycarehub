@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	extMock "github.com/savannahghi/onboarding/pkg/onboarding/application/extension/mock"
@@ -16,7 +17,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	mockRepo "github.com/savannahghi/onboarding/pkg/onboarding/repository/mock"
 	"gitlab.slade360emr.com/go/apiclient"
-	"gitlab.slade360emr.com/go/base"
 )
 
 var fakeISCExt extMock.ISCClientExtension
@@ -44,7 +44,7 @@ func TestServiceEDIImpl_LinkCover(t *testing.T) {
 		{
 			name: "Happy Case - Successfully link a cover",
 			args: args{
-				phoneNumber: base.TestUserPhoneNumber,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
 				uid:         uuid.New().String(),
 				pushToken:   []string{uuid.New().String()},
 			},
@@ -54,7 +54,7 @@ func TestServiceEDIImpl_LinkCover(t *testing.T) {
 		{
 			name: "Sad Case - Fail to link a cover",
 			args: args{
-				phoneNumber: base.TestUserPhoneNumber,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
 				uid:         uuid.New().String(),
 				pushToken:   []string{uuid.New().String()},
 			},
