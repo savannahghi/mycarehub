@@ -15,8 +15,8 @@ CMD go mod download
 COPY . /app/
 
 # Set up the credentials needed to fetch private code
-ARG CI_JOB_TOKEN
-RUN git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
+ARG ACCESS_TOKEN
+RUN git config --global url."https://${user}:${ACCESS_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
 
 # Retrieve application dependencies.
 RUN GOPRIVATE="gitlab.slade360emr.com/go/*" go mod download
