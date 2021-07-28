@@ -1,7 +1,7 @@
 # Onboarding service
 
-[![pipeline status](https://github.com/savannahghi/onboarding/badges/develop/pipeline.svg)](https://github.com/savannahghi/onboarding/-/commits/develop)
-[![coverage report](https://github.com/savannahghi/onboarding/badges/develop/coverage.svg)](https://github.com/savannahghi/onboarding/-/commits/develop)
+![Linting and Tests](https://github.com/savannahghi/onboarding/actions/workflows/ci.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/savannahghi/onboarding/badge.svg?branch=main)](https://coveralls.io/github/savannahghi/onboarding?branch=main)
 
 This service manages user onboarding process.
 
@@ -120,80 +120,3 @@ export CHARGE_MASTER_GRANT_TYPE="<an auth server grant type>"
 
 The server deploys to Google Cloud Run. The environment variables defined above
 should also be set on Google Cloud Run.
-
-# login
-
-[![pipeline status](https://gitlab.slade360emr.com/go/login/badges/develop/pipeline.svg)](https://gitlab.slade360emr.com/go/login/-/commits/develop)
-[![coverage report](https://gitlab.slade360emr.com/go/login/badges/develop/coverage.svg)](https://gitlab.slade360emr.com/go/login/-/commits/develop)
-
-A login, logout and refresh micro-service.
-
-# Endpoints
-
-The production service is deployed at https://login-prod.healthcloud.co.ke .
-
-The test service is deployed at https://login-test.healthcloud.co.ke .
-
-There's a service wired to _EDI Core_'s auth server at https://login-core.healthcloud.co.ke/ .
-
-There's another login service wired to _EDI Portal_'s auth server at https://login-portal.healthcloud.co.ke/ .
-
-There's a different login service wired to _Multi-tenant_ auth server at https://login-multitenant.healthcloud.co.ke/ .
-
-# Logging in from the command line
-
-In order to explore the API, you need to log in.
-
-Please adapt the `curl` command below:
-
-```
-curl -v -i -H "Accept: application/json" -H "Content-Type: application/json" -d '{"username": "<a username>", "password": "<a password>"}' https://login-prod.healthcloud.co.ke/login
-```
-
-After logging in, you should look for the `id_token` - that's the value that you need to supply
-to other APIs as part of the `Authorization: Bearer <token>` header.
-
-NB:
-
-1. For the test API, send to https://login-test.healthcloud.co.ke/login
-2. For staging API, send to https://login-staging.healthcloud.co.ke/login
-3. If you want to know which _specific_ auth server is getting called, please take a look at the
-   environment variables at https://console.cloud.google.com/run/detail/europe-west1/login/revisions?project=bewell-app-testing or
-   https://console.cloud.google.com/run/detail/europe-west1/login/revisions?folder=&organizationId=&project=bewell-app .
-
-# Logging in from a web browser (Slade application)
-
-Get an auth server `accessToken` from the regular Slade web app login process.
-
-Exchange it for an ID token as indicated below:
-
-```
-curl -v -i -H "Accept: application/json" -H "Content-Type: application/json" -d '{"accessToken": "<an access token from a valid login session>"}' https://login-prod.healthcloud.co.ke/verify_access_token
-```
-
-NB: send to the test endpoint when testing
-
-The `accessToken` should come from a valid Slade 360 EDI login.
-
-## Important note about the auth server
-
-The access token you use should correspond to the correct EDI frontend, login service and auth server.
-
-For example, the `test` login service is, at the time of writing, connected to accounts-healthcloud.multitenant.slade360.co.ke .
-You can check it yourself at https://console.cloud.google.com/run/detail/europe-west1/login/revisions?project=bewell-app-testing .
-A suitable "release" front-end for experimentation would therefore be https://healthcloud.multitenant.slade360.co.ke/eligibility .
-
-Two `prod` login services will need to be deployed after testing: one that is set up with the portal auth server
-and another that is set up with the EDI core auth server. Providers paying on portal will have their requests
-verified against the portal auth server; our staff on core will have their requests verified against the core
-auth server.
-
-# Switch user to opt-in or opt-out to flagged features
-
-```sh
-http https://profile-testing.healthcloud.co.ke/switch_flagged_features phoneNumber="<phone-number-of-user>"
-
-```
-
-Replace `http` if using `curl`. 
-Replace `https://profile-testing.healthcloud.co.ke` with `https://profile-prod.healthcloud.co.ke` if running in PROD environment
