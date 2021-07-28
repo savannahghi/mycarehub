@@ -324,3 +324,14 @@ input MicroserviceInput {
   url: String!
   description: String!
 }
+
+input RoleInput {
+  name: String!
+  description: String!
+  scopes: [String]
+}
+
+input RolePermissionInput {
+  roleID: String!
+  scope: String!
+}

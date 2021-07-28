@@ -27,8 +27,8 @@ type UserProfileInput struct {
 // server.
 type PostVisitSurveyInput struct {
 	LikelyToRecommend int    `json:"likelyToRecommend" firestore:"likelyToRecommend"`
-	Criticism         string `json:"criticism" firestore:"criticism"`
-	Suggestions       string `json:"suggestions" firestore:"suggestions"`
+	Criticism         string `json:"criticism"         firestore:"criticism"`
+	Suggestions       string `json:"suggestions"       firestore:"suggestions"`
 }
 
 // BusinessPartnerFilterInput is used to supply filter parameters for organizatiom filter inputs
@@ -339,10 +339,10 @@ type ContactLeadInput struct {
 	FirstName      string                      `json:"first_name,omitempty"`
 	LastName       string                      `json:"last_name,omitempty"`
 	DateOfBirth    scalarutils.Date            `json:"date_of_birth,omitempty"`
-	IsSync         bool                        `json:"isSync"  firestore:"IsSync"`
-	TimeSync       *time.Time                  `json:"timeSync"  firestore:"TimeSync"`
+	IsSync         bool                        `json:"isSync"                    firestore:"IsSync"`
+	TimeSync       *time.Time                  `json:"timeSync"                  firestore:"TimeSync"`
 	OptOut         CRMDomain.GeneralOptionType `json:"opt_out,omitempty"`
-	WantCover      bool                        `json:"wantCover" firestore:"wantCover"`
+	WantCover      bool                        `json:"wantCover"                 firestore:"wantCover"`
 	ContactChannel string                      `json:"contact_channel,omitempty"`
 	IsRegistered   bool                        `json:"is_registered,omitempty"`
 }
@@ -395,4 +395,17 @@ type CoverLinkingEvent struct {
 	CoverStatus           string     `firestore:"coverStatus"`
 	MemberNumber          string     `firestore:"memberNumber"`
 	PhoneNumber           string     `firestore:"phoneNumber"`
+}
+
+// RoleInput represents the information required when creating a role
+type RoleInput struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Scopes      []string `json:"scopes"`
+}
+
+// RolePermissionInput input required to create a permission
+type RolePermissionInput struct {
+	RoleID string `json:"roleID"`
+	Scope  string `json:"scope"`
 }

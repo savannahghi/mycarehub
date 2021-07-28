@@ -24,7 +24,7 @@ import (
 
 func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -42,8 +42,11 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 		{
 			name: "valid:_update_profile_uids",
 			args: args{
-				ctx:  ctx,
-				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
+				ctx: ctx,
+				uids: []string{
+					"f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					"5d46d3bd-a482-4787-9b87-3c94510c8b53",
+				},
 			},
 			wantErr: false,
 		},
@@ -51,8 +54,11 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 		{
 			name: "invalid:_unable_to_get_logged_in_user",
 			args: args{
-				ctx:  ctx,
-				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
+				ctx: ctx,
+				uids: []string{
+					"f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					"5d46d3bd-a482-4787-9b87-3c94510c8b53",
+				},
 			},
 			wantErr: true,
 		},
@@ -60,8 +66,11 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 		{
 			name: "invalid:_unable_to_get_profile_of_logged_in_user",
 			args: args{
-				ctx:  ctx,
-				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
+				ctx: ctx,
+				uids: []string{
+					"f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					"5d46d3bd-a482-4787-9b87-3c94510c8b53",
+				},
 			},
 			wantErr: true,
 		},
@@ -130,7 +139,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedUIDS(t *testing.T) {
 
 func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -248,7 +257,7 @@ func TestProfileUseCaseImpl_UpdateSecondaryEmailAddresses(t *testing.T) {
 
 func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -324,7 +333,7 @@ func TestProfileUseCaseImpl_UpdateUserName(t *testing.T) {
 
 func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -444,7 +453,7 @@ func TestProfileUseCaseImpl_UpdateVerifiedIdentifiers(t *testing.T) {
 
 func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -609,7 +618,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 
 func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -955,7 +964,7 @@ func TestProfileUseCaseImpl_SetPrimaryEmailAddress(t *testing.T) {
 
 func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1075,7 +1084,7 @@ func TestProfileUseCaseImpl_UpdatePermissions(t *testing.T) {
 
 func TestProfileUseCaseImpl_AddRoleToUser(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1164,7 +1173,7 @@ func TestProfileUseCaseImpl_AddRoleToUser(t *testing.T) {
 
 func TestProfileUseCaseImpl_RemoveRoleToUser(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1250,7 +1259,7 @@ func TestProfileUseCaseImpl_RemoveRoleToUser(t *testing.T) {
 
 func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1382,7 +1391,9 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 					uid string,
 					suspended bool,
 				) (*profileutils.UserProfile, error) {
-					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
+					return nil, exceptions.ProfileNotFoundError(
+						fmt.Errorf("user profile not found"),
+					)
 				}
 			}
 
@@ -1411,7 +1422,7 @@ func TestProfileUseCaseImpl_GetUserProfileAttributes(t *testing.T) {
 
 func TestProfileUseCaseImpl_ConfirmedEmailAddresses(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -1468,7 +1479,9 @@ func TestProfileUseCaseImpl_ConfirmedEmailAddresses(t *testing.T) {
 					uid string,
 					suspended bool,
 				) (*profileutils.UserProfile, error) {
-					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
+					return nil, exceptions.ProfileNotFoundError(
+						fmt.Errorf("user profile not found"),
+					)
 				}
 			}
 
@@ -1495,7 +1508,7 @@ func TestProfileUseCaseImpl_ConfirmedEmailAddresses(t *testing.T) {
 
 func TestProfileUseCaseImpl_ConfirmedPhoneNumbers(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -1550,7 +1563,9 @@ func TestProfileUseCaseImpl_ConfirmedPhoneNumbers(t *testing.T) {
 					uid string,
 					suspended bool,
 				) (*profileutils.UserProfile, error) {
-					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
+					return nil, exceptions.ProfileNotFoundError(
+						fmt.Errorf("user profile not found"),
+					)
 				}
 			}
 
@@ -1577,7 +1592,7 @@ func TestProfileUseCaseImpl_ConfirmedPhoneNumbers(t *testing.T) {
 
 func TestProfileUseCaseImpl_validFCM(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -1630,7 +1645,9 @@ func TestProfileUseCaseImpl_validFCM(t *testing.T) {
 					uid string,
 					suspended bool,
 				) (*profileutils.UserProfile, error) {
-					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
+					return nil, exceptions.ProfileNotFoundError(
+						fmt.Errorf("user profile not found"),
+					)
 				}
 			}
 
@@ -1657,7 +1674,7 @@ func TestProfileUseCaseImpl_validFCM(t *testing.T) {
 
 func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1789,7 +1806,9 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 					uid string,
 					suspended bool,
 				) (*profileutils.UserProfile, error) {
-					return nil, exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
+					return nil, exceptions.ProfileNotFoundError(
+						fmt.Errorf("user profile not found"),
+					)
 				}
 			}
 
@@ -1818,7 +1837,7 @@ func TestProfileUseCaseImpl_ProfileAttributes(t *testing.T) {
 
 func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -2041,7 +2060,7 @@ func TestProfileUseCaseImpl_UpdateSuspended(t *testing.T) {
 
 func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -2284,7 +2303,11 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 
 			}
 
-			err := i.Onboarding.UpdatePrimaryPhoneNumber(tt.args.ctx, tt.args.phone, tt.args.useContext)
+			err := i.Onboarding.UpdatePrimaryPhoneNumber(
+				tt.args.ctx,
+				tt.args.phone,
+				tt.args.useContext,
+			)
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("error expected got %v", err)
@@ -2303,7 +2326,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 
 func TestProfileUseCase_UpdateBioData(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -2649,7 +2672,7 @@ func TestProfileUseCase_UpdateBioData(t *testing.T) {
 
 func TestProfileUseCase_CheckPhoneExists(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -2739,7 +2762,7 @@ func TestProfileUseCase_CheckPhoneExists(t *testing.T) {
 func TestProfileUseCase_CheckEmailExists(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -2806,7 +2829,7 @@ func TestProfileUseCase_CheckEmailExists(t *testing.T) {
 func TestProfileUseCaseImpl_UpdatePhotoUploadID(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -2904,7 +2927,11 @@ func TestProfileUseCaseImpl_UpdatePhotoUploadID(t *testing.T) {
 			}
 			err := i.Onboarding.UpdatePhotoUploadID(tt.args.ctx, tt.args.uploadID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.UpdatePhotoUploadID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"ProfileUseCaseImpl.UpdatePhotoUploadID() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 			}
 
 			if tt.wantErr {
@@ -2926,7 +2953,7 @@ func TestProfileUseCaseImpl_UpdatePhotoUploadID(t *testing.T) {
 func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -3098,7 +3125,7 @@ func TestProfileUseCaseImpl_AddAddress(t *testing.T) {
 func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -3227,7 +3254,11 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 
 			_, err := i.Onboarding.GetAddresses(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.GetAddresses() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"ProfileUseCaseImpl.GetAddresses() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 
@@ -3250,7 +3281,7 @@ func TestProfileUseCaseImpl_GetAddresses(t *testing.T) {
 func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -3329,7 +3360,11 @@ func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
 
 			_, err := i.Onboarding.GetUserCommunicationsSettings(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.GetUserCommunicationsSettings() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"ProfileUseCaseImpl.GetUserCommunicationsSettings() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 
@@ -3352,7 +3387,7 @@ func TestProfileUseCaseImpl_GetUserCommunicationsSettings(t *testing.T) {
 func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -3452,10 +3487,19 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 				}
 			}
 
-			_, err := i.Onboarding.SetUserCommunicationsSettings(tt.args.ctx, &tt.args.allowWhatsApp,
-				&tt.args.allowTextSms, &tt.args.allowEmail, &tt.args.allowPush)
+			_, err := i.Onboarding.SetUserCommunicationsSettings(
+				tt.args.ctx,
+				&tt.args.allowWhatsApp,
+				&tt.args.allowTextSms,
+				&tt.args.allowEmail,
+				&tt.args.allowPush,
+			)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.SetUserCommunicationsSettings() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"ProfileUseCaseImpl.SetUserCommunicationsSettings() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 
@@ -3478,7 +3522,7 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -3755,7 +3799,7 @@ func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
 func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -3883,7 +3927,11 @@ func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 			}
 			got, err := i.Onboarding.SaveFavoriteNavActions(tt.args.ctx, tt.args.title)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.SaveFavoriteNavActions() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"ProfileUseCaseImpl.SaveFavoriteNavActions() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if got != tt.want {
@@ -3896,7 +3944,7 @@ func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -4023,11 +4071,19 @@ func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
 			}
 			got, err := i.Onboarding.DeleteFavoriteNavActions(tt.args.ctx, tt.args.title)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.DeleteFavoriteNavActions() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"ProfileUseCaseImpl.DeleteFavoriteNavActions() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("ProfileUseCaseImpl.DeleteFavoriteNavActions() = %v, want %v", got, tt.want)
+				t.Errorf(
+					"ProfileUseCaseImpl.DeleteFavoriteNavActions() = %v, want %v",
+					got,
+					tt.want,
+				)
 			}
 		})
 	}
@@ -4036,7 +4092,7 @@ func TestProfileUseCaseImpl_DeleteFavoriteNavActions(t *testing.T) {
 func TestProfileUseCaseImpl_RefreshNavigationActions(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -4105,12 +4161,20 @@ func TestProfileUseCaseImpl_RefreshNavigationActions(t *testing.T) {
 
 			got, err := i.Onboarding.RefreshNavigationActions(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.RefreshNavigationActions() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"ProfileUseCaseImpl.RefreshNavigationActions() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !tt.wantNil {
 				if got == nil {
-					t.Errorf("ProfileUseCaseImpl.RefreshNavigationActions() = %v, want %v", got, tt.wantNil)
+					t.Errorf(
+						"ProfileUseCaseImpl.RefreshNavigationActions() = %v, want %v",
+						got,
+						tt.wantNil,
+					)
 				}
 			}
 		})

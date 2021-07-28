@@ -16,13 +16,25 @@ type SupplierRepository interface {
 	// supplier methods
 	GetSupplierProfileByID(ctx context.Context, id string) (*profileutils.Supplier, error)
 
-	GetSupplierProfileByProfileID(ctx context.Context, profileID string) (*profileutils.Supplier, error)
+	GetSupplierProfileByProfileID(
+		ctx context.Context,
+		profileID string,
+	) (*profileutils.Supplier, error)
 
 	UpdateSupplierProfile(ctx context.Context, profileID string, data *profileutils.Supplier) error
 
-	AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *profileutils.PartnerType) (bool, error)
+	AddPartnerType(
+		ctx context.Context,
+		profileID string,
+		name *string,
+		partnerType *profileutils.PartnerType,
+	) (bool, error)
 
-	AddSupplierAccountType(ctx context.Context, profileID string, accountType profileutils.AccountType) (*profileutils.Supplier, error)
+	AddSupplierAccountType(
+		ctx context.Context,
+		profileID string,
+		accountType profileutils.AccountType,
+	) (*profileutils.Supplier, error)
 
 	StageProfileNudge(ctx context.Context, nudge *feedlib.Nudge) error
 
@@ -32,7 +44,11 @@ type SupplierRepository interface {
 	RemoveKYCProcessingRequest(ctx context.Context, supplierProfileID string) error
 
 	// sets the active attribute of supplier profile to true
-	ActivateSupplierProfile(ctx context.Context, profileID string, supplier profileutils.Supplier) (*profileutils.Supplier, error)
+	ActivateSupplierProfile(
+		ctx context.Context,
+		profileID string,
+		supplier profileutils.Supplier,
+	) (*profileutils.Supplier, error)
 
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 
@@ -47,7 +63,10 @@ type CustomerRepository interface {
 	// customer methods
 	GetCustomerProfileByID(ctx context.Context, id string) (*profileutils.Customer, error)
 
-	GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*profileutils.Customer, error)
+	GetCustomerProfileByProfileID(
+		ctx context.Context,
+		profileID string,
+	) (*profileutils.Customer, error)
 
 	UpdateCustomerProfile(
 		ctx context.Context,
@@ -64,32 +83,67 @@ type OnboardingRepository interface {
 
 	CustomerRepository
 
+	RolesRepository
+
 	// creates a user profile of using the provided phone number and uid
-	CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*profileutils.UserProfile, error)
+	CreateUserProfile(
+		ctx context.Context,
+		phoneNumber, uid string,
+	) (*profileutils.UserProfile, error)
 
 	// creates a new user profile that is pre-filled using the provided phone number
-	CreateDetailedUserProfile(ctx context.Context, phoneNumber string, profile profileutils.UserProfile) (*profileutils.UserProfile, error)
+	CreateDetailedUserProfile(
+		ctx context.Context,
+		phoneNumber string,
+		profile profileutils.UserProfile,
+	) (*profileutils.UserProfile, error)
 
 	// creates an empty supplier profile
-	CreateEmptySupplierProfile(ctx context.Context, profileID string) (*profileutils.Supplier, error)
+	CreateEmptySupplierProfile(
+		ctx context.Context,
+		profileID string,
+	) (*profileutils.Supplier, error)
 
 	// create a new supplier profile that is pre-filled using the provided profile ID
-	CreateDetailedSupplierProfile(ctx context.Context, profileID string, supplier profileutils.Supplier) (*profileutils.Supplier, error)
+	CreateDetailedSupplierProfile(
+		ctx context.Context,
+		profileID string,
+		supplier profileutils.Supplier,
+	) (*profileutils.Supplier, error)
 
 	// creates an empty customer profile
-	CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*profileutils.Customer, error)
+	CreateEmptyCustomerProfile(
+		ctx context.Context,
+		profileID string,
+	) (*profileutils.Customer, error)
 
 	// fetches a user profile by uid
-	GetUserProfileByUID(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error)
+	GetUserProfileByUID(
+		ctx context.Context,
+		uid string,
+		suspended bool,
+	) (*profileutils.UserProfile, error)
 
 	// fetches a user profile by id. returns the unsuspend profile
-	GetUserProfileByID(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error)
+	GetUserProfileByID(
+		ctx context.Context,
+		id string,
+		suspended bool,
+	) (*profileutils.UserProfile, error)
 
 	// fetches a user profile by phone number
-	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error)
+	GetUserProfileByPhoneNumber(
+		ctx context.Context,
+		phoneNumber string,
+		suspended bool,
+	) (*profileutils.UserProfile, error)
 
 	// fetches a user profile by primary phone number
-	GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspend bool) (*profileutils.UserProfile, error)
+	GetUserProfileByPrimaryPhoneNumber(
+		ctx context.Context,
+		phoneNumber string,
+		suspend bool,
+	) (*profileutils.UserProfile, error)
 
 	// checks if a specific phone number has already been registered to another user
 	CheckIfPhoneNumberExists(ctx context.Context, phone string) (bool, error)
@@ -100,18 +154,32 @@ type OnboardingRepository interface {
 	// checks if a specific username has already been registered to another user
 	CheckIfUsernameExists(ctx context.Context, phone string) (bool, error)
 
-	GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*profileutils.AuthCredentialResponse, error)
+	GenerateAuthCredentialsForAnonymousUser(
+		ctx context.Context,
+	) (*profileutils.AuthCredentialResponse, error)
 
-	GenerateAuthCredentials(ctx context.Context, phone string, profile *profileutils.UserProfile) (*profileutils.AuthCredentialResponse, error)
+	GenerateAuthCredentials(
+		ctx context.Context,
+		phone string,
+		profile *profileutils.UserProfile,
+	) (*profileutils.AuthCredentialResponse, error)
 
 	FetchAdminUsers(ctx context.Context) ([]*profileutils.UserProfile, error)
 
 	// removes user completely. This should be used only under testing environment
 	PurgeUserByPhoneNumber(ctx context.Context, phone string) error
 
-	HardResetSecondaryPhoneNumbers(ctx context.Context, profile *profileutils.UserProfile, newSecondaryPhones []string) error
+	HardResetSecondaryPhoneNumbers(
+		ctx context.Context,
+		profile *profileutils.UserProfile,
+		newSecondaryPhones []string,
+	) error
 
-	HardResetSecondaryEmailAddress(ctx context.Context, profile *profileutils.UserProfile, newSecondaryEmails []string) error
+	HardResetSecondaryEmailAddress(
+		ctx context.Context,
+		profile *profileutils.UserProfile,
+		newSecondaryEmails []string,
+	) error
 
 	// PINs
 	GetPINByProfileID(
@@ -143,9 +211,15 @@ type OnboardingRepository interface {
 
 	GetOrCreatePhoneNumberUser(ctx context.Context, phone string) (*dto.CreatedUserResponse, error)
 
-	AddUserAsExperimentParticipant(ctx context.Context, profile *profileutils.UserProfile) (bool, error)
+	AddUserAsExperimentParticipant(
+		ctx context.Context,
+		profile *profileutils.UserProfile,
+	) (bool, error)
 
-	RemoveUserAsExperimentParticipant(ctx context.Context, profile *profileutils.UserProfile) (bool, error)
+	RemoveUserAsExperimentParticipant(
+		ctx context.Context,
+		profile *profileutils.UserProfile,
+	) (bool, error)
 
 	CheckIfExperimentParticipant(ctx context.Context, profileID string) (bool, error)
 
@@ -160,24 +234,41 @@ type OnboardingRepository interface {
 		profileID string,
 	) (*domain.NHIFDetails, error)
 
-	GetUserCommunicationsSettings(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error)
+	GetUserCommunicationsSettings(
+		ctx context.Context,
+		profileID string,
+	) (*profileutils.UserCommunicationsSetting, error)
 
 	SetUserCommunicationsSettings(ctx context.Context, profileID string,
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error)
 
 	PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error
 
-	AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error)
+	AddAITSessionDetails(
+		ctx context.Context,
+		input *dto.SessionDetails,
+	) (*domain.USSDLeadDetails, error)
 	GetAITSessionDetails(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error)
-	UpdateSessionLevel(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error)
-	UpdateSessionPIN(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error)
+	UpdateSessionLevel(
+		ctx context.Context,
+		sessionID string,
+		level int,
+	) (*domain.USSDLeadDetails, error)
+	UpdateSessionPIN(
+		ctx context.Context,
+		sessionID string,
+		pin string,
+	) (*domain.USSDLeadDetails, error)
 
 	UpdateAITSessionDetails(ctx context.Context, phoneNumber string, payload *domain.USSDLeadDetails) error
 	GetAITDetails(ctx context.Context, phoneNumber string) (*domain.USSDLeadDetails, error)
 
 	SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
 
-	SaveCoverAutolinkingEvents(ctx context.Context, input *dto.CoverLinkingEvent) (*dto.CoverLinkingEvent, error)
+	SaveCoverAutolinkingEvents(
+		ctx context.Context,
+		input *dto.CoverLinkingEvent,
+	) (*dto.CoverLinkingEvent, error)
 }
 
 // UserProfileRepository interface that provide access to all persistent storage operations for user profile
@@ -187,7 +278,11 @@ type UserProfileRepository interface {
 	UpdatePrimaryEmailAddress(ctx context.Context, id string, emailAddress string) error
 	UpdateSecondaryPhoneNumbers(ctx context.Context, id string, phoneNumbers []string) error
 	UpdateSecondaryEmailAddresses(ctx context.Context, id string, emailAddresses []string) error
-	UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []profileutils.VerifiedIdentifier) error
+	UpdateVerifiedIdentifiers(
+		ctx context.Context,
+		id string,
+		identifiers []profileutils.VerifiedIdentifier,
+	) error
 	UpdateVerifiedUIDS(ctx context.Context, id string, uids []string) error
 	UpdateSuspended(ctx context.Context, id string, status bool) error
 	UpdatePhotoUploadID(ctx context.Context, id string, uploadID string) error
@@ -196,7 +291,23 @@ type UserProfileRepository interface {
 	UpdatePermissions(ctx context.Context, id string, perms []profileutils.PermissionType) error
 	UpdateRole(ctx context.Context, id string, role profileutils.RoleType) error
 	UpdateBioData(ctx context.Context, id string, data profileutils.BioData) error
-	UpdateAddresses(ctx context.Context, id string, address profileutils.Address, addressType enumutils.AddressType) error
+	UpdateAddresses(
+		ctx context.Context,
+		id string,
+		address profileutils.Address,
+		addressType enumutils.AddressType,
+	) error
 	UpdateFavNavActions(ctx context.Context, id string, favActions []string) error
-	ListUserProfiles(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error)
+	ListUserProfiles(
+		ctx context.Context,
+		role profileutils.RoleType,
+	) ([]*profileutils.UserProfile, error)
+}
+
+//RolesRepository interface that provide access to all persistent storage operations for roles
+type RolesRepository interface {
+	CreateRole(ctx context.Context, role profileutils.Role) (*profileutils.Role, error)
+	GetRolesByIDs(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error)
+	GetRoleByID(ctx context.Context, roleID string) (*profileutils.Role, error)
+	UpdateRoleDetails(ctx context.Context, role profileutils.Role) error
 }

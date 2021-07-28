@@ -266,9 +266,11 @@ type ComplexityRoot struct {
 		AddOrganizationProviderKyc       func(childComplexity int, input domain.OrganizationProvider) int
 		AddOrganizationRiderKyc          func(childComplexity int, input domain.OrganizationRider) int
 		AddPartnerType                   func(childComplexity int, name string, partnerType profileutils.PartnerType) int
+		AddPermissionsToRole             func(childComplexity int, input dto.RolePermissionInput) int
 		AddSecondaryEmailAddress         func(childComplexity int, email []string) int
 		AddSecondaryPhoneNumber          func(childComplexity int, phone []string) int
 		CompleteSignup                   func(childComplexity int, flavour feedlib.Flavour) int
+		CreateRole                       func(childComplexity int, input dto.RoleInput) int
 		DeactivateAgent                  func(childComplexity int, agentID string) int
 		DeleteFavoriteNavAction          func(childComplexity int, title string) int
 		DeregisterAllMicroservices       func(childComplexity int) int
@@ -424,6 +426,13 @@ type ComplexityRoot struct {
 		Tag         func(childComplexity int) int
 	}
 
+	Permission struct {
+		Allowed     func(childComplexity int) int
+		Description func(childComplexity int) int
+		Group       func(childComplexity int) int
+		Scope       func(childComplexity int) int
+	}
+
 	Query struct {
 		CheckSupplierKYCSubmitted     func(childComplexity int) int
 		DummyQuery                    func(childComplexity int) int
@@ -453,6 +462,14 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 		Number      func(childComplexity int) int
 		Tag         func(childComplexity int) int
+	}
+
+	RoleOutput struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Permissions func(childComplexity int) int
+		Scopes      func(childComplexity int) int
 	}
 
 	ServicesOffered struct {
@@ -589,6 +606,8 @@ type MutationResolver interface {
 	RegisterMicroservice(ctx context.Context, input domain.Microservice) (*domain.Microservice, error)
 	DeregisterMicroservice(ctx context.Context, id string) (bool, error)
 	DeregisterAllMicroservices(ctx context.Context) (bool, error)
+	CreateRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
+	AddPermissionsToRole(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
 }
 type QueryResolver interface {
 	DummyQuery(ctx context.Context) (*bool, error)
@@ -1684,6 +1703,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddPartnerType(childComplexity, args["name"].(string), args["partnerType"].(profileutils.PartnerType)), true
 
+	case "Mutation.addPermissionsToRole":
+		if e.complexity.Mutation.AddPermissionsToRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addPermissionsToRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddPermissionsToRole(childComplexity, args["input"].(dto.RolePermissionInput)), true
+
 	case "Mutation.addSecondaryEmailAddress":
 		if e.complexity.Mutation.AddSecondaryEmailAddress == nil {
 			break
@@ -1719,6 +1750,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CompleteSignup(childComplexity, args["flavour"].(feedlib.Flavour)), true
+
+	case "Mutation.createRole":
+		if e.complexity.Mutation.CreateRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateRole(childComplexity, args["input"].(dto.RoleInput)), true
 
 	case "Mutation.deactivateAgent":
 		if e.complexity.Mutation.DeactivateAgent == nil {
@@ -2654,6 +2697,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PayablesAccount.Tag(childComplexity), true
 
+	case "Permission.allowed":
+		if e.complexity.Permission.Allowed == nil {
+			break
+		}
+
+		return e.complexity.Permission.Allowed(childComplexity), true
+
+	case "Permission.description":
+		if e.complexity.Permission.Description == nil {
+			break
+		}
+
+		return e.complexity.Permission.Description(childComplexity), true
+
+	case "Permission.group":
+		if e.complexity.Permission.Group == nil {
+			break
+		}
+
+		return e.complexity.Permission.Group(childComplexity), true
+
+	case "Permission.scope":
+		if e.complexity.Permission.Scope == nil {
+			break
+		}
+
+		return e.complexity.Permission.Scope(childComplexity), true
+
 	case "Query.checkSupplierKYCSubmitted":
 		if e.complexity.Query.CheckSupplierKYCSubmitted == nil {
 			break
@@ -2853,6 +2924,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ReceivablesAccount.Tag(childComplexity), true
+
+	case "RoleOutput.description":
+		if e.complexity.RoleOutput.Description == nil {
+			break
+		}
+
+		return e.complexity.RoleOutput.Description(childComplexity), true
+
+	case "RoleOutput.id":
+		if e.complexity.RoleOutput.ID == nil {
+			break
+		}
+
+		return e.complexity.RoleOutput.ID(childComplexity), true
+
+	case "RoleOutput.name":
+		if e.complexity.RoleOutput.Name == nil {
+			break
+		}
+
+		return e.complexity.RoleOutput.Name(childComplexity), true
+
+	case "RoleOutput.permissions":
+		if e.complexity.RoleOutput.Permissions == nil {
+			break
+		}
+
+		return e.complexity.RoleOutput.Permissions(childComplexity), true
+
+	case "RoleOutput.scopes":
+		if e.complexity.RoleOutput.Scopes == nil {
+			break
+		}
+
+		return e.complexity.RoleOutput.Scopes(childComplexity), true
 
 	case "ServicesOffered.otherServices":
 		if e.complexity.ServicesOffered.OtherServices == nil {
@@ -3462,6 +3568,16 @@ enum LinkType {
   SVG_IMAGE
   DEFAULT
 }
+
+enum PermissionGroup {
+  PermissionGroupRole
+  PermissionGroupEmployee
+  PermissionGroupAgent
+  PermissionGroupPartner
+  PermissionGroupKYC
+  PermissionGroupConsumer
+  PermissionGroupPatient
+}
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/external.graphql", Input: `# supported content types
 enum ContentType {
@@ -3903,6 +4019,17 @@ input MicroserviceInput {
   url: String!
   description: String!
 }
+
+input RoleInput {
+  name: String!
+  description: String!
+  scopes: [String]
+}
+
+input RolePermissionInput {
+  roleID: String!
+  scope: String!
+}
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
   # dummy query is a temporary query used to force-create a new schema version on schema registry
@@ -4060,6 +4187,10 @@ extend type Mutation {
   deregisterMicroservice(id: String!): Boolean!
 
   deregisterAllMicroservices: Boolean!
+
+  createRole(input: RoleInput!): RoleOutput!
+
+  addPermissionsToRole(input: RolePermissionInput!): RoleOutput!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -4545,6 +4676,21 @@ type Microservice @key(fields: "id") {
   url: String!
   description: String!
 }
+
+type RoleOutput {
+  id: String!
+  name: String!
+  description: String!
+  scopes: [String]
+  permissions: [Permission]
+}
+
+type Permission {
+  scope: String
+  description: String!
+  group: PermissionGroup!
+  allowed: Boolean
+}
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 scalar _Any
@@ -4650,7 +4796,7 @@ func (ec *executionContext) field_Mutation_addAddress_args(ctx context.Context, 
 	var arg0 dto.UserAddressInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUserAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserAddressInput(ctx, tmp)
+		arg0, err = ec.unmarshalNUserAddressInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserAddressInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4674,7 +4820,7 @@ func (ec *executionContext) field_Mutation_addIndividualCoachKYC_args(ctx contex
 	var arg0 domain.IndividualCoach
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIndividualCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualCoach(ctx, tmp)
+		arg0, err = ec.unmarshalNIndividualCoachInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualCoach(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4689,7 +4835,7 @@ func (ec *executionContext) field_Mutation_addIndividualNutritionKYC_args(ctx co
 	var arg0 domain.IndividualNutrition
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIndividualNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualNutrition(ctx, tmp)
+		arg0, err = ec.unmarshalNIndividualNutritionInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualNutrition(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4704,7 +4850,7 @@ func (ec *executionContext) field_Mutation_addIndividualPharmaceuticalKYC_args(c
 	var arg0 domain.IndividualPharmaceutical
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIndividualPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualPharmaceutical(ctx, tmp)
+		arg0, err = ec.unmarshalNIndividualPharmaceuticalInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualPharmaceutical(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4719,7 +4865,7 @@ func (ec *executionContext) field_Mutation_addIndividualPractitionerKYC_args(ctx
 	var arg0 domain.IndividualPractitioner
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIndividualPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualPractitioner(ctx, tmp)
+		arg0, err = ec.unmarshalNIndividualPractitionerInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualPractitioner(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4734,7 +4880,7 @@ func (ec *executionContext) field_Mutation_addIndividualRiderKYC_args(ctx contex
 	var arg0 domain.IndividualRider
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIndividualRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualRider(ctx, tmp)
+		arg0, err = ec.unmarshalNIndividualRiderInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualRider(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4749,7 +4895,7 @@ func (ec *executionContext) field_Mutation_addNHIFDetails_args(ctx context.Conte
 	var arg0 dto.NHIFDetailsInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNHIFDetailsInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐNHIFDetailsInput(ctx, tmp)
+		arg0, err = ec.unmarshalNNHIFDetailsInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐNHIFDetailsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4764,7 +4910,7 @@ func (ec *executionContext) field_Mutation_addOrganizationCoachKYC_args(ctx cont
 	var arg0 domain.OrganizationCoach
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationCoach(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationCoachInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationCoach(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4779,7 +4925,7 @@ func (ec *executionContext) field_Mutation_addOrganizationNutritionKYC_args(ctx 
 	var arg0 domain.OrganizationNutrition
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationNutrition(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationNutritionInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationNutrition(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4794,7 +4940,7 @@ func (ec *executionContext) field_Mutation_addOrganizationPharmaceuticalKYC_args
 	var arg0 domain.OrganizationPharmaceutical
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationPharmaceutical(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationPharmaceuticalInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationPharmaceutical(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4809,7 +4955,7 @@ func (ec *executionContext) field_Mutation_addOrganizationPractitionerKYC_args(c
 	var arg0 domain.OrganizationPractitioner
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationPractitioner(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationPractitionerInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationPractitioner(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4824,7 +4970,7 @@ func (ec *executionContext) field_Mutation_addOrganizationProviderKYC_args(ctx c
 	var arg0 domain.OrganizationProvider
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationProviderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationProvider(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationProviderInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationProvider(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4839,7 +4985,7 @@ func (ec *executionContext) field_Mutation_addOrganizationRiderKYC_args(ctx cont
 	var arg0 domain.OrganizationRider
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOrganizationRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationRider(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationRiderInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationRider(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4869,6 +5015,21 @@ func (ec *executionContext) field_Mutation_addPartnerType_args(ctx context.Conte
 		}
 	}
 	args["partnerType"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addPermissionsToRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.RolePermissionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNRolePermissionInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRolePermissionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -4914,6 +5075,21 @@ func (ec *executionContext) field_Mutation_completeSignup_args(ctx context.Conte
 		}
 	}
 	args["flavour"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.RoleInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNRoleInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -4977,7 +5153,7 @@ func (ec *executionContext) field_Mutation_processKYCRequest_args(ctx context.Co
 	var arg1 domain.KYCProcessStatus
 	if tmp, ok := rawArgs["status"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-		arg1, err = ec.unmarshalNKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx, tmp)
+		arg1, err = ec.unmarshalNKYCProcessStatus2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5001,7 +5177,7 @@ func (ec *executionContext) field_Mutation_recordPostVisitSurvey_args(ctx contex
 	var arg0 dto.PostVisitSurveyInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNPostVisitSurveyInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐPostVisitSurveyInput(ctx, tmp)
+		arg0, err = ec.unmarshalNPostVisitSurveyInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐPostVisitSurveyInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5016,7 +5192,7 @@ func (ec *executionContext) field_Mutation_registerAdmin_args(ctx context.Contex
 	var arg0 dto.RegisterAdminInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNRegisterAdminInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAdminInput(ctx, tmp)
+		arg0, err = ec.unmarshalNRegisterAdminInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAdminInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5031,7 +5207,7 @@ func (ec *executionContext) field_Mutation_registerAgent_args(ctx context.Contex
 	var arg0 dto.RegisterAgentInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNRegisterAgentInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAgentInput(ctx, tmp)
+		arg0, err = ec.unmarshalNRegisterAgentInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAgentInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5046,7 +5222,7 @@ func (ec *executionContext) field_Mutation_registerMicroservice_args(ctx context
 	var arg0 domain.Microservice
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNMicroserviceInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, tmp)
+		arg0, err = ec.unmarshalNMicroserviceInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5343,7 +5519,7 @@ func (ec *executionContext) field_Mutation_updateUserProfile_args(ctx context.Co
 	var arg0 dto.UserProfileInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUserProfileInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserProfileInput(ctx, tmp)
+		arg0, err = ec.unmarshalNUserProfileInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserProfileInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5412,7 +5588,7 @@ func (ec *executionContext) field_Query_findBranch_args(ctx context.Context, raw
 	var arg1 []*dto.BranchFilterInput
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg1, err = ec.unmarshalOBranchFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx, tmp)
+		arg1, err = ec.unmarshalOBranchFilterInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5421,7 +5597,7 @@ func (ec *executionContext) field_Query_findBranch_args(ctx context.Context, raw
 	var arg2 []*dto.BranchSortInput
 	if tmp, ok := rawArgs["sort"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
-		arg2, err = ec.unmarshalOBranchSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx, tmp)
+		arg2, err = ec.unmarshalOBranchSortInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5445,7 +5621,7 @@ func (ec *executionContext) field_Query_findProvider_args(ctx context.Context, r
 	var arg1 []*dto.BusinessPartnerFilterInput
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg1, err = ec.unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx, tmp)
+		arg1, err = ec.unmarshalOBusinessPartnerFilterInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5454,7 +5630,7 @@ func (ec *executionContext) field_Query_findProvider_args(ctx context.Context, r
 	var arg2 []*dto.BusinessPartnerSortInput
 	if tmp, ok := rawArgs["sort"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
-		arg2, err = ec.unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx, tmp)
+		arg2, err = ec.unmarshalOBusinessPartnerSortInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6433,7 +6609,7 @@ func (ec *executionContext) _Beneficiary_relationship(ctx context.Context, field
 	}
 	res := resTmp.(domain.BeneficiaryRelationship)
 	fc.Result = res
-	return ec.marshalNBeneficiaryRelationship2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐBeneficiaryRelationship(ctx, field.Selections, res)
+	return ec.marshalNBeneficiaryRelationship2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐBeneficiaryRelationship(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Beneficiary_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *model.Beneficiary) (ret graphql.Marshaler) {
@@ -6768,7 +6944,7 @@ func (ec *executionContext) _BranchConnection_edges(ctx context.Context, field g
 	}
 	res := resTmp.([]*dto.BranchEdge)
 	fc.Result = res
-	return ec.marshalOBranchEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx, field.Selections, res)
+	return ec.marshalOBranchEdge2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _BranchConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *dto.BranchConnection) (ret graphql.Marshaler) {
@@ -6867,7 +7043,7 @@ func (ec *executionContext) _BranchEdge_node(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*domain.Branch)
 	fc.Result = res
-	return ec.marshalOBranch2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐBranch(ctx, field.Selections, res)
+	return ec.marshalOBranch2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐBranch(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _BusinessPartner_id(ctx context.Context, field graphql.CollectedField, obj *domain.BusinessPartner) (ret graphql.Marshaler) {
@@ -7036,7 +7212,7 @@ func (ec *executionContext) _BusinessPartnerConnection_edges(ctx context.Context
 	}
 	res := resTmp.([]*dto.BusinessPartnerEdge)
 	fc.Result = res
-	return ec.marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx, field.Selections, res)
+	return ec.marshalOBusinessPartnerEdge2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _BusinessPartnerConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *dto.BusinessPartnerConnection) (ret graphql.Marshaler) {
@@ -7135,7 +7311,7 @@ func (ec *executionContext) _BusinessPartnerEdge_node(ctx context.Context, field
 	}
 	res := resTmp.(*domain.BusinessPartner)
 	fc.Result = res
-	return ec.marshalOBusinessPartner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐBusinessPartner(ctx, field.Selections, res)
+	return ec.marshalOBusinessPartner2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐBusinessPartner(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Cover_payerName(ctx context.Context, field graphql.CollectedField, obj *profileutils.Cover) (ret graphql.Marshaler) {
@@ -7480,7 +7656,7 @@ func (ec *executionContext) _Entity_findMicroserviceByID(ctx context.Context, fi
 	}
 	res := resTmp.(*domain.Microservice)
 	fc.Result = res
-	return ec.marshalNMicroservice2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, field.Selections, res)
+	return ec.marshalNMicroservice2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Entity_findPageInfoByHasNextPage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -7704,7 +7880,7 @@ func (ec *executionContext) _IndividualCoach_identificationDoc(ctx context.Conte
 	}
 	res := resTmp.(domain.Identification)
 	fc.Result = res
-	return ec.marshalNIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
+	return ec.marshalNIdentification2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualCoach_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualCoach) (ret graphql.Marshaler) {
@@ -7806,7 +7982,7 @@ func (ec *executionContext) _IndividualCoach_supportingDocuments(ctx context.Con
 	}
 	res := resTmp.([]domain.SupportingDocument)
 	fc.Result = res
-	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
+	return ec.marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualCoach_practiceLicenseID(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualCoach) (ret graphql.Marshaler) {
@@ -7978,7 +8154,7 @@ func (ec *executionContext) _IndividualNutrition_identificationDoc(ctx context.C
 	}
 	res := resTmp.(domain.Identification)
 	fc.Result = res
-	return ec.marshalNIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
+	return ec.marshalNIdentification2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualNutrition_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualNutrition) (ret graphql.Marshaler) {
@@ -8080,7 +8256,7 @@ func (ec *executionContext) _IndividualNutrition_supportingDocuments(ctx context
 	}
 	res := resTmp.([]domain.SupportingDocument)
 	fc.Result = res
-	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
+	return ec.marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualNutrition_practiceLicenseID(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualNutrition) (ret graphql.Marshaler) {
@@ -8185,7 +8361,7 @@ func (ec *executionContext) _IndividualPharmaceutical_identificationDoc(ctx cont
 	}
 	res := resTmp.(domain.Identification)
 	fc.Result = res
-	return ec.marshalNIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
+	return ec.marshalNIdentification2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualPharmaceutical_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualPharmaceutical) (ret graphql.Marshaler) {
@@ -8287,7 +8463,7 @@ func (ec *executionContext) _IndividualPharmaceutical_supportingDocuments(ctx co
 	}
 	res := resTmp.([]domain.SupportingDocument)
 	fc.Result = res
-	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
+	return ec.marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualPharmaceutical_registrationNumber(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualPharmaceutical) (ret graphql.Marshaler) {
@@ -8424,7 +8600,7 @@ func (ec *executionContext) _IndividualPractitioner_identificationDoc(ctx contex
 	}
 	res := resTmp.(domain.Identification)
 	fc.Result = res
-	return ec.marshalNIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
+	return ec.marshalNIdentification2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualPractitioner_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualPractitioner) (ret graphql.Marshaler) {
@@ -8526,7 +8702,7 @@ func (ec *executionContext) _IndividualPractitioner_supportingDocuments(ctx cont
 	}
 	res := resTmp.([]domain.SupportingDocument)
 	fc.Result = res
-	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
+	return ec.marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualPractitioner_registrationNumber(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualPractitioner) (ret graphql.Marshaler) {
@@ -8666,7 +8842,7 @@ func (ec *executionContext) _IndividualPractitioner_practiceServices(ctx context
 	}
 	res := resTmp.([]domain.PractitionerService)
 	fc.Result = res
-	return ec.marshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, field.Selections, res)
+	return ec.marshalNPractitionerService2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualPractitioner_cadre(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualPractitioner) (ret graphql.Marshaler) {
@@ -8701,7 +8877,7 @@ func (ec *executionContext) _IndividualPractitioner_cadre(ctx context.Context, f
 	}
 	res := resTmp.(domain.PractitionerCadre)
 	fc.Result = res
-	return ec.marshalNPractitionerCadre2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx, field.Selections, res)
+	return ec.marshalNPractitionerCadre2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualRider_identificationDoc(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualRider) (ret graphql.Marshaler) {
@@ -8736,7 +8912,7 @@ func (ec *executionContext) _IndividualRider_identificationDoc(ctx context.Conte
 	}
 	res := resTmp.(domain.Identification)
 	fc.Result = res
-	return ec.marshalNIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
+	return ec.marshalNIdentification2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IndividualRider_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *domain.IndividualRider) (ret graphql.Marshaler) {
@@ -8940,7 +9116,7 @@ func (ec *executionContext) _IndividualRider_supportingDocuments(ctx context.Con
 	}
 	res := resTmp.([]domain.SupportingDocument)
 	fc.Result = res
-	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
+	return ec.marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _KYCRequest_id(ctx context.Context, field graphql.CollectedField, obj *domain.KYCRequest) (ret graphql.Marshaler) {
@@ -9042,7 +9218,7 @@ func (ec *executionContext) _KYCRequest_reqOrganizationType(ctx context.Context,
 	}
 	res := resTmp.(domain.OrganizationType)
 	fc.Result = res
-	return ec.marshalOOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
+	return ec.marshalOOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _KYCRequest_reqRaw(ctx context.Context, field graphql.CollectedField, obj *domain.KYCRequest) (ret graphql.Marshaler) {
@@ -9179,7 +9355,7 @@ func (ec *executionContext) _KYCRequest_status(ctx context.Context, field graphq
 	}
 	res := resTmp.(domain.KYCProcessStatus)
 	fc.Result = res
-	return ec.marshalOKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx, field.Selections, res)
+	return ec.marshalOKYCProcessStatus2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _KYCRequest_filedTimestamp(ctx context.Context, field graphql.CollectedField, obj *domain.KYCRequest) (ret graphql.Marshaler) {
@@ -10304,7 +10480,7 @@ func (ec *executionContext) _Mutation_supplierEDILogin(ctx context.Context, fiel
 	}
 	res := resTmp.(*dto.SupplierLogin)
 	fc.Result = res
-	return ec.marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐSupplierLogin(ctx, field.Selections, res)
+	return ec.marshalNSupplierLogin2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐSupplierLogin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_supplierSetDefaultLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10388,7 +10564,7 @@ func (ec *executionContext) _Mutation_addIndividualRiderKYC(ctx context.Context,
 	}
 	res := resTmp.(*domain.IndividualRider)
 	fc.Result = res
-	return ec.marshalNIndividualRider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualRider(ctx, field.Selections, res)
+	return ec.marshalNIndividualRider2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualRider(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addOrganizationRiderKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10430,7 +10606,7 @@ func (ec *executionContext) _Mutation_addOrganizationRiderKYC(ctx context.Contex
 	}
 	res := resTmp.(*domain.OrganizationRider)
 	fc.Result = res
-	return ec.marshalNOrganizationRider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationRider(ctx, field.Selections, res)
+	return ec.marshalNOrganizationRider2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationRider(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addIndividualPractitionerKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10472,7 +10648,7 @@ func (ec *executionContext) _Mutation_addIndividualPractitionerKYC(ctx context.C
 	}
 	res := resTmp.(*domain.IndividualPractitioner)
 	fc.Result = res
-	return ec.marshalNIndividualPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualPractitioner(ctx, field.Selections, res)
+	return ec.marshalNIndividualPractitioner2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualPractitioner(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addOrganizationPractitionerKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10514,7 +10690,7 @@ func (ec *executionContext) _Mutation_addOrganizationPractitionerKYC(ctx context
 	}
 	res := resTmp.(*domain.OrganizationPractitioner)
 	fc.Result = res
-	return ec.marshalNOrganizationPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationPractitioner(ctx, field.Selections, res)
+	return ec.marshalNOrganizationPractitioner2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationPractitioner(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addOrganizationProviderKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10556,7 +10732,7 @@ func (ec *executionContext) _Mutation_addOrganizationProviderKYC(ctx context.Con
 	}
 	res := resTmp.(*domain.OrganizationProvider)
 	fc.Result = res
-	return ec.marshalNOrganizationProvider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationProvider(ctx, field.Selections, res)
+	return ec.marshalNOrganizationProvider2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationProvider(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addIndividualPharmaceuticalKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10598,7 +10774,7 @@ func (ec *executionContext) _Mutation_addIndividualPharmaceuticalKYC(ctx context
 	}
 	res := resTmp.(*domain.IndividualPharmaceutical)
 	fc.Result = res
-	return ec.marshalNIndividualPharmaceutical2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualPharmaceutical(ctx, field.Selections, res)
+	return ec.marshalNIndividualPharmaceutical2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualPharmaceutical(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addOrganizationPharmaceuticalKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10640,7 +10816,7 @@ func (ec *executionContext) _Mutation_addOrganizationPharmaceuticalKYC(ctx conte
 	}
 	res := resTmp.(*domain.OrganizationPharmaceutical)
 	fc.Result = res
-	return ec.marshalNOrganizationPharmaceutical2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationPharmaceutical(ctx, field.Selections, res)
+	return ec.marshalNOrganizationPharmaceutical2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationPharmaceutical(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addIndividualCoachKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10682,7 +10858,7 @@ func (ec *executionContext) _Mutation_addIndividualCoachKYC(ctx context.Context,
 	}
 	res := resTmp.(*domain.IndividualCoach)
 	fc.Result = res
-	return ec.marshalNIndividualCoach2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualCoach(ctx, field.Selections, res)
+	return ec.marshalNIndividualCoach2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualCoach(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addOrganizationCoachKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10724,7 +10900,7 @@ func (ec *executionContext) _Mutation_addOrganizationCoachKYC(ctx context.Contex
 	}
 	res := resTmp.(*domain.OrganizationCoach)
 	fc.Result = res
-	return ec.marshalNOrganizationCoach2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationCoach(ctx, field.Selections, res)
+	return ec.marshalNOrganizationCoach2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationCoach(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addIndividualNutritionKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10766,7 +10942,7 @@ func (ec *executionContext) _Mutation_addIndividualNutritionKYC(ctx context.Cont
 	}
 	res := resTmp.(*domain.IndividualNutrition)
 	fc.Result = res
-	return ec.marshalNIndividualNutrition2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualNutrition(ctx, field.Selections, res)
+	return ec.marshalNIndividualNutrition2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualNutrition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addOrganizationNutritionKYC(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10808,7 +10984,7 @@ func (ec *executionContext) _Mutation_addOrganizationNutritionKYC(ctx context.Co
 	}
 	res := resTmp.(*domain.OrganizationNutrition)
 	fc.Result = res
-	return ec.marshalNOrganizationNutrition2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationNutrition(ctx, field.Selections, res)
+	return ec.marshalNOrganizationNutrition2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationNutrition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_processKYCRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11011,7 +11187,7 @@ func (ec *executionContext) _Mutation_addNHIFDetails(ctx context.Context, field 
 	}
 	res := resTmp.(*domain.NHIFDetails)
 	fc.Result = res
-	return ec.marshalNNHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx, field.Selections, res)
+	return ec.marshalNNHIFDetails2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addAddress(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11389,7 +11565,7 @@ func (ec *executionContext) _Mutation_registerMicroservice(ctx context.Context, 
 	}
 	res := resTmp.(*domain.Microservice)
 	fc.Result = res
-	return ec.marshalNMicroservice2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, field.Selections, res)
+	return ec.marshalNMicroservice2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deregisterMicroservice(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11467,6 +11643,90 @@ func (ec *executionContext) _Mutation_deregisterAllMicroservices(ctx context.Con
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createRole_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateRole(rctx, args["input"].(dto.RoleInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*dto.RoleOutput)
+	fc.Result = res
+	return ec.marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addPermissionsToRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addPermissionsToRole_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddPermissionsToRole(rctx, args["input"].(dto.RolePermissionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*dto.RoleOutput)
+	fc.Result = res
+	return ec.marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NHIFDetails_id(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
@@ -11606,7 +11866,7 @@ func (ec *executionContext) _NHIFDetails_employment(ctx context.Context, field g
 	}
 	res := resTmp.(domain.EmploymentType)
 	fc.Result = res
-	return ec.marshalNEmploymentType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx, field.Selections, res)
+	return ec.marshalNEmploymentType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NHIFDetails_idDocType(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
@@ -12069,7 +12329,7 @@ func (ec *executionContext) _OrganizationCoach_organizationTypeName(ctx context.
 	}
 	res := resTmp.(domain.OrganizationType)
 	fc.Result = res
-	return ec.marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
+	return ec.marshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationCoach_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationCoach) (ret graphql.Marshaler) {
@@ -12171,7 +12431,7 @@ func (ec *executionContext) _OrganizationCoach_supportingDocuments(ctx context.C
 	}
 	res := resTmp.([]domain.SupportingDocument)
 	fc.Result = res
-	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
+	return ec.marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationCoach_certificateOfIncorporation(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationCoach) (ret graphql.Marshaler) {
@@ -12267,7 +12527,7 @@ func (ec *executionContext) _OrganizationCoach_directorIdentifications(ctx conte
 	}
 	res := resTmp.([]domain.Identification)
 	fc.Result = res
-	return ec.marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
+	return ec.marshalOIdentification2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationCoach_organizationCertificate(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationCoach) (ret graphql.Marshaler) {
@@ -12439,7 +12699,7 @@ func (ec *executionContext) _OrganizationNutrition_organizationTypeName(ctx cont
 	}
 	res := resTmp.(domain.OrganizationType)
 	fc.Result = res
-	return ec.marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
+	return ec.marshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationNutrition_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationNutrition) (ret graphql.Marshaler) {
@@ -12541,7 +12801,7 @@ func (ec *executionContext) _OrganizationNutrition_supportingDocuments(ctx conte
 	}
 	res := resTmp.([]domain.SupportingDocument)
 	fc.Result = res
-	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
+	return ec.marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationNutrition_certificateOfIncorporation(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationNutrition) (ret graphql.Marshaler) {
@@ -12637,7 +12897,7 @@ func (ec *executionContext) _OrganizationNutrition_directorIdentifications(ctx c
 	}
 	res := resTmp.([]domain.Identification)
 	fc.Result = res
-	return ec.marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
+	return ec.marshalOIdentification2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationNutrition_organizationCertificate(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationNutrition) (ret graphql.Marshaler) {
@@ -12809,7 +13069,7 @@ func (ec *executionContext) _OrganizationPharmaceutical_organizationTypeName(ctx
 	}
 	res := resTmp.(domain.OrganizationType)
 	fc.Result = res
-	return ec.marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
+	return ec.marshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationPharmaceutical_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationPharmaceutical) (ret graphql.Marshaler) {
@@ -12911,7 +13171,7 @@ func (ec *executionContext) _OrganizationPharmaceutical_supportingDocuments(ctx 
 	}
 	res := resTmp.([]domain.SupportingDocument)
 	fc.Result = res
-	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
+	return ec.marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationPharmaceutical_certificateOfIncorporation(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationPharmaceutical) (ret graphql.Marshaler) {
@@ -13007,7 +13267,7 @@ func (ec *executionContext) _OrganizationPharmaceutical_directorIdentifications(
 	}
 	res := resTmp.([]domain.Identification)
 	fc.Result = res
-	return ec.marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
+	return ec.marshalOIdentification2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationPharmaceutical_organizationCertificate(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationPharmaceutical) (ret graphql.Marshaler) {
@@ -13179,7 +13439,7 @@ func (ec *executionContext) _OrganizationPractitioner_organizationTypeName(ctx c
 	}
 	res := resTmp.(domain.OrganizationType)
 	fc.Result = res
-	return ec.marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
+	return ec.marshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationPractitioner_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationPractitioner) (ret graphql.Marshaler) {
@@ -13281,7 +13541,7 @@ func (ec *executionContext) _OrganizationPractitioner_supportingDocuments(ctx co
 	}
 	res := resTmp.([]domain.SupportingDocument)
 	fc.Result = res
-	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
+	return ec.marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationPractitioner_certificateOfIncorporation(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationPractitioner) (ret graphql.Marshaler) {
@@ -13377,7 +13637,7 @@ func (ec *executionContext) _OrganizationPractitioner_directorIdentifications(ct
 	}
 	res := resTmp.([]domain.Identification)
 	fc.Result = res
-	return ec.marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
+	return ec.marshalOIdentification2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationPractitioner_organizationCertificate(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationPractitioner) (ret graphql.Marshaler) {
@@ -13514,7 +13774,7 @@ func (ec *executionContext) _OrganizationPractitioner_practiceServices(ctx conte
 	}
 	res := resTmp.([]domain.PractitionerService)
 	fc.Result = res
-	return ec.marshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, field.Selections, res)
+	return ec.marshalNPractitionerService2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationPractitioner_cadre(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationPractitioner) (ret graphql.Marshaler) {
@@ -13549,7 +13809,7 @@ func (ec *executionContext) _OrganizationPractitioner_cadre(ctx context.Context,
 	}
 	res := resTmp.(domain.PractitionerCadre)
 	fc.Result = res
-	return ec.marshalNPractitionerCadre2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx, field.Selections, res)
+	return ec.marshalNPractitionerCadre2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationProvider_organizationTypeName(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationProvider) (ret graphql.Marshaler) {
@@ -13584,7 +13844,7 @@ func (ec *executionContext) _OrganizationProvider_organizationTypeName(ctx conte
 	}
 	res := resTmp.(domain.OrganizationType)
 	fc.Result = res
-	return ec.marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
+	return ec.marshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationProvider_KRAPIN(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationProvider) (ret graphql.Marshaler) {
@@ -13686,7 +13946,7 @@ func (ec *executionContext) _OrganizationProvider_supportingDocuments(ctx contex
 	}
 	res := resTmp.([]domain.SupportingDocument)
 	fc.Result = res
-	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
+	return ec.marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationProvider_certificateOfIncorporation(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationProvider) (ret graphql.Marshaler) {
@@ -13782,7 +14042,7 @@ func (ec *executionContext) _OrganizationProvider_directorIdentifications(ctx co
 	}
 	res := resTmp.([]domain.Identification)
 	fc.Result = res
-	return ec.marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
+	return ec.marshalOIdentification2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationProvider_organizationCertificate(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationProvider) (ret graphql.Marshaler) {
@@ -13954,7 +14214,7 @@ func (ec *executionContext) _OrganizationProvider_practiceServices(ctx context.C
 	}
 	res := resTmp.([]domain.PractitionerService)
 	fc.Result = res
-	return ec.marshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, field.Selections, res)
+	return ec.marshalNPractitionerService2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationRider_organizationTypeName(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationRider) (ret graphql.Marshaler) {
@@ -13989,7 +14249,7 @@ func (ec *executionContext) _OrganizationRider_organizationTypeName(ctx context.
 	}
 	res := resTmp.(domain.OrganizationType)
 	fc.Result = res
-	return ec.marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
+	return ec.marshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationRider_certificateOfIncorporation(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationRider) (ret graphql.Marshaler) {
@@ -14085,7 +14345,7 @@ func (ec *executionContext) _OrganizationRider_directorIdentifications(ctx conte
 	}
 	res := resTmp.([]domain.Identification)
 	fc.Result = res
-	return ec.marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
+	return ec.marshalOIdentification2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganizationRider_organizationCertificate(ctx context.Context, field graphql.CollectedField, obj *domain.OrganizationRider) (ret graphql.Marshaler) {
@@ -14219,7 +14479,7 @@ func (ec *executionContext) _OrganizationRider_supportingDocuments(ctx context.C
 	}
 	res := resTmp.([]domain.SupportingDocument)
 	fc.Result = res
-	return ec.marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
+	return ec.marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *firebasetools.PageInfo) (ret graphql.Marshaler) {
@@ -14566,6 +14826,140 @@ func (ec *executionContext) _PayablesAccount_description(ctx context.Context, fi
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Permission_scope(ctx context.Context, field graphql.CollectedField, obj *profileutils.Permission) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Permission",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Scope, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Permission_description(ctx context.Context, field graphql.CollectedField, obj *profileutils.Permission) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Permission",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Permission_group(ctx context.Context, field graphql.CollectedField, obj *profileutils.Permission) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Permission",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Group, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profileutils.PermissionGroup)
+	fc.Result = res
+	return ec.marshalNPermissionGroup2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Permission_allowed(ctx context.Context, field graphql.CollectedField, obj *profileutils.Permission) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Permission",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Allowed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_dummyQuery(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14749,7 +15143,7 @@ func (ec *executionContext) _Query_findProvider(ctx context.Context, field graph
 	}
 	res := resTmp.(*dto.BusinessPartnerConnection)
 	fc.Result = res
-	return ec.marshalNBusinessPartnerConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerConnection(ctx, field.Selections, res)
+	return ec.marshalNBusinessPartnerConnection2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_findBranch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14791,7 +15185,7 @@ func (ec *executionContext) _Query_findBranch(ctx context.Context, field graphql
 	}
 	res := resTmp.(*dto.BranchConnection)
 	fc.Result = res
-	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx, field.Selections, res)
+	return ec.marshalNBranchConnection2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_fetchSupplierAllowedLocations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14826,7 +15220,7 @@ func (ec *executionContext) _Query_fetchSupplierAllowedLocations(ctx context.Con
 	}
 	res := resTmp.(*dto.BranchConnection)
 	fc.Result = res
-	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx, field.Selections, res)
+	return ec.marshalNBranchConnection2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_fetchKYCProcessingRequests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14858,7 +15252,7 @@ func (ec *executionContext) _Query_fetchKYCProcessingRequests(ctx context.Contex
 	}
 	res := resTmp.([]*domain.KYCRequest)
 	fc.Result = res
-	return ec.marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx, field.Selections, res)
+	return ec.marshalOKYCRequest2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getAddresses(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14893,7 +15287,7 @@ func (ec *executionContext) _Query_getAddresses(ctx context.Context, field graph
 	}
 	res := resTmp.(*domain.UserAddresses)
 	fc.Result = res
-	return ec.marshalNUserAddresses2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserAddresses(ctx, field.Selections, res)
+	return ec.marshalNUserAddresses2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐUserAddresses(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_NHIFDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14925,7 +15319,7 @@ func (ec *executionContext) _Query_NHIFDetails(ctx context.Context, field graphq
 	}
 	res := resTmp.(*domain.NHIFDetails)
 	fc.Result = res
-	return ec.marshalONHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx, field.Selections, res)
+	return ec.marshalONHIFDetails2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getUserCommunicationsSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15027,7 +15421,7 @@ func (ec *executionContext) _Query_fetchAdmins(ctx context.Context, field graphq
 	}
 	res := resTmp.([]*dto.Admin)
 	fc.Result = res
-	return ec.marshalOAdmin2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx, field.Selections, res)
+	return ec.marshalOAdmin2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_fetchAgents(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15059,7 +15453,7 @@ func (ec *executionContext) _Query_fetchAgents(ctx context.Context, field graphq
 	}
 	res := resTmp.([]*dto.Agent)
 	fc.Result = res
-	return ec.marshalOAgent2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, field.Selections, res)
+	return ec.marshalOAgent2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_findAgentbyPhone(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15098,7 +15492,7 @@ func (ec *executionContext) _Query_findAgentbyPhone(ctx context.Context, field g
 	}
 	res := resTmp.(*dto.Agent)
 	fc.Result = res
-	return ec.marshalOAgent2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, field.Selections, res)
+	return ec.marshalOAgent2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_fetchUserNavigationActions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15165,7 +15559,7 @@ func (ec *executionContext) _Query_listMicroservices(ctx context.Context, field 
 	}
 	res := resTmp.([]*domain.Microservice)
 	fc.Result = res
-	return ec.marshalNMicroservice2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroserviceᚄ(ctx, field.Selections, res)
+	return ec.marshalNMicroservice2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroserviceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15526,6 +15920,175 @@ func (ec *executionContext) _ReceivablesAccount_description(ctx context.Context,
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _RoleOutput_id(ctx context.Context, field graphql.CollectedField, obj *dto.RoleOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RoleOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RoleOutput_name(ctx context.Context, field graphql.CollectedField, obj *dto.RoleOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RoleOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RoleOutput_description(ctx context.Context, field graphql.CollectedField, obj *dto.RoleOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RoleOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RoleOutput_scopes(ctx context.Context, field graphql.CollectedField, obj *dto.RoleOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RoleOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Scopes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RoleOutput_permissions(ctx context.Context, field graphql.CollectedField, obj *dto.RoleOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RoleOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Permissions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]profileutils.Permission)
+	fc.Result = res
+	return ec.marshalOPermission2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermission(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ServicesOffered_services(ctx context.Context, field graphql.CollectedField, obj *model.ServicesOffered) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15558,7 +16121,7 @@ func (ec *executionContext) _ServicesOffered_services(ctx context.Context, field
 	}
 	res := resTmp.([]domain.PractitionerService)
 	fc.Result = res
-	return ec.marshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, field.Selections, res)
+	return ec.marshalNPractitionerService2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServicesOffered_otherServices(ctx context.Context, field graphql.CollectedField, obj *model.ServicesOffered) (ret graphql.Marshaler) {
@@ -16205,7 +16768,7 @@ func (ec *executionContext) _SupplierLogin_branches(ctx context.Context, field g
 	}
 	res := resTmp.(*dto.BranchConnection)
 	fc.Result = res
-	return ec.marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx, field.Selections, res)
+	return ec.marshalNBranchConnection2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SupplierLogin_supplier(ctx context.Context, field graphql.CollectedField, obj *dto.SupplierLogin) (ret graphql.Marshaler) {
@@ -16450,7 +17013,7 @@ func (ec *executionContext) _UserAddresses_homeAddress(ctx context.Context, fiel
 	}
 	res := resTmp.(domain.ThinAddress)
 	fc.Result = res
-	return ec.marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx, field.Selections, res)
+	return ec.marshalNThinAddress2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserAddresses_workAddress(ctx context.Context, field graphql.CollectedField, obj *domain.UserAddresses) (ret graphql.Marshaler) {
@@ -16485,7 +17048,7 @@ func (ec *executionContext) _UserAddresses_workAddress(ctx context.Context, fiel
 	}
 	res := resTmp.(domain.ThinAddress)
 	fc.Result = res
-	return ec.marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx, field.Selections, res)
+	return ec.marshalNThinAddress2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserCommunicationsSetting_id(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserCommunicationsSetting) (ret graphql.Marshaler) {
@@ -18477,7 +19040,7 @@ func (ec *executionContext) unmarshalInputBeneficiaryInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("relationship"))
-			it.Relationship, err = ec.unmarshalNBeneficiaryRelationship2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐBeneficiaryRelationship(ctx, v)
+			it.Relationship, err = ec.unmarshalNBeneficiaryRelationship2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐBeneficiaryRelationship(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18741,7 +19304,7 @@ func (ec *executionContext) unmarshalInputIndividualCoachInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
-			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18765,7 +19328,7 @@ func (ec *executionContext) unmarshalInputIndividualCoachInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocuments"))
-			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
+			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18817,7 +19380,7 @@ func (ec *executionContext) unmarshalInputIndividualNutritionInput(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
-			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18841,7 +19404,7 @@ func (ec *executionContext) unmarshalInputIndividualNutritionInput(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocuments"))
-			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
+			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18877,7 +19440,7 @@ func (ec *executionContext) unmarshalInputIndividualPharmaceuticalInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
-			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18901,7 +19464,7 @@ func (ec *executionContext) unmarshalInputIndividualPharmaceuticalInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocuments"))
-			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
+			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18945,7 +19508,7 @@ func (ec *executionContext) unmarshalInputIndividualPractitionerInput(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
-			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18969,7 +19532,7 @@ func (ec *executionContext) unmarshalInputIndividualPractitionerInput(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocuments"))
-			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
+			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19001,7 +19564,7 @@ func (ec *executionContext) unmarshalInputIndividualPractitionerInput(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceServices"))
-			it.PracticeServices, err = ec.unmarshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, v)
+			it.PracticeServices, err = ec.unmarshalNPractitionerService2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19009,7 +19572,7 @@ func (ec *executionContext) unmarshalInputIndividualPractitionerInput(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cadre"))
-			it.Cadre, err = ec.unmarshalNPractitionerCadre2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx, v)
+			it.Cadre, err = ec.unmarshalNPractitionerCadre2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19029,7 +19592,7 @@ func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationDoc"))
-			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
+			it.IdentificationDoc, err = ec.unmarshalNIdentificationInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19053,7 +19616,7 @@ func (ec *executionContext) unmarshalInputIndividualRiderInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocuments"))
-			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
+			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19177,7 +19740,7 @@ func (ec *executionContext) unmarshalInputNHIFDetailsInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("employment"))
-			it.Employment, err = ec.unmarshalNEmploymentType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx, v)
+			it.Employment, err = ec.unmarshalNEmploymentType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19229,7 +19792,7 @@ func (ec *executionContext) unmarshalInputOrganizationCoachInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
-			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
+			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19253,7 +19816,7 @@ func (ec *executionContext) unmarshalInputOrganizationCoachInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocuments"))
-			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
+			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19277,7 +19840,7 @@ func (ec *executionContext) unmarshalInputOrganizationCoachInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19329,7 +19892,7 @@ func (ec *executionContext) unmarshalInputOrganizationNutritionInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
-			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
+			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19353,7 +19916,7 @@ func (ec *executionContext) unmarshalInputOrganizationNutritionInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocuments"))
-			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
+			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19377,7 +19940,7 @@ func (ec *executionContext) unmarshalInputOrganizationNutritionInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19429,7 +19992,7 @@ func (ec *executionContext) unmarshalInputOrganizationPharmaceuticalInput(ctx co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
-			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
+			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19453,7 +20016,7 @@ func (ec *executionContext) unmarshalInputOrganizationPharmaceuticalInput(ctx co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocuments"))
-			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
+			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19477,7 +20040,7 @@ func (ec *executionContext) unmarshalInputOrganizationPharmaceuticalInput(ctx co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19529,7 +20092,7 @@ func (ec *executionContext) unmarshalInputOrganizationPractitionerInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
-			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
+			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19553,7 +20116,7 @@ func (ec *executionContext) unmarshalInputOrganizationPractitionerInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocuments"))
-			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
+			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19577,7 +20140,7 @@ func (ec *executionContext) unmarshalInputOrganizationPractitionerInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19617,7 +20180,7 @@ func (ec *executionContext) unmarshalInputOrganizationPractitionerInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceServices"))
-			it.PracticeServices, err = ec.unmarshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, v)
+			it.PracticeServices, err = ec.unmarshalNPractitionerService2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19625,7 +20188,7 @@ func (ec *executionContext) unmarshalInputOrganizationPractitionerInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cadre"))
-			it.Cadre, err = ec.unmarshalNPractitionerCadre2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx, v)
+			it.Cadre, err = ec.unmarshalNPractitionerCadre2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19645,7 +20208,7 @@ func (ec *executionContext) unmarshalInputOrganizationProviderInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
-			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
+			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19669,7 +20232,7 @@ func (ec *executionContext) unmarshalInputOrganizationProviderInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocuments"))
-			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
+			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19693,7 +20256,7 @@ func (ec *executionContext) unmarshalInputOrganizationProviderInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19733,7 +20296,7 @@ func (ec *executionContext) unmarshalInputOrganizationProviderInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("practiceServices"))
-			it.PracticeServices, err = ec.unmarshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, v)
+			it.PracticeServices, err = ec.unmarshalNPractitionerService2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19753,7 +20316,7 @@ func (ec *executionContext) unmarshalInputOrganizationRiderInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationTypeName"))
-			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
+			it.OrganizationTypeName, err = ec.unmarshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19777,7 +20340,7 @@ func (ec *executionContext) unmarshalInputOrganizationRiderInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("supportingDocuments"))
-			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
+			it.SupportingDocuments, err = ec.unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19801,7 +20364,7 @@ func (ec *executionContext) unmarshalInputOrganizationRiderInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directorIdentifications"))
-			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
+			it.DirectorIdentifications, err = ec.unmarshalOIdentificationInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19929,7 +20492,7 @@ func (ec *executionContext) unmarshalInputPractitionerServiceInput(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("services"))
-			it.Services, err = ec.unmarshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, v)
+			it.Services, err = ec.unmarshalNPractitionerService2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20050,6 +20613,70 @@ func (ec *executionContext) unmarshalInputRegisterAgentInput(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
 			it.DateOfBirth, err = ec.unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRoleInput(ctx context.Context, obj interface{}) (dto.RoleInput, error) {
+	var it dto.RoleInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "scopes":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scopes"))
+			it.Scopes, err = ec.unmarshalOString2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRolePermissionInput(ctx context.Context, obj interface{}) (dto.RolePermissionInput, error) {
+	var it dto.RolePermissionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "roleID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleID"))
+			it.RoleID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "scope":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scope"))
+			it.Scope, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -21530,6 +22157,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "createRole":
+			out.Values[i] = ec._Mutation_createRole(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addPermissionsToRole":
+			out.Values[i] = ec._Mutation_addPermissionsToRole(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -22142,6 +22779,42 @@ func (ec *executionContext) _PayablesAccount(ctx context.Context, sel ast.Select
 	return out
 }
 
+var permissionImplementors = []string{"Permission"}
+
+func (ec *executionContext) _Permission(ctx context.Context, sel ast.SelectionSet, obj *profileutils.Permission) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, permissionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Permission")
+		case "scope":
+			out.Values[i] = ec._Permission_scope(ctx, field, obj)
+		case "description":
+			out.Values[i] = ec._Permission_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "group":
+			out.Values[i] = ec._Permission_group(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "allowed":
+			out.Values[i] = ec._Permission_allowed(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -22458,6 +23131,47 @@ func (ec *executionContext) _ReceivablesAccount(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var roleOutputImplementors = []string{"RoleOutput"}
+
+func (ec *executionContext) _RoleOutput(ctx context.Context, sel ast.SelectionSet, obj *dto.RoleOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, roleOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RoleOutput")
+		case "id":
+			out.Values[i] = ec._RoleOutput_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._RoleOutput_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			out.Values[i] = ec._RoleOutput_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "scopes":
+			out.Values[i] = ec._RoleOutput_scopes(ctx, field, obj)
+		case "permissions":
+			out.Values[i] = ec._RoleOutput_permissions(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -23208,13 +23922,13 @@ func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNBeneficiaryRelationship2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐBeneficiaryRelationship(ctx context.Context, v interface{}) (domain.BeneficiaryRelationship, error) {
+func (ec *executionContext) unmarshalNBeneficiaryRelationship2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐBeneficiaryRelationship(ctx context.Context, v interface{}) (domain.BeneficiaryRelationship, error) {
 	var res domain.BeneficiaryRelationship
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNBeneficiaryRelationship2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐBeneficiaryRelationship(ctx context.Context, sel ast.SelectionSet, v domain.BeneficiaryRelationship) graphql.Marshaler {
+func (ec *executionContext) marshalNBeneficiaryRelationship2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐBeneficiaryRelationship(ctx context.Context, sel ast.SelectionSet, v domain.BeneficiaryRelationship) graphql.Marshaler {
 	return v
 }
 
@@ -23233,11 +23947,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNBranchConnection2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx context.Context, sel ast.SelectionSet, v dto.BranchConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNBranchConnection2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx context.Context, sel ast.SelectionSet, v dto.BranchConnection) graphql.Marshaler {
 	return ec._BranchConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx context.Context, sel ast.SelectionSet, v *dto.BranchConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNBranchConnection2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchConnection(ctx context.Context, sel ast.SelectionSet, v *dto.BranchConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23247,11 +23961,11 @@ func (ec *executionContext) marshalNBranchConnection2ᚖgitlabᚗslade360emrᚗc
 	return ec._BranchConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBusinessPartnerConnection2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, v dto.BusinessPartnerConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNBusinessPartnerConnection2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, v dto.BusinessPartnerConnection) graphql.Marshaler {
 	return ec._BusinessPartnerConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBusinessPartnerConnection2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, v *dto.BusinessPartnerConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNBusinessPartnerConnection2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerConnection(ctx context.Context, sel ast.SelectionSet, v *dto.BusinessPartnerConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23287,13 +24001,13 @@ func (ec *executionContext) marshalNDate2ᚖgithubᚗcomᚋsavannahghiᚋscalaru
 	return v
 }
 
-func (ec *executionContext) unmarshalNEmploymentType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx context.Context, v interface{}) (domain.EmploymentType, error) {
+func (ec *executionContext) unmarshalNEmploymentType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx context.Context, v interface{}) (domain.EmploymentType, error) {
 	var res domain.EmploymentType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNEmploymentType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx context.Context, sel ast.SelectionSet, v domain.EmploymentType) graphql.Marshaler {
+func (ec *executionContext) marshalNEmploymentType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx context.Context, sel ast.SelectionSet, v domain.EmploymentType) graphql.Marshaler {
 	return v
 }
 
@@ -23357,7 +24071,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) marshalNIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, sel ast.SelectionSet, v domain.Identification) graphql.Marshaler {
+func (ec *executionContext) marshalNIdentification2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, sel ast.SelectionSet, v domain.Identification) graphql.Marshaler {
 	return ec._Identification(ctx, sel, &v)
 }
 
@@ -23371,16 +24085,16 @@ func (ec *executionContext) marshalNIdentificationDocType2githubᚗcomᚋsavanna
 	return v
 }
 
-func (ec *executionContext) unmarshalNIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, v interface{}) (domain.Identification, error) {
+func (ec *executionContext) unmarshalNIdentificationInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, v interface{}) (domain.Identification, error) {
 	res, err := ec.unmarshalInputIdentificationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNIndividualCoach2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualCoach(ctx context.Context, sel ast.SelectionSet, v domain.IndividualCoach) graphql.Marshaler {
+func (ec *executionContext) marshalNIndividualCoach2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualCoach(ctx context.Context, sel ast.SelectionSet, v domain.IndividualCoach) graphql.Marshaler {
 	return ec._IndividualCoach(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNIndividualCoach2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualCoach(ctx context.Context, sel ast.SelectionSet, v *domain.IndividualCoach) graphql.Marshaler {
+func (ec *executionContext) marshalNIndividualCoach2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualCoach(ctx context.Context, sel ast.SelectionSet, v *domain.IndividualCoach) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23390,16 +24104,16 @@ func (ec *executionContext) marshalNIndividualCoach2ᚖgitlabᚗslade360emrᚗco
 	return ec._IndividualCoach(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNIndividualCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualCoach(ctx context.Context, v interface{}) (domain.IndividualCoach, error) {
+func (ec *executionContext) unmarshalNIndividualCoachInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualCoach(ctx context.Context, v interface{}) (domain.IndividualCoach, error) {
 	res, err := ec.unmarshalInputIndividualCoachInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNIndividualNutrition2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualNutrition(ctx context.Context, sel ast.SelectionSet, v domain.IndividualNutrition) graphql.Marshaler {
+func (ec *executionContext) marshalNIndividualNutrition2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualNutrition(ctx context.Context, sel ast.SelectionSet, v domain.IndividualNutrition) graphql.Marshaler {
 	return ec._IndividualNutrition(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNIndividualNutrition2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualNutrition(ctx context.Context, sel ast.SelectionSet, v *domain.IndividualNutrition) graphql.Marshaler {
+func (ec *executionContext) marshalNIndividualNutrition2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualNutrition(ctx context.Context, sel ast.SelectionSet, v *domain.IndividualNutrition) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23409,16 +24123,16 @@ func (ec *executionContext) marshalNIndividualNutrition2ᚖgitlabᚗslade360emr�
 	return ec._IndividualNutrition(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNIndividualNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualNutrition(ctx context.Context, v interface{}) (domain.IndividualNutrition, error) {
+func (ec *executionContext) unmarshalNIndividualNutritionInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualNutrition(ctx context.Context, v interface{}) (domain.IndividualNutrition, error) {
 	res, err := ec.unmarshalInputIndividualNutritionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNIndividualPharmaceutical2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualPharmaceutical(ctx context.Context, sel ast.SelectionSet, v domain.IndividualPharmaceutical) graphql.Marshaler {
+func (ec *executionContext) marshalNIndividualPharmaceutical2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualPharmaceutical(ctx context.Context, sel ast.SelectionSet, v domain.IndividualPharmaceutical) graphql.Marshaler {
 	return ec._IndividualPharmaceutical(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNIndividualPharmaceutical2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualPharmaceutical(ctx context.Context, sel ast.SelectionSet, v *domain.IndividualPharmaceutical) graphql.Marshaler {
+func (ec *executionContext) marshalNIndividualPharmaceutical2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualPharmaceutical(ctx context.Context, sel ast.SelectionSet, v *domain.IndividualPharmaceutical) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23428,16 +24142,16 @@ func (ec *executionContext) marshalNIndividualPharmaceutical2ᚖgitlabᚗslade36
 	return ec._IndividualPharmaceutical(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNIndividualPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualPharmaceutical(ctx context.Context, v interface{}) (domain.IndividualPharmaceutical, error) {
+func (ec *executionContext) unmarshalNIndividualPharmaceuticalInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualPharmaceutical(ctx context.Context, v interface{}) (domain.IndividualPharmaceutical, error) {
 	res, err := ec.unmarshalInputIndividualPharmaceuticalInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNIndividualPractitioner2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualPractitioner(ctx context.Context, sel ast.SelectionSet, v domain.IndividualPractitioner) graphql.Marshaler {
+func (ec *executionContext) marshalNIndividualPractitioner2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualPractitioner(ctx context.Context, sel ast.SelectionSet, v domain.IndividualPractitioner) graphql.Marshaler {
 	return ec._IndividualPractitioner(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNIndividualPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualPractitioner(ctx context.Context, sel ast.SelectionSet, v *domain.IndividualPractitioner) graphql.Marshaler {
+func (ec *executionContext) marshalNIndividualPractitioner2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualPractitioner(ctx context.Context, sel ast.SelectionSet, v *domain.IndividualPractitioner) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23447,16 +24161,16 @@ func (ec *executionContext) marshalNIndividualPractitioner2ᚖgitlabᚗslade360e
 	return ec._IndividualPractitioner(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNIndividualPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualPractitioner(ctx context.Context, v interface{}) (domain.IndividualPractitioner, error) {
+func (ec *executionContext) unmarshalNIndividualPractitionerInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualPractitioner(ctx context.Context, v interface{}) (domain.IndividualPractitioner, error) {
 	res, err := ec.unmarshalInputIndividualPractitionerInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNIndividualRider2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualRider(ctx context.Context, sel ast.SelectionSet, v domain.IndividualRider) graphql.Marshaler {
+func (ec *executionContext) marshalNIndividualRider2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualRider(ctx context.Context, sel ast.SelectionSet, v domain.IndividualRider) graphql.Marshaler {
 	return ec._IndividualRider(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNIndividualRider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualRider(ctx context.Context, sel ast.SelectionSet, v *domain.IndividualRider) graphql.Marshaler {
+func (ec *executionContext) marshalNIndividualRider2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualRider(ctx context.Context, sel ast.SelectionSet, v *domain.IndividualRider) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23466,7 +24180,7 @@ func (ec *executionContext) marshalNIndividualRider2ᚖgitlabᚗslade360emrᚗco
 	return ec._IndividualRider(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNIndividualRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIndividualRider(ctx context.Context, v interface{}) (domain.IndividualRider, error) {
+func (ec *executionContext) unmarshalNIndividualRiderInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIndividualRider(ctx context.Context, v interface{}) (domain.IndividualRider, error) {
 	res, err := ec.unmarshalInputIndividualRiderInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -23486,13 +24200,13 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx context.Context, v interface{}) (domain.KYCProcessStatus, error) {
+func (ec *executionContext) unmarshalNKYCProcessStatus2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx context.Context, v interface{}) (domain.KYCProcessStatus, error) {
 	var res domain.KYCProcessStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx context.Context, sel ast.SelectionSet, v domain.KYCProcessStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNKYCProcessStatus2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx context.Context, sel ast.SelectionSet, v domain.KYCProcessStatus) graphql.Marshaler {
 	return v
 }
 
@@ -23533,11 +24247,11 @@ func (ec *executionContext) marshalNMap2map(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNMicroservice2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx context.Context, sel ast.SelectionSet, v domain.Microservice) graphql.Marshaler {
+func (ec *executionContext) marshalNMicroservice2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx context.Context, sel ast.SelectionSet, v domain.Microservice) graphql.Marshaler {
 	return ec._Microservice(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNMicroservice2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroserviceᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.Microservice) graphql.Marshaler {
+func (ec *executionContext) marshalNMicroservice2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroserviceᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.Microservice) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -23561,7 +24275,7 @@ func (ec *executionContext) marshalNMicroservice2ᚕᚖgitlabᚗslade360emrᚗco
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNMicroservice2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, sel, v[i])
+			ret[i] = ec.marshalNMicroservice2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -23574,7 +24288,7 @@ func (ec *executionContext) marshalNMicroservice2ᚕᚖgitlabᚗslade360emrᚗco
 	return ret
 }
 
-func (ec *executionContext) marshalNMicroservice2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx context.Context, sel ast.SelectionSet, v *domain.Microservice) graphql.Marshaler {
+func (ec *executionContext) marshalNMicroservice2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx context.Context, sel ast.SelectionSet, v *domain.Microservice) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23584,16 +24298,16 @@ func (ec *executionContext) marshalNMicroservice2ᚖgitlabᚗslade360emrᚗcom�
 	return ec._Microservice(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNMicroserviceInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx context.Context, v interface{}) (domain.Microservice, error) {
+func (ec *executionContext) unmarshalNMicroserviceInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx context.Context, v interface{}) (domain.Microservice, error) {
 	res, err := ec.unmarshalInputMicroserviceInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNNHIFDetails2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx context.Context, sel ast.SelectionSet, v domain.NHIFDetails) graphql.Marshaler {
+func (ec *executionContext) marshalNNHIFDetails2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx context.Context, sel ast.SelectionSet, v domain.NHIFDetails) graphql.Marshaler {
 	return ec._NHIFDetails(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNNHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx context.Context, sel ast.SelectionSet, v *domain.NHIFDetails) graphql.Marshaler {
+func (ec *executionContext) marshalNNHIFDetails2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx context.Context, sel ast.SelectionSet, v *domain.NHIFDetails) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23603,7 +24317,7 @@ func (ec *executionContext) marshalNNHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋ
 	return ec._NHIFDetails(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNNHIFDetailsInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐNHIFDetailsInput(ctx context.Context, v interface{}) (dto.NHIFDetailsInput, error) {
+func (ec *executionContext) unmarshalNNHIFDetailsInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐNHIFDetailsInput(ctx context.Context, v interface{}) (dto.NHIFDetailsInput, error) {
 	res, err := ec.unmarshalInputNHIFDetailsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -23618,11 +24332,11 @@ func (ec *executionContext) marshalNOperation2githubᚗcomᚋsavannahghiᚋenumu
 	return v
 }
 
-func (ec *executionContext) marshalNOrganizationCoach2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationCoach(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationCoach) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationCoach2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationCoach(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationCoach) graphql.Marshaler {
 	return ec._OrganizationCoach(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOrganizationCoach2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationCoach(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationCoach) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationCoach2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationCoach(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationCoach) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23632,16 +24346,16 @@ func (ec *executionContext) marshalNOrganizationCoach2ᚖgitlabᚗslade360emrᚗ
 	return ec._OrganizationCoach(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationCoachInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationCoach(ctx context.Context, v interface{}) (domain.OrganizationCoach, error) {
+func (ec *executionContext) unmarshalNOrganizationCoachInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationCoach(ctx context.Context, v interface{}) (domain.OrganizationCoach, error) {
 	res, err := ec.unmarshalInputOrganizationCoachInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOrganizationNutrition2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationNutrition(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationNutrition) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationNutrition2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationNutrition(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationNutrition) graphql.Marshaler {
 	return ec._OrganizationNutrition(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOrganizationNutrition2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationNutrition(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationNutrition) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationNutrition2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationNutrition(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationNutrition) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23651,16 +24365,16 @@ func (ec *executionContext) marshalNOrganizationNutrition2ᚖgitlabᚗslade360em
 	return ec._OrganizationNutrition(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationNutritionInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationNutrition(ctx context.Context, v interface{}) (domain.OrganizationNutrition, error) {
+func (ec *executionContext) unmarshalNOrganizationNutritionInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationNutrition(ctx context.Context, v interface{}) (domain.OrganizationNutrition, error) {
 	res, err := ec.unmarshalInputOrganizationNutritionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOrganizationPharmaceutical2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationPharmaceutical(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationPharmaceutical) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationPharmaceutical2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationPharmaceutical(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationPharmaceutical) graphql.Marshaler {
 	return ec._OrganizationPharmaceutical(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOrganizationPharmaceutical2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationPharmaceutical(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationPharmaceutical) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationPharmaceutical2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationPharmaceutical(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationPharmaceutical) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23670,16 +24384,16 @@ func (ec *executionContext) marshalNOrganizationPharmaceutical2ᚖgitlabᚗslade
 	return ec._OrganizationPharmaceutical(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationPharmaceuticalInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationPharmaceutical(ctx context.Context, v interface{}) (domain.OrganizationPharmaceutical, error) {
+func (ec *executionContext) unmarshalNOrganizationPharmaceuticalInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationPharmaceutical(ctx context.Context, v interface{}) (domain.OrganizationPharmaceutical, error) {
 	res, err := ec.unmarshalInputOrganizationPharmaceuticalInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOrganizationPractitioner2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationPractitioner(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationPractitioner) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationPractitioner2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationPractitioner(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationPractitioner) graphql.Marshaler {
 	return ec._OrganizationPractitioner(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOrganizationPractitioner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationPractitioner(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationPractitioner) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationPractitioner2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationPractitioner(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationPractitioner) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23689,16 +24403,16 @@ func (ec *executionContext) marshalNOrganizationPractitioner2ᚖgitlabᚗslade36
 	return ec._OrganizationPractitioner(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationPractitionerInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationPractitioner(ctx context.Context, v interface{}) (domain.OrganizationPractitioner, error) {
+func (ec *executionContext) unmarshalNOrganizationPractitionerInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationPractitioner(ctx context.Context, v interface{}) (domain.OrganizationPractitioner, error) {
 	res, err := ec.unmarshalInputOrganizationPractitionerInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOrganizationProvider2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationProvider(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationProvider) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationProvider2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationProvider(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationProvider) graphql.Marshaler {
 	return ec._OrganizationProvider(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOrganizationProvider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationProvider(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationProvider) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationProvider2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationProvider(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationProvider) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23708,16 +24422,16 @@ func (ec *executionContext) marshalNOrganizationProvider2ᚖgitlabᚗslade360emr
 	return ec._OrganizationProvider(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationProviderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationProvider(ctx context.Context, v interface{}) (domain.OrganizationProvider, error) {
+func (ec *executionContext) unmarshalNOrganizationProviderInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationProvider(ctx context.Context, v interface{}) (domain.OrganizationProvider, error) {
 	res, err := ec.unmarshalInputOrganizationProviderInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOrganizationRider2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationRider(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationRider) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationRider2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationRider(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationRider) graphql.Marshaler {
 	return ec._OrganizationRider(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOrganizationRider2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationRider(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationRider) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationRider2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationRider(ctx context.Context, sel ast.SelectionSet, v *domain.OrganizationRider) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23727,18 +24441,18 @@ func (ec *executionContext) marshalNOrganizationRider2ᚖgitlabᚗslade360emrᚗ
 	return ec._OrganizationRider(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOrganizationRiderInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationRider(ctx context.Context, v interface{}) (domain.OrganizationRider, error) {
+func (ec *executionContext) unmarshalNOrganizationRiderInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationRider(ctx context.Context, v interface{}) (domain.OrganizationRider, error) {
 	res, err := ec.unmarshalInputOrganizationRiderInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx context.Context, v interface{}) (domain.OrganizationType, error) {
+func (ec *executionContext) unmarshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx context.Context, v interface{}) (domain.OrganizationType, error) {
 	var res domain.OrganizationType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationType) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationType) graphql.Marshaler {
 	return v
 }
 
@@ -23776,6 +24490,16 @@ func (ec *executionContext) marshalNPayablesAccount2ᚖgithubᚗcomᚋsavannahgh
 	return ec._PayablesAccount(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNPermissionGroup2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionGroup(ctx context.Context, v interface{}) (profileutils.PermissionGroup, error) {
+	var res profileutils.PermissionGroup
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPermissionGroup2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionGroup(ctx context.Context, sel ast.SelectionSet, v profileutils.PermissionGroup) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNPermissionType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionType(ctx context.Context, v interface{}) (profileutils.PermissionType, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := profileutils.PermissionType(tmp)
@@ -23792,32 +24516,32 @@ func (ec *executionContext) marshalNPermissionType2githubᚗcomᚋsavannahghiᚋ
 	return res
 }
 
-func (ec *executionContext) unmarshalNPostVisitSurveyInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐPostVisitSurveyInput(ctx context.Context, v interface{}) (dto.PostVisitSurveyInput, error) {
+func (ec *executionContext) unmarshalNPostVisitSurveyInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐPostVisitSurveyInput(ctx context.Context, v interface{}) (dto.PostVisitSurveyInput, error) {
 	res, err := ec.unmarshalInputPostVisitSurveyInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNPractitionerCadre2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx context.Context, v interface{}) (domain.PractitionerCadre, error) {
+func (ec *executionContext) unmarshalNPractitionerCadre2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx context.Context, v interface{}) (domain.PractitionerCadre, error) {
 	var res domain.PractitionerCadre
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPractitionerCadre2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx context.Context, sel ast.SelectionSet, v domain.PractitionerCadre) graphql.Marshaler {
+func (ec *executionContext) marshalNPractitionerCadre2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerCadre(ctx context.Context, sel ast.SelectionSet, v domain.PractitionerCadre) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNPractitionerService2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerService(ctx context.Context, v interface{}) (domain.PractitionerService, error) {
+func (ec *executionContext) unmarshalNPractitionerService2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerService(ctx context.Context, v interface{}) (domain.PractitionerService, error) {
 	var res domain.PractitionerService
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPractitionerService2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerService(ctx context.Context, sel ast.SelectionSet, v domain.PractitionerService) graphql.Marshaler {
+func (ec *executionContext) marshalNPractitionerService2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerService(ctx context.Context, sel ast.SelectionSet, v domain.PractitionerService) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx context.Context, v interface{}) ([]domain.PractitionerService, error) {
+func (ec *executionContext) unmarshalNPractitionerService2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx context.Context, v interface{}) ([]domain.PractitionerService, error) {
 	var vSlice []interface{}
 	if v != nil {
 		if tmp1, ok := v.([]interface{}); ok {
@@ -23830,7 +24554,7 @@ func (ec *executionContext) unmarshalNPractitionerService2ᚕgitlabᚗslade360em
 	res := make([]domain.PractitionerService, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNPractitionerService2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerService(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNPractitionerService2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerService(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -23838,7 +24562,7 @@ func (ec *executionContext) unmarshalNPractitionerService2ᚕgitlabᚗslade360em
 	return res, nil
 }
 
-func (ec *executionContext) marshalNPractitionerService2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx context.Context, sel ast.SelectionSet, v []domain.PractitionerService) graphql.Marshaler {
+func (ec *executionContext) marshalNPractitionerService2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerServiceᚄ(ctx context.Context, sel ast.SelectionSet, v []domain.PractitionerService) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -23862,7 +24586,7 @@ func (ec *executionContext) marshalNPractitionerService2ᚕgitlabᚗslade360emr�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPractitionerService2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐPractitionerService(ctx, sel, v[i])
+			ret[i] = ec.marshalNPractitionerService2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐPractitionerService(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -23875,13 +24599,37 @@ func (ec *executionContext) marshalNPractitionerService2ᚕgitlabᚗslade360emr�
 	return ret
 }
 
-func (ec *executionContext) unmarshalNRegisterAdminInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAdminInput(ctx context.Context, v interface{}) (dto.RegisterAdminInput, error) {
+func (ec *executionContext) unmarshalNRegisterAdminInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAdminInput(ctx context.Context, v interface{}) (dto.RegisterAdminInput, error) {
 	res, err := ec.unmarshalInputRegisterAdminInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNRegisterAgentInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAgentInput(ctx context.Context, v interface{}) (dto.RegisterAgentInput, error) {
+func (ec *executionContext) unmarshalNRegisterAgentInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAgentInput(ctx context.Context, v interface{}) (dto.RegisterAgentInput, error) {
 	res, err := ec.unmarshalInputRegisterAgentInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNRoleInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleInput(ctx context.Context, v interface{}) (dto.RoleInput, error) {
+	res, err := ec.unmarshalInputRoleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRoleOutput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx context.Context, sel ast.SelectionSet, v dto.RoleOutput) graphql.Marshaler {
+	return ec._RoleOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx context.Context, sel ast.SelectionSet, v *dto.RoleOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._RoleOutput(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNRolePermissionInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRolePermissionInput(ctx context.Context, v interface{}) (dto.RolePermissionInput, error) {
+	res, err := ec.unmarshalInputRolePermissionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -23975,11 +24723,11 @@ func (ec *executionContext) marshalNSupplier2ᚖgithubᚗcomᚋsavannahghiᚋpro
 	return ec._Supplier(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSupplierLogin2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐSupplierLogin(ctx context.Context, sel ast.SelectionSet, v dto.SupplierLogin) graphql.Marshaler {
+func (ec *executionContext) marshalNSupplierLogin2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐSupplierLogin(ctx context.Context, sel ast.SelectionSet, v dto.SupplierLogin) graphql.Marshaler {
 	return ec._SupplierLogin(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐSupplierLogin(ctx context.Context, sel ast.SelectionSet, v *dto.SupplierLogin) graphql.Marshaler {
+func (ec *executionContext) marshalNSupplierLogin2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐSupplierLogin(ctx context.Context, sel ast.SelectionSet, v *dto.SupplierLogin) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -23989,20 +24737,20 @@ func (ec *executionContext) marshalNSupplierLogin2ᚖgitlabᚗslade360emrᚗcom�
 	return ec._SupplierLogin(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNThinAddress2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx context.Context, sel ast.SelectionSet, v domain.ThinAddress) graphql.Marshaler {
+func (ec *executionContext) marshalNThinAddress2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐThinAddress(ctx context.Context, sel ast.SelectionSet, v domain.ThinAddress) graphql.Marshaler {
 	return ec._ThinAddress(ctx, sel, &v)
 }
 
-func (ec *executionContext) unmarshalNUserAddressInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserAddressInput(ctx context.Context, v interface{}) (dto.UserAddressInput, error) {
+func (ec *executionContext) unmarshalNUserAddressInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserAddressInput(ctx context.Context, v interface{}) (dto.UserAddressInput, error) {
 	res, err := ec.unmarshalInputUserAddressInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUserAddresses2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserAddresses(ctx context.Context, sel ast.SelectionSet, v domain.UserAddresses) graphql.Marshaler {
+func (ec *executionContext) marshalNUserAddresses2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐUserAddresses(ctx context.Context, sel ast.SelectionSet, v domain.UserAddresses) graphql.Marshaler {
 	return ec._UserAddresses(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUserAddresses2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐUserAddresses(ctx context.Context, sel ast.SelectionSet, v *domain.UserAddresses) graphql.Marshaler {
+func (ec *executionContext) marshalNUserAddresses2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐUserAddresses(ctx context.Context, sel ast.SelectionSet, v *domain.UserAddresses) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -24040,7 +24788,7 @@ func (ec *executionContext) marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋ
 	return ec._UserProfile(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUserProfileInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserProfileInput(ctx context.Context, v interface{}) (dto.UserProfileInput, error) {
+func (ec *executionContext) unmarshalNUserProfileInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐUserProfileInput(ctx context.Context, v interface{}) (dto.UserProfileInput, error) {
 	res, err := ec.unmarshalInputUserProfileInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -24404,7 +25152,7 @@ func (ec *executionContext) marshalOAddress2ᚖgithubᚗcomᚋsavannahghiᚋprof
 	return ec._Address(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOAdmin2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx context.Context, sel ast.SelectionSet, v []*dto.Admin) graphql.Marshaler {
+func (ec *executionContext) marshalOAdmin2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx context.Context, sel ast.SelectionSet, v []*dto.Admin) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -24431,7 +25179,7 @@ func (ec *executionContext) marshalOAdmin2ᚕᚖgitlabᚗslade360emrᚗcomᚋgo�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOAdmin2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx, sel, v[i])
+			ret[i] = ec.marshalOAdmin2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -24444,14 +25192,14 @@ func (ec *executionContext) marshalOAdmin2ᚕᚖgitlabᚗslade360emrᚗcomᚋgo�
 	return ret
 }
 
-func (ec *executionContext) marshalOAdmin2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx context.Context, sel ast.SelectionSet, v *dto.Admin) graphql.Marshaler {
+func (ec *executionContext) marshalOAdmin2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx context.Context, sel ast.SelectionSet, v *dto.Admin) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Admin(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOAgent2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx context.Context, sel ast.SelectionSet, v []*dto.Agent) graphql.Marshaler {
+func (ec *executionContext) marshalOAgent2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx context.Context, sel ast.SelectionSet, v []*dto.Agent) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -24478,7 +25226,7 @@ func (ec *executionContext) marshalOAgent2ᚕᚖgitlabᚗslade360emrᚗcomᚋgo�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOAgent2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, sel, v[i])
+			ret[i] = ec.marshalOAgent2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -24491,7 +25239,7 @@ func (ec *executionContext) marshalOAgent2ᚕᚖgitlabᚗslade360emrᚗcomᚋgo�
 	return ret
 }
 
-func (ec *executionContext) marshalOAgent2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx context.Context, sel ast.SelectionSet, v *dto.Agent) graphql.Marshaler {
+func (ec *executionContext) marshalOAgent2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx context.Context, sel ast.SelectionSet, v *dto.Agent) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -24526,14 +25274,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) marshalOBranch2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐBranch(ctx context.Context, sel ast.SelectionSet, v *domain.Branch) graphql.Marshaler {
+func (ec *executionContext) marshalOBranch2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐBranch(ctx context.Context, sel ast.SelectionSet, v *domain.Branch) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Branch(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOBranchEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx context.Context, sel ast.SelectionSet, v []*dto.BranchEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOBranchEdge2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx context.Context, sel ast.SelectionSet, v []*dto.BranchEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -24560,7 +25308,7 @@ func (ec *executionContext) marshalOBranchEdge2ᚕᚖgitlabᚗslade360emrᚗcom�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOBranchEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalOBranchEdge2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -24573,14 +25321,14 @@ func (ec *executionContext) marshalOBranchEdge2ᚕᚖgitlabᚗslade360emrᚗcom�
 	return ret
 }
 
-func (ec *executionContext) marshalOBranchEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx context.Context, sel ast.SelectionSet, v *dto.BranchEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOBranchEdge2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchEdge(ctx context.Context, sel ast.SelectionSet, v *dto.BranchEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._BranchEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOBranchFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx context.Context, v interface{}) ([]*dto.BranchFilterInput, error) {
+func (ec *executionContext) unmarshalOBranchFilterInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx context.Context, v interface{}) ([]*dto.BranchFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24596,7 +25344,7 @@ func (ec *executionContext) unmarshalOBranchFilterInput2ᚕᚖgitlabᚗslade360e
 	res := make([]*dto.BranchFilterInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOBranchFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOBranchFilterInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -24604,7 +25352,7 @@ func (ec *executionContext) unmarshalOBranchFilterInput2ᚕᚖgitlabᚗslade360e
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOBranchFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx context.Context, v interface{}) (*dto.BranchFilterInput, error) {
+func (ec *executionContext) unmarshalOBranchFilterInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchFilterInput(ctx context.Context, v interface{}) (*dto.BranchFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24612,7 +25360,7 @@ func (ec *executionContext) unmarshalOBranchFilterInput2ᚖgitlabᚗslade360emr�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOBranchSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx context.Context, v interface{}) ([]*dto.BranchSortInput, error) {
+func (ec *executionContext) unmarshalOBranchSortInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx context.Context, v interface{}) ([]*dto.BranchSortInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24628,7 +25376,7 @@ func (ec *executionContext) unmarshalOBranchSortInput2ᚕᚖgitlabᚗslade360emr
 	res := make([]*dto.BranchSortInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOBranchSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOBranchSortInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -24636,7 +25384,7 @@ func (ec *executionContext) unmarshalOBranchSortInput2ᚕᚖgitlabᚗslade360emr
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOBranchSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx context.Context, v interface{}) (*dto.BranchSortInput, error) {
+func (ec *executionContext) unmarshalOBranchSortInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBranchSortInput(ctx context.Context, v interface{}) (*dto.BranchSortInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24644,14 +25392,14 @@ func (ec *executionContext) unmarshalOBranchSortInput2ᚖgitlabᚗslade360emrᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOBusinessPartner2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐBusinessPartner(ctx context.Context, sel ast.SelectionSet, v *domain.BusinessPartner) graphql.Marshaler {
+func (ec *executionContext) marshalOBusinessPartner2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐBusinessPartner(ctx context.Context, sel ast.SelectionSet, v *domain.BusinessPartner) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._BusinessPartner(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, v []*dto.BusinessPartnerEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOBusinessPartnerEdge2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, v []*dto.BusinessPartnerEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -24678,7 +25426,7 @@ func (ec *executionContext) marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360e
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOBusinessPartnerEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalOBusinessPartnerEdge2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -24691,14 +25439,14 @@ func (ec *executionContext) marshalOBusinessPartnerEdge2ᚕᚖgitlabᚗslade360e
 	return ret
 }
 
-func (ec *executionContext) marshalOBusinessPartnerEdge2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, v *dto.BusinessPartnerEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOBusinessPartnerEdge2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerEdge(ctx context.Context, sel ast.SelectionSet, v *dto.BusinessPartnerEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._BusinessPartnerEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx context.Context, v interface{}) ([]*dto.BusinessPartnerFilterInput, error) {
+func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx context.Context, v interface{}) ([]*dto.BusinessPartnerFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24714,7 +25462,7 @@ func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗ
 	res := make([]*dto.BusinessPartnerFilterInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOBusinessPartnerFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOBusinessPartnerFilterInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -24722,7 +25470,7 @@ func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚕᚖgitlabᚗ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx context.Context, v interface{}) (*dto.BusinessPartnerFilterInput, error) {
+func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerFilterInput(ctx context.Context, v interface{}) (*dto.BusinessPartnerFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24730,7 +25478,7 @@ func (ec *executionContext) unmarshalOBusinessPartnerFilterInput2ᚖgitlabᚗsla
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx context.Context, v interface{}) ([]*dto.BusinessPartnerSortInput, error) {
+func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx context.Context, v interface{}) ([]*dto.BusinessPartnerSortInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24746,7 +25494,7 @@ func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗsl
 	res := make([]*dto.BusinessPartnerSortInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOBusinessPartnerSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOBusinessPartnerSortInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -24754,7 +25502,7 @@ func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚕᚖgitlabᚗsl
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx context.Context, v interface{}) (*dto.BusinessPartnerSortInput, error) {
+func (ec *executionContext) unmarshalOBusinessPartnerSortInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐBusinessPartnerSortInput(ctx context.Context, v interface{}) (*dto.BusinessPartnerSortInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24880,11 +25628,11 @@ func (ec *executionContext) marshalOGender2ᚖgithubᚗcomᚋsavannahghiᚋenumu
 	return v
 }
 
-func (ec *executionContext) marshalOIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, sel ast.SelectionSet, v domain.Identification) graphql.Marshaler {
+func (ec *executionContext) marshalOIdentification2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, sel ast.SelectionSet, v domain.Identification) graphql.Marshaler {
 	return ec._Identification(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOIdentification2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, sel ast.SelectionSet, v []domain.Identification) graphql.Marshaler {
+func (ec *executionContext) marshalOIdentification2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, sel ast.SelectionSet, v []domain.Identification) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -24911,7 +25659,7 @@ func (ec *executionContext) marshalOIdentification2ᚕgitlabᚗslade360emrᚗcom
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOIdentification2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, sel, v[i])
+			ret[i] = ec.marshalOIdentification2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -24924,12 +25672,12 @@ func (ec *executionContext) marshalOIdentification2ᚕgitlabᚗslade360emrᚗcom
 	return ret
 }
 
-func (ec *executionContext) unmarshalOIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, v interface{}) (domain.Identification, error) {
+func (ec *executionContext) unmarshalOIdentificationInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, v interface{}) (domain.Identification, error) {
 	res, err := ec.unmarshalInputIdentificationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOIdentificationInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, v interface{}) ([]domain.Identification, error) {
+func (ec *executionContext) unmarshalOIdentificationInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, v interface{}) ([]domain.Identification, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24945,7 +25693,7 @@ func (ec *executionContext) unmarshalOIdentificationInput2ᚕgitlabᚗslade360em
 	res := make([]domain.Identification, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOIdentificationInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOIdentificationInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -24962,17 +25710,17 @@ func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.Selecti
 	return graphql.MarshalInt(v)
 }
 
-func (ec *executionContext) unmarshalOKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx context.Context, v interface{}) (domain.KYCProcessStatus, error) {
+func (ec *executionContext) unmarshalOKYCProcessStatus2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx context.Context, v interface{}) (domain.KYCProcessStatus, error) {
 	var res domain.KYCProcessStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOKYCProcessStatus2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx context.Context, sel ast.SelectionSet, v domain.KYCProcessStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOKYCProcessStatus2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐKYCProcessStatus(ctx context.Context, sel ast.SelectionSet, v domain.KYCProcessStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx context.Context, sel ast.SelectionSet, v []*domain.KYCRequest) graphql.Marshaler {
+func (ec *executionContext) marshalOKYCRequest2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx context.Context, sel ast.SelectionSet, v []*domain.KYCRequest) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -24999,7 +25747,7 @@ func (ec *executionContext) marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcom�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx, sel, v[i])
+			ret[i] = ec.marshalOKYCRequest2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -25012,7 +25760,7 @@ func (ec *executionContext) marshalOKYCRequest2ᚕᚖgitlabᚗslade360emrᚗcom�
 	return ret
 }
 
-func (ec *executionContext) marshalOKYCRequest2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx context.Context, sel ast.SelectionSet, v *domain.KYCRequest) graphql.Marshaler {
+func (ec *executionContext) marshalOKYCRequest2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐKYCRequest(ctx context.Context, sel ast.SelectionSet, v *domain.KYCRequest) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -25040,7 +25788,7 @@ func (ec *executionContext) marshalOLocation2ᚖgithubᚗcomᚋsavannahghiᚋpro
 	return ec._Location(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalONHIFDetails2ᚖgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx context.Context, sel ast.SelectionSet, v *domain.NHIFDetails) graphql.Marshaler {
+func (ec *executionContext) marshalONHIFDetails2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx context.Context, sel ast.SelectionSet, v *domain.NHIFDetails) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -25142,13 +25890,13 @@ func (ec *executionContext) marshalONestedNavAction2ᚕgithubᚗcomᚋsavannahgh
 	return ret
 }
 
-func (ec *executionContext) unmarshalOOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx context.Context, v interface{}) (domain.OrganizationType, error) {
+func (ec *executionContext) unmarshalOOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx context.Context, v interface{}) (domain.OrganizationType, error) {
 	var res domain.OrganizationType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOOrganizationType2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationType) graphql.Marshaler {
+func (ec *executionContext) marshalOOrganizationType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐOrganizationType(ctx context.Context, sel ast.SelectionSet, v domain.OrganizationType) graphql.Marshaler {
 	return v
 }
 
@@ -25158,6 +25906,50 @@ func (ec *executionContext) unmarshalOPaginationInput2ᚖgithubᚗcomᚋsavannah
 	}
 	res, err := ec.unmarshalInputPaginationInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOPermission2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermission(ctx context.Context, sel ast.SelectionSet, v profileutils.Permission) graphql.Marshaler {
+	return ec._Permission(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOPermission2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermission(ctx context.Context, sel ast.SelectionSet, v []profileutils.Permission) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOPermission2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermission(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) unmarshalOPermissionType2ᚕgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionTypeᚄ(ctx context.Context, v interface{}) ([]profileutils.PermissionType, error) {
@@ -25379,11 +26171,11 @@ func (ec *executionContext) marshalOSupplier2ᚖgithubᚗcomᚋsavannahghiᚋpro
 	return ec._Supplier(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOSupportingDocument2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx context.Context, sel ast.SelectionSet, v domain.SupportingDocument) graphql.Marshaler {
+func (ec *executionContext) marshalOSupportingDocument2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx context.Context, sel ast.SelectionSet, v domain.SupportingDocument) graphql.Marshaler {
 	return ec._SupportingDocument(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOSupportingDocument2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx context.Context, sel ast.SelectionSet, v []domain.SupportingDocument) graphql.Marshaler {
+func (ec *executionContext) marshalOSupportingDocument2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx context.Context, sel ast.SelectionSet, v []domain.SupportingDocument) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -25410,7 +26202,7 @@ func (ec *executionContext) marshalOSupportingDocument2ᚕgitlabᚗslade360emr�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOSupportingDocument2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, sel, v[i])
+			ret[i] = ec.marshalOSupportingDocument2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -25423,12 +26215,12 @@ func (ec *executionContext) marshalOSupportingDocument2ᚕgitlabᚗslade360emr�
 	return ret
 }
 
-func (ec *executionContext) unmarshalOSupportingDocumentInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx context.Context, v interface{}) (domain.SupportingDocument, error) {
+func (ec *executionContext) unmarshalOSupportingDocumentInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx context.Context, v interface{}) (domain.SupportingDocument, error) {
 	res, err := ec.unmarshalInputSupportingDocumentInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx context.Context, v interface{}) ([]domain.SupportingDocument, error) {
+func (ec *executionContext) unmarshalOSupportingDocumentInput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx context.Context, v interface{}) ([]domain.SupportingDocument, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -25444,7 +26236,7 @@ func (ec *executionContext) unmarshalOSupportingDocumentInput2ᚕgitlabᚗslade3
 	res := make([]domain.SupportingDocument, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOSupportingDocumentInput2gitlabᚗslade360emrᚗcomᚋgoᚋprofileᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOSupportingDocumentInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐSupportingDocument(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}

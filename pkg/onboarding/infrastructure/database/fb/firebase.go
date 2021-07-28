@@ -50,6 +50,7 @@ const (
 	marketingDataCollectionName          = "marketing_data"
 	ussdEventsCollectionName             = "ussd_events"
 	coverLinkingEventsCollectionName     = "coverlinking_events"
+	rolesCollectionName                  = "user_roles"
 )
 
 // Repository accesses and updates an item that is stored on Firebase
@@ -59,7 +60,10 @@ type Repository struct {
 }
 
 // NewFirebaseRepository initializes a Firebase repository
-func NewFirebaseRepository(firestoreClient FirestoreClientExtension, firebaseClient FirebaseClientExtension) repository.OnboardingRepository {
+func NewFirebaseRepository(
+	firestoreClient FirestoreClientExtension,
+	firebaseClient FirebaseClientExtension,
+) repository.OnboardingRepository {
 	return &Repository{
 		FirestoreClient: firestoreClient,
 		FirebaseClient:  firebaseClient,
@@ -156,8 +160,18 @@ func (fr Repository) GetCoverLinkingEventsCollectionName() string {
 	return suffixed
 }
 
+// GetRolesCollectionName ...
+func (fr Repository) GetRolesCollectionName() string {
+	suffixed := firebasetools.SuffixCollection(rolesCollectionName)
+	return suffixed
+}
+
 // GetUserProfileByUID retrieves the user profile by UID
-func (fr *Repository) GetUserProfileByUID(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+func (fr *Repository) GetUserProfileByUID(
+	ctx context.Context,
+	uid string,
+	suspended bool,
+) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "GetUserProfileByUID")
 	defer span.End()
 
@@ -238,7 +252,9 @@ func (fr *Repository) GetUserProfileByID(
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to read user profile: %w", err),
+		)
 	}
 
 	if !suspended {
@@ -259,14 +275,19 @@ func (fr *Repository) fetchUserRandomName(ctx context.Context) *string {
 }
 
 // CreateUserProfile creates a user profile of using the provided phone number and uid
-func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid string) (*profileutils.UserProfile, error) {
+func (fr *Repository) CreateUserProfile(
+	ctx context.Context,
+	phoneNumber, uid string,
+) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "CreateUserProfile")
 	defer span.End()
 
 	v, err := fr.CheckIfPhoneNumberExists(ctx, phoneNumber)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("failed to check the phone number: %v", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("failed to check the phone number: %v", err),
+		)
 	}
 
 	if v {
@@ -296,7 +317,9 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 	docRef, err := fr.FirestoreClient.Create(ctx, command)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new user profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to create new user profile: %w", err),
+		)
 	}
 	query := &GetSingleQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
@@ -305,28 +328,38 @@ func (fr *Repository) CreateUserProfile(ctx context.Context, phoneNumber, uid st
 	dsnap, err := fr.FirestoreClient.Get(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created user profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to retrieve newly created user profile: %w", err),
+		)
 	}
 	// return the newly created user profile
 	userProfile := &profileutils.UserProfile{}
 	err = dsnap.DataTo(userProfile)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to read user profile: %w", err),
+		)
 	}
 	return userProfile, nil
 
 }
 
 // CreateDetailedUserProfile creates a new user profile that is pre-filled using the provided phone number
-func (fr *Repository) CreateDetailedUserProfile(ctx context.Context, phoneNumber string, profile profileutils.UserProfile) (*profileutils.UserProfile, error) {
+func (fr *Repository) CreateDetailedUserProfile(
+	ctx context.Context,
+	phoneNumber string,
+	profile profileutils.UserProfile,
+) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "CreateDetailedUserProfile")
 	defer span.End()
 
 	exists, err := fr.CheckIfPhoneNumberExists(ctx, phoneNumber)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("failed to check the phone number: %v", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("failed to check the phone number: %v", err),
+		)
 	}
 
 	if exists {
@@ -367,14 +400,19 @@ func (fr *Repository) CreateDetailedUserProfile(ctx context.Context, phoneNumber
 	_, err = fr.FirestoreClient.Create(ctx, command)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new user profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to create new user profile: %w", err),
+		)
 	}
 
 	return &profile, nil
 }
 
 // CreateEmptySupplierProfile creates an empty supplier profile
-func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
+func (fr *Repository) CreateEmptySupplierProfile(
+	ctx context.Context,
+	profileID string,
+) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "CreateEmptySupplierProfile")
 	defer span.End()
 
@@ -390,7 +428,9 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 	docRef, err := fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new supplier empty profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to create new supplier empty profile: %w", err),
+		)
 	}
 	getSupplierquery := &GetSingleQuery{
 		CollectionName: fr.GetSupplierProfileCollectionName(),
@@ -399,21 +439,29 @@ func (fr *Repository) CreateEmptySupplierProfile(ctx context.Context, profileID 
 	dsnap, err := fr.FirestoreClient.Get(ctx, getSupplierquery)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created supplier profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to retrieve newly created supplier profile: %w", err),
+		)
 	}
 	// return the newly created supplier profile
 	supplier := &profileutils.Supplier{}
 	err = dsnap.DataTo(supplier)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to read supplier profile: %w", err),
+		)
 	}
 	return supplier, nil
 
 }
 
 // CreateDetailedSupplierProfile create a new supplier profile that is pre-filled using the provided profile ID
-func (fr *Repository) CreateDetailedSupplierProfile(ctx context.Context, profileID string, supplier profileutils.Supplier) (*profileutils.Supplier, error) {
+func (fr *Repository) CreateDetailedSupplierProfile(
+	ctx context.Context,
+	profileID string,
+	supplier profileutils.Supplier,
+) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "CreateDetailedSupplierProfile")
 	defer span.End()
 
@@ -430,14 +478,19 @@ func (fr *Repository) CreateDetailedSupplierProfile(ctx context.Context, profile
 	_, err := fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new supplier empty profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to create new supplier empty profile: %w", err),
+		)
 	}
 
 	return &supplier, nil
 }
 
 // CreateEmptyCustomerProfile creates an empty customer profile
-func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID string) (*profileutils.Customer, error) {
+func (fr *Repository) CreateEmptyCustomerProfile(
+	ctx context.Context,
+	profileID string,
+) (*profileutils.Customer, error) {
 	ctx, span := tracer.Start(ctx, "CreateEmptyCustomerProfile")
 	defer span.End()
 
@@ -453,7 +506,9 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 	docRef, err := fr.FirestoreClient.Create(ctx, createCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to create new customer empty profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to create new customer empty profile: %w", err),
+		)
 	}
 
 	getSupplierquery := &GetSingleQuery{
@@ -463,7 +518,9 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 	dsnap, err := fr.FirestoreClient.Get(ctx, getSupplierquery)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to retrieve newly created customer profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to retrieve newly created customer profile: %w", err),
+		)
 	}
 
 	// return the newly created customer profile
@@ -471,13 +528,19 @@ func (fr *Repository) CreateEmptyCustomerProfile(ctx context.Context, profileID 
 	err = dsnap.DataTo(customer)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to read customer profile: %w", err),
+		)
 	}
 	return customer, nil
 }
 
 //GetUserProfileByPrimaryPhoneNumber fetches a user profile by primary phone number
-func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(
+	ctx context.Context,
+	phoneNumber string,
+	suspended bool,
+) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "GetUserProfileByPrimaryPhoneNumber")
 	defer span.End()
 
@@ -500,7 +563,9 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 	err = dsnap.DataTo(profile)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to read user profile: %w", err),
+		)
 	}
 
 	if !suspended {
@@ -514,7 +579,11 @@ func (fr *Repository) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, ph
 
 // GetUserProfileByPhoneNumber fetches a user profile by phone number. This method traverses both PRIMARY PHONE numbers
 // and SECONDARY PHONE numbers.
-func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+func (fr *Repository) GetUserProfileByPhoneNumber(
+	ctx context.Context,
+	phoneNumber string,
+	suspended bool,
+) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "GetUserProfileByPhoneNumber")
 	defer span.End()
 
@@ -534,7 +603,9 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 		dsnap := docs[0]
 		pr := &profileutils.UserProfile{}
 		if err := dsnap.DataTo(pr); err != nil {
-			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
+			return nil, exceptions.InternalServerError(
+				fmt.Errorf("unable to read customer profile: %w", err),
+			)
 		}
 		return pr, nil
 	}
@@ -556,7 +627,9 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 		dsnap := docs1[0]
 		pr := &profileutils.UserProfile{}
 		if err := dsnap.DataTo(pr); err != nil {
-			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
+			return nil, exceptions.InternalServerError(
+				fmt.Errorf("unable to read customer profile: %w", err),
+			)
 		}
 
 		if !suspended {
@@ -575,7 +648,10 @@ func (fr *Repository) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 
 // CheckIfPhoneNumberExists checks both PRIMARY PHONE NUMBERs and SECONDARY PHONE NUMBERs for the
 // existence of the argument phoneNumber.
-func (fr *Repository) CheckIfPhoneNumberExists(ctx context.Context, phoneNumber string) (bool, error) {
+func (fr *Repository) CheckIfPhoneNumberExists(
+	ctx context.Context,
+	phoneNumber string,
+) (bool, error) {
 	ctx, span := tracer.Start(ctx, "CheckIfPhoneNumberExists")
 	defer span.End()
 
@@ -680,7 +756,10 @@ func (fr *Repository) CheckIfUsernameExists(ctx context.Context, userName string
 }
 
 // GetPINByProfileID gets a user's PIN by their profile ID
-func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (*domain.PIN, error) {
+func (fr *Repository) GetPINByProfileID(
+	ctx context.Context,
+	profileID string,
+) (*domain.PIN, error) {
 	ctx, span := tracer.Start(ctx, "GetPINByProfileID")
 	defer span.End()
 
@@ -718,7 +797,9 @@ func (fr *Repository) GetPINByProfileID(ctx context.Context, profileID string) (
 // GenerateAuthCredentialsForAnonymousUser generates auth credentials for the anonymous user. This method is here since we don't
 // want to delegate sign-in of anonymous users to the frontend. This is an effort the over reliance on firebase and lettin us
 // handle all the heavy lifting
-func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(ctx context.Context) (*profileutils.AuthCredentialResponse, error) {
+func (fr *Repository) GenerateAuthCredentialsForAnonymousUser(
+	ctx context.Context,
+) (*profileutils.AuthCredentialResponse, error) {
 	ctx, span := tracer.Start(ctx, "GenerateAuthCredentialsForAnonymousUser")
 	defer span.End()
 
@@ -858,7 +939,9 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 
 	if len(docs) == 0 {
@@ -872,7 +955,9 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile primary phone number: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile primary phone number: %v", err),
+		)
 	}
 
 	return nil
@@ -880,7 +965,11 @@ func (fr *Repository) UpdateUserName(ctx context.Context, id string, userName st
 
 // UpdatePrimaryPhoneNumber append a new primary phone number to the user profile
 // this method should be called after asserting the phone number is unique and not associated with another userProfile
-func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, phoneNumber string) error {
+func (fr *Repository) UpdatePrimaryPhoneNumber(
+	ctx context.Context,
+	id string,
+	phoneNumber string,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdatePrimaryPhoneNumber")
 	defer span.End()
 
@@ -901,7 +990,9 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 
 	if len(docs) == 0 {
@@ -916,7 +1007,9 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile primary phone number: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile primary phone number: %v", err),
+		)
 	}
 
 	return nil
@@ -924,7 +1017,11 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(ctx context.Context, id string, p
 
 // UpdatePrimaryEmailAddress the primary email addresses of the profile that matches the id
 // this method should be called after asserting the emailAddress is unique and not associated with another userProfile
-func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, emailAddress string) error {
+func (fr *Repository) UpdatePrimaryEmailAddress(
+	ctx context.Context,
+	id string,
+	emailAddress string,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdatePrimaryEmailAddress")
 	defer span.End()
 
@@ -945,7 +1042,9 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 
 	if len(docs) == 0 {
@@ -959,7 +1058,9 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile primary email address: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile primary email address: %v", err),
+		)
 	}
 
 	return nil
@@ -967,7 +1068,11 @@ func (fr *Repository) UpdatePrimaryEmailAddress(ctx context.Context, id string, 
 
 // UpdateSecondaryPhoneNumbers updates the secondary phone numbers of the profile that matches the id
 // this method should be called after asserting the phone numbers are unique and not associated with another userProfile
-func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string, phoneNumbers []string) error {
+func (fr *Repository) UpdateSecondaryPhoneNumbers(
+	ctx context.Context,
+	id string,
+	phoneNumbers []string,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdateSecondaryPhoneNumbers")
 	defer span.End()
 
@@ -991,7 +1096,9 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 	for _, phone := range phoneNumbers {
 		index, exist := utils.FindItem(profile.SecondaryPhoneNumbers, phone)
 		if exist {
-			profile.SecondaryPhoneNumbers = append(profile.SecondaryPhoneNumbers[:index], profile.SecondaryPhoneNumbers[index+1:]...)
+			profile.SecondaryPhoneNumbers = append(
+				profile.SecondaryPhoneNumbers[:index],
+				profile.SecondaryPhoneNumbers[index+1:]...)
 		}
 	}
 
@@ -1006,7 +1113,9 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 
 	if len(docs) == 0 {
@@ -1020,7 +1129,9 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary phone numbers: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile secondary phone numbers: %v", err),
+		)
 	}
 
 	return nil
@@ -1028,7 +1139,11 @@ func (fr *Repository) UpdateSecondaryPhoneNumbers(ctx context.Context, id string
 
 // UpdateSecondaryEmailAddresses the secondary email addresses of the profile that matches the id
 // this method should be called after asserting the emailAddresses  as unique and not associated with another userProfile
-func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id string, uniqueEmailAddresses []string) error {
+func (fr *Repository) UpdateSecondaryEmailAddresses(
+	ctx context.Context,
+	id string,
+	uniqueEmailAddresses []string,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdateSecondaryEmailAddresses")
 	defer span.End()
 
@@ -1042,7 +1157,10 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 	// check if former primary email still exists in the
 	// secondary emails list
 	if profile.PrimaryEmailAddress != nil {
-		index, exist := utils.FindItem(profile.SecondaryEmailAddresses, *profile.PrimaryEmailAddress)
+		index, exist := utils.FindItem(
+			profile.SecondaryEmailAddresses,
+			*profile.PrimaryEmailAddress,
+		)
 		if exist {
 			// remove the former secondary email from the list
 			profile.SecondaryEmailAddresses = append(
@@ -1056,11 +1174,15 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 	for _, email := range uniqueEmailAddresses {
 		index, exist := utils.FindItem(profile.SecondaryEmailAddresses, email)
 		if exist {
-			profile.SecondaryEmailAddresses = append(profile.SecondaryEmailAddresses[:index], profile.SecondaryEmailAddresses[index+1:]...)
+			profile.SecondaryEmailAddresses = append(
+				profile.SecondaryEmailAddresses[:index],
+				profile.SecondaryEmailAddresses[index+1:]...)
 		}
 	}
 
-	profile.SecondaryEmailAddresses = append(profile.SecondaryEmailAddresses, uniqueEmailAddresses...)
+	profile.SecondaryEmailAddresses = append(
+		profile.SecondaryEmailAddresses,
+		uniqueEmailAddresses...)
 
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
@@ -1071,7 +1193,9 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1084,7 +1208,9 @@ func (fr *Repository) UpdateSecondaryEmailAddresses(ctx context.Context, id stri
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary email address: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile secondary email address: %v", err),
+		)
 	}
 	return nil
 }
@@ -1153,7 +1279,9 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1166,14 +1294,20 @@ func (fr *Repository) UpdatePhotoUploadID(ctx context.Context, id string, upload
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile photo upload id: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile photo upload id: %v", err),
+		)
 	}
 
 	return nil
 }
 
 // UpdateCovers updates the covers attribute of the profile that matches the id
-func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []profileutils.Cover) error {
+func (fr *Repository) UpdateCovers(
+	ctx context.Context,
+	id string,
+	covers []profileutils.Cover,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdateCovers")
 	defer span.End()
 
@@ -1209,7 +1343,9 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []prof
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1222,7 +1358,9 @@ func (fr *Repository) UpdateCovers(ctx context.Context, id string, covers []prof
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile covers: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile covers: %v", err),
+		)
 	}
 
 	return nil
@@ -1252,7 +1390,9 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1265,13 +1405,19 @@ func (fr *Repository) UpdatePushTokens(ctx context.Context, id string, pushToken
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile push tokens: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile push tokens: %v", err),
+		)
 	}
 	return nil
 }
 
 // UpdatePermissions update the permissions of the user profile
-func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []profileutils.PermissionType) error {
+func (fr *Repository) UpdatePermissions(
+	ctx context.Context,
+	id string,
+	perms []profileutils.PermissionType,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdatePermissions")
 	defer span.End()
 
@@ -1314,7 +1460,9 @@ func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1327,7 +1475,9 @@ func (fr *Repository) UpdatePermissions(ctx context.Context, id string, perms []
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile permissions: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile permissions: %v", err),
+		)
 	}
 	return nil
 
@@ -1357,7 +1507,9 @@ func (fr *Repository) UpdateRole(ctx context.Context, id string, role profileuti
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1370,14 +1522,20 @@ func (fr *Repository) UpdateRole(ctx context.Context, id string, role profileuti
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user role and permissions: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user role and permissions: %v", err),
+		)
 	}
 	return nil
 
 }
 
 // UpdateFavNavActions update the permissions of the user profile
-func (fr *Repository) UpdateFavNavActions(ctx context.Context, id string, favActions []string) error {
+func (fr *Repository) UpdateFavNavActions(
+	ctx context.Context,
+	id string,
+	favActions []string,
+) error {
 	profile, err := fr.GetUserProfileByID(ctx, id, false)
 	if err != nil {
 		// this is a wrapped error. No need to wrap it again
@@ -1394,7 +1552,9 @@ func (fr *Repository) UpdateFavNavActions(ctx context.Context, id string, favAct
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1406,13 +1566,19 @@ func (fr *Repository) UpdateFavNavActions(ctx context.Context, id string, favAct
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user favorite actions: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user favorite actions: %v", err),
+		)
 	}
 	return nil
 }
 
 // UpdateBioData updates the biodate of the profile that matches the id
-func (fr *Repository) UpdateBioData(ctx context.Context, id string, data profileutils.BioData) error {
+func (fr *Repository) UpdateBioData(
+	ctx context.Context,
+	id string,
+	data profileutils.BioData,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdateBioData")
 	defer span.End()
 
@@ -1428,26 +1594,38 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data profile
 			return dt.FirstName
 		}
 		return pr.UserBioData.FirstName
-	}(profile, data)
+	}(
+		profile,
+		data,
+	)
 	profile.UserBioData.LastName = func(pr *profileutils.UserProfile, dt profileutils.BioData) *string {
 		if dt.LastName != nil {
 			return dt.LastName
 		}
 		return pr.UserBioData.LastName
-	}(profile, data)
+	}(
+		profile,
+		data,
+	)
 	profile.UserBioData.Gender = func(pr *profileutils.UserProfile, dt profileutils.BioData) enumutils.Gender {
 		if dt.Gender.String() != "" {
 			return dt.Gender
 		}
 		return pr.UserBioData.Gender
-	}(profile, data)
+	}(
+		profile,
+		data,
+	)
 	profile.UserBioData.DateOfBirth = func(pr *profileutils.UserProfile, dt profileutils.BioData) *scalarutils.Date {
 		if dt.DateOfBirth != nil {
 			return dt.DateOfBirth
 		}
 
 		return pr.UserBioData.DateOfBirth
-	}(profile, data)
+	}(
+		profile,
+		data,
+	)
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "id",
@@ -1457,7 +1635,9 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data profile
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1470,13 +1650,19 @@ func (fr *Repository) UpdateBioData(ctx context.Context, id string, data profile
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile bio data: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile bio data: %v", err),
+		)
 	}
 	return nil
 }
 
 // UpdateVerifiedIdentifiers adds a UID to a user profile during login if it does not exist
-func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, identifiers []profileutils.VerifiedIdentifier) error {
+func (fr *Repository) UpdateVerifiedIdentifiers(
+	ctx context.Context,
+	id string,
+	identifiers []profileutils.VerifiedIdentifier,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdateVerifiedIdentifiers")
 	defer span.End()
 
@@ -1505,7 +1691,9 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 			docs, err := fr.FirestoreClient.GetAll(ctx, query)
 			if err != nil {
 				utils.RecordSpanError(span, err)
-				return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+				return exceptions.InternalServerError(
+					fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+				)
 			}
 			if len(docs) == 0 {
 				return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1518,7 +1706,9 @@ func (fr *Repository) UpdateVerifiedIdentifiers(ctx context.Context, id string, 
 			err = fr.FirestoreClient.Update(ctx, updateCommand)
 			if err != nil {
 				utils.RecordSpanError(span, err)
-				return exceptions.InternalServerError(fmt.Errorf("unable to update user profile verified identifiers: %v", err))
+				return exceptions.InternalServerError(
+					fmt.Errorf("unable to update user profile verified identifiers: %v", err),
+				)
 			}
 			return nil
 
@@ -1558,7 +1748,9 @@ func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []
 			docs, err := fr.FirestoreClient.GetAll(ctx, query)
 			if err != nil {
 				utils.RecordSpanError(span, err)
-				return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+				return exceptions.InternalServerError(
+					fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+				)
 			}
 			if len(docs) == 0 {
 				return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1571,7 +1763,9 @@ func (fr *Repository) UpdateVerifiedUIDS(ctx context.Context, id string, uids []
 			err = fr.FirestoreClient.Update(ctx, updateCommand)
 			if err != nil {
 				utils.RecordSpanError(span, err)
-				return exceptions.InternalServerError(fmt.Errorf("unable to update user profile verified UIDS: %v", err))
+				return exceptions.InternalServerError(
+					fmt.Errorf("unable to update user profile verified UIDS: %v", err),
+				)
 			}
 			return nil
 
@@ -1591,7 +1785,9 @@ func (fr *Repository) RecordPostVisitSurvey(
 	defer span.End()
 
 	if input.LikelyToRecommend < 0 || input.LikelyToRecommend > 10 {
-		return exceptions.LikelyToRecommendError(fmt.Errorf("the likelihood of recommending should be an int between 0 and 10"))
+		return exceptions.LikelyToRecommendError(
+			fmt.Errorf("the likelihood of recommending should be an int between 0 and 10"),
+		)
 
 	}
 	feedback := domain.PostVisitSurvey{
@@ -1652,7 +1848,9 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user pin as firebase snapshot: %v", err))
+		return false, exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user pin as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return false, exceptions.InternalServerError(fmt.Errorf("user pin not found"))
@@ -1682,7 +1880,10 @@ func (fr *Repository) UpdatePIN(ctx context.Context, id string, pin *domain.PIN)
 // ExchangeRefreshTokenForIDToken takes a custom Firebase refresh token and tries to fetch
 // an ID token and returns auth credentials if successful
 // Otherwise, an error is returned
-func (fr Repository) ExchangeRefreshTokenForIDToken(ctx context.Context, refreshToken string) (*profileutils.AuthCredentialResponse, error) {
+func (fr Repository) ExchangeRefreshTokenForIDToken(
+	ctx context.Context,
+	refreshToken string,
+) (*profileutils.AuthCredentialResponse, error) {
 	_, span := tracer.Start(ctx, "ExchangeRefreshTokenForIDToken")
 	defer span.End()
 
@@ -1739,7 +1940,10 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(ctx context.Context, refresh
 }
 
 // GetCustomerProfileByID fetch the customer profile by profile id.
-func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*profileutils.Customer, error) {
+func (fr *Repository) GetCustomerProfileByID(
+	ctx context.Context,
+	id string,
+) (*profileutils.Customer, error) {
 	ctx, span := tracer.Start(ctx, "GetCustomerProfileByID")
 	defer span.End()
 
@@ -1759,20 +1963,27 @@ func (fr *Repository) GetCustomerProfileByID(ctx context.Context, id string) (*p
 	}
 
 	if len(docs) == 0 {
-		return nil, exceptions.InternalServerError(fmt.Errorf("customer profile not found: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("customer profile not found: %w", err),
+		)
 	}
 	dsnap := docs[0]
 	cus := &profileutils.Customer{}
 	err = dsnap.DataTo(cus)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to read customer profile: %w", err),
+		)
 	}
 	return cus, nil
 }
 
 // GetCustomerProfileByProfileID fetches customer profile by given ID
-func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profileID string) (*profileutils.Customer, error) {
+func (fr *Repository) GetCustomerProfileByProfileID(
+	ctx context.Context,
+	profileID string,
+) (*profileutils.Customer, error) {
 	ctx, span := tracer.Start(ctx, "GetCustomerProfileByProfileID")
 	defer span.End()
 
@@ -1796,7 +2007,9 @@ func (fr *Repository) GetCustomerProfileByProfileID(ctx context.Context, profile
 	err = dsnap.DataTo(cus)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read customer profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to read customer profile: %w", err),
+		)
 	}
 	return cus, nil
 }
@@ -1839,7 +2052,10 @@ func (fr *Repository) GetSupplierProfileByProfileID(
 }
 
 // GetSupplierProfileByID fetches supplier profile by given ID
-func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*profileutils.Supplier, error) {
+func (fr *Repository) GetSupplierProfileByID(
+	ctx context.Context,
+	id string,
+) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "GetSupplierProfileByID")
 	defer span.End()
 
@@ -1856,20 +2072,28 @@ func (fr *Repository) GetSupplierProfileByID(ctx context.Context, id string) (*p
 	}
 
 	if len(docs) == 0 {
-		return nil, exceptions.InternalServerError(fmt.Errorf("supplier profile not found: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("supplier profile not found: %w", err),
+		)
 	}
 	dsnap := docs[0]
 	sup := &profileutils.Supplier{}
 	err = dsnap.DataTo(sup)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier profile: %w", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to read supplier profile: %w", err),
+		)
 	}
 	return sup, nil
 }
 
 // UpdateSupplierProfile does a generic update of supplier profile.
-func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID string, data *profileutils.Supplier) error {
+func (fr *Repository) UpdateSupplierProfile(
+	ctx context.Context,
+	profileID string,
+	data *profileutils.Supplier,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdateSupplierProfile")
 	defer span.End()
 
@@ -1905,7 +2129,9 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID strin
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1925,7 +2151,11 @@ func (fr *Repository) UpdateSupplierProfile(ctx context.Context, profileID strin
 }
 
 // AddSupplierAccountType update the supplier profile with the correct account type
-func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID string, accountType profileutils.AccountType) (*profileutils.Supplier, error) {
+func (fr *Repository) AddSupplierAccountType(
+	ctx context.Context,
+	profileID string,
+	accountType profileutils.AccountType,
+) (*profileutils.Supplier, error) {
 	ctx, span := tracer.Start(ctx, "AddSupplierAccountType")
 	defer span.End()
 
@@ -1951,7 +2181,9 @@ func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID stri
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return nil, exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -1964,7 +2196,9 @@ func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID stri
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to update user profile: %v", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile: %v", err),
+		)
 	}
 
 	return sup, nil
@@ -1972,7 +2206,12 @@ func (fr *Repository) AddSupplierAccountType(ctx context.Context, profileID stri
 }
 
 // AddPartnerType updates the suppier profile with the provided name and  partner type.
-func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name *string, partnerType *profileutils.PartnerType) (bool, error) {
+func (fr *Repository) AddPartnerType(
+	ctx context.Context,
+	profileID string,
+	name *string,
+	partnerType *profileutils.PartnerType,
+) (bool, error) {
 	ctx, span := tracer.Start(ctx, "AddPartnerType")
 	defer span.End()
 
@@ -1996,7 +2235,9 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return false, exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return false, exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -2010,7 +2251,9 @@ func (fr *Repository) AddPartnerType(ctx context.Context, profileID string, name
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return false, exceptions.InternalServerError(fmt.Errorf("unable to update user profile: %v", err))
+		return false, exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile: %v", err),
+		)
 	}
 
 	return true, nil
@@ -2083,7 +2326,10 @@ func (fr *Repository) StageProfileNudge(
 }
 
 // StageKYCProcessingRequest stages the request which will be retrieved later for admins
-func (fr *Repository) StageKYCProcessingRequest(ctx context.Context, data *domain.KYCRequest) error {
+func (fr *Repository) StageKYCProcessingRequest(
+	ctx context.Context,
+	data *domain.KYCRequest,
+) error {
 	ctx, span := tracer.Start(ctx, "StageKYCProcessingRequest")
 	defer span.End()
 
@@ -2100,7 +2346,10 @@ func (fr *Repository) StageKYCProcessingRequest(ctx context.Context, data *domai
 }
 
 // RemoveKYCProcessingRequest removes the supplier's kyc processing request
-func (fr *Repository) RemoveKYCProcessingRequest(ctx context.Context, supplierProfileID string) error {
+func (fr *Repository) RemoveKYCProcessingRequest(
+	ctx context.Context,
+	supplierProfileID string,
+) error {
 	ctx, span := tracer.Start(ctx, "RemoveKYCProcessingRequest")
 	defer span.End()
 
@@ -2113,7 +2362,9 @@ func (fr *Repository) RemoveKYCProcessingRequest(ctx context.Context, supplierPr
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to fetch kyc request documents: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to fetch kyc request documents: %v", err),
+		)
 	}
 
 	if len(docs) == 0 {
@@ -2122,7 +2373,9 @@ func (fr *Repository) RemoveKYCProcessingRequest(ctx context.Context, supplierPr
 
 	req := &domain.KYCRequest{}
 	if err := docs[0].DataTo(req); err != nil {
-		return exceptions.InternalServerError(fmt.Errorf("unable to read supplier kyc record: %w", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to read supplier kyc record: %w", err),
+		)
 	}
 	getKYCQuery := &GetAllQuery{
 		CollectionName: fr.GetKCYProcessCollectionName(),
@@ -2143,7 +2396,9 @@ func (fr *Repository) RemoveKYCProcessingRequest(ctx context.Context, supplierPr
 }
 
 // FetchKYCProcessingRequests retrieves all unprocessed kycs for admins
-func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {
+func (fr *Repository) FetchKYCProcessingRequests(
+	ctx context.Context,
+) ([]*domain.KYCRequest, error) {
 	ctx, span := tracer.Start(ctx, "FetchKYCProcessingRequests")
 	defer span.End()
 
@@ -2156,7 +2411,9 @@ func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to fetch kyc request documents: %v", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to fetch kyc request documents: %v", err),
+		)
 	}
 
 	res := []*domain.KYCRequest{}
@@ -2166,7 +2423,9 @@ func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain
 		err = doc.DataTo(req)
 		if err != nil {
 			utils.RecordSpanError(span, err)
-			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier: %w", err))
+			return nil, exceptions.InternalServerError(
+				fmt.Errorf("unable to read supplier: %w", err),
+			)
 		}
 		res = append(res, req)
 	}
@@ -2175,7 +2434,10 @@ func (fr *Repository) FetchKYCProcessingRequests(ctx context.Context) ([]*domain
 }
 
 // FetchKYCProcessingRequestByID retrieves a specific kyc processing request
-func (fr *Repository) FetchKYCProcessingRequestByID(ctx context.Context, id string) (*domain.KYCRequest, error) {
+func (fr *Repository) FetchKYCProcessingRequestByID(
+	ctx context.Context,
+	id string,
+) (*domain.KYCRequest, error) {
 	ctx, span := tracer.Start(ctx, "FetchKYCProcessingRequestByID")
 	defer span.End()
 
@@ -2188,7 +2450,9 @@ func (fr *Repository) FetchKYCProcessingRequestByID(ctx context.Context, id stri
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to fetch kyc request documents: %v", err))
+		return nil, exceptions.InternalServerError(
+			fmt.Errorf("unable to fetch kyc request documents: %v", err),
+		)
 	}
 
 	req := &domain.KYCRequest{}
@@ -2202,7 +2466,10 @@ func (fr *Repository) FetchKYCProcessingRequestByID(ctx context.Context, id stri
 }
 
 // UpdateKYCProcessingRequest update the supplier profile
-func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, kycRequest *domain.KYCRequest) error {
+func (fr *Repository) UpdateKYCProcessingRequest(
+	ctx context.Context,
+	kycRequest *domain.KYCRequest,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdateKYCProcessingRequest")
 	defer span.End()
 
@@ -2215,7 +2482,9 @@ func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, kycRequest
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse kyc processing request as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse kyc processing request as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("kyc processing request not found"))
@@ -2228,7 +2497,9 @@ func (fr *Repository) UpdateKYCProcessingRequest(ctx context.Context, kycRequest
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update kyc processing request profile: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update kyc processing request profile: %v", err),
+		)
 	}
 	return nil
 }
@@ -2255,7 +2526,9 @@ func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*profileutils.User
 		err = doc.DataTo(u)
 		if err != nil {
 			utils.RecordSpanError(span, err)
-			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read user profile: %w", err))
+			return nil, exceptions.InternalServerError(
+				fmt.Errorf("unable to read user profile: %w", err),
+			)
 		}
 		admins = append(admins, u)
 	}
@@ -2489,7 +2762,9 @@ func (fr *Repository) HardResetSecondaryPhoneNumbers(
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -2502,7 +2777,9 @@ func (fr *Repository) HardResetSecondaryPhoneNumbers(
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary phone numbers: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile secondary phone numbers: %v", err),
+		)
 	}
 
 	return nil
@@ -2529,7 +2806,9 @@ func (fr *Repository) HardResetSecondaryEmailAddress(
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	if len(docs) == 0 {
 		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
@@ -2542,14 +2821,19 @@ func (fr *Repository) HardResetSecondaryEmailAddress(
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(fmt.Errorf("unable to update user profile secondary phone numbers: %v", err))
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile secondary phone numbers: %v", err),
+		)
 	}
 
 	return nil
 }
 
 // CheckIfExperimentParticipant check if a user has subscribed to be an experiment participant
-func (fr *Repository) CheckIfExperimentParticipant(ctx context.Context, profileID string) (bool, error) {
+func (fr *Repository) CheckIfExperimentParticipant(
+	ctx context.Context,
+	profileID string,
+) (bool, error) {
 	ctx, span := tracer.Start(ctx, "CheckIfExperimentParticipant")
 	defer span.End()
 
@@ -2562,7 +2846,9 @@ func (fr *Repository) CheckIfExperimentParticipant(ctx context.Context, profileI
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return false, exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 
 	if len(docs) == 0 {
@@ -2573,7 +2859,10 @@ func (fr *Repository) CheckIfExperimentParticipant(ctx context.Context, profileI
 
 // AddUserAsExperimentParticipant adds the provided user profile as an experiment participant if does not already exist.
 // this method is idempotent.
-func (fr *Repository) AddUserAsExperimentParticipant(ctx context.Context, profile *profileutils.UserProfile) (bool, error) {
+func (fr *Repository) AddUserAsExperimentParticipant(
+	ctx context.Context,
+	profile *profileutils.UserProfile,
+) (bool, error) {
 	ctx, span := tracer.Start(ctx, "AddUserAsExperimentParticipant")
 	defer span.End()
 
@@ -2591,7 +2880,13 @@ func (fr *Repository) AddUserAsExperimentParticipant(ctx context.Context, profil
 		_, err = fr.FirestoreClient.Create(ctx, createCommand)
 		if err != nil {
 			utils.RecordSpanError(span, err)
-			return false, exceptions.InternalServerError(fmt.Errorf("unable to add user profile of ID %v in experiment_participant: %v", profile.ID, err))
+			return false, exceptions.InternalServerError(
+				fmt.Errorf(
+					"unable to add user profile of ID %v in experiment_participant: %v",
+					profile.ID,
+					err,
+				),
+			)
 		}
 		return true, nil
 	}
@@ -2602,7 +2897,10 @@ func (fr *Repository) AddUserAsExperimentParticipant(ctx context.Context, profil
 
 // RemoveUserAsExperimentParticipant removes the provide user profile as an experiment participant. This methold does not check
 // for existence before deletion since non-existence is relatively equivalent to a removal
-func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, profile *profileutils.UserProfile) (bool, error) {
+func (fr *Repository) RemoveUserAsExperimentParticipant(
+	ctx context.Context,
+	profile *profileutils.UserProfile,
+) (bool, error) {
 	ctx, span := tracer.Start(ctx, "RemoveUserAsExperimentParticipant")
 	defer span.End()
 
@@ -2616,7 +2914,9 @@ func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, pro
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return false, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err))
+		return false, exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
 	}
 	// means the document was removed or does not exist
 	if len(docs) == 0 {
@@ -2629,7 +2929,13 @@ func (fr *Repository) RemoveUserAsExperimentParticipant(ctx context.Context, pro
 	err = fr.FirestoreClient.Delete(ctx, deleteCommand)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return false, exceptions.InternalServerError(fmt.Errorf("unable to remove user profile of ID %v from experiment_participant: %v", profile.ID, err))
+		return false, exceptions.InternalServerError(
+			fmt.Errorf(
+				"unable to remove user profile of ID %v from experiment_participant: %v",
+				profile.ID,
+				err,
+			),
+		)
 	}
 
 	return true, nil
@@ -2798,7 +3104,10 @@ func (fr *Repository) GetNHIFDetailsByProfileID(
 }
 
 // GetUserCommunicationsSettings fetches the communication settings of a specific user.
-func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
+func (fr *Repository) GetUserCommunicationsSettings(
+	ctx context.Context,
+	profileID string,
+) (*profileutils.UserCommunicationsSetting, error) {
 	ctx, span := tracer.Start(ctx, "GetUserCommunicationsSettings")
 	defer span.End()
 
@@ -2836,8 +3145,14 @@ func (fr *Repository) GetUserCommunicationsSettings(ctx context.Context, profile
 }
 
 // SetUserCommunicationsSettings sets communication settings for a specific user
-func (fr *Repository) SetUserCommunicationsSettings(ctx context.Context, profileID string,
-	allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error) {
+func (fr *Repository) SetUserCommunicationsSettings(
+	ctx context.Context,
+	profileID string,
+	allowWhatsApp *bool,
+	allowTextSms *bool,
+	allowPush *bool,
+	allowEmail *bool,
+) (*profileutils.UserCommunicationsSetting, error) {
 
 	ctx, span := tracer.Start(ctx, "SetUserCommunicationsSettings")
 	defer span.End()
@@ -2919,7 +3234,10 @@ func (fr *Repository) UpdateCustomerProfile(
 }
 
 // PersistIncomingSMSData persists SMS data
-func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error {
+func (fr *Repository) PersistIncomingSMSData(
+	ctx context.Context,
+	input *dto.AfricasTalkingMessage,
+) error {
 	ctx, span := tracer.Start(ctx, "PersistIncomingSMSData")
 	defer span.End()
 
@@ -2954,7 +3272,10 @@ func (fr *Repository) PersistIncomingSMSData(ctx context.Context, input *dto.Afr
 }
 
 // SaveUSSDEvent saves the USSD event that has taken place while interacting with the USSD
-func (fr *Repository) SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error) {
+func (fr *Repository) SaveUSSDEvent(
+	ctx context.Context,
+	input *dto.USSDEvent,
+) (*dto.USSDEvent, error) {
 	ctx, span := tracer.Start(ctx, "SaveUSSDEvent")
 	defer span.End()
 
@@ -3005,7 +3326,10 @@ func (fr *Repository) SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (
 }
 
 // SaveCoverAutolinkingEvents saves cover linking events into the database
-func (fr *Repository) SaveCoverAutolinkingEvents(ctx context.Context, input *dto.CoverLinkingEvent) (*dto.CoverLinkingEvent, error) {
+func (fr *Repository) SaveCoverAutolinkingEvents(
+	ctx context.Context,
+	input *dto.CoverLinkingEvent,
+) (*dto.CoverLinkingEvent, error) {
 	ctx, span := tracer.Start(ctx, "SaveCoverAutolinkingEvents")
 	defer span.End()
 
@@ -3098,7 +3422,10 @@ func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.Sessi
 }
 
 // ListUserProfiles fetches all users with the specified role from the database
-func (fr *Repository) ListUserProfiles(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error) {
+func (fr *Repository) ListUserProfiles(
+	ctx context.Context,
+	role profileutils.RoleType,
+) ([]*profileutils.UserProfile, error) {
 	query := &GetAllQuery{
 		CollectionName: fr.GetUserProfileCollectionName(),
 		FieldName:      "role",
@@ -3117,7 +3444,9 @@ func (fr *Repository) ListUserProfiles(ctx context.Context, role profileutils.Ro
 		profile := &profileutils.UserProfile{}
 		err = doc.DataTo(profile)
 		if err != nil {
-			return nil, exceptions.InternalServerError(fmt.Errorf("unable to read agent user profile: %w", err))
+			return nil, exceptions.InternalServerError(
+				fmt.Errorf("unable to read agent user profile: %w", err),
+			)
 		}
 		profiles = append(profiles, profile)
 	}
@@ -3126,7 +3455,10 @@ func (fr *Repository) ListUserProfiles(ctx context.Context, role profileutils.Ro
 }
 
 // GetAITSessionDetails gets Africa's Talking session details
-func (fr *Repository) GetAITSessionDetails(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error) {
+func (fr *Repository) GetAITSessionDetails(
+	ctx context.Context,
+	sessionID string,
+) (*domain.USSDLeadDetails, error) {
 	ctx, span := tracer.Start(ctx, "GetAITSessionDetails")
 	defer span.End()
 
@@ -3165,7 +3497,11 @@ func (fr *Repository) GetAITSessionDetails(ctx context.Context, sessionID string
 }
 
 // UpdateSessionLevel updates user interaction level whike they interact with USSD
-func (fr *Repository) UpdateSessionLevel(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error) {
+func (fr *Repository) UpdateSessionLevel(
+	ctx context.Context,
+	sessionID string,
+	level int,
+) (*domain.USSDLeadDetails, error) {
 	ctx, span := tracer.Start(ctx, "UpdateSessionLevel")
 	defer span.End()
 
@@ -3210,7 +3546,11 @@ func (fr *Repository) UpdateSessionLevel(ctx context.Context, sessionID string, 
 }
 
 // UpdateSessionPIN updates current user's session PIN when signing up or changing PIN
-func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error) {
+func (fr *Repository) UpdateSessionPIN(
+	ctx context.Context,
+	sessionID string,
+	pin string,
+) (*domain.USSDLeadDetails, error) {
 	ctx, span := tracer.Start(ctx, "UpdateSessionPIN")
 	defer span.End()
 
@@ -3267,6 +3607,7 @@ func (fr *Repository) GetAITDetails(ctx context.Context, phoneNumber string) (*d
 
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
@@ -3277,6 +3618,7 @@ func (fr *Repository) GetAITDetails(ctx context.Context, phoneNumber string) (*d
 	ussdLead := &domain.USSDLeadDetails{}
 	err = docs[0].DataTo(ussdLead)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
@@ -3286,10 +3628,12 @@ func (fr *Repository) GetAITDetails(ctx context.Context, phoneNumber string) (*d
 
 // UpdateAITSessionDetails updates session details using phone number
 func (fr *Repository) UpdateAITSessionDetails(ctx context.Context, phoneNumber string, contactLead *domain.USSDLeadDetails) error {
+	ctx, span := tracer.Start(ctx, "UpdateAITSessionDetails")
+	defer span.End()
 
 	validPhoneNumber, err := utils.CheckEmptyString(phoneNumber)
-	log.Printf("validated phone number is %v", validPhoneNumber)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 
@@ -3307,6 +3651,7 @@ func (fr *Repository) UpdateAITSessionDetails(ctx context.Context, phoneNumber s
 	}
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return err
 	}
 	contactDetails.FirstName = contactLead.FirstName
@@ -3321,7 +3666,134 @@ func (fr *Repository) UpdateAITSessionDetails(ctx context.Context, phoneNumber s
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
+		utils.RecordSpanError(span, err)
 		return exceptions.InternalServerError(err)
 	}
 	return nil
+}
+
+// CreateRole role details to database
+func (fr *Repository) CreateRole(
+	ctx context.Context,
+	roleDetails profileutils.Role,
+) (*profileutils.Role, error) {
+	ctx, span := tracer.Start(ctx, "CreateRole")
+	defer span.End()
+
+	createCommad := &CreateCommand{
+		CollectionName: fr.GetRolesCollectionName(),
+		Data:           roleDetails,
+	}
+
+	docRef, err := fr.FirestoreClient.Create(ctx, createCommad)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	getRoleQuery := &GetSingleQuery{
+		CollectionName: fr.GetCoverLinkingEventsCollectionName(),
+		Value:          docRef.ID,
+	}
+
+	docsnapshot, err := fr.FirestoreClient.Get(ctx, getRoleQuery)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	role := &profileutils.Role{}
+	err = docsnapshot.DataTo(role)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	return role, nil
+}
+
+// UpdateRoleDetails  ...
+func (fr *Repository) UpdateRoleDetails(ctx context.Context, roleDetails profileutils.Role) error {
+	ctx, span := tracer.Start(ctx, "UpdateRoleDetails")
+	defer span.End()
+
+	collectionName := fr.GetRolesCollectionName()
+	query := &GetAllQuery{
+		CollectionName: collectionName,
+		FieldName:      "id",
+		Value:          roleDetails.ID,
+		Operator:       "==",
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	updateCommand := &UpdateCommand{
+		CollectionName: collectionName,
+		ID:             docs[0].Ref.ID,
+		Data:           roleDetails,
+	}
+	err = fr.FirestoreClient.Update(ctx, updateCommand)
+	if err != nil {
+		return exceptions.InternalServerError(err)
+	}
+	return nil
+}
+
+// GetRoleByID gets role with matching id
+func (fr *Repository) GetRoleByID(ctx context.Context, roleID string) (*profileutils.Role, error) {
+	ctx, span := tracer.Start(ctx, "GetRoleByID")
+	defer span.End()
+
+	collectionName := fr.GetRolesCollectionName()
+	query := &GetAllQuery{
+		CollectionName: collectionName,
+		FieldName:      "id",
+		Value:          roleID,
+		Operator:       "==",
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	if len(docs) == 0 {
+		err = exceptions.ProfileNotFoundError(fmt.Errorf("role not found"))
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	dsnap := docs[0]
+	role := &profileutils.Role{}
+	err = dsnap.DataTo(role)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		err = fmt.Errorf("unable to read role")
+		return nil, exceptions.InternalServerError(err)
+	}
+	return role, nil
+}
+
+// GetRolesByIDs gets all roles matching provided roleIDs if specified otherwise all roles
+func (fr *Repository) GetRolesByIDs(
+	ctx context.Context,
+	roleIDs []string,
+) (*[]profileutils.Role, error) {
+	ctx, span := tracer.Start(ctx, "GetRoleByID")
+	defer span.End()
+	roles := []profileutils.Role{}
+	// role ids provided
+	for _, id := range roleIDs {
+		role, err := fr.GetRoleByID(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		roles = append(roles, *role)
+	}
+
+	return &roles, nil
 }

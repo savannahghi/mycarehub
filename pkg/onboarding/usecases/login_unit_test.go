@@ -19,7 +19,7 @@ import (
 
 func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -227,7 +227,7 @@ func TestProfileUseCaseImpl_ResumeWIthPin(t *testing.T) {
 func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -352,11 +352,22 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				}
 
 				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour feedlib.Flavour, profileID string) (*profileutils.Customer, *profileutils.Supplier, error) {
-					return &profileutils.Customer{ID: "5550"}, &profileutils.Supplier{ID: "5550"}, nil
+					return &profileutils.Customer{
+							ID: "5550",
+						}, &profileutils.Supplier{
+							ID: "5550",
+						}, nil
 				}
 
 				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
-					return &profileutils.UserCommunicationsSetting{ID: "111", ProfileID: "profile-id", AllowWhatsApp: true, AllowEmail: true, AllowTextSMS: true, AllowPush: true}, nil
+					return &profileutils.UserCommunicationsSetting{
+						ID:            "111",
+						ProfileID:     "profile-id",
+						AllowWhatsApp: true,
+						AllowEmail:    true,
+						AllowTextSMS:  true,
+						AllowPush:     true,
+					}, nil
 				}
 
 				fakeRepo.GetNavActionsFn = func(ctx context.Context, role profileutils.RoleType) (*profileutils.NavigationActions, error) {
@@ -513,9 +524,18 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				}
 			}
 
-			got, err := i.Login.LoginByPhone(tt.args.ctx, tt.args.phone, tt.args.PIN, tt.args.flavour)
+			got, err := i.Login.LoginByPhone(
+				tt.args.ctx,
+				tt.args.phone,
+				tt.args.PIN,
+				tt.args.flavour,
+			)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.LoginByPhone() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"ProfileUseCaseImpl.LoginByPhone() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if tt.wantErr {
@@ -541,7 +561,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 }
 
 func TestProfileUseCaseImpl_RefreshToken(t *testing.T) {
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -598,7 +618,11 @@ func TestProfileUseCaseImpl_RefreshToken(t *testing.T) {
 			}
 			got, err := i.Login.RefreshToken(tt.args.ctx, tt.args.token)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.RefreshToken() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"ProfileUseCaseImpl.RefreshToken() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if tt.wantErr {
@@ -624,7 +648,7 @@ func TestProfileUseCaseImpl_RefreshToken(t *testing.T) {
 
 func TestProfileUseCaseImpl_LoginAsAnonymous(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -679,7 +703,11 @@ func TestProfileUseCaseImpl_LoginAsAnonymous(t *testing.T) {
 
 			got, err := i.Login.LoginAsAnonymous(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ProfileUseCaseImpl.LoginAsAnonymous() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"ProfileUseCaseImpl.LoginAsAnonymous() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if tt.wantErr {

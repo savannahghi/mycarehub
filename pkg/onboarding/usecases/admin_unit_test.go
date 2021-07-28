@@ -18,7 +18,7 @@ import (
 
 func TestAdminUseCaseImpl_RegisterAdmin(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -794,7 +794,7 @@ func TestAdminUseCaseImpl_RegisterAdmin(t *testing.T) {
 func TestAdminUseCaseImpl_FetchAdmins(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,

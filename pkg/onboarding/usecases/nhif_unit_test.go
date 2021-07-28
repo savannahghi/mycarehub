@@ -16,7 +16,7 @@ import (
 func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -199,7 +199,7 @@ func TestNHIFUseCaseImpl_AddNHIFDetails(t *testing.T) {
 func TestNHIFUseCaseImpl_NHIFDetails(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize fake onboarding interactor")
 		return

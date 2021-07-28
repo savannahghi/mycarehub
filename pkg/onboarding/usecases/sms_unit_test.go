@@ -12,7 +12,7 @@ import (
 func TestSMSImpl_CreateSMSData(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to initialize the onboarding interactor: %v", err)
 		return

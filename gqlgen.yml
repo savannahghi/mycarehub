@@ -113,3 +113,6 @@ models:
   MicroserviceInput:
     model:
       - github.com/savannahghi/onboarding/pkg/onboarding/domain.Microservice
+  Permission:
+    model:
+      - github.com/savannahghi/profileutils.Permission

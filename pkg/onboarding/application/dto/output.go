@@ -132,3 +132,12 @@ type Segment struct {
 	PayerSladeCode string                      `json:"payer_slade_code" firestore:"payersladecode"`
 	MemberNumber   string                      `json:"member_number"    firestore:"membernumber"`
 }
+
+// RoleOutput
+type RoleOutput struct {
+	ID          string                    `json:"id"`
+	Name        string                    `json:"name"`
+	Description string                    `json:"description"`
+	Scopes      []string                  `json:"scopes"`
+	Permissions []profileutils.Permission `json:"permissions"`
+}

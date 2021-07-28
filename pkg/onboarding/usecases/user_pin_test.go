@@ -14,7 +14,7 @@ import (
 
 func TestUserPinUseCaseUnitTest_SetUserPIN(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -141,7 +141,7 @@ func TestUserPinUseCaseUnitTest_SetUserPIN(t *testing.T) {
 
 func TestUserPinUseCaseUnitTest_ResetUserPIN(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -360,7 +360,7 @@ func TestUserPinUseCaseUnitTest_ResetUserPIN(t *testing.T) {
 
 func TestUserPinUseCaseImpl_ChangeUserPINUnitTest(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -541,7 +541,7 @@ func TestUserPinUseCaseImpl_ChangeUserPINUnitTest(t *testing.T) {
 
 func TestUserPinUseCaseImpl_CheckHasPIN(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -635,7 +635,7 @@ func TestUserPinUseCaseImpl_CheckHasPIN(t *testing.T) {
 
 func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -797,7 +797,7 @@ func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 
 func TestUserPinUseCaseImpl_SetUserTempPIN(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -882,7 +882,11 @@ func TestUserPinUseCaseImpl_SetUserTempPIN(t *testing.T) {
 
 			got, err := i.UserPIN.SetUserTempPIN(tt.args.ctx, tt.args.profileID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UserPinUseCaseImpl.SetUserTempPIN() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"UserPinUseCaseImpl.SetUserTempPIN() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !tt.wantErr && got == "" {

@@ -95,11 +95,14 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps, crmExt)
 	adminSrv := adminSrv.NewService(ext)
 
+	role := usecases.NewRoleUseCases(r, ext)
+
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
 		engagementSvc, messagingSvc, nhif, ps, sms,
 		aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
+		role,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

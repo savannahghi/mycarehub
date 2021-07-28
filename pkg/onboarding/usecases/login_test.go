@@ -422,7 +422,12 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			authResponse, err := s.Login.LoginByPhone(tt.args.ctx, tt.args.phone, tt.args.PIN, tt.args.flavour)
+			authResponse, err := s.Login.LoginByPhone(
+				tt.args.ctx,
+				tt.args.phone,
+				tt.args.PIN,
+				tt.args.flavour,
+			)
 			if tt.wantErr && authResponse != nil {
 				t.Errorf("expected nil auth response but got %v, since the error %v occurred",
 					authResponse,
@@ -450,7 +455,7 @@ var fakePubSub pubsubmessagingMock.FakeServicePubSub
 var fakeEDISvc ediMock.FakeServiceEDI
 
 // InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
-func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
+func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	var r repository.OnboardingRepository = &fakeRepo
 	var erpSvc erp.AccountingUsecase = &fakeEPRSvc
 	var chargemasterSvc chargemaster.ServiceChargeMaster = &fakeChargeMasterSvc
@@ -483,12 +488,14 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	sms := usecases.NewSMSUsecase(r, ext)
 	admin := usecases.NewAdminUseCases(r, engagementSvc, ext, userpin)
 	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
+	role := usecases.NewRoleUseCases(r, ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
 		engagementSvc, messagingSvc, nhif, ps, sms,
 		aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
+		role,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

@@ -38,6 +38,7 @@ type Interactor struct {
 	EDI          edi.ServiceEdi
 	AdminSrv     admin.Usecase
 	CrmExt       crm.ServiceCrm
+	Role         usecases.RoleUseCase
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -62,6 +63,7 @@ func NewOnboardingInteractor(
 	edi edi.ServiceEdi,
 	admin admin.Usecase,
 	crmExt crm.ServiceCrm,
+	role usecases.RoleUseCase,
 ) (*Interactor, error) {
 
 	return &Interactor{
@@ -84,5 +86,6 @@ func NewOnboardingInteractor(
 		EDI:          edi,
 		AdminSrv:     admin,
 		CrmExt:       crmExt,
+		Role:         role,
 	}, nil
 }

@@ -164,3 +164,13 @@ enum LinkType {
   SVG_IMAGE
   DEFAULT
 }
+
+enum PermissionGroup {
+  PermissionGroupRole
+  PermissionGroupEmployee
+  PermissionGroupAgent
+  PermissionGroupPartner
+  PermissionGroupKYC
+  PermissionGroupConsumer
+  PermissionGroupPatient
+}

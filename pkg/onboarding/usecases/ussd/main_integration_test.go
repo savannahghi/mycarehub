@@ -151,7 +151,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 }
 
 // InitializeFakeOnboaridingInteractor represents a fakeonboarding interactor
-func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
+func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	var r repository.OnboardingRepository = &fakeRepo
 	var erpSvc erp.AccountingUsecase = &fakeEPRSvc
 	var chargemasterSvc chargemaster.ServiceChargeMaster = &fakeChargeMasterSvc
@@ -185,10 +185,13 @@ func InitializeFakeOnboaridingInteractor() (*interactor.Interactor, error) {
 	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps, crmExt)
 	adminSrv := adminSrv.NewService(ext)
 
+	role := usecases.NewRoleUseCases(r, ext)
+
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
 		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
+		role,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -318,11 +321,13 @@ func InitializeFakeUSSDTestService() (*interactor.Interactor, error) {
 	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
 	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps, crmSvc)
 	adminSrv := adminSrv.NewService(ext)
+	role := usecases.NewRoleUseCases(r, ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		r, profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
 		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
+		role,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

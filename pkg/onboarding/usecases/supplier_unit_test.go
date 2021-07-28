@@ -30,7 +30,7 @@ const (
 
 func TestProfileUseCaseImpl_FindSupplierByID(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -106,7 +106,7 @@ func TestProfileUseCaseImpl_FindSupplierByID(t *testing.T) {
 
 func TestProfileUseCaseImpl_SendKYCEmail(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -178,7 +178,7 @@ func TestProfileUseCaseImpl_SendKYCEmail(t *testing.T) {
 
 func TestProfileUseCaseImpl_PublishKYCFeedItem(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -270,7 +270,7 @@ func TestProfileUseCaseImpl_PublishKYCFeedItem(t *testing.T) {
 
 func TestProfileUseCaseImpl_RetireKYCRequest(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -421,7 +421,7 @@ func TestProfileUseCaseImpl_RetireKYCRequest(t *testing.T) {
 
 func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -542,8 +542,10 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					suspend bool,
 				) (*profileutils.UserProfile, error) {
 					return &profileutils.UserProfile{
-						ID:          uuid.New().String(),
-						Permissions: []profileutils.PermissionType{profileutils.PermissionTypeAdmin},
+						ID: uuid.New().String(),
+						Permissions: []profileutils.PermissionType{
+							profileutils.PermissionTypeAdmin,
+						},
 					}, nil
 				}
 				fakeRepo.CheckIfAdminFn = func(profile *profileutils.UserProfile) bool {
@@ -662,8 +664,10 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					suspend bool,
 				) (*profileutils.UserProfile, error) {
 					return &profileutils.UserProfile{
-						ID:          uuid.New().String(),
-						Permissions: []profileutils.PermissionType{profileutils.PermissionTypeAdmin},
+						ID: uuid.New().String(),
+						Permissions: []profileutils.PermissionType{
+							profileutils.PermissionTypeAdmin,
+						},
 					}, nil
 				}
 				fakeRepo.CheckIfAdminFn = func(profile *profileutils.UserProfile) bool {
@@ -1098,7 +1102,7 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 
 func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1418,7 +1422,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPharmaceuticalKyc(t *testing.T) {
 
 func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1637,7 +1641,11 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 
 			got, err := i.Supplier.SuspendSupplier(tt.args.ctx, tt.args.suspensionReason)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.SuspendSupplier() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.SuspendSupplier() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if got != tt.want {
@@ -1662,7 +1670,7 @@ func TestSupplierUseCasesImpl_SuspendSupplier(t *testing.T) {
 
 func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1961,11 +1969,19 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 
 			got, err := i.Supplier.AddOrganizationRiderKyc(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddOrganizationRiderKyc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddOrganizationRiderKyc() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SupplierUseCasesImpl.AddOrganizationRiderKyc() = %v, want %v", got, tt.want)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddOrganizationRiderKyc() = %v, want %v",
+					got,
+					tt.want,
+				)
 			}
 
 			if tt.wantErr {
@@ -1986,7 +2002,7 @@ func TestSupplierUseCasesImpl_AddOrganizationRiderKyc(t *testing.T) {
 
 func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -2228,13 +2244,21 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 
 			got, err := i.Supplier.AddOrganizationPractitionerKyc(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddOrganizationPractitionerKyc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddOrganizationPractitionerKyc() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Logf("%v", got)
 				t.Logf("%v", tt.want)
-				t.Errorf("SupplierUseCasesImpl.AddOrganizationPractitionerKyc() = %v, want %v", got, tt.want)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddOrganizationPractitionerKyc() = %v, want %v",
+					got,
+					tt.want,
+				)
 			}
 
 			if tt.wantErr {
@@ -2255,7 +2279,7 @@ func TestSupplierUseCasesImpl_AddOrganizationPractitionerKyc(t *testing.T) {
 
 func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -2496,11 +2520,19 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 
 			got, err := i.Supplier.AddOrganizationProviderKyc(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddOrganizationProviderKyc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddOrganizationProviderKyc() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SupplierUseCasesImpl.AddOrganizationProviderKyc() = %v, want %v", got, tt.want)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddOrganizationProviderKyc() = %v, want %v",
+					got,
+					tt.want,
+				)
 			}
 			if tt.wantErr {
 				if err == nil {
@@ -2520,7 +2552,7 @@ func TestSupplierUseCasesImpl_AddOrganizationProviderKyc(t *testing.T) {
 
 func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -2759,11 +2791,19 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 
 			got, err := i.Supplier.AddOrganizationCoachKyc(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddOrganizationCoachKyc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddOrganizationCoachKyc() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SupplierUseCasesImpl.AddOrganizationCoachKyc() = %v, want %v", got, tt.want)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddOrganizationCoachKyc() = %v, want %v",
+					got,
+					tt.want,
+				)
 			}
 
 			if tt.wantErr {
@@ -2785,7 +2825,7 @@ func TestSupplierUseCasesImpl_AddOrganizationCoachKyc(t *testing.T) {
 
 func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -3012,11 +3052,19 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 			}
 			got, err := i.Supplier.AddOrganizationNutritionKyc(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddOrganizationNutritionKyc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddOrganizationNutritionKyc() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SupplierUseCasesImpl.AddOrganizationNutritionKyc() = %v, want %v", got, tt.want)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddOrganizationNutritionKyc() = %v, want %v",
+					got,
+					tt.want,
+				)
 			}
 
 			if tt.wantErr {
@@ -3039,7 +3087,7 @@ func TestSupplierUseCasesImpl_AddOrganizationNutritionKyc(t *testing.T) {
 func TestSupplierUseCasesImpl_RetireKYCRequest(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -3171,7 +3219,11 @@ func TestSupplierUseCasesImpl_RetireKYCRequest(t *testing.T) {
 
 			err := i.Supplier.RetireKYCRequest(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.RetireKYCRequest() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.RetireKYCRequest() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 			}
 
 			if tt.wantErr {
@@ -3194,7 +3246,7 @@ func TestSupplierUseCasesImpl_RetireKYCRequest(t *testing.T) {
 func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -3548,7 +3600,11 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 
 			got, err := i.Supplier.AddIndividualRiderKyc(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddIndividualRiderKyc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddIndividualRiderKyc() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -3575,7 +3631,7 @@ func TestSupplierUseCasesImpl_AddIndividualRiderKyc(t *testing.T) {
 func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -3932,11 +3988,19 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 
 			got, err := i.Supplier.AddIndividualPractitionerKyc(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddIndividualPractitionerKyc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddIndividualPractitionerKyc() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SupplierUseCasesImpl.AddIndividualPractitionerKyc() = %v, want %v", got, tt.want)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddIndividualPractitionerKyc() = %v, want %v",
+					got,
+					tt.want,
+				)
 			}
 
 			if tt.wantErr {
@@ -3959,7 +4023,7 @@ func TestSupplierUseCasesImpl_AddIndividualPractitionerKyc(t *testing.T) {
 func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -4310,11 +4374,19 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 
 			got, err := i.Supplier.AddIndividualPharmaceuticalKyc(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddIndividualPharmaceuticalKyc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddIndividualPharmaceuticalKyc() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SupplierUseCasesImpl.AddIndividualPharmaceuticalKyc() = %v, want %v", got, tt.want)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddIndividualPharmaceuticalKyc() = %v, want %v",
+					got,
+					tt.want,
+				)
 			}
 
 			if tt.wantErr {
@@ -4337,7 +4409,7 @@ func TestSupplierUseCasesImpl_AddIndividualPharmaceuticalKyc(t *testing.T) {
 func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -4687,7 +4759,11 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 
 			got, err := i.Supplier.AddIndividualCoachKyc(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddIndividualCoachKyc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddIndividualCoachKyc() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -4714,7 +4790,7 @@ func TestSupplierUseCasesImpl_AddIndividualCoachKyc(t *testing.T) {
 func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -5007,11 +5083,19 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 
 			got, err := i.Supplier.AddIndividualNutritionKyc(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.AddIndividualNutritionKyc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddIndividualNutritionKyc() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SupplierUseCasesImpl.AddIndividualNutritionKyc() = %v, want %v", got, tt.want)
+				t.Errorf(
+					"SupplierUseCasesImpl.AddIndividualNutritionKyc() = %v, want %v",
+					got,
+					tt.want,
+				)
 			}
 
 			if tt.wantErr {
@@ -5034,7 +5118,7 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -5205,7 +5289,7 @@ func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
 func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -5538,7 +5622,11 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 
 			_, err := i.Supplier.SupplierSetDefaultLocation(tt.args.ctx, tt.args.locationID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.SupplierSetDefaultLocation() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.SupplierSetDefaultLocation() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 
@@ -5562,7 +5650,7 @@ func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -5845,7 +5933,11 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 
 			_, err := i.Supplier.FetchSupplierAllowedLocations(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.FetchSupplierAllowedLocations() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.FetchSupplierAllowedLocations() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 
@@ -5869,7 +5961,7 @@ func TestSupplierUseCasesImpl_FetchSupplierAllowedLocations(t *testing.T) {
 func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -6728,9 +6820,18 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 				}
 			}
 
-			resp, err := i.Supplier.SupplierEDILogin(tt.args.ctx, tt.args.username, tt.args.password, tt.args.sladeCode)
+			resp, err := i.Supplier.SupplierEDILogin(
+				tt.args.ctx,
+				tt.args.username,
+				tt.args.password,
+				tt.args.sladeCode,
+			)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.SupplierEDILogin() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SupplierUseCasesImpl.SupplierEDILogin() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 
@@ -6759,7 +6860,7 @@ func TestSupplierUseCasesImpl_SupplierEDILogin(t *testing.T) {
 func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -6915,7 +7016,7 @@ func TestUnitSupplierUseCasesImpl_AddPartnerType(t *testing.T) {
 
 func TestProfileUseCaseImpl_FindSupplierByUID(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -7013,7 +7114,7 @@ func TestProfileUseCaseImpl_FindSupplierByUID(t *testing.T) {
 }
 func TestSupplierUseCase_StageKYCProcessingRequest(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -7088,7 +7189,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 	individualPartner := profileutils.AccountTypeIndividual
 	organizationPartner := profileutils.AccountTypeOrganisation
 
-	s, err := InitializeFakeOnboaridingInteractor()
+	s, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -7410,7 +7511,7 @@ func TestUnitSupplierUseCasesImpl_SetUpSupplier(t *testing.T) {
 }
 
 func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
-	s, err := InitializeFakeOnboaridingInteractor()
+	s, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -7526,7 +7627,7 @@ func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
 func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return

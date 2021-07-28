@@ -154,11 +154,13 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	admin := usecases.NewAdminUseCases(repo, engage, baseExt, userpin)
 	agent := usecases.NewAgentUseCases(repo, engage, baseExt, userpin)
 	adminSrv := adminSrv.NewService(baseExt)
+	role := usecases.NewRoleUseCases(repo, baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(
 		repo, profile, su, supplier, login, survey,
 		userpin, erp, chrg, engage, mes, nhif, pubSub,
 		sms, aitUssd, agent, admin, edi, adminSrv, crmExt,
+		role,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

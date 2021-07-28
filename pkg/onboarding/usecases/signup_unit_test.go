@@ -21,7 +21,7 @@ import (
 
 func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -134,7 +134,11 @@ func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
 
 			got, err := i.Signup.RetirePushToken(tt.args.ctx, tt.args.token)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SignUpUseCasesImpl.RetirePushToken() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SignUpUseCasesImpl.RetirePushToken() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if got != tt.want {
@@ -159,7 +163,7 @@ func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
 
 func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -608,7 +612,11 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 
 			_, err := i.Signup.CreateUserByPhone(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SignUpUseCasesImpl.CreateUserByPhone() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SignUpUseCasesImpl.CreateUserByPhone() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 
@@ -630,7 +638,7 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 
 func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -749,7 +757,11 @@ func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
 
 			_, err := i.Signup.VerifyPhoneNumber(tt.args.ctx, tt.args.phone)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SignUpUseCasesImpl.VerifyPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SignUpUseCasesImpl.VerifyPhoneNumber() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 
@@ -772,7 +784,7 @@ func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
 func TestSignUpUseCasesImpl_RemoveUserByPhoneNumber(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -846,7 +858,11 @@ func TestSignUpUseCasesImpl_RemoveUserByPhoneNumber(t *testing.T) {
 
 			err := i.Signup.RemoveUserByPhoneNumber(tt.args.ctx, tt.args.phone)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SignUpUseCasesImpl.RemoveUserByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SignUpUseCasesImpl.RemoveUserByPhoneNumber() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 			}
 			if tt.wantErr {
 				if err == nil {
@@ -867,7 +883,7 @@ func TestSignUpUseCasesImpl_RemoveUserByPhoneNumber(t *testing.T) {
 func TestSignUpUseCasesImpl_SetPhoneAsPrimary(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -992,7 +1008,11 @@ func TestSignUpUseCasesImpl_SetPhoneAsPrimary(t *testing.T) {
 
 			got, err := i.Signup.SetPhoneAsPrimary(tt.args.ctx, tt.args.phone, tt.args.otp)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SignUpUseCasesImpl.SetPhoneAsPrimary() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SignUpUseCasesImpl.SetPhoneAsPrimary() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if got != tt.want {
@@ -1018,7 +1038,7 @@ func TestSignUpUseCasesImpl_SetPhoneAsPrimary(t *testing.T) {
 func TestSignUpUseCasesImpl_RegisterPushToken(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1112,7 +1132,11 @@ func TestSignUpUseCasesImpl_RegisterPushToken(t *testing.T) {
 
 			got, err := i.Signup.RegisterPushToken(tt.args.ctx, tt.args.token)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SignUpUseCasesImpl.RegisterPushToken() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SignUpUseCasesImpl.RegisterPushToken() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if got != tt.want {
@@ -1138,7 +1162,7 @@ func TestSignUpUseCasesImpl_RegisterPushToken(t *testing.T) {
 func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1433,7 +1457,11 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 
 			got, err := i.Signup.CompleteSignup(tt.args.ctx, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SignUpUseCasesImpl.CompleteSignup() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SignUpUseCasesImpl.CompleteSignup() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if got != tt.want {
@@ -1459,7 +1487,7 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 func TestSignUpUseCasesImpl_GetUserRecoveryPhoneNumbers(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1537,7 +1565,11 @@ func TestSignUpUseCasesImpl_GetUserRecoveryPhoneNumbers(t *testing.T) {
 			}
 			got, err := i.Signup.GetUserRecoveryPhoneNumbers(tt.args.ctx, tt.args.phone)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SignUpUseCasesImpl.GetUserRecoveryPhoneNumbers() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SignUpUseCasesImpl.GetUserRecoveryPhoneNumbers() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 
@@ -1564,7 +1596,7 @@ func TestSignUpUseCasesImpl_GetUserRecoveryPhoneNumbers(t *testing.T) {
 func TestSignUpUseCasesImpl_UpdateUserProfile(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
 		return
@@ -1786,7 +1818,11 @@ func TestSignUpUseCasesImpl_UpdateUserProfile(t *testing.T) {
 
 			got, err := i.Signup.UpdateUserProfile(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SignUpUseCasesImpl.UpdateUserProfile() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"SignUpUseCasesImpl.UpdateUserProfile() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 

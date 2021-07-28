@@ -154,4 +154,8 @@ extend type Mutation {
   deregisterMicroservice(id: String!): Boolean!
 
   deregisterAllMicroservices: Boolean!
+
+  createRole(input: RoleInput!): RoleOutput!
+
+  addPermissionsToRole(input: RolePermissionInput!): RoleOutput!
 }

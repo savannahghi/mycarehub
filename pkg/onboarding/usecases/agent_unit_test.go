@@ -18,7 +18,7 @@ import (
 
 func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -793,7 +793,7 @@ func TestAgentUseCaseImpl_RegisterAgent(t *testing.T) {
 
 func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -966,7 +966,7 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 
 func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -1154,7 +1154,7 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,
@@ -1259,7 +1259,7 @@ func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 func TestAgentUseCaseImpl_FindAgentbyPhone(t *testing.T) {
 	ctx := context.Background()
 
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,

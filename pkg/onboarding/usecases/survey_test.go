@@ -10,7 +10,7 @@ import (
 
 func TestSurveyUseCasesImpl_RecordPostVisitSurvey(t *testing.T) {
 	ctx := context.Background()
-	i, err := InitializeFakeOnboaridingInteractor()
+	i, err := InitializeFakeOnboardingInteractor()
 	if err != nil {
 		t.Errorf("failed to fake initialize onboarding interactor: %v",
 			err,

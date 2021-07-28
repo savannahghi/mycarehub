@@ -567,9 +567,32 @@ func (r *mutationResolver) DeregisterAllMicroservices(ctx context.Context) (bool
 	startTime := time.Now()
 
 	status, err := r.interactor.AdminSrv.DeregisterAllMicroservices(ctx)
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "deregisterAllMicroservices", err)
+	defer serverutils.RecordGraphqlResolverMetrics(
+		ctx,
+		startTime,
+		"deregisterAllMicroservices",
+		err,
+	)
 
 	return status, err
+}
+
+func (r *mutationResolver) CreateRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error) {
+	startTime := time.Now()
+
+	role, err := r.interactor.Role.CreateRole(ctx, input)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "createRole", err)
+
+	return role, err
+}
+
+func (r *mutationResolver) AddPermissionsToRole(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error) {
+	startTime := time.Now()
+
+	role, err := r.interactor.Role.AddPermissionsToRole(ctx, input)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addPermissionsToRole", err)
+
+	return role, err
 }
 
 func (r *queryResolver) DummyQuery(ctx context.Context) (*bool, error) {

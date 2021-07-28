@@ -481,3 +481,18 @@ type Microservice @key(fields: "id") {
   url: String!
   description: String!
 }
+
+type RoleOutput {
+  id: String!
+  name: String!
+  description: String!
+  scopes: [String]
+  permissions: [Permission]
+}
+
+type Permission {
+  scope: String
+  description: String!
+  group: PermissionGroup!
+  allowed: Boolean
+}
