@@ -97,7 +97,7 @@ jobs:
           gosec -exclude=G304,G101 ./...
           touch ./coverage.out
           echo 'mode: atomic' > coverage.txt
-          go list ./... | grep -v /cmd | grep -v /vendor | grep -v /generated | xargs -n1 -I{} sh -c 'go test -timeout 99999s -coverprofile=coverage.out -coverpkg $(go list ./... | grep -v /vendor | tr "\n" ",") {} && tail -n +2 coverage.out >> coverage.txt || exit 255' && rm coverage.out
+          go list ./... | grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*resolver*go" | grep -v "server.go" | xargs -n1 -I{} sh -c 'go test -timeout 99999s -coverprofile=coverage.out -coverpkg $(go list ./... | grep -v /vendor | tr "\n" ",") {} && tail -n +2 coverage.out >> coverage.txt || exit 255' && rm coverage.out
           go tool cover -html=coverage.txt -o coverage.html
           gocov convert coverage.txt > coverage.json
           gocov report coverage.json > coverage_report.txt
