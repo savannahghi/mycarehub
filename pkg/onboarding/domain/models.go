@@ -6,6 +6,7 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 )
 
 // Branch represents a Slade 360 Charge Master branch
@@ -100,16 +101,19 @@ type NHIFDetails struct {
 	NHIFCardPhotoID           string                          `json:"nhifCardPhotoID" firestore:"nhifCardPhotoID"`
 }
 
-//USSDLeadDetails represents ussd details from AIT
+//USSDLeadDetails represents ussd user session details
 type USSDLeadDetails struct {
-	ID          string `json:"id" firestore:"id"`
-	Level       int    `json:"level" firestore:"level"`
-	PhoneNumber string `json:"phoneNumber" firestore:"phoneNumber"`
-	SessionID   string `json:"sessionID" firestore:"sessionID"`
-	FirstName   string `json:"firstName" firestore:"firstName"`
-	LastName    string `json:"lastName" firestore:"lastName"`
-	DateOfBirth string `json:"dob" firestore:"dob"`
-	PIN         string `json:"pin" firestore:"pin"`
+	ID             string           `json:"id" firestore:"id"`
+	Level          int              `json:"level" firestore:"level"`
+	PhoneNumber    string           `json:"phoneNumber" firestore:"phoneNumber"`
+	SessionID      string           `json:"sessionID" firestore:"sessionID"`
+	FirstName      string           `json:"firstName" firestore:"firstName"`
+	LastName       string           `json:"lastName" firestore:"lastName"`
+	DateOfBirth    scalarutils.Date `json:"dob" firestore:"dob"`
+	IsRegistered   bool             `json:"isRegistered" firestore:"isRegistered"`
+	ContactChannel string           `json:"contactChannel" firestore:"contactChannel"`
+	WantCover      bool             `json:"wantCover" firestore:"wantCover"`
+	PIN            string           `json:"pin" firestore:"pin"`
 }
 
 // CRMContact represents a stored CRM contact

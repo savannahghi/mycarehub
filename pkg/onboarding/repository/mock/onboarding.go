@@ -172,18 +172,16 @@ type FakeOnboardingRepository struct {
 	UpdateVerifiedIdentifiersFn     func(ctx context.Context, id string, identifiers []profileutils.VerifiedIdentifier) error
 	UpdateVerifiedUIDSFn            func(ctx context.Context, id string, uids []string) error
 	UpdateAddressesFn               func(ctx context.Context, id string, address profileutils.Address, addressType enumutils.AddressType) error
-	AddIncomingUSSDDataFn           func(ctx context.Context, input *dto.EndSessionDetails) error
 	ListUserProfilesFn              func(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error)
 	UpdateOptOutFn                  func(ctx context.Context, option string, phoneNumber string) error
-	StageCRMPayloadFn               func(ctx context.Context, payload *dto.ContactLeadInput) error
-	UpdateStageCRMPayloadFn         func(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error
-	GetStageCRMPayloadFn            func(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error)
+	UpdateAITSessionDetailsFn       func(ctx context.Context, phoneNumber string, contactLead *domain.USSDLeadDetails) error
 	UpdateFavNavActionsFn           func(ctx context.Context, id string, favActions []string) error
 	GetUserMarketingDataFn          func(ctx context.Context, phoneNumber string) (*dto.Segment, error)
 	HandleResponseFromUSSDGatewayFn func(context context.Context, input *dto.SessionDetails) string
 	SetUSSDUserPinFn                func(ctx context.Context, phoneNumber string, PIN string) error
 	SaveUSSDEventFn                 func(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
 	SaveCoverAutolinkingEventsFn    func(ctx context.Context, input *dto.CoverLinkingEvent) (*dto.CoverLinkingEvent, error)
+	GetAITDetailsFn                 func(ctx context.Context, phoneNumber string) (*domain.USSDLeadDetails, error)
 }
 
 // GetSupplierProfileByID ...
@@ -583,19 +581,14 @@ func (f *FakeOnboardingRepository) CreateDetailedSupplierProfile(ctx context.Con
 	return f.CreateDetailedSupplierProfileFn(ctx, profileID, supplier)
 }
 
-// StageCRMPayload ...
-func (f *FakeOnboardingRepository) StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error {
-	return f.StageCRMPayloadFn(ctx, payload)
+// UpdateAITSessionDetails ...
+func (f *FakeOnboardingRepository) UpdateAITSessionDetails(ctx context.Context, phoneNumber string, contactLead *domain.USSDLeadDetails) error {
+	return f.UpdateAITSessionDetailsFn(ctx, phoneNumber, contactLead)
 }
 
-// UpdateStageCRMPayload ...
-func (f *FakeOnboardingRepository) UpdateStageCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
-	return f.UpdateStageCRMPayloadFn(ctx, phoneNumber, contactLead)
-}
-
-// GetStageCRMPayload ...
-func (f *FakeOnboardingRepository) GetStageCRMPayload(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error) {
-	return f.GetStageCRMPayloadFn(ctx, phoneNumber)
+// GetAITDetails ...
+func (f *FakeOnboardingRepository) GetAITDetails(ctx context.Context, phoneNumber string) (*domain.USSDLeadDetails, error) {
+	return f.GetAITDetailsFn(ctx, phoneNumber)
 }
 
 // UpdateFavNavActions ...

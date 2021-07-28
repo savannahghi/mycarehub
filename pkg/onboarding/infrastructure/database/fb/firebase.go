@@ -10,8 +10,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
-	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"go.opentelemetry.io/otel"
 
 	"firebase.google.com/go/auth"
@@ -20,9 +18,11 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
+	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/scalarutils"
@@ -31,7 +31,7 @@ import (
 )
 
 // Package that generates trace information
-var tracer = otel.Tracer("github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb")
+var tracer = otel.Tracer("gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb")
 
 const (
 	userProfileCollectionName            = "user_profiles"
@@ -45,8 +45,7 @@ const (
 	nhifDetailsCollectionName            = "nhif_details"
 	communicationsSettingsCollectionName = "communications_settings"
 	smsCollectionName                    = "incoming_sms"
-	ussdCollectioName                    = "ussd"
-	crmStagingCollectionName             = "crm_staging"
+	ussdDataCollectioName                = "ussd_data"
 	firebaseExchangeRefreshTokenURL      = "https://securetoken.googleapis.com/v1/token?key="
 	marketingDataCollectionName          = "marketing_data"
 	ussdEventsCollectionName             = "ussd_events"
@@ -133,21 +132,15 @@ func (fr Repository) GetSMSCollectionName() string {
 	return suffixed
 }
 
-//GetUSSDCollectionName ...
-func (fr Repository) GetUSSDCollectionName() string {
-	suffixed := firebasetools.SuffixCollection(ussdCollectioName)
+//GetUSSDDataCollectionName gets the collection from firestore
+func (fr Repository) GetUSSDDataCollectionName() string {
+	suffixed := firebasetools.SuffixCollection(ussdDataCollectioName)
 	return suffixed
 }
 
 //GetUSSDEventsCollectionName ...
 func (fr Repository) GetUSSDEventsCollectionName() string {
 	suffixed := firebasetools.SuffixCollection(ussdEventsCollectionName)
-	return suffixed
-}
-
-//GetCRMStagingCollectionName ...
-func (fr Repository) GetCRMStagingCollectionName() string {
-	suffixed := firebasetools.SuffixCollection(crmStagingCollectionName)
 	return suffixed
 }
 
@@ -3064,7 +3057,7 @@ func (fr *Repository) SaveCoverAutolinkingEvents(ctx context.Context, input *dto
 	return event, nil
 }
 
-// AddAITSessionDetails ...
+// AddAITSessionDetails saves diallers session details in the database
 func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error) {
 	ctx, span := tracer.Start(ctx, "AddAITSessionDetails")
 	defer span.End()
@@ -3075,14 +3068,17 @@ func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.Sessi
 		return nil, err
 	}
 	sessionDetails := &domain.USSDLeadDetails{
-		ID:          uuid.New().String(),
-		SessionID:   validateDetails.SessionID,
-		PhoneNumber: *validateDetails.PhoneNumber,
-		Level:       validateDetails.Level,
+		ID:             uuid.New().String(),
+		Level:          validateDetails.Level,
+		PhoneNumber:    *validateDetails.PhoneNumber,
+		SessionID:      validateDetails.SessionID,
+		IsRegistered:   false,
+		ContactChannel: "USSD",
+		WantCover:      false,
 	}
 
 	createCommand := &CreateCommand{
-		CollectionName: fr.GetUSSDCollectionName(),
+		CollectionName: fr.GetUSSDDataCollectionName(),
 		Data:           sessionDetails,
 	}
 
@@ -3141,7 +3137,7 @@ func (fr *Repository) GetAITSessionDetails(ctx context.Context, sessionID string
 	}
 
 	query := &GetAllQuery{
-		CollectionName: fr.GetUSSDCollectionName(),
+		CollectionName: fr.GetUSSDDataCollectionName(),
 		FieldName:      "sessionID",
 		Value:          validatedSessionID,
 		Operator:       "==",
@@ -3185,7 +3181,7 @@ func (fr *Repository) UpdateSessionLevel(ctx context.Context, sessionID string, 
 		return nil, err
 	}
 
-	collectionName := fr.GetUSSDCollectionName()
+	collectionName := fr.GetUSSDDataCollectionName()
 	query := &GetAllQuery{
 		CollectionName: collectionName,
 		FieldName:      "sessionID",
@@ -3224,7 +3220,7 @@ func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pi
 		return nil, err
 	}
 
-	collectionName := fr.GetUSSDCollectionName()
+	collectionName := fr.GetUSSDDataCollectionName()
 	query := &GetAllQuery{
 		CollectionName: collectionName,
 		FieldName:      "sessionID",
@@ -3251,32 +3247,9 @@ func (fr *Repository) UpdateSessionPIN(ctx context.Context, sessionID string, pi
 	return sessionDetails, nil
 }
 
-// StageCRMPayload ...
-func (fr *Repository) StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error {
-	ctx, span := tracer.Start(ctx, "StageCRMPayload")
-	defer span.End()
-
-	if payload == nil {
-		return fmt.Errorf("contact lead input cannot be nil")
-	}
-
-	createCommand := &CreateCommand{
-		CollectionName: fr.GetCRMStagingCollectionName(),
-		Data:           payload,
-	}
-
-	_, err := fr.FirestoreClient.Create(ctx, createCommand)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return fmt.Errorf("failed to create CRM staging payload")
-	}
-	return nil
-}
-
-// GetStageCRMPayload ...
-func (fr *Repository) GetStageCRMPayload(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error) {
-	log.Printf("the phone number is %v", phoneNumber)
-	ctx, span := tracer.Start(ctx, "StageCRMPayload")
+// GetAITDetails retrieves session details from the database
+func (fr *Repository) GetAITDetails(ctx context.Context, phoneNumber string) (*domain.USSDLeadDetails, error) {
+	ctx, span := tracer.Start(ctx, "GetAITDetails")
 	defer span.End()
 
 	validPhoneNumber, err := utils.CheckEmptyString(phoneNumber)
@@ -3286,8 +3259,8 @@ func (fr *Repository) GetStageCRMPayload(ctx context.Context, phoneNumber string
 	}
 
 	query := &GetAllQuery{
-		CollectionName: fr.GetCRMStagingCollectionName(),
-		FieldName:      "ContactValue",
+		CollectionName: fr.GetUSSDDataCollectionName(),
+		FieldName:      "phoneNumber",
 		Value:          validPhoneNumber,
 		Operator:       "==",
 	}
@@ -3301,28 +3274,34 @@ func (fr *Repository) GetStageCRMPayload(ctx context.Context, phoneNumber string
 		return nil, nil
 	}
 
-	CRMDet := &dto.ContactLeadInput{}
-	err = docs[0].DataTo(CRMDet)
+	ussdLead := &domain.USSDLeadDetails{}
+	err = docs[0].DataTo(ussdLead)
 	if err != nil {
 		return nil, err
 	}
 
-	return CRMDet, nil
+	return ussdLead, nil
 
 }
 
-// UpdateStageCRMPayload ...
-func (fr *Repository) UpdateStageCRMPayload(ctx context.Context, phoneNumber string, contactLead *dto.ContactLeadInput) error {
+// UpdateAITSessionDetails updates session details using phone number
+func (fr *Repository) UpdateAITSessionDetails(ctx context.Context, phoneNumber string, contactLead *domain.USSDLeadDetails) error {
 
-	CRMDetails, err := fr.GetStageCRMPayload(ctx, phoneNumber)
+	validPhoneNumber, err := utils.CheckEmptyString(phoneNumber)
+	log.Printf("validated phone number is %v", validPhoneNumber)
 	if err != nil {
 		return err
 	}
 
-	collectionName := fr.GetCRMStagingCollectionName()
+	contactDetails, err := fr.GetAITDetails(ctx, *validPhoneNumber)
+	if err != nil {
+		return err
+	}
+
+	collectionName := fr.GetUSSDDataCollectionName()
 	query := &GetAllQuery{
 		CollectionName: collectionName,
-		FieldName:      "ContactValue",
+		FieldName:      "phoneNumber",
 		Value:          phoneNumber,
 		Operator:       "==",
 	}
@@ -3330,15 +3309,15 @@ func (fr *Repository) UpdateStageCRMPayload(ctx context.Context, phoneNumber str
 	if err != nil {
 		return err
 	}
-	CRMDetails.FirstName = contactLead.FirstName
-	CRMDetails.LastName = contactLead.LastName
-	CRMDetails.DateOfBirth = contactLead.DateOfBirth
-	CRMDetails.IsRegistered = contactLead.IsRegistered
+	contactDetails.FirstName = contactLead.FirstName
+	contactDetails.LastName = contactLead.LastName
+	contactDetails.DateOfBirth = contactLead.DateOfBirth
+	contactDetails.IsRegistered = contactLead.IsRegistered
 
 	updateCommand := &UpdateCommand{
 		CollectionName: collectionName,
 		ID:             docs[0].Ref.ID,
-		Data:           CRMDetails,
+		Data:           contactDetails,
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {

@@ -14,6 +14,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 )
 
 func TestImpl_HandleChangePIN_Unittest(t *testing.T) {
@@ -25,7 +26,6 @@ func TestImpl_HandleChangePIN_Unittest(t *testing.T) {
 	}
 
 	phoneNumber := "+254700100200"
-	dateOfBirth := "12122000"
 	PIN := "1234"
 	FirstName := gofakeit.LastName()
 	LastName := gofakeit.LastName()
@@ -39,7 +39,7 @@ func TestImpl_HandleChangePIN_Unittest(t *testing.T) {
 		SessionID:   SessionID,
 		FirstName:   FirstName,
 		LastName:    LastName,
-		DateOfBirth: dateOfBirth,
+		DateOfBirth: scalarutils.Date{},
 		PIN:         PIN,
 	}
 

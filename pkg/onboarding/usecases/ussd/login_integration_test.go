@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
+	"github.com/savannahghi/scalarutils"
 )
 
 const (
@@ -28,7 +29,6 @@ func TestImpl_HandleLogin_Integration_Test(t *testing.T) {
 	}
 
 	phoneNumber := "+254700100200"
-	dateOfBirth := "12122000"
 	PIN := "1234"
 	FirstName := gofakeit.LastName()
 	LastName := gofakeit.LastName()
@@ -42,7 +42,7 @@ func TestImpl_HandleLogin_Integration_Test(t *testing.T) {
 		SessionID:   SessionID,
 		FirstName:   FirstName,
 		LastName:    LastName,
-		DateOfBirth: dateOfBirth,
+		DateOfBirth: scalarutils.Date{},
 		PIN:         PIN,
 	}
 

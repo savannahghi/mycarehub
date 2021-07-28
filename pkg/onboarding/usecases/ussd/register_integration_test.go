@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
@@ -47,11 +46,7 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 	}
 
 	phoneNumber := "+254700100200"
-	dateOfBirth := "12122000"
 	PIN := "1234"
-
-	ContactType := "phone"
-	ContactValue := phoneNumber
 	FirstName := gofakeit.FirstName()
 	LastName := gofakeit.LastName()
 	DateOfBirth := scalarutils.Date{
@@ -59,26 +54,9 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 		Month: 0,
 		Year:  0,
 	}
-	IsSync := false
-	TimeSync := time.Now()
-	OptOut := "NO"
 	WantCover := false
 	ContactChannel := "USSD"
 	IsRegistered := false
-
-	contactLeadPayload := &dto.ContactLeadInput{
-		ContactType:    ContactType,
-		ContactValue:   ContactValue,
-		FirstName:      FirstName,
-		LastName:       LastName,
-		DateOfBirth:    DateOfBirth,
-		IsSync:         IsSync,
-		TimeSync:       &TimeSync,
-		OptOut:         CRMDomain.GeneralOptionType(OptOut),
-		WantCover:      WantCover,
-		ContactChannel: ContactChannel,
-		IsRegistered:   IsRegistered,
-	}
 
 	SessionID := uuid.New().String()
 	Level := 0
@@ -91,13 +69,6 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 		Text:        Text,
 	}
 
-	//Staging
-	err = u.AITUSSD.StageCRMPayload(ctx, contactLeadPayload)
-	if err != nil {
-		t.Errorf("an error occurred %v", err)
-		return
-	}
-
 	sessionDetails, err := u.AITUSSD.AddAITSessionDetails(ctx, sessionDet)
 	if err != nil {
 		t.Errorf("an error occurred %v", err)
@@ -105,14 +76,17 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 	}
 
 	validUSSDLeadDetails := &domain.USSDLeadDetails{
-		ID:          uuid.New().String(),
-		Level:       InitialState,
-		PhoneNumber: phoneNumber,
-		SessionID:   SessionID,
-		FirstName:   FirstName,
-		LastName:    LastName,
-		DateOfBirth: dateOfBirth,
-		PIN:         PIN,
+		ID:             uuid.New().String(),
+		Level:          InitialState,
+		PhoneNumber:    phoneNumber,
+		SessionID:      SessionID,
+		FirstName:      FirstName,
+		LastName:       LastName,
+		DateOfBirth:    DateOfBirth,
+		IsRegistered:   IsRegistered,
+		ContactChannel: ContactChannel,
+		WantCover:      WantCover,
+		PIN:            PIN,
 	}
 
 	// create a contact

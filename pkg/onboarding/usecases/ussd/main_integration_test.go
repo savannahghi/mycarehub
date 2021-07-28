@@ -249,7 +249,6 @@ func TestImpl_HandleResponseFromUSSDGateway(t *testing.T) {
 				ctx:     ctx,
 				payload: registeredValidPayload,
 			},
-			// TODO: Make this test valid for registered user
 			want: "CON Welcome to Be.Well\r\n" +
 				"1. Register\r\n" +
 				"2. Opt Out\r\n",

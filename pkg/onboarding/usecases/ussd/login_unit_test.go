@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
+	"github.com/savannahghi/scalarutils"
 )
 
 func TestUSSDImpl_HandleLogin_Unittest(t *testing.T) {
@@ -22,7 +23,6 @@ func TestUSSDImpl_HandleLogin_Unittest(t *testing.T) {
 	}
 
 	phoneNumber := "+254700100200"
-	dateOfBirth := "12122000"
 	PIN := "1234"
 	FirstName := gofakeit.LastName()
 	LastName := gofakeit.LastName()
@@ -36,7 +36,7 @@ func TestUSSDImpl_HandleLogin_Unittest(t *testing.T) {
 		SessionID:   SessionID,
 		FirstName:   FirstName,
 		LastName:    LastName,
-		DateOfBirth: dateOfBirth,
+		DateOfBirth: scalarutils.Date{},
 		PIN:         PIN,
 	}
 

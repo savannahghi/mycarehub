@@ -35,9 +35,9 @@ const (
 	//ForgotPINVerifyDate indicates the state when a use wants to reset PIN
 	ForgotPINVerifyDate = 15
 
-	//USSDChooseToChangePIN ...
+	//USSDChooseToChangePIN indicates user chose to change PIN
 	USSDChooseToChangePIN = "chose to change PIN"
-	//USSDEnterOldPIN ...
+	//USSDEnterOldPIN is the event when user enters their old PIN
 	USSDEnterOldPIN = "entered old PIN"
 	//USSDEnterNewPIN ...
 	USSDEnterNewPIN = "entered a new 4 digit PIN"
@@ -59,10 +59,6 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 	ctx, span := tracer.Start(ctx, "HandleChangePIN")
 	defer span.End()
 
-	if userResponse != GoBackHomeInput && userResponse != EmptyInput && userResponse != ChangePINInput {
-		resp := "CON Invalid choice. Please try again."
-		return resp
-	}
 	time := time.Now()
 
 	if userResponse == EmptyInput || userResponse == ChangePINInput {
@@ -193,6 +189,11 @@ func (u *Impl) HandleChangePIN(ctx context.Context, session *domain.USSDLeadDeta
 		}
 
 		return u.ResetPinMenu()
+	}
+
+	if userResponse != GoBackHomeInput && userResponse != EmptyInput && userResponse != ChangePINInput {
+		resp := "CON Invalid choice. Please try again."
+		return resp
 	}
 
 	return "END invalid input"

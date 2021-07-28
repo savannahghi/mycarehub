@@ -8,7 +8,6 @@ import (
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
-	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 
 	"fmt"
@@ -85,7 +84,6 @@ func TestMain(m *testing.M) {
 			r.GetUserProfileCollectionName(),
 			r.GetSupplierProfileCollectionName(),
 			r.GetSurveyCollectionName(),
-			r.GetCRMStagingCollectionName(),
 			r.GetCommunicationsSettingsCollectionName(),
 			r.GetCustomerProfileCollectionName(),
 			r.GetExperimentParticipantCollectionName(),
@@ -94,7 +92,7 @@ func TestMain(m *testing.M) {
 			r.GetNHIFDetailsCollectionName(),
 			r.GetProfileNudgesCollectionName(),
 			r.GetSMSCollectionName(),
-			r.GetUSSDCollectionName(),
+			r.GetUSSDDataCollectionName(),
 		}
 		for _, collection := range collections {
 			ref := fsc.Collection(collection)
@@ -3798,281 +3796,6 @@ func TestRepository_UpdatePIN_IntegrationTest(t *testing.T) {
 	}
 }
 
-func TestRepository_StageCRMPayload(t *testing.T) {
-	ctx := context.Background()
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		log.Panicf("failed to initialize test FireStore client")
-	}
-	if fbc == nil {
-		log.Panicf("failed to initialize test FireBase client")
-	}
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
-
-	phoneNumber := "+254700100200"
-	ContactType := "phone"
-	ContactValue := phoneNumber
-	FirstName := gofakeit.FirstName()
-	LastName := gofakeit.LastName()
-	DateOfBirth := scalarutils.Date{
-		Day:   0,
-		Month: 0,
-		Year:  0,
-	}
-	IsSync := false
-	TimeSync := time.Now()
-	OptOut := "NO"
-	WantCover := false
-	ContactChannel := "USSD"
-	IsRegistered := false
-
-	contactLeadPayload := &dto.ContactLeadInput{
-		ContactType:    ContactType,
-		ContactValue:   ContactValue,
-		FirstName:      FirstName,
-		LastName:       LastName,
-		DateOfBirth:    DateOfBirth,
-		IsSync:         IsSync,
-		TimeSync:       &TimeSync,
-		OptOut:         CRMDomain.GeneralOptionType(OptOut),
-		WantCover:      WantCover,
-		ContactChannel: ContactChannel,
-		IsRegistered:   IsRegistered,
-	}
-
-	type args struct {
-		ctx     context.Context
-		payload *dto.ContactLeadInput
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:     ctx,
-				payload: contactLeadPayload,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:     ctx,
-				payload: nil,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			err := firestoreDB.StageCRMPayload(tt.args.ctx, tt.args.payload)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("error expected got %v", err)
-					return
-				}
-			}
-			if !tt.wantErr {
-				if err != nil {
-					t.Errorf("error not expected got %v", err)
-					return
-				}
-			}
-		})
-	}
-}
-
-func TestRepository_GetStageCRMPayload(t *testing.T) {
-	ctx := context.Background()
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		log.Panicf("failed to initialize test FireStore client")
-	}
-	if fbc == nil {
-		log.Panicf("failed to initialize test FireBase client")
-	}
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
-
-	phoneNumber := "+254700000000"
-	ContactType := "phone"
-	ContactValue := phoneNumber
-	FirstName := gofakeit.FirstName()
-	LastName := gofakeit.LastName()
-	DateOfBirth := scalarutils.Date{
-		Day:   0,
-		Month: 0,
-		Year:  0,
-	}
-	IsSync := false
-	TimeSync := time.Now()
-	OptOut := "NO"
-	WantCover := false
-	ContactChannel := "USSD"
-	IsRegistered := false
-
-	contactLeadPayload := &dto.ContactLeadInput{
-		ContactType:    ContactType,
-		ContactValue:   ContactValue,
-		FirstName:      FirstName,
-		LastName:       LastName,
-		DateOfBirth:    DateOfBirth,
-		IsSync:         IsSync,
-		TimeSync:       &TimeSync,
-		OptOut:         CRMDomain.GeneralOptionType(OptOut),
-		WantCover:      WantCover,
-		ContactChannel: ContactChannel,
-		IsRegistered:   IsRegistered,
-	}
-
-	err := firestoreDB.StageCRMPayload(ctx, contactLeadPayload)
-	if err != nil {
-		t.Errorf("unable to get CRMDetails")
-		return
-	}
-
-	type args struct {
-		ctx         context.Context
-		phoneNumber string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *dto.ContactLeadInput
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: phoneNumber,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: "",
-			},
-			want:    nil,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := firestoreDB.GetStageCRMPayload(tt.args.ctx, tt.args.phoneNumber)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetStageCRMPayload() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("Repository.GetStageCRMPayload() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
-func TestRepository_UpdateStageCRMPayload(t *testing.T) {
-	ctx := context.Background()
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		log.Panicf("failed to initialize test FireStore client")
-	}
-	if fbc == nil {
-		log.Panicf("failed to initialize test FireBase client")
-	}
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
-
-	phoneNumber := "+254700000000"
-	ContactType := "phone"
-	ContactValue := phoneNumber
-	FirstName := gofakeit.FirstName()
-	LastName := gofakeit.LastName()
-	DateOfBirth := scalarutils.Date{
-		Day:   0,
-		Month: 0,
-		Year:  0,
-	}
-	IsSync := false
-	TimeSync := time.Now()
-	OptOut := "NO"
-	WantCover := false
-	ContactChannel := "USSD"
-	IsRegistered := false
-
-	contactLeadPayload := &dto.ContactLeadInput{
-		ContactType:    ContactType,
-		ContactValue:   ContactValue,
-		FirstName:      FirstName,
-		LastName:       LastName,
-		DateOfBirth:    DateOfBirth,
-		IsSync:         IsSync,
-		TimeSync:       &TimeSync,
-		OptOut:         CRMDomain.GeneralOptionType(OptOut),
-		WantCover:      WantCover,
-		ContactChannel: ContactChannel,
-		IsRegistered:   IsRegistered,
-	}
-
-	err := firestoreDB.StageCRMPayload(ctx, contactLeadPayload)
-	if err != nil {
-		t.Errorf("unable to get CRMDetails")
-		return
-	}
-
-	CRMDetails, err := firestoreDB.GetStageCRMPayload(ctx, phoneNumber)
-	if err != nil {
-		t.Errorf("unable to get CRMDetails")
-		return
-	}
-
-	type args struct {
-		ctx         context.Context
-		phoneNumber string
-		contactLead *dto.ContactLeadInput
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: CRMDetails.ContactValue,
-				contactLead: contactLeadPayload,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: "",
-				contactLead: contactLeadPayload,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := firestoreDB.UpdateStageCRMPayload(tt.args.ctx, tt.args.phoneNumber, tt.args.contactLead); (err != nil) != tt.wantErr {
-				t.Errorf("Repository.UpdateStageCRMPayload() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestRepository_UpdateSessionLevel(t *testing.T) {
 	ctx := context.Background()
 	fsc, fbc := InitializeTestFirebaseClient(ctx)
@@ -4282,6 +4005,156 @@ func TestRepository_SaveCoverAutolinkingEvents_Integration_Test(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("Repository.SaveCoverAutolinkingEvents() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestRepository_GetAITDetails_Integration(t *testing.T) {
+	ctx := context.Background()
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
+
+	phoneNumber := "+254700100200"
+
+	sessionDet := &dto.SessionDetails{
+		SessionID:   uuid.NewString(),
+		PhoneNumber: &phoneNumber,
+		Level:       0,
+		Text:        "",
+	}
+
+	_, err := firestoreDB.AddAITSessionDetails(ctx, sessionDet)
+	if err != nil {
+		t.Errorf("unable to add session details")
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.USSDLeadDetails
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: phoneNumber,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := firestoreDB.GetAITDetails(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetAITDetails() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("Repository.GetAITDetails() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestRepository_UpdateAITSessionDetails_Integration(t *testing.T) {
+	ctx := context.Background()
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
+
+	phoneNumber := "+254700100200"
+
+	contact := &domain.USSDLeadDetails{
+		ID:             uuid.NewString(),
+		Level:          0,
+		PhoneNumber:    phoneNumber,
+		SessionID:      uuid.NewString(),
+		FirstName:      gofakeit.FirstName(),
+		LastName:       gofakeit.LastName(),
+		DateOfBirth:    scalarutils.Date{},
+		IsRegistered:   false,
+		ContactChannel: "USSD",
+		WantCover:      false,
+		PIN:            "1237",
+	}
+
+	sessionDet := &dto.SessionDetails{
+		SessionID:   uuid.NewString(),
+		PhoneNumber: &phoneNumber,
+		Level:       0,
+		Text:        "",
+	}
+
+	_, err := firestoreDB.AddAITSessionDetails(ctx, sessionDet)
+	if err != nil {
+		t.Errorf("unable to add session details")
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+		contactLead *domain.USSDLeadDetails
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: phoneNumber,
+				contactLead: contact,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: "",
+				contactLead: contact,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := firestoreDB.UpdateAITSessionDetails(tt.args.ctx, tt.args.phoneNumber, tt.args.contactLead); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateAITSessionDetails() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

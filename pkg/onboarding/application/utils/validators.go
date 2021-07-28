@@ -185,21 +185,6 @@ func ValidateUSSDDetails(payload *dto.SessionDetails) (*dto.SessionDetails, erro
 	}, nil
 }
 
-//ValidateEndNoteUSSDDetails checks if   session ID is provided
-// and returns valid End USSD session details.
-func ValidateEndNoteUSSDDetails(payload *dto.EndSessionDetails) (*dto.EndSessionDetails, error) {
-	if payload.SessionID == "" {
-		err := fmt.Errorf("expected sessionid to be defined")
-		return nil, exceptions.SessionIDError(err)
-	}
-	return &dto.EndSessionDetails{
-		PhoneNumber: payload.PhoneNumber,
-		SessionID:   payload.SessionID,
-		Input:       payload.Input,
-		Status:      payload.Status,
-	}, nil
-}
-
 // ValidatePIN ...
 func ValidatePIN(pin string) error {
 	validatePINErr := ValidatePINLength(pin)

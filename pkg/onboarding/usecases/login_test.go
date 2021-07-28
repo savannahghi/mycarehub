@@ -95,7 +95,6 @@ func TestMain(m *testing.M) {
 				r.GetUserProfileCollectionName(),
 				r.GetSupplierProfileCollectionName(),
 				r.GetSurveyCollectionName(),
-				r.GetCRMStagingCollectionName(),
 				r.GetCommunicationsSettingsCollectionName(),
 				r.GetCustomerProfileCollectionName(),
 				r.GetExperimentParticipantCollectionName(),
@@ -104,7 +103,7 @@ func TestMain(m *testing.M) {
 				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),
 				r.GetSMSCollectionName(),
-				r.GetUSSDCollectionName(),
+				r.GetUSSDDataCollectionName(),
 			}
 			for _, collection := range collections {
 				ref := fsc.Collection(collection)

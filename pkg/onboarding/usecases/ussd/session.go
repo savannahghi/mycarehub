@@ -60,15 +60,6 @@ func (u *Impl) GetUserProfileByPrimaryPhoneNumber(ctx context.Context, phoneNumb
 	return profile, err
 }
 
-// StageCRMPayload ...
-func (u *Impl) StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error {
-	err := u.onboardingRepository.StageCRMPayload(ctx, payload)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 //AddAITSessionDetails persists USSD details
 func (u *Impl) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error) {
 	ctx, span := tracer.Start(ctx, "AddAITSessionDetails")

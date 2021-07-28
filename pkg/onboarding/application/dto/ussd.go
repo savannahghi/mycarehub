@@ -7,14 +7,3 @@ type SessionDetails struct {
 	Level       int     `json:"level"`
 	Text        string  `json:"text"`
 }
-
-//EndSessionDetails store end of session details
-type EndSessionDetails struct {
-	SessionID    string
-	ServiceCode  string
-	NetworkCode  string
-	PhoneNumber  *string
-	Status       string
-	Input        string
-	ErrorMessage string
-}

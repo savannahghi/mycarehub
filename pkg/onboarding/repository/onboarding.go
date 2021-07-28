@@ -172,9 +172,8 @@ type OnboardingRepository interface {
 	UpdateSessionLevel(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error)
 	UpdateSessionPIN(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error)
 
-	StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error
-	UpdateStageCRMPayload(ctx context.Context, phoneNumber string, payload *dto.ContactLeadInput) error
-	GetStageCRMPayload(ctx context.Context, phoneNumber string) (*dto.ContactLeadInput, error)
+	UpdateAITSessionDetails(ctx context.Context, phoneNumber string, payload *domain.USSDLeadDetails) error
+	GetAITDetails(ctx context.Context, phoneNumber string) (*domain.USSDLeadDetails, error)
 
 	SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
 

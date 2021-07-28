@@ -14,7 +14,6 @@ import (
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/scalarutils"
-	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 func TestImpl_AddAITSessionDetailsUnittest(t *testing.T) {
@@ -537,111 +536,6 @@ func TestImpl_CreateEmptyCustomerProfileUnittest(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Impl.CreateEmptyCustomerProfile() = %v, want %v", got, tt.want)
-			}
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("Expected an error but did not get one\n")
-					return
-				}
-			}
-
-			if !tt.wantErr {
-				if err != nil {
-					t.Errorf("Did not expect an error but we got one\n")
-					return
-				}
-			}
-		})
-	}
-}
-
-func TestImpl_StageCRMPayloadUnittest(t *testing.T) {
-
-	ctx := context.Background()
-
-	u, err := InitializeFakeUSSDTestService()
-
-	if err != nil {
-		t.Errorf("failed to initialize test service")
-		return
-	}
-
-	contactType := "phone"
-	contactValue := "+254702215783"
-	firstName := gofakeit.FirstName()
-	lastName := gofakeit.LastName()
-	dateOfBirth := scalarutils.Date{
-		Day:   0,
-		Month: 0,
-		Year:  0,
-	}
-	isSync := false
-	timeSync := time.Now()
-	optOut := "NO"
-	wantCover := false
-	contactChannel := "USSD"
-	isRegistered := false
-
-	contactLeadInput := dto.ContactLeadInput{
-		ContactType:    contactType,
-		ContactValue:   contactValue,
-		FirstName:      firstName,
-		LastName:       lastName,
-		DateOfBirth:    dateOfBirth,
-		IsSync:         isSync,
-		TimeSync:       &timeSync,
-		OptOut:         CRMDomain.GeneralOptionType(optOut),
-		WantCover:      wantCover,
-		ContactChannel: contactChannel,
-		IsRegistered:   isRegistered,
-	}
-
-	type args struct {
-		ctx     context.Context
-		payload *dto.ContactLeadInput
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		//test cases.
-		{
-			name: "happy case",
-			args: args{
-				ctx:     ctx,
-				payload: &contactLeadInput,
-			},
-			wantErr: false,
-		},
-		{
-			name: "sad case",
-			args: args{
-				ctx:     ctx,
-				payload: &contactLeadInput,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			if tt.name == "happy case" {
-				fakeRepo.StageCRMPayloadFn = func(ctx context.Context, payload *dto.ContactLeadInput) error {
-					return nil
-				}
-			}
-
-			if tt.name == "sad case" {
-				fakeRepo.StageCRMPayloadFn = func(ctx context.Context, payload *dto.ContactLeadInput) error {
-					return fmt.Errorf("failed to stage crm payload")
-				}
-			}
-
-			err := u.AITUSSD.StageCRMPayload(tt.args.ctx, tt.args.payload)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Impl.StageCRMPayload() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			if tt.wantErr {

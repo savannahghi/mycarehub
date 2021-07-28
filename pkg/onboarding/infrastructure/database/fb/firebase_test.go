@@ -9,7 +9,6 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/auth"
-	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
@@ -21,9 +20,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
 	extMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb/mock"
 	"github.com/savannahghi/profileutils"
-	"github.com/savannahghi/scalarutils"
 	"github.com/stretchr/testify/assert"
-	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 var fakeFireBaseClientExt extMock.FirebaseClientExtension
@@ -1277,106 +1274,7 @@ func TestRepository_GetAITSessionDetails_Unittests(t *testing.T) {
 	}
 }
 
-func TestRepository_StageCRMPayload_Unittest(t *testing.T) {
-	ctx := context.Background()
-	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
-	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
-
-	phoneNumber := "+254700100200"
-	ContactType := "phone"
-	ContactValue := phoneNumber
-	FirstName := gofakeit.FirstName()
-	LastName := gofakeit.LastName()
-	DateOfBirth := scalarutils.Date{
-		Day:   0,
-		Month: 0,
-		Year:  0,
-	}
-	IsSync := false
-	TimeSync := time.Now()
-	OptOut := "NO"
-	WantCover := false
-	ContactChannel := "USSD"
-	IsRegistered := false
-
-	contactLeadPayload := &dto.ContactLeadInput{
-		ContactType:    ContactType,
-		ContactValue:   ContactValue,
-		FirstName:      FirstName,
-		LastName:       LastName,
-		DateOfBirth:    DateOfBirth,
-		IsSync:         IsSync,
-		TimeSync:       &TimeSync,
-		OptOut:         CRMDomain.GeneralOptionType(OptOut),
-		WantCover:      WantCover,
-		ContactChannel: ContactChannel,
-		IsRegistered:   IsRegistered,
-	}
-
-	type args struct {
-		ctx     context.Context
-		payload *dto.ContactLeadInput
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:     ctx,
-				payload: contactLeadPayload,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:     ctx,
-				payload: nil,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Happy case" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
-					docs := []*firestore.DocumentSnapshot{}
-					return docs, nil
-				}
-
-				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
-					return &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}, nil
-				}
-			}
-
-			if tt.name == "Sad case" {
-				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-
-			err := repo.StageCRMPayload(tt.args.ctx, tt.args.payload)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("error expected got %v", err)
-					return
-				}
-			}
-			if !tt.wantErr {
-				if err != nil {
-					t.Errorf("error not expected got %v", err)
-					return
-				}
-			}
-		})
-	}
-}
-
-func TestRepository_GetStageCRMPayload_Unittest(t *testing.T) {
+func TestRepository_GetAITDetails_Unnittest(t *testing.T) {
 	ctx := context.Background()
 	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
 	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
@@ -1390,7 +1288,7 @@ func TestRepository_GetStageCRMPayload_Unittest(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *dto.ContactLeadInput
+		want    *domain.USSDLeadDetails
 		wantErr bool
 	}{
 		{
@@ -1426,13 +1324,13 @@ func TestRepository_GetStageCRMPayload_Unittest(t *testing.T) {
 				}
 			}
 
-			got, err := repo.GetStageCRMPayload(tt.args.ctx, tt.args.phoneNumber)
+			got, err := repo.GetAITDetails(tt.args.ctx, tt.args.phoneNumber)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetStageCRMPayload() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Repository.GetAITDetails() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Repository.GetStageCRMPayload() = %v, want %v", got, tt.want)
+				t.Errorf("Repository.GetAITDetails() = %v, want %v", got, tt.want)
 			}
 		})
 	}

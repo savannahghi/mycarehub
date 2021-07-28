@@ -40,7 +40,6 @@ type Usecase interface {
 	// session usecases
 	GetOrCreateSessionState(ctx context.Context, payload *dto.SessionDetails) (*domain.USSDLeadDetails, error)
 	AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error)
-	StageCRMPayload(ctx context.Context, payload *dto.ContactLeadInput) error
 	UpdateSessionLevel(ctx context.Context, level int, sessionID string) error
 	UpdateSessionPIN(ctx context.Context, pin string, sessionID string) (*domain.USSDLeadDetails, error)
 	// USSD PIN usecases

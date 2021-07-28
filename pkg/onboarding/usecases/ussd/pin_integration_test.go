@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
+	"github.com/savannahghi/scalarutils"
 )
 
 const (
@@ -43,7 +44,6 @@ func TestImpl_HandleChangePIN_IntegrationTest(t *testing.T) {
 	}
 
 	phoneNumber := "+254750100200"
-	dateOfBirth := "12122000"
 	PIN := "1234"
 	FirstName := gofakeit.LastName()
 	LastName := gofakeit.LastName()
@@ -57,7 +57,7 @@ func TestImpl_HandleChangePIN_IntegrationTest(t *testing.T) {
 		SessionID:   SessionID,
 		FirstName:   FirstName,
 		LastName:    LastName,
-		DateOfBirth: dateOfBirth,
+		DateOfBirth: scalarutils.Date{},
 		PIN:         PIN,
 	}
 
@@ -166,7 +166,6 @@ func TestImpl_HandlePINReset(t *testing.T) {
 	}
 
 	phoneNumber := "+254733333333"
-	dateOfBirth := "12122000"
 	PIN := "1234"
 	FirstName := gofakeit.LastName()
 	LastName := gofakeit.LastName()
@@ -180,7 +179,7 @@ func TestImpl_HandlePINReset(t *testing.T) {
 		SessionID:   SessionID,
 		FirstName:   FirstName,
 		LastName:    LastName,
-		DateOfBirth: dateOfBirth,
+		DateOfBirth: scalarutils.Date{},
 		PIN:         PIN,
 	}
 

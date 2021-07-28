@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
+	"github.com/savannahghi/scalarutils"
 	hubspotDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
@@ -22,7 +23,11 @@ func TestImpl_HandleUserRegistration_Unittest(t *testing.T) {
 	}
 
 	phoneNumber := "+254700200210"
-	dateOfBirth := "12122000"
+	DateOfBirth := scalarutils.Date{
+		Day:   0,
+		Month: 0,
+		Year:  0,
+	}
 	PIN := "1234"
 	FirstName := gofakeit.FirstName()
 	LastName := gofakeit.LastName()
@@ -45,7 +50,7 @@ func TestImpl_HandleUserRegistration_Unittest(t *testing.T) {
 		SessionID:   SessionID,
 		FirstName:   FirstName,
 		LastName:    LastName,
-		DateOfBirth: dateOfBirth,
+		DateOfBirth: DateOfBirth,
 		PIN:         PIN,
 	}
 
@@ -87,10 +92,6 @@ func TestImpl_HandleUserRegistration_Unittest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fmt.Println("test name is", tt.name)
 			if tt.name == "Happy_case:optout" {
-				fakeRepo.StageCRMPayloadFn = func(ctx context.Context, payload *dto.ContactLeadInput) error {
-					return nil
-				}
-
 				fakeRepo.GetAITSessionDetailsFn = func(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error) {
 					return &domain.USSDLeadDetails{}, nil
 				}
@@ -107,8 +108,8 @@ func TestImpl_HandleUserRegistration_Unittest(t *testing.T) {
 			}
 
 			if tt.name == "Sad_case:optout" {
-				fakeRepo.StageCRMPayloadFn = func(ctx context.Context, payload *dto.ContactLeadInput) error {
-					return nil
+				fakeCrm.OptOutFn = func(ctx context.Context, phoneNumber string) (*hubspotDomain.CRMContact, error) {
+					return nil, fmt.Errorf("an error occurred %w", err)
 				}
 			}
 
