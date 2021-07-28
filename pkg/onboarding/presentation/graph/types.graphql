@@ -486,6 +486,7 @@ type RoleOutput {
   id: String!
   name: String!
   description: String!
+  active: Boolean!
   scopes: [String]
   permissions: [Permission]
 }

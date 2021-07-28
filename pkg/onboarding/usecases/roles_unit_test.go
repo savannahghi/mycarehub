@@ -174,7 +174,7 @@ func TestRoleUseCaseImpl_CreateRole(t *testing.T) {
 						{ID: "123", Scopes: []string{"role.create"}},
 					}, nil
 				}
-				fakeRepo.CreateRoleFn = func(ctx context.Context, role profileutils.Role) (*profileutils.Role, error) {
+				fakeRepo.CreateRoleFn = func(ctx context.Context, profileID string, role dto.RoleInput) (*profileutils.Role, error) {
 					return nil, fmt.Errorf("error un able to create role in db")
 				}
 			}
@@ -195,7 +195,7 @@ func TestRoleUseCaseImpl_CreateRole(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.CreateRoleFn = func(ctx context.Context, role profileutils.Role) (*profileutils.Role, error) {
+				fakeRepo.CreateRoleFn = func(ctx context.Context, profileID string, role dto.RoleInput) (*profileutils.Role, error) {
 					return &profileutils.Role{
 						ID:          "123",
 						Name:        "Agents Role",
@@ -230,7 +230,7 @@ func TestRoleUseCaseImpl_AddPermissionsToRole(t *testing.T) {
 
 	input := dto.RolePermissionInput{
 		RoleID: "123",
-		Scope:  "role.create",
+		Scopes: []string{"role.create"},
 	}
 
 	expectedOutput := dto.RoleOutput{
@@ -393,8 +393,8 @@ func TestRoleUseCaseImpl_AddPermissionsToRole(t *testing.T) {
 						Scopes: []string{"role.edit"},
 					}, nil
 				}
-				fakeRepo.UpdateRoleDetailsFn = func(ctx context.Context, role profileutils.Role) error {
-					return fmt.Errorf("error unable to update role")
+				fakeRepo.UpdateRoleDetailsFn = func(ctx context.Context, profileID string, role profileutils.Role) (*profileutils.Role, error) {
+					return nil, fmt.Errorf("error unable to update role")
 				}
 			}
 
@@ -416,8 +416,11 @@ func TestRoleUseCaseImpl_AddPermissionsToRole(t *testing.T) {
 						Scopes: []string{"role.create"},
 					}, nil
 				}
-				fakeRepo.UpdateRoleDetailsFn = func(ctx context.Context, role profileutils.Role) error {
-					return nil
+				fakeRepo.UpdateRoleDetailsFn = func(ctx context.Context, profileID string, role profileutils.Role) (*profileutils.Role, error) {
+					return &profileutils.Role{
+						ID:     "123",
+						Scopes: []string{"role.create"},
+					}, nil
 				}
 			}
 

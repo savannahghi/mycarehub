@@ -27,7 +27,6 @@ import (
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
-	"github.com/sirupsen/logrus"
 )
 
 // Package that generates trace information
@@ -3333,8 +3332,6 @@ func (fr *Repository) SaveCoverAutolinkingEvents(
 	ctx, span := tracer.Start(ctx, "SaveCoverAutolinkingEvents")
 	defer span.End()
 
-	logrus.Print("SaveCoverAutolinkingEvents")
-
 	coverLinkingEvent := &dto.CoverLinkingEvent{
 		ID:                    input.ID,
 		CoverLinkingEventTime: input.CoverLinkingEventTime,
@@ -3672,74 +3669,101 @@ func (fr *Repository) UpdateAITSessionDetails(ctx context.Context, phoneNumber s
 	return nil
 }
 
-// CreateRole role details to database
+// CreateRole creates a new role and persists it to the database
 func (fr *Repository) CreateRole(
 	ctx context.Context,
-	roleDetails profileutils.Role,
+	profileID string,
+	input dto.RoleInput,
 ) (*profileutils.Role, error) {
 	ctx, span := tracer.Start(ctx, "CreateRole")
 	defer span.End()
 
+	exists, err := fr.CheckIfRoleNameExists(ctx, input.Name)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	if exists {
+		err := fmt.Errorf("role with similar name exists:%v", input.Name)
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	timestamp := time.Now().In(pubsubtools.TimeLocation)
+
+	role := profileutils.Role{
+		ID:          uuid.New().String(),
+		Name:        input.Name,
+		Description: input.Description,
+		CreatedBy:   profileID,
+		Created:     timestamp,
+		Active:      true,
+		Scopes:      input.Scopes,
+	}
+
 	createCommad := &CreateCommand{
 		CollectionName: fr.GetRolesCollectionName(),
-		Data:           roleDetails,
+		Data:           role,
 	}
 
-	docRef, err := fr.FirestoreClient.Create(ctx, createCommad)
+	_, err = fr.FirestoreClient.Create(ctx, createCommad)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	getRoleQuery := &GetSingleQuery{
-		CollectionName: fr.GetCoverLinkingEventsCollectionName(),
-		Value:          docRef.ID,
-	}
-
-	docsnapshot, err := fr.FirestoreClient.Get(ctx, getRoleQuery)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	role := &profileutils.Role{}
-	err = docsnapshot.DataTo(role)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	return role, nil
+	return &role, nil
 }
 
-// UpdateRoleDetails  ...
-func (fr *Repository) UpdateRoleDetails(ctx context.Context, roleDetails profileutils.Role) error {
+// UpdateRoleDetails  updates the details of a role
+func (fr *Repository) UpdateRoleDetails(
+	ctx context.Context,
+	profileID string,
+	role profileutils.Role,
+) (*profileutils.Role, error) {
 	ctx, span := tracer.Start(ctx, "UpdateRoleDetails")
 	defer span.End()
 
-	collectionName := fr.GetRolesCollectionName()
 	query := &GetAllQuery{
-		CollectionName: collectionName,
+		CollectionName: fr.GetRolesCollectionName(),
+		Value:          role.ID,
 		FieldName:      "id",
-		Value:          roleDetails.ID,
 		Operator:       "==",
 	}
 
 	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 	if err != nil {
-		return err
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	timestamp := time.Now().In(pubsubtools.TimeLocation)
+
+	updatedRole := profileutils.Role{
+		ID:          role.ID,
+		Name:        role.Name,
+		Description: role.Description,
+		Active:      role.Active,
+		Scopes:      role.Scopes,
+		CreatedBy:   role.CreatedBy,
+		Created:     role.Created,
+		UpdatedBy:   profileID,
+		Updated:     timestamp,
 	}
 
 	updateCommand := &UpdateCommand{
-		CollectionName: collectionName,
+		CollectionName: fr.GetRolesCollectionName(),
 		ID:             docs[0].Ref.ID,
-		Data:           roleDetails,
+		Data:           updatedRole,
 	}
 	err = fr.FirestoreClient.Update(ctx, updateCommand)
 	if err != nil {
-		return exceptions.InternalServerError(err)
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
 	}
-	return nil
+
+	return &updatedRole, nil
 }
 
 // GetRoleByID gets role with matching id
@@ -3747,9 +3771,8 @@ func (fr *Repository) GetRoleByID(ctx context.Context, roleID string) (*profileu
 	ctx, span := tracer.Start(ctx, "GetRoleByID")
 	defer span.End()
 
-	collectionName := fr.GetRolesCollectionName()
 	query := &GetAllQuery{
-		CollectionName: collectionName,
+		CollectionName: fr.GetRolesCollectionName(),
 		FieldName:      "id",
 		Value:          roleID,
 		Operator:       "==",
@@ -3761,20 +3784,21 @@ func (fr *Repository) GetRoleByID(ctx context.Context, roleID string) (*profileu
 		return nil, exceptions.InternalServerError(err)
 	}
 
-	if len(docs) == 0 {
+	if len(docs) != 1 {
 		err = exceptions.ProfileNotFoundError(fmt.Errorf("role not found"))
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
-	dsnap := docs[0]
 	role := &profileutils.Role{}
-	err = dsnap.DataTo(role)
+
+	err = docs[0].DataTo(role)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		err = fmt.Errorf("unable to read role")
 		return nil, exceptions.InternalServerError(err)
 	}
+
 	return role, nil
 }
 
@@ -3796,4 +3820,30 @@ func (fr *Repository) GetRolesByIDs(
 	}
 
 	return &roles, nil
+}
+
+// CheckIfRoleNameExists checks if a role with a similar name exists
+// Ensures unique name for each role during creation
+func (fr *Repository) CheckIfRoleNameExists(ctx context.Context, name string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckIfRoleNameExists")
+	defer span.End()
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetRolesCollectionName(),
+		FieldName:      "name",
+		Operator:       "==",
+		Value:          name,
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, exceptions.InternalServerError(err)
+	}
+
+	if len(docs) == 1 {
+		return true, nil
+	}
+
+	return false, nil
 }

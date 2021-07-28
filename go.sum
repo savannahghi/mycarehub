@@ -392,8 +392,8 @@ github.com/savannahghi/interserviceclient v0.0.13 h1:hKUrWkUQW7mNZLp/wxJNnzORDpN
 github.com/savannahghi/interserviceclient v0.0.13/go.mod h1:aGGEc+40bBVHVDs1k0CzK5uPb5080vv4fb25T/cuXQk=
 github.com/savannahghi/profileutils v0.0.6/go.mod h1:Ct0sjzOW9zjDN58ynT5GTV6M2hHMY3nsFDV08I6gpO4=
 github.com/savannahghi/profileutils v0.0.7/go.mod h1:Ct0sjzOW9zjDN58ynT5GTV6M2hHMY3nsFDV08I6gpO4=
-github.com/savannahghi/profileutils v0.0.12 h1:7ZYbvNVKS2XPHhlw6nRl4Lec8O0CLKQrBYkWEGeyFfI=
-github.com/savannahghi/profileutils v0.0.12/go.mod h1:Ct0sjzOW9zjDN58ynT5GTV6M2hHMY3nsFDV08I6gpO4=
+github.com/savannahghi/profileutils v0.0.13 h1:qAGoINpVBVxH02Tbn22vQlo5nRpiYBBYeBor6vEdyEI=
+github.com/savannahghi/profileutils v0.0.13/go.mod h1:Ct0sjzOW9zjDN58ynT5GTV6M2hHMY3nsFDV08I6gpO4=
 github.com/savannahghi/pubsubtools v0.0.2 h1:5JqgynuuzduYu57y8TM0bU8unZD/7ob36sZ9BKPmt9o=
 github.com/savannahghi/pubsubtools v0.0.2/go.mod h1:FQ+BxO4uA1ZkcziY4dR0uT9CKHVHb+4L1lUURBV2UD0=
 github.com/savannahghi/scalarutils v0.0.0-20210622091443-bad5089abdad/go.mod h1:Z+Dl3wc3vy5zKvthctHAtYzol1p8w27zEVRfOYueoks=

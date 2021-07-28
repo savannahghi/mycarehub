@@ -333,5 +333,5 @@ input RoleInput {
 
 input RolePermissionInput {
   roleID: String!
-  scope: String!
+  scopes: [String!]!
 }

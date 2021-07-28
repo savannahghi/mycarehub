@@ -406,6 +406,6 @@ type RoleInput struct {
 
 // RolePermissionInput input required to create a permission
 type RolePermissionInput struct {
-	RoleID string `json:"roleID"`
-	Scope  string `json:"scope"`
+	RoleID string   `json:"roleID"`
+	Scopes []string `json:"scopes"`
 }

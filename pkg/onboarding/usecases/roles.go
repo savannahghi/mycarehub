@@ -3,16 +3,13 @@ package usecases
 import (
 	"context"
 	"fmt"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/profileutils"
-	"github.com/savannahghi/pubsubtools"
 )
 
 // RoleUseCase represent the business logic required for management of agents
@@ -88,38 +85,24 @@ func (r *RoleUseCaseImpl) CreateRole(
 		return nil, err
 	}
 
-	timestamp := time.Now().In(pubsubtools.TimeLocation)
-	// move some logic to repository
-	// ID,timestamp,active
-	role := profileutils.Role{
-		ID:          uuid.New().String(),
-		Name:        input.Name,
-		Description: input.Description,
-		CreatedBy:   userProfile.ID,
-		Created:     timestamp,
-		Active:      true,
-		Scopes:      input.Scopes,
-	}
-
-	// save role to database
-	newRole, err := r.repo.CreateRole(ctx, role)
+	role, err := r.repo.CreateRole(ctx, userProfile.ID, input)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
-	// get permissions
-	perms, err := newRole.Permissions(ctx)
+	perms, err := role.Permissions(ctx)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
 	output := &dto.RoleOutput{
-		ID:          newRole.ID,
-		Name:        newRole.Name,
-		Description: newRole.Description,
-		Scopes:      newRole.Scopes,
+		ID:          role.ID,
+		Name:        role.Name,
+		Description: role.Description,
+		Active:      role.Active,
+		Scopes:      role.Scopes,
 		Permissions: perms,
 	}
 
@@ -135,6 +118,12 @@ func (r *RoleUseCaseImpl) AddPermissionsToRole(
 	defer span.End()
 
 	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
@@ -158,34 +147,38 @@ func (r *RoleUseCaseImpl) AddPermissionsToRole(
 		return nil, err
 	}
 
-	permission, err := profileutils.GetPermissionByScope(ctx, input.Scope)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
+	for _, scope := range input.Scopes {
+		permission, err := profileutils.GetPermissionByScope(ctx, scope)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			return nil, err
+		}
 
-	if !role.HasPermission(ctx, permission.Scope) {
-		role.Scopes = append(role.Scopes, permission.Scope)
+		if !role.HasPermission(ctx, permission.Scope) {
+			role.Scopes = append(role.Scopes, permission.Scope)
+		}
 	}
 
 	// save role to database
-	err = r.repo.UpdateRoleDetails(ctx, *role)
+	updatedRole, err := r.repo.UpdateRoleDetails(ctx, userProfile.ID, *role)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
 	// get permissions
-	perms, err := role.Permissions(ctx)
+	perms, err := updatedRole.Permissions(ctx)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 
 	output := &dto.RoleOutput{
-		ID:          role.ID,
-		Name:        role.Name,
-		Scopes:      role.Scopes,
+		ID:          updatedRole.ID,
+		Name:        updatedRole.Name,
+		Description: updatedRole.Description,
+		Active:      updatedRole.Active,
+		Scopes:      updatedRole.Scopes,
 		Permissions: perms,
 	}
 
@@ -244,6 +237,7 @@ func (r *RoleUseCaseImpl) GetUserRoles(
 	if err != nil {
 		return nil, err
 	}
+
 	return roles, nil
 }
 
@@ -298,6 +292,8 @@ func (r *RoleUseCaseImpl) GetRole(ctx context.Context, ID string) (*dto.RoleOutp
 	output := dto.RoleOutput{
 		ID:          role.ID,
 		Name:        role.Name,
+		Description: role.Description,
+		Active:      role.Active,
 		Scopes:      role.Scopes,
 		Permissions: rolePerms,
 	}

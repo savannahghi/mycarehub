@@ -306,8 +306,21 @@ type UserProfileRepository interface {
 
 //RolesRepository interface that provide access to all persistent storage operations for roles
 type RolesRepository interface {
-	CreateRole(ctx context.Context, role profileutils.Role) (*profileutils.Role, error)
-	GetRolesByIDs(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error)
+	CreateRole(
+		ctx context.Context,
+		profileID string,
+		input dto.RoleInput,
+	) (*profileutils.Role, error)
+
 	GetRoleByID(ctx context.Context, roleID string) (*profileutils.Role, error)
-	UpdateRoleDetails(ctx context.Context, role profileutils.Role) error
+
+	GetRolesByIDs(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error)
+
+	CheckIfRoleNameExists(ctx context.Context, name string) (bool, error)
+
+	UpdateRoleDetails(
+		ctx context.Context,
+		profileID string,
+		role profileutils.Role,
+	) (*profileutils.Role, error)
 }

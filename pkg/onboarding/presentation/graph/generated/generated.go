@@ -465,6 +465,7 @@ type ComplexityRoot struct {
 	}
 
 	RoleOutput struct {
+		Active      func(childComplexity int) int
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
@@ -2925,6 +2926,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ReceivablesAccount.Tag(childComplexity), true
 
+	case "RoleOutput.active":
+		if e.complexity.RoleOutput.Active == nil {
+			break
+		}
+
+		return e.complexity.RoleOutput.Active(childComplexity), true
+
 	case "RoleOutput.description":
 		if e.complexity.RoleOutput.Description == nil {
 			break
@@ -4028,7 +4036,7 @@ input RoleInput {
 
 input RolePermissionInput {
   roleID: String!
-  scope: String!
+  scopes: [String!]!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
@@ -4681,6 +4689,7 @@ type RoleOutput {
   id: String!
   name: String!
   description: String!
+  active: Boolean!
   scopes: [String]
   permissions: [Permission]
 }
@@ -16025,6 +16034,41 @@ func (ec *executionContext) _RoleOutput_description(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _RoleOutput_active(ctx context.Context, field graphql.CollectedField, obj *dto.RoleOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RoleOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _RoleOutput_scopes(ctx context.Context, field graphql.CollectedField, obj *dto.RoleOutput) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -20672,11 +20716,11 @@ func (ec *executionContext) unmarshalInputRolePermissionInput(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
-		case "scope":
+		case "scopes":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scope"))
-			it.Scope, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scopes"))
+			it.Scopes, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -23165,6 +23209,11 @@ func (ec *executionContext) _RoleOutput(ctx context.Context, sel ast.SelectionSe
 			}
 		case "description":
 			out.Values[i] = ec._RoleOutput_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "active":
+			out.Values[i] = ec._RoleOutput_active(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
