@@ -9,13 +9,6 @@ This service manages user onboarding process.
 
 The project implements the `Clean Architecture` advocated by
 Robert Martin ('Uncle Bob').
-
-## Documentation
-
-API documentation are available at: https://profile-service-docs-uyajqt434q-ew.a.run.app/
-
-We should strive to always make the documentation reflect the true state of the service
-
 ### Clean Architecture
 
 A cleanly architected project should be:
@@ -118,5 +111,8 @@ export CHARGE_MASTER_GRANT_TYPE="<an auth server grant type>"
 
 ```
 
-The server deploys to Google Cloud Run. The environment variables defined above
-should also be set on Google Cloud Run.
+Deployment
+----------
+
+This application is deployed via Google Cloud Build ( <https://cloud.google.com/build> ) to Google Cloud Run ( <https://cloud.google.com/run> ).
+There's a `cloudbuild.yaml` file in the home folder. Secrets (e.g production settings) are managed with Google Secret Manager ( <https://cloud.google.com/secret-manager> ).

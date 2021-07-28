@@ -101,3 +101,12 @@ jobs:
           go tool cover -html=coverage.txt -o coverage.html
           gocov convert coverage.txt > coverage.json
           gocov report coverage.json > coverage_report.txt
+        
+      - name: Install goveralls
+        env:
+          GO111MODULE: off
+        run: go get github.com/mattn/goveralls
+      - name: Send coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: goveralls -coverprofile=coverage.txt  -service=github
