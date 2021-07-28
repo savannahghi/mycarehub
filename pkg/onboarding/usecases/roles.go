@@ -15,7 +15,7 @@ import (
 	"github.com/savannahghi/pubsubtools"
 )
 
-// RoleUseCase represent roles interface
+// RoleUseCase represent the business logic required for management of agents
 type RoleUseCase interface {
 	CreateRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
 
@@ -32,9 +32,15 @@ type RoleUseCase interface {
 
 	GetUserRoles(ctx context.Context, UID string) (*[]profileutils.Role, error)
 
-	// GetRole(ctx context.Context, ID string) (*profileutils.Role, error)
+	GetRole(ctx context.Context, ID string) (*dto.RoleOutput, error)
 
-	// GetUserPermissions(ctx context.Context, UID string) ([]profileutils.Permission, error)
+	GetUserPermissions(ctx context.Context, UID string) ([]profileutils.Permission, error)
+}
+
+// RoleUseCaseImpl  represents usecase implementation object
+type RoleUseCaseImpl struct {
+	repo    repository.OnboardingRepository
+	baseExt extension.BaseExtension
 }
 
 // NewRoleUseCases returns a new a onboarding usecase
@@ -46,12 +52,6 @@ func NewRoleUseCases(
 		repo:    r,
 		baseExt: ext,
 	}
-}
-
-// RoleUseCaseImpl  represents usecase implementation object
-type RoleUseCaseImpl struct {
-	repo    repository.OnboardingRepository
-	baseExt extension.BaseExtension
 }
 
 // CreateRole creates a new Role
@@ -81,9 +81,11 @@ func (r *RoleUseCaseImpl) CreateRole(
 		return nil, err
 	}
 	if !allowed {
-		return nil, exceptions.RoleNotValid(
+		err = exceptions.RoleNotValid(
 			fmt.Errorf("error: logged in user does not have permissions to create role"),
 		)
+		utils.RecordSpanError(span, err)
+		return nil, err
 	}
 
 	timestamp := time.Now().In(pubsubtools.TimeLocation)
@@ -107,7 +109,7 @@ func (r *RoleUseCaseImpl) CreateRole(
 	}
 
 	// get permissions
-	perms, err := role.Permissions(ctx)
+	perms, err := newRole.Permissions(ctx)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
@@ -210,8 +212,9 @@ func (r *RoleUseCaseImpl) CheckUserHasPermission(
 	for _, role := range *roles {
 		rolePerms, err := role.Permissions(ctx)
 		if err != nil {
-			perms = append(perms, rolePerms...)
+			return false, err
 		}
+		perms = append(perms, rolePerms...)
 	}
 
 	for _, permission := range perms {
@@ -242,4 +245,91 @@ func (r *RoleUseCaseImpl) GetUserRoles(
 		return nil, err
 	}
 	return roles, nil
+}
+
+// GetRole gets a specific role and its permissions
+func (r *RoleUseCaseImpl) GetRole(ctx context.Context, ID string) (*dto.RoleOutput, error) {
+	ctx, span := tracer.Start(ctx, "GetRole")
+	defer span.End()
+
+	// Check logged in user has permissions/role of employee
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// Check logged in user has the right permissions
+	allowed, err := r.CheckUserHasPermission(ctx, user.UID, profileutils.CanEditRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	if !allowed {
+		return nil, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to view roles"),
+		)
+	}
+
+	role, err := r.repo.GetRoleByID(ctx, ID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// return all permissions but mark the allowed ones as true
+	rolePerms := []profileutils.Permission{}
+	allPerms, err := profileutils.AllPermissions(ctx)
+
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	for _, perm := range allPerms {
+		for _, scope := range role.Scopes {
+			if perm.Scope == scope {
+				perm.Allowed = true
+			}
+		}
+		rolePerms = append(rolePerms, perm)
+	}
+
+	output := dto.RoleOutput{
+		ID:          role.ID,
+		Name:        role.Name,
+		Scopes:      role.Scopes,
+		Permissions: rolePerms,
+	}
+	return &output, nil
+}
+
+// GetUserPermissions ...
+func (r *RoleUseCaseImpl) GetUserPermissions(
+	ctx context.Context,
+	UID string,
+) ([]profileutils.Permission, error) {
+	ctx, span := tracer.Start(ctx, "GetUserPermissions")
+	defer span.End()
+
+	roles, err := r.GetUserRoles(ctx, UID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	allPermmissions := []profileutils.Permission{}
+
+	for _, role := range *roles {
+		perms, err := role.Permissions(ctx)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			return nil, err
+		}
+		allPermmissions = append(allPermmissions, perms...)
+	}
+
+	permissions := profileutils.GetUniquePermissions(ctx, allPermmissions)
+
+	return permissions, nil
 }

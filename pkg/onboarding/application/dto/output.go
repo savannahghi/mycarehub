@@ -133,7 +133,7 @@ type Segment struct {
 	MemberNumber   string                      `json:"member_number"    firestore:"membernumber"`
 }
 
-// RoleOutput
+// RoleOutput is the formatted output with scopes and permissions
 type RoleOutput struct {
 	ID          string                    `json:"id"`
 	Name        string                    `json:"name"`
