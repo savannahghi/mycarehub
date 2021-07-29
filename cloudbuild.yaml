@@ -26,6 +26,20 @@ steps:
       '--timeout', '59m59s'
   ]
 
+    # Automatically update the traffic to the latest revision
+    # This will update the latest revision to serve 100% traffic
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'beta',
+      'run',
+      'update-traffic',
+      "${_SERVICE_NAME}",
+      '--to-latest',
+      '--region', 'europe-west1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+  ]
+
 images:
 - 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA'
 
