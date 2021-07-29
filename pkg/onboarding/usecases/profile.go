@@ -309,6 +309,22 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(
 		utils.RecordSpanError(span, err)
 		return err
 	}
+
+	contact, err := p.crm.GetContactByPhone(ctx, *profile.PrimaryPhone)
+	if err != nil {
+		return fmt.Errorf("failed to get contact %s: %w", *profile.PrimaryPhone, err)
+	}
+	if contact == nil {
+		return nil
+	}
+
+	contact.Properties.Phone = phone
+
+	if err = p.pubsub.NotifyUpdateContact(ctx, *contact); err != nil {
+		utils.RecordSpanError(span, err)
+		log.Printf("failed to publish to crm.contact.update topic: %v", err)
+	}
+
 	// check if number to be set as primary exists in the list of secondary phones
 	index, exists := utils.FindItem(secondaryPhones, *phoneNumber)
 	if exists {
@@ -360,6 +376,22 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(
 	if err := p.onboardingRepository.UpdatePrimaryEmailAddress(ctx, profile.ID, emailAddress); err != nil {
 		utils.RecordSpanError(span, err)
 		return err
+	}
+
+	// After updating the primary email, update it on the CRM too
+	contact, err := p.crm.GetContactByPhone(ctx, *profile.PrimaryPhone)
+	if err != nil {
+		return fmt.Errorf("failed to get contact %s: %w", *profile.PrimaryPhone, err)
+	}
+	if contact == nil {
+		return nil
+	}
+
+	contact.Properties.Email = emailAddress
+
+	if err = p.pubsub.NotifyUpdateContact(ctx, *contact); err != nil {
+		utils.RecordSpanError(span, err)
+		log.Printf("failed to publish to crm.contact.update topic: %v", err)
 	}
 
 	previousPrimaryEmail := profile.PrimaryEmailAddress

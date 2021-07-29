@@ -459,6 +459,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 		return
 	}
 	primaryEmail := "me@gmail.com"
+	primaryPhone := "0711223344"
 
 	type args struct {
 		ctx          context.Context
@@ -525,11 +526,17 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 					return &profileutils.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &primaryEmail,
+						PrimaryPhone:        &primaryPhone,
 					}, nil
 				}
 				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
 					return nil
 				}
+
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, contact CRMDomain.CRMContact) error {
+					return nil
+				}
+
 				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
 					return nil
 				}
@@ -547,6 +554,7 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 					return &profileutils.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &primaryEmail,
+						PrimaryPhone:        &primaryPhone,
 					}, nil
 				}
 				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
@@ -566,12 +574,16 @@ func TestProfileUseCaseImpl_UpdatePrimaryEmailAddress(t *testing.T) {
 					return &profileutils.UserProfile{
 						ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 						PrimaryEmailAddress: &primaryEmail,
+						PrimaryPhone:        &primaryPhone,
 						SecondaryEmailAddresses: []string{
 							"", "lulu@gmail.com",
 						},
 					}, nil
 				}
 				fakeRepo.UpdatePrimaryEmailAddressFn = func(ctx context.Context, id string, emailAddress string) error {
+					return nil
+				}
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, contact CRMDomain.CRMContact) error {
 					return nil
 				}
 				fakeRepo.UpdateSecondaryEmailAddressesFn = func(ctx context.Context, id string, emailAddresses []string) error {
@@ -2177,6 +2189,10 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 					return nil
 				}
 
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, contact CRMDomain.CRMContact) error {
+					return nil
+				}
+
 				fakeRepo.UpdateSecondaryPhoneNumbersFn = func(ctx context.Context, id string, phoneNumbers []string) error {
 					return nil
 				}
@@ -2207,6 +2223,10 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 				}
 
 				fakeRepo.UpdatePrimaryPhoneNumberFn = func(ctx context.Context, id string, phoneNumber string) error {
+					return nil
+				}
+
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, contact CRMDomain.CRMContact) error {
 					return nil
 				}
 
@@ -2273,6 +2293,10 @@ func TestProfileUseCaseImpl_UpdatePrimaryPhoneNumber(t *testing.T) {
 				}
 
 				fakeRepo.UpdatePrimaryPhoneNumberFn = func(ctx context.Context, id string, phoneNumber string) error {
+					return nil
+				}
+
+				fakePubSub.NotifyUpdateContactFn = func(ctx context.Context, contact CRMDomain.CRMContact) error {
 					return nil
 				}
 
