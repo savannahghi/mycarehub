@@ -7,10 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"text/template"
-
-	"gitlab.slade360emr.com/go/apiclient"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/savannahghi/enumutils"
@@ -42,8 +39,6 @@ const (
 	VerifyOTPEndPoint = "internal/verify_otp/"
 
 	sendSMS = "internal/send_sms"
-
-	getSladerDataEndpoint = "internal/slader_data?%s"
 )
 
 // ServiceEngagement represents engagement usecases
@@ -96,8 +91,6 @@ type ServiceEngagement interface {
 	VerifyEmailOTP(ctx context.Context, email, OTP string) (bool, error)
 
 	SendSMS(ctx context.Context, phoneNumbers []string, message string) error
-
-	GetSladerData(ctx context.Context, phoneNumber string) (*apiclient.Segment, error)
 }
 
 // ServiceEngagementImpl represents engagement usecases
@@ -504,42 +497,4 @@ func (en *ServiceEngagementImpl) SendSMS(ctx context.Context, phoneNumbers []str
 	}
 
 	return nil
-}
-
-// GetSladerData calls the `engagement service`	to fetch the details of a particular slader
-// It searches by the phoneNumber
-func (en *ServiceEngagementImpl) GetSladerData(ctx context.Context, phoneNumber string) (*apiclient.Segment, error) {
-	params := url.Values{}
-	params.Add("phoneNumber", phoneNumber)
-
-	resp, err := en.Engage.MakeRequest(
-		ctx,
-		http.MethodGet,
-		fmt.Sprintf(
-			getSladerDataEndpoint,
-			params.Encode(),
-		),
-		nil,
-	)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get slader data:%w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unable to get data, with status code %v", resp.StatusCode)
-	}
-
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("unable to convert response to string: %v", err)
-	}
-
-	var sladerData apiclient.Segment
-	err = json.Unmarshal(data, &sladerData)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal slader data: %v", err)
-	}
-
-	return &sladerData, nil
 }

@@ -151,7 +151,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 	erp := erp.NewAccounting()
 	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
-	edi := edi.NewEdiService(ediClient, fr, engage)
+	edi := edi.NewEdiService(ediClient, fr)
 	// hubspot usecases
 	hubspotService := hubspot.NewHubSpotService()
 	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(ctx, hubspotService)

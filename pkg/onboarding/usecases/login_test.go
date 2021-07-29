@@ -194,7 +194,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 	ediClient := utils.NewInterServiceClient(ediService, ext)
 	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
-	edi := edi.NewEdiService(ediClient, repo, engage)
+	edi := edi.NewEdiService(ediClient, repo)
 
 	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()

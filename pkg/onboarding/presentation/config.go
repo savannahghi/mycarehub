@@ -117,7 +117,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient, baseExt)
-	edi := edi.NewEdiService(ediClient, repo, engage)
+	edi := edi.NewEdiService(ediClient, repo)
 	mes := messaging.NewServiceMessagingImpl(baseExt)
 	pinExt := extension.NewPINExtensionImpl()
 
