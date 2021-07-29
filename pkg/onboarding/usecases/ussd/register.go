@@ -2,7 +2,6 @@ package ussd
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -159,7 +158,6 @@ func (u *Impl) HandleUserRegistration(ctx context.Context, session *domain.USSDL
 		return resp
 
 	}
-	fmt.Println("the last name level", session.Level)
 	if session.Level == GetLastNameState {
 		err := utils.ValidateUSSDInput(userResponse)
 		if err != nil {

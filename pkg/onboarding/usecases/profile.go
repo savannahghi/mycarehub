@@ -373,7 +373,8 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(
 		// this is a wrapped error. No need to wrap it again
 		return err
 	}
-	if err := p.onboardingRepository.UpdatePrimaryEmailAddress(ctx, profile.ID, emailAddress); err != nil {
+	err = p.onboardingRepository.UpdatePrimaryEmailAddress(ctx, profile.ID, emailAddress)
+	if err != nil {
 		utils.RecordSpanError(span, err)
 		return err
 	}

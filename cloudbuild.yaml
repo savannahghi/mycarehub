@@ -30,7 +30,6 @@ steps:
     # This will update the latest revision to serve 100% traffic
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
-      'beta',
       'run',
       'update-traffic',
       "${_SERVICE_NAME}",

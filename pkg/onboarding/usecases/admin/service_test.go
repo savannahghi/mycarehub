@@ -82,7 +82,7 @@ func TestService_RegisterMicroservice(t *testing.T) {
 				input: domain.Microservice{
 					Name:        uuid.New().String(),
 					Description: uuid.New().String(),
-					URL:         "https://engagement-testing.healthcloud.co.ke/graphql",
+					URL:         "https://profile-staging.healthcloud.co.ke/graphql",
 				},
 			},
 			wantErr: false,
@@ -95,7 +95,7 @@ func TestService_RegisterMicroservice(t *testing.T) {
 				input: domain.Microservice{
 					Name:        uuid.New().String(),
 					Description: uuid.New().String(),
-					URL:         "https://engagement-testing.healthcloud.co.ke/gra",
+					URL:         "https://profile-staging.healthcloud.co.ke/gra",
 				},
 			},
 			wantErr: true,
@@ -108,7 +108,7 @@ func TestService_RegisterMicroservice(t *testing.T) {
 				input: domain.Microservice{
 					Name:        uuid.New().String(),
 					Description: uuid.New().String(),
-					URL:         "http://engagement-testing.healthcloud.co.ke/health",
+					URL:         "http://profile-staging.healthcloud.co.ke/health",
 				},
 			},
 			wantErr: true,
@@ -151,7 +151,7 @@ func TestService_ListMicroservices(t *testing.T) {
 	inp := domain.Microservice{
 		Name:        uuid.New().String(),
 		Description: uuid.New().String(),
-		URL:         "https://engagement-testing.healthcloud.co.ke/graphql",
+		URL:         "https://profile-staging.healthcloud.co.ke/graphql",
 	}
 
 	fc := &firebasetools.FirebaseClient{}
@@ -213,7 +213,7 @@ func TestService_FindMicroserviceByID(t *testing.T) {
 	inp := domain.Microservice{
 		Name:        uuid.New().String(),
 		Description: uuid.New().String(),
-		URL:         "https://engagement-testing.healthcloud.co.ke/graphql",
+		URL:         "https://profile-staging.healthcloud.co.ke/graphql",
 	}
 
 	fc := &firebasetools.FirebaseClient{}
@@ -275,7 +275,7 @@ func TestService_CheckHealthEndpoint(t *testing.T) {
 	}{
 		{
 			name: "valid_case",
-			args: "https://engagement-testing.healthcloud.co.ke/health",
+			args: "https://profile-staging.healthcloud.co.ke/health",
 			want: true,
 		},
 	}
@@ -302,14 +302,9 @@ func TestDeregisterAllServices(t *testing.T) {
 	// register a few services
 	services := []domain.Microservice{
 		{
-			Name:        "engagement test",
+			Name:        "engagement staging",
 			Description: uuid.New().String(),
-			URL:         "https://engagement-testing.healthcloud.co.ke/graphql",
-		},
-		{
-			Name:        "otp test",
-			Description: uuid.New().String(),
-			URL:         "https://otp-testing.healthcloud.co.ke/graphql",
+			URL:         "https://profile-staging.healthcloud.co.ke/graphql",
 		},
 	}
 
@@ -326,7 +321,7 @@ func TestDeregisterAllServices(t *testing.T) {
 	}
 
 	// expect to be equal to 2
-	assert.Equal(t, len(srvs1), 2, "Expected 2 services only")
+	assert.Equal(t, len(srvs1), 1, "Expected 1 service only")
 
 	_, errd := s.DeregisterAllMicroservices(ctx)
 	if errd != nil {
@@ -358,14 +353,14 @@ func TestDeregisterServiceWithID(t *testing.T) {
 	// register a few services
 	services := []domain.Microservice{
 		{
-			Name:        "engagement test",
+			Name:        "engagement staging",
 			Description: uuid.New().String(),
-			URL:         "https://engagement-testing.healthcloud.co.ke/graphql",
+			URL:         "https://engagement-staging.healthcloud.co.ke/graphql",
 		},
 		{
-			Name:        "otp test",
+			Name:        "profile staging",
 			Description: uuid.New().String(),
-			URL:         "https://otp-testing.healthcloud.co.ke/graphql",
+			URL:         "https://profile-staging.healthcloud.co.ke/graphql",
 		},
 	}
 
@@ -424,7 +419,7 @@ func TestService_PollMicroservicesStatus(t *testing.T) {
 
 		Name:        uuid.New().String(),
 		Description: uuid.New().String(),
-		URL:         "https://engagement-staging.healthcloud.co.ke/graphql",
+		URL:         "https://profile-staging.healthcloud.co.ke/graphql",
 	}
 	ctx := firebasetools.GetAuthenticatedContext(t)
 	cleanup(ctx, s, t)
@@ -479,4 +474,6 @@ func TestService_PollMicroservicesStatus(t *testing.T) {
 			}
 		})
 	}
+
+	cleanup(ctx, s, t)
 }

@@ -351,7 +351,12 @@ func TestRoleUseCaseImpl_GetAllPermissions(t *testing.T) {
 
 	output := []*profileutils.Permission{}
 	for _, perm := range allPerms {
-		output = append(output, &perm)
+		p := &profileutils.Permission{
+			Scope:       perm.Scope,
+			Group:       perm.Group,
+			Description: perm.Description,
+		}
+		output = append(output, p)
 	}
 	type args struct {
 		ctx context.Context

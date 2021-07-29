@@ -199,24 +199,30 @@ func TestUpdateUserProfileUserName(t *testing.T) {
 }
 
 func TestSetPhoneAsPrimary(t *testing.T) {
+
+	ctx := context.Background()
+
 	s, err := InitializeTestService(context.Background())
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}
 	primaryPhone := interserviceclient.TestUserPhoneNumber
 	secondaryPhone := interserviceclient.TestUserPhoneNumberWithPin
+
 	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), secondaryPhone)
+	_ = s.Signup.RemoveUserByPhoneNumber(ctx, primaryPhone)
+	_ = s.Signup.RemoveUserByPhoneNumber(ctx, secondaryPhone)
 
 	otp, err := generateTestOTP(t, primaryPhone)
 	if err != nil {
 		t.Errorf("failed to generate test OTP: %v", err)
 		return
 	}
+
 	pin := "1234"
+
 	resp, err := s.Signup.CreateUserByPhone(
-		context.Background(),
+		ctx,
 		&dto.SignUpInput{
 			PhoneNumber: &primaryPhone,
 			PIN:         &pin,
@@ -234,7 +240,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 		return
 	}
 
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
+	login1, err := s.Login.LoginByPhone(ctx, primaryPhone, pin, feedlib.FlavourConsumer)
 	if err != nil {
 		t.Errorf("an error occurred while logging in by phone")
 		return
@@ -246,7 +252,6 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	}
 
 	// create authenticated context
-	ctx := context.Background()
 	authCred := &auth.Token{UID: login1.Auth.UID}
 	authenticatedContext := context.WithValue(
 		ctx,
@@ -256,7 +261,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	s, _ = InitializeTestService(authenticatedContext)
 
 	// try to login with secondaryPhone. This should fail because secondaryPhone != primaryPhone
-	login2, err := s.Login.LoginByPhone(context.Background(), secondaryPhone, pin, feedlib.FlavourConsumer)
+	login2, err := s.Login.LoginByPhone(ctx, secondaryPhone, pin, feedlib.FlavourConsumer)
 	if err == nil {
 		t.Errorf("expected an error :%v", err)
 		return
@@ -284,14 +289,14 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 		t.Errorf("nil response returned")
 		return
 	}
-	// check if the length of secondary number == 1
+	// // check if the length of secondary number == 1
 	if len(pr.SecondaryPhoneNumbers) != 1 {
 		t.Errorf("expected the value to be equal to 1")
 		return
 	}
 
 	// login to add assert the secondary phone number has been added
-	login3, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
+	login3, err := s.Login.LoginByPhone(ctx, primaryPhone, pin, feedlib.FlavourConsumer)
 	if err != nil {
 		t.Errorf("expected an error :%v", err)
 		return
@@ -302,14 +307,14 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 		return
 	}
 
-	// check if the length of secondary number == 1
+	// // check if the length of secondary number == 1
 	if len(login3.Profile.SecondaryPhoneNumbers) != 1 {
 		t.Errorf("expected the value to be equal to 1")
 		return
 	}
 
 	// send otp to the secondary phone number we intend to make primary
-	otpResp, err := s.Engagement.GenerateAndSendOTP(context.Background(), secondaryPhone)
+	otpResp, err := s.Engagement.GenerateAndSendOTP(ctx, secondaryPhone)
 	if err != nil {
 		t.Errorf("unable to send generate and send otp :%v", err)
 		return
@@ -321,7 +326,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	}
 
 	// set the old secondary phone number as the new primary phone number
-	setResp, err := s.Signup.SetPhoneAsPrimary(context.Background(), secondaryPhone, otpResp.OTP)
+	setResp, err := s.Signup.SetPhoneAsPrimary(ctx, secondaryPhone, otpResp.OTP)
 	if err != nil {
 		t.Errorf("failed to set phone as primary: %v", err)
 		return
@@ -333,7 +338,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	}
 
 	// login with the old primary phone number. This should fail
-	login4, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
+	login4, err := s.Login.LoginByPhone(ctx, primaryPhone, pin, feedlib.FlavourConsumer)
 	if err == nil {
 		t.Errorf("unexpected error occurred! :%v", err)
 		return
@@ -346,7 +351,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 
 	// login with the new primary phone number. This should not fail. Assert that the primary phone number
 	// is the new one and the secondary phone slice contains the old primary phone number.
-	login5, err := s.Login.LoginByPhone(context.Background(), secondaryPhone, pin, feedlib.FlavourConsumer)
+	login5, err := s.Login.LoginByPhone(ctx, secondaryPhone, pin, feedlib.FlavourConsumer)
 	if err != nil {
 		t.Errorf("failed to login by phone :%v", err)
 		return
@@ -363,7 +368,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	}
 
 	_, exist := utils.FindItem(login5.Profile.SecondaryPhoneNumbers, secondaryPhone)
-	if exist {
+	if !exist {
 		t.Errorf("the secondary phonenumber slice %v, does not contain %v",
 			login5.Profile.SecondaryPhoneNumbers,
 			secondaryPhone,
@@ -372,7 +377,7 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	}
 
 	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), secondaryPhone)
+	_ = s.Signup.RemoveUserByPhoneNumber(ctx, secondaryPhone)
 }
 
 func TestAddSecondaryPhoneNumbers(t *testing.T) {

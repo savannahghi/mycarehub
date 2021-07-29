@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/scalarutils"
+
 	hubspotDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
@@ -90,7 +91,6 @@ func TestImpl_HandleUserRegistration_Unittest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fmt.Println("test name is", tt.name)
 			if tt.name == "Happy_case:optout" {
 				fakeRepo.GetAITSessionDetailsFn = func(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error) {
 					return &domain.USSDLeadDetails{}, nil

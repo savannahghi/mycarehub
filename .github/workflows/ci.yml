@@ -85,6 +85,7 @@ jobs:
           go get -u github.com/gordonklaus/ineffassign
           go get github.com/fzipp/gocyclo
           go get github.com/stretchr/testify/assert@v1.7.0
+          go get github.com/ory/go-acc
 
       - name: Run lint and test
         run: |
@@ -95,12 +96,12 @@ jobs:
           errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
           misspell -error .
           gosec -exclude=G304,G101 ./...
-          touch ./coverage.out
-          echo 'mode: atomic' > coverage.txt
-          go list ./... | grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*resolver*go" | grep -v "server.go" | xargs -n1 -I{} sh -c 'go test -timeout 99999s -coverprofile=coverage.out -coverpkg $(go list ./... | grep -v /vendor | tr "\n" ",") {} && tail -n +2 coverage.out >> coverage.txt || exit 255' && rm coverage.out
-          go tool cover -html=coverage.txt -o coverage.html
-          gocov convert coverage.txt > coverage.json
+          go-acc -o coverage.txt --ignore generated,cmd  ./... -- -timeout 60m
+          grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*resolver*go" | grep -v "server.go" > coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          gocov convert coverage.out > coverage.json
           gocov report coverage.json > coverage_report.txt
+          tail coverage_report.txt
         
       - name: Install goveralls
         env:
@@ -109,4 +110,4 @@ jobs:
       - name: Send coverage
         env:
           COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: goveralls -coverprofile=coverage.txt  -service=github
+        run: goveralls -coverprofile=coverage.out  -service=github

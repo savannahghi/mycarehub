@@ -3,12 +3,14 @@ package edi_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"reflect"
 	"testing"
 
+	"github.com/brianvoe/gofakeit/v5"
 	"github.com/google/uuid"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
@@ -75,6 +77,20 @@ func TestServiceEDIImpl_LinkCover(t *testing.T) {
 					}, nil
 				}
 
+				data := []apiclient.MarketingData{
+					{
+						FirstName:      gofakeit.Name(),
+						LastName:       gofakeit.Name(),
+						Email:          gofakeit.Email(),
+						Phone:          gofakeit.PhoneFormatted(),
+						PayerSladeCode: "32",
+						MemberNumber:   "A100",
+						Segment:        "One",
+					},
+				}
+
+				b, _ := json.Marshal(data)
+
 				fakeISCExt.MakeRequestFn = func(
 					ctx context.Context,
 					method string,
@@ -84,9 +100,10 @@ func TestServiceEDIImpl_LinkCover(t *testing.T) {
 					return &http.Response{
 						Status:     "OK",
 						StatusCode: 200,
-						Body:       nil,
+						Body:       ioutil.NopCloser(bytes.NewBuffer(b)),
 					}, nil
 				}
+
 				fakeRepo.SaveCoverAutolinkingEventsFn = func(ctx context.Context, input *dto.CoverLinkingEvent) (*dto.CoverLinkingEvent, error) {
 					return &dto.CoverLinkingEvent{ID: uuid.NewString()}, nil
 				}

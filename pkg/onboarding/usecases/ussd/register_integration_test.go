@@ -2,7 +2,6 @@ package ussd_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
@@ -10,11 +9,13 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/scalarutils"
+	"github.com/sirupsen/logrus"
+
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 const (
-	// InitialState ...
+	// // InitialState ...
 	InitialState = 0
 	// GetFirstNameState ...
 	GetFirstNameState = 1
@@ -110,18 +111,17 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 		args args
 		want string
 	}{
-		{
-			name: "Happy_case:optout",
-			args: args{
-				ctx:          ctx,
-				session:      validUSSDLeadDetails,
-				userResponse: RegOptOutInput,
-			},
-			want: "CON We have successfully opted you\r\n" +
-				"out of marketing messages\r\n" +
-				"0. Go back home",
-		},
-
+		// {
+		// 	name: "Happy_case:optout",
+		// 	args: args{
+		// 		ctx:          ctx,
+		// 		session:      validUSSDLeadDetails,
+		// 		userResponse: RegOptOutInput,
+		// 	},
+		// 	want: "CON We have successfully opted you\r\n" +
+		// 		"out of marketing messages\r\n" +
+		// 		"0. Go back home",
+		// },
 		{
 			name: "Happy_case:_firstname",
 			args: args{
@@ -209,7 +209,14 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fmt.Println("test name is", tt.name)
+			if tt.name == "Happy_case:optout" {
+				err = u.AITUSSD.UpdateSessionLevel(ctx, InitialState, sessionDetails.SessionID)
+				if err != nil {
+					t.Errorf("an error occurred %v", err)
+					return
+				}
+			}
+
 			if tt.name == "Happy_case:_firstname" {
 				//Get firstname state
 				err = u.AITUSSD.UpdateSessionLevel(ctx, GetFirstNameState, sessionDetails.SessionID)
@@ -220,10 +227,8 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 
 			}
 
-			fmt.Println("test name is", tt.name)
 			if tt.name == "Happy_case:_lastname" {
 				//Get last state
-				fmt.Println("updating level ")
 				err = u.AITUSSD.UpdateSessionLevel(ctx, GetLastNameState, sessionDetails.SessionID)
 				if err != nil {
 					t.Errorf("an error occurred %v", err)
@@ -290,8 +295,10 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 				return
 			}
 
-			if gotresp := u.AITUSSD.HandleUserRegistration(tt.args.ctx, updatedSession, tt.args.userResponse); gotresp != tt.want {
-				t.Errorf("Impl.HandleUserRegistration() = %v, want %v", gotresp, tt.want)
+			got := u.AITUSSD.HandleUserRegistration(tt.args.ctx, updatedSession, tt.args.userResponse)
+			if got != tt.want {
+				logrus.Println(got)
+				t.Errorf("Impl.HandleUserRegistration() = %v, want %v", got, tt.want)
 			}
 		})
 	}

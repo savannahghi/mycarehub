@@ -472,7 +472,8 @@ func (s *SignUpUseCasesImpl) SetPhoneAsPrimary(
 		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
-	if err := s.profileUsecase.SetPrimaryPhoneNumber(ctx, *phoneNumber, otp, false); err != nil {
+	err = s.profileUsecase.SetPrimaryPhoneNumber(ctx, *phoneNumber, otp, false)
+	if err != nil {
 		utils.RecordSpanError(span, err)
 		return false, err
 	}
