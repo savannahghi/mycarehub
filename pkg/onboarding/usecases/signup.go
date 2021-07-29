@@ -31,7 +31,7 @@ const (
 // SignUpUseCases represents all the business logic involved in setting up a user
 type SignUpUseCases interface {
 	// VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
-	VerifyPhoneNumber(ctx context.Context, phone string) (*profileutils.OtpResponse, error)
+	VerifyPhoneNumber(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error)
 
 	// creates an account for the user, setting the provided phone number as the PRIMARY PHONE
 	// NUMBER
@@ -108,6 +108,7 @@ func NewSignUpUseCases(
 func (s *SignUpUseCasesImpl) VerifyPhoneNumber(
 	ctx context.Context,
 	phone string,
+	appID *string,
 ) (*profileutils.OtpResponse, error) {
 	ctx, span := tracer.Start(ctx, "VerifyPhoneNumber")
 	defer span.End()
@@ -128,7 +129,7 @@ func (s *SignUpUseCasesImpl) VerifyPhoneNumber(
 		return nil, exceptions.CheckPhoneNumberExistError()
 	}
 	// generate and send otp to the phone number
-	otpResp, err := s.engagement.GenerateAndSendOTP(ctx, *phoneNumber)
+	otpResp, err := s.engagement.GenerateAndSendOTP(ctx, *phoneNumber, appID)
 
 	if err != nil {
 		utils.RecordSpanError(span, err)

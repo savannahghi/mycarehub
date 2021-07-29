@@ -21,12 +21,14 @@ type FakeServiceEngagement struct {
 	GenerateAndSendOTPFn         func(
 		ctx context.Context,
 		phone string,
+		appID *string,
 	) (*profileutils.OtpResponse, error)
 
 	SendRetryOTPFn func(
 		ctx context.Context,
 		msisdn string,
 		retryStep int,
+		appID *string,
 	) (*profileutils.OtpResponse, error)
 
 	VerifyOTPFn func(ctx context.Context, phone, OTP string) (bool, error)
@@ -93,8 +95,9 @@ func (f *FakeServiceEngagement) NotifyAdmins(ctx context.Context, input dto.Emai
 func (f *FakeServiceEngagement) GenerateAndSendOTP(
 	ctx context.Context,
 	phone string,
+	appID *string,
 ) (*profileutils.OtpResponse, error) {
-	return f.GenerateAndSendOTPFn(ctx, phone)
+	return f.GenerateAndSendOTPFn(ctx, phone, appID)
 }
 
 // SendRetryOTP ...
@@ -102,8 +105,9 @@ func (f *FakeServiceEngagement) SendRetryOTP(
 	ctx context.Context,
 	msisdn string,
 	retryStep int,
+	appID *string,
 ) (*profileutils.OtpResponse, error) {
-	return f.SendRetryOTPFn(ctx, msisdn, retryStep)
+	return f.SendRetryOTPFn(ctx, msisdn, retryStep, appID)
 }
 
 // VerifyOTP ...

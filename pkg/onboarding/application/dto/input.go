@@ -176,6 +176,7 @@ type LoginPayload struct {
 type SendRetryOTPPayload struct {
 	Phone     *string `json:"phoneNumber"`
 	RetryStep *int    `json:"retryStep"`
+	AppID     *string `json:"appId"`
 }
 
 // RefreshTokenExchangePayload is marshalled into JSON
@@ -412,4 +413,10 @@ type RoleInput struct {
 type RolePermissionInput struct {
 	RoleID string   `json:"roleID"`
 	Scopes []string `json:"scopes"`
+}
+
+// OtpPayload used when sending OTP messages
+type OtpPayload struct {
+	PhoneNumber *string `json:"phoneNumber"`
+	AppID       *string `json:"appId"`
 }

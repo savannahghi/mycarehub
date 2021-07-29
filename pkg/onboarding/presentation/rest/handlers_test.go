@@ -389,7 +389,7 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
 				}
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error) {
 					return &profileutils.OtpResponse{OTP: "1234"}, nil
 				}
 			}
@@ -411,7 +411,7 @@ func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
 				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
 					return false, nil
 				}
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("unable generate and send otp")
 				}
 			}
@@ -974,7 +974,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error) {
 					return &profileutils.OtpResponse{OTP: "1234"}, nil
 				}
 			}
@@ -989,7 +989,7 @@ func TestHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to generate otp")
 				}
 			}
@@ -1463,13 +1463,13 @@ func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
 			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 			response := httptest.NewRecorder()
 			if tt.name == "valid:_successfully_send_otp" {
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error) {
 					return &profileutils.OtpResponse{OTP: "1234"}, nil
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_send_otp" {
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to send otp")
 				}
 			}
@@ -1864,7 +1864,7 @@ func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 			response := httptest.NewRecorder()
 
 			if tt.name == "valid:_successfully_send_retry_otp" {
-				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int, appID *string) (*profileutils.OtpResponse, error) {
 					return &profileutils.OtpResponse{
 						OTP: "123456",
 					}, nil
@@ -1872,13 +1872,13 @@ func TestHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 			}
 
 			if tt.name == "invalid:_unable_to_send_otp" {
-				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int, appID *string) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to send OTP")
 				}
 			}
 
 			if tt.name == "invalid:_unable_to_send_otp_due_to_missing_msisdn" {
-				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.SendRetryOTPFn = func(ctx context.Context, msisdn string, retryStep int, appID *string) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to send OTP")
 				}
 			}

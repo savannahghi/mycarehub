@@ -30,3 +30,24 @@ func decodePhoneNumberPayload(
 
 	return payload, nil
 }
+
+func decodeOTPPayload(
+	w http.ResponseWriter,
+	r *http.Request,
+	span trace.Span,
+) (*dto.OtpPayload, error) {
+	payload := &dto.OtpPayload{}
+	serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+	span.AddEvent("decode json payload to struct", trace.WithAttributes(
+		attribute.Any("payload", payload),
+	))
+
+	if payload.PhoneNumber == nil {
+		return nil, fmt.Errorf(
+			"expected a phone number to be given but it was not supplied",
+		)
+	}
+
+	return payload, nil
+}

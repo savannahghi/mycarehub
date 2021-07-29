@@ -78,12 +78,14 @@ type ServiceEngagement interface {
 	GenerateAndSendOTP(
 		ctx context.Context,
 		phone string,
+		appID *string,
 	) (*profileutils.OtpResponse, error)
 
 	SendRetryOTP(
 		ctx context.Context,
 		msisdn string,
 		retryStep int,
+		appID *string,
 	) (*profileutils.OtpResponse, error)
 
 	VerifyOTP(ctx context.Context, phone, OTP string) (bool, error)
@@ -288,9 +290,11 @@ func (en *ServiceEngagementImpl) NotifyAdmins(ctx context.Context, input dto.Ema
 func (en *ServiceEngagementImpl) GenerateAndSendOTP(
 	ctx context.Context,
 	phone string,
+	appID *string,
 ) (*profileutils.OtpResponse, error) {
 	body := map[string]interface{}{
 		"msisdn": phone,
+		"appId":  appID,
 	}
 	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, SendOtp, body)
 	if err != nil {
@@ -319,6 +323,7 @@ func (en *ServiceEngagementImpl) SendRetryOTP(
 	ctx context.Context,
 	msisdn string,
 	retryStep int,
+	appID *string,
 ) (*profileutils.OtpResponse, error) {
 	phoneNumber, err := en.baseExt.NormalizeMSISDN(msisdn)
 	if err != nil {
@@ -328,6 +333,7 @@ func (en *ServiceEngagementImpl) SendRetryOTP(
 	body := map[string]interface{}{
 		"msisdn":    phoneNumber,
 		"retryStep": retryStep,
+		"appId":     appID,
 	}
 	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, SendRetryOtp, body)
 	if err != nil {

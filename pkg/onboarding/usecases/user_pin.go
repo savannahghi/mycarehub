@@ -27,7 +27,7 @@ type UserPINUseCases interface {
 		OTP string,
 	) (bool, error)
 	ChangeUserPIN(ctx context.Context, phone string, pin string) (bool, error)
-	RequestPINReset(ctx context.Context, phone string) (*profileutils.OtpResponse, error)
+	RequestPINReset(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error)
 	CheckHasPIN(ctx context.Context, profileID string) (bool, error)
 }
 
@@ -99,6 +99,7 @@ func (u *UserPinUseCaseImpl) SetUserPIN(
 func (u *UserPinUseCaseImpl) RequestPINReset(
 	ctx context.Context,
 	phone string,
+	appID *string,
 ) (*profileutils.OtpResponse, error) {
 	ctx, span := tracer.Start(ctx, "RequestPINReset")
 	defer span.End()
@@ -121,7 +122,7 @@ func (u *UserPinUseCaseImpl) RequestPINReset(
 		return nil, exceptions.ExistingPINError(err)
 	}
 	// generate and send otp to the phone number
-	otpResp, err := u.engagement.GenerateAndSendOTP(ctx, phone)
+	otpResp, err := u.engagement.GenerateAndSendOTP(ctx, phone, appID)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.GenerateAndSendOTPError(err)

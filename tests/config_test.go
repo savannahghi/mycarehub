@@ -17,6 +17,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
+	"github.com/google/uuid"
 	"github.com/imroc/req"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
@@ -349,7 +350,8 @@ func generateTestOTP(t *testing.T, phone string) (*profileutils.OtpResponse, err
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize test service: %v", err)
 	}
-	return s.Engagement.GenerateAndSendOTP(ctx, phone)
+	testAppID := uuid.New().String()
+	return s.Engagement.GenerateAndSendOTP(ctx, phone, &testAppID)
 }
 
 func setPrimaryEmailAddress(ctx context.Context, t *testing.T, emailAddress string) error {

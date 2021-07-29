@@ -720,6 +720,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 	type args struct {
 		ctx   context.Context
 		phone string
+		appID *string
 	}
 	tests := []struct {
 		name    string
@@ -806,7 +807,7 @@ func TestServiceOTPImpl_GenerateAndSendOTP(t *testing.T) {
 				}
 			}
 
-			resp, err := p.GenerateAndSendOTP(tt.args.ctx, tt.args.phone)
+			resp, err := p.GenerateAndSendOTP(tt.args.ctx, tt.args.phone, tt.args.appID)
 
 			if tt.wantErr {
 				if err == nil {
@@ -844,6 +845,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 		ctx       context.Context
 		msisdn    string
 		retryStep int
+		appID     *string
 	}
 	tests := []struct {
 		name    string
@@ -968,7 +970,7 @@ func TestServiceOTPImpl_SendRetryOTP(t *testing.T) {
 				}
 			}
 
-			resp, err := p.SendRetryOTP(tt.args.ctx, tt.args.msisdn, tt.args.retryStep)
+			resp, err := p.SendRetryOTP(tt.args.ctx, tt.args.msisdn, tt.args.retryStep, tt.args.appID)
 
 			if tt.wantErr {
 				if err == nil {

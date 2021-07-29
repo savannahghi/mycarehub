@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"firebase.google.com/go/auth"
+	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
@@ -29,12 +30,13 @@ func TestVerifyPhoneNumber(t *testing.T) {
 	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), validPhoneNumber)
 
 	// try to verify with invalidPhoneNumber. this should fail
-	resp, err := s.Signup.VerifyPhoneNumber(context.Background(), invalidPhoneNumber)
+	testAppID := uuid.New().String()
+	resp, err := s.Signup.VerifyPhoneNumber(context.Background(), invalidPhoneNumber, &testAppID)
 	assert.NotNil(t, err)
 	assert.Nil(t, resp)
 
 	// verify with validPhoneNumber
-	resp, err = s.Signup.VerifyPhoneNumber(context.Background(), validPhoneNumber)
+	resp, err = s.Signup.VerifyPhoneNumber(context.Background(), validPhoneNumber, &testAppID)
 	assert.Nil(t, err)
 	assert.NotNil(t, resp)
 
@@ -63,7 +65,7 @@ func TestVerifyPhoneNumber(t *testing.T) {
 	assert.NotNil(t, resp1.SupplierProfile)
 
 	// now try to verify with the already registered phone number
-	resp, err = s.Signup.VerifyPhoneNumber(context.Background(), validPhoneNumber)
+	resp, err = s.Signup.VerifyPhoneNumber(context.Background(), validPhoneNumber, &testAppID)
 	assert.NotNil(t, err)
 	assert.Nil(t, resp)
 

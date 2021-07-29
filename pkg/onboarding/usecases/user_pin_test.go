@@ -646,6 +646,7 @@ func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 	type args struct {
 		ctx   context.Context
 		phone string
+		appID *string
 	}
 	tests := []struct {
 		name    string
@@ -713,7 +714,7 @@ func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error) {
 					return &profileutils.OtpResponse{OTP: "1234"}, nil
 				}
 			}
@@ -765,12 +766,12 @@ func TestUserPinUseCaseImpl_RequestPINReset(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
 					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
 				}
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("unable to generate and send otp")
 				}
 			}
 
-			got, err := i.UserPIN.RequestPINReset(tt.args.ctx, tt.args.phone)
+			got, err := i.UserPIN.RequestPINReset(tt.args.ctx, tt.args.phone, tt.args.appID)
 
 			if tt.wantErr {
 				if err == nil {

@@ -203,7 +203,8 @@ func generateTestOTP(t *testing.T, phone string) (*profileutils.OtpResponse, err
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize test service: %v", err)
 	}
-	return s.Engagement.GenerateAndSendOTP(ctx, phone)
+	testAppID := uuid.New().String()
+	return s.Engagement.GenerateAndSendOTP(ctx, phone, &testAppID)
 }
 
 // CreateTestUserByPhone creates a user that is to be used in

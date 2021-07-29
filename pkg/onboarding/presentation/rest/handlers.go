@@ -73,7 +73,7 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber() http.HandlerFunc {
 
 		span := trace.SpanFromContext(ctx)
 
-		p, err := decodePhoneNumberPayload(w, r, span)
+		p, err := decodeOTPPayload(w, r, span)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -85,6 +85,7 @@ func (h *HandlersInterfacesImpl) VerifySignUpPhoneNumber() http.HandlerFunc {
 		otpResp, err := h.interactor.Signup.VerifyPhoneNumber(
 			ctx,
 			*p.PhoneNumber,
+			p.AppID,
 		)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
@@ -347,7 +348,7 @@ func (h *HandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
 
 		span := trace.SpanFromContext(ctx)
 
-		p, err := decodePhoneNumberPayload(w, r, span)
+		p, err := decodeOTPPayload(w, r, span)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -359,6 +360,7 @@ func (h *HandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
 		otpResp, err := h.interactor.UserPIN.RequestPINReset(
 			ctx,
 			*p.PhoneNumber,
+			p.AppID,
 		)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
@@ -430,7 +432,7 @@ func (h *HandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 
 		span := trace.SpanFromContext(ctx)
 
-		payload, err := decodePhoneNumberPayload(w, r, span)
+		payload, err := decodeOTPPayload(w, r, span)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -442,6 +444,7 @@ func (h *HandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 		response, err := h.interactor.Engagement.GenerateAndSendOTP(
 			ctx,
 			*payload.PhoneNumber,
+			payload.AppID,
 		)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
@@ -487,6 +490,7 @@ func (h *HandlersInterfacesImpl) SendRetryOTP() http.HandlerFunc {
 			ctx,
 			*retryPayload.Phone,
 			*retryPayload.RetryStep,
+			retryPayload.AppID,
 		)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)

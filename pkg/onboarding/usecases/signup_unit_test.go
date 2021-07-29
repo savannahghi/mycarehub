@@ -647,6 +647,7 @@ func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
 	type args struct {
 		ctx   context.Context
 		phone string
+		appID *string
 	}
 	tests := []struct {
 		name    string
@@ -707,7 +708,7 @@ func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
 					return false, nil
 				}
 
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error) {
 					return &profileutils.OtpResponse{OTP: "1234"}, nil
 				}
 			}
@@ -750,12 +751,12 @@ func TestSignUpUseCasesImpl_VerifyPhoneNumber(t *testing.T) {
 					return false, nil
 				}
 
-				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string) (*profileutils.OtpResponse, error) {
+				fakeEngagementSvs.GenerateAndSendOTPFn = func(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error) {
 					return nil, fmt.Errorf("failed to generate and send otp")
 				}
 			}
 
-			_, err := i.Signup.VerifyPhoneNumber(tt.args.ctx, tt.args.phone)
+			_, err := i.Signup.VerifyPhoneNumber(tt.args.ctx, tt.args.phone, tt.args.appID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf(
 					"SignUpUseCasesImpl.VerifyPhoneNumber() error = %v, wantErr %v",

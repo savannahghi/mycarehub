@@ -12,6 +12,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
+	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
@@ -256,7 +257,8 @@ func generateTestOTP(t *testing.T, phone string) (*profileutils.OtpResponse, err
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize test service: %v", err)
 	}
-	return s.Engagement.GenerateAndSendOTP(ctx, phone)
+	testAppID := uuid.New().String()
+	return s.Engagement.GenerateAndSendOTP(ctx, phone, &testAppID)
 }
 
 // CreateTestUserByPhone creates a user that is to be used in
@@ -272,7 +274,8 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	phone := interserviceclient.TestUserPhoneNumber
 	flavour := feedlib.FlavourConsumer
 	pin := interserviceclient.TestUserPin
-	otp, err := s.Signup.VerifyPhoneNumber(ctx, phone)
+	testAppID := uuid.New().String()
+	otp, err := s.Signup.VerifyPhoneNumber(ctx, phone, &testAppID)
 	if err != nil {
 		if strings.Contains(err.Error(), exceptions.CheckPhoneNumberExistError().Error()) {
 			logInCreds, err := s.Login.LoginByPhone(

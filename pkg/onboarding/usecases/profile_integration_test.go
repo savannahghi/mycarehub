@@ -314,7 +314,8 @@ func TestSetPhoneAsPrimary(t *testing.T) {
 	}
 
 	// send otp to the secondary phone number we intend to make primary
-	otpResp, err := s.Engagement.GenerateAndSendOTP(ctx, secondaryPhone)
+	testAppID := uuid.New().String()
+	otpResp, err := s.Engagement.GenerateAndSendOTP(context.Background(), secondaryPhone, &testAppID)
 	if err != nil {
 		t.Errorf("unable to send generate and send otp :%v", err)
 		return
