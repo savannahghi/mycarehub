@@ -40,6 +40,10 @@ extend type Query {
   fetchUserNavigationActions: NavigationActions
 
   listMicroservices: [Microservice!]!
+
+  getAllRoles: [RoleOutput]
+
+  getAllPermissions: [Permission!]!
 }
 
 extend type Mutation {

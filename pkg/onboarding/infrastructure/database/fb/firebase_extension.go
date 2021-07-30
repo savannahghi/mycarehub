@@ -65,12 +65,28 @@ type DeleteCommand struct {
 // GetAll retrieve a value from the store
 func (f *FirestoreClientExtensionImpl) GetAll(ctx context.Context, getQuery *GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 	collection := f.client.Collection(getQuery.CollectionName)
-	query := collection.Where(getQuery.FieldName, getQuery.Operator, getQuery.Value)
-	docs, err := query.Documents(ctx).GetAll()
-	if err != nil {
-		return nil, exceptions.InternalServerError(err)
+
+	var documents []*firestore.DocumentSnapshot
+
+	if getQuery.FieldName == "" && getQuery.Operator == "" && getQuery.Value == nil {
+		docs, err := collection.Documents(ctx).GetAll()
+		if err != nil {
+			return nil, exceptions.InternalServerError(err)
+		}
+
+		documents = docs
+
+	} else {
+		query := collection.Where(getQuery.FieldName, getQuery.Operator, getQuery.Value)
+		docs, err := query.Documents(ctx).GetAll()
+		if err != nil {
+			return nil, exceptions.InternalServerError(err)
+		}
+
+		documents = docs
 	}
-	return docs, nil
+
+	return documents, nil
 }
 
 // Create persists data to a firestore collection

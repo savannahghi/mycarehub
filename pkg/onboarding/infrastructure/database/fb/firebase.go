@@ -3716,6 +3716,37 @@ func (fr *Repository) CreateRole(
 	return &role, nil
 }
 
+// GetAllRoles returns a list of all created roles
+func (fr *Repository) GetAllRoles(ctx context.Context) (*[]profileutils.Role, error) {
+	ctx, span := tracer.Start(ctx, "GetAllRoles")
+	defer span.End()
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetRolesCollectionName(),
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	roles := []profileutils.Role{}
+	for _, doc := range docs {
+		role := &profileutils.Role{}
+
+		err = doc.DataTo(role)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			err = fmt.Errorf("unable to read role")
+			return nil, exceptions.InternalServerError(err)
+		}
+		roles = append(roles, *role)
+	}
+
+	return &roles, nil
+}
+
 // UpdateRoleDetails  updates the details of a role
 func (fr *Repository) UpdateRoleDetails(
 	ctx context.Context,
@@ -3843,6 +3874,32 @@ func (fr *Repository) CheckIfRoleNameExists(ctx context.Context, name string) (b
 
 	if len(docs) == 1 {
 		return true, nil
+	}
+
+	return false, nil
+}
+
+//CheckIfUserHasPermission this method checks if a user has the required permission
+func (fr *Repository) CheckIfUserHasPermission(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckIfUserHasPermission")
+	defer span.End()
+
+	userprofile, err := fr.GetUserProfileByUID(ctx, UID, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	roles, err := fr.GetRolesByIDs(ctx, userprofile.Roles)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	for _, role := range *roles {
+		if role.HasPermission(ctx, requiredPermission.Scope) {
+			return true, nil
+		}
 	}
 
 	return false, nil

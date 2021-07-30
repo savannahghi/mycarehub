@@ -15,17 +15,13 @@ import (
 // RoleUseCase represent the business logic required for management of agents
 type RoleUseCase interface {
 	CreateRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
+	GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error)
+	GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error)
 
 	AddPermissionsToRole(
 		ctx context.Context,
 		input dto.RolePermissionInput,
 	) (*dto.RoleOutput, error)
-
-	CheckUserHasPermission(
-		ctx context.Context,
-		UID string,
-		permission profileutils.Permission,
-	) (bool, error)
 
 	GetUserRoles(ctx context.Context, UID string) (*[]profileutils.Role, error)
 
@@ -65,22 +61,20 @@ func (r *RoleUseCaseImpl) CreateRole(
 		return nil, err
 	}
 
-	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
 	// Check logged in user has the right permissions
-	allowed, err := r.CheckUserHasPermission(ctx, user.UID, profileutils.CanCreateRole)
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanCreateRole)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
 	if !allowed {
-		err = exceptions.RoleNotValid(
+		return nil, exceptions.RoleNotValid(
 			fmt.Errorf("error: logged in user does not have permissions to create role"),
 		)
+	}
+
+	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
+	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
@@ -109,6 +103,82 @@ func (r *RoleUseCaseImpl) CreateRole(
 	return output, nil
 }
 
+//GetAllRoles returns a list of all created roles
+func (r *RoleUseCaseImpl) GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error) {
+	ctx, span := tracer.Start(ctx, "GetAllRoles")
+	defer span.End()
+
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	// Check logged in user has the right permissions
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanViewRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	if !allowed {
+		return nil, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to list roles"),
+		)
+	}
+
+	roles, err := r.repo.GetAllRoles(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	roleOutput := []*dto.RoleOutput{}
+	for _, role := range *roles {
+		perms, err := role.Permissions(ctx)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			return nil, err
+		}
+		output := &dto.RoleOutput{
+			ID:          role.ID,
+			Name:        role.Name,
+			Description: role.Description,
+			Active:      role.Active,
+			Scopes:      role.Scopes,
+			Permissions: perms,
+		}
+		roleOutput = append(roleOutput, output)
+	}
+
+	return roleOutput, nil
+}
+
+//GetAllPermissions returns a list of all permissions declared in the system
+func (r *RoleUseCaseImpl) GetAllPermissions(
+	ctx context.Context,
+) ([]*profileutils.Permission, error) {
+	ctx, span := tracer.Start(ctx, "GetAllPermissions")
+	defer span.End()
+
+	perms, err := profileutils.AllPermissions(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	output := []*profileutils.Permission{}
+	for _, perm := range perms {
+
+		p := &profileutils.Permission{
+			Scope:       perm.Scope,
+			Group:       perm.Group,
+			Description: perm.Description,
+		}
+		output = append(output, p)
+	}
+
+	return output, nil
+}
+
 // AddPermissionsToRole add permission operation to a role
 func (r *RoleUseCaseImpl) AddPermissionsToRole(
 	ctx context.Context,
@@ -123,14 +193,8 @@ func (r *RoleUseCaseImpl) AddPermissionsToRole(
 		return nil, err
 	}
 
-	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
 	// Check logged in user has the right permissions
-	allowed, err := r.CheckUserHasPermission(ctx, user.UID, profileutils.CanEditRole)
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanEditRole)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
@@ -159,6 +223,12 @@ func (r *RoleUseCaseImpl) AddPermissionsToRole(
 		}
 	}
 
+	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
 	// save role to database
 	updatedRole, err := r.repo.UpdateRoleDetails(ctx, userProfile.ID, *role)
 	if err != nil {
@@ -185,38 +255,51 @@ func (r *RoleUseCaseImpl) AddPermissionsToRole(
 	return output, nil
 }
 
-// CheckUserHasPermission checks if the user has a permission
-func (r *RoleUseCaseImpl) CheckUserHasPermission(
-	ctx context.Context,
-	UID string,
-	requiredPermission profileutils.Permission,
-) (bool, error) {
-	ctx, span := tracer.Start(ctx, "CheckUserHasPermission")
+// GetRole gets a specific role and its permissions
+func (r *RoleUseCaseImpl) GetRole(ctx context.Context, ID string) (*dto.RoleOutput, error) {
+	ctx, span := tracer.Start(ctx, "GetRole")
 	defer span.End()
 
-	roles, err := r.GetUserRoles(ctx, UID)
+	// Check logged in user has permissions/role of employee
+	user, err := r.baseExt.GetLoggedInUser(ctx)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return false, err
+		return nil, err
 	}
 
-	perms := []profileutils.Permission{}
-
-	for _, role := range *roles {
-		rolePerms, err := role.Permissions(ctx)
-		if err != nil {
-			return false, err
-		}
-		perms = append(perms, rolePerms...)
+	// Check logged in user has the right permissions
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanViewRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	if !allowed {
+		return nil, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to view role"),
+		)
 	}
 
-	for _, permission := range perms {
-		if permission == requiredPermission {
-			return true, nil
-		}
+	role, err := r.repo.GetRoleByID(ctx, ID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
 	}
 
-	return false, nil
+	// return all permissions but mark the allowed ones as true
+	rolePerms, err := role.Permissions(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	output := dto.RoleOutput{
+		ID:          role.ID,
+		Name:        role.Name,
+		Description: role.Description,
+		Active:      role.Active,
+		Scopes:      role.Scopes,
+		Permissions: rolePerms,
+	}
+	return &output, nil
 }
 
 // GetUserRoles returns a list of user roles
@@ -239,65 +322,6 @@ func (r *RoleUseCaseImpl) GetUserRoles(
 	}
 
 	return roles, nil
-}
-
-// GetRole gets a specific role and its permissions
-func (r *RoleUseCaseImpl) GetRole(ctx context.Context, ID string) (*dto.RoleOutput, error) {
-	ctx, span := tracer.Start(ctx, "GetRole")
-	defer span.End()
-
-	// Check logged in user has permissions/role of employee
-	user, err := r.baseExt.GetLoggedInUser(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	// Check logged in user has the right permissions
-	allowed, err := r.CheckUserHasPermission(ctx, user.UID, profileutils.CanEditRole)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-	if !allowed {
-		return nil, exceptions.RoleNotValid(
-			fmt.Errorf("error: logged in user does not have permissions to view roles"),
-		)
-	}
-
-	role, err := r.repo.GetRoleByID(ctx, ID)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	// return all permissions but mark the allowed ones as true
-	rolePerms := []profileutils.Permission{}
-	allPerms, err := profileutils.AllPermissions(ctx)
-
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	for _, perm := range allPerms {
-		for _, scope := range role.Scopes {
-			if perm.Scope == scope {
-				perm.Allowed = true
-			}
-		}
-		rolePerms = append(rolePerms, perm)
-	}
-
-	output := dto.RoleOutput{
-		ID:          role.ID,
-		Name:        role.Name,
-		Description: role.Description,
-		Active:      role.Active,
-		Scopes:      role.Scopes,
-		Permissions: rolePerms,
-	}
-	return &output, nil
 }
 
 // GetUserPermissions ...

@@ -25,7 +25,6 @@ import (
 
 var fakeFireBaseClientExt extMock.FirebaseClientExtension
 var fireBaseClientExt fb.FirebaseClientExtension = &fakeFireBaseClientExt
-
 var fakeFireStoreClientExt extMock.FirestoreClientExtension
 
 func TestRepository_UpdateUserName(t *testing.T) {
@@ -1771,6 +1770,173 @@ func TestRepository_GetRolesByIDs(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.GetRolesByIDs() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestRepository_GetAllRoles(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *[]profileutils.Role
+		wantErr bool
+	}{
+		{
+			name: "fail: cannot retrieve firestore docs",
+			args: args{
+				ctx: ctx,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "success: retrieved roles",
+			args: args{
+				ctx: ctx,
+			},
+			want: &[]profileutils.Role{
+				{
+					ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "fail: cannot retrieve firestore docs" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+
+					return nil, fmt.Errorf("cannot retrieve firestore docs")
+				}
+			}
+
+			if tt.name == "success: retrieved roles" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}}
+					return docs, nil
+				}
+			}
+
+			got, err := repo.GetAllRoles(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetAllRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repository.GetAllRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_CheckIfUserHasPermission(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	type args struct {
+		ctx                context.Context
+		UID                string
+		requiredPermission profileutils.Permission
+	}
+	input := args{
+		ctx:                ctx,
+		UID:                uuid.NewString(),
+		requiredPermission: profileutils.CanAssignRole,
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name:    "sad unable to get user profile",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "sad unable to get roles by ids",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "sad required permission not among user roles",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "happy user has permission",
+			args:    input,
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad unable to get user profile" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, fmt.Errorf("unable to get userprofile by uid")
+				}
+			}
+			if tt.name == "sad unable to get roles by ids" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}}
+					return docs, nil
+				}
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, fmt.Errorf("unable to get userprofile by uid")
+				}
+			}
+			if tt.name == "sad required permission not among user roles" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}}
+					return docs, nil
+				}
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{
+						ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+					}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}}
+					return docs, nil
+				}
+			}
+			if tt.name == "happy user has permission" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}}
+					return docs, nil
+				}
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{
+						ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+					}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}}
+					return docs, nil
+				}
+			}
+			got, err := repo.CheckIfUserHasPermission(tt.args.ctx, tt.args.UID, tt.args.requiredPermission)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.CheckIfUserHasPermission() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Repository.CheckIfUserHasPermission() = %v, want %v", got, tt.want)
 			}
 		})
 	}

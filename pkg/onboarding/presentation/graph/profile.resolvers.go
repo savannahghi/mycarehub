@@ -784,6 +784,24 @@ func (r *queryResolver) ListMicroservices(ctx context.Context) ([]*domain.Micros
 	return services, err
 }
 
+func (r *queryResolver) GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error) {
+	startTime := time.Now()
+
+	roles, err := r.interactor.Role.GetAllRoles(ctx)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "getAllRoles", err)
+
+	return roles, err
+}
+
+func (r *queryResolver) GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error) {
+	startTime := time.Now()
+
+	permissions, err := r.interactor.Role.GetAllPermissions(ctx)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "getAllPermissions", err)
+
+	return permissions, err
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

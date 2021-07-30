@@ -312,6 +312,8 @@ type RolesRepository interface {
 		input dto.RoleInput,
 	) (*profileutils.Role, error)
 
+	GetAllRoles(ctx context.Context) (*[]profileutils.Role, error)
+
 	GetRoleByID(ctx context.Context, roleID string) (*profileutils.Role, error)
 
 	GetRolesByIDs(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error)
@@ -323,4 +325,6 @@ type RolesRepository interface {
 		profileID string,
 		role profileutils.Role,
 	) (*profileutils.Role, error)
+
+	CheckIfUserHasPermission(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error)
 }

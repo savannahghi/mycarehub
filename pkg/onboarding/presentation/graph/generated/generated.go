@@ -445,6 +445,8 @@ type ComplexityRoot struct {
 		FindBranch                    func(childComplexity int, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) int
 		FindProvider                  func(childComplexity int, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) int
 		GetAddresses                  func(childComplexity int) int
+		GetAllPermissions             func(childComplexity int) int
+		GetAllRoles                   func(childComplexity int) int
 		GetUserCommunicationsSettings func(childComplexity int) int
 		ListMicroservices             func(childComplexity int) int
 		NHIFDetails                   func(childComplexity int) int
@@ -628,6 +630,8 @@ type QueryResolver interface {
 	FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error)
 	FetchUserNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error)
 	ListMicroservices(ctx context.Context) ([]*domain.Microservice, error)
+	GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error)
+	GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error)
 }
 type VerifiedIdentifierResolver interface {
 	Timestamp(ctx context.Context, obj *profileutils.VerifiedIdentifier) (*scalarutils.Date, error)
@@ -2818,6 +2822,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAddresses(childComplexity), true
 
+	case "Query.getAllPermissions":
+		if e.complexity.Query.GetAllPermissions == nil {
+			break
+		}
+
+		return e.complexity.Query.GetAllPermissions(childComplexity), true
+
+	case "Query.getAllRoles":
+		if e.complexity.Query.GetAllRoles == nil {
+			break
+		}
+
+		return e.complexity.Query.GetAllRoles(childComplexity), true
+
 	case "Query.getUserCommunicationsSettings":
 		if e.complexity.Query.GetUserCommunicationsSettings == nil {
 			break
@@ -4081,6 +4099,10 @@ input RolePermissionInput {
   fetchUserNavigationActions: NavigationActions
 
   listMicroservices: [Microservice!]!
+
+  getAllRoles: [RoleOutput]
+
+  getAllPermissions: [Permission!]!
 }
 
 extend type Mutation {
@@ -4695,10 +4717,10 @@ type RoleOutput {
 }
 
 type Permission {
-  scope: String
+  scope: String!
   description: String!
   group: PermissionGroup!
-  allowed: Boolean
+  allowed: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
@@ -14860,11 +14882,14 @@ func (ec *executionContext) _Permission_scope(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Permission_description(ctx context.Context, field graphql.CollectedField, obj *profileutils.Permission) (ret graphql.Marshaler) {
@@ -14962,11 +14987,14 @@ func (ec *executionContext) _Permission_allowed(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_dummyQuery(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15569,6 +15597,73 @@ func (ec *executionContext) _Query_listMicroservices(ctx context.Context, field 
 	res := resTmp.([]*domain.Microservice)
 	fc.Result = res
 	return ec.marshalNMicroservice2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroserviceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getAllRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllRoles(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*dto.RoleOutput)
+	fc.Result = res
+	return ec.marshalORoleOutput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getAllPermissions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllPermissions(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*profileutils.Permission)
+	fc.Result = res
+	return ec.marshalNPermission2ᚕᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22836,6 +22931,9 @@ func (ec *executionContext) _Permission(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = graphql.MarshalString("Permission")
 		case "scope":
 			out.Values[i] = ec._Permission_scope(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "description":
 			out.Values[i] = ec._Permission_description(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -22848,6 +22946,9 @@ func (ec *executionContext) _Permission(ctx context.Context, sel ast.SelectionSe
 			}
 		case "allowed":
 			out.Values[i] = ec._Permission_allowed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -23086,6 +23187,31 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listMicroservices(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "getAllRoles":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getAllRoles(ctx, field)
+				return res
+			})
+		case "getAllPermissions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getAllPermissions(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -24537,6 +24663,53 @@ func (ec *executionContext) marshalNPayablesAccount2ᚖgithubᚗcomᚋsavannahgh
 		return graphql.Null
 	}
 	return ec._PayablesAccount(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPermission2ᚕᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionᚄ(ctx context.Context, sel ast.SelectionSet, v []*profileutils.Permission) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPermission2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermission(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNPermission2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermission(ctx context.Context, sel ast.SelectionSet, v *profileutils.Permission) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Permission(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNPermissionGroup2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionGroup(ctx context.Context, v interface{}) (profileutils.PermissionGroup, error) {
@@ -26067,6 +26240,53 @@ func (ec *executionContext) marshalOPermissionType2ᚕgithubᚗcomᚋsavannahghi
 
 func (ec *executionContext) marshalOReceivablesAccount2githubᚗcomᚋsavannahghiᚋprofileutilsᚐReceivablesAccount(ctx context.Context, sel ast.SelectionSet, v profileutils.ReceivablesAccount) graphql.Marshaler {
 	return ec._ReceivablesAccount(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalORoleOutput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx context.Context, sel ast.SelectionSet, v []*dto.RoleOutput) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalORoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalORoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx context.Context, sel ast.SelectionSet, v *dto.RoleOutput) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._RoleOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOSortOrder2ᚖgithubᚗcomᚋsavannahghiᚋenumutilsᚐSortOrder(ctx context.Context, v interface{}) (*enumutils.SortOrder, error) {
