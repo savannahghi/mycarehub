@@ -28,6 +28,10 @@ type RoleUseCase interface {
 	GetRole(ctx context.Context, ID string) (*dto.RoleOutput, error)
 
 	GetUserPermissions(ctx context.Context, UID string) ([]profileutils.Permission, error)
+
+	AssignRole(ctx context.Context, userID string, roleID string) (bool, error)
+
+	RevokeRole(ctx context.Context, userID string, roleID string) (bool, error)
 }
 
 // RoleUseCaseImpl  represents usecase implementation object
@@ -352,4 +356,112 @@ func (r *RoleUseCaseImpl) GetUserPermissions(
 	permissions := profileutils.GetUniquePermissions(ctx, allPermmissions)
 
 	return permissions, nil
+}
+
+// AssignRole assigns a user a particular role
+func (r *RoleUseCaseImpl) AssignRole(
+	ctx context.Context,
+	userID string,
+	roleID string,
+) (bool, error) {
+	ctx, span := tracer.Start(ctx, "AssignRole")
+	defer span.End()
+
+	role, err := r.repo.GetRoleByID(ctx, roleID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	profile, err := r.repo.GetUserProfileByID(ctx, userID, false)
+	if err != nil {
+		return false, err
+	}
+
+	for _, r := range profile.Roles {
+		// check if role exists first
+		if r == role.ID {
+			err := fmt.Errorf("role already exists: %v", role.Name)
+			return false, err
+		}
+	}
+
+	updated := append(profile.Roles, roleID)
+
+	err = r.repo.UpdateUserRoleIDs(ctx, profile.ID, updated)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// RevokeRole removes a role from the user
+func (r *RoleUseCaseImpl) RevokeRole(
+	ctx context.Context,
+	userID string,
+	roleID string,
+) (bool, error) {
+	ctx, span := tracer.Start(ctx, "RevokeRole")
+	defer span.End()
+
+	// Check logged in user has permissions/role of employee
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	// Check logged in user has the right permissions
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanAssignRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+	if !allowed {
+		return false, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to view roles"),
+		)
+	}
+
+	role, err := r.repo.GetRoleByID(ctx, roleID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	profile, err := r.repo.GetUserProfileByID(ctx, userID, false)
+	if err != nil {
+		return false, err
+	}
+
+	var exist bool
+	for _, r := range profile.Roles {
+		// check if role exists first
+		if r == role.ID {
+			exist = true
+			break
+		}
+	}
+
+	if !exist {
+		err := fmt.Errorf("user doesn't have role: %v", role.Name)
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	// roles copy
+	updated := []string{}
+	for _, r := range profile.Roles {
+		if r != role.ID {
+			updated = append(updated, r)
+		}
+	}
+
+	err = r.repo.UpdateUserRoleIDs(ctx, profile.ID, updated)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

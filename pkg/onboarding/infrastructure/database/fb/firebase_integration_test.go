@@ -93,6 +93,7 @@ func TestMain(m *testing.M) {
 			r.GetProfileNudgesCollectionName(),
 			r.GetSMSCollectionName(),
 			r.GetUSSDDataCollectionName(),
+			r.GetRolesCollectionName(),
 		}
 		for _, collection := range collections {
 			ref := fsc.Collection(collection)
@@ -304,7 +305,10 @@ func TestRemoveKYCProcessingRequest(t *testing.T) {
 	assert.Nil(t, err)
 
 	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), interserviceclient.TestUserPhoneNumber)
+	_ = s.Signup.RemoveUserByPhoneNumber(
+		context.Background(),
+		interserviceclient.TestUserPhoneNumber,
+	)
 
 	ctx, auth, err := GetTestAuthenticatedContext(t)
 	assert.Nil(t, err)
@@ -390,7 +394,10 @@ func TestPurgeUserByPhoneNumber(t *testing.T) {
 	s, err := InitializeTestService(context.Background())
 	assert.Nil(t, err)
 	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), interserviceclient.TestUserPhoneNumber)
+	_ = s.Signup.RemoveUserByPhoneNumber(
+		context.Background(),
+		interserviceclient.TestUserPhoneNumber,
+	)
 	ctx, auth, err := GetTestAuthenticatedContext(t)
 	assert.Nil(t, err)
 	assert.NotNil(t, auth)
@@ -409,7 +416,11 @@ func TestPurgeUserByPhoneNumber(t *testing.T) {
 	assert.Equal(t, interserviceclient.TestUserPhoneNumber, *profile.PrimaryPhone)
 
 	// fetch the same profile but now using the primary phone number
-	profile, err = fr.GetUserProfileByPrimaryPhoneNumber(ctx, interserviceclient.TestUserPhoneNumber, false)
+	profile, err = fr.GetUserProfileByPrimaryPhoneNumber(
+		ctx,
+		interserviceclient.TestUserPhoneNumber,
+		false,
+	)
 	assert.Nil(t, err)
 	assert.NotNil(t, profile)
 	assert.Equal(t, interserviceclient.TestUserPhoneNumber, *profile.PrimaryPhone)
@@ -424,7 +435,11 @@ func TestPurgeUserByPhoneNumber(t *testing.T) {
 
 	// create an invalid user profile
 	fakeUID := uuid.New().String()
-	invalidpr1, err := fr.CreateUserProfile(context.Background(), interserviceclient.TestUserPhoneNumber, fakeUID)
+	invalidpr1, err := fr.CreateUserProfile(
+		context.Background(),
+		interserviceclient.TestUserPhoneNumber,
+		fakeUID,
+	)
 	assert.Nil(t, err)
 	assert.NotNil(t, invalidpr1)
 
@@ -666,7 +681,8 @@ func TestRepository_GetCustomerOrSupplierProfileByProfileID(t *testing.T) {
 				tt.args.profileID,
 			)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetCustomerOrSupplierProfileByProfileID() error = %v, wantErr %v",
+				t.Errorf(
+					"Repository.GetCustomerOrSupplierProfileByProfileID() error = %v, wantErr %v",
 					err,
 					tt.wantErr,
 				)
@@ -729,7 +745,11 @@ func TestRepository_GetCustomerProfileByID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			customerProfile, err := fr.GetCustomerProfileByID(tt.args.ctx, tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetCustomerProfileByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.GetCustomerProfileByID() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if serverutils.IsDebug() {
@@ -762,7 +782,11 @@ func TestRepository_ExchangeRefreshTokenForIDToken(t *testing.T) {
 		return
 	}
 
-	user, err := fr.GenerateAuthCredentials(ctx, interserviceclient.TestUserPhoneNumber, userProfile)
+	user, err := fr.GenerateAuthCredentials(
+		ctx,
+		interserviceclient.TestUserPhoneNumber,
+		userProfile,
+	)
 	if err != nil {
 		t.Errorf("failed to generate auth credentials: %v", err)
 		return
@@ -808,7 +832,11 @@ func TestRepository_ExchangeRefreshTokenForIDToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := fr.ExchangeRefreshTokenForIDToken(tt.args.ctx, tt.args.refreshToken)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.ExchangeRefreshTokenForIDToken() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.ExchangeRefreshTokenForIDToken() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 
@@ -820,7 +848,11 @@ func TestRepository_ExchangeRefreshTokenForIDToken(t *testing.T) {
 					return
 				}
 				if auth.UID != tt.want.UID {
-					t.Errorf("Repository.ExchangeRefreshTokenForIDToken() = %v, want %v", got.UID, tt.want.UID)
+					t.Errorf(
+						"Repository.ExchangeRefreshTokenForIDToken() = %v, want %v",
+						got.UID,
+						tt.want.UID,
+					)
 				}
 			}
 		})
@@ -874,7 +906,11 @@ func TestRepository_GetUserProfileByPhoneNumber(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := fr.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber, false)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.GetUserProfileByPhoneNumber() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -938,9 +974,17 @@ func TestRepository_GetUserProfileByPrimaryPhoneNumber(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := fr.GetUserProfileByPrimaryPhoneNumber(tt.args.ctx, tt.args.phoneNumber, false)
+			got, err := fr.GetUserProfileByPrimaryPhoneNumber(
+				tt.args.ctx,
+				tt.args.phoneNumber,
+				false,
+			)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetUserProfileByPrimaryPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.GetUserProfileByPrimaryPhoneNumber() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -1003,7 +1047,11 @@ func TestRepository_GetSupplierProfileByProfileID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := fr.GetSupplierProfileByProfileID(tt.args.ctx, tt.args.profileID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetSupplierProfileByProfileID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.GetSupplierProfileByProfileID() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -1076,7 +1124,11 @@ func TestRepository_GetSupplierProfileByID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := fr.GetSupplierProfileByID(tt.args.ctx, tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetSupplierProfileByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.GetSupplierProfileByID() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -1282,7 +1334,11 @@ func TestRepository_CheckIfPhoneNumberExists(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := fr.CheckIfPhoneNumberExists(tt.args.ctx, tt.args.phoneNumber)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.CheckIfPhoneNumberExists() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.CheckIfPhoneNumberExists() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if got != tt.want {
@@ -1362,7 +1418,11 @@ func TestRepository_CheckIfUsernameExists(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := fr.CheckIfUsernameExists(tt.args.ctx, tt.args.userName)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.CheckIfUsernameExists() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.CheckIfUsernameExists() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if got != tt.want {
@@ -1698,9 +1758,17 @@ func TestRepository_ActivateSupplierProfile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			supp, err := fr.ActivateSupplierProfile(tt.args.ctx, tt.args.profileID, tt.args.supplier)
+			supp, err := fr.ActivateSupplierProfile(
+				tt.args.ctx,
+				tt.args.profileID,
+				tt.args.supplier,
+			)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.ActivateSupplierProfile() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.ActivateSupplierProfile() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if supp != nil {
@@ -1799,7 +1867,12 @@ func TestRepository_AddPartnerType(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := fr.AddPartnerType(tt.args.ctx, tt.args.profileID, tt.args.name, tt.args.partnerType)
+			got, err := fr.AddPartnerType(
+				tt.args.ctx,
+				tt.args.profileID,
+				tt.args.name,
+				tt.args.partnerType,
+			)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.AddPartnerType() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1882,7 +1955,11 @@ func TestRepository_RecordPostVisitSurvey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := fr.RecordPostVisitSurvey(tt.args.ctx, tt.args.input, tt.args.UID); (err != nil) != tt.wantErr {
-				t.Errorf("Repository.RecordPostVisitSurvey() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.RecordPostVisitSurvey() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 			}
 		})
 	}
@@ -1994,18 +2071,24 @@ func TestRepository_UpdateVerifiedUIDS(t *testing.T) {
 		{
 			name: "Happy Case - Successfully update profile UIDs",
 			args: args{
-				ctx:  ctx,
-				id:   user.ID,
-				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
+				ctx: ctx,
+				id:  user.ID,
+				uids: []string{
+					"f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					"5d46d3bd-a482-4787-9b87-3c94510c8b53",
+				},
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad Case - Invalid ID",
 			args: args{
-				ctx:  ctx,
-				id:   "invalidid",
-				uids: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e", "5d46d3bd-a482-4787-9b87-3c94510c8b53"},
+				ctx: ctx,
+				id:  "invalidid",
+				uids: []string{
+					"f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					"5d46d3bd-a482-4787-9b87-3c94510c8b53",
+				},
 			},
 			wantErr: true,
 		},
@@ -2114,7 +2197,11 @@ func TestRepository_UpdateVerifiedIdentifiers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := fr.UpdateVerifiedIdentifiers(tt.args.ctx, tt.args.id, tt.args.identifiers); (err != nil) != tt.wantErr {
-				t.Errorf("Repository.UpdateVerifiedIdentifiers() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.UpdateVerifiedIdentifiers() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 			}
 		})
 	}
@@ -2253,7 +2340,11 @@ func TestRepository_UpdateSecondaryEmailAddresses(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := fr.UpdateSecondaryEmailAddresses(tt.args.ctx, tt.args.id, tt.args.emailAddresses)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.UpdateSecondaryEmailAddresses() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.UpdateSecondaryEmailAddresses() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 			}
 		})
 	}
@@ -2321,7 +2412,11 @@ func TestRepository_UpdateSupplierProfile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := fr.UpdateSupplierProfile(tt.args.ctx, *tt.args.data.ProfileID, tt.args.data)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.UpdateSupplierProfile() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.UpdateSupplierProfile() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 		})
@@ -2382,7 +2477,11 @@ func TestRepositoryFetchKYCProcessingRequests(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := fr.FetchKYCProcessingRequests(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.FetchKYCProcessingRequests() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.FetchKYCProcessingRequests() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -2449,7 +2548,11 @@ func TestRepository_UpdatePrimaryEmailAddress(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := fr.UpdatePrimaryEmailAddress(tt.args.ctx, tt.args.id, tt.args.emailAddress); (err != nil) != tt.wantErr {
-				t.Errorf("Repository.UpdatePrimaryEmailAddress() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.UpdatePrimaryEmailAddress() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 			}
 
 			if !tt.wantErr {
@@ -2518,7 +2621,11 @@ func TestRepository_UpdatePrimaryPhoneNumber(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := fr.UpdatePrimaryPhoneNumber(tt.args.ctx, tt.args.id, tt.args.phoneNumber); (err != nil) != tt.wantErr {
-				t.Errorf("Repository.UpdatePrimaryPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.UpdatePrimaryPhoneNumber() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 			}
 
 			if !tt.wantErr {
@@ -2588,7 +2695,11 @@ func TestRepository_UpdateSecondaryPhoneNumbers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := fr.UpdateSecondaryPhoneNumbers(tt.args.ctx, tt.args.id, tt.args.phoneNumbers); (err != nil) != tt.wantErr {
-				t.Errorf("Repository.UpdateSecondaryPhoneNumbers() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.UpdateSecondaryPhoneNumbers() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 			}
 
 			if !tt.wantErr {
@@ -2789,7 +2900,11 @@ func TestRepositoryFetchKYCProcessingRequestByID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := fr.FetchKYCProcessingRequestByID(tt.args.ctx, tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.FetchKYCProcessingRequestByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.FetchKYCProcessingRequestByID() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if tt.wantErr {
@@ -2878,7 +2993,11 @@ func TestRepositoryUpdateKYCProcessingRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := fr.UpdateKYCProcessingRequest(tt.args.ctx, tt.args.kycRequest); (err != nil) != tt.wantErr {
-				t.Errorf("Repository.UpdateKYCProcessingRequest() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.UpdateKYCProcessingRequest() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 			}
 		})
 		if tt.wantErr {
@@ -2951,7 +3070,11 @@ func TestRepositoryGenerateAuthCredentialsForAnonymousUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			authResponse, err := fr.GenerateAuthCredentialsForAnonymousUser(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GenerateAuthCredentialsForAnonymousUser() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.GenerateAuthCredentialsForAnonymousUser() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 
@@ -3063,9 +3186,17 @@ func TestRepositoryGenerateAuthCredentials(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			authResponse, err := fr.GenerateAuthCredentials(tt.args.ctx, tt.args.phone, tt.args.profile)
+			authResponse, err := fr.GenerateAuthCredentials(
+				tt.args.ctx,
+				tt.args.phone,
+				tt.args.profile,
+			)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GenerateAuthCredentials() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.GenerateAuthCredentials() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !tt.wantErr {
@@ -3391,7 +3522,11 @@ func TestGetNHIFDetailsByProfileID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			nhif, err := fr.GetNHIFDetailsByProfileID(tt.args.ctx, tt.args.profileID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetNHIFDetailsByProfileID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.GetNHIFDetailsByProfileID() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if tt.wantErr && nhif != nil {
@@ -3463,7 +3598,11 @@ func TestUpdateCustomerProfile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			customer, err := fr.UpdateCustomerProfile(tt.args.ctx, tt.args.profileID, tt.args.cus)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.UpdateCustomerProfile() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.UpdateCustomerProfile() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if customer != nil {
@@ -3544,7 +3683,11 @@ func TestRepository_PersistIncomingSMSData(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := firestoreDB.PersistIncomingSMSData(tt.args.ctx, &tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.PersistIncomingSMSData() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.PersistIncomingSMSData() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !tt.wantErr && err != nil {
@@ -3634,7 +3777,11 @@ func TestRepository_AddAITSessionDetails(t *testing.T) {
 
 			got, err := firestoreDB.AddAITSessionDetails(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.AddAITSessionDetails() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.AddAITSessionDetails() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if tt.wantErr && got != nil {
@@ -3691,7 +3838,11 @@ func TestRepository_GetAITSessionDetailss(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := firestoreDB.GetAITSessionDetails(tt.args.ctx, tt.args.sessionID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetAITSessionDetails() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.GetAITSessionDetails() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !tt.wantErr && err != nil {
@@ -3856,7 +4007,11 @@ func TestRepository_UpdateSessionLevel(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := firestoreDB.UpdateSessionLevel(tt.args.ctx, tt.args.sessionID, tt.args.level)
+			got, err := firestoreDB.UpdateSessionLevel(
+				tt.args.ctx,
+				tt.args.sessionID,
+				tt.args.level,
+			)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.UpdateSessionLevel() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -3999,11 +4154,19 @@ func TestRepository_SaveCoverAutolinkingEvents_Integration_Test(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := firestoreDB.SaveCoverAutolinkingEvents(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.SaveCoverAutolinkingEvents() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.SaveCoverAutolinkingEvents() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !tt.wantErr && got == nil {
-				t.Errorf("Repository.SaveCoverAutolinkingEvents() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.SaveCoverAutolinkingEvents() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 		})
@@ -4154,7 +4317,62 @@ func TestRepository_UpdateAITSessionDetails_Integration(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := firestoreDB.UpdateAITSessionDetails(tt.args.ctx, tt.args.phoneNumber, tt.args.contactLead); (err != nil) != tt.wantErr {
-				t.Errorf("Repository.UpdateAITSessionDetails() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.UpdateAITSessionDetails() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
+			}
+		})
+	}
+}
+
+func TestRepository_UpdateUserRoleIDs_Integration(t *testing.T) {
+	ctx, token, err := GetTestAuthenticatedContext(t)
+	if err != nil {
+		t.Errorf("failed to get test authenticated context: %v", err)
+		return
+	}
+
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
+
+	userProfile, err := fr.GetUserProfileByUID(ctx, token.UID, false)
+	if err != nil {
+		t.Errorf("failed to get a user profile")
+		return
+	}
+	type args struct {
+		ctx     context.Context
+		id      string
+		roleIDs []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "pass:success update user profile IDs",
+			args: args{
+				ctx:     ctx,
+				id:      userProfile.ID,
+				roleIDs: []string{uuid.NewString()},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := fr.UpdateUserRoleIDs(tt.args.ctx, tt.args.id, tt.args.roleIDs); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateUserRoleIDs() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

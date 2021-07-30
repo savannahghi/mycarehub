@@ -290,6 +290,7 @@ type UserProfileRepository interface {
 	UpdatePushTokens(ctx context.Context, id string, pushToken []string) error
 	UpdatePermissions(ctx context.Context, id string, perms []profileutils.PermissionType) error
 	UpdateRole(ctx context.Context, id string, role profileutils.RoleType) error
+	UpdateUserRoleIDs(ctx context.Context, id string, roleIDs []string) error
 	UpdateBioData(ctx context.Context, id string, data profileutils.BioData) error
 	UpdateAddresses(
 		ctx context.Context,

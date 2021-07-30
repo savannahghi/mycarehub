@@ -1014,6 +1014,54 @@ func (fr *Repository) UpdatePrimaryPhoneNumber(
 	return nil
 }
 
+// UpdateUserRoleIDs updates the roles for a user
+func (fr Repository) UpdateUserRoleIDs(ctx context.Context, id string, roleIDs []string) error {
+	ctx, span := tracer.Start(ctx, "UpdateUserRoleIDs")
+	defer span.End()
+
+	profile, err := fr.GetUserProfileByID(ctx, id, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return err
+	}
+
+	// Add the roles
+	profile.Roles = roleIDs
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		FieldName:      "id",
+		Value:          profile.ID,
+		Operator:       "==",
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return exceptions.InternalServerError(err)
+	}
+
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
+
+	updateCommand := &UpdateCommand{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		ID:             docs[0].Ref.ID,
+		Data:           profile,
+	}
+
+	err = fr.FirestoreClient.Update(ctx, updateCommand)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile primary email address: %v", err),
+		)
+	}
+
+	return nil
+}
+
 // UpdatePrimaryEmailAddress the primary email addresses of the profile that matches the id
 // this method should be called after asserting the emailAddress is unique and not associated with another userProfile
 func (fr *Repository) UpdatePrimaryEmailAddress(
@@ -3379,7 +3427,10 @@ func (fr *Repository) SaveCoverAutolinkingEvents(
 }
 
 // AddAITSessionDetails saves diallers session details in the database
-func (fr *Repository) AddAITSessionDetails(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error) {
+func (fr *Repository) AddAITSessionDetails(
+	ctx context.Context,
+	input *dto.SessionDetails,
+) (*domain.USSDLeadDetails, error) {
 	ctx, span := tracer.Start(ctx, "AddAITSessionDetails")
 	defer span.End()
 
@@ -3585,7 +3636,10 @@ func (fr *Repository) UpdateSessionPIN(
 }
 
 // GetAITDetails retrieves session details from the database
-func (fr *Repository) GetAITDetails(ctx context.Context, phoneNumber string) (*domain.USSDLeadDetails, error) {
+func (fr *Repository) GetAITDetails(
+	ctx context.Context,
+	phoneNumber string,
+) (*domain.USSDLeadDetails, error) {
 	ctx, span := tracer.Start(ctx, "GetAITDetails")
 	defer span.End()
 
@@ -3624,7 +3678,11 @@ func (fr *Repository) GetAITDetails(ctx context.Context, phoneNumber string) (*d
 }
 
 // UpdateAITSessionDetails updates session details using phone number
-func (fr *Repository) UpdateAITSessionDetails(ctx context.Context, phoneNumber string, contactLead *domain.USSDLeadDetails) error {
+func (fr *Repository) UpdateAITSessionDetails(
+	ctx context.Context,
+	phoneNumber string,
+	contactLead *domain.USSDLeadDetails,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdateAITSessionDetails")
 	defer span.End()
 

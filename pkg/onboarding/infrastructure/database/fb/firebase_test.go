@@ -279,7 +279,9 @@ func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 
 			if tt.name == "invalid:throws_internal_server_error_while_checking_existence" {
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
-					return nil, exceptions.InternalServerError(fmt.Errorf("unable to parse user profile as firebase snapshot"))
+					return nil, exceptions.InternalServerError(
+						fmt.Errorf("unable to parse user profile as firebase snapshot"),
+					)
 				}
 			}
 
@@ -290,7 +292,9 @@ func TestRepository_AddUserAsExperimentParticipant(t *testing.T) {
 				}
 
 				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
-					return nil, exceptions.InternalServerError(fmt.Errorf("unable to add user profile of ID in experiment_participant"))
+					return nil, exceptions.InternalServerError(
+						fmt.Errorf("unable to add user profile of ID in experiment_participant"),
+					)
 				}
 			}
 
@@ -364,7 +368,11 @@ func TestRepository_RemoveUserAsExperimentParticipant(t *testing.T) {
 			}
 			if tt.name == "invalid:throws_internal_server_error_while_removing" {
 				fakeFireStoreClientExt.DeleteFn = func(ctx context.Context, command *fb.DeleteCommand) error {
-					return exceptions.InternalServerError(fmt.Errorf("unable to remove user profile of ID  from experiment_participant"))
+					return exceptions.InternalServerError(
+						fmt.Errorf(
+							"unable to remove user profile of ID  from experiment_participant",
+						),
+					)
 				}
 			}
 
@@ -686,7 +694,9 @@ func TestRepository_UpdateFavNavActions(t *testing.T) {
 				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
 					docs := []*firestore.DocumentSnapshot{
 						{
-							Ref:        &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"},
+							Ref: &firestore.DocumentRef{
+								ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+							},
 							CreateTime: time.Time{},
 							UpdateTime: time.Time{},
 							ReadTime:   time.Time{},
@@ -808,9 +818,17 @@ func TestRepository_CreateDetailedSupplierProfile(t *testing.T) {
 				}
 			}
 
-			got, err := repo.CreateDetailedSupplierProfile(tt.args.ctx, tt.args.profileID, tt.args.supplier)
+			got, err := repo.CreateDetailedSupplierProfile(
+				tt.args.ctx,
+				tt.args.profileID,
+				tt.args.supplier,
+			)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.CreateDetailedSupplierProfile() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.CreateDetailedSupplierProfile() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -1051,9 +1069,17 @@ func TestRepository_CreateDetailedUserProfile(t *testing.T) {
 				}
 			}
 
-			got, err := repo.CreateDetailedUserProfile(tt.args.ctx, tt.args.phoneNumber, tt.args.profile)
+			got, err := repo.CreateDetailedUserProfile(
+				tt.args.ctx,
+				tt.args.phoneNumber,
+				tt.args.profile,
+			)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.CreateDetailedUserProfile() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.CreateDetailedUserProfile() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -1115,7 +1141,11 @@ func TestRepository_ListAgentUserProfiles(t *testing.T) {
 
 			got, err := repo.ListUserProfiles(tt.args.ctx, tt.args.role)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.ListAgentUserProfiles() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.ListAgentUserProfiles() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -1200,7 +1230,11 @@ func TestRepository_AddAITSessionDetails_Unittest(t *testing.T) {
 
 			got, err := repo.AddAITSessionDetails(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.AddAITSessionDetails() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.AddAITSessionDetails() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -1263,7 +1297,11 @@ func TestRepository_GetAITSessionDetails_Unittests(t *testing.T) {
 
 			got, err := repo.GetAITSessionDetails(tt.args.ctx, tt.args.sessionID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.GetAITSessionDetails() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.GetAITSessionDetails() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -1713,7 +1751,11 @@ func TestRepository_CheckIfRoleNameExists(t *testing.T) {
 
 			got, err := repo.CheckIfRoleNameExists(tt.args.ctx, tt.args.name)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.CheckIfRoleNameExists() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf(
+					"Repository.CheckIfRoleNameExists() error = %v, wantErr %v",
+					err,
+					tt.wantErr,
+				)
 				return
 			}
 			if got != tt.want {
@@ -1770,6 +1812,54 @@ func TestRepository_GetRolesByIDs(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.GetRolesByIDs() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestRepository_UpdateUserRoleIDs(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	type args struct {
+		ctx     context.Context
+		id      string
+		roleIDs []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "fail:cannot retrieve user profile",
+			args: args{
+				ctx:     ctx,
+				id:      uuid.NewString(),
+				roleIDs: []string{uuid.NewString()},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "fail:cannot retrieve user profile" {
+
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					ref := firestore.DocumentRef{ID: "123"}
+					docs := []*firestore.DocumentSnapshot{{Ref: &ref}}
+					return docs, nil
+				}
+
+				fakeFireStoreClientExt.UpdateFn = func(ctx context.Context, command *fb.UpdateCommand) error {
+					return nil
+				}
+			}
+
+			if err := repo.UpdateUserRoleIDs(tt.args.ctx, tt.args.id, tt.args.roleIDs); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.UpdateUserRoleIDs() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

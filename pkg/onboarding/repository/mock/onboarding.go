@@ -162,6 +162,7 @@ type FakeOnboardingRepository struct {
 	UpdatePrimaryEmailAddressFn     func(ctx context.Context, id string, emailAddress string) error
 	UpdateSecondaryPhoneNumbersFn   func(ctx context.Context, id string, phoneNumbers []string) error
 	UpdateSecondaryEmailAddressesFn func(ctx context.Context, id string, emailAddresses []string) error
+	UpdateUserRoleIDsFn             func(ctx context.Context, id string, roleIDs []string) error
 	UpdateSuspendedFn               func(ctx context.Context, id string, status bool) error
 	UpdatePhotoUploadIDFn           func(ctx context.Context, id string, uploadID string) error
 	UpdateCoversFn                  func(ctx context.Context, id string, covers []profileutils.Cover) error
@@ -933,4 +934,9 @@ func (f *FakeOnboardingRepository) CheckIfRoleNameExists(ctx context.Context, na
 // CheckIfUserHasPermission ...
 func (f *FakeOnboardingRepository) CheckIfUserHasPermission(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
 	return f.CheckIfUserHasPermissionFn(ctx, UID, requiredPermission)
+}
+
+// UpdateUserRoleIDs ...
+func (f *FakeOnboardingRepository) UpdateUserRoleIDs(ctx context.Context, id string, roleIDs []string) error {
+	return f.UpdateUserRoleIDsFn(ctx, id, roleIDs)
 }

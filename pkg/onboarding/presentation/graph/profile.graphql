@@ -162,4 +162,8 @@ extend type Mutation {
   createRole(input: RoleInput!): RoleOutput!
 
   addPermissionsToRole(input: RolePermissionInput!): RoleOutput!
+
+  assignRole(userID: ID!, roleID: ID!): Boolean!
+
+  revokeRole(userID: ID!, roleID: ID!): Boolean!
 }

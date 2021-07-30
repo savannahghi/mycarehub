@@ -42,6 +42,7 @@ type UserProfile @key(fields: "id") {
   userBioData: BioData
   homeAddress: Address
   workAddress: Address
+  roles: [String]
 }
 
 type Customer {
@@ -483,7 +484,7 @@ type Microservice @key(fields: "id") {
 }
 
 type RoleOutput {
-  id: String!
+  id: ID!
   name: String!
   description: String!
   active: Boolean!

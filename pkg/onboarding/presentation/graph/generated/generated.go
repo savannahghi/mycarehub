@@ -269,6 +269,7 @@ type ComplexityRoot struct {
 		AddPermissionsToRole             func(childComplexity int, input dto.RolePermissionInput) int
 		AddSecondaryEmailAddress         func(childComplexity int, email []string) int
 		AddSecondaryPhoneNumber          func(childComplexity int, phone []string) int
+		AssignRole                       func(childComplexity int, userID string, roleID string) int
 		CompleteSignup                   func(childComplexity int, flavour feedlib.Flavour) int
 		CreateRole                       func(childComplexity int, input dto.RoleInput) int
 		DeactivateAgent                  func(childComplexity int, agentID string) int
@@ -284,6 +285,7 @@ type ComplexityRoot struct {
 		RetireKYCProcessingRequest       func(childComplexity int) int
 		RetireSecondaryEmailAddresses    func(childComplexity int, emails []string) int
 		RetireSecondaryPhoneNumbers      func(childComplexity int, phones []string) int
+		RevokeRole                       func(childComplexity int, userID string, roleID string) int
 		SaveFavoriteNavAction            func(childComplexity int, title string) int
 		SetPrimaryEmailAddress           func(childComplexity int, email string, otp string) int
 		SetPrimaryPhoneNumber            func(childComplexity int, phone string, otp string) int
@@ -539,6 +541,7 @@ type ComplexityRoot struct {
 		PrimaryEmailAddress     func(childComplexity int) int
 		PrimaryPhone            func(childComplexity int) int
 		PushTokens              func(childComplexity int) int
+		Roles                   func(childComplexity int) int
 		SecondaryEmailAddresses func(childComplexity int) int
 		SecondaryPhoneNumbers   func(childComplexity int) int
 		Suspended               func(childComplexity int) int
@@ -611,6 +614,8 @@ type MutationResolver interface {
 	DeregisterAllMicroservices(ctx context.Context) (bool, error)
 	CreateRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
 	AddPermissionsToRole(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
+	AssignRole(ctx context.Context, userID string, roleID string) (bool, error)
+	RevokeRole(ctx context.Context, userID string, roleID string) (bool, error)
 }
 type QueryResolver interface {
 	DummyQuery(ctx context.Context) (*bool, error)
@@ -1744,6 +1749,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddSecondaryPhoneNumber(childComplexity, args["phone"].([]string)), true
 
+	case "Mutation.assignRole":
+		if e.complexity.Mutation.AssignRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_assignRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AssignRole(childComplexity, args["userID"].(string), args["roleID"].(string)), true
+
 	case "Mutation.completeSignup":
 		if e.complexity.Mutation.CompleteSignup == nil {
 			break
@@ -1913,6 +1930,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RetireSecondaryPhoneNumbers(childComplexity, args["phones"].([]string)), true
+
+	case "Mutation.revokeRole":
+		if e.complexity.Mutation.RevokeRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_revokeRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RevokeRole(childComplexity, args["userID"].(string), args["roleID"].(string)), true
 
 	case "Mutation.saveFavoriteNavAction":
 		if e.complexity.Mutation.SaveFavoriteNavAction == nil {
@@ -3280,6 +3309,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProfile.PushTokens(childComplexity), true
 
+	case "UserProfile.roles":
+		if e.complexity.UserProfile.Roles == nil {
+			break
+		}
+
+		return e.complexity.UserProfile.Roles(childComplexity), true
+
 	case "UserProfile.secondaryEmailAddresses":
 		if e.complexity.UserProfile.SecondaryEmailAddresses == nil {
 			break
@@ -4053,7 +4089,7 @@ input RoleInput {
 }
 
 input RolePermissionInput {
-  roleID: String!
+  roleID: ID!
   scopes: [String!]!
 }
 `, BuiltIn: false},
@@ -4221,6 +4257,10 @@ extend type Mutation {
   createRole(input: RoleInput!): RoleOutput!
 
   addPermissionsToRole(input: RolePermissionInput!): RoleOutput!
+
+  assignRole(userID: ID!, roleID: ID!): Boolean!
+
+  revokeRole(userID: ID!, roleID: ID!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -4267,6 +4307,7 @@ type UserProfile @key(fields: "id") {
   userBioData: BioData
   homeAddress: Address
   workAddress: Address
+  roles: [String]
 }
 
 type Customer {
@@ -4708,7 +4749,7 @@ type Microservice @key(fields: "id") {
 }
 
 type RoleOutput {
-  id: String!
+  id: ID!
   name: String!
   description: String!
   active: Boolean!
@@ -5094,6 +5135,30 @@ func (ec *executionContext) field_Mutation_addSecondaryPhoneNumber_args(ctx cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_assignRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["roleID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleID"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roleID"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_completeSignup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5304,6 +5369,30 @@ func (ec *executionContext) field_Mutation_retireSecondaryPhoneNumbers_args(ctx 
 		}
 	}
 	args["phones"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_revokeRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["roleID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleID"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roleID"] = arg1
 	return args, nil
 }
 
@@ -11760,6 +11849,90 @@ func (ec *executionContext) _Mutation_addPermissionsToRole(ctx context.Context, 
 	return ec.marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_assignRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_assignRole_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AssignRole(rctx, args["userID"].(string), args["roleID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_revokeRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_revokeRole_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RevokeRole(rctx, args["userID"].(string), args["roleID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NHIFDetails_id(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16056,7 +16229,7 @@ func (ec *executionContext) _RoleOutput_id(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RoleOutput_name(ctx context.Context, field graphql.CollectedField, obj *dto.RoleOutput) (ret graphql.Marshaler) {
@@ -17919,6 +18092,38 @@ func (ec *executionContext) _UserProfile_workAddress(ctx context.Context, field 
 	res := resTmp.(*profileutils.Address)
 	fc.Result = res
 	return ec.marshalOAddress2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐAddress(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserProfile_roles(ctx context.Context, field graphql.CollectedField, obj *profileutils.UserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Roles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _VerifiedIdentifier_uid(ctx context.Context, field graphql.CollectedField, obj *profileutils.VerifiedIdentifier) (ret graphql.Marshaler) {
@@ -20807,7 +21012,7 @@ func (ec *executionContext) unmarshalInputRolePermissionInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleID"))
-			it.RoleID, err = ec.unmarshalNString2string(ctx, v)
+			it.RoleID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -22306,6 +22511,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "assignRole":
+			out.Values[i] = ec._Mutation_assignRole(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "revokeRole":
+			out.Values[i] = ec._Mutation_revokeRole(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -23716,6 +23931,8 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._UserProfile_homeAddress(ctx, field, obj)
 		case "workAddress":
 			out.Values[i] = ec._UserProfile_workAddress(ctx, field, obj)
+		case "roles":
+			out.Values[i] = ec._UserProfile_roles(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
