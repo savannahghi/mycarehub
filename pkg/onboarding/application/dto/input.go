@@ -320,6 +320,8 @@ type RegisterAgentInput struct {
 	PhoneNumber string           `json:"phoneNumber"`
 	Email       string           `json:"email"`
 	DateOfBirth scalarutils.Date `json:"dateOfBirth"`
+	// ID of the Role being assigned to the new agent
+	RoleIDs []string `json:"roleIDs"`
 }
 
 // RegisterAdminInput provides the data payload required to create an Admin
@@ -330,6 +332,8 @@ type RegisterAdminInput struct {
 	PhoneNumber string           `json:"phoneNumber"`
 	Email       string           `json:"email"`
 	DateOfBirth scalarutils.Date `json:"dateOfBirth"`
+	// ID of the Role being assigned to the new employee
+	RoleIDs []string `json:"roleIDs"`
 }
 
 // ContactLeadInput ...

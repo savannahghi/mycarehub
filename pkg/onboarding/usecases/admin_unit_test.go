@@ -821,11 +821,13 @@ func TestAdminUseCaseImpl_FetchAdmins(t *testing.T) {
 					ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 					PrimaryPhone:        interserviceclient.TestUserPhoneNumber,
 					PrimaryEmailAddress: firebasetools.TestUserEmail,
+					ResendPIN:           true,
 				},
 				{
 					ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					PrimaryPhone:        interserviceclient.TestUserPhoneNumber,
 					PrimaryEmailAddress: firebasetools.TestUserEmail,
+					ResendPIN:           true,
 				},
 			},
 			wantErr: false,
@@ -871,10 +873,18 @@ func TestAdminUseCaseImpl_FetchAdmins(t *testing.T) {
 					}
 					return s, nil
 				}
+
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, ProfileID string) (*domain.PIN, error) {
+					return &domain.PIN{IsOTP: true}, nil
+				}
 			}
 			if tt.name == "success:_empty_list_of_user_admins" {
 				fakeRepo.ListUserProfilesFn = func(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error) {
 					return []*profileutils.UserProfile{}, nil
+				}
+
+				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, ProfileID string) (*domain.PIN, error) {
+					return &domain.PIN{}, nil
 				}
 			}
 			if tt.name == "fail:error_fetching_list_of_user_admins" {

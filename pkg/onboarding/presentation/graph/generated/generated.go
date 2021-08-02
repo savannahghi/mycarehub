@@ -69,6 +69,7 @@ type ComplexityRoot struct {
 		PhotoUploadID           func(childComplexity int) int
 		PrimaryEmailAddress     func(childComplexity int) int
 		PrimaryPhone            func(childComplexity int) int
+		ResendPIN               func(childComplexity int) int
 		SecondaryEmailAddresses func(childComplexity int) int
 		SecondaryPhoneNumbers   func(childComplexity int) int
 		Suspended               func(childComplexity int) int
@@ -81,6 +82,7 @@ type ComplexityRoot struct {
 		PhotoUploadID           func(childComplexity int) int
 		PrimaryEmailAddress     func(childComplexity int) int
 		PrimaryPhone            func(childComplexity int) int
+		ResendPIN               func(childComplexity int) int
 		SecondaryEmailAddresses func(childComplexity int) int
 		SecondaryPhoneNumbers   func(childComplexity int) int
 		Suspended               func(childComplexity int) int
@@ -727,6 +729,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Admin.PrimaryPhone(childComplexity), true
 
+	case "Admin.resendPIN":
+		if e.complexity.Admin.ResendPIN == nil {
+			break
+		}
+
+		return e.complexity.Admin.ResendPIN(childComplexity), true
+
 	case "Admin.secondaryEmailAddresses":
 		if e.complexity.Admin.SecondaryEmailAddresses == nil {
 			break
@@ -789,6 +798,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Agent.PrimaryPhone(childComplexity), true
+
+	case "Agent.resendPIN":
+		if e.complexity.Agent.ResendPIN == nil {
+			break
+		}
+
+		return e.complexity.Agent.ResendPIN(childComplexity), true
 
 	case "Agent.secondaryEmailAddresses":
 		if e.complexity.Agent.SecondaryEmailAddresses == nil {
@@ -3632,13 +3648,13 @@ enum LinkType {
 }
 
 enum PermissionGroup {
-  PermissionGroupRole
-  PermissionGroupEmployee
-  PermissionGroupAgent
-  PermissionGroupPartner
-  PermissionGroupKYC
-  PermissionGroupConsumer
-  PermissionGroupPatient
+  Roles
+  Employees
+  Agents
+  Partners
+  KYC
+  Consumers
+  Patients
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/external.graphql", Input: `# supported content types
@@ -4065,6 +4081,7 @@ input RegisterAdminInput {
   phoneNumber: String!
   email: String
   dateOfBirth: Date!
+  roleIDs: [ID]
 }
 
 input RegisterAgentInput {
@@ -4074,6 +4091,7 @@ input RegisterAgentInput {
   phoneNumber: String!
   email: String
   dateOfBirth: Date!
+  roleIDs: [ID]
 }
 
 input MicroserviceInput {
@@ -4700,6 +4718,7 @@ type Admin {
   suspended: Boolean
   photoUploadID: String
   userBioData: BioData
+  resendPIN: Boolean
 }
 
 type Agent {
@@ -4712,6 +4731,7 @@ type Agent {
   suspended: Boolean
   photoUploadID: String
   userBioData: BioData
+  resendPIN: Boolean
 }
 
 extend type Link {
@@ -6304,6 +6324,38 @@ func (ec *executionContext) _Admin_userBioData(ctx context.Context, field graphq
 	return ec.marshalOBioData2githubᚗcomᚋsavannahghiᚋprofileutilsᚐBioData(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Admin_resendPIN(ctx context.Context, field graphql.CollectedField, obj *dto.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ResendPIN, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Agent_id(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6596,6 +6648,38 @@ func (ec *executionContext) _Agent_userBioData(ctx context.Context, field graphq
 	res := resTmp.(profileutils.BioData)
 	fc.Result = res
 	return ec.marshalOBioData2githubᚗcomᚋsavannahghiᚋprofileutilsᚐBioData(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agent_resendPIN(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ResendPIN, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Beneficiary_name(ctx context.Context, field graphql.CollectedField, obj *model.Beneficiary) (ret graphql.Marshaler) {
@@ -20900,6 +20984,14 @@ func (ec *executionContext) unmarshalInputRegisterAdminInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
+		case "roleIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleIDs"))
+			it.RoleIDs, err = ec.unmarshalOID2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -20957,6 +21049,14 @@ func (ec *executionContext) unmarshalInputRegisterAgentInput(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
 			it.DateOfBirth, err = ec.unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "roleIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleIDs"))
+			it.RoleIDs, err = ec.unmarshalOID2ᚕstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -21337,6 +21437,8 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Admin_photoUploadID(ctx, field, obj)
 		case "userBioData":
 			out.Values[i] = ec._Admin_userBioData(ctx, field, obj)
+		case "resendPIN":
+			out.Values[i] = ec._Admin_resendPIN(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21383,6 +21485,8 @@ func (ec *executionContext) _Agent(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Agent_photoUploadID(ctx, field, obj)
 		case "userBioData":
 			out.Values[i] = ec._Agent_userBioData(ctx, field, obj)
+		case "resendPIN":
+			out.Values[i] = ec._Agent_resendPIN(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -26065,6 +26169,51 @@ func (ec *executionContext) marshalOGender2ᚖgithubᚗcomᚋsavannahghiᚋenumu
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	return graphql.MarshalID(v)
+}
+
+func (ec *executionContext) unmarshalOID2ᚕstring(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕstring(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOID2string(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOIdentification2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐIdentification(ctx context.Context, sel ast.SelectionSet, v domain.Identification) graphql.Marshaler {

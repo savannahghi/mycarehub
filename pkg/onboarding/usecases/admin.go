@@ -93,6 +93,7 @@ func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.Register
 		},
 		Role:        profileutils.RoleTypeEmployee,
 		Permissions: profileutils.RoleTypeEmployee.Permissions(),
+		Roles:       input.RoleIDs,
 		CreatedByID: &usp.ID,
 		Created:     &timestamp,
 	}
@@ -162,22 +163,27 @@ func (a *AdminUseCaseImpl) notifyNewAdmin(ctx context.Context, emails []string, 
 		Pin  string
 	}
 
-	t := template.Must(template.New("adminApprovalEmail").Parse(utils.AdminApprovalEmail))
-	buf := new(bytes.Buffer)
-	err := t.Execute(buf, pin{name, otp})
-	if err != nil {
-		log.Fatalf("error while generating admin approval email template: %s", err)
-	}
-
 	message := fmt.Sprintf("%sPlease use this One Time PIN: %s to log onto Bewell with your phone number. For enquiries call us on 0790360360", adminWelcomeMessage, otp)
 	if err := a.engagement.SendSMS(ctx, phoneNumbers, message); err != nil {
 		return fmt.Errorf("unable to send admin registration message: %w", err)
 	}
 
-	text := buf.String()
-	for _, email := range emails {
-		if err := a.engagement.SendMail(ctx, email, text, adminWelcomeEmailSubject); err != nil {
-			return fmt.Errorf("unable to send admin registration email: %w", err)
+	if len(emails) > 0 {
+		t := template.Must(template.New("agentApprovalEmail").Parse(utils.AgentApprovalEmail))
+
+		buf := new(bytes.Buffer)
+
+		err := t.Execute(buf, pin{name, otp})
+		if err != nil {
+			log.Fatalf("error while generating agent approval email template: %s", err)
+		}
+
+		text := buf.String()
+
+		for _, email := range emails {
+			if err := a.engagement.SendMail(ctx, email, text, agentWelcomeEmailSubject); err != nil {
+				return fmt.Errorf("unable to send agent registration email: %w", err)
+			}
 		}
 	}
 
@@ -198,6 +204,14 @@ func (a *AdminUseCaseImpl) FetchAdmins(ctx context.Context) ([]*dto.Admin, error
 	admins := []*dto.Admin{}
 
 	for _, profile := range profiles {
+		// Retrieve the agent PIN
+		pin, err := a.repo.GetPINByProfileID(ctx, profile.ID)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			// the error is wrapped already. No need to wrap it again
+			return nil, err
+		}
+
 		admin := &dto.Admin{
 			ID:                      profile.ID,
 			PhotoUploadID:           profile.PhotoUploadID,
@@ -208,6 +222,7 @@ func (a *AdminUseCaseImpl) FetchAdmins(ctx context.Context) ([]*dto.Admin, error
 			SecondaryEmailAddresses: profile.SecondaryEmailAddresses,
 			TermsAccepted:           profile.TermsAccepted,
 			Suspended:               profile.Suspended,
+			ResendPIN:               pin.IsOTP,
 		}
 
 		admins = append(admins, admin)

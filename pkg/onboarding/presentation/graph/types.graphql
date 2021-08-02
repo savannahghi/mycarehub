@@ -435,6 +435,7 @@ type Admin {
   suspended: Boolean
   photoUploadID: String
   userBioData: BioData
+  resendPIN: Boolean
 }
 
 type Agent {
@@ -447,6 +448,7 @@ type Agent {
   suspended: Boolean
   photoUploadID: String
   userBioData: BioData
+  resendPIN: Boolean
 }
 
 extend type Link {

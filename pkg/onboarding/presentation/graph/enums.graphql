@@ -166,11 +166,11 @@ enum LinkType {
 }
 
 enum PermissionGroup {
-  PermissionGroupRole
-  PermissionGroupEmployee
-  PermissionGroupAgent
-  PermissionGroupPartner
-  PermissionGroupKYC
-  PermissionGroupConsumer
-  PermissionGroupPatient
+  Roles
+  Employees
+  Agents
+  Partners
+  KYC
+  Consumers
+  Patients
 }

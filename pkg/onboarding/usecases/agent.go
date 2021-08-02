@@ -56,11 +56,31 @@ func NewAgentUseCases(
 	}
 }
 
+func (a *AgentUseCaseImpl) checkPreconditions() {
+	if a.repo == nil {
+		log.Panicf("nil repository in agent usecase implementation")
+	}
+
+	if a.engagement == nil {
+		log.Panicf("nil engagement service in agent usecase implementation")
+	}
+
+	if a.baseExt == nil {
+		log.Panicf("nil base extension in agent usecase implementation")
+	}
+
+	if a.pin == nil {
+		log.Panicf("nil pin usecase in agent usecase implementation")
+	}
+
+}
+
 // RegisterAgent creates a new Agent in bewell
 func (a *AgentUseCaseImpl) RegisterAgent(
 	ctx context.Context,
 	input dto.RegisterAgentInput,
 ) (*profileutils.UserProfile, error) {
+	a.checkPreconditions()
 	ctx, span := tracer.Start(ctx, "RegisterAgent")
 	defer span.End()
 
@@ -102,6 +122,7 @@ func (a *AgentUseCaseImpl) RegisterAgent(
 		},
 		Role:        profileutils.RoleTypeAgent,
 		Permissions: profileutils.RoleTypeAgent.Permissions(),
+		Roles:       input.RoleIDs,
 		CreatedByID: &usp.ID,
 		Created:     &timestamp,
 	}
@@ -176,13 +197,6 @@ func (a *AgentUseCaseImpl) notifyNewAgent(
 		Pin  string
 	}
 
-	t := template.Must(template.New("agentApprovalEmail").Parse(utils.AgentApprovalEmail))
-	buf := new(bytes.Buffer)
-	err := t.Execute(buf, pin{name, otp})
-	if err != nil {
-		log.Fatalf("error while generating agent approval email template: %s", err)
-	}
-
 	message := fmt.Sprintf(
 		"%sPlease use this One Time PIN: %s to log onto Bewell with your phone number. You will be prompted to change the PIN on login. For enquiries call us on 0790360360",
 		agentWelcomeMessage,
@@ -192,10 +206,22 @@ func (a *AgentUseCaseImpl) notifyNewAgent(
 		return fmt.Errorf("unable to send agent registration message: %w", err)
 	}
 
-	text := buf.String()
-	for _, email := range emails {
-		if err := a.engagement.SendMail(ctx, email, text, agentWelcomeEmailSubject); err != nil {
-			return fmt.Errorf("unable to send agent registration email: %w", err)
+	if len(emails) > 0 {
+		t := template.Must(template.New("agentApprovalEmail").Parse(utils.AgentApprovalEmail))
+
+		buf := new(bytes.Buffer)
+
+		err := t.Execute(buf, pin{name, otp})
+		if err != nil {
+			log.Fatalf("error while generating agent approval email template: %s", err)
+		}
+
+		text := buf.String()
+
+		for _, email := range emails {
+			if err := a.engagement.SendMail(ctx, email, text, agentWelcomeEmailSubject); err != nil {
+				return fmt.Errorf("unable to send agent registration email: %w", err)
+			}
 		}
 	}
 
@@ -204,6 +230,7 @@ func (a *AgentUseCaseImpl) notifyNewAgent(
 
 // ActivateAgent activates/unsuspends the agent profile
 func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, agentID string) (bool, error) {
+	a.checkPreconditions()
 	ctx, span := tracer.Start(ctx, "ActivateAgent")
 	defer span.End()
 
@@ -242,6 +269,7 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, agentID string) (b
 
 // DeactivateAgent deacivates/suspends the agent profile
 func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) (bool, error) {
+	a.checkPreconditions()
 	ctx, span := tracer.Start(ctx, "DeactivateAgent")
 	defer span.End()
 
@@ -284,6 +312,7 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) 
 
 // FetchAgents fetches registered agents
 func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {
+	a.checkPreconditions()
 	ctx, span := tracer.Start(ctx, "FetchAgents")
 	defer span.End()
 
@@ -296,6 +325,14 @@ func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error
 	agents := []*dto.Agent{}
 
 	for _, profile := range profiles {
+		// Retrieve the agent PIN
+		pin, err := a.repo.GetPINByProfileID(ctx, profile.ID)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			// the error is wrapped already. No need to wrap it again
+			return nil, err
+		}
+
 		agent := &dto.Agent{
 			ID:                      profile.ID,
 			PhotoUploadID:           profile.PhotoUploadID,
@@ -306,6 +343,7 @@ func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error
 			SecondaryEmailAddresses: profile.SecondaryEmailAddresses,
 			TermsAccepted:           profile.TermsAccepted,
 			Suspended:               profile.Suspended,
+			ResendPIN:               pin.IsOTP,
 		}
 
 		agents = append(agents, agent)
@@ -319,6 +357,7 @@ func (a *AgentUseCaseImpl) FindAgentbyPhone(
 	ctx context.Context,
 	phoneNumber *string,
 ) (*dto.Agent, error) {
+	a.checkPreconditions()
 	ctx, span := tracer.Start(ctx, "FindAgentbyPhone")
 	defer span.End()
 
