@@ -56,6 +56,9 @@ type FakeOnboardingRepository struct {
 	// fetches a user profile by uid
 	GetUserProfileByUIDFn func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error)
 
+	// fetches user profile by email
+	GetUserProfileByPhoneOrEmailFn func(ctx context.Context, payload *dto.RetrieveUserProfileInput) (*profileutils.UserProfile, error)
+
 	// fetches a user profile by id
 	GetUserProfileByIDFn func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error)
 
@@ -193,6 +196,7 @@ type FakeOnboardingRepository struct {
 	CheckIfRoleNameExistsFn    func(ctx context.Context, name string) (bool, error)
 	DeleteRoleFn               func(ctx context.Context, roleID string) (bool, error)
 	CheckIfUserHasPermissionFn func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error)
+	UpdateUserProfileEmailFn   func(ctx context.Context, phone string, email string) error
 }
 
 // GetSupplierProfileByID ...
@@ -372,6 +376,12 @@ func (f *FakeOnboardingRepository) GetUserProfileByUID(
 	suspended bool,
 ) (*profileutils.UserProfile, error) {
 	return f.GetUserProfileByUIDFn(ctx, uid, suspended)
+}
+
+// GetUserProfileByPhoneOrEmail fetches user profile by email or phone
+func (f *FakeOnboardingRepository) GetUserProfileByPhoneOrEmail(ctx context.Context, payload *dto.RetrieveUserProfileInput) (*profileutils.UserProfile, error) {
+	return f.GetUserProfileByPhoneOrEmailFn(ctx, payload)
+
 }
 
 // GetUserProfileByID fetches a user profile by id
@@ -963,4 +973,9 @@ func (f *FakeOnboardingRepository) UpdateUserRoleIDs(
 // DeleteRole ...
 func (f *FakeOnboardingRepository) DeleteRole(ctx context.Context, roleID string) (bool, error) {
 	return f.DeleteRoleFn(ctx, roleID)
+}
+
+// UpdateUserProfileEmail ...
+func (f *FakeOnboardingRepository) UpdateUserProfileEmail(ctx context.Context, phone string, email string) error {
+	return f.UpdateUserProfileEmailFn(ctx, phone, email)
 }

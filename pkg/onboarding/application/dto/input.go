@@ -420,3 +420,9 @@ type OtpPayload struct {
 	PhoneNumber *string `json:"phoneNumber"`
 	AppID       *string `json:"appId"`
 }
+
+// RetrieveUserProfileInput will be used to fetch a user profile by either email address or phone
+type RetrieveUserProfileInput struct {
+	Email       *string `json:"email" firestore:"emailAddress"`
+	PhoneNumber *string `json:"phone" firestore:"phoneNumber"`
+}

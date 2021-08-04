@@ -81,6 +81,11 @@ type ProfileUseCase interface {
 		UID string,
 	) (*profileutils.UserProfile, error)
 
+	GetUserProfileByPhoneOrEmail(
+		ctx context.Context,
+		payload *dto.RetrieveUserProfileInput,
+	) (*profileutils.UserProfile, error)
+
 	// masks phone number.
 	MaskPhoneNumbers(phones []string) []string
 	// called to set the primary phone number of a specific profile.
@@ -979,6 +984,14 @@ func (p *ProfileUseCaseImpl) GetUserProfileByUID(
 	defer span.End()
 
 	return p.onboardingRepository.GetUserProfileByUID(ctx, UID, false)
+}
+
+// GetUserProfileByPhoneOrEmail retrieves user profie by email address is they have one
+func (p *ProfileUseCaseImpl) GetUserProfileByPhoneOrEmail(ctx context.Context, payload *dto.RetrieveUserProfileInput) (*profileutils.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "GetUserProfileByPhoneOrEmail")
+	defer span.End()
+
+	return p.onboardingRepository.GetUserProfileByPhoneOrEmail(ctx, payload)
 }
 
 // SetPrimaryPhoneNumber set the primary phone number of the user after verifying the otp code

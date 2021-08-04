@@ -220,6 +220,183 @@ func (fr *Repository) GetUserProfileByUID(
 	return userProfile, nil
 }
 
+//GetUserProfileByPhoneOrEmail retrieves user profile by email adddress
+func (fr *Repository) GetUserProfileByPhoneOrEmail(ctx context.Context, payload *dto.RetrieveUserProfileInput) (*profileutils.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "GetUserProfileByPhoneOrEmail")
+	defer span.End()
+
+	if payload.PhoneNumber == nil {
+		query := &GetAllQuery{
+			CollectionName: fr.GetUserProfileCollectionName(),
+			FieldName:      "primaryEmailAddress",
+			Value:          payload.Email,
+			Operator:       "==",
+		}
+
+		docs, err := fr.FirestoreClient.GetAll(ctx, query)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			return nil, exceptions.InternalServerError(err)
+		}
+
+		if len(docs) == 0 {
+			query := &GetAllQuery{
+				CollectionName: fr.GetUserProfileCollectionName(),
+				FieldName:      "secondaryEmailAddresses",
+				Value:          payload.Email,
+				Operator:       "array-contains",
+			}
+
+			docs, err := fr.FirestoreClient.GetAll(ctx, query)
+			if err != nil {
+				utils.RecordSpanError(span, err)
+				return nil, exceptions.InternalServerError(err)
+			}
+
+			if len(docs) == 0 {
+				err = exceptions.ProfileNotFoundError(err)
+
+				utils.RecordSpanError(span, err)
+				return nil, err
+			}
+
+			dsnap := docs[0]
+			userProfile := &profileutils.UserProfile{}
+			err = dsnap.DataTo(userProfile)
+			if err != nil {
+				utils.RecordSpanError(span, err)
+				err = fmt.Errorf("unable to read user profile")
+				return nil, exceptions.InternalServerError(err)
+			}
+
+			return userProfile, nil
+		}
+
+		dsnap := docs[0]
+		userProfile := &profileutils.UserProfile{}
+		err = dsnap.DataTo(userProfile)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			err = fmt.Errorf("unable to read user profile")
+			return nil, exceptions.InternalServerError(err)
+		}
+
+		return userProfile, nil
+	}
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		FieldName:      "primaryPhone",
+		Value:          payload.PhoneNumber,
+		Operator:       "==",
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	if len(docs) == 0 {
+		query := &GetAllQuery{
+			CollectionName: fr.GetUserProfileCollectionName(),
+			FieldName:      "secondaryPhoneNumbers",
+			Value:          payload.PhoneNumber,
+			Operator:       "array-contains",
+		}
+
+		docs, err := fr.FirestoreClient.GetAll(ctx, query)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			return nil, exceptions.InternalServerError(err)
+		}
+
+		if len(docs) == 0 {
+			err = exceptions.ProfileNotFoundError(err)
+
+			utils.RecordSpanError(span, err)
+			return nil, err
+		}
+
+		dsnap := docs[0]
+		userProfile := &profileutils.UserProfile{}
+		err = dsnap.DataTo(userProfile)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			err = fmt.Errorf("unable to read user profile")
+			return nil, exceptions.InternalServerError(err)
+		}
+
+		return userProfile, nil
+	}
+
+	dsnap := docs[0]
+	userProfile := &profileutils.UserProfile{}
+	err = dsnap.DataTo(userProfile)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		err = fmt.Errorf("unable to read user profile")
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	return userProfile, nil
+}
+
+// UpdateUserProfileEmail updates user profile's email
+func (fr *Repository) UpdateUserProfileEmail(
+	ctx context.Context,
+	phone string,
+	email string,
+) error {
+	ctx, span := tracer.Start(ctx, "UpdateUserProfileEmail")
+	defer span.End()
+
+	payload := &dto.RetrieveUserProfileInput{
+		PhoneNumber: &phone,
+	}
+
+	profile, err := fr.GetUserProfileByPhoneOrEmail(ctx, payload)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		// this is a wrapped error. No need to wrap it again
+		return err
+	}
+	profile.PrimaryEmailAddress = &email
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		FieldName:      "primaryPhone",
+		Value:          profile.PrimaryPhone,
+		Operator:       "==",
+	}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to parse user profile as firebase snapshot: %v", err),
+		)
+	}
+
+	if len(docs) == 0 {
+		return exceptions.InternalServerError(fmt.Errorf("user profile not found"))
+	}
+
+	updateCommand := &UpdateCommand{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		ID:             docs[0].Ref.ID,
+		Data:           profile,
+	}
+	err = fr.FirestoreClient.Update(ctx, updateCommand)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return exceptions.InternalServerError(
+			fmt.Errorf("unable to update user profile primary phone number: %v", err),
+		)
+	}
+
+	return nil
+}
+
 // GetUserProfileByID retrieves a user profile by ID
 func (fr *Repository) GetUserProfileByID(
 	ctx context.Context,

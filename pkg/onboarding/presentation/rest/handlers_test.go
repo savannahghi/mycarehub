@@ -1406,6 +1406,126 @@ func TestHandlersInterfacesImpl_GetUserProfileByUID(t *testing.T) {
 	}
 }
 
+func composePhoneOrEmailPayload(t *testing.T, payload *dto.RetrieveUserProfileInput) *bytes.Buffer {
+	emailPayload := &dto.RetrieveUserProfileInput{
+		Email:       payload.Email,
+		PhoneNumber: payload.PhoneNumber,
+	}
+	bs, err := json.Marshal(emailPayload)
+	if err != nil {
+		t.Errorf("unable to marshal email string to JSON: %s", err)
+	}
+	return bytes.NewBuffer(bs)
+}
+
+func TestHandlersInterfacesImpl_GetUserProfileByPhoneOrEmail(t *testing.T) {
+
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+
+	h := rest.NewHandlersInterfaces(i)
+
+	email := "test@kathurima.com"
+
+	validPayload := &dto.RetrieveUserProfileInput{
+		Email:       &email,
+		PhoneNumber: nil,
+	}
+	payload := composePhoneOrEmailPayload(t, validPayload)
+
+	invalidPayload := &dto.RetrieveUserProfileInput{
+		Email:       nil,
+		PhoneNumber: nil,
+	}
+
+	payload2 := composePhoneOrEmailPayload(t, invalidPayload)
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       http.HandlerFunc
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "valid:get_profile_by_email",
+			args: args{
+				url:        fmt.Sprintf("%s/get_profile_by_email", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+
+		{
+			name: "invalid:_unable_to_get_profile_by_email",
+			args: args{
+				url:        fmt.Sprintf("%s/get_profile_by_email", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       payload2,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+			response := httptest.NewRecorder()
+			if tt.name == "valid:get_profile_by_email" {
+				fakeRepo.UpdateUserProfileEmailFn = func(ctx context.Context, phone, email string) error {
+					return nil
+				}
+				fakeRepo.GetUserProfileByPhoneOrEmailFn = func(ctx context.Context, payload *dto.RetrieveUserProfileInput) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
+						PrimaryEmailAddress: &email,
+					}, nil
+				}
+			}
+			if tt.name == "invalid:_unable_to_get_profile_by_email" {
+				fakeRepo.GetUserProfileByPhoneOrEmailFn = func(ctx context.Context, payload *dto.RetrieveUserProfileInput) (*profileutils.UserProfile, error) {
+					return nil, fmt.Errorf("unable to retrieve user profile")
+				}
+			}
+
+			svr := h.GetUserProfileByPhoneOrEmail()
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+
+			dataResponse, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				t.Errorf("can't read response body: %v", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response body data")
+				return
+			}
+
+		})
+	}
+}
+
 func TestHandlersInterfacesImpl_SendOTP(t *testing.T) {
 
 	i, err := InitializeFakeOnboardingInteractor()

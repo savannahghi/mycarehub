@@ -38,6 +38,7 @@ type HandlersInterfaces interface {
 	FindSupplierByUID() http.HandlerFunc
 	RemoveUserByPhoneNumber() http.HandlerFunc
 	GetUserProfileByUID() http.HandlerFunc
+	GetUserProfileByPhoneOrEmail() http.HandlerFunc
 	UpdateCovers() http.HandlerFunc
 	ProfileAttributes() http.HandlerFunc
 	RegisterPushToken() http.HandlerFunc
@@ -657,6 +658,39 @@ func (h *HandlersInterfacesImpl) GetUserProfileByUID() http.HandlerFunc {
 		profile, err := h.interactor.Onboarding.GetUserProfileByUID(
 			ctx,
 			*p.UID,
+		)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, profile, http.StatusOK)
+	}
+}
+
+// GetUserProfileByPhoneOrEmail fetches and returns a user profile via REST ISC
+func (h *HandlersInterfacesImpl) GetUserProfileByPhoneOrEmail() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.RetrieveUserProfileInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.Email == nil && payload.PhoneNumber == nil {
+			err := fmt.Errorf("expected both `phonenumber` and `email` to be defined")
+			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		if payload.Email != nil && payload.PhoneNumber != nil {
+			err := fmt.Errorf("only one parameter can be used to retrieve user profile. use either email or phone")
+			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		profile, err := h.interactor.Onboarding.GetUserProfileByPhoneOrEmail(
+			ctx,
+			payload,
 		)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)

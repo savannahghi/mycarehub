@@ -331,6 +331,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.GetUserProfileByUID())
+	isc.Path("/retrieve_user_profile").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.GetUserProfileByPhoneOrEmail())
 	isc.Path("/update_covers").Methods(
 		http.MethodPost,
 		http.MethodOptions).

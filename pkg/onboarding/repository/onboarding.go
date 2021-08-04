@@ -68,6 +68,12 @@ type CustomerRepository interface {
 		profileID string,
 	) (*profileutils.Customer, error)
 
+	// GetUserProfileByPhoneOrEmail gets usser profile by phone or email
+	GetUserProfileByPhoneOrEmail(ctx context.Context, payload *dto.RetrieveUserProfileInput) (*profileutils.UserProfile, error)
+
+	// UpdateUserProfileEmail updates user profile's email
+	UpdateUserProfileEmail(ctx context.Context, phone string, email string) error
+
 	UpdateCustomerProfile(
 		ctx context.Context,
 		profileID string,
