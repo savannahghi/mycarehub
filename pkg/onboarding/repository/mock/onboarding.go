@@ -191,6 +191,7 @@ type FakeOnboardingRepository struct {
 	GetRolesByIDsFn            func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error)
 	GetRoleByIDFn              func(ctx context.Context, roleID string) (*profileutils.Role, error)
 	CheckIfRoleNameExistsFn    func(ctx context.Context, name string) (bool, error)
+	DeleteRoleFn               func(ctx context.Context, roleID string) (bool, error)
 	CheckIfUserHasPermissionFn func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error)
 }
 
@@ -828,12 +829,19 @@ func (f *FakeOnboardingRepository) CreateDetailedSupplierProfile(
 }
 
 // UpdateAITSessionDetails ...
-func (f *FakeOnboardingRepository) UpdateAITSessionDetails(ctx context.Context, phoneNumber string, contactLead *domain.USSDLeadDetails) error {
+func (f *FakeOnboardingRepository) UpdateAITSessionDetails(
+	ctx context.Context,
+	phoneNumber string,
+	contactLead *domain.USSDLeadDetails,
+) error {
 	return f.UpdateAITSessionDetailsFn(ctx, phoneNumber, contactLead)
 }
 
 // GetAITDetails ...
-func (f *FakeOnboardingRepository) GetAITDetails(ctx context.Context, phoneNumber string) (*domain.USSDLeadDetails, error) {
+func (f *FakeOnboardingRepository) GetAITDetails(
+	ctx context.Context,
+	phoneNumber string,
+) (*domain.USSDLeadDetails, error) {
 	return f.GetAITDetailsFn(ctx, phoneNumber)
 }
 
@@ -927,16 +935,32 @@ func (f *FakeOnboardingRepository) GetRolesByIDs(
 }
 
 // CheckIfRoleNameExists ...
-func (f *FakeOnboardingRepository) CheckIfRoleNameExists(ctx context.Context, name string) (bool, error) {
+func (f *FakeOnboardingRepository) CheckIfRoleNameExists(
+	ctx context.Context,
+	name string,
+) (bool, error) {
 	return f.CheckIfRoleNameExistsFn(ctx, name)
 }
 
 // CheckIfUserHasPermission ...
-func (f *FakeOnboardingRepository) CheckIfUserHasPermission(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+func (f *FakeOnboardingRepository) CheckIfUserHasPermission(
+	ctx context.Context,
+	UID string,
+	requiredPermission profileutils.Permission,
+) (bool, error) {
 	return f.CheckIfUserHasPermissionFn(ctx, UID, requiredPermission)
 }
 
 // UpdateUserRoleIDs ...
-func (f *FakeOnboardingRepository) UpdateUserRoleIDs(ctx context.Context, id string, roleIDs []string) error {
+func (f *FakeOnboardingRepository) UpdateUserRoleIDs(
+	ctx context.Context,
+	id string,
+	roleIDs []string,
+) error {
 	return f.UpdateUserRoleIDsFn(ctx, id, roleIDs)
+}
+
+// DeleteRole ...
+func (f *FakeOnboardingRepository) DeleteRole(ctx context.Context, roleID string) (bool, error) {
+	return f.DeleteRoleFn(ctx, roleID)
 }

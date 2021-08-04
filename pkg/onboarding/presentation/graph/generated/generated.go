@@ -276,6 +276,7 @@ type ComplexityRoot struct {
 		CreateRole                       func(childComplexity int, input dto.RoleInput) int
 		DeactivateAgent                  func(childComplexity int, agentID string) int
 		DeleteFavoriteNavAction          func(childComplexity int, title string) int
+		DeleteRole                       func(childComplexity int, roleID string) int
 		DeregisterAllMicroservices       func(childComplexity int) int
 		DeregisterMicroservice           func(childComplexity int, id string) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
@@ -288,6 +289,7 @@ type ComplexityRoot struct {
 		RetireSecondaryEmailAddresses    func(childComplexity int, emails []string) int
 		RetireSecondaryPhoneNumbers      func(childComplexity int, phones []string) int
 		RevokeRole                       func(childComplexity int, userID string, roleID string) int
+		RevokeRolePermission             func(childComplexity int, input dto.RolePermissionInput) int
 		SaveFavoriteNavAction            func(childComplexity int, title string) int
 		SetPrimaryEmailAddress           func(childComplexity int, email string, otp string) int
 		SetPrimaryPhoneNumber            func(childComplexity int, phone string, otp string) int
@@ -615,7 +617,9 @@ type MutationResolver interface {
 	DeregisterMicroservice(ctx context.Context, id string) (bool, error)
 	DeregisterAllMicroservices(ctx context.Context) (bool, error)
 	CreateRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
+	DeleteRole(ctx context.Context, roleID string) (bool, error)
 	AddPermissionsToRole(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
+	RevokeRolePermission(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
 	AssignRole(ctx context.Context, userID string, roleID string) (bool, error)
 	RevokeRole(ctx context.Context, userID string, roleID string) (bool, error)
 }
@@ -1825,6 +1829,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteFavoriteNavAction(childComplexity, args["title"].(string)), true
 
+	case "Mutation.deleteRole":
+		if e.complexity.Mutation.DeleteRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteRole(childComplexity, args["roleID"].(string)), true
+
 	case "Mutation.deregisterAllMicroservices":
 		if e.complexity.Mutation.DeregisterAllMicroservices == nil {
 			break
@@ -1958,6 +1974,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RevokeRole(childComplexity, args["userID"].(string), args["roleID"].(string)), true
+
+	case "Mutation.revokeRolePermission":
+		if e.complexity.Mutation.RevokeRolePermission == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_revokeRolePermission_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RevokeRolePermission(childComplexity, args["input"].(dto.RolePermissionInput)), true
 
 	case "Mutation.saveFavoriteNavAction":
 		if e.complexity.Mutation.SaveFavoriteNavAction == nil {
@@ -4274,7 +4302,11 @@ extend type Mutation {
 
   createRole(input: RoleInput!): RoleOutput!
 
+  deleteRole(roleID: String!): Boolean!
+
   addPermissionsToRole(input: RolePermissionInput!): RoleOutput!
+
+  revokeRolePermission(input: RolePermissionInput!): RoleOutput!
 
   assignRole(userID: ID!, roleID: ID!): Boolean!
 
@@ -5239,6 +5271,21 @@ func (ec *executionContext) field_Mutation_deleteFavoriteNavAction_args(ctx cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["roleID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roleID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deregisterMicroservice_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5389,6 +5436,21 @@ func (ec *executionContext) field_Mutation_retireSecondaryPhoneNumbers_args(ctx 
 		}
 	}
 	args["phones"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_revokeRolePermission_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.RolePermissionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNRolePermissionInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRolePermissionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -11891,6 +11953,48 @@ func (ec *executionContext) _Mutation_createRole(ctx context.Context, field grap
 	return ec.marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_deleteRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteRole_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteRole(rctx, args["roleID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_addPermissionsToRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11917,6 +12021,48 @@ func (ec *executionContext) _Mutation_addPermissionsToRole(ctx context.Context, 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().AddPermissionsToRole(rctx, args["input"].(dto.RolePermissionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*dto.RoleOutput)
+	fc.Result = res
+	return ec.marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_revokeRolePermission(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_revokeRolePermission_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RevokeRolePermission(rctx, args["input"].(dto.RolePermissionInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22610,8 +22756,18 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "deleteRole":
+			out.Values[i] = ec._Mutation_deleteRole(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addPermissionsToRole":
 			out.Values[i] = ec._Mutation_addPermissionsToRole(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "revokeRolePermission":
+			out.Values[i] = ec._Mutation_revokeRolePermission(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

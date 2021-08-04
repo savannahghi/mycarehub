@@ -321,11 +321,9 @@ type RolesRepository interface {
 
 	CheckIfRoleNameExists(ctx context.Context, name string) (bool, error)
 
-	UpdateRoleDetails(
-		ctx context.Context,
-		profileID string,
-		role profileutils.Role,
-	) (*profileutils.Role, error)
+	UpdateRoleDetails(ctx context.Context, profileID string, role profileutils.Role) (*profileutils.Role, error)
+
+	DeleteRole(ctx context.Context, roleID string) (bool, error)
 
 	CheckIfUserHasPermission(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error)
 }

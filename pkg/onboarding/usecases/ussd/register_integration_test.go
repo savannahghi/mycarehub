@@ -9,7 +9,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/scalarutils"
-	"github.com/sirupsen/logrus"
 
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
@@ -297,7 +296,6 @@ func TestImpl_HandleUserRegistration(t *testing.T) {
 
 			got := u.AITUSSD.HandleUserRegistration(tt.args.ctx, updatedSession, tt.args.userResponse)
 			if got != tt.want {
-				logrus.Println(got)
 				t.Errorf("Impl.HandleUserRegistration() = %v, want %v", got, tt.want)
 			}
 		})

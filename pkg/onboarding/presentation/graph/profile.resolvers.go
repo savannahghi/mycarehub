@@ -586,11 +586,31 @@ func (r *mutationResolver) CreateRole(ctx context.Context, input dto.RoleInput) 
 	return role, err
 }
 
+func (r *mutationResolver) DeleteRole(ctx context.Context, roleID string) (bool, error) {
+	startTime := time.Now()
+
+	success, err := r.interactor.Role.DeleteRole(ctx, roleID)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "deleteRole", err)
+
+	return success, err
+}
+
 func (r *mutationResolver) AddPermissionsToRole(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error) {
 	startTime := time.Now()
 
 	role, err := r.interactor.Role.AddPermissionsToRole(ctx, input)
+
 	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addPermissionsToRole", err)
+
+	return role, err
+}
+
+func (r *mutationResolver) RevokeRolePermission(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error) {
+	startTime := time.Now()
+
+	role, err := r.interactor.Role.RevokeRolePermission(ctx, input)
+
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "revokeRolePermission", err)
 
 	return role, err
 }

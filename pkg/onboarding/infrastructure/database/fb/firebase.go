@@ -30,7 +30,9 @@ import (
 )
 
 // Package that generates trace information
-var tracer = otel.Tracer("gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb")
+var tracer = otel.Tracer(
+	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb",
+)
 
 const (
 	userProfileCollectionName            = "user_profiles"
@@ -185,7 +187,6 @@ func (fr *Repository) GetUserProfileByUID(
 		utils.RecordSpanError(span, err)
 		return nil, exceptions.InternalServerError(err)
 	}
-
 	if len(docs) == 0 {
 		err = exceptions.ProfileNotFoundError(fmt.Errorf("user profile not found"))
 
@@ -3874,7 +3875,7 @@ func (fr *Repository) GetRoleByID(ctx context.Context, roleID string) (*profileu
 	}
 
 	if len(docs) != 1 {
-		err = exceptions.ProfileNotFoundError(fmt.Errorf("role not found"))
+		err = fmt.Errorf("role with id %v not found", roleID)
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
@@ -3911,6 +3912,81 @@ func (fr *Repository) GetRolesByIDs(
 	return &roles, nil
 }
 
+// DeleteRole removes a role permanently from the database
+func (fr *Repository) DeleteRole(
+	ctx context.Context,
+	roleID string,
+) (bool, error) {
+	ctx, span := tracer.Start(ctx, "DeleteRole")
+	defer span.End()
+
+	// remove this role for all users who has it assigned
+	query1 := &GetAllQuery{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		FieldName:      "roles",
+		Operator:       "array-contains",
+		Value:          roleID,
+	}
+
+	docs1, err := fr.FirestoreClient.GetAll(ctx, query1)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, exceptions.InternalServerError(err)
+	}
+
+	for _, doc := range docs1 {
+		user := &profileutils.UserProfile{}
+		err = doc.DataTo(user)
+		if err != nil {
+			return false, fmt.Errorf("unable to parse userprofile")
+		}
+		newRoles := []string{}
+		for _, userRole := range user.Roles {
+			if userRole != roleID {
+				newRoles = append(newRoles, userRole)
+			}
+		}
+		err = fr.UpdateUserRoleIDs(ctx, user.ID, newRoles)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			return false, exceptions.InternalServerError(err)
+		}
+	}
+
+	// delete the role
+	query := &GetAllQuery{
+		CollectionName: fr.GetRolesCollectionName(),
+		FieldName:      "id",
+		Value:          roleID,
+		Operator:       "==",
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, exceptions.InternalServerError(err)
+	}
+
+	// means the document was removed or does not exist
+	if len(docs) == 0 {
+		return false, fmt.Errorf("error role does not exist")
+	}
+	deleteCommand := &DeleteCommand{
+		CollectionName: fr.GetRolesCollectionName(),
+		ID:             docs[0].Ref.ID,
+	}
+	err = fr.FirestoreClient.Delete(ctx, deleteCommand)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, fmt.Errorf(
+			"unable to remove role of ID %v, error: %v",
+			roleID,
+			err,
+		)
+	}
+	return true, nil
+}
+
 // CheckIfRoleNameExists checks if a role with a similar name exists
 // Ensures unique name for each role during creation
 func (fr *Repository) CheckIfRoleNameExists(ctx context.Context, name string) (bool, error) {
@@ -3938,7 +4014,11 @@ func (fr *Repository) CheckIfRoleNameExists(ctx context.Context, name string) (b
 }
 
 //CheckIfUserHasPermission this method checks if a user has the required permission
-func (fr *Repository) CheckIfUserHasPermission(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+func (fr *Repository) CheckIfUserHasPermission(
+	ctx context.Context,
+	UID string,
+	requiredPermission profileutils.Permission,
+) (bool, error) {
 	ctx, span := tracer.Start(ctx, "CheckIfUserHasPermission")
 	defer span.End()
 

@@ -2339,7 +2339,7 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 					return
 				}
 			}
-			logrus.Print(resp.StatusCode)
+
 			if tt.wantStatus != resp.StatusCode {
 				b, _ := httputil.DumpResponse(resp, true)
 				t.Errorf("Bad status response returned; %v ", string(b))

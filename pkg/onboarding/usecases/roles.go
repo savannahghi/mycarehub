@@ -16,9 +16,14 @@ import (
 type RoleUseCase interface {
 	CreateRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
 	GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error)
+	DeleteRole(ctx context.Context, roleID string) (bool, error)
 	GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error)
 
 	AddPermissionsToRole(
+		ctx context.Context,
+		input dto.RolePermissionInput,
+	) (*dto.RoleOutput, error)
+	RevokeRolePermission(
 		ctx context.Context,
 		input dto.RolePermissionInput,
 	) (*dto.RoleOutput, error)
@@ -117,6 +122,7 @@ func (r *RoleUseCaseImpl) GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, e
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
+
 	// Check logged in user has the right permissions
 	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanViewRole)
 	if err != nil {
@@ -156,6 +162,36 @@ func (r *RoleUseCaseImpl) GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, e
 	return roleOutput, nil
 }
 
+//DeleteRole removes a role from the database permanently
+func (r *RoleUseCaseImpl) DeleteRole(ctx context.Context, roleID string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "DeleteRole")
+	defer span.End()
+
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+	// Check logged in user has the right permissions
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanEditRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+	if !allowed {
+		return false, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to delete roles"),
+		)
+	}
+
+	success, err := r.repo.DeleteRole(ctx, roleID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+	return success, nil
+}
+
 //GetAllPermissions returns a list of all permissions declared in the system
 func (r *RoleUseCaseImpl) GetAllPermissions(
 	ctx context.Context,
@@ -170,8 +206,8 @@ func (r *RoleUseCaseImpl) GetAllPermissions(
 	}
 
 	output := []*profileutils.Permission{}
-	for _, perm := range perms {
 
+	for _, perm := range perms {
 		p := &profileutils.Permission{
 			Scope:       perm.Scope,
 			Group:       perm.Group,
@@ -226,6 +262,82 @@ func (r *RoleUseCaseImpl) AddPermissionsToRole(
 			role.Scopes = append(role.Scopes, permission.Scope)
 		}
 	}
+
+	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// save role to database
+	updatedRole, err := r.repo.UpdateRoleDetails(ctx, userProfile.ID, *role)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// get permissions
+	perms, err := updatedRole.Permissions(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	output := &dto.RoleOutput{
+		ID:          updatedRole.ID,
+		Name:        updatedRole.Name,
+		Description: updatedRole.Description,
+		Active:      updatedRole.Active,
+		Scopes:      updatedRole.Scopes,
+		Permissions: perms,
+	}
+
+	return output, nil
+}
+
+// RevokeRolePermission removes a permission from a role
+func (r *RoleUseCaseImpl) RevokeRolePermission(
+	ctx context.Context,
+	input dto.RolePermissionInput,
+) (*dto.RoleOutput, error) {
+	ctx, span := tracer.Start(ctx, "RevokeRolePermission")
+	defer span.End()
+
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// Check logged in user has the right permissions
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanEditRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	if !allowed {
+		return nil, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to edit role"),
+		)
+	}
+
+	role, err := r.repo.GetRoleByID(ctx, input.RoleID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	newScopes := []string{}
+
+	for _, roleScope := range role.Scopes {
+		for _, scope := range input.Scopes {
+			if roleScope != scope {
+				newScopes = append(newScopes, roleScope)
+			}
+		}
+	}
+
+	role.Scopes = newScopes
 
 	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
 	if err != nil {
