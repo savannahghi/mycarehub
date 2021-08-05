@@ -337,3 +337,8 @@ input RolePermissionInput {
   roleID: ID!
   scopes: [String!]!
 }
+
+input ProfileSuspensionInput {
+  id: ID!
+  reason: String!
+}

@@ -26,8 +26,8 @@ const (
 // AgentUseCase represent the business logic required for management of agents
 type AgentUseCase interface {
 	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*profileutils.UserProfile, error)
-	ActivateAgent(ctx context.Context, agentID string) (bool, error)
-	DeactivateAgent(ctx context.Context, agentID string) (bool, error)
+	ActivateAgent(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error)
+	DeactivateAgent(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error)
 	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
 	FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error)
 }
@@ -72,7 +72,6 @@ func (a *AgentUseCaseImpl) checkPreconditions() {
 	if a.pin == nil {
 		log.Panicf("nil pin usecase in agent usecase implementation")
 	}
-
 }
 
 // RegisterAgent creates a new Agent in bewell
@@ -228,8 +227,8 @@ func (a *AgentUseCaseImpl) notifyNewAgent(
 	return nil
 }
 
-// ActivateAgent activates/unsuspends the agent profile
-func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, agentID string) (bool, error) {
+// ActivateAgent activates/unsuspend the agent profile
+func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error) {
 	a.checkPreconditions()
 	ctx, span := tracer.Start(ctx, "ActivateAgent")
 	defer span.End()
@@ -253,7 +252,7 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, agentID string) (b
 		)
 	}
 
-	agent, err := a.repo.GetUserProfileByID(ctx, agentID, true)
+	agent, err := a.repo.GetUserProfileByID(ctx, input.ID, true)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(err)
@@ -267,8 +266,8 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, agentID string) (b
 	return true, nil
 }
 
-// DeactivateAgent deacivates/suspends the agent profile
-func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) (bool, error) {
+// DeactivateAgent deactivates/suspends the agent profile
+func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error) {
 	a.checkPreconditions()
 	ctx, span := tracer.Start(ctx, "DeactivateAgent")
 	defer span.End()
@@ -292,7 +291,7 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, agentID string) 
 	}
 
 	// Get agent profile using phoneNumber
-	agent, err := a.repo.GetUserProfileByID(ctx, agentID, false)
+	agent, err := a.repo.GetUserProfileByID(ctx, input.ID, false)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return false, exceptions.InternalServerError(err)

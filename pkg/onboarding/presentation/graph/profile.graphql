@@ -147,9 +147,13 @@ extend type Mutation {
 
   registerAgent(input: RegisterAgentInput!): UserProfile!
 
-  activateAgent(agentID: String!): Boolean!
+  activateEmployeeAccount(input: ProfileSuspensionInput): Boolean!
 
-  deactivateAgent(agentID: String!): Boolean!
+  deactivateEmployeeAccount(input: ProfileSuspensionInput): Boolean!
+
+  activateAgent(input: ProfileSuspensionInput): Boolean!
+
+  deactivateAgent(input: ProfileSuspensionInput): Boolean!
 
   saveFavoriteNavAction(title: String!): Boolean!
 

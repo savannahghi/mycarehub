@@ -505,20 +505,40 @@ func (r *mutationResolver) RegisterAgent(ctx context.Context, input dto.Register
 	return userProfile, err
 }
 
-func (r *mutationResolver) ActivateAgent(ctx context.Context, agentID string) (bool, error) {
+func (r *mutationResolver) ActivateEmployeeAccount(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error) {
 	startTime := time.Now()
 
-	success, err := r.interactor.Agent.ActivateAgent(ctx, agentID)
+	success, err := r.interactor.Admin.ActivateAdmin(ctx, *input)
+
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "activateEmployeeAccount", err)
+
+	return success, err
+}
+
+func (r *mutationResolver) DeactivateEmployeeAccount(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error) {
+	startTime := time.Now()
+
+	success, err := r.interactor.Admin.DeactivateAdmin(ctx, *input)
+
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "deactivateEmployeeAccount", err)
+
+	return success, err
+}
+
+func (r *mutationResolver) ActivateAgent(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error) {
+	startTime := time.Now()
+
+	success, err := r.interactor.Agent.ActivateAgent(ctx, *input)
 
 	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "activateAgent", err)
 
 	return success, err
 }
 
-func (r *mutationResolver) DeactivateAgent(ctx context.Context, agentID string) (bool, error) {
+func (r *mutationResolver) DeactivateAgent(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error) {
 	startTime := time.Now()
 
-	success, err := r.interactor.Agent.DeactivateAgent(ctx, agentID)
+	success, err := r.interactor.Agent.DeactivateAgent(ctx, *input)
 
 	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "deactivateAgent", err)
 

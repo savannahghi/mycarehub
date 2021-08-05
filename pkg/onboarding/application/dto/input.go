@@ -426,3 +426,9 @@ type RetrieveUserProfileInput struct {
 	Email       *string `json:"email" firestore:"emailAddress"`
 	PhoneNumber *string `json:"phone" firestore:"phoneNumber"`
 }
+
+//ProfileSuspensionInput is the input required to suspend/unsuspend a PRO account
+type ProfileSuspensionInput struct {
+	ID     string `json:"id,omitempty"`
+	Reason string `json:"reason,omitempty"`
+}

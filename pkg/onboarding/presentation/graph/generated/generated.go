@@ -253,7 +253,8 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		ActivateAgent                    func(childComplexity int, agentID string) int
+		ActivateAgent                    func(childComplexity int, input *dto.ProfileSuspensionInput) int
+		ActivateEmployeeAccount          func(childComplexity int, input *dto.ProfileSuspensionInput) int
 		ActivateRole                     func(childComplexity int, roleID string) int
 		AddAddress                       func(childComplexity int, input dto.UserAddressInput, addressType enumutils.AddressType) int
 		AddIndividualCoachKyc            func(childComplexity int, input domain.IndividualCoach) int
@@ -275,7 +276,8 @@ type ComplexityRoot struct {
 		AssignRole                       func(childComplexity int, userID string, roleID string) int
 		CompleteSignup                   func(childComplexity int, flavour feedlib.Flavour) int
 		CreateRole                       func(childComplexity int, input dto.RoleInput) int
-		DeactivateAgent                  func(childComplexity int, agentID string) int
+		DeactivateAgent                  func(childComplexity int, input *dto.ProfileSuspensionInput) int
+		DeactivateEmployeeAccount        func(childComplexity int, input *dto.ProfileSuspensionInput) int
 		DeactivateRole                   func(childComplexity int, roleID string) int
 		DeleteFavoriteNavAction          func(childComplexity int, title string) int
 		DeleteRole                       func(childComplexity int, roleID string) int
@@ -613,8 +615,10 @@ type MutationResolver interface {
 	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error)
 	RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*profileutils.UserProfile, error)
 	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*profileutils.UserProfile, error)
-	ActivateAgent(ctx context.Context, agentID string) (bool, error)
-	DeactivateAgent(ctx context.Context, agentID string) (bool, error)
+	ActivateEmployeeAccount(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error)
+	DeactivateEmployeeAccount(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error)
+	ActivateAgent(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error)
+	DeactivateAgent(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error)
 	SaveFavoriteNavAction(ctx context.Context, title string) (bool, error)
 	DeleteFavoriteNavAction(ctx context.Context, title string) (bool, error)
 	RegisterMicroservice(ctx context.Context, input domain.Microservice) (*domain.Microservice, error)
@@ -1571,7 +1575,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ActivateAgent(childComplexity, args["agentID"].(string)), true
+		return e.complexity.Mutation.ActivateAgent(childComplexity, args["input"].(*dto.ProfileSuspensionInput)), true
+
+	case "Mutation.activateEmployeeAccount":
+		if e.complexity.Mutation.ActivateEmployeeAccount == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_activateEmployeeAccount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ActivateEmployeeAccount(childComplexity, args["input"].(*dto.ProfileSuspensionInput)), true
 
 	case "Mutation.activateRole":
 		if e.complexity.Mutation.ActivateRole == nil {
@@ -1835,7 +1851,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeactivateAgent(childComplexity, args["agentID"].(string)), true
+		return e.complexity.Mutation.DeactivateAgent(childComplexity, args["input"].(*dto.ProfileSuspensionInput)), true
+
+	case "Mutation.deactivateEmployeeAccount":
+		if e.complexity.Mutation.DeactivateEmployeeAccount == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deactivateEmployeeAccount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeactivateEmployeeAccount(childComplexity, args["input"].(*dto.ProfileSuspensionInput)), true
 
 	case "Mutation.deactivateRole":
 		if e.complexity.Mutation.DeactivateRole == nil {
@@ -4199,6 +4227,11 @@ input RolePermissionInput {
   roleID: ID!
   scopes: [String!]!
 }
+
+input ProfileSuspensionInput {
+  id: ID!
+  reason: String!
+}
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/profile.graphql", Input: `extend type Query {
   # dummy query is a temporary query used to force-create a new schema version on schema registry
@@ -4349,9 +4382,13 @@ extend type Mutation {
 
   registerAgent(input: RegisterAgentInput!): UserProfile!
 
-  activateAgent(agentID: String!): Boolean!
+  activateEmployeeAccount(input: ProfileSuspensionInput): Boolean!
 
-  deactivateAgent(agentID: String!): Boolean!
+  deactivateEmployeeAccount(input: ProfileSuspensionInput): Boolean!
+
+  activateAgent(input: ProfileSuspensionInput): Boolean!
+
+  deactivateAgent(input: ProfileSuspensionInput): Boolean!
 
   saveFavoriteNavAction(title: String!): Boolean!
 
@@ -4971,15 +5008,30 @@ func (ec *executionContext) field_Entity_findUserProfileByID_args(ctx context.Co
 func (ec *executionContext) field_Mutation_activateAgent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["agentID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("agentID"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg0 *dto.ProfileSuspensionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOProfileSuspensionInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐProfileSuspensionInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["agentID"] = arg0
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_activateEmployeeAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *dto.ProfileSuspensionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOProfileSuspensionInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐProfileSuspensionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -5328,15 +5380,30 @@ func (ec *executionContext) field_Mutation_createRole_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_deactivateAgent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["agentID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("agentID"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg0 *dto.ProfileSuspensionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOProfileSuspensionInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐProfileSuspensionInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["agentID"] = arg0
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deactivateEmployeeAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *dto.ProfileSuspensionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOProfileSuspensionInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐProfileSuspensionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -11768,6 +11835,90 @@ func (ec *executionContext) _Mutation_registerAgent(ctx context.Context, field g
 	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_activateEmployeeAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_activateEmployeeAccount_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ActivateEmployeeAccount(rctx, args["input"].(*dto.ProfileSuspensionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deactivateEmployeeAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deactivateEmployeeAccount_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeactivateEmployeeAccount(rctx, args["input"].(*dto.ProfileSuspensionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_activateAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11793,7 +11944,7 @@ func (ec *executionContext) _Mutation_activateAgent(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ActivateAgent(rctx, args["agentID"].(string))
+		return ec.resolvers.Mutation().ActivateAgent(rctx, args["input"].(*dto.ProfileSuspensionInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11835,7 +11986,7 @@ func (ec *executionContext) _Mutation_deactivateAgent(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeactivateAgent(rctx, args["agentID"].(string))
+		return ec.resolvers.Mutation().DeactivateAgent(rctx, args["input"].(*dto.ProfileSuspensionInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21395,6 +21546,34 @@ func (ec *executionContext) unmarshalInputPractitionerServiceInput(ctx context.C
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputProfileSuspensionInput(ctx context.Context, obj interface{}) (dto.ProfileSuspensionInput, error) {
+	var it dto.ProfileSuspensionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reason":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reason"))
+			it.Reason, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputRegisterAdminInput(ctx context.Context, obj interface{}) (dto.RegisterAdminInput, error) {
 	var it dto.RegisterAdminInput
 	var asMap = obj.(map[string]interface{})
@@ -23032,6 +23211,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "registerAgent":
 			out.Values[i] = ec._Mutation_registerAgent(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "activateEmployeeAccount":
+			out.Values[i] = ec._Mutation_activateEmployeeAccount(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deactivateEmployeeAccount":
+			out.Values[i] = ec._Mutation_deactivateEmployeeAccount(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -27114,6 +27303,14 @@ func (ec *executionContext) marshalOPermissionType2ᚕgithubᚗcomᚋsavannahghi
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) unmarshalOProfileSuspensionInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐProfileSuspensionInput(ctx context.Context, v interface{}) (*dto.ProfileSuspensionInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputProfileSuspensionInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOReceivablesAccount2githubᚗcomᚋsavannahghiᚋprofileutilsᚐReceivablesAccount(ctx context.Context, sel ast.SelectionSet, v profileutils.ReceivablesAccount) graphql.Marshaler {

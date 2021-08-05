@@ -898,3 +898,285 @@ func TestAdminUseCaseImpl_FetchAdmins(t *testing.T) {
 		})
 	}
 }
+
+func TestAdminUseCaseImpl_ActivateAdmin(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+	type args struct {
+		ctx   context.Context
+		input dto.ProfileSuspensionInput
+	}
+
+	input := args{
+		ctx: ctx,
+		input: dto.ProfileSuspensionInput{
+			ID:     "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+			Reason: "",
+		},
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name:    "sad unable to get logged in user",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "sad unable to check user permissions",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "sad user do not have required permissions",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "sad unable to get user profile by id",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "sad unable to activate admin account",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "happy activated admin account",
+			args:    input,
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		if tt.name == "sad unable to get logged in user" {
+			fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+				return nil, fmt.Errorf("unable to get logged in user")
+			}
+		}
+		if tt.name == "sad unable to check user permissions" {
+			fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+				return &dto.UserInfo{}, nil
+			}
+			fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+				return false, fmt.Errorf("unable to check user permissions")
+			}
+		}
+		if tt.name == "sad user do not have required permissions" {
+			fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+				return &dto.UserInfo{}, nil
+			}
+			fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+				return false, nil
+			}
+		}
+
+		if tt.name == "sad unable to get user profile by id" {
+			fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+				return &dto.UserInfo{}, nil
+			}
+			fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+				return false, nil
+			}
+			fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+				return nil, fmt.Errorf("unable to get user profile by id")
+			}
+		}
+		if tt.name == "sad unable to activate admin account" {
+			fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+				return &dto.UserInfo{}, nil
+			}
+			fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+				return true, nil
+			}
+			fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+				return &profileutils.UserProfile{}, nil
+			}
+
+			fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
+				return fmt.Errorf("unable to activate account")
+			}
+		}
+		if tt.name == "happy activated admin account" {
+			fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+				return &dto.UserInfo{}, nil
+			}
+			fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+				return true, nil
+			}
+			fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+				return &profileutils.UserProfile{}, nil
+			}
+			fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
+				return nil
+			}
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := i.Admin.ActivateAdmin(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AdminUseCaseImpl.ActivateAdmin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("AdminUseCaseImpl.ActivateAdmin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAdminUseCaseImpl_DeactivateAdmin(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+	type args struct {
+		ctx   context.Context
+		input dto.ProfileSuspensionInput
+	}
+
+	input := args{
+		ctx: ctx,
+		input: dto.ProfileSuspensionInput{
+			ID:     "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+			Reason: "",
+		},
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name:    "sad unable to get logged in user",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "sad unable to check user permissions",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "sad user do not have required permissions",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "sad unable to get user profile by id",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "sad unable to deactivate admin account",
+			args:    input,
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "happy deactivated admin account",
+			args:    input,
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad unable to get logged in user" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return nil, fmt.Errorf("unable to get logged in user")
+				}
+			}
+			if tt.name == "sad unable to check user permissions" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return false, fmt.Errorf("unable to check user permissions")
+				}
+			}
+			if tt.name == "sad user do not have required permissions" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "sad unable to get user profile by id" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return nil, fmt.Errorf("unable to get user profile by id")
+				}
+			}
+			if tt.name == "sad unable to deactivate admin account" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
+				}
+
+				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
+					return fmt.Errorf("unable to deactivate account")
+				}
+			}
+			if tt.name == "happy deactivated admin account" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
+				}
+				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
+					return nil
+				}
+			}
+			got, err := i.Admin.DeactivateAdmin(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AdminUseCaseImpl.DeactivateAdmin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("AdminUseCaseImpl.DeactivateAdmin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

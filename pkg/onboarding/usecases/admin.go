@@ -27,6 +27,8 @@ const (
 type AdminUseCase interface {
 	RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*profileutils.UserProfile, error)
 	FetchAdmins(ctx context.Context) ([]*dto.Admin, error)
+	ActivateAdmin(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error)
+	DeactivateAdmin(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error)
 }
 
 // AdminUseCaseImpl  represents usecase implementation object
@@ -169,20 +171,20 @@ func (a *AdminUseCaseImpl) notifyNewAdmin(ctx context.Context, emails []string, 
 	}
 
 	if len(emails) > 0 {
-		t := template.Must(template.New("agentApprovalEmail").Parse(utils.AgentApprovalEmail))
+		t := template.Must(template.New("adminApprovalEmail").Parse(utils.AdminApprovalEmail))
 
 		buf := new(bytes.Buffer)
 
 		err := t.Execute(buf, pin{name, otp})
 		if err != nil {
-			log.Fatalf("error while generating agent approval email template: %s", err)
+			log.Fatalf("error while generating admin approval email template: %s", err)
 		}
 
 		text := buf.String()
 
 		for _, email := range emails {
-			if err := a.engagement.SendMail(ctx, email, text, agentWelcomeEmailSubject); err != nil {
-				return fmt.Errorf("unable to send agent registration email: %w", err)
+			if err := a.engagement.SendMail(ctx, email, text, adminWelcomeEmailSubject); err != nil {
+				return fmt.Errorf("unable to send admin registration email: %w", err)
 			}
 		}
 	}
@@ -204,7 +206,7 @@ func (a *AdminUseCaseImpl) FetchAdmins(ctx context.Context) ([]*dto.Admin, error
 	admins := []*dto.Admin{}
 
 	for _, profile := range profiles {
-		// Retrieve the agent PIN
+		// Retrieve the admin PIN
 		pin, err := a.repo.GetPINByProfileID(ctx, profile.ID)
 		if err != nil {
 			utils.RecordSpanError(span, err)
@@ -229,4 +231,76 @@ func (a *AdminUseCaseImpl) FetchAdmins(ctx context.Context) ([]*dto.Admin, error
 	}
 
 	return admins, nil
+}
+
+// ActivateAdmin activates/unsuspend the admin profile
+func (a *AdminUseCaseImpl) ActivateAdmin(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ActivateAdmin")
+	defer span.End()
+
+	// Check logged in user has permissions/role of employee
+	p, err := a.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	allowed, err := a.repo.CheckIfUserHasPermission(ctx, p.UID, profileutils.CanRemoveEmployee)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	if !allowed {
+		return false, fmt.Errorf("error, user do not have the permissions to activate an employee")
+	}
+
+	admin, err := a.repo.GetUserProfileByID(ctx, input.ID, true)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, exceptions.InternalServerError(err)
+	}
+
+	err = a.repo.UpdateSuspended(ctx, admin.ID, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+	return true, nil
+}
+
+// DeactivateAdmin deactivates/suspends the admin profile
+func (a *AdminUseCaseImpl) DeactivateAdmin(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error) {
+	ctx, span := tracer.Start(ctx, "DeactivateAdmin")
+	defer span.End()
+
+	p, err := a.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	allowed, err := a.repo.CheckIfUserHasPermission(ctx, p.UID, profileutils.CanRemoveEmployee)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	if !allowed {
+		return false, fmt.Errorf("error, user do not have the permissions to deactivate an employee")
+	}
+
+	// Get admin profile using phoneNumber
+	admin, err := a.repo.GetUserProfileByID(ctx, input.ID, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, exceptions.InternalServerError(err)
+	}
+
+	err = a.repo.UpdateSuspended(ctx, admin.ID, true)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+	return true, nil
 }

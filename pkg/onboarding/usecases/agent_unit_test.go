@@ -802,9 +802,18 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 	}
 
 	type args struct {
-		ctx     context.Context
-		agentID string
+		ctx   context.Context
+		input dto.ProfileSuspensionInput
 	}
+
+	inputData := args{
+		ctx: ctx,
+		input: dto.ProfileSuspensionInput{
+			ID:     "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+			Reason: "",
+		},
+	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -812,47 +821,32 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "invalid:failed_to_get_loggedin_user",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
+			name:    "invalid:failed_to_get_loggedin_user",
+			args:    inputData,
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "invalid:loggedin_user_does_not_have_employee_role",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
+			name:    "invalid:loggedin_user_does_not_have_employee_role",
+			args:    inputData,
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "invalid:error_getting_agent_profile",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
+			name:    "invalid:error_getting_agent_profile",
+			args:    inputData,
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "invalid:failed_to_activate_account",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
+			name:    "invalid:failed_to_activate_account",
+			args:    inputData,
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "valid:success_activated_agent",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
+			name:    "valid:success_activated_agent",
+			args:    inputData,
 			want:    true,
 			wantErr: false,
 		},
@@ -952,7 +946,7 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 				}
 			}
 
-			got, err := i.Agent.ActivateAgent(tt.args.ctx, tt.args.agentID)
+			got, err := i.Agent.ActivateAgent(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AgentUseCaseImpl.ActivateAgent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -975,9 +969,18 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 	}
 
 	type args struct {
-		ctx     context.Context
-		agentID string
+		ctx   context.Context
+		input dto.ProfileSuspensionInput
 	}
+
+	inputData := args{
+		ctx: ctx,
+		input: dto.ProfileSuspensionInput{
+			ID:     "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+			Reason: "",
+		},
+	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -985,47 +988,32 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "invalid:failed_to_get_loggedin_user",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
+			name:    "invalid:failed_to_get_loggedin_user",
+			args:    inputData,
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "invalid:loggedin_user_does_not_have_employee_role",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
+			name:    "invalid:loggedin_user_does_not_have_employee_role",
+			args:    inputData,
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "invalid:error_getting_agent_profile",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
+			name:    "invalid:error_getting_agent_profile",
+			args:    inputData,
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "invalid:failed_to_activate_account",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
+			name:    "invalid:failed_to_activate_account",
+			args:    inputData,
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "valid:success_deactivated_agent",
-			args: args{
-				ctx:     ctx,
-				agentID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			},
+			name:    "valid:success_deactivated_agent",
+			args:    inputData,
 			want:    true,
 			wantErr: false,
 		},
@@ -1135,7 +1123,7 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 				}
 			}
 
-			got, err := i.Agent.DeactivateAgent(tt.args.ctx, tt.args.agentID)
+			got, err := i.Agent.DeactivateAgent(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf(
 					"AgentUseCaseImpl.DeactivateAgent() error = %v, wantErr %v",
