@@ -3,7 +3,6 @@ package usecases_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 	"time"
 
@@ -23,7 +22,6 @@ import (
 
 func TestSetuserProfileOptOut(t *testing.T) {
 	s, err := InitializeTestService(context.Background())
-	log.Printf("the error is %v", err)
 	if err != nil {
 		t.Error("failed to setup signup usecase")
 	}

@@ -171,6 +171,8 @@ type ProfileUseCase interface {
 	DeleteFavoriteNavActions(ctx context.Context, title string) (bool, error)
 	RefreshNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error)
 	SwitchUserFlaggedFeatures(ctx context.Context, phoneNumber string) (*dto.OKResp, error)
+
+	FindUserbyPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -2035,4 +2037,22 @@ func (p *ProfileUseCaseImpl) SwitchUserFlaggedFeatures(
 		SwithedFrom bool
 		SwithedTo   bool
 	}{SwithedFrom: canExperiment, SwithedTo: v}}, nil
+}
+
+// FindUserbyPhone searches for a user using a phone number
+func (p *ProfileUseCaseImpl) FindUserbyPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "FindUserbyPhone")
+	defer span.End()
+
+	normalized, err := p.baseExt.NormalizeMSISDN(phoneNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	profile, err := p.onboardingRepository.GetUserProfileByPhoneNumber(ctx, *normalized, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return profile, nil
 }

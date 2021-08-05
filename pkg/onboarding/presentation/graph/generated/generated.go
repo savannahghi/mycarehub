@@ -450,6 +450,7 @@ type ComplexityRoot struct {
 		FindAgentbyPhone              func(childComplexity int, phoneNumber *string) int
 		FindBranch                    func(childComplexity int, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) int
 		FindProvider                  func(childComplexity int, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) int
+		FindUserbyPhone               func(childComplexity int, phoneNumber string) int
 		GetAddresses                  func(childComplexity int) int
 		GetAllPermissions             func(childComplexity int) int
 		GetAllRoles                   func(childComplexity int, filter *firebasetools.FilterInput) int
@@ -643,6 +644,7 @@ type QueryResolver interface {
 	ListMicroservices(ctx context.Context) ([]*domain.Microservice, error)
 	GetAllRoles(ctx context.Context, filter *firebasetools.FilterInput) ([]*dto.RoleOutput, error)
 	GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error)
+	FindUserbyPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error)
 }
 type VerifiedIdentifierResolver interface {
 	Timestamp(ctx context.Context, obj *profileutils.VerifiedIdentifier) (*scalarutils.Date, error)
@@ -2888,6 +2890,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FindProvider(childComplexity, args["pagination"].(*firebasetools.PaginationInput), args["filter"].([]*dto.BusinessPartnerFilterInput), args["sort"].([]*dto.BusinessPartnerSortInput)), true
 
+	case "Query.findUserbyPhone":
+		if e.complexity.Query.FindUserbyPhone == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findUserbyPhone_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindUserbyPhone(childComplexity, args["phoneNumber"].(string)), true
+
 	case "Query.getAddresses":
 		if e.complexity.Query.GetAddresses == nil {
 			break
@@ -4190,6 +4204,8 @@ input RolePermissionInput {
   getAllRoles(filter: FilterInput): [RoleOutput]
 
   getAllPermissions: [Permission!]!
+
+  findUserbyPhone(phoneNumber: String!): UserProfile!
 }
 
 extend type Mutation {
@@ -5843,6 +5859,21 @@ func (ec *executionContext) field_Query_findProvider_args(ctx context.Context, r
 		}
 	}
 	args["sort"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findUserbyPhone_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg0
 	return args, nil
 }
 
@@ -16096,6 +16127,48 @@ func (ec *executionContext) _Query_getAllPermissions(ctx context.Context, field 
 	return ec.marshalNPermission2ᚕᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPermissionᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_findUserbyPhone(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findUserbyPhone_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindUserbyPhone(rctx, args["phoneNumber"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*profileutils.UserProfile)
+	fc.Result = res
+	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -23714,6 +23787,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getAllPermissions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "findUserbyPhone":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findUserbyPhone(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

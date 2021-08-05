@@ -3,6 +3,7 @@ package usecases_test
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
@@ -4200,6 +4201,97 @@ func TestProfileUseCaseImpl_RefreshNavigationActions(t *testing.T) {
 						tt.wantNil,
 					)
 				}
+			}
+		})
+	}
+}
+
+func TestProfileUseCaseImpl_FindUserbyPhone(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
+		return
+	}
+
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *profileutils.UserProfile
+		wantErr bool
+	}{
+		{
+			name: "fail: cannot normalize  phone number",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "fail: cannot finder user with phone number",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "success: find user using phone number",
+			args: args{
+				ctx:         ctx,
+				phoneNumber: interserviceclient.TestUserPhoneNumber,
+			},
+			want: &profileutils.UserProfile{
+				ID: "3029c544-78ea-4e2e-841a-82fed3af4e94",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "fail: cannot normalize  phone number" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					return nil, fmt.Errorf("cannot normalize phone number")
+				}
+			}
+
+			if tt.name == "fail: cannot finder user with phone number" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					p := interserviceclient.TestUserPhoneNumber
+					return &p, nil
+				}
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					return nil, fmt.Errorf("cannot retrieve user profile")
+				}
+			}
+
+			if tt.name == "success: find user using phone number" {
+				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
+					p := interserviceclient.TestUserPhoneNumber
+					return &p, nil
+				}
+				fakeRepo.GetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
+					p := &profileutils.UserProfile{
+						ID: "3029c544-78ea-4e2e-841a-82fed3af4e94",
+					}
+					return p, nil
+				}
+			}
+			got, err := i.Onboarding.FindUserbyPhone(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProfileUseCaseImpl.FindUserbyPhone() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ProfileUseCaseImpl.FindUserbyPhone() = %v, want %v", got, tt.want)
 			}
 		})
 	}

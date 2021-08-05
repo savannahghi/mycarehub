@@ -44,6 +44,8 @@ extend type Query {
   getAllRoles(filter: FilterInput): [RoleOutput]
 
   getAllPermissions: [Permission!]!
+
+  findUserbyPhone(phoneNumber: String!): UserProfile!
 }
 
 extend type Mutation {

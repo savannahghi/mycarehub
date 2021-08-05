@@ -840,6 +840,15 @@ func (r *queryResolver) GetAllPermissions(ctx context.Context) ([]*profileutils.
 	return permissions, err
 }
 
+func (r *queryResolver) FindUserbyPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error) {
+	startTime := time.Now()
+
+	profile, err := r.interactor.Onboarding.FindUserbyPhone(ctx, phoneNumber)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findUserbyPhone", err)
+
+	return profile, err
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
