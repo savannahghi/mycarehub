@@ -62,7 +62,7 @@ type Admin struct {
 
 	PrimaryPhone string `json:"primaryPhone"`
 
-	PrimaryEmailAddress string `json:"primaryEmailAddress"`
+	PrimaryEmailAddress *string `json:"primaryEmailAddress"`
 
 	SecondaryPhoneNumbers []string `json:"secondaryPhoneNumbers"`
 

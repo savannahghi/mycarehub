@@ -217,7 +217,7 @@ func (a *AdminUseCaseImpl) FetchAdmins(ctx context.Context) ([]*dto.Admin, error
 			PhotoUploadID:           profile.PhotoUploadID,
 			UserBioData:             profile.UserBioData,
 			PrimaryPhone:            *profile.PrimaryPhone,
-			PrimaryEmailAddress:     *profile.PrimaryEmailAddress,
+			PrimaryEmailAddress:     profile.PrimaryEmailAddress,
 			SecondaryPhoneNumbers:   profile.SecondaryPhoneNumbers,
 			SecondaryEmailAddresses: profile.SecondaryEmailAddresses,
 			TermsAccepted:           profile.TermsAccepted,

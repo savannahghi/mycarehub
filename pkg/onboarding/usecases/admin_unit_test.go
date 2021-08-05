@@ -818,16 +818,14 @@ func TestAdminUseCaseImpl_FetchAdmins(t *testing.T) {
 			},
 			want: []*dto.Admin{
 				{
-					ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-					PrimaryPhone:        interserviceclient.TestUserPhoneNumber,
-					PrimaryEmailAddress: firebasetools.TestUserEmail,
-					ResendPIN:           true,
+					ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+					PrimaryPhone: interserviceclient.TestUserPhoneNumber,
+					ResendPIN:    true,
 				},
 				{
-					ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					PrimaryPhone:        interserviceclient.TestUserPhoneNumber,
-					PrimaryEmailAddress: firebasetools.TestUserEmail,
-					ResendPIN:           true,
+					ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					PrimaryPhone: interserviceclient.TestUserPhoneNumber,
+					ResendPIN:    true,
 				},
 			},
 			wantErr: false,
@@ -854,21 +852,18 @@ func TestAdminUseCaseImpl_FetchAdmins(t *testing.T) {
 			if tt.name == "success:_non_empty_list_of_user_admins" {
 				fakeRepo.ListUserProfilesFn = func(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error) {
 					p := interserviceclient.TestUserPhoneNumber
-					e := firebasetools.TestUserEmail
 					s := []*profileutils.UserProfile{
 						{
-							ID:                  "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-							PrimaryPhone:        &p,
-							PrimaryEmailAddress: &e,
-							VerifiedUIDS:        []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-							Role:                profileutils.RoleTypeEmployee,
+							ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+							PrimaryPhone: &p,
+							VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
+							Role:         profileutils.RoleTypeEmployee,
 						},
 						{
-							ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-							PrimaryPhone:        &p,
-							PrimaryEmailAddress: &e,
-							VerifiedUIDS:        []string{"c9d62c7e-93e5-44a6-b503-6fc159c1782f"},
-							Role:                profileutils.RoleTypeEmployee,
+							ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+							PrimaryPhone: &p,
+							VerifiedUIDS: []string{"c9d62c7e-93e5-44a6-b503-6fc159c1782f"},
+							Role:         profileutils.RoleTypeEmployee,
 						},
 					}
 					return s, nil

@@ -6333,9 +6333,9 @@ func (ec *executionContext) _Admin_primaryEmailAddress(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Admin_secondaryPhoneNumbers(ctx context.Context, field graphql.CollectedField, obj *dto.Admin) (ret graphql.Marshaler) {
