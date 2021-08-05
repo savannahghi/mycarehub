@@ -45,7 +45,9 @@ extend type Query {
 
   getAllPermissions: [Permission!]!
 
-  findUserbyPhone(phoneNumber: String!): UserProfile!
+  findUserByPhone(phoneNumber: String!): UserProfile!
+
+  getNavigationActions: GroupedNavigationActions
 }
 
 extend type Mutation {

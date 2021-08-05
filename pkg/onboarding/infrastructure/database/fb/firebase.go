@@ -4236,7 +4236,7 @@ func (fr *Repository) CheckIfUserHasPermission(
 	}
 
 	for _, role := range *roles {
-		if role.HasPermission(ctx, requiredPermission.Scope) {
+		if role.Active && role.HasPermission(ctx, requiredPermission.Scope) {
 			return true, nil
 		}
 	}

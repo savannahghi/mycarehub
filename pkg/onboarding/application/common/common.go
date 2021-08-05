@@ -11,6 +11,7 @@ const (
 	// StaticBase is the default path at which static assets are hosted
 	StaticBase = "https://assets.healthcloud.co.ke"
 
+	RoleNavActionURL     = StaticBase + "/actions/roles_navaction.png"
 	AgentNavActionURL    = StaticBase + "/actions/agent_navaction.png"
 	ConsumerNavActionURL = StaticBase + "/actions/consumer_navaction.png"
 	HelpNavActionURL     = StaticBase + "/actions/help_navaction.png"
@@ -31,6 +32,9 @@ const (
 	// Has KYC and Covers
 	RequestsRoute = "/admin"
 
+	RoleViewRoute     = "/viewCreatedRolesPage"
+	RoleCreationRoute = "/createRoleStepOne"
+
 	AgentRegistrationRoute   = "/agentRegistration"
 	AgentIdentificationRoute = "/agentIdentification"
 )
@@ -42,6 +46,10 @@ const (
 
 	HelpNavActionTitle       = "Help"
 	HelpNavActionDescription = "Help Navigation action"
+
+	RoleNavActionTitle      = "Role Management"
+	RoleViewActionTitle     = "View Roles"
+	RoleCreationActionTitle = "Create Role"
 
 	PatientNavActionTitle            = "Patient"
 	PatientNavActionDescription      = "Patient Navigation action"

@@ -63,8 +63,8 @@ func CheckIdentifierExists(profile *profileutils.UserProfile, UID string) bool {
 	return converterandformatter.StringSliceContains(foundVerifiedUIDs, UID)
 }
 
-// CheckUserHasFavNavAction checks if user has book marked the provided navaction
-func CheckUserHasFavNavAction(u *profileutils.UserProfile, title string) bool {
+// IsFavNavAction checks if user has book marked the provided navaction
+func IsFavNavAction(u *profileutils.UserProfile, title string) bool {
 	if len(u.FavNavActions) == 0 {
 		return false
 	}

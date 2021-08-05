@@ -150,3 +150,9 @@ type RoleOutput struct {
 	Scopes      []string                  `json:"scopes"`
 	Permissions []profileutils.Permission `json:"permissions"`
 }
+
+// GroupedNavigationActions is the list of Navigation Actions sorted into primary and secondary actions
+type GroupedNavigationActions struct {
+	Primary   []domain.NavigationAction `json:"primary,omitempty"`
+	Secondary []domain.NavigationAction `json:"secondary,omitempty"`
+}

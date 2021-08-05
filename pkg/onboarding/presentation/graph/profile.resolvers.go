@@ -888,13 +888,22 @@ func (r *queryResolver) GetAllPermissions(ctx context.Context) ([]*profileutils.
 	return permissions, err
 }
 
-func (r *queryResolver) FindUserbyPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error) {
+func (r *queryResolver) FindUserByPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error) {
 	startTime := time.Now()
 
-	profile, err := r.interactor.Onboarding.FindUserbyPhone(ctx, phoneNumber)
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findUserbyPhone", err)
+	profile, err := r.interactor.Onboarding.FindUserByPhone(ctx, phoneNumber)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findUserByPhone", err)
 
 	return profile, err
+}
+
+func (r *queryResolver) GetNavigationActions(ctx context.Context) (*dto.GroupedNavigationActions, error) {
+	startTime := time.Now()
+
+	navActions, err := r.interactor.Onboarding.GetNavigationActions(ctx)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "getNavigationActions", err)
+
+	return navActions, err
 }
 
 // Mutation returns generated.MutationResolver implementation.

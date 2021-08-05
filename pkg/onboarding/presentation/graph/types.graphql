@@ -500,3 +500,16 @@ type Permission {
   group: PermissionGroup!
   allowed: Boolean!
 }
+
+type NavigationAction {
+  title: String!
+  onTapRoute: String!
+  icon: String
+  favorite: Boolean
+  nested: [Any]
+}
+
+type GroupedNavigationActions {
+  primary: [NavigationAction]
+  secondary: [NavigationAction]
+}

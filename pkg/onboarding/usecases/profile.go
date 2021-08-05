@@ -64,7 +64,10 @@ type ProfileUseCase interface {
 	UpdatePrimaryEmailAddress(ctx context.Context, emailAddress string) error
 	UpdateSecondaryPhoneNumbers(ctx context.Context, phoneNumbers []string) error
 	UpdateSecondaryEmailAddresses(ctx context.Context, emailAddresses []string) error
-	UpdateVerifiedIdentifiers(ctx context.Context, identifiers []profileutils.VerifiedIdentifier) error
+	UpdateVerifiedIdentifiers(
+		ctx context.Context,
+		identifiers []profileutils.VerifiedIdentifier,
+	) error
 	UpdateVerifiedUIDS(ctx context.Context, uids []string) error
 	UpdateSuspended(ctx context.Context, status bool, phoneNumber string, useContext bool) error
 	UpdatePhotoUploadID(ctx context.Context, uploadID string) error
@@ -152,7 +155,9 @@ type ProfileUseCase interface {
 
 	GetAddresses(ctx context.Context) (*domain.UserAddresses, error)
 
-	GetUserCommunicationsSettings(ctx context.Context) (*profileutils.UserCommunicationsSetting, error)
+	GetUserCommunicationsSettings(
+		ctx context.Context,
+	) (*profileutils.UserCommunicationsSetting, error)
 
 	SetUserCommunicationsSettings(
 		ctx context.Context,
@@ -162,17 +167,21 @@ type ProfileUseCase interface {
 		allowEmail *bool,
 	) (*profileutils.UserCommunicationsSetting, error)
 
-	GetNavActions(ctx context.Context, user profileutils.UserProfile) (*profileutils.NavigationActions, error)
+	GetNavActions(
+		ctx context.Context,
+		user profileutils.UserProfile,
+	) (*profileutils.NavigationActions, error)
 	GenerateDefaultNavActions(ctx context.Context) (profileutils.NavigationActions, error)
 	GenerateAgentNavActions(ctx context.Context) (profileutils.NavigationActions, error)
 	GenerateEmployeeNavActions(ctx context.Context) (profileutils.NavigationActions, error)
 
+	GetNavigationActions(ctx context.Context) (*dto.GroupedNavigationActions, error)
 	SaveFavoriteNavActions(ctx context.Context, title string) (bool, error)
 	DeleteFavoriteNavActions(ctx context.Context, title string) (bool, error)
 	RefreshNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error)
 	SwitchUserFlaggedFeatures(ctx context.Context, phoneNumber string) (*dto.OKResp, error)
 
-	FindUserbyPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error)
+	FindUserByPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error)
 }
 
 // ProfileUseCaseImpl represents usecase implementation object
@@ -1651,7 +1660,7 @@ func (p *ProfileUseCaseImpl) GetNavActions(
 	// set favorite navigation actions in response
 	primaryActions := []profileutils.NavAction{}
 	for _, navAction := range navActions.Primary {
-		if utils.CheckUserHasFavNavAction(&user, navAction.Title) {
+		if utils.IsFavNavAction(&user, navAction.Title) {
 			navAction.Favourite = true
 		}
 		primaryActions = append(primaryActions, navAction)
@@ -1659,7 +1668,7 @@ func (p *ProfileUseCaseImpl) GetNavActions(
 
 	secondaryActions := []profileutils.NavAction{}
 	for _, navAction := range navActions.Secondary {
-		if utils.CheckUserHasFavNavAction(&user, navAction.Title) {
+		if utils.IsFavNavAction(&user, navAction.Title) {
 			navAction.Favourite = true
 		}
 		secondaryActions = append(secondaryActions, navAction)
@@ -1917,7 +1926,7 @@ func (p *ProfileUseCaseImpl) SaveFavoriteNavActions(
 
 	favActions := user.FavNavActions
 	// if user does not have such favorite action, add it.
-	if !utils.CheckUserHasFavNavAction(user, title) {
+	if !utils.IsFavNavAction(user, title) {
 		favActions = append(favActions, title)
 	}
 
@@ -2039,9 +2048,9 @@ func (p *ProfileUseCaseImpl) SwitchUserFlaggedFeatures(
 	}{SwithedFrom: canExperiment, SwithedTo: v}}, nil
 }
 
-// FindUserbyPhone searches for a user using a phone number
-func (p *ProfileUseCaseImpl) FindUserbyPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error) {
-	ctx, span := tracer.Start(ctx, "FindUserbyPhone")
+// FindUserByPhone searches for a user using a phone number
+func (p *ProfileUseCaseImpl) FindUserByPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "FindUserByPhone")
 	defer span.End()
 
 	normalized, err := p.baseExt.NormalizeMSISDN(phoneNumber)
@@ -2055,4 +2064,34 @@ func (p *ProfileUseCaseImpl) FindUserbyPhone(ctx context.Context, phoneNumber st
 	}
 
 	return profile, nil
+}
+
+//GetNavigationActions is the new method to get navigation actions based on user roles and permissions
+func (p *ProfileUseCaseImpl) GetNavigationActions(
+	ctx context.Context,
+) (*dto.GroupedNavigationActions, error) {
+	ctx, span := tracer.Start(ctx, "GetNavigationActions")
+	defer span.End()
+
+	user, err := p.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userProfile, err := p.onboardingRepository.GetUserProfileByUID(ctx, user.UID, false)
+	if err != nil {
+		return nil, err
+	}
+
+	roles, err := p.onboardingRepository.GetRolesByIDs(ctx, userProfile.Roles)
+	if err != nil {
+		return nil, err
+	}
+
+	navActions, err := utils.GetUserNavigationActions(ctx, *userProfile, *roles)
+	if err != nil {
+		return nil, err
+	}
+
+	return navActions, nil
 }
