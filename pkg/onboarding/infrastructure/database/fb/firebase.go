@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"cloud.google.com/go/firestore"
 	"go.opentelemetry.io/otel"
 
 	"firebase.google.com/go/auth"
@@ -3953,7 +3954,10 @@ func (fr *Repository) CreateRole(
 }
 
 // GetAllRoles returns a list of all created roles
-func (fr *Repository) GetAllRoles(ctx context.Context) (*[]profileutils.Role, error) {
+func (fr *Repository) GetAllRoles(
+	ctx context.Context,
+	filter *firebasetools.FilterInput,
+) (*[]profileutils.Role, error) {
 	ctx, span := tracer.Start(ctx, "GetAllRoles")
 	defer span.End()
 
@@ -3961,17 +3965,37 @@ func (fr *Repository) GetAllRoles(ctx context.Context) (*[]profileutils.Role, er
 		CollectionName: fr.GetRolesCollectionName(),
 	}
 
-	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
+	allDocs := []*firestore.DocumentSnapshot{}
+
+	if filter != nil {
+		for _, filterParam := range filter.FilterBy {
+			query.FieldName = filterParam.FieldName
+			query.Operator = filterParam.ComparisonOperation.String()
+			query.Value = filter.Search
+
+			docs, err := fr.FirestoreClient.GetAll(ctx, query)
+
+			if err != nil {
+				utils.RecordSpanError(span, err)
+				return nil, exceptions.InternalServerError(err)
+			}
+			allDocs = append(allDocs, docs...)
+		}
+	} else {
+		docs, err := fr.FirestoreClient.GetAll(ctx, query)
+
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			return nil, exceptions.InternalServerError(err)
+		}
+		allDocs = append(allDocs, docs...)
 	}
 
 	roles := []profileutils.Role{}
-	for _, doc := range docs {
+	for _, doc := range allDocs {
 		role := &profileutils.Role{}
 
-		err = doc.DataTo(role)
+		err := doc.DataTo(role)
 		if err != nil {
 			utils.RecordSpanError(span, err)
 			err = fmt.Errorf("unable to read role")

@@ -5,6 +5,7 @@ import (
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
@@ -189,7 +190,7 @@ type FakeOnboardingRepository struct {
 
 	//roles
 	CreateRoleFn               func(ctx context.Context, profileID string, role dto.RoleInput) (*profileutils.Role, error)
-	GetAllRolesFn              func(ctx context.Context) (*[]profileutils.Role, error)
+	GetAllRolesFn              func(ctx context.Context, filter *firebasetools.FilterInput) (*[]profileutils.Role, error)
 	UpdateRoleDetailsFn        func(ctx context.Context, profileID string, role profileutils.Role) (*profileutils.Role, error)
 	GetRolesByIDsFn            func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error)
 	GetRoleByIDFn              func(ctx context.Context, roleID string) (*profileutils.Role, error)
@@ -932,8 +933,11 @@ func (f *FakeOnboardingRepository) GetRoleByID(
 }
 
 //GetAllRoles ...
-func (f *FakeOnboardingRepository) GetAllRoles(ctx context.Context) (*[]profileutils.Role, error) {
-	return f.GetAllRolesFn(ctx)
+func (f *FakeOnboardingRepository) GetAllRoles(
+	ctx context.Context,
+	filter *firebasetools.FilterInput,
+) (*[]profileutils.Role, error) {
+	return f.GetAllRolesFn(ctx, filter)
 }
 
 // GetRolesByIDs ...

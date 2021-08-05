@@ -5,6 +5,7 @@ import (
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/profileutils"
 
@@ -266,7 +267,11 @@ type OnboardingRepository interface {
 		pin string,
 	) (*domain.USSDLeadDetails, error)
 
-	UpdateAITSessionDetails(ctx context.Context, phoneNumber string, payload *domain.USSDLeadDetails) error
+	UpdateAITSessionDetails(
+		ctx context.Context,
+		phoneNumber string,
+		payload *domain.USSDLeadDetails,
+	) error
 	GetAITDetails(ctx context.Context, phoneNumber string) (*domain.USSDLeadDetails, error)
 
 	SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
@@ -319,7 +324,7 @@ type RolesRepository interface {
 		input dto.RoleInput,
 	) (*profileutils.Role, error)
 
-	GetAllRoles(ctx context.Context) (*[]profileutils.Role, error)
+	GetAllRoles(ctx context.Context, filter *firebasetools.FilterInput) (*[]profileutils.Role, error)
 
 	GetRoleByID(ctx context.Context, roleID string) (*profileutils.Role, error)
 
@@ -331,5 +336,9 @@ type RolesRepository interface {
 
 	DeleteRole(ctx context.Context, roleID string) (bool, error)
 
-	CheckIfUserHasPermission(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error)
+	CheckIfUserHasPermission(
+		ctx context.Context,
+		UID string,
+		requiredPermission profileutils.Permission,
+	) (bool, error)
 }

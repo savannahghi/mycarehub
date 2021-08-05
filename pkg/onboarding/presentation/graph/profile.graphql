@@ -41,7 +41,7 @@ extend type Query {
 
   listMicroservices: [Microservice!]!
 
-  getAllRoles: [RoleOutput]
+  getAllRoles(filter: FilterInput): [RoleOutput]
 
   getAllPermissions: [Permission!]!
 }

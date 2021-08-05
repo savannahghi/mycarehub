@@ -452,7 +452,7 @@ type ComplexityRoot struct {
 		FindProvider                  func(childComplexity int, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) int
 		GetAddresses                  func(childComplexity int) int
 		GetAllPermissions             func(childComplexity int) int
-		GetAllRoles                   func(childComplexity int) int
+		GetAllRoles                   func(childComplexity int, filter *firebasetools.FilterInput) int
 		GetUserCommunicationsSettings func(childComplexity int) int
 		ListMicroservices             func(childComplexity int) int
 		NHIFDetails                   func(childComplexity int) int
@@ -641,7 +641,7 @@ type QueryResolver interface {
 	FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error)
 	FetchUserNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error)
 	ListMicroservices(ctx context.Context) ([]*domain.Microservice, error)
-	GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error)
+	GetAllRoles(ctx context.Context, filter *firebasetools.FilterInput) ([]*dto.RoleOutput, error)
 	GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error)
 }
 type VerifiedIdentifierResolver interface {
@@ -2907,7 +2907,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.GetAllRoles(childComplexity), true
+		args, err := ec.field_Query_getAllRoles_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllRoles(childComplexity, args["filter"].(*firebasetools.FilterInput)), true
 
 	case "Query.getUserCommunicationsSettings":
 		if e.complexity.Query.GetUserCommunicationsSettings == nil {
@@ -4182,7 +4187,7 @@ input RolePermissionInput {
 
   listMicroservices: [Microservice!]!
 
-  getAllRoles: [RoleOutput]
+  getAllRoles(filter: FilterInput): [RoleOutput]
 
   getAllPermissions: [Permission!]!
 }
@@ -5838,6 +5843,21 @@ func (ec *executionContext) field_Query_findProvider_args(ctx context.Context, r
 		}
 	}
 	args["sort"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getAllRoles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *firebasetools.FilterInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOFilterInput2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
 	return args, nil
 }
 
@@ -16018,9 +16038,16 @@ func (ec *executionContext) _Query_getAllRoles(ctx context.Context, field graphq
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getAllRoles_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAllRoles(rctx)
+		return ec.resolvers.Query().GetAllRoles(rctx, args["filter"].(*firebasetools.FilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26267,6 +26294,14 @@ func (ec *executionContext) marshalODate2ᚖgithubᚗcomᚋsavannahghiᚋscalaru
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOFilterInput2ᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterInput(ctx context.Context, v interface{}) (*firebasetools.FilterInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFilterInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOFilterParam2ᚕᚖgithubᚗcomᚋsavannahghiᚋfirebasetoolsᚐFilterParam(ctx context.Context, v interface{}) ([]*firebasetools.FilterParam, error) {

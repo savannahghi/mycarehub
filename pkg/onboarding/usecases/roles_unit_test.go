@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/profileutils"
 )
@@ -229,7 +230,8 @@ func TestRoleUseCaseImpl_GetAllRoles(t *testing.T) {
 	}
 
 	type args struct {
-		ctx context.Context
+		ctx    context.Context
+		filter *firebasetools.FilterInput
 	}
 	tests := []struct {
 		name    string
@@ -300,7 +302,7 @@ func TestRoleUseCaseImpl_GetAllRoles(t *testing.T) {
 				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
 					return true, nil
 				}
-				fakeRepo.GetAllRolesFn = func(ctx context.Context) (*[]profileutils.Role, error) {
+				fakeRepo.GetAllRolesFn = func(ctx context.Context, filter *firebasetools.FilterInput) (*[]profileutils.Role, error) {
 					return nil, fmt.Errorf("error, did not get roles from database")
 				}
 			}
@@ -312,7 +314,7 @@ func TestRoleUseCaseImpl_GetAllRoles(t *testing.T) {
 				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
 					return true, nil
 				}
-				fakeRepo.GetAllRolesFn = func(ctx context.Context) (*[]profileutils.Role, error) {
+				fakeRepo.GetAllRolesFn = func(ctx context.Context, filter *firebasetools.FilterInput) (*[]profileutils.Role, error) {
 					return &[]profileutils.Role{
 						{
 							ID:     "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
@@ -321,7 +323,7 @@ func TestRoleUseCaseImpl_GetAllRoles(t *testing.T) {
 					}, nil
 				}
 			}
-			got, err := i.Role.GetAllRoles(tt.args.ctx)
+			got, err := i.Role.GetAllRoles(tt.args.ctx, tt.args.filter)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RoleUseCaseImpl.GetAllRoles() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
@@ -15,8 +16,8 @@ import (
 // RoleUseCase represent the business logic required for management of agents
 type RoleUseCase interface {
 	CreateRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
-	GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error)
 	DeleteRole(ctx context.Context, roleID string) (bool, error)
+	GetAllRoles(ctx context.Context, filter *firebasetools.FilterInput) ([]*dto.RoleOutput, error)
 	GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error)
 
 	AddPermissionsToRole(
@@ -113,7 +114,10 @@ func (r *RoleUseCaseImpl) CreateRole(
 }
 
 //GetAllRoles returns a list of all created roles
-func (r *RoleUseCaseImpl) GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error) {
+func (r *RoleUseCaseImpl) GetAllRoles(
+	ctx context.Context,
+	filter *firebasetools.FilterInput,
+) ([]*dto.RoleOutput, error) {
 	ctx, span := tracer.Start(ctx, "GetAllRoles")
 	defer span.End()
 
@@ -135,7 +139,7 @@ func (r *RoleUseCaseImpl) GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, e
 		)
 	}
 
-	roles, err := r.repo.GetAllRoles(ctx)
+	roles, err := r.repo.GetAllRoles(ctx, filter)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
