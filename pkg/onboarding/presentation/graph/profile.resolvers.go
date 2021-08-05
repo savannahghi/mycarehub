@@ -633,6 +633,24 @@ func (r *mutationResolver) RevokeRole(ctx context.Context, userID string, roleID
 	return status, err
 }
 
+func (r *mutationResolver) ActivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error) {
+	startTime := time.Now()
+
+	role, err := r.interactor.Role.ActivateRole(ctx, roleID)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "activateRole", err)
+
+	return role, err
+}
+
+func (r *mutationResolver) DeactivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error) {
+	startTime := time.Now()
+
+	role, err := r.interactor.Role.DeactivateRole(ctx, roleID)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "deactivateRole", err)
+
+	return role, err
+}
+
 func (r *queryResolver) DummyQuery(ctx context.Context) (*bool, error) {
 	dummy := true
 	return &dummy, nil

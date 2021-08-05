@@ -35,9 +35,17 @@ type RoleUseCase interface {
 
 	GetUserPermissions(ctx context.Context, UID string) ([]profileutils.Permission, error)
 
+	// AssignRole assigns a role to a user
 	AssignRole(ctx context.Context, userID string, roleID string) (bool, error)
 
+	// RevokeRole removes a role from a user
 	RevokeRole(ctx context.Context, userID string, roleID string) (bool, error)
+
+	// ActivateRole marks a role as active
+	ActivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
+
+	// DeactivateRole marks a role as inactive and cannot be used
+	DeactivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
 }
 
 // RoleUseCaseImpl  represents usecase implementation object
@@ -580,4 +588,130 @@ func (r *RoleUseCaseImpl) RevokeRole(
 	}
 
 	return true, nil
+}
+
+// ActivateRole marks a deactivated role as active and usable
+func (r *RoleUseCaseImpl) ActivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error) {
+	ctx, span := tracer.Start(ctx, "ActivateRole")
+	defer span.End()
+
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// Check logged in user has the right permissions
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanEditRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	if !allowed {
+		return nil, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to edit role"),
+		)
+	}
+
+	role, err := r.repo.GetRoleByID(ctx, roleID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	role.Active = true
+
+	// save role to database
+	updatedRole, err := r.repo.UpdateRoleDetails(ctx, userProfile.ID, *role)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// get permissions
+	perms, err := updatedRole.Permissions(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	output := &dto.RoleOutput{
+		ID:          updatedRole.ID,
+		Name:        updatedRole.Name,
+		Description: updatedRole.Description,
+		Active:      updatedRole.Active,
+		Scopes:      updatedRole.Scopes,
+		Permissions: perms,
+	}
+
+	return output, nil
+}
+
+// DeactivateRole marks a role as inactive and cannot be used
+func (r *RoleUseCaseImpl) DeactivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error) {
+	ctx, span := tracer.Start(ctx, "DeactivateRole")
+	defer span.End()
+
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// Check logged in user has the right permissions
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanEditRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	if !allowed {
+		return nil, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to edit role"),
+		)
+	}
+
+	role, err := r.repo.GetRoleByID(ctx, roleID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	role.Active = false
+
+	// save role to database
+	updatedRole, err := r.repo.UpdateRoleDetails(ctx, userProfile.ID, *role)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// get permissions
+	perms, err := updatedRole.Permissions(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	output := &dto.RoleOutput{
+		ID:          updatedRole.ID,
+		Name:        updatedRole.Name,
+		Description: updatedRole.Description,
+		Active:      updatedRole.Active,
+		Scopes:      updatedRole.Scopes,
+		Permissions: perms,
+	}
+
+	return output, nil
 }

@@ -1570,3 +1570,357 @@ func TestRoleUseCaseImpl_RevokeRole(t *testing.T) {
 		})
 	}
 }
+
+func TestRoleUseCaseImpl_DeactivateRole(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+
+	type args struct {
+		ctx    context.Context
+		roleID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.RoleOutput
+		wantErr bool
+	}{
+		{
+			name: "fail: cannot get logged in user",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "fail: user has no permission permission",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "fail: error retrieving role",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "fail: error retrieving user profile",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "fail: error updating role details",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "success: deactivating role",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    &dto.RoleOutput{ID: uuid.NewString()},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "fail: cannot get logged in user" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return nil, fmt.Errorf("cannot get logged in user")
+				}
+			}
+
+			if tt.name == "fail: user has no permission permission" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: uuid.NewString()}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "fail: error retrieving role" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: uuid.NewString()}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return nil, fmt.Errorf("cannot retrieve role")
+				}
+			}
+
+			if tt.name == "fail: error retrieving user profile" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: uuid.NewString()}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: uuid.NewString()}, nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return nil, fmt.Errorf("cannot retrieve user profile")
+				}
+			}
+
+			if tt.name == "fail: error updating role details" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.UpdateRoleDetailsFn = func(ctx context.Context, profileID string, role profileutils.Role) (*profileutils.Role, error) {
+					return nil, fmt.Errorf("cannot update role details")
+				}
+			}
+
+			if tt.name == "success: deactivating role" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.UpdateRoleDetailsFn = func(ctx context.Context, profileID string, role profileutils.Role) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: uuid.NewString()}, nil
+				}
+			}
+
+			got, err := i.Role.DeactivateRole(tt.args.ctx, tt.args.roleID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("RoleUseCaseImpl.DeactivateRole() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("RoleUseCaseImpl.DeactivateRole() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRoleUseCaseImpl_ActivateRole(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+
+	type args struct {
+		ctx    context.Context
+		roleID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.RoleOutput
+		wantErr bool
+	}{
+		{
+			name: "fail: cannot get logged in user",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "fail: user has no permission permission",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "fail: error retrieving role",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "fail: error retrieving user profile",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "fail: error updating role details",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "pass: success activating role",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    &dto.RoleOutput{ID: uuid.NewString()},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "fail: cannot get logged in user" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return nil, fmt.Errorf("cannot get logged in user")
+				}
+			}
+
+			if tt.name == "fail: user has no permission permission" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: uuid.NewString()}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "fail: error retrieving role" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: uuid.NewString()}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return nil, fmt.Errorf("cannot retrieve role")
+				}
+			}
+
+			if tt.name == "fail: error retrieving user profile" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: uuid.NewString()}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: uuid.NewString()}, nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return nil, fmt.Errorf("cannot retrieve user profile")
+				}
+			}
+
+			if tt.name == "fail: error updating role details" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.UpdateRoleDetailsFn = func(ctx context.Context, profileID string, role profileutils.Role) (*profileutils.Role, error) {
+					return nil, fmt.Errorf("cannot update role details")
+				}
+			}
+
+			if tt.name == "pass: success activating role" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: uuid.NewString()}, nil
+				}
+
+				fakeRepo.UpdateRoleDetailsFn = func(ctx context.Context, profileID string, role profileutils.Role) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: uuid.NewString()}, nil
+				}
+			}
+
+			got, err := i.Role.ActivateRole(tt.args.ctx, tt.args.roleID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("RoleUseCaseImpl.ActivateRole() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("RoleUseCaseImpl.ActivateRole() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

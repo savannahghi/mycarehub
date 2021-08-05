@@ -254,6 +254,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		ActivateAgent                    func(childComplexity int, agentID string) int
+		ActivateRole                     func(childComplexity int, roleID string) int
 		AddAddress                       func(childComplexity int, input dto.UserAddressInput, addressType enumutils.AddressType) int
 		AddIndividualCoachKyc            func(childComplexity int, input domain.IndividualCoach) int
 		AddIndividualNutritionKyc        func(childComplexity int, input domain.IndividualNutrition) int
@@ -275,6 +276,7 @@ type ComplexityRoot struct {
 		CompleteSignup                   func(childComplexity int, flavour feedlib.Flavour) int
 		CreateRole                       func(childComplexity int, input dto.RoleInput) int
 		DeactivateAgent                  func(childComplexity int, agentID string) int
+		DeactivateRole                   func(childComplexity int, roleID string) int
 		DeleteFavoriteNavAction          func(childComplexity int, title string) int
 		DeleteRole                       func(childComplexity int, roleID string) int
 		DeregisterAllMicroservices       func(childComplexity int) int
@@ -623,6 +625,8 @@ type MutationResolver interface {
 	RevokeRolePermission(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
 	AssignRole(ctx context.Context, userID string, roleID string) (bool, error)
 	RevokeRole(ctx context.Context, userID string, roleID string) (bool, error)
+	ActivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
+	DeactivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
 }
 type QueryResolver interface {
 	DummyQuery(ctx context.Context) (*bool, error)
@@ -1567,6 +1571,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ActivateAgent(childComplexity, args["agentID"].(string)), true
 
+	case "Mutation.activateRole":
+		if e.complexity.Mutation.ActivateRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_activateRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ActivateRole(childComplexity, args["roleID"].(string)), true
+
 	case "Mutation.addAddress":
 		if e.complexity.Mutation.AddAddress == nil {
 			break
@@ -1818,6 +1834,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeactivateAgent(childComplexity, args["agentID"].(string)), true
+
+	case "Mutation.deactivateRole":
+		if e.complexity.Mutation.DeactivateRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deactivateRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeactivateRole(childComplexity, args["roleID"].(string)), true
 
 	case "Mutation.deleteFavoriteNavAction":
 		if e.complexity.Mutation.DeleteFavoriteNavAction == nil {
@@ -4332,6 +4360,10 @@ extend type Mutation {
   assignRole(userID: ID!, roleID: ID!): Boolean!
 
   revokeRole(userID: ID!, roleID: ID!): Boolean!
+
+  activateRole(roleID: ID!): RoleOutput!
+
+  deactivateRole(roleID: ID!): RoleOutput!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -4935,6 +4967,21 @@ func (ec *executionContext) field_Mutation_activateAgent_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_activateRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["roleID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roleID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addAddress_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5274,6 +5321,21 @@ func (ec *executionContext) field_Mutation_deactivateAgent_args(ctx context.Cont
 		}
 	}
 	args["agentID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deactivateRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["roleID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roleID"] = arg0
 	return args, nil
 }
 
@@ -12212,6 +12274,90 @@ func (ec *executionContext) _Mutation_revokeRole(ctx context.Context, field grap
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_activateRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_activateRole_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ActivateRole(rctx, args["roleID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*dto.RoleOutput)
+	fc.Result = res
+	return ec.marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deactivateRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deactivateRole_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeactivateRole(rctx, args["roleID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*dto.RoleOutput)
+	fc.Result = res
+	return ec.marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NHIFDetails_id(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
@@ -22878,6 +23024,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "revokeRole":
 			out.Values[i] = ec._Mutation_revokeRole(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "activateRole":
+			out.Values[i] = ec._Mutation_activateRole(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deactivateRole":
+			out.Values[i] = ec._Mutation_deactivateRole(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
