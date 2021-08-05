@@ -301,6 +301,7 @@ type ComplexityRoot struct {
 		SupplierEDILogin                 func(childComplexity int, username string, password string, sladeCode string) int
 		SupplierSetDefaultLocation       func(childComplexity int, locationID string) int
 		SuspendSupplier                  func(childComplexity int, suspensionReason *string) int
+		UpdateRolePermissions            func(childComplexity int, input dto.RolePermissionInput) int
 		UpdateUserName                   func(childComplexity int, username string) int
 		UpdateUserPin                    func(childComplexity int, phone string, pin string) int
 		UpdateUserProfile                func(childComplexity int, input dto.UserProfileInput) int
@@ -623,6 +624,7 @@ type MutationResolver interface {
 	DeleteRole(ctx context.Context, roleID string) (bool, error)
 	AddPermissionsToRole(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
 	RevokeRolePermission(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
+	UpdateRolePermissions(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
 	AssignRole(ctx context.Context, userID string, roleID string) (bool, error)
 	RevokeRole(ctx context.Context, userID string, roleID string) (bool, error)
 	ActivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
@@ -2124,6 +2126,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SuspendSupplier(childComplexity, args["suspensionReason"].(*string)), true
+
+	case "Mutation.updateRolePermissions":
+		if e.complexity.Mutation.UpdateRolePermissions == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateRolePermissions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateRolePermissions(childComplexity, args["input"].(dto.RolePermissionInput)), true
 
 	case "Mutation.updateUserName":
 		if e.complexity.Mutation.UpdateUserName == nil {
@@ -4357,6 +4371,8 @@ extend type Mutation {
 
   revokeRolePermission(input: RolePermissionInput!): RoleOutput!
 
+  updateRolePermissions(input: RolePermissionInput!): RoleOutput!
+
   assignRole(userID: ID!, roleID: ID!): Boolean!
 
   revokeRole(userID: ID!, roleID: ID!): Boolean!
@@ -5756,6 +5772,21 @@ func (ec *executionContext) field_Mutation_suspendSupplier_args(ctx context.Cont
 		}
 	}
 	args["suspensionReason"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateRolePermissions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.RolePermissionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNRolePermissionInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRolePermissionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -12176,6 +12207,48 @@ func (ec *executionContext) _Mutation_revokeRolePermission(ctx context.Context, 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().RevokeRolePermission(rctx, args["input"].(dto.RolePermissionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*dto.RoleOutput)
+	fc.Result = res
+	return ec.marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateRolePermissions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateRolePermissions_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateRolePermissions(rctx, args["input"].(dto.RolePermissionInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23014,6 +23087,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "revokeRolePermission":
 			out.Values[i] = ec._Mutation_revokeRolePermission(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateRolePermissions":
+			out.Values[i] = ec._Mutation_updateRolePermissions(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

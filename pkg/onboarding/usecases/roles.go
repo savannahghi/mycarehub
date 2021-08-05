@@ -20,14 +20,20 @@ type RoleUseCase interface {
 	GetAllRoles(ctx context.Context, filter *firebasetools.FilterInput) ([]*dto.RoleOutput, error)
 	GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error)
 
+	// AddPermissionsToRole adds new scopes to a role
 	AddPermissionsToRole(
 		ctx context.Context,
 		input dto.RolePermissionInput,
 	) (*dto.RoleOutput, error)
+
+	// RevokeRolePermission removes the specified scopes from a prole
 	RevokeRolePermission(
 		ctx context.Context,
 		input dto.RolePermissionInput,
 	) (*dto.RoleOutput, error)
+
+	// UpdateRolePermissions replaces the scopes in a role with new updated scopes
+	UpdateRolePermissions(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
 
 	GetUserRoles(ctx context.Context, UID string) (*[]profileutils.Role, error)
 
@@ -689,6 +695,70 @@ func (r *RoleUseCaseImpl) DeactivateRole(ctx context.Context, roleID string) (*d
 	}
 
 	role.Active = false
+
+	// save role to database
+	updatedRole, err := r.repo.UpdateRoleDetails(ctx, userProfile.ID, *role)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// get permissions
+	perms, err := updatedRole.Permissions(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	output := &dto.RoleOutput{
+		ID:          updatedRole.ID,
+		Name:        updatedRole.Name,
+		Description: updatedRole.Description,
+		Active:      updatedRole.Active,
+		Scopes:      updatedRole.Scopes,
+		Permissions: perms,
+	}
+
+	return output, nil
+}
+
+// UpdateRolePermissions replaces the scopes in a role with new updated scopes
+func (r *RoleUseCaseImpl) UpdateRolePermissions(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error) {
+	ctx, span := tracer.Start(ctx, "UpdateRolePermissions")
+	defer span.End()
+
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// Check logged in user has the right permissions
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanEditRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	if !allowed {
+		return nil, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to edit role"),
+		)
+	}
+
+	role, err := r.repo.GetRoleByID(ctx, input.RoleID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// new scopes
+	role.Scopes = input.Scopes
+
+	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
 
 	// save role to database
 	updatedRole, err := r.repo.UpdateRoleDetails(ctx, userProfile.ID, *role)

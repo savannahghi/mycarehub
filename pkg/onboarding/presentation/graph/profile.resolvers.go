@@ -615,6 +615,16 @@ func (r *mutationResolver) RevokeRolePermission(ctx context.Context, input dto.R
 	return role, err
 }
 
+func (r *mutationResolver) UpdateRolePermissions(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error) {
+	startTime := time.Now()
+
+	role, err := r.interactor.Role.UpdateRolePermissions(ctx, input)
+
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "updateRolePermissions", err)
+
+	return role, err
+}
+
 func (r *mutationResolver) AssignRole(ctx context.Context, userID string, roleID string) (bool, error) {
 	startTime := time.Now()
 
