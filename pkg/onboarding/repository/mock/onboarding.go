@@ -735,14 +735,6 @@ func (f *FakeOnboardingRepository) GetUserCommunicationsSettings(
 	return f.GetUserCommunicationsSettingsFn(ctx, profileID)
 }
 
-// GetNavActions ...
-func (f *FakeOnboardingRepository) GetNavActions(
-	ctx context.Context,
-	role profileutils.RoleType,
-) (*profileutils.NavigationActions, error) {
-	return f.GetNavActionsFn(ctx, role)
-}
-
 // SetUserCommunicationsSettings ...
 func (f *FakeOnboardingRepository) SetUserCommunicationsSettings(
 	ctx context.Context,

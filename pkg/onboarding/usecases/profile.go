@@ -11,7 +11,6 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/authorization/permission"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
 	"github.com/savannahghi/profileutils"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
@@ -31,7 +30,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
-	"github.com/segmentio/ksuid"
 )
 
 const (
@@ -167,18 +165,14 @@ type ProfileUseCase interface {
 		allowEmail *bool,
 	) (*profileutils.UserCommunicationsSetting, error)
 
-	GetNavActions(
-		ctx context.Context,
-		user profileutils.UserProfile,
-	) (*profileutils.NavigationActions, error)
-	GenerateDefaultNavActions(ctx context.Context) (profileutils.NavigationActions, error)
-	GenerateAgentNavActions(ctx context.Context) (profileutils.NavigationActions, error)
-	GenerateEmployeeNavActions(ctx context.Context) (profileutils.NavigationActions, error)
-
 	GetNavigationActions(ctx context.Context) (*dto.GroupedNavigationActions, error)
+
 	SaveFavoriteNavActions(ctx context.Context, title string) (bool, error)
+
 	DeleteFavoriteNavActions(ctx context.Context, title string) (bool, error)
+
 	RefreshNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error)
+
 	SwitchUserFlaggedFeatures(ctx context.Context, phoneNumber string) (*dto.OKResp, error)
 
 	FindUserByPhone(ctx context.Context, phoneNumber string) (*profileutils.UserProfile, error)
@@ -1623,292 +1617,6 @@ func (p *ProfileUseCaseImpl) SetUserCommunicationsSettings(
 
 }
 
-// GetNavActions Generates and returns the navigation actions for a user based on their role
-func (p *ProfileUseCaseImpl) GetNavActions(
-	ctx context.Context,
-	user profileutils.UserProfile,
-) (*profileutils.NavigationActions, error) {
-	ctx, span := tracer.Start(ctx, "GetNavActions")
-	defer span.End()
-
-	var navActions profileutils.NavigationActions
-	var err error
-
-	switch user.Role {
-	case profileutils.RoleTypeEmployee:
-		navActions, err = p.GenerateEmployeeNavActions(ctx)
-		if err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, err
-		}
-
-	case profileutils.RoleTypeAgent:
-		navActions, err = p.GenerateAgentNavActions(ctx)
-		if err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, err
-		}
-
-	default:
-		navActions, err = p.GenerateDefaultNavActions(ctx)
-		if err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, err
-		}
-	}
-
-	// set favorite navigation actions in response
-	primaryActions := []profileutils.NavAction{}
-	for _, navAction := range navActions.Primary {
-		if utils.IsFavNavAction(&user, navAction.Title) {
-			navAction.Favourite = true
-		}
-		primaryActions = append(primaryActions, navAction)
-	}
-
-	secondaryActions := []profileutils.NavAction{}
-	for _, navAction := range navActions.Secondary {
-		if utils.IsFavNavAction(&user, navAction.Title) {
-			navAction.Favourite = true
-		}
-		secondaryActions = append(secondaryActions, navAction)
-	}
-
-	navActions.Primary = primaryActions
-	navActions.Secondary = secondaryActions
-	return &navActions, nil
-}
-
-//GenerateEmployeeNavActions generates the navigation actions for a SIL employee
-func (p *ProfileUseCaseImpl) GenerateEmployeeNavActions(
-	ctx context.Context,
-) (profileutils.NavigationActions, error) {
-
-	actions := profileutils.NavigationActions{
-		Primary: []profileutils.NavAction{
-			{
-				Title:      common.HomeNavActionTitle,
-				OnTapRoute: common.HomeRoute,
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HomeNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.HomeNavActionTitle,
-					Description: common.HomeNavActionDescription,
-					Thumbnail:   common.HomeNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title:      common.RequestsNavActionTitle,
-				OnTapRoute: common.RequestsRoute,
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.RequestNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.RequestsNavActionTitle,
-					Description: common.RequestsNavActionDescription,
-					Thumbnail:   common.RequestNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title: common.PartnerNavActionTitle,
-				// Not provided yet
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.PartnerNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.PartnerNavActionTitle,
-					Description: common.PartnerNavActionDescription,
-					Thumbnail:   common.PartnerNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title: common.ConsumerNavActionTitle,
-				// Not provided yet
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.ConsumerNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.ConsumerNavActionTitle,
-					Description: common.ConsumerNavActionDescription,
-					Thumbnail:   common.ConsumerNavActionURL,
-				},
-				Favourite: false,
-			},
-		},
-		Secondary: []profileutils.NavAction{
-			{
-				Title:      common.AgentNavActionTitle,
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.AgentNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.AgentNavActionTitle,
-					Description: common.AgentNavActionDescription,
-					Thumbnail:   common.AgentNavActionURL,
-				},
-				Favourite: false,
-				Nested: []profileutils.NestedNavAction{
-					{
-						Title:      common.AgentRegistrationActionTitle,
-						OnTapRoute: common.AgentRegistrationRoute,
-					},
-					{
-						Title:      common.AgentIdentificationActionTitle,
-						OnTapRoute: common.AgentIdentificationRoute,
-					},
-				},
-			},
-			{
-				Title: common.PatientNavActionTitle,
-				// Empty string for parent with nested actions
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.PatientNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.PatientNavActionTitle,
-					Description: common.PatientNavActionDescription,
-					Thumbnail:   common.PatientNavActionURL,
-				},
-				Favourite: false,
-				Nested: []profileutils.NestedNavAction{
-					{
-						Title:      common.PatientRegistrationActionTitle,
-						OnTapRoute: common.PatientRegistrationRoute,
-					},
-					{
-						Title:      common.PatientIdentificationActionTitle,
-						OnTapRoute: common.PatientIdentificationRoute,
-					},
-				},
-			},
-			{
-				Title:      common.HelpNavActionTitle,
-				OnTapRoute: common.GetHelpRouteRoute,
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HelpNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.HelpNavActionTitle,
-					Description: common.HelpNavActionDescription,
-					Thumbnail:   common.HelpNavActionURL,
-				},
-				Favourite: false,
-			},
-		},
-	}
-
-	return actions, nil
-}
-
-//GenerateAgentNavActions generates the navigation actions for a SIL employee
-func (p *ProfileUseCaseImpl) GenerateAgentNavActions(
-	ctx context.Context,
-) (profileutils.NavigationActions, error) {
-	actions := profileutils.NavigationActions{
-		Primary: []profileutils.NavAction{
-			{
-				Title:      common.HomeNavActionTitle,
-				OnTapRoute: common.HomeRoute,
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HomeNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.HomeNavActionTitle,
-					Description: common.HomeNavActionDescription,
-					Thumbnail:   common.HomeNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title:      common.PartnerNavActionTitle,
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.PartnerNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.PartnerNavActionTitle,
-					Description: common.PartnerNavActionDescription,
-					Thumbnail:   common.PartnerNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title:      common.ConsumerNavActionTitle,
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.ConsumerNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.ConsumerNavActionTitle,
-					Description: common.ConsumerNavActionDescription,
-					Thumbnail:   common.ConsumerNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title:      common.HelpNavActionTitle,
-				OnTapRoute: common.GetHelpRouteRoute,
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HelpNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.HelpNavActionTitle,
-					Description: common.HelpNavActionDescription,
-					Thumbnail:   common.HelpNavActionURL,
-				},
-				Favourite: false,
-			},
-		},
-	}
-	return actions, nil
-}
-
-//GenerateDefaultNavActions generates the navigation actions for a SIL employee
-func (p *ProfileUseCaseImpl) GenerateDefaultNavActions(
-	ctx context.Context,
-) (profileutils.NavigationActions, error) {
-	actions := profileutils.NavigationActions{
-		Primary: []profileutils.NavAction{
-			{
-				Title:      common.HomeNavActionTitle,
-				OnTapRoute: common.HomeRoute,
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HomeNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.HomeNavActionTitle,
-					Description: common.HomeNavActionDescription,
-					Thumbnail:   common.HomeNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title:      common.HelpNavActionTitle,
-				OnTapRoute: common.GetHelpRouteRoute,
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HelpNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       common.HelpNavActionTitle,
-					Description: common.HelpNavActionDescription,
-					Thumbnail:   common.HelpNavActionURL,
-				},
-				Favourite: false,
-			},
-		},
-	}
-
-	return actions, nil
-}
-
 // SaveFavoriteNavActions  saves the users favorite navigation actions
 func (p *ProfileUseCaseImpl) SaveFavoriteNavActions(
 	ctx context.Context,
@@ -1992,13 +1700,18 @@ func (p *ProfileUseCaseImpl) RefreshNavigationActions(
 		return nil, exceptions.ProfileNotFoundError(err)
 	}
 
-	navAction, err := p.GetNavActions(ctx, *profile)
+	// get navigation actions
+	roles, err := p.onboardingRepository.GetRolesByIDs(ctx, profile.Roles)
 	if err != nil {
-		return nil, exceptions.InternalServerError(
-			fmt.Errorf("failed to get user navigation actions"),
-		)
+		return nil, err
 	}
-	return navAction, nil
+
+	navActions, err := utils.GetUserNavigationActions(ctx, *profile, *roles)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.NewActionsMapper(ctx, navActions), nil
 }
 
 // SwitchUserFlaggedFeatures flips the user as opt-in or opt-out to flagged features

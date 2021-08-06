@@ -13,14 +13,12 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
-	"github.com/segmentio/ksuid"
 	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
@@ -3545,283 +3543,6 @@ func TestProfileUseCaseImpl_SetUserCommunicationsSettings(t *testing.T) {
 	}
 }
 
-func TestFeedUseCaseImpl_GetNavActions(t *testing.T) {
-	ctx := context.Background()
-
-	i, err := InitializeFakeOnboardingInteractor()
-	if err != nil {
-		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
-		return
-	}
-
-	defaultActions := &profileutils.NavigationActions{
-		Primary: []profileutils.NavAction{
-			{
-				Title:      "Home",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HomeNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Home",
-					Description: "Home Navigation action",
-					Thumbnail:   common.HomeNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title:      "Help",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HelpNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Help",
-					Description: "Help Navigation action",
-					Thumbnail:   common.HelpNavActionURL,
-				},
-				Favourite: false,
-			},
-		},
-	}
-
-	employee := profileutils.RoleTypeEmployee
-	employeeActions := &profileutils.NavigationActions{
-		Primary: []profileutils.NavAction{
-			{
-				Title:      "Home",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HomeNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Home",
-					Description: "Home Navigation action",
-					Thumbnail:   common.HomeNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title:      "KYC",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.RequestNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "KYC",
-					Description: "KYC Navigation action",
-					Thumbnail:   common.RequestNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title:      "Partner",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.PartnerNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Partner",
-					Description: "Partner Navigation action",
-					Thumbnail:   common.PartnerNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title:      "Consumer",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.ConsumerNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Consumer",
-					Description: "Consumer Navigation action",
-					Thumbnail:   common.ConsumerNavActionURL,
-				},
-				Favourite: false,
-			},
-		},
-		Secondary: []profileutils.NavAction{
-			{
-				Title:      "Agent",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.AgentNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Agent",
-					Description: "Agent Navigation action",
-					Thumbnail:   common.AgentNavActionURL,
-				},
-				Favourite: false,
-				Nested: []profileutils.NestedNavAction{
-					{
-						Title:      common.AgentRegistrationActionTitle,
-						OnTapRoute: "",
-					},
-					{
-						Title:      common.AgentIdentificationActionTitle,
-						OnTapRoute: "",
-					},
-				},
-			},
-			{
-				Title:      "Patient",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.PatientNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Patient",
-					Description: "Patient Navigation action",
-					Thumbnail:   common.PatientNavActionURL,
-				},
-				Favourite: false,
-				Nested: []profileutils.NestedNavAction{
-					{
-						Title:      "Patient Registration",
-						OnTapRoute: "",
-					},
-					{
-						Title:      "Patient Identification",
-						OnTapRoute: "",
-					},
-				},
-			},
-			{
-				Title:      "Help",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HelpNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Help",
-					Description: "Help Navigation action",
-					Thumbnail:   common.HelpNavActionURL,
-				},
-				Favourite: false,
-			},
-		},
-	}
-
-	agent := profileutils.RoleTypeAgent
-	agentActions := &profileutils.NavigationActions{
-		Primary: []profileutils.NavAction{
-			{
-				Title:      "Home",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HomeNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Home",
-					Description: "Home Navigation action",
-					Thumbnail:   common.HomeNavActionURL,
-				},
-				Favourite: false,
-			},
-			{
-				Title:      "Partner",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.PartnerNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Partner",
-					Description: "Partner Navigation action",
-					Thumbnail:   common.PartnerNavActionURL,
-				},
-				Favourite: true,
-			},
-			{
-				Title:      "Consumer",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.ConsumerNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Consumer",
-					Description: "Consumer Navigation action",
-					Thumbnail:   common.ConsumerNavActionURL,
-				},
-				Favourite: true,
-			},
-			{
-				Title:      "Help",
-				OnTapRoute: "",
-				Icon: feedlib.Link{
-					ID:          ksuid.New().String(),
-					URL:         common.HelpNavActionURL,
-					LinkType:    feedlib.LinkTypeSvgImage,
-					Title:       "Help",
-					Description: "Help Navigation action",
-					Thumbnail:   common.HelpNavActionURL,
-				},
-				Favourite: false,
-			},
-		},
-	}
-	type args struct {
-		ctx  context.Context
-		user profileutils.UserProfile
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *profileutils.NavigationActions
-		wantNil bool
-		wantErr bool
-	}{
-		{
-			name: "valid:success_no_role_default_action",
-			args: args{
-				ctx: ctx,
-				user: profileutils.UserProfile{
-					Role: "",
-				},
-			},
-			want:    defaultActions,
-			wantErr: false,
-		},
-		{
-			name: "valid:success_employee_role_actions",
-			args: args{
-				ctx: ctx,
-				user: profileutils.UserProfile{
-					Role:          employee,
-					FavNavActions: []string{"Agent"},
-				},
-			},
-			want:    employeeActions,
-			wantErr: false,
-		},
-		{
-			name: "valid:success_agent_role_actions",
-			args: args{
-				ctx: ctx,
-				user: profileutils.UserProfile{
-					Role:          agent,
-					FavNavActions: []string{"Partner", "Consumer"},
-				},
-			},
-			want:    agentActions,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := i.Onboarding.GetNavActions(tt.args.ctx, tt.args.user)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("FeedUseCaseImpl.GetNavActions() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got == nil {
-				t.Errorf("FeedUseCaseImpl.GetNavActions() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestProfileUseCaseImpl_SaveFavoriteNavActions(t *testing.T) {
 	ctx := context.Background()
 
@@ -4182,6 +3903,15 @@ func TestProfileUseCaseImpl_RefreshNavigationActions(t *testing.T) {
 
 				fakeRepo.GetNavActionsFn = func(ctx context.Context, role profileutils.RoleType) (*profileutils.NavigationActions, error) {
 					return &profileutils.NavigationActions{}, nil
+				}
+
+				fakeRepo.GetRolesByIDsFn = func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error) {
+					roles := []profileutils.Role{
+						{
+							ID: uuid.NewString(),
+						},
+					}
+					return &roles, nil
 				}
 			}
 

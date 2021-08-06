@@ -1,12 +1,16 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"strconv"
 
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/apiclient"
 	"go.opentelemetry.io/otel/codes"
@@ -181,4 +185,45 @@ func CheckEmptyString(text string) (*string, error) {
 		return nil, fmt.Errorf("sessionID cannot be empty")
 	}
 	return &inputText, nil
+}
+
+// NewActionsMapper maps the new navigation actions mapper to the old navigation actions implementation
+// It is meant to  be used as a transition and ease changes made without affecting the frontend
+func NewActionsMapper(ctx context.Context, grouped *dto.GroupedNavigationActions) *profileutils.NavigationActions {
+	mapped := &profileutils.NavigationActions{}
+
+	for _, action := range grouped.Primary {
+		c := profileutils.NavAction{
+			Title:      action.Title,
+			OnTapRoute: action.OnTapRoute,
+			Favourite:  action.Favorite,
+			Icon:       feedlib.GetSVGImageLink(action.Icon, action.Title, action.Title, action.Title),
+		}
+		mapped.Primary = append(mapped.Primary, c)
+	}
+
+	for _, action := range grouped.Secondary {
+		c := profileutils.NavAction{
+			Title:      action.Title,
+			OnTapRoute: action.OnTapRoute,
+			Favourite:  action.Favorite,
+			Icon:       feedlib.GetSVGImageLink(action.Icon, action.Title, action.Title, action.Title),
+		}
+
+		if len(action.Nested) > 0 {
+			for _, nested := range action.Nested {
+				nestedAction := nested.(domain.NavigationAction)
+				m := profileutils.NestedNavAction{
+					Title:      nestedAction.Title,
+					OnTapRoute: nestedAction.OnTapRoute,
+				}
+
+				c.Nested = append(c.Nested, m)
+			}
+		}
+
+		mapped.Secondary = append(mapped.Secondary, c)
+	}
+
+	return mapped
 }

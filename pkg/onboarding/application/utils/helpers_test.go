@@ -1,12 +1,16 @@
 package utils_test
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/apiclient"
 )
@@ -392,6 +396,101 @@ func Test_ServiceHealthEndPoint(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("serviceHealthEndPoint() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewActionsMapper(t *testing.T) {
+	ctx := context.Background()
+
+	nestedOne := domain.NavigationAction{
+		Title:      "Nested One",
+		OnTapRoute: "some/route",
+		Icon:       "http://one.asset.com",
+		Favorite:   false,
+	}
+
+	nestedTwo := domain.NavigationAction{
+		Title:      "Nested Two",
+		OnTapRoute: "some/route",
+		Icon:       "http://two.asset.com",
+		Favorite:   false,
+	}
+
+	new := &dto.GroupedNavigationActions{
+		Primary: []domain.NavigationAction{
+			{
+				Title:      "Home",
+				OnTapRoute: "some/route",
+				Icon:       "http://home.asset.com",
+				Favorite:   false,
+			},
+			{
+				Title:      "Help",
+				OnTapRoute: "some/route",
+				Icon:       "http://help.asset.com",
+				Favorite:   false,
+			},
+		},
+		Secondary: []domain.NavigationAction{
+			{
+				Title:      "Secondary One",
+				OnTapRoute: "some/route",
+				Icon:       "http://one.asset.com",
+				Favorite:   true,
+				Nested:     []interface{}{nestedOne, nestedTwo},
+			},
+			{
+				Title:      "Secondary Two",
+				OnTapRoute: "some/route",
+				Icon:       "http://two.asset.com",
+				Favorite:   false,
+				Nested:     []interface{}{nestedOne, nestedTwo},
+			},
+		},
+	}
+
+	old := &profileutils.NavigationActions{
+		Primary:   []profileutils.NavAction{},
+		Secondary: []profileutils.NavAction{},
+	}
+
+	type args struct {
+		ctx     context.Context
+		grouped *dto.GroupedNavigationActions
+	}
+	tests := []struct {
+		name string
+		args args
+		want *profileutils.NavigationActions
+	}{
+		{
+			name: "success: map empty new actions to old actions",
+			args: args{
+				ctx: ctx,
+				grouped: &dto.GroupedNavigationActions{
+					Primary:   []domain.NavigationAction{},
+					Secondary: []domain.NavigationAction{},
+				},
+			},
+			want: &profileutils.NavigationActions{},
+		},
+		{
+			name: "success: map new actions to old actions",
+			args: args{
+				ctx:     ctx,
+				grouped: new,
+			},
+			want: old,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := utils.NewActionsMapper(tt.args.ctx, tt.args.grouped)
+			logrus.Println(got)
+			if got == nil {
+				t.Errorf("NewActionsMapper() = %v, want %v", got, tt.want)
 			}
 		})
 	}

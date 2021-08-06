@@ -103,12 +103,6 @@ func (a *AgentUseCaseImpl) RegisterAgent(
 		return nil, err
 	}
 
-	if !usp.HasPermission(profileutils.PermissionTypeRegisterAgent) {
-		return nil, exceptions.RoleNotValid(
-			fmt.Errorf("error: logged in user does not have permissions to create agent"),
-		)
-	}
-
 	timestamp := time.Now().In(pubsubtools.TimeLocation)
 
 	agentProfile := profileutils.UserProfile{
@@ -233,25 +227,6 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, input dto.ProfileS
 	ctx, span := tracer.Start(ctx, "ActivateAgent")
 	defer span.End()
 
-	// Check logged in user has permissions/role of employee
-	p, err := a.baseExt.GetLoggedInUser(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return false, err
-	}
-
-	usp, err := a.repo.GetUserProfileByUID(ctx, p.UID, false)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return false, err
-	}
-
-	if !usp.HasPermission(profileutils.PermissionTypeUnsuspendAgent) {
-		return false, exceptions.RoleNotValid(
-			fmt.Errorf("error: logged in user does not have permissions to activate agent"),
-		)
-	}
-
 	agent, err := a.repo.GetUserProfileByID(ctx, input.ID, true)
 	if err != nil {
 		utils.RecordSpanError(span, err)
@@ -271,24 +246,6 @@ func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, input dto.Profil
 	a.checkPreconditions()
 	ctx, span := tracer.Start(ctx, "DeactivateAgent")
 	defer span.End()
-
-	p, err := a.baseExt.GetLoggedInUser(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return false, err
-	}
-
-	usp, err := a.repo.GetUserProfileByUID(ctx, p.UID, false)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return false, err
-	}
-
-	if !usp.HasPermission(profileutils.PermissionTypeSuspendAgent) {
-		return false, exceptions.RoleNotValid(
-			fmt.Errorf("error: logged in user does not have permissions to suspend agent"),
-		)
-	}
 
 	// Get agent profile using phoneNumber
 	agent, err := a.repo.GetUserProfileByID(ctx, input.ID, false)
