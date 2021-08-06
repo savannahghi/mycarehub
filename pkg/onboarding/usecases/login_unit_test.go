@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
-	"github.com/segmentio/ksuid"
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
@@ -369,40 +367,13 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 						AllowPush:     true,
 					}, nil
 				}
-
-				fakeRepo.GetNavActionsFn = func(ctx context.Context, role profileutils.RoleType) (*profileutils.NavigationActions, error) {
-					navs := profileutils.NavigationActions{
-						Primary: []profileutils.NavAction{
-							{
-								Title:      common.HomeNavActionTitle,
-								OnTapRoute: common.HomeRoute,
-								Icon: feedlib.Link{
-									ID:          ksuid.New().String(),
-									URL:         common.HomeNavActionURL,
-									LinkType:    feedlib.LinkTypeSvgImage,
-									Title:       common.HomeNavActionTitle,
-									Description: common.HomeNavActionDescription,
-									Thumbnail:   common.HomeNavActionURL,
-								},
-								Favourite: false,
-							},
-							{
-								Title:      common.HelpNavActionTitle,
-								OnTapRoute: common.GetHelpRouteRoute,
-								Icon: feedlib.Link{
-									ID:          ksuid.New().String(),
-									URL:         common.HelpNavActionURL,
-									LinkType:    feedlib.LinkTypeSvgImage,
-									Title:       common.HelpNavActionTitle,
-									Description: common.HelpNavActionDescription,
-									Thumbnail:   common.HelpNavActionURL,
-								},
-								Favourite: false,
-							},
+				fakeRepo.GetRolesByIDsFn = func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error) {
+					roles := []profileutils.Role{
+						{
+							ID: uuid.NewString(),
 						},
-						Secondary: []profileutils.NavAction{},
 					}
-					return &navs, nil
+					return &roles, nil
 				}
 
 			}

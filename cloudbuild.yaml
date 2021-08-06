@@ -18,10 +18,10 @@ steps:
       '--region', 'europe-west1',
       '--platform', 'managed',
       '--allow-unauthenticated',
-      '--min-instances', '1',
-      '--max-instances', '4',
-      '--memory', '1Gi',
-      '--cpu', '1',
+      '--min-instances', '${_MIN_INST}',
+      '--max-instances', '${_MAX_INST}',
+      '--memory', '${_MEMORY_LIMIT}',
+      '--cpu', '${_CPU}',
       '--set-secrets', '/tmp/secrets/.env=${_SECRET_NAME}:latest',
       '--timeout', '59m59s'
   ]
@@ -31,12 +31,12 @@ steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
       'run',
+      'services',
       'update-traffic',
       "${_SERVICE_NAME}",
       '--to-latest',
       '--region', 'europe-west1',
       '--platform', 'managed',
-      '--allow-unauthenticated',
   ]
 
 images:

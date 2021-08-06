@@ -142,8 +142,6 @@ type FakeOnboardingRepository struct {
 
 	GetUserCommunicationsSettingsFn func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error)
 
-	GetNavActionsFn func(ctx context.Context, role profileutils.RoleType) (*profileutils.NavigationActions, error)
-
 	SetUserCommunicationsSettingsFn func(ctx context.Context, profileID string,
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error)
 

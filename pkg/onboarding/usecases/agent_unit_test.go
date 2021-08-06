@@ -859,6 +859,12 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return nil, fmt.Errorf("failed. could not get logged in user")
 				}
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
+				}
+				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
+					return fmt.Errorf("failed to unsuspend/activate agent account")
+				}
 			}
 
 			if tt.name == "invalid:loggedin_user_does_not_have_employee_role" {
@@ -868,11 +874,8 @@ func TestAgentUseCaseImpl_ActivateAgent(t *testing.T) {
 					}, nil
 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-					}, nil
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
 				}
 			}
 
@@ -1029,6 +1032,12 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return nil, fmt.Errorf("failed. could not get logged in user")
+				}
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
+				}
+				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
+					return fmt.Errorf("failed to unsuspend/activate agent account")
 				}
 			}
 

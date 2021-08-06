@@ -51,6 +51,9 @@ env:
   JWT_KEY: ${{ secrets.JWT_KEY }}
   SAVANNAH_ADMIN_EMAIL: ${{ secrets.SAVANNAH_ADMIN_EMAIL }}
 
+concurrency:
+  group: lint-and-test
+
 jobs:
   lint_and_test:
     strategy:

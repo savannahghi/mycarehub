@@ -649,6 +649,15 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 					return nil
 				}
 
+				fakeRepo.GetRolesByIDsFn = func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error) {
+					roles := []profileutils.Role{
+						{
+							ID: uuid.NewString(),
+						},
+					}
+					return &roles, nil
+				}
+
 				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
 					return &profileutils.UserCommunicationsSetting{
 						ID:            "111",

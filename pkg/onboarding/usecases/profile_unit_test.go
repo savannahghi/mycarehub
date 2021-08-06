@@ -3901,10 +3901,6 @@ func TestProfileUseCaseImpl_RefreshNavigationActions(t *testing.T) {
 					return &profileutils.UserProfile{}, nil
 				}
 
-				fakeRepo.GetNavActionsFn = func(ctx context.Context, role profileutils.RoleType) (*profileutils.NavigationActions, error) {
-					return &profileutils.NavigationActions{}, nil
-				}
-
 				fakeRepo.GetRolesByIDsFn = func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error) {
 					roles := []profileutils.Role{
 						{
