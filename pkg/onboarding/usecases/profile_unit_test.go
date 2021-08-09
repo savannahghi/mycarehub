@@ -4067,20 +4067,20 @@ func TestProfileUseCaseImpl_GetNavigationActions(t *testing.T) {
 			want:    nil,
 			wantErr: true,
 		},
-		// {
-		// 	name: "happy got user navigation actions",
-		// 	args: args{ctx: ctx},
-		// 	want: &dto.GroupedNavigationActions{
-		// 		Primary: []domain.NavigationAction{
-		// 			domain.HomeNavAction,
-		// 			domain.HelpNavAction,
-		// 		},
-		// 		Secondary: []domain.NavigationAction{
-		// 			agentNav,
-		// 		},
-		// 	},
-		// 	wantErr: true,
-		// },
+		{
+			name: "happy got user navigation actions",
+			args: args{ctx: ctx},
+			want: &dto.GroupedNavigationActions{
+				Primary: []domain.NavigationAction{
+					domain.HomeNavAction,
+					domain.HelpNavAction,
+				},
+				Secondary: []domain.NavigationAction{
+					agentNav,
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -4123,7 +4123,7 @@ func TestProfileUseCaseImpl_GetNavigationActions(t *testing.T) {
 				}
 				fakeRepo.GetRolesByIDsFn = func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error) {
 					return &[]profileutils.Role{
-						{Scopes: []string{"agent.view", "agent.register"}},
+						{Scopes: []string{"agent.view", "agent.register"}, Active: true},
 					}, nil
 				}
 			}
