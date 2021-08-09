@@ -3969,17 +3969,21 @@ func (fr *Repository) GetAllRoles(
 
 	if filter != nil {
 		for _, filterParam := range filter.FilterBy {
-			query.FieldName = filterParam.FieldName
-			query.Operator = filterParam.ComparisonOperation.String()
-			query.Value = filter.Search
+			operations := utils.MappedOperations(ctx)
+			operation, ok := operations[filterParam.ComparisonOperation]
+			if ok {
+				query.FieldName = filterParam.FieldName
+				query.Operator = operation
+				query.Value = filterParam.FieldValue
 
-			docs, err := fr.FirestoreClient.GetAll(ctx, query)
+				docs, err := fr.FirestoreClient.GetAll(ctx, query)
 
-			if err != nil {
-				utils.RecordSpanError(span, err)
-				return nil, exceptions.InternalServerError(err)
+				if err != nil {
+					utils.RecordSpanError(span, err)
+					return nil, exceptions.InternalServerError(err)
+				}
+				allDocs = append(allDocs, docs...)
 			}
-			allDocs = append(allDocs, docs...)
 		}
 	} else {
 		docs, err := fr.FirestoreClient.GetAll(ctx, query)

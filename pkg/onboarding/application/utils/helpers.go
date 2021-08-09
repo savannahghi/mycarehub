@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
@@ -226,4 +227,18 @@ func NewActionsMapper(ctx context.Context, grouped *dto.GroupedNavigationActions
 	}
 
 	return mapped
+}
+
+// MappedOperations returns a list of mapped operations
+func MappedOperations(ctx context.Context) map[enumutils.Operation]string {
+	operations := make(map[enumutils.Operation]string)
+	operations[enumutils.OperationEqual] = "=="
+	operations[enumutils.OperationLessThan] = "<"
+	operations[enumutils.OperationLessThanOrEqualTo] = "<="
+	operations[enumutils.OperationGreaterThan] = ">"
+	operations[enumutils.OperationGreaterThanOrEqualTo] = ">="
+	operations[enumutils.OperationContains] = "array-contains"
+	operations[enumutils.OperationIn] = "in"
+
+	return operations
 }
