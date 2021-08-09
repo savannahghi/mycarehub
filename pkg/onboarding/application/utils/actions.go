@@ -36,8 +36,9 @@ func GetUserNavigationActions(
 	//all user actions
 	userNavigationActions := []domain.NavigationAction{}
 
-	for _, action := range domain.AllNavigationActions {
-
+	allActions := domain.AllNavigationActions
+	for i := 0; i < len(allActions); i++ {
+		action := allActions[i]
 		if action.RequiredPermission == nil || CheckUserHasPermission(roles, *action.RequiredPermission) {
 			//  check for favorite navigation actions
 			if IsFavNavAction(&user, action.Title) {
@@ -61,25 +62,27 @@ func GetUserNavigationActions(
 // GroupNested groups navigation actions into parents and children
 func GroupNested(
 	actions []domain.NavigationAction,
-) map[domain.NavigationGroup]domain.NavigationAction {
-	grouped := make(map[domain.NavigationGroup]domain.NavigationAction)
-
+) []domain.NavigationAction {
+	parents := []domain.NavigationAction{}
+	grouped := []domain.NavigationAction{}
 	// map all parents to grouped
-	for _, action := range actions {
+	for i := 0; i < len(actions); i++ {
+		action := actions[i]
+
 		if !action.HasParent {
-			grouped[action.Group] = action
+			parents = append(parents, action)
 		}
 	}
 
 	//map all children to respective parents
-	for _, action := range actions {
-		if action.HasParent {
-			parent, isAvailable := grouped[action.Group]
-			if isAvailable {
+	for _, parent := range parents {
+		for i := 0; i < len(actions); i++ {
+			action := actions[i]
+			if action.HasParent && action.Group == parent.Group {
 				parent.Nested = append(parent.Nested, action)
-				grouped[action.Group] = parent
 			}
 		}
+		grouped = append(grouped, parent)
 	}
 
 	return grouped
@@ -87,12 +90,12 @@ func GroupNested(
 
 // GroupPriority groups navigation actions into primary and secondary actions
 func GroupPriority(
-	actions map[domain.NavigationGroup]domain.NavigationAction,
+	actions []domain.NavigationAction,
 ) (primary, secondary []domain.NavigationAction) {
 	primary = []domain.NavigationAction{}
 	secondary = []domain.NavigationAction{}
 
-	added := make(map[domain.NavigationGroup]domain.NavigationAction)
+	mapped := make(map[domain.NavigationGroup]bool)
 
 	//pb is number of navactions that can possibly be on bottom navigation ie primary
 	pb := 0
@@ -104,10 +107,11 @@ func GroupPriority(
 
 	// add all the possible bottom action to primary if they are less or equal to 4
 	if pb <= 4 {
-		for _, action := range actions {
+		for i := 0; i < len(actions); i++ {
+			action := actions[i]
 			if len(action.Nested) == 0 {
 				primary = append(primary, action)
-				added[action.Group] = action
+				mapped[action.Group] = true
 			}
 		}
 	} else {
@@ -116,15 +120,15 @@ func GroupPriority(
 				break
 			}
 			// add all the high priority first
-			for _, action := range actions {
-
+			for i := 0; i < len(actions); i++ {
+				action := actions[i]
 				if action.IsHighPriority {
 
-					_, exist := added[action.Group]
-					if !exist && len(action.Nested) == 0 {
+					_, wasMapped := mapped[action.Group]
+					if !wasMapped && len(action.Nested) == 0 {
 
 						primary = append(primary, action)
-						added[action.Group] = action
+						mapped[action.Group] = true
 
 						if len(primary) == 4 {
 							break
@@ -133,13 +137,13 @@ func GroupPriority(
 				}
 			}
 			// add other actions is high priority actions are less than four
-			for _, action := range actions {
-
-				_, exist := added[action.Group]
-				if !exist && len(action.Nested) == 0 {
+			for i := 0; i < len(actions); i++ {
+				action := actions[i]
+				_, wasMapped := mapped[action.Group]
+				if !wasMapped && len(action.Nested) == 0 {
 
 					primary = append(primary, action)
-					added[action.Group] = action
+					mapped[action.Group] = true
 
 					if len(primary) == 4 {
 						break
@@ -150,13 +154,13 @@ func GroupPriority(
 	}
 
 	// add all remaining items to secondary
-	for _, action := range actions {
-
-		_, exists := added[action.Group]
-		if !exists {
+	for i := 0; i < len(actions); i++ {
+		action := actions[i]
+		_, wasMapped := mapped[action.Group]
+		if !wasMapped {
 
 			secondary = append(secondary, action)
-			added[action.Group] = action
+			mapped[action.Group] = true
 		}
 	}
 
