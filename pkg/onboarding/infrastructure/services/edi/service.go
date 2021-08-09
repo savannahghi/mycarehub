@@ -39,6 +39,13 @@ type ServiceEdi interface {
 	) (*http.Response, error)
 
 	GetSladerData(ctx context.Context, phoneNumber string) (*[]apiclient.MarketingData, error)
+
+	LinkEDIMemberCover(
+		ctx context.Context,
+		phoneNumber string,
+		membernumber string,
+		payersladecode int,
+	) (*http.Response, error)
 }
 
 // ServiceEDIImpl represents EDI usecases
@@ -145,4 +152,33 @@ func (e *ServiceEDIImpl) GetSladerData(ctx context.Context, phoneNumber string) 
 		return nil, fmt.Errorf("failed to unmarshal slader data: %v", err)
 	}
 	return &sladerData, nil
+}
+
+// LinkEDIMemberCover calls the `edi` service to autolink a cover for a slader who gets
+// text messages from EDI and clicks on the provided link to download Be.Well.
+// After the slader creates an account, a cover should be automatically appended to the profile.
+func (e *ServiceEDIImpl) LinkEDIMemberCover(
+	ctx context.Context,
+	phoneNumber string,
+	membernumber string,
+	payersladecode int,
+) (*http.Response, error) {
+	userProfile, err := e.onboardingRepository.GetUserProfileByPhoneNumber(ctx, phoneNumber, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch a user profile: %w", err)
+	}
+
+	payload := dto.CoverInput{
+		PayerSladeCode: payersladecode,
+		MemberNumber:   membernumber,
+		UID:            userProfile.VerifiedUIDS[0],
+		PushToken:      userProfile.PushTokens,
+	}
+
+	return e.EdiExt.MakeRequest(
+		ctx,
+		http.MethodPost,
+		LinkCover,
+		payload,
+	)
 }

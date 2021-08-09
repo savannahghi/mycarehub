@@ -20,6 +20,13 @@ type FakeServiceEDI struct {
 		ctx context.Context,
 		phoneNumber string,
 	) (*[]apiclient.MarketingData, error)
+
+	LinkEDIMemberCoverFn func(
+		ctx context.Context,
+		phoneNumber string,
+		membernumber string,
+		payersladecode int,
+	) (*http.Response, error)
 }
 
 // LinkCover ...
@@ -38,4 +45,14 @@ func (f *FakeServiceEDI) GetSladerData(
 	phoneNumber string,
 ) (*[]apiclient.MarketingData, error) {
 	return f.GetSladerDataFn(ctx, phoneNumber)
+}
+
+// LinkEDIMemberCover represents a mock for the LinkEDIMemberCover method
+func (f *FakeServiceEDI) LinkEDIMemberCover(
+	ctx context.Context,
+	phoneNumber string,
+	membernumber string,
+	payersladecode int,
+) (*http.Response, error) {
+	return f.LinkEDIMemberCoverFn(ctx, phoneNumber, membernumber, payersladecode)
 }

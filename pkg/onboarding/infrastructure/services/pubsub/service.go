@@ -54,6 +54,7 @@ type ServicePubSub interface {
 	AddEngagementPubsubNameSpace(topic string) string
 
 	// Publishers
+	EDIMemberCoverLinking(ctx context.Context, data dto.LinkCoverPubSubMessage) error
 	NotifyCreateContact(ctx context.Context, contact domain.CRMContact) error
 	NotifyCoverLinking(ctx context.Context, data dto.LinkCoverPubSubMessage) error
 	NotifyUpdateContact(
@@ -147,6 +148,7 @@ func (ps ServicePubSubMessaging) TopicIDs() []string {
 		ps.AddPubSubNamespace(common.CreateCRMContact),
 		ps.AddPubSubNamespace(common.UpdateCRMContact),
 		ps.AddPubSubNamespace(common.LinkCoverTopic),
+		ps.AddPubSubNamespace(common.LinkEDIMemberCoverTopic),
 	}
 }
 

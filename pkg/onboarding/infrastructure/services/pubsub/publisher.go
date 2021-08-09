@@ -65,3 +65,13 @@ func (ps *ServicePubSubMessaging) NotifyCoverLinking(
 ) error {
 	return ps.newPublish(ctx, data, common.LinkCoverTopic)
 }
+
+// EDIMemberCoverLinking publishes to the edi.covers.link topic. The reason for this is
+// to Auto-link the Sladers who get text messages from EDI. If a slader is converted
+// and creates an account on Be.Well app, we should automatically append a cover to their profile.
+func (ps *ServicePubSubMessaging) EDIMemberCoverLinking(
+	ctx context.Context,
+	data dto.LinkCoverPubSubMessage,
+) error {
+	return ps.newPublish(ctx, data, common.LinkEDIMemberCoverTopic)
+}

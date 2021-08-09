@@ -35,6 +35,7 @@ type FakeServicePubSub struct {
 	NotifyCreateCustomerFn         func(ctx context.Context, data dto.CustomerPubSubMessage) error
 	NotifyCreateSupplierFn         func(ctx context.Context, data dto.SupplierPubSubMessage) error
 	NotifyCoverLinkingFn           func(ctx context.Context, data dto.LinkCoverPubSubMessage) error
+	EDIMemberCoverLinkingFn        func(ctx context.Context, data dto.LinkCoverPubSubMessage) error
 }
 
 // AddPubSubNamespace ...
@@ -116,4 +117,9 @@ func (m *FakeServicePubSub) NotifyCreateSupplier(ctx context.Context, data dto.S
 // NotifyCoverLinking ..
 func (m *FakeServicePubSub) NotifyCoverLinking(ctx context.Context, data dto.LinkCoverPubSubMessage) error {
 	return m.NotifyCoverLinkingFn(ctx, data)
+}
+
+// EDIMemberCoverLinking represents a mock of the EDIMemberCoverLinking
+func (m *FakeServicePubSub) EDIMemberCoverLinking(ctx context.Context, data dto.LinkCoverPubSubMessage) error {
+	return m.EDIMemberCoverLinkingFn(ctx, data)
 }

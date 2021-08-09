@@ -90,4 +90,8 @@ const (
 
 	// LinkCoverTopic is the topicID for cover linking topic
 	LinkCoverTopic = "covers.link"
+
+	// LinkEDIMemberCoverTopic is the topic ID for cover linking topic of an EDI member who has
+	// received a message with the link to download bewell
+	LinkEDIMemberCoverTopic = "edi.covers.link"
 )
