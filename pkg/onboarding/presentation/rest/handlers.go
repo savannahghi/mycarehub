@@ -52,6 +52,7 @@ type HandlersInterfaces interface {
 	SwitchFlaggedFeaturesHandler() http.HandlerFunc
 	// USSDEndNotificationHandler() http.HandlerFunc
 	PollServices() http.HandlerFunc
+	CheckHasPermission() http.HandlerFunc
 }
 
 // HandlersInterfacesImpl represents the usecase implementation object
@@ -1179,8 +1180,37 @@ func (h *HandlersInterfacesImpl) PollServices() http.HandlerFunc {
 		services, err := h.interactor.AdminSrv.PollMicroservicesStatus(ctx)
 		if err != nil {
 			serverutils.WriteJSONResponse(rw, err, http.StatusInternalServerError)
+			return
 		}
 
 		serverutils.WriteJSONResponse(rw, services, http.StatusOK)
+	}
+}
+
+// CheckHasPermission checks if the user has a permission
+func (h *HandlersInterfacesImpl) CheckHasPermission() http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		p := &dto.CheckPermissionPayload{}
+		serverutils.DecodeJSONToTargetStruct(rw, r, p)
+
+		if p.UID == nil || p.Permission == nil {
+			serverutils.WriteJSONResponse(rw, nil, http.StatusBadRequest)
+			return
+		}
+
+		authorized, err := h.interactor.Role.CheckPermission(ctx, *p.UID, *p.Permission)
+		if err != nil {
+			serverutils.WriteJSONResponse(rw, err, http.StatusInternalServerError)
+			return
+		}
+
+		if !authorized {
+			serverutils.WriteJSONResponse(rw, nil, http.StatusUnauthorized)
+			return
+		}
+
+		serverutils.WriteJSONResponse(rw, nil, http.StatusOK)
 	}
 }

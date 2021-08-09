@@ -4214,7 +4214,78 @@ func (fr *Repository) CheckIfRoleNameExists(ctx context.Context, name string) (b
 	return false, nil
 }
 
-//CheckIfUserHasPermission this method checks if a user has the required permission
+// GetUserProfilesByRoleID returns a list of user profiles with the role ID
+// i.e users assigned a particular role
+func (fr *Repository) GetUserProfilesByRoleID(ctx context.Context, roleID string) ([]*profileutils.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "GetUserProfilesByRoleID")
+	defer span.End()
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		FieldName:      "roles",
+		Operator:       "array-contains",
+		Value:          roleID,
+	}
+
+	users := []*profileutils.UserProfile{}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	for _, doc := range docs {
+		user := &profileutils.UserProfile{}
+
+		err = doc.DataTo(user)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse userprofile")
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+// GetRoleByName retrieves a role using it's name
+func (fr *Repository) GetRoleByName(ctx context.Context, roleName string) (*profileutils.Role, error) {
+	ctx, span := tracer.Start(ctx, "GetRoleByName")
+	defer span.End()
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetRolesCollectionName(),
+		FieldName:      "name",
+		Operator:       "==",
+		Value:          roleName,
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	if len(docs) != 1 {
+		err = fmt.Errorf("role with name %v not found", roleName)
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	role := &profileutils.Role{}
+
+	err = docs[0].DataTo(role)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		err = fmt.Errorf("unable to read role")
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	return role, nil
+}
+
+//CheckIfUserHasPermission checks if a user has the required permission
 func (fr *Repository) CheckIfUserHasPermission(
 	ctx context.Context,
 	UID string,

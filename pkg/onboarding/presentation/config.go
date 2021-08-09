@@ -343,6 +343,10 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.ProfileAttributes())
+	isc.Path("/check_permission").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.CheckHasPermission())
 
 	// Interservice Authenticated routes
 	// The reason for the below endpoints to be used for interservice communication

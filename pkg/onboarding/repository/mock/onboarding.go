@@ -192,10 +192,12 @@ type FakeOnboardingRepository struct {
 	UpdateRoleDetailsFn        func(ctx context.Context, profileID string, role profileutils.Role) (*profileutils.Role, error)
 	GetRolesByIDsFn            func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error)
 	GetRoleByIDFn              func(ctx context.Context, roleID string) (*profileutils.Role, error)
+	GetRoleByNameFn            func(ctx context.Context, roleName string) (*profileutils.Role, error)
 	CheckIfRoleNameExistsFn    func(ctx context.Context, name string) (bool, error)
 	DeleteRoleFn               func(ctx context.Context, roleID string) (bool, error)
 	CheckIfUserHasPermissionFn func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error)
 	UpdateUserProfileEmailFn   func(ctx context.Context, phone string, email string) error
+	GetUserProfilesByRoleIDFn  func(ctx context.Context, role string) ([]*profileutils.UserProfile, error)
 }
 
 // GetSupplierProfileByID ...
@@ -972,4 +974,14 @@ func (f *FakeOnboardingRepository) DeleteRole(ctx context.Context, roleID string
 // UpdateUserProfileEmail ...
 func (f *FakeOnboardingRepository) UpdateUserProfileEmail(ctx context.Context, phone string, email string) error {
 	return f.UpdateUserProfileEmailFn(ctx, phone, email)
+}
+
+// GetRoleByName ...
+func (f *FakeOnboardingRepository) GetRoleByName(ctx context.Context, roleName string) (*profileutils.Role, error) {
+	return f.GetRoleByNameFn(ctx, roleName)
+}
+
+// GetUserProfilesByRoleID ...
+func (f *FakeOnboardingRepository) GetUserProfilesByRoleID(ctx context.Context, role string) ([]*profileutils.UserProfile, error) {
+	return f.GetUserProfilesByRoleIDFn(ctx, role)
 }

@@ -441,3 +441,9 @@ type EDICoverLinkingPubSubMessage struct {
 	MemberNumber   string `json:"membernumber"`
 	PhoneNumber    string `json:"phonenumber"`
 }
+
+// CheckPermissionPayload is the payload used when checking if a user is authorized
+type CheckPermissionPayload struct {
+	UID        *string                  `json:"uid"`
+	Permission *profileutils.Permission `json:"permission"`
+}

@@ -4378,3 +4378,100 @@ func TestRepository_UpdateUserRoleIDs_Integration(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_GetUserProfileByPhoneOrEmail_Integration(t *testing.T) {
+	ctx := context.Background()
+	fsc, fbc := InitializeTestFirebaseClient(ctx)
+	if fsc == nil {
+		log.Panicf("failed to initialize test FireStore client")
+	}
+	if fbc == nil {
+		log.Panicf("failed to initialize test FireBase client")
+	}
+	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
+
+	testPhone := "+254706060060"
+	invalidTestPhone := "+2547060660"
+	testEmail := "test@kathurima.com"
+	invalidTestEmail := "+test@"
+
+	_, err := firestoreDB.CreateUserProfile(ctx, testPhone, uuid.NewString())
+	if err != nil {
+		t.Errorf("unable to create phone number user")
+		return
+	}
+
+	err = firestoreDB.UpdateUserProfileEmail(ctx, testPhone, testEmail)
+	if err != nil {
+		t.Errorf("unable to create phone number user")
+		return
+	}
+
+	type args struct {
+		ctx     context.Context
+		payload *dto.RetrieveUserProfileInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *profileutils.UserProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy case:phone",
+			args: args{
+				ctx: ctx,
+				payload: &dto.RetrieveUserProfileInput{
+					PhoneNumber: &testPhone,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case:phone",
+			args: args{
+				ctx: ctx,
+				payload: &dto.RetrieveUserProfileInput{
+					PhoneNumber: &invalidTestPhone,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "Happy case:email",
+			args: args{
+				ctx: ctx,
+				payload: &dto.RetrieveUserProfileInput{
+					Email: &testEmail,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case:email",
+			args: args{
+				ctx: ctx,
+				payload: &dto.RetrieveUserProfileInput{
+					Email: &invalidTestEmail,
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := firestoreDB.GetUserProfileByPhoneOrEmail(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.GetUserProfileByPhoneOrEmail() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("Repository.GetUserProfileByPhoneOrEmail() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

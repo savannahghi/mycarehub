@@ -328,6 +328,8 @@ type RolesRepository interface {
 
 	GetRoleByID(ctx context.Context, roleID string) (*profileutils.Role, error)
 
+	GetRoleByName(ctx context.Context, roleName string) (*profileutils.Role, error)
+
 	GetRolesByIDs(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error)
 
 	CheckIfRoleNameExists(ctx context.Context, name string) (bool, error)
@@ -341,4 +343,7 @@ type RolesRepository interface {
 		UID string,
 		requiredPermission profileutils.Permission,
 	) (bool, error)
+
+	// GetUserProfilesByRole retrieves userprofiles with a particular role
+	GetUserProfilesByRoleID(ctx context.Context, role string) ([]*profileutils.UserProfile, error)
 }

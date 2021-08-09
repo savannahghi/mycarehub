@@ -16,8 +16,11 @@ import (
 // RoleUseCase represent the business logic required for management of agents
 type RoleUseCase interface {
 	CreateRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
+
 	DeleteRole(ctx context.Context, roleID string) (bool, error)
+
 	GetAllRoles(ctx context.Context, filter *firebasetools.FilterInput) ([]*dto.RoleOutput, error)
+
 	GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error)
 
 	// AddPermissionsToRole adds new scopes to a role
@@ -35,12 +38,6 @@ type RoleUseCase interface {
 	// UpdateRolePermissions replaces the scopes in a role with new updated scopes
 	UpdateRolePermissions(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
 
-	GetUserRoles(ctx context.Context, UID string) (*[]profileutils.Role, error)
-
-	GetRole(ctx context.Context, ID string) (*dto.RoleOutput, error)
-
-	GetUserPermissions(ctx context.Context, UID string) ([]profileutils.Permission, error)
-
 	// AssignRole assigns a role to a user
 	AssignRole(ctx context.Context, userID string, roleID string) (bool, error)
 
@@ -52,6 +49,10 @@ type RoleUseCase interface {
 
 	// DeactivateRole marks a role as inactive and cannot be used
 	DeactivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
+
+	// Check permission checks whether a logged in user with the given UID
+	// is authorized to perform the action specified in the permission
+	CheckPermission(ctx context.Context, uid string, permission profileutils.Permission) (bool, error)
 }
 
 // RoleUseCaseImpl  represents usecase implementation object
@@ -389,105 +390,6 @@ func (r *RoleUseCaseImpl) RevokeRolePermission(
 	return output, nil
 }
 
-// GetRole gets a specific role and its permissions
-func (r *RoleUseCaseImpl) GetRole(ctx context.Context, ID string) (*dto.RoleOutput, error) {
-	ctx, span := tracer.Start(ctx, "GetRole")
-	defer span.End()
-
-	// Check logged in user has permissions/role of employee
-	user, err := r.baseExt.GetLoggedInUser(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	// Check logged in user has the right permissions
-	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanViewRole)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-	if !allowed {
-		return nil, exceptions.RoleNotValid(
-			fmt.Errorf("error: logged in user does not have permissions to view role"),
-		)
-	}
-
-	role, err := r.repo.GetRoleByID(ctx, ID)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	// return all permissions but mark the allowed ones as true
-	rolePerms, err := role.Permissions(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-	output := dto.RoleOutput{
-		ID:          role.ID,
-		Name:        role.Name,
-		Description: role.Description,
-		Active:      role.Active,
-		Scopes:      role.Scopes,
-		Permissions: rolePerms,
-	}
-	return &output, nil
-}
-
-// GetUserRoles returns a list of user roles
-func (r *RoleUseCaseImpl) GetUserRoles(
-	ctx context.Context,
-	UID string,
-) (*[]profileutils.Role, error) {
-	ctx, span := tracer.Start(ctx, "GetUserRoles")
-	defer span.End()
-
-	userProfile, err := r.repo.GetUserProfileByUID(ctx, UID, false)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	roles, err := r.repo.GetRolesByIDs(ctx, userProfile.Roles)
-	if err != nil {
-		return nil, err
-	}
-
-	return roles, nil
-}
-
-// GetUserPermissions ...
-func (r *RoleUseCaseImpl) GetUserPermissions(
-	ctx context.Context,
-	UID string,
-) ([]profileutils.Permission, error) {
-	ctx, span := tracer.Start(ctx, "GetUserPermissions")
-	defer span.End()
-
-	roles, err := r.GetUserRoles(ctx, UID)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	allPermmissions := []profileutils.Permission{}
-
-	for _, role := range *roles {
-		perms, err := role.Permissions(ctx)
-		if err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, err
-		}
-		allPermmissions = append(allPermmissions, perms...)
-	}
-
-	permissions := profileutils.GetUniquePermissions(ctx, allPermmissions)
-
-	return permissions, nil
-}
-
 // AssignRole assigns a user a particular role
 func (r *RoleUseCaseImpl) AssignRole(
 	ctx context.Context,
@@ -784,4 +686,13 @@ func (r *RoleUseCaseImpl) UpdateRolePermissions(ctx context.Context, input dto.R
 	}
 
 	return output, nil
+}
+
+// CheckPermission checks whether a logged in user with the given UID
+// is authorized to perform the action specified in the permission
+func (r *RoleUseCaseImpl) CheckPermission(ctx context.Context, uid string, permission profileutils.Permission) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckPermission")
+	defer span.End()
+
+	return r.repo.CheckIfUserHasPermission(ctx, uid, permission)
 }

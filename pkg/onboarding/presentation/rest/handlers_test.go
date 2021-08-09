@@ -3790,3 +3790,140 @@ func TestHandlers_PollServices(t *testing.T) {
 		})
 	}
 }
+
+func TestHandlers_CheckPermission(t *testing.T) {
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+	h := rest.NewHandlersInterfaces(i)
+
+	uid := uuid.NewString()
+	permission := profileutils.Permission{
+		Scope:       "test.run",
+		Description: "Running tests",
+	}
+
+	emptyUIDPayload, err := json.Marshal(dto.CheckPermissionPayload{Permission: &permission})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return
+	}
+
+	emptyPermissionPayload, err := json.Marshal(dto.CheckPermissionPayload{UID: &uid})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return
+	}
+
+	validPayload, err := json.Marshal(dto.CheckPermissionPayload{UID: &uid, Permission: &permission})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return
+	}
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "fail: empty uid in payload",
+			args: args{
+				url:        fmt.Sprintf("%s/check_permission", serverUrl),
+				httpMethod: http.MethodGet,
+				body:       bytes.NewBuffer(emptyUIDPayload),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+		{
+			name: "fail: empty permission in payload",
+			args: args{
+				url:        fmt.Sprintf("%s/check_permission", serverUrl),
+				httpMethod: http.MethodGet,
+				body:       bytes.NewBuffer(emptyPermissionPayload),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+		{
+			name: "fail: usecase error checking permission",
+			args: args{
+				url:        fmt.Sprintf("%s/check_permission", serverUrl),
+				httpMethod: http.MethodGet,
+				body:       bytes.NewBuffer(validPayload),
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantErr:    false,
+		},
+		{
+			name: "success: user is not authorized",
+			args: args{
+				url:        fmt.Sprintf("%s/check_permission", serverUrl),
+				httpMethod: http.MethodGet,
+				body:       bytes.NewBuffer(validPayload),
+			},
+			wantStatus: http.StatusUnauthorized,
+			wantErr:    false,
+		},
+		{
+			name: "success: user is authorized",
+			args: args{
+				url:        fmt.Sprintf("%s/check_permission", serverUrl),
+				httpMethod: http.MethodGet,
+				body:       bytes.NewBuffer(validPayload),
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "fail: usecase error checking permission" {
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return false, fmt.Errorf("cannot check for permission")
+				}
+			}
+
+			if tt.name == "success: user is not authorized" {
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "success: user is authorized" {
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+			}
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+
+			// We create a ResponseRecorder to record the response.
+			response := httptest.NewRecorder()
+
+			// call its ServeHTTP method and pass in our Request and ResponseRecorder.
+			svr := h.CheckHasPermission()
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+		})
+	}
+}
