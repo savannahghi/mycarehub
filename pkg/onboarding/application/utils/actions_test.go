@@ -193,47 +193,51 @@ func TestGroupPriority(t *testing.T) {
 	actions := []domain.NavigationAction{}
 
 	navAction1 := domain.NavigationAction{
-		Group: domain.HomeGroup,
-		Title: "Home",
+		Group:          domain.HomeGroup,
+		Title:          "Home",
+		SequenceNumber: 1,
+	}
+	navAction2 := domain.NavigationAction{
+		Group:          domain.AgentGroup,
+		Title:          "Agent",
+		SequenceNumber: 2,
 		Nested: []interface{}{
 			domain.NavigationAction{
-				Group:     domain.HomeGroup,
+				Group:     domain.AgentGroup,
 				Title:     "Child 1",
 				HasParent: true,
 			},
 			domain.NavigationAction{
-				Group:     domain.HomeGroup,
+				Group:     domain.AgentGroup,
 				Title:     "Child 2",
 				HasParent: true,
 			},
 		},
 	}
-	navAction2 := domain.NavigationAction{
-		Group: domain.AgentGroup,
-		Title: "Agent",
-	}
 	navAction3 := domain.NavigationAction{
-		Group: domain.PatientGroup,
-		Title: "Patients",
+		Group:          domain.PatientGroup,
+		Title:          "Patients",
+		SequenceNumber: 3,
 	}
 	navAction4 := domain.NavigationAction{
-		Group: domain.PartnerGroup,
-		Title: "Partner",
+		Group:          domain.PartnerGroup,
+		Title:          "Partner",
+		SequenceNumber: 4,
 	}
 	navAction5 := domain.NavigationAction{
 		Group:          domain.RoleGroup,
 		Title:          "Role",
-		IsHighPriority: true,
+		SequenceNumber: 5,
 	}
 	navAction6 := domain.NavigationAction{
 		Group:          domain.ConsumerGroup,
 		Title:          "Consumers",
-		IsHighPriority: true,
+		SequenceNumber: 6,
 	}
 	navAction7 := domain.NavigationAction{
 		Group:          domain.EmployeeGroup,
 		Title:          "Employee",
-		IsHighPriority: true,
+		SequenceNumber: 7,
 	}
 
 	actions = append(actions, navAction1)
@@ -256,15 +260,15 @@ func TestGroupPriority(t *testing.T) {
 				actions: actions,
 			},
 			wantPrimary: []domain.NavigationAction{
-				navAction5,
-				navAction6,
-				navAction7,
-				navAction2,
-			},
-			wantSecondary: []domain.NavigationAction{
 				navAction1,
 				navAction3,
 				navAction4,
+				navAction5,
+			},
+			wantSecondary: []domain.NavigationAction{
+				navAction2,
+				navAction6,
+				navAction7,
 			},
 		},
 	}

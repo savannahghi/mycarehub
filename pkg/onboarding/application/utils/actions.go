@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"sort"
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
@@ -63,21 +64,20 @@ func GetUserNavigationActions(
 func GroupNested(
 	actions []domain.NavigationAction,
 ) []domain.NavigationAction {
-	parents := []domain.NavigationAction{}
-	grouped := []domain.NavigationAction{}
-	// map all parents to grouped
-	for i := 0; i < len(actions); i++ {
-		action := actions[i]
 
+	// Array of all parent actions i.e can have nested actions
+	parents := []domain.NavigationAction{}
+	for _, action := range actions {
 		if !action.HasParent {
 			parents = append(parents, action)
 		}
 	}
 
-	//map all children to respective parents
+	// An array of properly grouped actions
+	// The parent action has the nested actions
+	grouped := []domain.NavigationAction{}
 	for _, parent := range parents {
-		for i := 0; i < len(actions); i++ {
-			action := actions[i]
+		for _, action := range actions {
 			if action.HasParent && action.Group == parent.Group {
 				parent.Nested = append(parent.Nested, action)
 			}
@@ -92,77 +92,81 @@ func GroupNested(
 func GroupPriority(
 	actions []domain.NavigationAction,
 ) (primary, secondary []domain.NavigationAction) {
+
+	// sort actions based on priority using the sequence number
+	// uses the inbuilt go sorting functionality
+	// https://cs.opensource.google/go/go/+/go1.16.7:src/sort/slice.go;l=16
+	sort.SliceStable(actions, func(i, j int) bool {
+		return actions[i].SequenceNumber < actions[j].SequenceNumber
+	})
+
 	primary = []domain.NavigationAction{}
 	secondary = []domain.NavigationAction{}
 
-	mapped := make(map[domain.NavigationGroup]bool)
+	// this helps keep track of grouped actions
+	tracker := make(map[domain.NavigationGroup]bool)
 
-	//pb is number of navactions that can possibly be on bottom navigation ie primary
+	// pb is number of actions without nested actions
 	pb := 0
-	for _, v := range actions {
-		if len(v.Nested) == 0 {
+	for _, a := range actions {
+		if len(a.Nested) == 0 {
 			pb++
 		}
 	}
 
 	// add all the possible bottom action to primary if they are less or equal to 4
 	if pb <= 4 {
-		for i := 0; i < len(actions); i++ {
-			action := actions[i]
+
+		for _, action := range actions {
 			if len(action.Nested) == 0 {
 				primary = append(primary, action)
-				mapped[action.Group] = true
+				tracker[action.Group] = true
 			}
 		}
+
 	} else {
-		for {
-			if len(primary) == 4 {
-				break
-			}
-			// add all the high priority first
-			for i := 0; i < len(actions); i++ {
-				action := actions[i]
-				if action.IsHighPriority {
 
-					_, wasMapped := mapped[action.Group]
-					if !wasMapped && len(action.Nested) == 0 {
+		// add all the high priority first
+		for _, action := range actions {
 
-						primary = append(primary, action)
-						mapped[action.Group] = true
+			_, added := tracker[action.Group]
 
-						if len(primary) == 4 {
-							break
-						}
-					}
+			// Add the primary action it was not added
+			// And the action lacks nested actions
+			if !added && len(action.Nested) == 0 {
+
+				primary = append(primary, action)
+				tracker[action.Group] = true
+
+				if len(primary) == 4 {
+					break
 				}
 			}
-			// add other actions is high priority actions are less than four
-			for i := 0; i < len(actions); i++ {
-				action := actions[i]
-				_, wasMapped := mapped[action.Group]
-				if !wasMapped && len(action.Nested) == 0 {
 
-					primary = append(primary, action)
-					mapped[action.Group] = true
-
-					if len(primary) == 4 {
-						break
-					}
-				}
-			}
 		}
+
 	}
 
 	// add all remaining items to secondary
-	for i := 0; i < len(actions); i++ {
-		action := actions[i]
-		_, wasMapped := mapped[action.Group]
-		if !wasMapped {
+	for _, action := range actions {
 
+		_, added := tracker[action.Group]
+
+		if !added {
 			secondary = append(secondary, action)
-			mapped[action.Group] = true
+			tracker[action.Group] = true
 		}
 	}
+
+	// sort the primary and secondary actions based on priority again
+	// this is a precautionary step since all actions were sorted before
+	sort.SliceStable(primary, func(i, j int) bool {
+		return primary[i].SequenceNumber < primary[j].SequenceNumber
+	})
+
+	sort.SliceStable(secondary, func(i, j int) bool {
+		return secondary[i].SequenceNumber < secondary[j].SequenceNumber
+	})
 
 	return primary, secondary
 }

@@ -37,6 +37,9 @@ const (
 
 	AgentRegistrationRoute   = "/agentRegistration"
 	AgentIdentificationRoute = "/agentIdentification"
+
+	EmployeeRegistrationRoute   = "/employeeRegistration"
+	EmployeeIdentificationRoute = "/employeeIdentification"
 )
 
 // Navigation actions
@@ -51,26 +54,28 @@ const (
 	RoleViewActionTitle     = "View Roles"
 	RoleCreationActionTitle = "Create Role"
 
-	PatientNavActionTitle            = "Patient"
+	PatientNavActionTitle            = "Patients"
 	PatientNavActionDescription      = "Patient Navigation action"
-	PatientRegistrationActionTitle   = "Patient Registration"
-	PatientIdentificationActionTitle = "Patient Identification"
+	PatientRegistrationActionTitle   = "Register Patient"
+	PatientIdentificationActionTitle = "Search Patient"
 
 	RequestsNavActionTitle       = "Requests"
 	RequestsNavActionDescription = "Requests Navigation action"
 
-	AgentNavActionTitle            = "Agent"
+	AgentNavActionTitle            = "Agents"
 	AgentNavActionDescription      = "Agent Navigation action"
-	AgentRegistrationActionTitle   = "Agent Registration"
-	AgentIdentificationActionTitle = "Agent Identification"
+	AgentRegistrationActionTitle   = "Register Agent"
+	AgentIdentificationActionTitle = "View Agents"
 
-	AgentRegistrationTitle   = "Agent Registration"
-	AgentIdentificationTitle = "Agent Identification"
+	EmployeeNavActionTitle            = "Employees"
+	EmployeeNavActionDescription      = "Employee Navigation action"
+	EmployeeRegistrationActionTitle   = "Register Employee"
+	EmployeeIdentificationActionTitle = "View Employees"
 
-	ConsumerNavActionTitle       = "Consumer"
+	ConsumerNavActionTitle       = "Consumers"
 	ConsumerNavActionDescription = "Consumer Navigation action"
 
-	PartnerNavActionTitle       = "Partner"
+	PartnerNavActionTitle       = "Partners"
 	PartnerNavActionDescription = "Partner Navigation action"
 )
 
