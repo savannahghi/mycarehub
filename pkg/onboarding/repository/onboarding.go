@@ -5,7 +5,6 @@ import (
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/profileutils"
 
@@ -324,7 +323,7 @@ type RolesRepository interface {
 		input dto.RoleInput,
 	) (*profileutils.Role, error)
 
-	GetAllRoles(ctx context.Context, filter *firebasetools.FilterInput) (*[]profileutils.Role, error)
+	GetAllRoles(ctx context.Context) (*[]profileutils.Role, error)
 
 	GetRoleByID(ctx context.Context, roleID string) (*profileutils.Role, error)
 

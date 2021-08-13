@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/profileutils"
 )
@@ -230,8 +229,7 @@ func TestRoleUseCaseImpl_GetAllRoles(t *testing.T) {
 	}
 
 	type args struct {
-		ctx    context.Context
-		filter *firebasetools.FilterInput
+		ctx context.Context
 	}
 	tests := []struct {
 		name    string
@@ -302,7 +300,7 @@ func TestRoleUseCaseImpl_GetAllRoles(t *testing.T) {
 				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
 					return true, nil
 				}
-				fakeRepo.GetAllRolesFn = func(ctx context.Context, filter *firebasetools.FilterInput) (*[]profileutils.Role, error) {
+				fakeRepo.GetAllRolesFn = func(ctx context.Context) (*[]profileutils.Role, error) {
 					return nil, fmt.Errorf("error, did not get roles from database")
 				}
 			}
@@ -314,7 +312,7 @@ func TestRoleUseCaseImpl_GetAllRoles(t *testing.T) {
 				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
 					return true, nil
 				}
-				fakeRepo.GetAllRolesFn = func(ctx context.Context, filter *firebasetools.FilterInput) (*[]profileutils.Role, error) {
+				fakeRepo.GetAllRolesFn = func(ctx context.Context) (*[]profileutils.Role, error) {
 					return &[]profileutils.Role{
 						{
 							ID:     "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
@@ -323,13 +321,153 @@ func TestRoleUseCaseImpl_GetAllRoles(t *testing.T) {
 					}, nil
 				}
 			}
-			got, err := i.Role.GetAllRoles(tt.args.ctx, tt.args.filter)
+			got, err := i.Role.GetAllRoles(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RoleUseCaseImpl.GetAllRoles() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("RoleUseCaseImpl.GetAllRoles() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRoleUseCaseImpl_FindRoleByName(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+
+	roleName := "Employee Role"
+
+	allPerms, err := profileutils.AllPermissions(ctx)
+	if err != nil {
+		t.Errorf("failed to get all permissions")
+		return
+	}
+	rolePerms := []profileutils.Permission{}
+	for _, perm := range allPerms {
+		if perm.Scope == "role.create" {
+			perm.Allowed = true
+		}
+		rolePerms = append(rolePerms, perm)
+	}
+
+	expectedOutput := []*dto.RoleOutput{
+		{
+			Name:        roleName,
+			ID:          "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+			Scopes:      []string{"role.create"},
+			Permissions: rolePerms,
+		},
+	}
+
+	type args struct {
+		ctx      context.Context
+		roleName *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*dto.RoleOutput
+		wantErr bool
+	}{
+		{
+			name:    "sad: did not get logged in user",
+			args:    args{ctx: ctx, roleName: &roleName},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "sad: unable to check if user has permission",
+			args:    args{ctx: ctx, roleName: &roleName},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "sad: user do not have required permission",
+			args:    args{ctx: ctx, roleName: &roleName},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "sad: did not get role from database",
+			args:    args{ctx: ctx, roleName: &roleName},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "happy: got role",
+			args:    args{ctx: ctx, roleName: &roleName},
+			want:    expectedOutput,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad: did not get logged in user" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return nil, fmt.Errorf("error, did not get logged in user")
+				}
+			}
+
+			if tt.name == "sad: unable to check if user has permission" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return false, fmt.Errorf("error unable to check is user has permission")
+				}
+			}
+
+			if tt.name == "sad: user do not have required permission" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return false, nil
+				}
+			}
+			if tt.name == "sad: did not get role from database" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetRoleByNameFn = func(ctx context.Context, roleName string) (*profileutils.Role, error) {
+					return nil, fmt.Errorf("error, did not get roles from database")
+				}
+			}
+
+			if tt.name == "happy: got role" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetRoleByNameFn = func(ctx context.Context, roleName string) (*profileutils.Role, error) {
+					return &profileutils.Role{
+						Name:   roleName,
+						ID:     "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+						Scopes: []string{"role.create"},
+					}, nil
+				}
+			}
+			got, err := i.Role.FindRoleByName(tt.args.ctx, tt.args.roleName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("RoleUseCaseImpl.FindRoleByName() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("RoleUseCaseImpl.FindRoleByName() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
@@ -1875,8 +1874,7 @@ func TestRepository_GetAllRoles(t *testing.T) {
 	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
 
 	type args struct {
-		ctx    context.Context
-		filter *firebasetools.FilterInput
+		ctx context.Context
 	}
 	tests := []struct {
 		name    string
@@ -1902,7 +1900,7 @@ func TestRepository_GetAllRoles(t *testing.T) {
 				}
 			}
 
-			got, err := repo.GetAllRoles(tt.args.ctx, tt.args.filter)
+			got, err := repo.GetAllRoles(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.GetAllRoles() error = %v, wantErr %v", err, tt.wantErr)
 				return

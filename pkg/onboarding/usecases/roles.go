@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
@@ -19,7 +18,9 @@ type RoleUseCase interface {
 
 	DeleteRole(ctx context.Context, roleID string) (bool, error)
 
-	GetAllRoles(ctx context.Context, filter *firebasetools.FilterInput) ([]*dto.RoleOutput, error)
+	GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error)
+
+	FindRoleByName(ctx context.Context, roleName *string) ([]*dto.RoleOutput, error)
 
 	GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error)
 
@@ -129,10 +130,7 @@ func (r *RoleUseCaseImpl) CreateRole(
 }
 
 //GetAllRoles returns a list of all created roles
-func (r *RoleUseCaseImpl) GetAllRoles(
-	ctx context.Context,
-	filter *firebasetools.FilterInput,
-) ([]*dto.RoleOutput, error) {
+func (r *RoleUseCaseImpl) GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error) {
 	ctx, span := tracer.Start(ctx, "GetAllRoles")
 	defer span.End()
 
@@ -154,7 +152,7 @@ func (r *RoleUseCaseImpl) GetAllRoles(
 		)
 	}
 
-	roles, err := r.repo.GetAllRoles(ctx, filter)
+	roles, err := r.repo.GetAllRoles(ctx)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
@@ -177,6 +175,58 @@ func (r *RoleUseCaseImpl) GetAllRoles(
 		}
 		roleOutput = append(roleOutput, output)
 	}
+
+	return roleOutput, nil
+}
+
+// FindRoleByName returns a list of roles filtered by name
+func (r *RoleUseCaseImpl) FindRoleByName(
+	ctx context.Context,
+	roleName *string,
+) ([]*dto.RoleOutput, error) {
+	ctx, span := tracer.Start(ctx, "FindRoleByName")
+	defer span.End()
+
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// Check logged in user has the right permissions
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanViewRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	if !allowed {
+		return nil, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permissions to list roles"),
+		)
+	}
+
+	role, err := r.repo.GetRoleByName(ctx, *roleName)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	roleOutput := []*dto.RoleOutput{}
+
+	perms, err := role.Permissions(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	output := &dto.RoleOutput{
+		ID:          role.ID,
+		Name:        role.Name,
+		Description: role.Description,
+		Active:      role.Active,
+		Scopes:      role.Scopes,
+		Permissions: perms,
+	}
+	roleOutput = append(roleOutput, output)
 
 	return roleOutput, nil
 }
