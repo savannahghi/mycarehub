@@ -284,3 +284,55 @@ func TestGroupPriority(t *testing.T) {
 		})
 	}
 }
+
+func TestGetUserPermissions(t *testing.T) {
+	type args struct {
+		roles []profileutils.Role
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "happy got the right permissions",
+			args: args{[]profileutils.Role{
+				{Name: "Agent Role", Scopes: []string{"agent.register", "agent.view"}, Active: true},
+				{Name: "Agent Role", Scopes: []string{"patient.create", "agent.view"}, Active: true},
+				{Name: "Agent Role", Scopes: []string{"role.view", "role.create"}, Active: false},
+			}},
+			want: []string{"agent.register", "agent.view", "patient.create"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := GetUserPermissions(tt.args.roles); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetUserPermissions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRemoveDuplicateStrings(t *testing.T) {
+	type args struct {
+		strings []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "happy removed duplicates",
+			args: args{strings: []string{"user", "tes", "user", "123", "another user"}},
+			want: []string{"user", "tes", "123", "another user"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := RemoveDuplicateStrings(tt.args.strings); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("RemoveDuplicateStrings() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

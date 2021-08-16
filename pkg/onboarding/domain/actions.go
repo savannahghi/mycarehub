@@ -77,7 +77,7 @@ var (
 		Group:              HomeGroup,
 		Title:              common.HomeNavActionTitle,
 		OnTapRoute:         common.HomeRoute,
-		Icon:               common.HomeNavActionURL,
+		Icon:               common.HomeNavActionIcon,
 		RequiredPermission: nil,
 		SequenceNumber:     HomeNavActionSequence,
 	}
@@ -87,7 +87,7 @@ var (
 		Group:              HelpGroup,
 		Title:              common.HelpNavActionTitle,
 		OnTapRoute:         common.GetHelpRouteRoute,
-		Icon:               common.HelpNavActionURL,
+		Icon:               common.HelpNavActionIcon,
 		RequiredPermission: nil,
 		SequenceNumber:     HelpNavActionSequence,
 	}
@@ -100,7 +100,7 @@ var (
 		Group:              KYCGroup,
 		Title:              common.RequestsNavActionTitle,
 		OnTapRoute:         common.RequestsRoute,
-		Icon:               common.RequestNavActionURL,
+		Icon:               common.RequestNavActionIcon,
 		RequiredPermission: &profileutils.CanProcessKYC,
 		SequenceNumber:     RequestsNavActionSequence,
 	}
@@ -113,7 +113,7 @@ var (
 		Title: common.PartnerNavActionTitle,
 		// Not provided yet
 		OnTapRoute:         "",
-		Icon:               common.PartnerNavActionURL,
+		Icon:               common.PartnerNavActionIcon,
 		RequiredPermission: &profileutils.CanViewPartner,
 		SequenceNumber:     PartnerNavactionSequence,
 	}
@@ -126,7 +126,7 @@ var (
 		Title: common.ConsumerNavActionTitle,
 		// Not provided yet
 		OnTapRoute:         "",
-		Icon:               common.ConsumerNavActionURL,
+		Icon:               common.ConsumerNavActionIcon,
 		RequiredPermission: &profileutils.CanViewConsumers,
 		SequenceNumber:     ConsumerNavactionSequence,
 	}
@@ -138,7 +138,7 @@ var (
 	RoleNavActions = NavigationAction{
 		Group:              RoleGroup,
 		Title:              common.RoleNavActionTitle,
-		Icon:               common.RoleNavActionURL,
+		Icon:               common.RoleNavActionIcon,
 		RequiredPermission: &profileutils.CanViewRole,
 		SequenceNumber:     RoleNavActionSequence,
 	}
@@ -170,7 +170,7 @@ var (
 	AgentNavActions = NavigationAction{
 		Group:              AgentGroup,
 		Title:              common.AgentNavActionTitle,
-		Icon:               common.AgentNavActionURL,
+		Icon:               common.AgentNavActionIcon,
 		RequiredPermission: &profileutils.CanViewAgent,
 		SequenceNumber:     AgentNavActionSequence,
 	}
@@ -202,7 +202,7 @@ var (
 	EmployeeNavActions = NavigationAction{
 		Group:              EmployeeGroup,
 		Title:              common.EmployeeNavActionTitle,
-		Icon:               common.AgentNavActionURL,
+		Icon:               common.EmployeeNavActionIcon,
 		RequiredPermission: &profileutils.CanViewEmployee,
 		SequenceNumber:     EmployeeNavActionSequence,
 	}
@@ -234,7 +234,7 @@ var (
 	PatientNavActions = NavigationAction{
 		Group:              PatientGroup,
 		Title:              common.PatientNavActionTitle,
-		Icon:               common.PatientNavActionURL,
+		Icon:               common.PatientNavActionIcon,
 		RequiredPermission: &profileutils.CanViewPatient,
 		SequenceNumber:     PatientNavActionSequence,
 	}

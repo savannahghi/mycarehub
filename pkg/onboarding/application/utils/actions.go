@@ -28,6 +28,36 @@ func CheckUserHasPermission(roles []profileutils.Role, permission profileutils.P
 	return false
 }
 
+//RemoveDuplicateStrings removes duplicate strings from a list of strings
+func RemoveDuplicateStrings(strings []string) []string {
+	mapped := make(map[string]string)
+	cleaned := []string{}
+
+	for _, v := range strings {
+		_, inMap := mapped[v]
+		if !inMap {
+			mapped[v] = v
+			cleaned = append(cleaned, v)
+		}
+	}
+
+	return cleaned
+}
+
+//GetUserPermissions  returns all the scopes of user permissions
+func GetUserPermissions(roles []profileutils.Role) []string {
+	scopes := []string{}
+	for _, role := range roles {
+		// only add scopes of active roles
+		if role.Active {
+			scopes = append(scopes, role.Scopes...)
+		}
+	}
+	cleaned := RemoveDuplicateStrings(scopes)
+
+	return cleaned
+}
+
 // GetUserNavigationActions returns a sorted primary and secondary user navigation actions
 func GetUserNavigationActions(
 	ctx context.Context,

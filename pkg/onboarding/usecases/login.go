@@ -132,6 +132,9 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		return nil, err
 	}
 
+	// add scopes to auth credentials
+	auth.Scopes = utils.GetUserPermissions(*roles)
+
 	return &profileutils.UserResponse{
 		Profile:               profile,
 		CustomerProfile:       customer,
