@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/profileutils"
@@ -170,11 +171,8 @@ func (a *AdminUseCaseImpl) notifyNewAdmin(
 		Pin  string
 	}
 
-	message := fmt.Sprintf(
-		"%sPlease use this One Time PIN: %s to log onto Bewell with your phone number. For enquiries call us on 0790360360",
-		adminWelcomeMessage,
-		tempPIN,
-	)
+	message := fmt.Sprintf(domain.WelcomeMessage, firstName, tempPIN)
+
 	if err := a.engagement.SendSMS(ctx, []string{phoneNumber}, message); err != nil {
 		return fmt.Errorf("unable to send admin registration message: %w", err)
 	}

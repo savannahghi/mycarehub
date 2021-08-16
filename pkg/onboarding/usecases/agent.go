@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/profileutils"
@@ -19,7 +20,7 @@ import (
 )
 
 const (
-	agentWelcomeMessage      = "You have been successfully registered as an agent. We look forward to working with you."
+	agentWelcomeMessage      = "We look forward to working with you."
 	agentWelcomeEmailSubject = "Successfully registered as an agent"
 )
 
@@ -191,11 +192,9 @@ func (a *AgentUseCaseImpl) notifyNewAgent(
 		Pin  string
 	}
 
-	message := fmt.Sprintf(
-		"%sPlease use this One Time PIN: %s to log onto Bewell Pro with your phone number. You will be prompted to change the PIN on login. For enquiries call us on 0790360360",
-		agentWelcomeMessage,
-		tempPIN,
-	)
+	message := fmt.Sprintf(domain.WelcomeMessage, firstName, tempPIN)
+	message += " " + agentWelcomeMessage
+
 	if err := a.engagement.SendSMS(ctx, []string{phoneNumber}, message); err != nil {
 		return fmt.Errorf("unable to send agent registration message: %w", err)
 	}

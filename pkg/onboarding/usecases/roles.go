@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
@@ -205,28 +206,32 @@ func (r *RoleUseCaseImpl) FindRoleByName(
 		)
 	}
 
-	role, err := r.repo.GetRoleByName(ctx, *roleName)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
 	roleOutput := []*dto.RoleOutput{}
 
-	perms, err := role.Permissions(ctx)
+	roles, err := r.repo.GetAllRoles(ctx)
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
-	output := &dto.RoleOutput{
-		ID:          role.ID,
-		Name:        role.Name,
-		Description: role.Description,
-		Active:      role.Active,
-		Scopes:      role.Scopes,
-		Permissions: perms,
+
+	for _, role := range *roles {
+		if strings.Contains(strings.ToLower(role.Name), strings.ToLower(*roleName)) {
+			perms, err := role.Permissions(ctx)
+			if err != nil {
+				utils.RecordSpanError(span, err)
+				return nil, err
+			}
+			output := &dto.RoleOutput{
+				ID:          role.ID,
+				Name:        role.Name,
+				Description: role.Description,
+				Active:      role.Active,
+				Scopes:      role.Scopes,
+				Permissions: perms,
+			}
+			roleOutput = append(roleOutput, output)
+		}
 	}
-	roleOutput = append(roleOutput, output)
 
 	return roleOutput, nil
 }

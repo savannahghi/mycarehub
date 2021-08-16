@@ -397,7 +397,7 @@ func TestRoleUseCaseImpl_FindRoleByName(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "sad: did not get role from database",
+			name:    "sad: did not get roles from database",
 			args:    args{ctx: ctx, roleName: &roleName},
 			want:    nil,
 			wantErr: true,
@@ -434,14 +434,14 @@ func TestRoleUseCaseImpl_FindRoleByName(t *testing.T) {
 					return false, nil
 				}
 			}
-			if tt.name == "sad: did not get role from database" {
+			if tt.name == "sad: did not get roles from database" {
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{}, nil
 				}
 				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
 					return true, nil
 				}
-				fakeRepo.GetRoleByNameFn = func(ctx context.Context, roleName string) (*profileutils.Role, error) {
+				fakeRepo.GetAllRolesFn = func(ctx context.Context) (*[]profileutils.Role, error) {
 					return nil, fmt.Errorf("error, did not get roles from database")
 				}
 			}
@@ -453,12 +453,12 @@ func TestRoleUseCaseImpl_FindRoleByName(t *testing.T) {
 				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
 					return true, nil
 				}
-				fakeRepo.GetRoleByNameFn = func(ctx context.Context, roleName string) (*profileutils.Role, error) {
-					return &profileutils.Role{
+				fakeRepo.GetAllRolesFn = func(ctx context.Context) (*[]profileutils.Role, error) {
+					return &[]profileutils.Role{{
 						Name:   roleName,
 						ID:     "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						Scopes: []string{"role.create"},
-					}, nil
+					}}, nil
 				}
 			}
 			got, err := i.Role.FindRoleByName(tt.args.ctx, tt.args.roleName)

@@ -20,3 +20,6 @@ var (
 	//PostgresRepository is the value of the env when using postgres
 	PostgresRepository = "postgres"
 )
+
+//WelcomeMessage is the default message formart for sending temporary PIN to users
+var WelcomeMessage = "Hi %s, welcome to Be.Well. Please use this One Time PIN: %s to log in using your phone number. You will be prompted to set a new PIN on login."
