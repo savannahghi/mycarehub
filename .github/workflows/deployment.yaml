@@ -1,0 +1,45 @@
+name: Deployment
+
+on: [push]
+
+concurrency:
+  group: build_and_push_image
+
+jobs:
+  build_and_push_image:
+    runs-on: ubuntu-latest
+    environment:
+      name: test # run this only in test environment for now
+    steps:
+      - uses: actions/checkout@v2
+
+      # Setup gcloud CLI
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          export_default_credentials: true
+      
+      # Build docker image
+      - name: Build
+        run: |-
+          docker build -t eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA --build-arg=ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} .
+      # Configure docker to use the gcloud command-line tool as a credential helper
+      - run: |
+          gcloud auth configure-docker -q
+
+      # Push image to Google Container Registry
+      - name: Push
+        run: |-
+          docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
+
+  deploy_to_test:
+    name: Deploy Test Server to Google Cloud Run
+    runs-on: ubuntu-latest
+    needs: [build_and_push_image]
+    steps:
+      - name: Checkout working branches
+        uses: actions/checkout@v2
+      
+      - name: Get GCP project credential
+        run: echo "this is just work in progress"
