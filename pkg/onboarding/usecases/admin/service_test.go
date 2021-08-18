@@ -267,6 +267,7 @@ func TestService_CheckHealthEndpoint(t *testing.T) {
 	fc := &firebasetools.FirebaseClient{}
 	ext := extension.NewBaseExtensionImpl(fc)
 	s := admin.NewService(ext)
+	ctx := context.Background()
 
 	tests := []struct {
 		name string
@@ -281,7 +282,7 @@ func TestService_CheckHealthEndpoint(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := s.CheckHealthEndpoint(tt.args); got != tt.want {
+			if got := s.CheckHealthEndpoint(ctx, tt.args); got != tt.want {
 				t.Errorf("CheckHealthEndpoint() = %v, want %v", got, tt.want)
 			}
 		})

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"sort"
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
@@ -27,6 +28,36 @@ func CheckUserHasPermission(roles []profileutils.Role, permission profileutils.P
 	return false
 }
 
+//RemoveDuplicateStrings removes duplicate strings from a list of strings
+func RemoveDuplicateStrings(strings []string) []string {
+	mapped := make(map[string]string)
+	cleaned := []string{}
+
+	for _, v := range strings {
+		_, inMap := mapped[v]
+		if !inMap {
+			mapped[v] = v
+			cleaned = append(cleaned, v)
+		}
+	}
+
+	return cleaned
+}
+
+//GetUserPermissions  returns all the scopes of user permissions
+func GetUserPermissions(roles []profileutils.Role) []string {
+	scopes := []string{}
+	for _, role := range roles {
+		// only add scopes of active roles
+		if role.Active {
+			scopes = append(scopes, role.Scopes...)
+		}
+	}
+	cleaned := RemoveDuplicateStrings(scopes)
+
+	return cleaned
+}
+
 // GetUserNavigationActions returns a sorted primary and secondary user navigation actions
 func GetUserNavigationActions(
 	ctx context.Context,
@@ -36,8 +67,9 @@ func GetUserNavigationActions(
 	//all user actions
 	userNavigationActions := []domain.NavigationAction{}
 
-	for _, action := range domain.AllNavigationActions {
-
+	allActions := domain.AllNavigationActions
+	for i := 0; i < len(allActions); i++ {
+		action := allActions[i]
 		if action.RequiredPermission == nil || CheckUserHasPermission(roles, *action.RequiredPermission) {
 			//  check for favorite navigation actions
 			if IsFavNavAction(&user, action.Title) {
@@ -61,25 +93,26 @@ func GetUserNavigationActions(
 // GroupNested groups navigation actions into parents and children
 func GroupNested(
 	actions []domain.NavigationAction,
-) map[domain.NavigationGroup]domain.NavigationAction {
-	grouped := make(map[domain.NavigationGroup]domain.NavigationAction)
+) []domain.NavigationAction {
 
-	// map all parents to grouped
+	// Array of all parent actions i.e can have nested actions
+	parents := []domain.NavigationAction{}
 	for _, action := range actions {
 		if !action.HasParent {
-			grouped[action.Group] = action
+			parents = append(parents, action)
 		}
 	}
 
-	//map all children to respective parents
-	for _, action := range actions {
-		if action.HasParent {
-			parent, isAvailable := grouped[action.Group]
-			if isAvailable {
+	// An array of properly grouped actions
+	// The parent action has the nested actions
+	grouped := []domain.NavigationAction{}
+	for _, parent := range parents {
+		for _, action := range actions {
+			if action.HasParent && action.Group == parent.Group {
 				parent.Nested = append(parent.Nested, action)
-				grouped[action.Group] = parent
 			}
 		}
+		grouped = append(grouped, parent)
 	}
 
 	return grouped
@@ -87,78 +120,83 @@ func GroupNested(
 
 // GroupPriority groups navigation actions into primary and secondary actions
 func GroupPriority(
-	actions map[domain.NavigationGroup]domain.NavigationAction,
+	actions []domain.NavigationAction,
 ) (primary, secondary []domain.NavigationAction) {
+
+	// sort actions based on priority using the sequence number
+	// uses the inbuilt go sorting functionality
+	// https://cs.opensource.google/go/go/+/go1.16.7:src/sort/slice.go;l=16
+	sort.SliceStable(actions, func(i, j int) bool {
+		return actions[i].SequenceNumber < actions[j].SequenceNumber
+	})
+
 	primary = []domain.NavigationAction{}
 	secondary = []domain.NavigationAction{}
 
-	added := make(map[domain.NavigationGroup]domain.NavigationAction)
+	// this helps keep track of grouped actions
+	tracker := make(map[domain.NavigationGroup]bool)
 
-	//pb is number of navactions that can possibly be on bottom navigation ie primary
+	// pb is number of actions without nested actions
 	pb := 0
-	for _, v := range actions {
-		if len(v.Nested) == 0 {
+	for _, a := range actions {
+		if len(a.Nested) == 0 {
 			pb++
 		}
 	}
 
 	// add all the possible bottom action to primary if they are less or equal to 4
 	if pb <= 4 {
+
 		for _, action := range actions {
 			if len(action.Nested) == 0 {
 				primary = append(primary, action)
-				added[action.Group] = action
+				tracker[action.Group] = true
 			}
 		}
+
 	} else {
-		for {
-			if len(primary) == 4 {
-				break
-			}
-			// add all the high priority first
-			for _, action := range actions {
 
-				if action.IsHighPriority {
+		// add all the high priority first
+		for _, action := range actions {
 
-					_, exist := added[action.Group]
-					if !exist && len(action.Nested) == 0 {
+			_, added := tracker[action.Group]
 
-						primary = append(primary, action)
-						added[action.Group] = action
+			// Add the primary action it was not added
+			// And the action lacks nested actions
+			if !added && len(action.Nested) == 0 {
 
-						if len(primary) == 4 {
-							break
-						}
-					}
+				primary = append(primary, action)
+				tracker[action.Group] = true
+
+				if len(primary) == 4 {
+					break
 				}
 			}
-			// add other actions is high priority actions are less than four
-			for _, action := range actions {
 
-				_, exist := added[action.Group]
-				if !exist && len(action.Nested) == 0 {
-
-					primary = append(primary, action)
-					added[action.Group] = action
-
-					if len(primary) == 4 {
-						break
-					}
-				}
-			}
 		}
+
 	}
 
 	// add all remaining items to secondary
 	for _, action := range actions {
 
-		_, exists := added[action.Group]
-		if !exists {
+		_, added := tracker[action.Group]
 
+		if !added {
 			secondary = append(secondary, action)
-			added[action.Group] = action
+			tracker[action.Group] = true
 		}
 	}
+
+	// sort the primary and secondary actions based on priority again
+	// this is a precautionary step since all actions were sorted before
+	sort.SliceStable(primary, func(i, j int) bool {
+		return primary[i].SequenceNumber < primary[j].SequenceNumber
+	})
+
+	sort.SliceStable(secondary, func(i, j int) bool {
+		return secondary[i].SequenceNumber < secondary[j].SequenceNumber
+	})
 
 	return primary, secondary
 }

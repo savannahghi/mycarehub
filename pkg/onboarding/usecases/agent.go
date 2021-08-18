@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/profileutils"
@@ -19,13 +20,16 @@ import (
 )
 
 const (
-	agentWelcomeMessage      = "You have been successfully registered as an agent. We look forward to working with you."
+	agentWelcomeMessage      = "We look forward to working with you."
 	agentWelcomeEmailSubject = "Successfully registered as an agent"
 )
 
 // AgentUseCase represent the business logic required for management of agents
 type AgentUseCase interface {
-	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*profileutils.UserProfile, error)
+	RegisterAgent(
+		ctx context.Context,
+		input dto.RegisterAgentInput,
+	) (*profileutils.UserProfile, error)
 	ActivateAgent(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error)
 	DeactivateAgent(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error)
 	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
@@ -171,7 +175,7 @@ func (a *AgentUseCaseImpl) RegisterAgent(
 		return nil, err
 	}
 
-	if err := a.notifyNewAgent(ctx, []string{input.Email}, []string{input.PhoneNumber}, *profile.UserBioData.FirstName, otp); err != nil {
+	if err := a.notifyNewAgent(ctx, input.Email, input.PhoneNumber, *profile.UserBioData.FirstName, otp); err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("unable to send agent registration notifications: %w", err)
 	}
@@ -181,48 +185,46 @@ func (a *AgentUseCaseImpl) RegisterAgent(
 
 func (a *AgentUseCaseImpl) notifyNewAgent(
 	ctx context.Context,
-	emails []string,
-	phoneNumbers []string,
-	name, otp string,
+	email, phoneNumber, firstName, tempPIN string,
 ) error {
 	type pin struct {
 		Name string
 		Pin  string
 	}
 
-	message := fmt.Sprintf(
-		"%sPlease use this One Time PIN: %s to log onto Bewell with your phone number. You will be prompted to change the PIN on login. For enquiries call us on 0790360360",
-		agentWelcomeMessage,
-		otp,
-	)
-	if err := a.engagement.SendSMS(ctx, phoneNumbers, message); err != nil {
+	message := fmt.Sprintf(domain.WelcomeMessage, firstName, tempPIN)
+	message += " " + agentWelcomeMessage
+
+	if err := a.engagement.SendSMS(ctx, []string{phoneNumber}, message); err != nil {
 		return fmt.Errorf("unable to send agent registration message: %w", err)
 	}
 
-	if len(emails) > 0 {
+	if email != "" {
 		t := template.Must(template.New("agentApprovalEmail").Parse(utils.AgentApprovalEmail))
 
 		buf := new(bytes.Buffer)
 
-		err := t.Execute(buf, pin{name, otp})
+		err := t.Execute(buf, pin{firstName, tempPIN})
 		if err != nil {
 			log.Fatalf("error while generating agent approval email template: %s", err)
 		}
 
 		text := buf.String()
 
-		for _, email := range emails {
-			if err := a.engagement.SendMail(ctx, email, text, agentWelcomeEmailSubject); err != nil {
-				return fmt.Errorf("unable to send agent registration email: %w", err)
-			}
+		if err := a.engagement.SendMail(ctx, email, text, agentWelcomeEmailSubject); err != nil {
+			return fmt.Errorf("unable to send agent registration email: %w", err)
 		}
+
 	}
 
 	return nil
 }
 
 // ActivateAgent activates/unsuspend the agent profile
-func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error) {
+func (a *AgentUseCaseImpl) ActivateAgent(
+	ctx context.Context,
+	input dto.ProfileSuspensionInput,
+) (bool, error) {
 	a.checkPreconditions()
 	ctx, span := tracer.Start(ctx, "ActivateAgent")
 	defer span.End()
@@ -242,7 +244,10 @@ func (a *AgentUseCaseImpl) ActivateAgent(ctx context.Context, input dto.ProfileS
 }
 
 // DeactivateAgent deactivates/suspends the agent profile
-func (a *AgentUseCaseImpl) DeactivateAgent(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error) {
+func (a *AgentUseCaseImpl) DeactivateAgent(
+	ctx context.Context,
+	input dto.ProfileSuspensionInput,
+) (bool, error) {
 	a.checkPreconditions()
 	ctx, span := tracer.Start(ctx, "DeactivateAgent")
 	defer span.End()

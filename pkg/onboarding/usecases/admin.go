@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
+	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/profileutils"
@@ -25,7 +26,10 @@ const (
 
 // AdminUseCase represent the business logic required for management of admins
 type AdminUseCase interface {
-	RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*profileutils.UserProfile, error)
+	RegisterAdmin(
+		ctx context.Context,
+		input dto.RegisterAdminInput,
+	) (*profileutils.UserProfile, error)
 	FetchAdmins(ctx context.Context) ([]*dto.Admin, error)
 	ActivateAdmin(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error)
 	DeactivateAdmin(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error)
@@ -56,7 +60,10 @@ func NewAdminUseCases(
 }
 
 // RegisterAdmin creates a new Admin in bewell
-func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*profileutils.UserProfile, error) {
+func (a *AdminUseCaseImpl) RegisterAdmin(
+	ctx context.Context,
+	input dto.RegisterAdminInput,
+) (*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "RegisterAdmin")
 	defer span.End()
 
@@ -147,7 +154,7 @@ func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.Register
 		return nil, err
 	}
 
-	if err := a.notifyNewAdmin(ctx, []string{input.Email}, []string{input.PhoneNumber}, *profile.UserBioData.FirstName, otp); err != nil {
+	if err := a.notifyNewAdmin(ctx, input.Email, input.PhoneNumber, *profile.UserBioData.FirstName, otp); err != nil {
 		utils.RecordSpanError(span, err)
 		return nil, fmt.Errorf("unable to send admin registration notifications: %w", err)
 	}
@@ -155,34 +162,37 @@ func (a *AdminUseCaseImpl) RegisterAdmin(ctx context.Context, input dto.Register
 	return profile, nil
 }
 
-func (a *AdminUseCaseImpl) notifyNewAdmin(ctx context.Context, emails []string, phoneNumbers []string, name, otp string) error {
+func (a *AdminUseCaseImpl) notifyNewAdmin(
+	ctx context.Context,
+	email, phoneNumber, firstName, tempPIN string,
+) error {
 	type pin struct {
 		Name string
 		Pin  string
 	}
 
-	message := fmt.Sprintf("%sPlease use this One Time PIN: %s to log onto Bewell with your phone number. For enquiries call us on 0790360360", adminWelcomeMessage, otp)
-	if err := a.engagement.SendSMS(ctx, phoneNumbers, message); err != nil {
+	message := fmt.Sprintf(domain.WelcomeMessage, firstName, tempPIN)
+
+	if err := a.engagement.SendSMS(ctx, []string{phoneNumber}, message); err != nil {
 		return fmt.Errorf("unable to send admin registration message: %w", err)
 	}
 
-	if len(emails) > 0 {
+	if email != "" {
 		t := template.Must(template.New("adminApprovalEmail").Parse(utils.AdminApprovalEmail))
 
 		buf := new(bytes.Buffer)
 
-		err := t.Execute(buf, pin{name, otp})
+		err := t.Execute(buf, pin{firstName, tempPIN})
 		if err != nil {
 			log.Fatalf("error while generating admin approval email template: %s", err)
 		}
 
 		text := buf.String()
 
-		for _, email := range emails {
-			if err := a.engagement.SendMail(ctx, email, text, adminWelcomeEmailSubject); err != nil {
-				return fmt.Errorf("unable to send admin registration email: %w", err)
-			}
+		if err := a.engagement.SendMail(ctx, email, text, adminWelcomeEmailSubject); err != nil {
+			return fmt.Errorf("unable to send admin registration email: %w", err)
 		}
+
 	}
 
 	return nil
@@ -230,7 +240,10 @@ func (a *AdminUseCaseImpl) FetchAdmins(ctx context.Context) ([]*dto.Admin, error
 }
 
 // ActivateAdmin activates/unsuspend the admin profile
-func (a *AdminUseCaseImpl) ActivateAdmin(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error) {
+func (a *AdminUseCaseImpl) ActivateAdmin(
+	ctx context.Context,
+	input dto.ProfileSuspensionInput,
+) (bool, error) {
 	ctx, span := tracer.Start(ctx, "ActivateAdmin")
 	defer span.End()
 
@@ -266,7 +279,10 @@ func (a *AdminUseCaseImpl) ActivateAdmin(ctx context.Context, input dto.ProfileS
 }
 
 // DeactivateAdmin deactivates/suspends the admin profile
-func (a *AdminUseCaseImpl) DeactivateAdmin(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error) {
+func (a *AdminUseCaseImpl) DeactivateAdmin(
+	ctx context.Context,
+	input dto.ProfileSuspensionInput,
+) (bool, error) {
 	ctx, span := tracer.Start(ctx, "DeactivateAdmin")
 	defer span.End()
 
@@ -283,7 +299,9 @@ func (a *AdminUseCaseImpl) DeactivateAdmin(ctx context.Context, input dto.Profil
 	}
 
 	if !allowed {
-		return false, fmt.Errorf("error, user do not have the permissions to deactivate an employee")
+		return false, fmt.Errorf(
+			"error, user do not have the permissions to deactivate an employee",
+		)
 	}
 
 	// Get admin profile using phoneNumber

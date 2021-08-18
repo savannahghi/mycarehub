@@ -165,13 +165,17 @@ type NavigationGroup string
 
 // NavigationAction is the menu rendered to PRO users for navigating the app
 type NavigationAction struct {
-	Group              NavigationGroup          `json:"code,omitempty"`
-	Title              string                   `json:"title,omitempty"`
-	OnTapRoute         string                   `json:"onTapRoute,omitempty"`
-	Icon               string                   `json:"icon,omitempty"`
-	Favorite           bool                     `json:"favorite,omitempty"`
-	HasParent          bool                     `json:"isParent,omitempty"`
-	Nested             []interface{}            `json:"nested,omitempty"`
-	RequiredPermission *profileutils.Permission `json:"requires,omitempty"`
-	IsHighPriority     bool                     `json:"isHighPriority"`
+	Group              NavigationGroup          `json:"code"`
+	Title              string                   `json:"title"`
+	OnTapRoute         string                   `json:"onTapRoute"`
+	Icon               string                   `json:"icon"`
+	Favorite           bool                     `json:"favorite"`
+	HasParent          bool                     `json:"isParent"`
+	Nested             []interface{}            `json:"nested"`
+	RequiredPermission *profileutils.Permission `json:"requires"`
+
+	// Sequence Number assigns a priority to an action
+	// the number is used when sorting/ordering navigation actions
+	// Actions with a higher sequence number appear at the top i.e ascending order
+	SequenceNumber int `json:"sequenceNumber"`
 }

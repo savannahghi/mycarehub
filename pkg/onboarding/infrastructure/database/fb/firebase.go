@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"time"
 
-	"cloud.google.com/go/firestore"
 	"go.opentelemetry.io/otel"
 
 	"firebase.google.com/go/auth"
@@ -2155,14 +2154,48 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(
 			))
 	}
 
-	var tokenResp profileutils.AuthCredentialResponse
-	err = json.NewDecoder(resp.Body).Decode(&tokenResp)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
+	type refreshTokenResponse struct {
+		AccessToken  string `json:"access_token"`
+		ExpiresIn    string `json:"expires_in"`
+		TokenType    string `json:"token_type"`
+		RefreshToken string `json:"refresh_token"`
+		IDToken      string `json:"id_token"`
+		UserID       string `json:"user_id"`
+		ProjectID    string `json:"project_id"`
 	}
 
-	return &tokenResp, nil
+	var tokenResponse refreshTokenResponse
+	err = json.NewDecoder(resp.Body).Decode(&tokenResponse)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(fmt.Errorf(
+			"failed to decode refresh token response: %s", err,
+		))
+	}
+
+	profile, err := fr.GetUserProfileByUID(ctx, tokenResponse.UserID, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(fmt.Errorf(
+			"failed to retrieve user profile: %s", err,
+		))
+	}
+
+	canExperiment, err := fr.CheckIfExperimentParticipant(ctx, profile.ID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(fmt.Errorf(
+			"failed to check if the logged in user is an experimental participant: %s", err,
+		))
+	}
+
+	return &profileutils.AuthCredentialResponse{
+		IDToken:       &tokenResponse.IDToken,
+		ExpiresIn:     tokenResponse.ExpiresIn,
+		RefreshToken:  tokenResponse.RefreshToken,
+		UID:           tokenResponse.UserID,
+		CanExperiment: canExperiment,
+	}, nil
 }
 
 // GetCustomerProfileByID fetch the customer profile by profile id.
@@ -2776,22 +2809,25 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	pin, err := fr.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(err)
+		// Should not panic but allow for deletion of the profile
+		log.Printf("failed to get a user pin %v", err)
 	}
-
-	query := &GetAllQuery{
-		CollectionName: fr.GetPINsCollectionName(),
-		FieldName:      "id",
-		Value:          pin.ID,
-		Operator:       "==",
-	}
-	if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
-		command := &DeleteCommand{
+	// Remove user profile with or without PIN
+	if pin != nil {
+		query := &GetAllQuery{
 			CollectionName: fr.GetPINsCollectionName(),
-			ID:             docs[0].Ref.ID,
+			FieldName:      "id",
+			Value:          pin.ID,
+			Operator:       "==",
 		}
-		if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
-			return exceptions.InternalServerError(err)
+		if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
+			command := &DeleteCommand{
+				CollectionName: fr.GetPINsCollectionName(),
+				ID:             docs[0].Ref.ID,
+			}
+			if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
+				return exceptions.InternalServerError(err)
+			}
 		}
 	}
 	// delete user supplier profile
@@ -2804,25 +2840,27 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	if err != nil {
 		utils.RecordSpanError(span, err)
 	} else {
-		err = fr.RemoveKYCProcessingRequest(ctx, supplier.ID)
-		if err != nil {
-			utils.RecordSpanError(span, err)
-			log.Printf("KYC request information was not removed %v", err)
-		}
-
-		query := &GetAllQuery{
-			CollectionName: fr.GetSupplierProfileCollectionName(),
-			FieldName:      "id",
-			Value:          supplier.ID,
-			Operator:       "==",
-		}
-		if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
-			command := &DeleteCommand{
-				CollectionName: fr.GetSupplierProfileCollectionName(),
-				ID:             docs[0].Ref.ID,
+		if supplier != nil {
+			err = fr.RemoveKYCProcessingRequest(ctx, supplier.ID)
+			if err != nil {
+				utils.RecordSpanError(span, err)
+				log.Printf("KYC request information was not removed %v", err)
 			}
-			if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
-				return exceptions.InternalServerError(err)
+
+			query := &GetAllQuery{
+				CollectionName: fr.GetSupplierProfileCollectionName(),
+				FieldName:      "id",
+				Value:          supplier.ID,
+				Operator:       "==",
+			}
+			if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
+				command := &DeleteCommand{
+					CollectionName: fr.GetSupplierProfileCollectionName(),
+					ID:             docs[0].Ref.ID,
+				}
+				if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
+					return exceptions.InternalServerError(err)
+				}
 			}
 		}
 	}
@@ -2837,19 +2875,21 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	if err != nil {
 		utils.RecordSpanError(span, err)
 	} else {
-		query := &GetAllQuery{
-			CollectionName: fr.GetCustomerProfileCollectionName(),
-			FieldName:      "id",
-			Value:          customer.ID,
-			Operator:       "==",
-		}
-		if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
-			command := &DeleteCommand{
+		if customer != nil {
+			query := &GetAllQuery{
 				CollectionName: fr.GetCustomerProfileCollectionName(),
-				ID:             docs[0].Ref.ID,
+				FieldName:      "id",
+				Value:          customer.ID,
+				Operator:       "==",
 			}
-			if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
-				return exceptions.InternalServerError(err)
+			if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
+				command := &DeleteCommand{
+					CollectionName: fr.GetCustomerProfileCollectionName(),
+					ID:             docs[0].Ref.ID,
+				}
+				if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
+					return exceptions.InternalServerError(err)
+				}
 			}
 		}
 	}
@@ -3954,10 +3994,7 @@ func (fr *Repository) CreateRole(
 }
 
 // GetAllRoles returns a list of all created roles
-func (fr *Repository) GetAllRoles(
-	ctx context.Context,
-	filter *firebasetools.FilterInput,
-) (*[]profileutils.Role, error) {
+func (fr *Repository) GetAllRoles(ctx context.Context) (*[]profileutils.Role, error) {
 	ctx, span := tracer.Start(ctx, "GetAllRoles")
 	defer span.End()
 
@@ -3965,34 +4002,16 @@ func (fr *Repository) GetAllRoles(
 		CollectionName: fr.GetRolesCollectionName(),
 	}
 
-	allDocs := []*firestore.DocumentSnapshot{}
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
 
-	if filter != nil {
-		for _, filterParam := range filter.FilterBy {
-			query.FieldName = filterParam.FieldName
-			query.Operator = filterParam.ComparisonOperation.String()
-			query.Value = filter.Search
-
-			docs, err := fr.FirestoreClient.GetAll(ctx, query)
-
-			if err != nil {
-				utils.RecordSpanError(span, err)
-				return nil, exceptions.InternalServerError(err)
-			}
-			allDocs = append(allDocs, docs...)
-		}
-	} else {
-		docs, err := fr.FirestoreClient.GetAll(ctx, query)
-
-		if err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, exceptions.InternalServerError(err)
-		}
-		allDocs = append(allDocs, docs...)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		err = fmt.Errorf("unable to read role")
+		return nil, exceptions.InternalServerError(err)
 	}
 
 	roles := []profileutils.Role{}
-	for _, doc := range allDocs {
+	for _, doc := range docs {
 		role := &profileutils.Role{}
 
 		err := doc.DataTo(role)
@@ -4214,7 +4233,78 @@ func (fr *Repository) CheckIfRoleNameExists(ctx context.Context, name string) (b
 	return false, nil
 }
 
-//CheckIfUserHasPermission this method checks if a user has the required permission
+// GetUserProfilesByRoleID returns a list of user profiles with the role ID
+// i.e users assigned a particular role
+func (fr *Repository) GetUserProfilesByRoleID(ctx context.Context, roleID string) ([]*profileutils.UserProfile, error) {
+	ctx, span := tracer.Start(ctx, "GetUserProfilesByRoleID")
+	defer span.End()
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetUserProfileCollectionName(),
+		FieldName:      "roles",
+		Operator:       "array-contains",
+		Value:          roleID,
+	}
+
+	users := []*profileutils.UserProfile{}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	for _, doc := range docs {
+		user := &profileutils.UserProfile{}
+
+		err = doc.DataTo(user)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse userprofile")
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+// GetRoleByName retrieves a role using it's name
+func (fr *Repository) GetRoleByName(ctx context.Context, roleName string) (*profileutils.Role, error) {
+	ctx, span := tracer.Start(ctx, "GetRoleByName")
+	defer span.End()
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetRolesCollectionName(),
+		FieldName:      "name",
+		Operator:       "==",
+		Value:          roleName,
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	if len(docs) != 1 {
+		err = fmt.Errorf("role with name %v not found", roleName)
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	role := &profileutils.Role{}
+
+	err = docs[0].DataTo(role)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		err = fmt.Errorf("unable to read role")
+		return nil, exceptions.InternalServerError(err)
+	}
+
+	return role, nil
+}
+
+//CheckIfUserHasPermission checks if a user has the required permission
 func (fr *Repository) CheckIfUserHasPermission(
 	ctx context.Context,
 	UID string,

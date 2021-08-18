@@ -36,7 +36,7 @@ type Usecase interface {
 		ctx context.Context,
 		input domain.Microservice,
 	) (*domain.Microservice, error)
-	CheckHealthEndpoint(healthEndpoint string) bool
+	CheckHealthEndpoint(ctx context.Context, healthEndpoint string) bool
 	ListMicroservices(ctx context.Context) ([]*domain.Microservice, error)
 	DeregisterMicroservice(ctx context.Context, id string) (bool, error)
 	DeregisterAllMicroservices(ctx context.Context) (bool, error)
@@ -107,7 +107,7 @@ func (s *Service) RegisterMicroservice(
 		return nil, fmt.Errorf("%s url is incorrect", input.Name)
 	}
 
-	if !s.CheckHealthEndpoint(endPoint) {
+	if !s.CheckHealthEndpoint(ctx, endPoint) {
 		return nil, fmt.Errorf("%s service is not online", input.Name)
 	}
 
@@ -146,8 +146,11 @@ func (s *Service) RegisterMicroservice(
 }
 
 //CheckHealthEndpoint Check if service is reachable
-func (s Service) CheckHealthEndpoint(healthEndpoint string) bool {
-	req, err := http.NewRequest(http.MethodGet, healthEndpoint, nil)
+func (s Service) CheckHealthEndpoint(ctx context.Context, healthEndpoint string) bool {
+	ctx, span := tracer.Start(ctx, "CheckHealthEndpoint")
+	defer span.End()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthEndpoint, nil)
 	if err != nil {
 		log.Printf("Failed to create action request with error; %v", err)
 		return false
@@ -310,7 +313,7 @@ func (s *Service) PollMicroservicesStatus(ctx context.Context) ([]*domain.Micros
 			return nil, fmt.Errorf("cannot form health url: %v", err)
 		}
 
-		reachable := s.CheckHealthEndpoint(url)
+		reachable := s.CheckHealthEndpoint(ctx, url)
 
 		status := &domain.MicroserviceStatus{
 			Service: service,

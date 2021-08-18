@@ -346,6 +346,7 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 						CustomToken:  &customToken,
 						IDToken:      &idToken,
 						RefreshToken: refreshToken,
+						Scopes:       []string{"patient.create", "agent.create"},
 					}, nil
 				}
 
@@ -370,7 +371,14 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 				fakeRepo.GetRolesByIDsFn = func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error) {
 					roles := []profileutils.Role{
 						{
-							ID: uuid.NewString(),
+							ID:     uuid.NewString(),
+							Scopes: []string{"patient.create", "patient.view"},
+							Active: false,
+						},
+						{
+							ID:     uuid.NewString(),
+							Scopes: []string{"patient.create", "agent.create"},
+							Active: true,
 						},
 					}
 					return &roles, nil

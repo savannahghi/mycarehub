@@ -870,11 +870,20 @@ func (r *queryResolver) ListMicroservices(ctx context.Context) ([]*domain.Micros
 	return services, err
 }
 
-func (r *queryResolver) GetAllRoles(ctx context.Context, filter *firebasetools.FilterInput) ([]*dto.RoleOutput, error) {
+func (r *queryResolver) GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error) {
 	startTime := time.Now()
 
-	roles, err := r.interactor.Role.GetAllRoles(ctx, filter)
+	roles, err := r.interactor.Role.GetAllRoles(ctx)
 	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "getAllRoles", err)
+
+	return roles, err
+}
+
+func (r *queryResolver) FindRoleByName(ctx context.Context, roleName *string) ([]*dto.RoleOutput, error) {
+	startTime := time.Now()
+
+	roles, err := r.interactor.Role.FindRoleByName(ctx, roleName)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findRoleByName", err)
 
 	return roles, err
 }

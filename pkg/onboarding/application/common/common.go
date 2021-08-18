@@ -11,15 +11,16 @@ const (
 	// StaticBase is the default path at which static assets are hosted
 	StaticBase = "https://assets.healthcloud.co.ke"
 
-	RoleNavActionURL     = StaticBase + "/actions/roles_navaction.png"
-	AgentNavActionURL    = StaticBase + "/actions/agent_navaction.png"
-	ConsumerNavActionURL = StaticBase + "/actions/consumer_navaction.png"
-	HelpNavActionURL     = StaticBase + "/actions/help_navaction.png"
-	HomeNavActionURL     = StaticBase + "/actions/home_navaction.png"
-	KYCNavActionURL      = StaticBase + "/actions/kyc_navaction.png"
-	PartnerNavActionURL  = StaticBase + "/actions/partner_navaction.png"
-	PatientNavActionURL  = StaticBase + "/actions/patient_navaction.png"
-	RequestNavActionURL  = StaticBase + "/actions/request_navaction.png"
+	RoleNavActionIcon     = StaticBase + "/actions/roles_navaction.png"
+	AgentNavActionIcon    = StaticBase + "/actions/agent_navaction.png"
+	EmployeeNavActionIcon = StaticBase + "/actions/employee_navaction.png"
+	ConsumerNavActionIcon = StaticBase + "/actions/consumer_navaction.png"
+	HelpNavActionIcon     = StaticBase + "/actions/help_navaction.png"
+	HomeNavActionIcon     = StaticBase + "/actions/home_navaction.png"
+	KYCNavActionIcon      = StaticBase + "/actions/kyc_navaction.png"
+	PartnerNavActionIcon  = StaticBase + "/actions/partner_navaction.png"
+	PatientNavActionIcon  = StaticBase + "/actions/patient_navaction.png"
+	RequestNavActionIcon  = StaticBase + "/actions/request_navaction.png"
 )
 
 // On Tap Routes
@@ -37,6 +38,9 @@ const (
 
 	AgentRegistrationRoute   = "/agentRegistration"
 	AgentIdentificationRoute = "/agentIdentification"
+
+	EmployeeRegistrationRoute   = "/employeeRegistration"
+	EmployeeIdentificationRoute = "/employeeIdentification"
 )
 
 // Navigation actions
@@ -51,26 +55,28 @@ const (
 	RoleViewActionTitle     = "View Roles"
 	RoleCreationActionTitle = "Create Role"
 
-	PatientNavActionTitle            = "Patient"
+	PatientNavActionTitle            = "Patients"
 	PatientNavActionDescription      = "Patient Navigation action"
-	PatientRegistrationActionTitle   = "Patient Registration"
-	PatientIdentificationActionTitle = "Patient Identification"
+	PatientRegistrationActionTitle   = "Register Patient"
+	PatientIdentificationActionTitle = "Search Patient"
 
 	RequestsNavActionTitle       = "Requests"
 	RequestsNavActionDescription = "Requests Navigation action"
 
-	AgentNavActionTitle            = "Agent"
+	AgentNavActionTitle            = "Agents"
 	AgentNavActionDescription      = "Agent Navigation action"
-	AgentRegistrationActionTitle   = "Agent Registration"
-	AgentIdentificationActionTitle = "Agent Identification"
+	AgentRegistrationActionTitle   = "Register Agent"
+	AgentIdentificationActionTitle = "View Agents"
 
-	AgentRegistrationTitle   = "Agent Registration"
-	AgentIdentificationTitle = "Agent Identification"
+	EmployeeNavActionTitle            = "Employees"
+	EmployeeNavActionDescription      = "Employee Navigation action"
+	EmployeeRegistrationActionTitle   = "Register Employee"
+	EmployeeIdentificationActionTitle = "View Employees"
 
-	ConsumerNavActionTitle       = "Consumer"
+	ConsumerNavActionTitle       = "Consumers"
 	ConsumerNavActionDescription = "Consumer Navigation action"
 
-	PartnerNavActionTitle       = "Partner"
+	PartnerNavActionTitle       = "Partners"
 	PartnerNavActionDescription = "Partner Navigation action"
 )
 
@@ -90,4 +96,8 @@ const (
 
 	// LinkCoverTopic is the topicID for cover linking topic
 	LinkCoverTopic = "covers.link"
+
+	// LinkEDIMemberCoverTopic is the topic ID for cover linking topic of an EDI member who has
+	// received a message with the link to download bewell
+	LinkEDIMemberCoverTopic = "edi.covers.link"
 )

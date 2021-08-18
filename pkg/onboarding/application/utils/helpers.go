@@ -192,7 +192,8 @@ func CheckEmptyString(text string) (*string, error) {
 func NewActionsMapper(ctx context.Context, grouped *dto.GroupedNavigationActions) *profileutils.NavigationActions {
 	mapped := &profileutils.NavigationActions{}
 
-	for _, action := range grouped.Primary {
+	for i := 0; i < len(grouped.Primary); i++ {
+		action := grouped.Primary[i]
 		c := profileutils.NavAction{
 			Title:      action.Title,
 			OnTapRoute: action.OnTapRoute,
@@ -202,7 +203,8 @@ func NewActionsMapper(ctx context.Context, grouped *dto.GroupedNavigationActions
 		mapped.Primary = append(mapped.Primary, c)
 	}
 
-	for _, action := range grouped.Secondary {
+	for i := 0; i < len(grouped.Secondary); i++ {
+		action := grouped.Secondary[i]
 		c := profileutils.NavAction{
 			Title:      action.Title,
 			OnTapRoute: action.OnTapRoute,
@@ -211,8 +213,9 @@ func NewActionsMapper(ctx context.Context, grouped *dto.GroupedNavigationActions
 		}
 
 		if len(action.Nested) > 0 {
-			for _, nested := range action.Nested {
-				nestedAction := nested.(domain.NavigationAction)
+
+			for i := 0; i < len(action.Nested); i++ {
+				nestedAction := (action.Nested[i]).(domain.NavigationAction)
 				m := profileutils.NestedNavAction{
 					Title:      nestedAction.Title,
 					OnTapRoute: nestedAction.OnTapRoute,

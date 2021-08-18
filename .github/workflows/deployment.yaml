@@ -1,0 +1,110 @@
+name: Deployment
+
+on: [push]
+
+concurrency:
+  group: build_and_push_image
+
+jobs:
+  build_and_push_image:
+    runs-on: ubuntu-latest
+    environment:
+      name: test # run this only in test environment for now
+    steps:
+      - uses: actions/checkout@v2
+
+      # Setup gcloud CLI
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          export_default_credentials: true
+      
+      # Build docker image
+      - name: Build
+        run: |-
+          docker build -t eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA --build-arg=ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} .
+      # Configure docker to use the gcloud command-line tool as a credential helper
+      - run: |
+          gcloud auth configure-docker -q
+
+      # Push image to Google Container Registry
+      - name: Push
+        run: |-
+          docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
+
+  deploy_to_test:
+    name: Deploy Test Server to Google Cloud Run
+    runs-on: ubuntu-latest
+    environment:
+      name: test
+    needs: [build_and_push_image]
+    steps:
+      - name: Checkout working branches
+        uses: actions/checkout@v2
+
+      # Deploy to Google Cloud Run Serverless
+      - name: Get GCP project credential 
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          export_default_credentials: true
+      
+      # Deploy to Google Cloud Run Serverless
+      - name: Deploy to Google Cloud Run
+        run: |
+          gcloud components install beta --quiet
+          gcloud beta run deploy ${{ secrets.SERVICE_NAME }} --image eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA \
+          --region europe-west1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --min-instances=${{ secrets.MIN_INST }} \
+          --max-instances=${{ secrets.MAX_INST }} \
+          --memory=${{ secrets.MEMORY_LIMIT}} \
+          --cpu=${{ secrets.CPU }} \
+          --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }}" \
+          --set-env-vars "FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}" \
+          --set-env-vars "JWT_KEY=${{ secrets.JWT_KEY }}" \
+          --set-env-vars "ENVIRONMENT=${{ secrets.ENVIRONMENT }}" \
+          --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
+          --set-env-vars "ROOT_COLLECTION_SUFFIX="${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
+          --set-env-vars "ERP_HOST=${{ secrets.ERP_HOST }}" \
+          --set-env-vars "ERP_API_SCHEME=${{ secrets.ERP_API_SCHEME }}" \
+          --set-env-vars "ERP_TOKEN_URL=${{ secrets.ERP_TOKEN_URL }}" \
+          --set-env-vars "ERP_CLIENT_ID=${{ secrets.ERP_CLIENT_ID }}" \
+          --set-env-vars "ERP_CLIENT_SECRET=${{ secrets.ERP_CLIENT_SECRET }}" \
+          --set-env-vars "ERP_USERNAME=${{ secrets.ERP_USERNAME }}" \
+          --set-env-vars "ERP_PASSWORD=${{ secrets.ERP_PASSWORD }}" \
+          --set-env-vars "ERP_GRANT_TYPE=${{ secrets.ERP_GRANT_TYPE }}" \
+          --set-env-vars "ERP_DEFAULT_WORKSTATION_ID=${{ secrets.ERP_DEFAULT_WORKSTATION_ID }}" \
+          --set-env-vars "ERP_DEFAULT_CURRENCY=${{ secrets.ERP_DEFAULT_CURRENCY }}" \
+          --set-env-vars "CHARGE_MASTER_API_HOST=${{ secrets.CHARGE_MASTER_API_HOST }}" \
+          --set-env-vars "CHARGE_MASTER_API_SCHEME=${{ secrets.CHARGE_MASTER_API_SCHEME }}" \
+          --set-env-vars "CHARGE_MASTER_TOKEN_URL=${{ secrets.CHARGE_MASTER_TOKEN_URL }}" \
+          --set-env-vars "CHARGE_MASTER_CLIENT_ID=${{ secrets.CHARGE_MASTER_CLIENT_ID }}" \
+          --set-env-vars "CHARGE_MASTER_CLIENT_SECRET=${{ secrets.CHARGE_MASTER_CLIENT_SECRET }}" \
+          --set-env-vars "CHARGE_MASTER_USERNAME=${{ secrets.CHARGE_MASTER_USERNAME }}" \
+          --set-env-vars "CHARGE_MASTER_PASSWORD=${{ secrets.CHARGE_MASTER_PASSWORD }}" \
+          --set-env-vars "CHARGE_MASTER_GRANT_TYPE=${{ secrets.CHARGE_MASTER_GRANT_TYPE }}" \
+          --set-env-vars "CLIENT_ID=${{ secrets.CLIENT_ID }}" \
+          --set-env-vars "CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" \
+          --set-env-vars "TOKEN_URL=${{ secrets.TOKEN_URL }}" \
+          --set-env-vars "HOST=${{ secrets.HOST }}" \
+          --set-env-vars "API_SCHEME=${{ secrets.API_SCHEME }}" \
+          --set-env-vars "GRANT_TYPE=${{ secrets.GRANT_TYPE }}" \
+          --set-env-vars "CORE_CLIENT_ID=${{ secrets.CORE_CLIENT_ID }}" \
+          --set-env-vars "CORE_CLIENT_SECRET=${{ secrets.CORE_CLIENT_SECRET }}" \
+          --set-env-vars "CORE_USERNAME=${{ secrets.CORE_USERNAME }}" \
+          --set-env-vars "CORE_PASSWORD=${{ secrets.CORE_PASSWORD }}" \
+          --set-env-vars "CORE_GRANT_TYPE=${{ secrets.CORE_GRANT_TYPE }}" \
+          --set-env-vars "CORE_API_SCHEME=${{ secrets.CORE_API_SCHEME }}" \
+          --set-env-vars "CORE_TOKEN_URL=${{ secrets.CORE_TOKEN_URL }}" \
+          --set-env-vars "CORE_HOST=${{ secrets.CORE_HOST }}" \
+          --set-env-vars "REPOSITORY=${{ secrets.REPOSITORY }}" \
+          --set-env-vars "SERVICE_HOST=${{ secrets.SERVICE_HOST }}" \
+          --set-env-vars "GOOGLE_PROJECT_NUMBER=${{ secrets.GOOGLE_PROJECT_NUMBER }}" \
+          --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" \
+          --set-env-vars "HUBSPOT_API_KEY=${{ secrets.HUBSPOT_API_KEY }}" \
+          --set-env-vars "HUBSPOT_API_URL=${{ secrets.HUBSPOT_API_URL }}" \
+          --set-env-vars "JAEGER_URL=${{ secrets.JAEGER_URL }}" 

@@ -432,3 +432,18 @@ type ProfileSuspensionInput struct {
 	ID     string `json:"id,omitempty"`
 	Reason string `json:"reason,omitempty"`
 }
+
+// EDICoverLinkingPubSubMessage holds the data required to add a cover to the profile
+// of EDI members who received a message with the bewell link an went ahead to
+// download the app
+type EDICoverLinkingPubSubMessage struct {
+	PayerSladeCode int    `json:"payersladecode"`
+	MemberNumber   string `json:"membernumber"`
+	PhoneNumber    string `json:"phonenumber"`
+}
+
+// CheckPermissionPayload is the payload used when checking if a user is authorized
+type CheckPermissionPayload struct {
+	UID        *string                  `json:"uid"`
+	Permission *profileutils.Permission `json:"permission"`
+}
