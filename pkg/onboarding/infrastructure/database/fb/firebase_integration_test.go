@@ -459,12 +459,6 @@ func TestPurgeUserByPhoneNumber(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Nil(t, spr)
 
-	// call PurgeUserByPhoneNumber using the phone number associated with invalidpr1. this should fail since it does not have
-	// an associated pin
-	err = fr.PurgeUserByPhoneNumber(ctx, interserviceclient.TestUserPhoneNumber)
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "server error! unable to perform operation")
-
 	// now set a  pin. this should not fail
 	userpin := "1234"
 	pset, err := s.UserPIN.SetUserPIN(ctx, userpin, invalidpr1.ID)

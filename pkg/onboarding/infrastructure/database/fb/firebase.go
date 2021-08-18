@@ -2809,22 +2809,25 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	pin, err := fr.GetPINByProfileID(ctx, profile.ID)
 	if err != nil {
 		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(err)
+		// Should not panic but allow for deletion of the profile
+		log.Printf("failed to get a user pin %v", err)
 	}
-
-	query := &GetAllQuery{
-		CollectionName: fr.GetPINsCollectionName(),
-		FieldName:      "id",
-		Value:          pin.ID,
-		Operator:       "==",
-	}
-	if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
-		command := &DeleteCommand{
+	// Remove user profile with or without PIN
+	if pin != nil {
+		query := &GetAllQuery{
 			CollectionName: fr.GetPINsCollectionName(),
-			ID:             docs[0].Ref.ID,
+			FieldName:      "id",
+			Value:          pin.ID,
+			Operator:       "==",
 		}
-		if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
-			return exceptions.InternalServerError(err)
+		if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
+			command := &DeleteCommand{
+				CollectionName: fr.GetPINsCollectionName(),
+				ID:             docs[0].Ref.ID,
+			}
+			if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
+				return exceptions.InternalServerError(err)
+			}
 		}
 	}
 	// delete user supplier profile
@@ -2837,25 +2840,27 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	if err != nil {
 		utils.RecordSpanError(span, err)
 	} else {
-		err = fr.RemoveKYCProcessingRequest(ctx, supplier.ID)
-		if err != nil {
-			utils.RecordSpanError(span, err)
-			log.Printf("KYC request information was not removed %v", err)
-		}
-
-		query := &GetAllQuery{
-			CollectionName: fr.GetSupplierProfileCollectionName(),
-			FieldName:      "id",
-			Value:          supplier.ID,
-			Operator:       "==",
-		}
-		if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
-			command := &DeleteCommand{
-				CollectionName: fr.GetSupplierProfileCollectionName(),
-				ID:             docs[0].Ref.ID,
+		if supplier != nil {
+			err = fr.RemoveKYCProcessingRequest(ctx, supplier.ID)
+			if err != nil {
+				utils.RecordSpanError(span, err)
+				log.Printf("KYC request information was not removed %v", err)
 			}
-			if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
-				return exceptions.InternalServerError(err)
+
+			query := &GetAllQuery{
+				CollectionName: fr.GetSupplierProfileCollectionName(),
+				FieldName:      "id",
+				Value:          supplier.ID,
+				Operator:       "==",
+			}
+			if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
+				command := &DeleteCommand{
+					CollectionName: fr.GetSupplierProfileCollectionName(),
+					ID:             docs[0].Ref.ID,
+				}
+				if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
+					return exceptions.InternalServerError(err)
+				}
 			}
 		}
 	}
@@ -2870,19 +2875,21 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 	if err != nil {
 		utils.RecordSpanError(span, err)
 	} else {
-		query := &GetAllQuery{
-			CollectionName: fr.GetCustomerProfileCollectionName(),
-			FieldName:      "id",
-			Value:          customer.ID,
-			Operator:       "==",
-		}
-		if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
-			command := &DeleteCommand{
+		if customer != nil {
+			query := &GetAllQuery{
 				CollectionName: fr.GetCustomerProfileCollectionName(),
-				ID:             docs[0].Ref.ID,
+				FieldName:      "id",
+				Value:          customer.ID,
+				Operator:       "==",
 			}
-			if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
-				return exceptions.InternalServerError(err)
+			if docs, err := fr.FirestoreClient.GetAll(ctx, query); err == nil {
+				command := &DeleteCommand{
+					CollectionName: fr.GetCustomerProfileCollectionName(),
+					ID:             docs[0].Ref.ID,
+				}
+				if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
+					return exceptions.InternalServerError(err)
+				}
 			}
 		}
 	}
