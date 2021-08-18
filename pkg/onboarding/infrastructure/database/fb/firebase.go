@@ -2154,14 +2154,48 @@ func (fr Repository) ExchangeRefreshTokenForIDToken(
 			))
 	}
 
-	var tokenResp profileutils.AuthCredentialResponse
-	err = json.NewDecoder(resp.Body).Decode(&tokenResp)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
+	type refreshTokenResponse struct {
+		AccessToken  string `json:"access_token"`
+		ExpiresIn    string `json:"expires_in"`
+		TokenType    string `json:"token_type"`
+		RefreshToken string `json:"refresh_token"`
+		IDToken      string `json:"id_token"`
+		UserID       string `json:"user_id"`
+		ProjectID    string `json:"project_id"`
 	}
 
-	return &tokenResp, nil
+	var tokenResponse refreshTokenResponse
+	err = json.NewDecoder(resp.Body).Decode(&tokenResponse)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(fmt.Errorf(
+			"failed to decode refresh token response: %s", err,
+		))
+	}
+
+	profile, err := fr.GetUserProfileByUID(ctx, tokenResponse.UserID, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(fmt.Errorf(
+			"failed to retrieve user profile: %s", err,
+		))
+	}
+
+	canExperiment, err := fr.CheckIfExperimentParticipant(ctx, profile.ID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.InternalServerError(fmt.Errorf(
+			"failed to check if the logged in user is an experimental participant: %s", err,
+		))
+	}
+
+	return &profileutils.AuthCredentialResponse{
+		IDToken:       &tokenResponse.IDToken,
+		ExpiresIn:     tokenResponse.ExpiresIn,
+		RefreshToken:  tokenResponse.RefreshToken,
+		UID:           tokenResponse.UserID,
+		CanExperiment: canExperiment,
+	}, nil
 }
 
 // GetCustomerProfileByID fetch the customer profile by profile id.
