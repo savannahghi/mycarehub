@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
@@ -119,7 +120,11 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 	// get navigation actions
 	roles, err := l.onboardingRepository.GetRolesByIDs(ctx, profile.Roles)
 	if err != nil {
-		return nil, err
+		if strings.Contains(err.Error(), "role not found") {
+			roles = nil
+		} else {
+			return nil, err
+		}
 	}
 
 	navActions, err := utils.GetUserNavigationActions(ctx, *profile, *roles)

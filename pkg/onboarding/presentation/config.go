@@ -157,7 +157,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	adminSrv := adminSrv.NewService(baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(
-		repo, profile, su, supplier, login, survey,
+		profile, su, supplier, login, survey,
 		userpin, erp, chrg, engage, mes, nhif, pubSub,
 		sms, aitUssd, agent, admin, edi, adminSrv, crmExt,
 		role,
@@ -310,6 +310,19 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Authenticated routes
 	rs := r.PathPrefix("/roles").Subrouter()
 	rs.Use(apiclient.AuthenticationMiddleware(firebaseApp))
+	rs.Path("/create_role").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.CreateRole())
+	rs.Path("/assign_role").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.AssignRole())
+	rs.Path("/remove_role").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.RemoveRoleByName())
+
 	rs.Path("/add_user_role").Methods(
 		http.MethodPost,
 		http.MethodOptions).
@@ -391,6 +404,18 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.UpdateUserProfile())
+	iscTesting.Path("/create_role").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.CreateRole())
+	iscTesting.Path("/assign_role").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.AssignRole())
+	iscTesting.Path("/remove_role").Methods(
+		http.MethodPost,
+		http.MethodOptions).
+		HandlerFunc(h.RemoveRoleByName())
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()

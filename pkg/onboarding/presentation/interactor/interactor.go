@@ -10,7 +10,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
-	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/ussd"
@@ -43,7 +42,6 @@ type Interactor struct {
 
 // NewOnboardingInteractor returns a new onboarding interactor
 func NewOnboardingInteractor(
-	fr repository.OnboardingRepository,
 	profile usecases.ProfileUseCase,
 	su usecases.SignUpUseCases,
 	supplier usecases.SupplierUseCases,

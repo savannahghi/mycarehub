@@ -187,7 +187,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	adminSrv := adminSrv.NewService(ext)
 
 	i, err := interactor.NewOnboardingInteractor(
-		r, profile, su, supplier, login,
+		profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
 		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
 		role,
@@ -323,7 +323,7 @@ func InitializeFakeUSSDTestService() (*interactor.Interactor, error) {
 	adminSrv := adminSrv.NewService(ext)
 
 	i, err := interactor.NewOnboardingInteractor(
-		r, profile, su, supplier, login,
+		profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
 		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
 		role,

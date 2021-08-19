@@ -402,6 +402,18 @@ type CoverLinkingEvent struct {
 	PhoneNumber           string     `firestore:"phoneNumber"`
 }
 
+// AssignRolePayload is the payload used to assign a role to a user
+type AssignRolePayload struct {
+	UserID string `json:"userID"`
+	RoleID string `json:"roleID"`
+}
+
+// DeleteRolePayload is the payload used to delete a role
+type DeleteRolePayload struct {
+	Name   string `json:"name"`
+	RoleID string `json:"roleID"`
+}
+
 // RoleInput represents the information required when creating a role
 type RoleInput struct {
 	Name        string   `json:"name"`

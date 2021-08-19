@@ -4095,7 +4095,7 @@ func (fr *Repository) GetRoleByID(ctx context.Context, roleID string) (*profileu
 	}
 
 	if len(docs) != 1 {
-		err = fmt.Errorf("role with id %v not found", roleID)
+		err = fmt.Errorf("role not found: %v", roleID)
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}

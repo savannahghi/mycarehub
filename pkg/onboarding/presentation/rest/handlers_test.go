@@ -97,7 +97,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	adminSrv := adminSrv.NewService(ext)
 
 	i, err := interactor.NewOnboardingInteractor(
-		r, profile, su, supplier, login,
+		profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
 		engagementSvc, messagingSvc, nhif, ps, sms,
 		aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
@@ -3918,6 +3918,410 @@ func TestHandlers_CheckPermission(t *testing.T) {
 
 			// call its ServeHTTP method and pass in our Request and ResponseRecorder.
 			svr := h.CheckHasPermission()
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+		})
+	}
+}
+
+func TestHandlers_CreateRole(t *testing.T) {
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+	h := rest.NewHandlersInterfaces(i)
+
+	invalidPayload, err := json.Marshal(dto.RoleInput{Description: "Test Role"})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return
+	}
+
+	validPayload, err := json.Marshal(dto.RoleInput{Name: "Test Role", Description: "Test Role"})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return
+	}
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "fail: missing name in request payload",
+			args: args{
+				url:        fmt.Sprintf("%s/create_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(invalidPayload),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+		{
+			name: "fail: create unauthorized role error",
+			args: args{
+				url:        fmt.Sprintf("%s/create_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(validPayload),
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantErr:    false,
+		},
+		{
+			name: "success: create role",
+			args: args{
+				url:        fmt.Sprintf("%s/create_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(validPayload),
+			},
+			wantStatus: http.StatusCreated,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "fail: create unauthorized role error" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
+				}
+				fakeRepo.CreateRoleFn = func(ctx context.Context, profileID string, role dto.RoleInput) (*profileutils.Role, error) {
+					return nil, fmt.Errorf("duplicate role")
+				}
+			}
+
+			if tt.name == "success: create role" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
+				}
+				fakeRepo.CreateRoleFn = func(ctx context.Context, profileID string, role dto.RoleInput) (*profileutils.Role, error) {
+					return &profileutils.Role{
+						Scopes: []string{"role.edit"},
+					}, nil
+				}
+			}
+
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+			// We create a ResponseRecorder to record the response.
+			response := httptest.NewRecorder()
+
+			// call its ServeHTTP method and pass in our Request and ResponseRecorder.
+			svr := h.CreateRole()
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+		})
+	}
+}
+
+func TestHandlers_AssignRole(t *testing.T) {
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+	h := rest.NewHandlersInterfaces(i)
+
+	emptyRoleIDPayload, err := json.Marshal(dto.AssignRolePayload{UserID: "123456", RoleID: ""})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return
+	}
+
+	emptyUserIDPayload, err := json.Marshal(dto.AssignRolePayload{RoleID: "12345", UserID: ""})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return
+	}
+
+	validPayload, err := json.Marshal(dto.AssignRolePayload{UserID: "123456", RoleID: "123456"})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return
+	}
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "fail: missing role ID in request payload",
+			args: args{
+				url:        fmt.Sprintf("%s/assign_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(emptyRoleIDPayload),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+		{
+			name: "fail: missing user ID in request payload",
+			args: args{
+				url:        fmt.Sprintf("%s/assign_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(emptyUserIDPayload),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+		{
+			name: "fail: assign role error",
+			args: args{
+				url:        fmt.Sprintf("%s/assign_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(validPayload),
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantErr:    false,
+		},
+		{
+			name: "success: assign role",
+			args: args{
+				url:        fmt.Sprintf("%s/assign_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(validPayload),
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "fail: assign role error" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: ""}, nil
+				}
+
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{
+						ID:     "",
+						Scopes: []string{profileutils.CanAssignRole.Scope},
+					}, nil
+				}
+
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: ""}, nil
+				}
+
+				fakeRepo.UpdateUserRoleIDsFn = func(ctx context.Context, id string, roleIDs []string) error {
+					return fmt.Errorf("cannot update uids")
+				}
+			}
+
+			if tt.name == "success: assign role" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{UID: ""}, nil
+				}
+
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{
+						ID:     "",
+						Scopes: []string{profileutils.CanAssignRole.Scope},
+					}, nil
+				}
+
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{ID: ""}, nil
+				}
+
+				fakeRepo.UpdateUserRoleIDsFn = func(ctx context.Context, id string, roleIDs []string) error {
+					return nil
+				}
+			}
+
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+			// We create a ResponseRecorder to record the response.
+			response := httptest.NewRecorder()
+
+			// call its ServeHTTP method and pass in our Request and ResponseRecorder.
+			svr := h.AssignRole()
+			svr.ServeHTTP(response, req)
+
+			if tt.wantStatus != response.Code {
+				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+				return
+			}
+		})
+	}
+}
+
+func TestHandlers_RemoveRoleByName(t *testing.T) {
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to initialize onboarding interactor: %v", err)
+		return
+	}
+	h := rest.NewHandlersInterfaces(i)
+
+	invalidPayload, err := json.Marshal(dto.DeleteRolePayload{Name: ""})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return
+	}
+
+	validPayload, err := json.Marshal(dto.DeleteRolePayload{Name: "Test Role"})
+	if err != nil {
+		t.Errorf("unable to marshal payload to JSON: %s", err)
+		return
+	}
+
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "fail: missing name in request payload",
+			args: args{
+				url:        fmt.Sprintf("%s/remove_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(invalidPayload),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    false,
+		},
+		{
+			name: "fail: find role by name error",
+			args: args{
+				url:        fmt.Sprintf("%s/remove_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(validPayload),
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantErr:    false,
+		},
+		{
+			name: "fail: delete role error",
+			args: args{
+				url:        fmt.Sprintf("%s/remove_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(validPayload),
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantErr:    false,
+		},
+		{
+			name: "success: remove role",
+			args: args{
+				url:        fmt.Sprintf("%s/remove_role", serverUrl),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(validPayload),
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "fail: find role by name error" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetRoleByNameFn = func(ctx context.Context, roleName string) (*profileutils.Role, error) {
+					return nil, fmt.Errorf("cannot find role")
+				}
+
+			}
+
+			if tt.name == "fail: delete role error" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetRoleByNameFn = func(ctx context.Context, roleName string) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: "", Scopes: []string{profileutils.CanAssignRole.Scope}}, nil
+				}
+				fakeRepo.DeleteRoleFn = func(ctx context.Context, roleID string) (bool, error) {
+					return false, fmt.Errorf("cannot delete role")
+				}
+			}
+
+			if tt.name == "success: remove role" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeRepo.GetRoleByNameFn = func(ctx context.Context, roleName string) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: "", Scopes: []string{profileutils.CanAssignRole.Scope}}, nil
+				}
+				fakeRepo.DeleteRoleFn = func(ctx context.Context, roleID string) (bool, error) {
+					return true, nil
+				}
+			}
+
+			// Create a request to pass to our handler.
+			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+			if err != nil {
+				t.Errorf("can't create new request: %v", err)
+				return
+			}
+			// We create a ResponseRecorder to record the response.
+			response := httptest.NewRecorder()
+
+			// call its ServeHTTP method and pass in our Request and ResponseRecorder.
+			svr := h.RemoveRoleByName()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {

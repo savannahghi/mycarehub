@@ -8,6 +8,8 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // ReceivePubSubPushMessages receives and processes a Pub/Sub push message.
@@ -15,6 +17,9 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
+	ctx := r.Context()
+	span := trace.SpanFromContext(ctx)
+
 	message, err := ps.baseExt.VerifyPubSubJWTAndDecodePayload(w, r)
 	if err != nil {
 		ps.baseExt.WriteJSONResponse(
@@ -24,6 +29,10 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		)
 		return
 	}
+
+	span.AddEvent("published message", trace.WithAttributes(
+		attribute.Any("message", message),
+	))
 
 	topicID, err := ps.baseExt.GetPubSubTopic(message)
 	if err != nil {
@@ -35,7 +44,10 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		return
 	}
 
-	ctx := r.Context()
+	span.AddEvent("published message topic", trace.WithAttributes(
+		attribute.String("topic", topicID),
+	))
+
 	switch topicID {
 	case ps.AddPubSubNamespace(common.CreateCustomerTopic):
 		var data dto.CustomerPubSubMessagePayload

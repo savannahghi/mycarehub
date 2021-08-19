@@ -10,7 +10,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gitlab.slade360emr.com/go/apiclient"
 )
@@ -488,7 +487,6 @@ func TestNewActionsMapper(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := utils.NewActionsMapper(tt.args.ctx, tt.args.grouped)
-			logrus.Println(got)
 			if got == nil {
 				t.Errorf("NewActionsMapper() = %v, want %v", got, tt.want)
 			}

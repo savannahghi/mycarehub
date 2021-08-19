@@ -67,9 +67,9 @@ jobs:
       - run: git config --global url."https://${user}:${ACCESS_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
       - uses: google-github-actions/setup-gcloud@master
         with:
-            project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
-            service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-            export_default_credentials: true
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          export_default_credentials: true
       - name: Install Go
         uses: actions/setup-go@v2
         with:
@@ -105,7 +105,7 @@ jobs:
           gocov convert coverage.out > coverage.json
           gocov report coverage.json > coverage_report.txt
           tail coverage_report.txt
-        
+
       - name: Install goveralls
         env:
           GO111MODULE: off

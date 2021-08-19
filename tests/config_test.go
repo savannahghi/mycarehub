@@ -30,6 +30,7 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
+	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/serverutils"
 	"github.com/sirupsen/logrus"
@@ -39,7 +40,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation"
-	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
@@ -55,13 +55,18 @@ const (
 	testChargeMasterBranchID = "94294577-6b27-4091-9802-1ce0f2ce4153"
 	engagementService        = "engagement"
 	ediService               = "edi"
+	testRoleName             = "Test Role"
+	testPIN                  = "2030"
 )
 
 /// these are set up once in TestMain and used by all the acceptance tests in
 // this package
-var srv *http.Server
-var baseURL string
-var serverErr error
+var (
+	srv            *http.Server
+	baseURL        string
+	serverErr      error
+	testInteractor *interactor.Interactor
+)
 
 func mapToJSONReader(m map[string]interface{}) (io.Reader, error) {
 	bs, err := json.Marshal(m)
@@ -153,6 +158,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage, ps, edi)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 	sms := usecases.NewSMSUsecase(repo, ext)
+	role := usecases.NewRoleUseCases(repo, ext)
 
 	return &interactor.Interactor{
 		Onboarding:   profile,
@@ -167,6 +173,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		NHIF:         nhif,
 		PubSub:       ps,
 		SMS:          sms,
+		Role:         role,
 	}, nil
 }
 
@@ -183,7 +190,7 @@ func composeInValidUserPayload(t *testing.T) *dto.SignUpInput {
 }
 
 func composeValidUserPayload(t *testing.T, phone string) (*dto.SignUpInput, error) {
-	pin := "2030"
+	pin := testPIN
 	flavour := feedlib.FlavourPro
 	otp, err := generateTestOTP(t, phone)
 	if err != nil {
@@ -197,7 +204,29 @@ func composeValidUserPayload(t *testing.T, phone string) (*dto.SignUpInput, erro
 	}, nil
 }
 
-func composeSMSMessageDataPayload(t *testing.T, payload *dto.AfricasTalkingMessage) *strings.Reader {
+func composeValidRolePayload(t *testing.T, roleName string) *dto.RoleInput {
+	ctx := context.Background()
+
+	var allScopes []string
+
+	perms, _ := profileutils.AllPermissions(ctx)
+	for _, perm := range perms {
+		allScopes = append(allScopes, perm.Scope)
+	}
+
+	role := dto.RoleInput{
+		Name:        roleName,
+		Description: "Role for running tests",
+		Scopes:      allScopes,
+	}
+
+	return &role
+}
+
+func composeSMSMessageDataPayload(
+	t *testing.T,
+	payload *dto.AfricasTalkingMessage,
+) *strings.Reader {
 	data := url.Values{}
 	data.Set("date", payload.Date)
 	data.Set("from", payload.From)
@@ -221,34 +250,36 @@ func composeUSSDPayload(t *testing.T, payload *dto.SessionDetails) *strings.Read
 }
 
 func CreateTestUserByPhone(t *testing.T, phone string) (*profileutils.UserResponse, error) {
-	client := http.DefaultClient
 	validPayload, err := composeValidUserPayload(t, phone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compose a valid payload: %v", err)
 	}
+
 	bs, err := json.Marshal(validPayload)
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshal test item to JSON: %s", err)
 	}
 	payload := bytes.NewBuffer(bs)
+
 	url := fmt.Sprintf("%s/create_user_by_phone", baseURL)
+
 	r, err := http.NewRequest(
 		http.MethodPost,
 		url,
 		payload,
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("can't create new request: %v", err)
 
 	}
-
 	if r == nil {
 		return nil, fmt.Errorf("nil request")
 	}
 
 	r.Header.Add("Accept", "application/json")
 	r.Header.Add("Content-Type", "application/json")
+
+	client := http.DefaultClient
 
 	resp, err := client.Do(r)
 	if err != nil {
@@ -258,6 +289,7 @@ func CreateTestUserByPhone(t *testing.T, phone string) (*profileutils.UserRespon
 	// if resp.StatusCode != http.StatusCreated {
 	// 	return nil, fmt.Errorf("failed to create user: expected status to be %v got %v ", http.StatusCreated, resp.StatusCode)
 	// }
+
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("HTTP error: %v", err)
@@ -271,6 +303,46 @@ func CreateTestUserByPhone(t *testing.T, phone string) (*profileutils.UserRespon
 	return &userResponse, nil
 }
 
+func CreateTestRole(t *testing.T, roleName string) (*dto.RoleOutput, error) {
+	ctx := getTestAuthenticatedContext(t)
+
+	validPayload := composeValidRolePayload(t, roleName)
+
+	role, err := testInteractor.Role.CreateUnauthorizedRole(ctx, *validPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
+}
+
+func AssignTestRole(t *testing.T, profileID, roleID string) (bool, error) {
+	ctx := getTestAuthenticatedContext(t)
+
+	_, err := testInteractor.Role.AssignRole(ctx, profileID, roleID)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func RemoveTestRole(t *testing.T, name string) (bool, error) {
+	ctx := getTestAuthenticatedContext(t)
+
+	role, err := testInteractor.Role.GetRoleByName(ctx, testRoleName)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = testInteractor.Role.DeleteRole(ctx, role.ID)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func TestCreateTestUserByPhone(t *testing.T) {
 	userResponse, err := CreateTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
@@ -281,28 +353,50 @@ func TestCreateTestUserByPhone(t *testing.T) {
 		t.Errorf("got a nil user response")
 		return
 	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, userResponse.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
+
+	// perform tear down; remove user
+	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user: %s", err)
+	}
 }
 
 func RemoveTestUserByPhone(t *testing.T, phone string) (bool, error) {
-	client := http.DefaultClient
+	_, err := RemoveTestRole(t, testRoleName)
+	if err != nil {
+		return false, fmt.Errorf("unable to remove test role: %s", err)
+	}
+
 	validPayload := &dto.PhoneNumberPayload{PhoneNumber: &phone}
 	bs, err := json.Marshal(validPayload)
 	if err != nil {
 		return false, fmt.Errorf("unable to marshal test item to JSON: %s", err)
 	}
 	payload := bytes.NewBuffer(bs)
+
 	url := fmt.Sprintf("%s/remove_user", baseURL)
+
 	r, err := http.NewRequest(
 		http.MethodPost,
 		url,
 		payload,
 	)
-
 	if err != nil {
 		return false, fmt.Errorf("can't create new request: %v", err)
 
 	}
-
 	if r == nil {
 		return false, fmt.Errorf("nil request")
 	}
@@ -310,14 +404,21 @@ func RemoveTestUserByPhone(t *testing.T, phone string) (bool, error) {
 	r.Header.Add("Accept", "application/json")
 	r.Header.Add("Content-Type", "application/json")
 
+	client := http.DefaultClient
+
 	resp, err := client.Do(r)
 	if err != nil {
 		return false, fmt.Errorf("HTTP error: %v", err)
 
 	}
 	if resp.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("failed to remove user: expected status to be %v got %v ", http.StatusCreated, resp.StatusCode)
+		return false, fmt.Errorf(
+			"failed to remove user: expected status to be %v got %v ",
+			http.StatusCreated,
+			resp.StatusCode,
+		)
 	}
+
 	return true, nil
 }
 
@@ -330,6 +431,18 @@ func TestRemoveTestUserByPhone(t *testing.T) {
 	}
 	if userResponse == nil {
 		t.Errorf("got a nil user response")
+		return
+	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, userResponse.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
 		return
 	}
 
@@ -346,109 +459,118 @@ func TestRemoveTestUserByPhone(t *testing.T) {
 
 func generateTestOTP(t *testing.T, phone string) (*profileutils.OtpResponse, error) {
 	ctx := context.Background()
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to initialize test service: %v", err)
-	}
 	testAppID := uuid.New().String()
-	return s.Engagement.GenerateAndSendOTP(ctx, phone, &testAppID)
+	return testInteractor.Engagement.GenerateAndSendOTP(ctx, phone, &testAppID)
 }
 
 func setPrimaryEmailAddress(ctx context.Context, t *testing.T, emailAddress string) error {
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to initialize test service: %v", err)
-	}
 
-	return s.Onboarding.UpdatePrimaryEmailAddress(ctx, emailAddress)
+	return testInteractor.Onboarding.UpdatePrimaryEmailAddress(ctx, emailAddress)
 }
 
 func updateBioData(ctx context.Context, t *testing.T, data profileutils.BioData) error {
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to initialize test service: %v", err)
-	}
 
-	return s.Onboarding.UpdateBioData(ctx, data)
+	return testInteractor.Onboarding.UpdateBioData(ctx, data)
 }
 
-func addPartnerType(ctx context.Context, t *testing.T, name *string, partnerType profileutils.PartnerType) (bool, error) {
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		return false, fmt.Errorf("unable to initialize test service: %v", err)
-	}
+func addPartnerType(
+	ctx context.Context,
+	t *testing.T,
+	name *string,
+	partnerType profileutils.PartnerType,
+) (bool, error) {
 
-	return s.Supplier.AddPartnerType(ctx, name, &partnerType)
+	return testInteractor.Supplier.AddPartnerType(ctx, name, &partnerType)
 }
 
-func setUpSupplier(ctx context.Context, t *testing.T, accountType profileutils.AccountType) (*profileutils.Supplier, error) {
-	s, err := InitializeTestService(ctx)
+func getTestUserCredentials(t *testing.T) (*profileutils.UserResponse, error) {
+	ctx := context.Background()
+
+	phone := interserviceclient.TestUserPhoneNumber
+	pin := testPIN
+	flavour := feedlib.FlavourPro
+	userResponse, err := testInteractor.Login.LoginByPhone(ctx, phone, pin, flavour)
 	if err != nil {
-		return nil, fmt.Errorf("unable to initialize test service: %v", err)
+		return nil, fmt.Errorf("unable to get role by name: %v", err)
 	}
-	return s.Supplier.SetUpSupplier(ctx, accountType)
+
+	return userResponse, nil
+}
+
+func getRoleByName(t *testing.T, name string) (*dto.RoleOutput, error) {
+	ctx := context.Background()
+
+	phone := interserviceclient.TestUserPhoneNumber
+	pin := testPIN
+	flavour := feedlib.FlavourPro
+	userResponse, err := testInteractor.Login.LoginByPhone(ctx, phone, pin, flavour)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get role by name: %v", err)
+	}
+
+	authCred := &auth.Token{UID: userResponse.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		firebasetools.AuthTokenContextKey,
+		authCred,
+	)
+
+	role, err := testInteractor.Role.GetRoleByName(authenticatedContext, name)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get role by name: %v", err)
+	}
+
+	return role, nil
+}
+
+func setUpSupplier(
+	ctx context.Context,
+	t *testing.T,
+	accountType profileutils.AccountType,
+) (*profileutils.Supplier, error) {
+
+	return testInteractor.Supplier.SetUpSupplier(ctx, accountType)
 }
 
 func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {
 	// create a user and their profile
 	phoneNumber := interserviceclient.TestUserPhoneNumber
-	resp, err := CreateTestUserByPhone(t, phoneNumber)
+	userResponse, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
-		log.Printf("unable to create a test user: %s", err)
+		t.Errorf("unable to create a test user: %s", err)
 		return nil
 	}
 
-	if resp.Profile.ID == "" {
+	if userResponse.Profile.ID == "" {
 		t.Errorf(" user profile id should not be empty")
 		return nil
 	}
 
-	if len(resp.Profile.VerifiedUIDS) == 0 {
+	if len(userResponse.Profile.VerifiedUIDS) == 0 {
 		t.Errorf(" user profile VerifiedUIDS should not be empty")
 		return nil
 	}
 
-	logrus.Infof("profile from create user : %v", resp.Profile)
+	logrus.Infof("profile from create user : %v", userResponse.Profile)
 
-	logrus.Infof("uid from create user : %v", resp.Auth.UID)
+	logrus.Infof("uid from create user : %v", userResponse.Auth.UID)
 
-	return getGraphHeaders(*resp.Auth.IDToken)
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return nil
+	}
+
+	_, err = AssignTestRole(t, userResponse.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return nil
+	}
+
+	headers := getGraphHeaders(*userResponse.Auth.IDToken)
+
+	return headers
 }
-
-// func setRoleForUserWithPhone(phoneNumber string, role profileutils.RoleType, headers map[string]string) error {
-// 	url := fmt.Sprintf("%s/roles/add_user_role", baseURL)
-
-// 	payload := dto.RolePayload{
-// 		PhoneNumber: &phoneNumber,
-// 		Role:        &role,
-// 	}
-// 	body, err := json.Marshal(payload)
-// 	if err != nil {
-// 		return fmt.Errorf("unable to marshal payload to JSON: %s", err)
-// 	}
-
-// 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
-// 	if err != nil {
-// 		return fmt.Errorf("unable to compose request: %s", err)
-// 	}
-// 	if request == nil {
-// 		return fmt.Errorf("nil request")
-// 	}
-
-// 	for header, value := range headers {
-// 		request.Header.Add(header, value)
-// 	}
-
-// 	response, err := http.DefaultClient.Do(request)
-// 	if err != nil {
-// 		return fmt.Errorf("request error: %s", err)
-// 	}
-
-// 	if response.StatusCode != http.StatusOK {
-// 		return fmt.Errorf("failed to set role for user : expected status to be %v, but got %v ", http.StatusOK, response.StatusCode)
-// 	}
-// 	return nil
-// }
 
 func getGraphHeaders(idToken string) map[string]string {
 	return req.Header{
@@ -456,6 +578,23 @@ func getGraphHeaders(idToken string) map[string]string {
 		"Content-Type":  "application/json",
 		"Authorization": fmt.Sprintf("Bearer %s", idToken),
 	}
+}
+
+func getTestAuthenticatedContext(t *testing.T) context.Context {
+	ctx := context.Background()
+	user, err := getTestUserCredentials(t)
+	if err != nil {
+		t.Errorf("error getting test user credentials:%v", err)
+	}
+
+	authCred := &auth.Token{UID: user.Auth.UID}
+	authenticatedContext := context.WithValue(
+		ctx,
+		firebasetools.AuthTokenContextKey,
+		authCred,
+	)
+
+	return authenticatedContext
 }
 
 func TestMain(m *testing.M) {
@@ -473,9 +612,18 @@ func TestMain(m *testing.M) {
 	) // set the globals
 	if serverErr != nil {
 		log.Printf("unable to start test server: %s", serverErr)
+		return
 	}
 
 	fsc, _ := initializeAcceptanceTestFirebaseClient(ctx)
+
+	i, err := InitializeTestService(ctx)
+	if err != nil {
+		log.Printf("unable to initialize test service: %v", err)
+		return
+	}
+
+	testInteractor = i
 
 	purgeRecords := func() {
 		if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
@@ -495,6 +643,7 @@ func TestMain(m *testing.M) {
 				r.GetProfileNudgesCollectionName(),
 				r.GetSMSCollectionName(),
 				r.GetUSSDDataCollectionName(),
+				r.GetRolesCollectionName(),
 			}
 			for _, collection := range collections {
 				ref := fsc.Collection(collection)
@@ -612,7 +761,12 @@ func TestHealthStatusCheck(t *testing.T) {
 			}
 
 			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("expected status %d, got %d and response %s", tt.wantStatus, resp.StatusCode, string(data))
+				t.Errorf(
+					"expected status %d, got %d and response %s",
+					tt.wantStatus,
+					resp.StatusCode,
+					string(data),
+				)
 				return
 			}
 

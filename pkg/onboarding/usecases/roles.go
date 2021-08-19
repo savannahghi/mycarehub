@@ -25,6 +25,8 @@ type RoleUseCase interface {
 
 	GetAllPermissions(ctx context.Context) ([]*profileutils.Permission, error)
 
+	GetRoleByName(ctx context.Context, name string) (*dto.RoleOutput, error)
+
 	// AddPermissionsToRole adds new scopes to a role
 	AddPermissionsToRole(
 		ctx context.Context,
@@ -38,7 +40,10 @@ type RoleUseCase interface {
 	) (*dto.RoleOutput, error)
 
 	// UpdateRolePermissions replaces the scopes in a role with new updated scopes
-	UpdateRolePermissions(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
+	UpdateRolePermissions(
+		ctx context.Context,
+		input dto.RolePermissionInput,
+	) (*dto.RoleOutput, error)
 
 	// AssignRole assigns a role to a user
 	AssignRole(ctx context.Context, userID string, roleID string) (bool, error)
@@ -54,7 +59,16 @@ type RoleUseCase interface {
 
 	// Check permission checks whether a logged in user with the given UID
 	// is authorized to perform the action specified in the permission
-	CheckPermission(ctx context.Context, uid string, permission profileutils.Permission) (bool, error)
+	CheckPermission(
+		ctx context.Context,
+		uid string,
+		permission profileutils.Permission,
+	) (bool, error)
+
+	// CreateUnauthorizedRole creates a role without performing user authorization
+	// This usecase is useful for creating the initial role in a new environment
+	// and creating the test role used for running integration and acceptance tests
+	CreateUnauthorizedRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
 }
 
 // RoleUseCaseImpl  represents usecase implementation object
@@ -98,6 +112,54 @@ func (r *RoleUseCaseImpl) CreateRole(
 		return nil, exceptions.RoleNotValid(
 			fmt.Errorf("error: logged in user does not have permissions to create role"),
 		)
+	}
+
+	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	role, err := r.repo.CreateRole(ctx, userProfile.ID, input)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	perms, err := role.Permissions(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	output := &dto.RoleOutput{
+		ID:          role.ID,
+		Name:        role.Name,
+		Description: role.Description,
+		Active:      role.Active,
+		Scopes:      role.Scopes,
+		Permissions: perms,
+	}
+
+	return output, nil
+}
+
+// CreateUnauthorizedRole creates a role without performing user authorization
+//
+// This usecase is useful for creating the initial role in a new environment
+// and creating the test role used for running integration and acceptance tests
+// It doesn't check for the users permission
+func (r *RoleUseCaseImpl) CreateUnauthorizedRole(
+	ctx context.Context,
+	input dto.RoleInput,
+) (*dto.RoleOutput, error) {
+	ctx, span := tracer.Start(ctx, "CreateUnauthorizedRole")
+	defer span.End()
+
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
 	}
 
 	userProfile, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
@@ -554,7 +616,10 @@ func (r *RoleUseCaseImpl) RevokeRole(
 }
 
 // ActivateRole marks a deactivated role as active and usable
-func (r *RoleUseCaseImpl) ActivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error) {
+func (r *RoleUseCaseImpl) ActivateRole(
+	ctx context.Context,
+	roleID string,
+) (*dto.RoleOutput, error) {
 	ctx, span := tracer.Start(ctx, "ActivateRole")
 	defer span.End()
 
@@ -617,7 +682,10 @@ func (r *RoleUseCaseImpl) ActivateRole(ctx context.Context, roleID string) (*dto
 }
 
 // DeactivateRole marks a role as inactive and cannot be used
-func (r *RoleUseCaseImpl) DeactivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error) {
+func (r *RoleUseCaseImpl) DeactivateRole(
+	ctx context.Context,
+	roleID string,
+) (*dto.RoleOutput, error) {
 	ctx, span := tracer.Start(ctx, "DeactivateRole")
 	defer span.End()
 
@@ -680,7 +748,10 @@ func (r *RoleUseCaseImpl) DeactivateRole(ctx context.Context, roleID string) (*d
 }
 
 // UpdateRolePermissions replaces the scopes in a role with new updated scopes
-func (r *RoleUseCaseImpl) UpdateRolePermissions(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error) {
+func (r *RoleUseCaseImpl) UpdateRolePermissions(
+	ctx context.Context,
+	input dto.RolePermissionInput,
+) (*dto.RoleOutput, error) {
 	ctx, span := tracer.Start(ctx, "UpdateRolePermissions")
 	defer span.End()
 
@@ -745,9 +816,61 @@ func (r *RoleUseCaseImpl) UpdateRolePermissions(ctx context.Context, input dto.R
 
 // CheckPermission checks whether a logged in user with the given UID
 // is authorized to perform the action specified in the permission
-func (r *RoleUseCaseImpl) CheckPermission(ctx context.Context, uid string, permission profileutils.Permission) (bool, error) {
+func (r *RoleUseCaseImpl) CheckPermission(
+	ctx context.Context,
+	uid string,
+	permission profileutils.Permission,
+) (bool, error) {
 	ctx, span := tracer.Start(ctx, "CheckPermission")
 	defer span.End()
 
 	return r.repo.CheckIfUserHasPermission(ctx, uid, permission)
+}
+
+// GetRoleByName retrieves a role with the matching name
+// Each role has a unique name i.e no duplicate names
+func (r *RoleUseCaseImpl) GetRoleByName(ctx context.Context, name string) (*dto.RoleOutput, error) {
+	ctx, span := tracer.Start(ctx, "GetRoleByName")
+	defer span.End()
+
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	// Check logged in user has the right permissions
+	allowed, err := r.repo.CheckIfUserHasPermission(ctx, user.UID, profileutils.CanViewRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+	if !allowed {
+		return nil, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permission to view role"),
+		)
+	}
+
+	role, err := r.repo.GetRoleByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	// get permissions
+	perms, err := role.Permissions(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, err
+	}
+
+	output := &dto.RoleOutput{
+		ID:          role.ID,
+		Name:        role.Name,
+		Description: role.Description,
+		Active:      role.Active,
+		Scopes:      role.Scopes,
+		Permissions: perms,
+	}
+
+	return output, nil
 }

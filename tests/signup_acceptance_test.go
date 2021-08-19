@@ -2,7 +2,6 @@ package tests
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,7 +12,6 @@ import (
 	"time"
 
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/profileutils"
@@ -138,6 +136,24 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 
 		})
 	}
+
+	// assign role before removing
+	user, err := getTestUserCredentials(t)
+	if err != nil {
+		t.Errorf("error getting test user credentials:%v", err)
+	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
 	// perform tear down; remove user
 	_, err = RemoveTestUserByPhone(t, phoneNumber)
 	if err != nil {
@@ -148,11 +164,24 @@ func TestCreateUserWithPhoneNumber(t *testing.T) {
 func TestVerifySignUpPhoneNumber(t *testing.T) {
 	client := http.DefaultClient
 	// create a test user
-	_, err := CreateTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
+	user, err := CreateTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
+
 	// prepare a valid payload
 	registeredPhone := struct {
 		PhoneNumber string
@@ -289,11 +318,24 @@ func TestUserRecoveryPhoneNumbers(t *testing.T) {
 	client := http.DefaultClient
 	// create a test user
 	validPhoneNumber := interserviceclient.TestUserPhoneNumber
-	_, err := CreateTestUserByPhone(t, validPhoneNumber)
+	user, err := CreateTestUserByPhone(t, validPhoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
+
 	validPayload := dto.PhoneNumberPayload{
 		PhoneNumber: &validPhoneNumber,
 	}
@@ -416,6 +458,7 @@ func TestRegisterPushToken(t *testing.T) {
 		registerPushToken(token: $token)
 	  }
 	`
+	token := "QP18DqWVyuOcPG8CcDUNcEDzU3A2" // ggignore
 	type args struct {
 		query map[string]interface{}
 	}
@@ -432,8 +475,8 @@ func TestRegisterPushToken(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"phone": interserviceclient.TestUserPhoneNumberWithPin,
-						"token": "QP18DqWVyuOcPG8CcDUNcEDzU3A2",
+						"phone": interserviceclient.TestUserPhoneNumber,
+						"token": token,
 					},
 				},
 			},
@@ -538,33 +581,8 @@ func TestRegisterPushToken(t *testing.T) {
 }
 
 func TestCompleteSignup(t *testing.T) {
-	ctx := context.Background()
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service: %v", err)
-		return
-	}
-
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
-
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
+	headers := setUpLoggedInTestUserGraphHeaders(t)
+	authenticatedContext := getTestAuthenticatedContext(t)
 
 	firstName := "Be.Well"
 	lastName := "Consumer"
@@ -573,7 +591,7 @@ func TestCompleteSignup(t *testing.T) {
 		LastName:  &lastName,
 	}
 	// Update the user BioData
-	err = s.Onboarding.UpdateBioData(authenticatedContext, bioData)
+	err := testInteractor.Onboarding.UpdateBioData(authenticatedContext, bioData)
 
 	if err != nil {
 		t.Errorf("failed to update userprofile biodata: %v", err)

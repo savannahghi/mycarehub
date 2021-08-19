@@ -583,6 +583,19 @@ func TestUpdateCovers(t *testing.T) {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
+
 	if user == nil {
 		t.Errorf("nil user found")
 		return
@@ -748,6 +761,19 @@ func TestEmailsProfileAttributes(t *testing.T) {
 		t.Errorf("nil user found")
 		return
 	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
+
 	uids := &dto.UIDsPayload{
 		UIDs: []string{user.Auth.UID},
 	}
@@ -881,6 +907,19 @@ func TestPhoneNumbersProfileAttributes(t *testing.T) {
 		t.Errorf("nil user found")
 		return
 	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
+
 	uids := &dto.UIDsPayload{
 		UIDs: []string{user.Auth.UID},
 	}
@@ -1014,6 +1053,19 @@ func TestTokensProfileAttributes(t *testing.T) {
 		t.Errorf("nil user found")
 		return
 	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
+
 	uids := &dto.UIDsPayload{
 		UIDs: []string{user.Auth.UID},
 	}

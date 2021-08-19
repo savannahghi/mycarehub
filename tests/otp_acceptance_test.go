@@ -53,6 +53,19 @@ func TestSendRetryOTP(t *testing.T) {
 		t.Errorf("nil user found")
 		return
 	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
+
 	validWAPayload := composeValidWARetryOTPPayload(t)
 	bs, err := json.Marshal(validWAPayload)
 	if err != nil {

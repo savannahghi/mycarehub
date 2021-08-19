@@ -20,19 +20,7 @@ import (
 )
 
 func TestAddNHIFDetails(t *testing.T) {
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
@@ -185,7 +173,7 @@ func TestAddNHIFDetails(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, phoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -193,10 +181,6 @@ func TestAddNHIFDetails(t *testing.T) {
 
 func AddTestNHIFDetails(t *testing.T, user *profileutils.UserResponse) error {
 	ctx := context.Background()
-	i, err := InitializeTestService(ctx)
-	if err != nil {
-		return fmt.Errorf("an error occurred: %v", err)
-	}
 
 	authCred := &auth.Token{UID: user.Auth.UID}
 	authenticatedContext := context.WithValue(
@@ -205,7 +189,7 @@ func AddTestNHIFDetails(t *testing.T, user *profileutils.UserResponse) error {
 		authCred,
 	)
 
-	_, err = i.NHIF.AddNHIFDetails(
+	_, err := testInteractor.NHIF.AddNHIFDetails(
 		authenticatedContext,
 		dto.NHIFDetailsInput{
 			MembershipNumber:          fmt.Sprintln(time.Now().Unix()),
@@ -231,6 +215,18 @@ func TestAddTestNHIFDetails(t *testing.T) {
 		return
 	}
 
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
+
 	err = AddTestNHIFDetails(t, user)
 	if err != nil {
 		t.Errorf("an error occurred: %v", err)
@@ -244,25 +240,7 @@ func TestAddTestNHIFDetails(t *testing.T) {
 	}
 }
 func TestGetNHIFDetails(t *testing.T) {
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-
-	err = AddTestNHIFDetails(t, user)
-	if err != nil {
-		t.Errorf("an error occurred: %v", err)
-		return
-	}
-
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 	graphqlQuery := `query NHIFDetails{
@@ -381,7 +359,7 @@ func TestGetNHIFDetails(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, phoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}

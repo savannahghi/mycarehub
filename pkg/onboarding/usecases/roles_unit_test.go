@@ -2145,3 +2145,140 @@ func TestRoleUseCaseImpl_UpdateRolePermissions(t *testing.T) {
 		})
 	}
 }
+
+func TestRoleUseCaseImpl_CreateUnauthorizedRole(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+
+	input := dto.RoleInput{
+		Name: "Agents",
+	}
+
+	allPerms, err := profileutils.AllPermissions(ctx)
+	if err != nil {
+		t.Error("error did not get all permissions")
+		return
+	}
+
+	perms := []profileutils.Permission{}
+	for _, perm := range allPerms {
+		if perm.Scope == "role.edit" {
+			perm.Allowed = true
+		}
+		perms = append(perms, perm)
+	}
+	expectedOutput := &dto.RoleOutput{
+		Scopes:      []string{"role.edit"},
+		Permissions: perms,
+	}
+
+	type args struct {
+		ctx   context.Context
+		input dto.RoleInput
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.RoleOutput
+		wantErr bool
+	}{
+		{
+			name: "sad: unable to get logged in user",
+			args: args{
+				ctx:   ctx,
+				input: input,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "sad: unable to get user's profile",
+			args: args{
+				ctx:   ctx,
+				input: input,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "sad: unable to create role in database",
+			args: args{
+				ctx:   ctx,
+				input: input,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "happy:created role",
+			args: args{
+				ctx:   ctx,
+				input: input,
+			},
+			want:    expectedOutput,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "sad: unable to get logged in user" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return nil, fmt.Errorf("unable to get logged in user")
+				}
+			}
+
+			if tt.name == "sad: unable to get user's profile" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return nil, fmt.Errorf("error unable to get user profile")
+				}
+			}
+
+			if tt.name == "sad: unable to create role in database" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
+				}
+				fakeRepo.CreateRoleFn = func(ctx context.Context, profileID string, role dto.RoleInput) (*profileutils.Role, error) {
+					return nil, fmt.Errorf("error un able to create role in db")
+				}
+			}
+
+			if tt.name == "happy:created role" {
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{}, nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{}, nil
+				}
+				fakeRepo.CreateRoleFn = func(ctx context.Context, profileID string, role dto.RoleInput) (*profileutils.Role, error) {
+					return &profileutils.Role{
+						Scopes: []string{"role.edit"},
+					}, nil
+				}
+			}
+
+			got, err := i.Role.CreateUnauthorizedRole(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("RoleUseCaseImpl.CreateRole() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("RoleUseCaseImpl.CreateRole() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

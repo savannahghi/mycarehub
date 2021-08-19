@@ -19,7 +19,7 @@ import (
 )
 
 func composeInvalidUserPINPayload(t *testing.T) *dto.LoginPayload {
-	phone := interserviceclient.TestUserPhoneNumberWithPin
+	phone := interserviceclient.TestUserPhoneNumber
 	pin := "" // empty pin
 	flavour := feedlib.FlavourPro
 	payload := &dto.LoginPayload{
@@ -68,7 +68,7 @@ func composeInvalidUserPhonePayload(t *testing.T) *dto.LoginPayload {
 }
 
 func composeWrongFlavourPayload(t *testing.T) *dto.LoginPayload {
-	phone := interserviceclient.TestUserPhoneNumberWithPin
+	phone := interserviceclient.TestUserPhoneNumber
 	pin := interserviceclient.TestUserPin
 	payload := &dto.LoginPayload{
 		PhoneNumber: &phone,
@@ -87,6 +87,18 @@ func TestLoginInByPhone(t *testing.T) {
 	}
 	if user == nil {
 		t.Errorf("nil user found")
+		return
+	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
 		return
 	}
 
@@ -424,12 +436,25 @@ func TestLoginAsAnonymous(t *testing.T) {
 
 func TestRefreshToken(t *testing.T) {
 	client := http.DefaultClient
-	phoneNumber := interserviceclient.TestUserPhoneNumberWithPin
+	phoneNumber := interserviceclient.TestUserPhoneNumber
 	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
+
 	validToken := user.Auth.RefreshToken
 	validPayload := &dto.RefreshTokenPayload{
 		RefreshToken: &validToken,
@@ -565,23 +590,16 @@ func TestRefreshToken(t *testing.T) {
 			}
 		})
 	}
+
+	// perform tear down; remove user
+	_, err = RemoveTestUserByPhone(t, phoneNumber)
+	if err != nil {
+		t.Errorf("unable to remove test user: %s", err)
+	}
 }
 
 func TestResumeWithPin(t *testing.T) {
-	// create a user and their profile
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
@@ -606,7 +624,7 @@ func TestResumeWithPin(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"pin": "2030",
+						"pin": testPIN,
 					},
 				},
 			},
@@ -693,7 +711,7 @@ func TestResumeWithPin(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}

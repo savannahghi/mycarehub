@@ -10,11 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
-	"gitlab.slade360emr.com/go/apiclient"
 )
 
 // func composeInValidPinPayload(t *testing.T) *domain.SetPINRequest {
@@ -27,8 +25,8 @@ import (
 
 func composeValidChangePinPayload(t *testing.T, otp string) *domain.ChangePINRequest {
 	return &domain.ChangePINRequest{
-		PhoneNumber: interserviceclient.TestUserPhoneNumberWithPin,
-		PIN:         "1234",
+		PhoneNumber: interserviceclient.TestUserPhoneNumber,
+		PIN:         testPIN,
 		OTP:         otp,
 	}
 }
@@ -36,7 +34,7 @@ func composeValidChangePinPayload(t *testing.T, otp string) *domain.ChangePINReq
 func composeInValidChangePinPayload(t *testing.T, otp string) *domain.ChangePINRequest {
 	return &domain.ChangePINRequest{
 		PhoneNumber: "",
-		PIN:         "1234",
+		PIN:         testPIN,
 		OTP:         otp,
 	}
 
@@ -65,7 +63,7 @@ func composeInValidPinResetPayload(t *testing.T) *dto.PhoneNumberPayload {
 }
 
 func composeValidPinResetPayload(t *testing.T) *dto.PhoneNumberPayload {
-	validNumber := interserviceclient.TestUserPhoneNumberWithPin
+	validNumber := interserviceclient.TestUserPhoneNumber
 	return &dto.PhoneNumberPayload{
 		PhoneNumber: &validNumber,
 	}
@@ -74,10 +72,22 @@ func composeValidPinResetPayload(t *testing.T) *dto.PhoneNumberPayload {
 func TestResetPin(t *testing.T) {
 	client := http.DefaultClient
 	// create a user and their profile
-	phoneNumber := interserviceclient.TestUserPhoneNumberWithPin
-	_, err := CreateTestUserByPhone(t, phoneNumber)
+	phoneNumber := interserviceclient.TestUserPhoneNumber
+	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
+		return
+	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
 		return
 	}
 
@@ -203,12 +213,25 @@ func TestResetPin(t *testing.T) {
 func TestRequestPINReset(t *testing.T) {
 	client := http.DefaultClient
 	// create a user and their profile
-	phoneNumber := interserviceclient.TestUserPhoneNumberWithPin
-	_, err := CreateTestUserByPhone(t, phoneNumber)
+	phoneNumber := interserviceclient.TestUserPhoneNumber
+	user, err := CreateTestUserByPhone(t, phoneNumber)
 	if err != nil {
 		t.Errorf("failed to create a user by phone %v", err)
 		return
 	}
+
+	role, err := CreateTestRole(t, testRoleName)
+	if err != nil {
+		t.Errorf("cannot create test role with err: %v", err)
+		return
+	}
+
+	_, err = AssignTestRole(t, user.Profile.ID, role.ID)
+	if err != nil {
+		t.Errorf("cannot assign test role with err: %v", err)
+		return
+	}
+
 	// valid change pin payload
 	validPayload := composeValidPinResetPayload(t)
 	bs, err := json.Marshal(validPayload)
@@ -317,21 +340,8 @@ func TestRequestPINReset(t *testing.T) {
 }
 
 func TestUpdateUserPIN(t *testing.T) {
-	// create a user and their profile
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	_, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	ctx := firebasetools.GetAuthenticatedContext(t)
-
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
-	headers, err := apiclient.GetGraphQLHeaders(ctx)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
 	graphqlMutation := `
 	mutation updateUserPIN($phone:String!, $pin:String!){
@@ -355,7 +365,7 @@ func TestUpdateUserPIN(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"phone": interserviceclient.TestUserPhoneNumber,
-						"pin":   "1234",
+						"pin":   testPIN,
 					},
 				},
 			},
@@ -369,7 +379,7 @@ func TestUpdateUserPIN(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"phone": interserviceclient.TestUserPhoneNumberWithPin,
-						"pin":   "1234",
+						"pin":   testPIN,
 					},
 				},
 			},
@@ -467,7 +477,7 @@ func TestUpdateUserPIN(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, phoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}

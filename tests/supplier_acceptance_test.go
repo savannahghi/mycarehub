@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -11,12 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
 	"github.com/sirupsen/logrus"
-	"gitlab.slade360emr.com/go/apiclient"
 )
 
 const (
@@ -31,41 +28,10 @@ const (
 	testEmail             = "test@bewell.co.ke"
 )
 
-// CreatedUserGraphQLHeaders updates the authorization header with the
-// bearer(ID) token of the created user during test
-// TODO:(muchogo)  create a reusable function in base that accepts a UID
-// 				or modify the apiclient.GetGraphQLHeaders(ctx) extra UID argument
-func CreatedUserGraphQLHeaders(idToken *string) (map[string]string, error) {
-	ctx := context.Background()
-
-	authHeaderBearerToken := fmt.Sprintf("Bearer %v", *idToken)
-
-	headers, err := apiclient.GetGraphQLHeaders(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error in getting headers: %w", err)
-	}
-
-	headers["Authorization"] = authHeaderBearerToken
-
-	return headers, nil
-}
 func TestAddPartnerType(t *testing.T) {
-	// create a user and their profile
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
-
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers := setUpLoggedInTestUserGraphHeaders(t)
+
 	graphqlMutation := `
 	mutation addPartnerType($name:String!, $partnerType:PartnerType!){
 		addPartnerType(name: $name, partnerType:$partnerType)
@@ -203,7 +169,7 @@ func TestAddPartnerType(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
@@ -211,23 +177,8 @@ func TestAddPartnerType(t *testing.T) {
 }
 
 func TestSetUpSupplier_acceptance(t *testing.T) {
-
-	// create a user and their profile
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
-
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
 	graphqlMutation := `
 	mutation setUpSupplier($input: AccountType!) {
@@ -365,37 +316,19 @@ func TestSetUpSupplier_acceptance(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
 }
 
 func TestSuspendSupplier_acceptance(t *testing.T) {
-	ctx := context.Background()
-	// create a user and their profile
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	ctx := getTestAuthenticatedContext(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
-
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -416,18 +349,18 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 	partnerName := "practitioner"
 	partnerType := profileutils.PartnerTypePractitioner
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	account, err := setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
+	account, err := setUpSupplier(ctx, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
 	log.Printf("the account type for this supplier is %v:", account.AccountType)
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
@@ -435,8 +368,6 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 	suspensionReason := `
 	"This email is to inform you that as a result of your actions on April 12th, 2021, you have been issued a suspension for 1 week (7 days)"
 	`
-
-	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphqlMutation := `mutation suspendSupplier($suspensionReason: String){
 		suspendSupplier(suspensionReason:$suspensionReason)
@@ -565,29 +496,10 @@ func TestSuspendSupplier_acceptance(t *testing.T) {
 }
 
 func TestSupplierEDILogin(t *testing.T) {
-	// create a user and their profile
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
-
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
 	sladeCode := "1"
-
-	if err != nil {
-		t.Errorf("error getting headers: %w", err)
-		return
-	}
 
 	graphQLMutationPayload := `
 	mutation supplierEDILogin($username: String!, $password: String!, $sladeCode: String!) {
@@ -773,37 +685,19 @@ func TestSupplierEDILogin(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
 }
 
 func TestAddIndividualPractitionerKYC(t *testing.T) {
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-	ctx := context.Background()
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	log.Printf("the user is %v", user)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	ctx := getTestAuthenticatedContext(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
-
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -824,24 +718,22 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 	partnerName := "practitioner"
 	partnerType := profileutils.PartnerTypePractitioner
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	account, err := setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
+	account, err := setUpSupplier(ctx, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
 	log.Printf("the account type for this supplier is %v:", account.AccountType)
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
-
-	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphQLMutationPayload := `
 	mutation addIndividualPractitionerKYC($input:IndividualPractitionerInput!){
@@ -1004,29 +896,12 @@ func TestAddIndividualPractitionerKYC(t *testing.T) {
 	}
 }
 func TestAddOrganizationProviderKYC(t *testing.T) {
-	ctx := context.Background()
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	log.Printf("the user is %v", user)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
+	ctx := getTestAuthenticatedContext(t)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -1047,23 +922,21 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 	partnerName := "provider"
 	partnerType := profileutils.PartnerTypeProvider
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
+	_, err = setUpSupplier(ctx, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
-
-	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphqlMutation := `
 	mutation   addOrganizationProviderKYC($input:OrganizationProviderInput!){
@@ -1236,29 +1109,12 @@ func TestAddOrganizationProviderKYC(t *testing.T) {
 }
 
 func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
-	ctx := context.Background()
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	log.Printf("the user is %v", user)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
+	ctx := getTestAuthenticatedContext(t)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -1279,23 +1135,21 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 	partnerName := "pharmaceutical"
 	partnerType := profileutils.PartnerTypePharmaceutical
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
+	_, err = setUpSupplier(ctx, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
-
-	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphQLMutation := `
 	mutation addIndividualPharmaceuticalKYC($input:IndividualPharmaceuticalInput!){
@@ -1456,29 +1310,12 @@ func TestAddIndividualPharmaceuticalKYC(t *testing.T) {
 }
 
 func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
-	ctx := context.Background()
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	log.Printf("the user is %v", user)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
+	ctx := getTestAuthenticatedContext(t)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -1499,23 +1336,21 @@ func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
 	partnerName := "pharmaceutical"
 	partnerType := profileutils.PartnerTypePharmaceutical
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
+	_, err = setUpSupplier(ctx, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
-
-	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphQLMutation := `
 	mutation addOrganizationPharmaceuticalKYC($input:OrganizationPharmaceuticalInput!){
@@ -1690,29 +1525,12 @@ func TestAddOrganizationPharmaceuticalKYC(t *testing.T) {
 }
 
 func TestAddIndividualCoachKYC(t *testing.T) {
-	ctx := context.Background()
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	log.Printf("the user is %v", user)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
+	ctx := getTestAuthenticatedContext(t)
 
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -1733,23 +1551,21 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 	partnerName := "coach"
 	partnerType := profileutils.PartnerTypeCoach
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
+	_, err = setUpSupplier(ctx, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
 	}
-
-	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphQLMutation := `
 	mutation addIndividualCoachKYC($input:IndividualCoachInput!){
@@ -1912,29 +1728,10 @@ func TestAddIndividualCoachKYC(t *testing.T) {
 }
 
 func TestAddOrganizationRiderKYC(t *testing.T) {
-	ctx := context.Background()
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	log.Printf("the user is %v", user)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
+	ctx := getTestAuthenticatedContext(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
-
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -1955,17 +1752,17 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 	partnerName := "rider"
 	partnerType := profileutils.PartnerTypeRider
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
+	_, err = setUpSupplier(ctx, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
@@ -2136,29 +1933,10 @@ func TestAddOrganizationRiderKYC(t *testing.T) {
 }
 
 func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
-	ctx := context.Background()
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	log.Printf("the user is %v", user)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
+	ctx := getTestAuthenticatedContext(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
-
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -2179,17 +1957,17 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 	partnerName := "rider"
 	partnerType := profileutils.PartnerTypeRider
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
+	_, err = setUpSupplier(ctx, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
@@ -2355,21 +2133,7 @@ func TestAddIndividualRiderKYC_acceptance(t *testing.T) {
 }
 
 func TestFetchKYCProcessingRequests(t *testing.T) {
-	// create a user and their profile
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
-
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	graphQLQuery := `
@@ -2505,27 +2269,14 @@ func TestFetchKYCProcessingRequests(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
 }
 
 func TestFetchSupplierAllowedLocations(t *testing.T) {
-	// create a user and their profile
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 	graphqlQueryPayload := `
@@ -2648,56 +2399,31 @@ func TestFetchSupplierAllowedLocations(t *testing.T) {
 		})
 	}
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
 }
 
 func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
-	ctx := context.Background()
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service: %v", err)
-		return
-	}
-
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
-
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
+	headers := setUpLoggedInTestUserGraphHeaders(t)
+	ctx := getTestAuthenticatedContext(t)
 
 	name := "Makmende"
 	partnerPractitioner := profileutils.PartnerTypePractitioner
-	_, err = s.Supplier.AddPartnerType(authenticatedContext, &name, &partnerPractitioner)
+	_, err := testInteractor.Supplier.AddPartnerType(ctx, &name, &partnerPractitioner)
 	if err != nil {
 		t.Errorf("can't create a supplier")
 		return
 	}
 
-	_, err = s.Supplier.SetUpSupplier(authenticatedContext, profileutils.AccountTypeOrganisation)
+	_, err = testInteractor.Supplier.SetUpSupplier(ctx, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("can't set up a supplier")
 		return
 	}
 
-	_, err = s.Supplier.SupplierEDILogin(authenticatedContext, TestEDIPortalUsername, TestEDIPortalPassword, TestSladeCode)
+	_, err = testInteractor.Supplier.SupplierEDILogin(ctx, TestEDIPortalUsername, TestEDIPortalPassword, TestSladeCode)
 	if err != nil {
 		t.Errorf("can't perform supplier edi login: %v", err)
 		return
@@ -2848,29 +2574,10 @@ func TestSupplierSetDefaultLocation_acceptance(t *testing.T) {
 }
 
 func TestAddOrganizationCoachKYC(t *testing.T) {
-	ctx := context.Background()
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	log.Printf("the user is %v", user)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
+	ctx := getTestAuthenticatedContext(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
-
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -2891,17 +2598,17 @@ func TestAddOrganizationCoachKYC(t *testing.T) {
 	partnerName := "coach"
 	partnerType := profileutils.PartnerTypeCoach
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
+	_, err = setUpSupplier(ctx, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
@@ -3078,29 +2785,10 @@ func TestAddOrganizationCoachKYC(t *testing.T) {
 }
 
 func TestAddIndividualNutritionKYC(t *testing.T) {
-	ctx := context.Background()
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	log.Printf("the user is %v", user)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
+	ctx := getTestAuthenticatedContext(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
-
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -3121,17 +2809,17 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 	partnerName := "nutrition"
 	partnerType := profileutils.PartnerTypeNutrition
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeIndividual)
+	_, err = setUpSupplier(ctx, t, profileutils.AccountTypeIndividual)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
@@ -3297,29 +2985,10 @@ func TestAddIndividualNutritionKYC(t *testing.T) {
 }
 
 func TestAddOrganizationNutritionKyc(t *testing.T) {
-	ctx := context.Background()
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	log.Printf("the user is %v", user)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
+	ctx := getTestAuthenticatedContext(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
-
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -3340,17 +3009,17 @@ func TestAddOrganizationNutritionKyc(t *testing.T) {
 	partnerName := "nutrition"
 	partnerType := profileutils.PartnerTypeNutrition
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
+	_, err = setUpSupplier(ctx, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
@@ -3485,20 +3154,7 @@ func TestAddOrganizationNutritionKyc(t *testing.T) {
 }
 
 func TestSetupAsExperimentParticipant(t *testing.T) {
-	// create a user and their profile
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
 
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
@@ -3610,36 +3266,17 @@ func TestSetupAsExperimentParticipant(t *testing.T) {
 	}
 
 	// perform tear down; remove user
-	_, err = RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
+	_, err := RemoveTestUserByPhone(t, interserviceclient.TestUserPhoneNumber)
 	if err != nil {
 		t.Errorf("unable to remove test user: %s", err)
 	}
 }
 
 func TestAddOrganizationPractitionerKyc(t *testing.T) {
-	ctx := context.Background()
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	user, err := CreateTestUserByPhone(t, phoneNumber)
-	log.Printf("the user is %v", user)
-	if err != nil {
-		t.Errorf("failed to create a user by phone %v", err)
-		return
-	}
-	idToken := user.Auth.IDToken
-	headers, err := CreatedUserGraphQLHeaders(idToken)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
+	headers := setUpLoggedInTestUserGraphHeaders(t)
+	ctx := getTestAuthenticatedContext(t)
 
-	authToken, err := firebasetools.ValidateBearerToken(ctx, *idToken)
-	if err != nil {
-		t.Errorf("invalid token: %w", err)
-		return
-	}
-	authenticatedContext := context.WithValue(ctx, firebasetools.AuthTokenContextKey, authToken)
-
-	err = setPrimaryEmailAddress(authenticatedContext, t, testEmail)
+	err := setPrimaryEmailAddress(ctx, t, testEmail)
 	if err != nil {
 		t.Errorf("failed to set primary email address: %v", err)
 		return
@@ -3660,17 +3297,17 @@ func TestAddOrganizationPractitionerKyc(t *testing.T) {
 	partnerName := "nutrition"
 	partnerType := profileutils.PartnerTypePractitioner
 
-	_, err = addPartnerType(authenticatedContext, t, &partnerName, partnerType)
+	_, err = addPartnerType(ctx, t, &partnerName, partnerType)
 	if err != nil {
 		t.Errorf("failed to add partnerType: %v", err)
 		return
 	}
-	_, err = setUpSupplier(authenticatedContext, t, profileutils.AccountTypeOrganisation)
+	_, err = setUpSupplier(ctx, t, profileutils.AccountTypeOrganisation)
 	if err != nil {
 		t.Errorf("failed to setup supplier: %v", err)
 		return
 	}
-	err = updateBioData(authenticatedContext, t, completeUserDetails)
+	err = updateBioData(ctx, t, completeUserDetails)
 	if err != nil {
 		t.Errorf("failed to update biodata: %v", err)
 		return
