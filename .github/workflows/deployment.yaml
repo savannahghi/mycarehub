@@ -69,8 +69,6 @@ jobs:
           --set-env-vars "FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}" \
           --set-env-vars "JWT_KEY=${{ secrets.JWT_KEY }}" \
           --set-env-vars "ENVIRONMENT=${{ secrets.ENVIRONMENT }}" \
-          --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
-          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
           --set-env-vars "ERP_HOST=${{ secrets.ERP_HOST }}" \
           --set-env-vars "ERP_API_SCHEME=${{ secrets.ERP_API_SCHEME }}" \
           --set-env-vars "ERP_TOKEN_URL=${{ secrets.ERP_TOKEN_URL }}" \
@@ -109,4 +107,6 @@ jobs:
           --set-env-vars "SAVANNAH_ADMIN_EMAIL=${{ secrets.SAVANNAH_ADMIN_EMAIL }}" \
           --set-env-vars "HUBSPOT_API_KEY=${{ secrets.HUBSPOT_API_KEY }}" \
           --set-env-vars "HUBSPOT_API_URL=${{ secrets.HUBSPOT_API_URL }}" \
-          --set-env-vars "JAEGER_URL=${{ secrets.JAEGER_URL }}" 
+          --set-env-vars "JAEGER_URL=${{ secrets.JAEGER_URL }}" \
+          --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
+          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
