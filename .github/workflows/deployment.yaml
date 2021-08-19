@@ -70,7 +70,7 @@ jobs:
           --set-env-vars "JWT_KEY=${{ secrets.JWT_KEY }}" \
           --set-env-vars "ENVIRONMENT=${{ secrets.ENVIRONMENT }}" \
           --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
-          --set-env-vars "ROOT_COLLECTION_SUFFIX="${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
+          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" \
           --set-env-vars "ERP_HOST=${{ secrets.ERP_HOST }}" \
           --set-env-vars "ERP_API_SCHEME=${{ secrets.ERP_API_SCHEME }}" \
           --set-env-vars "ERP_TOKEN_URL=${{ secrets.ERP_TOKEN_URL }}" \
