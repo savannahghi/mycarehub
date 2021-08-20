@@ -143,12 +143,13 @@ type Segment struct {
 
 // RoleOutput is the formatted output with scopes and permissions
 type RoleOutput struct {
-	ID          string                    `json:"id"`
-	Name        string                    `json:"name"`
-	Description string                    `json:"description"`
-	Active      bool                      `json:"active"`
-	Scopes      []string                  `json:"scopes"`
-	Permissions []profileutils.Permission `json:"permissions"`
+	ID          string                      `json:"id"`
+	Name        string                      `json:"name"`
+	Description string                      `json:"description"`
+	Active      bool                        `json:"active"`
+	Scopes      []string                    `json:"scopes"`
+	Permissions []profileutils.Permission   `json:"permissions"`
+	Users       []*profileutils.UserProfile `json:"users"`
 }
 
 // GroupedNavigationActions is the list of Navigation Actions sorted into primary and secondary actions

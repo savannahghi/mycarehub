@@ -43,6 +43,11 @@ type UserProfile @key(fields: "id") {
   homeAddress: Address
   workAddress: Address
   roles: [String]
+
+  """
+  Details of the user's roles
+  """
+  roleDetails: [RoleOutput]
 }
 
 type Customer {
@@ -492,6 +497,7 @@ type RoleOutput {
   active: Boolean!
   scopes: [String]
   permissions: [Permission]
+  users: [UserProfile]
 }
 
 type Permission {

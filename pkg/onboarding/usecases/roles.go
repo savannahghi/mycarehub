@@ -48,6 +48,9 @@ type RoleUseCase interface {
 	// AssignRole assigns a role to a user
 	AssignRole(ctx context.Context, userID string, roleID string) (bool, error)
 
+	// AssignMultipleRoles assigns multiple roles to a user
+	AssignMultipleRoles(ctx context.Context, userID string, roleIDs []string) (bool, error)
+
 	// RevokeRole removes a role from a user
 	RevokeRole(ctx context.Context, userID string, roleID string) (bool, error)
 
@@ -69,6 +72,8 @@ type RoleUseCase interface {
 	// This usecase is useful for creating the initial role in a new environment
 	// and creating the test role used for running integration and acceptance tests
 	CreateUnauthorizedRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
+
+	GetRolesByIDs(ctx context.Context, roleIDs []string) ([]*dto.RoleOutput, error)
 }
 
 // RoleUseCaseImpl  represents usecase implementation object
@@ -228,6 +233,13 @@ func (r *RoleUseCaseImpl) GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, e
 			utils.RecordSpanError(span, err)
 			return nil, err
 		}
+
+		users, err := r.repo.GetUserProfilesByRoleID(ctx, role.ID)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			return nil, err
+		}
+
 		output := &dto.RoleOutput{
 			ID:          role.ID,
 			Name:        role.Name,
@@ -235,6 +247,7 @@ func (r *RoleUseCaseImpl) GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, e
 			Active:      role.Active,
 			Scopes:      role.Scopes,
 			Permissions: perms,
+			Users:       users,
 		}
 		roleOutput = append(roleOutput, output)
 	}
@@ -873,4 +886,69 @@ func (r *RoleUseCaseImpl) GetRoleByName(ctx context.Context, name string) (*dto.
 	}
 
 	return output, nil
+}
+
+// GetRolesByIDs returns the details of roles given the IDs
+func (r RoleUseCaseImpl) GetRolesByIDs(ctx context.Context, roleIDs []string) ([]*dto.RoleOutput, error) {
+	ctx, span := tracer.Start(ctx, "GetRolesByIDs")
+	defer span.End()
+
+	roles, err := r.repo.GetRolesByIDs(ctx, roleIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	roleOutput := []*dto.RoleOutput{}
+	for _, role := range *roles {
+		perms, err := role.Permissions(ctx)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			return nil, err
+		}
+
+		output := &dto.RoleOutput{
+			ID:          role.ID,
+			Name:        role.Name,
+			Description: role.Description,
+			Active:      role.Active,
+			Scopes:      role.Scopes,
+			Permissions: perms,
+		}
+		roleOutput = append(roleOutput, output)
+	}
+
+	return roleOutput, nil
+}
+
+// AssignMultipleRoles assigns multiple roles to a user
+func (r RoleUseCaseImpl) AssignMultipleRoles(ctx context.Context, userID string, roleIDs []string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "AssignMultipleRoles")
+	defer span.End()
+
+	user, err := r.baseExt.GetLoggedInUser(ctx)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	// Check logged in user has the right permissions
+	allowed, err := r.CheckPermission(ctx, user.UID, profileutils.CanAssignRole)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+	if !allowed {
+		return false, exceptions.RoleNotValid(
+			fmt.Errorf("error: logged in user does not have permission to view role"),
+		)
+	}
+
+	for _, roleID := range roleIDs {
+		_, err := r.AssignRole(ctx, userID, roleID)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	return true, nil
 }

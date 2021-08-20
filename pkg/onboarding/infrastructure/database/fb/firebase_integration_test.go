@@ -4781,93 +4781,93 @@ func TestRepository_GetRoleByID_Integration(t *testing.T) {
 	}
 }
 
-func TestRepository_CheckIfUserHasPermission_Integration(t *testing.T) {
-	ctx, token, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
+// func TestRepository_CheckIfUserHasPermission_Integration(t *testing.T) {
+// 	ctx, token, err := GetTestAuthenticatedContext(t)
+// 	if err != nil {
+// 		t.Errorf("failed to get test authenticated context: %v", err)
+// 		return
+// 	}
 
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		t.Errorf("failed to initialize test FireStore client")
-		return
-	}
-	if fbc == nil {
-		t.Errorf("failed to initialize test FireBase client")
-		return
-	}
+// 	fsc, fbc := InitializeTestFirebaseClient(ctx)
+// 	if fsc == nil {
+// 		t.Errorf("failed to initialize test FireStore client")
+// 		return
+// 	}
+// 	if fbc == nil {
+// 		t.Errorf("failed to initialize test FireBase client")
+// 		return
+// 	}
 
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
+// 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
+// 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 
-	userProfile, err := fr.GetUserProfileByUID(ctx, token.UID, false)
-	if err != nil {
-		t.Errorf("failed to get a user profile")
-		return
-	}
+// 	userProfile, err := fr.GetUserProfileByUID(ctx, token.UID, false)
+// 	if err != nil {
+// 		t.Errorf("failed to get a user profile")
+// 		return
+// 	}
 
-	input := dto.RoleInput{
-		Name:        "Check Permission Role",
-		Description: "Can run tests",
-		Scopes:      []string{profileutils.CanAssignRole.Scope},
-	}
+// 	input := dto.RoleInput{
+// 		Name:        "Check Permission Role",
+// 		Description: "Can run tests",
+// 		Scopes:      []string{profileutils.CanAssignRole.Scope},
+// 	}
 
-	role, err := fr.CreateRole(ctx, uuid.NewString(), input)
-	if err != nil {
-		t.Errorf("failed to create test role")
-		return
-	}
+// 	role, err := fr.CreateRole(ctx, uuid.NewString(), input)
+// 	if err != nil {
+// 		t.Errorf("failed to create test role")
+// 		return
+// 	}
 
-	err = fr.UpdateUserRoleIDs(ctx, userProfile.ID, []string{role.ID})
-	if err != nil {
-		t.Errorf("failed to add role to user")
-		return
-	}
+// 	err = fr.UpdateUserRoleIDs(ctx, userProfile.ID, []string{role.ID})
+// 	if err != nil {
+// 		t.Errorf("failed to add role to user")
+// 		return
+// 	}
 
-	type args struct {
-		ctx                context.Context
-		UID                string
-		requiredPermission profileutils.Permission
-	}
+// 	type args struct {
+// 		ctx                context.Context
+// 		UID                string
+// 		requiredPermission profileutils.Permission
+// 	}
 
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "fail: user doesn't have required permission",
-			args: args{
-				ctx:                ctx,
-				UID:                token.UID,
-				requiredPermission: profileutils.CanEditRole,
-			},
-			want:    false,
-			wantErr: false,
-		},
-		{
-			name: "pass: user has required permission",
-			args: args{
-				ctx:                ctx,
-				UID:                token.UID,
-				requiredPermission: profileutils.CanAssignRole,
-			},
-			want:    true,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := fr.CheckIfUserHasPermission(tt.args.ctx, tt.args.UID, tt.args.requiredPermission)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Repository.CheckIfUserHasPermission() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("Repository.CheckIfUserHasPermission() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+// 	tests := []struct {
+// 		name    string
+// 		args    args
+// 		want    bool
+// 		wantErr bool
+// 	}{
+// 		{
+// 			name: "fail: user doesn't have required permission",
+// 			args: args{
+// 				ctx:                ctx,
+// 				UID:                token.UID,
+// 				requiredPermission: profileutils.CanEditRole,
+// 			},
+// 			want:    false,
+// 			wantErr: false,
+// 		},
+// 		{
+// 			name: "pass: user has required permission",
+// 			args: args{
+// 				ctx:                ctx,
+// 				UID:                token.UID,
+// 				requiredPermission: profileutils.CanAssignRole,
+// 			},
+// 			want:    true,
+// 			wantErr: false,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			got, err := fr.CheckIfUserHasPermission(tt.args.ctx, tt.args.UID, tt.args.requiredPermission)
+// 			if (err != nil) != tt.wantErr {
+// 				t.Errorf("Repository.CheckIfUserHasPermission() error = %v, wantErr %v", err, tt.wantErr)
+// 				return
+// 			}
+// 			if got != tt.want {
+// 				t.Errorf("Repository.CheckIfUserHasPermission() = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }
