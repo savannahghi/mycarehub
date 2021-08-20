@@ -51,6 +51,7 @@ const (
 	marketingDataCollectionName          = "marketing_data"
 	ussdEventsCollectionName             = "ussd_events"
 	coverLinkingEventsCollectionName     = "coverlinking_events"
+	rolesRevocationCollectionName        = "role_revocations"
 	rolesCollectionName                  = "user_roles"
 )
 
@@ -164,6 +165,12 @@ func (fr Repository) GetCoverLinkingEventsCollectionName() string {
 // GetRolesCollectionName ...
 func (fr Repository) GetRolesCollectionName() string {
 	suffixed := firebasetools.SuffixCollection(rolesCollectionName)
+	return suffixed
+}
+
+// GetRolesRevocationCollectionName ...
+func (fr Repository) GetRolesRevocationCollectionName() string {
+	suffixed := firebasetools.SuffixCollection(rolesRevocationCollectionName)
 	return suffixed
 }
 
@@ -4302,6 +4309,38 @@ func (fr *Repository) GetRoleByName(ctx context.Context, roleName string) (*prof
 	}
 
 	return role, nil
+}
+
+// SaveRoleRevocation records a log for a role revocation
+//
+// userId is the ID of the user removing a role from a user
+func (fr *Repository) SaveRoleRevocation(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error {
+	ctx, span := tracer.Start(ctx, "SaveRoleRevocation")
+	defer span.End()
+
+	timestamp := time.Now().In(pubsubtools.TimeLocation)
+
+	role := domain.RoleRevocationLog{
+		ID:        uuid.New().String(),
+		ProfileID: revocation.ProfileID,
+		RoleID:    revocation.RoleID,
+		Reason:    revocation.Reason,
+		CreatedBy: userID,
+		Created:   timestamp,
+	}
+
+	createCommad := &CreateCommand{
+		CollectionName: fr.GetRolesRevocationCollectionName(),
+		Data:           role,
+	}
+
+	_, err := fr.FirestoreClient.Create(ctx, createCommad)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return err
+	}
+
+	return nil
 }
 
 //CheckIfUserHasPermission checks if a user has the required permission

@@ -1346,6 +1346,7 @@ func TestRoleUseCaseImpl_RevokeRole(t *testing.T) {
 		ctx    context.Context
 		userID string
 		roleID string
+		reason string
 	}
 	tests := []struct {
 		name    string
@@ -1419,6 +1420,7 @@ func TestRoleUseCaseImpl_RevokeRole(t *testing.T) {
 				ctx:    ctx,
 				userID: uuid.NewString(),
 				roleID: "17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac",
+				reason: "no longer working for us",
 			},
 			want:    true,
 			wantErr: false,
@@ -1566,9 +1568,23 @@ func TestRoleUseCaseImpl_RevokeRole(t *testing.T) {
 				fakeRepo.UpdateUserRoleIDsFn = func(ctx context.Context, id string, roleIDs []string) error {
 					return nil
 				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
+						ID: "",
+						Roles: []string{
+							"17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac",
+							"56e5e987-2f02-4455-9dde-ae15162d8bce",
+						},
+					}, nil
+				}
+
+				fakeRepo.SaveRoleRevocationFn = func(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error {
+					return nil
+				}
 			}
 
-			got, err := i.Role.RevokeRole(tt.args.ctx, tt.args.userID, tt.args.roleID)
+			got, err := i.Role.RevokeRole(tt.args.ctx, tt.args.userID, tt.args.roleID, tt.args.reason)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RoleUseCaseImpl.RevokeRole() error = %v, wantErr %v", err, tt.wantErr)
 				return

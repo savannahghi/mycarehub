@@ -42,6 +42,7 @@ type AgentUseCaseImpl struct {
 	engagement engagement.ServiceEngagement
 	baseExt    extension.BaseExtension
 	pin        UserPINUseCases
+	role       RoleUseCase
 }
 
 // NewAgentUseCases returns a new a onboarding usecase
@@ -50,6 +51,7 @@ func NewAgentUseCases(
 	eng engagement.ServiceEngagement,
 	ext extension.BaseExtension,
 	pin UserPINUseCases,
+	role RoleUseCase,
 ) AgentUseCase {
 
 	return &AgentUseCaseImpl{
@@ -57,6 +59,7 @@ func NewAgentUseCases(
 		engagement: eng,
 		baseExt:    ext,
 		pin:        pin,
+		role:       role,
 	}
 }
 
@@ -75,6 +78,10 @@ func (a *AgentUseCaseImpl) checkPreconditions() {
 
 	if a.pin == nil {
 		log.Panicf("nil pin usecase in agent usecase implementation")
+	}
+
+	if a.role == nil {
+		log.Panicf("nil roles usecase in agent usecase implementation")
 	}
 }
 
@@ -259,15 +266,30 @@ func (a *AgentUseCaseImpl) DeactivateAgent(
 		return false, exceptions.InternalServerError(err)
 	}
 
-	if agent.Role != profileutils.RoleTypeAgent {
-		return false, exceptions.InternalServerError(fmt.Errorf("this user is not an agent"))
+	// role ID input introduces a breaking change to the api
+	// deactivation involes removing the assigned role
+	if len(input.RoleIDs) != 0 {
+		for _, roleID := range input.RoleIDs {
+			status, err := a.role.RevokeRole(ctx, agent.ID, roleID, input.Reason)
+			if err != nil {
+				utils.RecordSpanError(span, err)
+				return false, exceptions.InternalServerError(err)
+			}
+
+			if !status {
+				err := fmt.Errorf("role not removed")
+				return false, exceptions.InternalServerError(err)
+
+			}
+		}
+	} else { // initial implementation involved account suspension which affected the user both on consumer and pro
+		err = a.repo.UpdateSuspended(ctx, agent.ID, true)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			return false, err
+		}
 	}
 
-	err = a.repo.UpdateSuspended(ctx, agent.ID, true)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return false, err
-	}
 	return true, nil
 }
 
@@ -294,6 +316,33 @@ func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error
 			return nil, err
 		}
 
+		roles, err := a.repo.GetRolesByIDs(ctx, profile.Roles)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			// the error is wrapped already. No need to wrap it again
+			return nil, err
+		}
+
+		// role output
+		ro := []dto.RoleOutput{}
+		for _, role := range *roles {
+			perms, err := role.Permissions(ctx)
+			if err != nil {
+				utils.RecordSpanError(span, err)
+				return nil, err
+			}
+			o := dto.RoleOutput{
+				ID:          role.ID,
+				Name:        role.Name,
+				Description: role.Description,
+				Active:      role.Active,
+				Scopes:      role.Scopes,
+				Permissions: perms,
+			}
+
+			ro = append(ro, o)
+		}
+
 		agent := &dto.Agent{
 			ID:                      profile.ID,
 			PhotoUploadID:           profile.PhotoUploadID,
@@ -305,6 +354,7 @@ func (a *AgentUseCaseImpl) FetchAgents(ctx context.Context) ([]*dto.Agent, error
 			TermsAccepted:           profile.TermsAccepted,
 			Suspended:               profile.Suspended,
 			ResendPIN:               pin.IsOTP,
+			Roles:                   ro,
 		}
 
 		agents = append(agents, agent)

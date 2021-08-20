@@ -220,6 +220,33 @@ func (a *AdminUseCaseImpl) FetchAdmins(ctx context.Context) ([]*dto.Admin, error
 			return nil, err
 		}
 
+		roles, err := a.repo.GetRolesByIDs(ctx, profile.Roles)
+		if err != nil {
+			utils.RecordSpanError(span, err)
+			// the error is wrapped already. No need to wrap it again
+			return nil, err
+		}
+
+		// role output
+		ro := []dto.RoleOutput{}
+		for _, role := range *roles {
+			perms, err := role.Permissions(ctx)
+			if err != nil {
+				utils.RecordSpanError(span, err)
+				return nil, err
+			}
+			o := dto.RoleOutput{
+				ID:          role.ID,
+				Name:        role.Name,
+				Description: role.Description,
+				Active:      role.Active,
+				Scopes:      role.Scopes,
+				Permissions: perms,
+			}
+
+			ro = append(ro, o)
+		}
+
 		admin := &dto.Admin{
 			ID:                      profile.ID,
 			PhotoUploadID:           profile.PhotoUploadID,
@@ -231,6 +258,7 @@ func (a *AdminUseCaseImpl) FetchAdmins(ctx context.Context) ([]*dto.Admin, error
 			TermsAccepted:           profile.TermsAccepted,
 			Suspended:               profile.Suspended,
 			ResendPIN:               pin.IsOTP,
+			Roles:                   ro,
 		}
 
 		admins = append(admins, admin)

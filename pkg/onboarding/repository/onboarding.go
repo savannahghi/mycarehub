@@ -345,4 +345,6 @@ type RolesRepository interface {
 
 	// GetUserProfilesByRole retrieves userprofiles with a particular role
 	GetUserProfilesByRoleID(ctx context.Context, role string) ([]*profileutils.UserProfile, error)
+
+	SaveRoleRevocation(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error
 }

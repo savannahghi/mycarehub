@@ -340,5 +340,6 @@ input RolePermissionInput {
 
 input ProfileSuspensionInput {
   id: ID!
+  roleIDs: [ID]
   reason: String!
 }

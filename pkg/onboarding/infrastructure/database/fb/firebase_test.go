@@ -2156,3 +2156,66 @@ func TestRepository_GetUserProfilesByRoleID(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_SaveRoleRevocation(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	type args struct {
+		ctx        context.Context
+		userID     string
+		revocation dto.RoleRevocationInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "fail: cannot save a role revocation",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.NewString(),
+				revocation: dto.RoleRevocationInput{
+					ProfileID: uuid.NewString(),
+					RoleID:    uuid.NewString(),
+					Reason:    "test reason",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "success: save a role revocation",
+			args: args{
+				ctx:    ctx,
+				userID: uuid.NewString(),
+				revocation: dto.RoleRevocationInput{
+					ProfileID: uuid.NewString(),
+					RoleID:    uuid.NewString(),
+					Reason:    "test reason",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "fail: cannot save a role revocation" {
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return nil, fmt.Errorf("cannot create firestore document")
+				}
+			}
+
+			if tt.name == "success: save a role revocation" {
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return nil, nil
+				}
+			}
+
+			if err := repo.SaveRoleRevocation(tt.args.ctx, tt.args.userID, tt.args.revocation); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.SaveRoleRevocation() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

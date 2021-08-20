@@ -179,3 +179,25 @@ type NavigationAction struct {
 	// Actions with a higher sequence number appear at the top i.e ascending order
 	SequenceNumber int `json:"sequenceNumber"`
 }
+
+// RoleRevocationLog represents a log for revoking a users role
+// used when removing a role from a user i.e user deactivation
+type RoleRevocationLog struct {
+	// Unique identifier for a revocation
+	ID string `json:"id" firestore:"id"`
+
+	// profile of user whose role is being revoked
+	ProfileID string `json:"profileID" firestore:"profileID"`
+
+	// ID of role being revoked
+	RoleID string `json:"roleID" firestore:"roleID"`
+
+	// Reason role is being revoked
+	Reason string `json:"reason" firestore:"reason"`
+
+	// CreatedBy is the Profile ID of the user removing the role.
+	CreatedBy string `json:"createdBy,omitempty" firestore:"createdBy"`
+
+	// Created is the timestamp indicating when the role was created
+	Created time.Time `json:"created" firestore:"created"`
+}

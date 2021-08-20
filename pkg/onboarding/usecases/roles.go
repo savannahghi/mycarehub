@@ -52,7 +52,7 @@ type RoleUseCase interface {
 	AssignMultipleRoles(ctx context.Context, userID string, roleIDs []string) (bool, error)
 
 	// RevokeRole removes a role from a user
-	RevokeRole(ctx context.Context, userID string, roleID string) (bool, error)
+	RevokeRole(ctx context.Context, userID, roleID, reason string) (bool, error)
 
 	// ActivateRole marks a role as active
 	ActivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
@@ -563,6 +563,7 @@ func (r *RoleUseCaseImpl) RevokeRole(
 	ctx context.Context,
 	userID string,
 	roleID string,
+	reason string,
 ) (bool, error) {
 	ctx, span := tracer.Start(ctx, "RevokeRole")
 	defer span.End()
@@ -621,6 +622,22 @@ func (r *RoleUseCaseImpl) RevokeRole(
 	}
 
 	err = r.repo.UpdateUserRoleIDs(ctx, profile.ID, updated)
+	if err != nil {
+		return false, err
+	}
+
+	// revocation input
+	log := dto.RoleRevocationInput{
+		ProfileID: profile.ID,
+		RoleID:    role.ID,
+		Reason:    reason,
+	}
+	// logged in user profile
+	p, err := r.repo.GetUserProfileByUID(ctx, user.UID, false)
+	if err != nil {
+		return false, err
+	}
+	err = r.repo.SaveRoleRevocation(ctx, p.ID, log)
 	if err != nil {
 		return false, err
 	}

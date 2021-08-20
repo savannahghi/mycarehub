@@ -71,6 +71,7 @@ type ComplexityRoot struct {
 		PrimaryEmailAddress     func(childComplexity int) int
 		PrimaryPhone            func(childComplexity int) int
 		ResendPIN               func(childComplexity int) int
+		Roles                   func(childComplexity int) int
 		SecondaryEmailAddresses func(childComplexity int) int
 		SecondaryPhoneNumbers   func(childComplexity int) int
 		Suspended               func(childComplexity int) int
@@ -84,6 +85,7 @@ type ComplexityRoot struct {
 		PrimaryEmailAddress     func(childComplexity int) int
 		PrimaryPhone            func(childComplexity int) int
 		ResendPIN               func(childComplexity int) int
+		Roles                   func(childComplexity int) int
 		SecondaryEmailAddresses func(childComplexity int) int
 		SecondaryPhoneNumbers   func(childComplexity int) int
 		Suspended               func(childComplexity int) int
@@ -299,7 +301,7 @@ type ComplexityRoot struct {
 		RetireKYCProcessingRequest       func(childComplexity int) int
 		RetireSecondaryEmailAddresses    func(childComplexity int, emails []string) int
 		RetireSecondaryPhoneNumbers      func(childComplexity int, phones []string) int
-		RevokeRole                       func(childComplexity int, userID string, roleID string) int
+		RevokeRole                       func(childComplexity int, userID string, roleID string, reason string) int
 		RevokeRolePermission             func(childComplexity int, input dto.RolePermissionInput) int
 		SaveFavoriteNavAction            func(childComplexity int, title string) int
 		SetPrimaryEmailAddress           func(childComplexity int, email string, otp string) int
@@ -650,7 +652,7 @@ type MutationResolver interface {
 	UpdateRolePermissions(ctx context.Context, input dto.RolePermissionInput) (*dto.RoleOutput, error)
 	AssignRole(ctx context.Context, userID string, roleID string) (bool, error)
 	AssignMultipleRoles(ctx context.Context, userID string, roleIDs []string) (bool, error)
-	RevokeRole(ctx context.Context, userID string, roleID string) (bool, error)
+	RevokeRole(ctx context.Context, userID string, roleID string, reason string) (bool, error)
 	ActivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
 	DeactivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
 }
@@ -777,6 +779,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Admin.ResendPIN(childComplexity), true
 
+	case "Admin.roles":
+		if e.complexity.Admin.Roles == nil {
+			break
+		}
+
+		return e.complexity.Admin.Roles(childComplexity), true
+
 	case "Admin.secondaryEmailAddresses":
 		if e.complexity.Admin.SecondaryEmailAddresses == nil {
 			break
@@ -846,6 +855,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Agent.ResendPIN(childComplexity), true
+
+	case "Agent.roles":
+		if e.complexity.Agent.Roles == nil {
+			break
+		}
+
+		return e.complexity.Agent.Roles(childComplexity), true
 
 	case "Agent.secondaryEmailAddresses":
 		if e.complexity.Agent.SecondaryEmailAddresses == nil {
@@ -2084,7 +2100,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RevokeRole(childComplexity, args["userID"].(string), args["roleID"].(string)), true
+		return e.complexity.Mutation.RevokeRole(childComplexity, args["userID"].(string), args["roleID"].(string), args["reason"].(string)), true
 
 	case "Mutation.revokeRolePermission":
 		if e.complexity.Mutation.RevokeRolePermission == nil {
@@ -4344,6 +4360,7 @@ input RolePermissionInput {
 
 input ProfileSuspensionInput {
   id: ID!
+  roleIDs: [ID]
   reason: String!
 }
 `, BuiltIn: false},
@@ -4532,7 +4549,7 @@ extend type Mutation {
 
   assignMultipleRoles(userID: ID!, roleIDs: [ID!]!): Boolean!
 
-  revokeRole(userID: ID!, roleID: ID!): Boolean!
+  revokeRole(userID: ID!, roleID: ID!, reason: String!): Boolean!
 
   activateRole(roleID: ID!): RoleOutput!
 
@@ -4982,6 +4999,7 @@ type Admin {
   photoUploadID: String
   userBioData: BioData
   resendPIN: Boolean
+  roles: [RoleOutput]
 }
 
 type Agent {
@@ -4995,6 +5013,7 @@ type Agent {
   photoUploadID: String
   userBioData: BioData
   resendPIN: Boolean
+  roles: [RoleOutput]
 }
 
 extend type Link {
@@ -5804,6 +5823,15 @@ func (ec *executionContext) field_Mutation_revokeRole_args(ctx context.Context, 
 		}
 	}
 	args["roleID"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["reason"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reason"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["reason"] = arg2
 	return args, nil
 }
 
@@ -6792,6 +6820,38 @@ func (ec *executionContext) _Admin_resendPIN(ctx context.Context, field graphql.
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Admin_roles(ctx context.Context, field graphql.CollectedField, obj *dto.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Roles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]dto.RoleOutput)
+	fc.Result = res
+	return ec.marshalORoleOutput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Agent_id(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7116,6 +7176,38 @@ func (ec *executionContext) _Agent_resendPIN(ctx context.Context, field graphql.
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Agent_roles(ctx context.Context, field graphql.CollectedField, obj *dto.Agent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Agent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Roles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]dto.RoleOutput)
+	fc.Result = res
+	return ec.marshalORoleOutput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Beneficiary_name(ctx context.Context, field graphql.CollectedField, obj *model.Beneficiary) (ret graphql.Marshaler) {
@@ -12752,7 +12844,7 @@ func (ec *executionContext) _Mutation_revokeRole(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RevokeRole(rctx, args["userID"].(string), args["roleID"].(string))
+		return ec.resolvers.Mutation().RevokeRole(rctx, args["userID"].(string), args["roleID"].(string), args["reason"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22123,6 +22215,14 @@ func (ec *executionContext) unmarshalInputProfileSuspensionInput(ctx context.Con
 			if err != nil {
 				return it, err
 			}
+		case "roleIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleIDs"))
+			it.RoleIDs, err = ec.unmarshalOID2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "reason":
 			var err error
 
@@ -22646,6 +22746,8 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Admin_userBioData(ctx, field, obj)
 		case "resendPIN":
 			out.Values[i] = ec._Admin_resendPIN(ctx, field, obj)
+		case "roles":
+			out.Values[i] = ec._Admin_roles(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -22694,6 +22796,8 @@ func (ec *executionContext) _Agent(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Agent_userBioData(ctx, field, obj)
 		case "resendPIN":
 			out.Values[i] = ec._Agent_resendPIN(ctx, field, obj)
+		case "roles":
+			out.Values[i] = ec._Agent_roles(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -28106,6 +28210,50 @@ func (ec *executionContext) unmarshalOProfileSuspensionInput2ᚖgithubᚗcomᚋs
 
 func (ec *executionContext) marshalOReceivablesAccount2githubᚗcomᚋsavannahghiᚋprofileutilsᚐReceivablesAccount(ctx context.Context, sel ast.SelectionSet, v profileutils.ReceivablesAccount) graphql.Marshaler {
 	return ec._ReceivablesAccount(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalORoleOutput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx context.Context, sel ast.SelectionSet, v dto.RoleOutput) graphql.Marshaler {
+	return ec._RoleOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalORoleOutput2ᚕgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx context.Context, sel ast.SelectionSet, v []dto.RoleOutput) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalORoleOutput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalORoleOutput2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx context.Context, sel ast.SelectionSet, v []*dto.RoleOutput) graphql.Marshaler {

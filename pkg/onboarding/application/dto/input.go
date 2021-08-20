@@ -441,8 +441,9 @@ type RetrieveUserProfileInput struct {
 
 //ProfileSuspensionInput is the input required to suspend/unsuspend a PRO account
 type ProfileSuspensionInput struct {
-	ID     string `json:"id,omitempty"`
-	Reason string `json:"reason,omitempty"`
+	ID      string   `json:"id"`
+	RoleIDs []string `json:"roleIDs"`
+	Reason  string   `json:"reason"`
 }
 
 // EDICoverLinkingPubSubMessage holds the data required to add a cover to the profile
@@ -458,4 +459,11 @@ type EDICoverLinkingPubSubMessage struct {
 type CheckPermissionPayload struct {
 	UID        *string                  `json:"uid"`
 	Permission *profileutils.Permission `json:"permission"`
+}
+
+// RoleRevocationInput is the input when revoking a user's role
+type RoleRevocationInput struct {
+	ProfileID string
+	RoleID    string
+	Reason    string
 }

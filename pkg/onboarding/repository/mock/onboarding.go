@@ -197,6 +197,7 @@ type FakeOnboardingRepository struct {
 	CheckIfUserHasPermissionFn func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error)
 	UpdateUserProfileEmailFn   func(ctx context.Context, phone string, email string) error
 	GetUserProfilesByRoleIDFn  func(ctx context.Context, role string) ([]*profileutils.UserProfile, error)
+	SaveRoleRevocationFn       func(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error
 }
 
 // GetSupplierProfileByID ...
@@ -982,4 +983,9 @@ func (f *FakeOnboardingRepository) GetRoleByName(ctx context.Context, roleName s
 // GetUserProfilesByRoleID ...
 func (f *FakeOnboardingRepository) GetUserProfilesByRoleID(ctx context.Context, role string) ([]*profileutils.UserProfile, error) {
 	return f.GetUserProfilesByRoleIDFn(ctx, role)
+}
+
+// SaveRoleRevocation ...
+func (f *FakeOnboardingRepository) SaveRoleRevocation(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error {
+	return f.SaveRoleRevocationFn(ctx, userID, revocation)
 }

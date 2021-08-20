@@ -821,11 +821,13 @@ func TestAdminUseCaseImpl_FetchAdmins(t *testing.T) {
 					ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 					PrimaryPhone: interserviceclient.TestUserPhoneNumber,
 					ResendPIN:    true,
+					Roles:        []dto.RoleOutput{},
 				},
 				{
 					ID:           "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					PrimaryPhone: interserviceclient.TestUserPhoneNumber,
 					ResendPIN:    true,
+					Roles:        []dto.RoleOutput{},
 				},
 			},
 			wantErr: false,
@@ -871,6 +873,11 @@ func TestAdminUseCaseImpl_FetchAdmins(t *testing.T) {
 
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, ProfileID string) (*domain.PIN, error) {
 					return &domain.PIN{IsOTP: true}, nil
+				}
+
+				fakeRepo.GetRolesByIDsFn = func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error) {
+					roles := []profileutils.Role{}
+					return &roles, nil
 				}
 			}
 			if tt.name == "success:_empty_list_of_user_admins" {

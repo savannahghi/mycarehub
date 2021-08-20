@@ -492,7 +492,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	sms := usecases.NewSMSUsecase(r, ext)
 	role := usecases.NewRoleUseCases(r, ext)
 	admin := usecases.NewAdminUseCases(r, engagementSvc, ext, userpin)
-	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin)
+	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin, role)
 
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login,

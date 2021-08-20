@@ -153,7 +153,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	sms := usecases.NewSMSUsecase(repo, baseExt)
 	role := usecases.NewRoleUseCases(repo, baseExt)
 	admin := usecases.NewAdminUseCases(repo, engage, baseExt, userpin)
-	agent := usecases.NewAgentUseCases(repo, engage, baseExt, userpin)
+	agent := usecases.NewAgentUseCases(repo, engage, baseExt, userpin, role)
 	adminSrv := adminSrv.NewService(baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(

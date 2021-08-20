@@ -663,10 +663,10 @@ func (r *mutationResolver) AssignMultipleRoles(ctx context.Context, userID strin
 	return status, err
 }
 
-func (r *mutationResolver) RevokeRole(ctx context.Context, userID string, roleID string) (bool, error) {
+func (r *mutationResolver) RevokeRole(ctx context.Context, userID string, roleID string, reason string) (bool, error) {
 	startTime := time.Now()
 
-	status, err := r.interactor.Role.RevokeRole(ctx, userID, roleID)
+	status, err := r.interactor.Role.RevokeRole(ctx, userID, roleID, reason)
 	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "revokeRole", err)
 
 	return status, err

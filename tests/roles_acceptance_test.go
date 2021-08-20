@@ -457,8 +457,8 @@ func TestRevokeRole(t *testing.T) {
 	userID := creds.Profile.ID
 
 	graphqlMutation := `
-	mutation revokeRole($userID:ID!,$roleID:ID!) {
-		revokeRole(userID:$userID,roleID:$roleID)
+	mutation revokeRole($userID:ID!,$roleID:ID!, $reason:String!) {
+		revokeRole(userID:$userID,roleID:$roleID,reason: $reason)
 	  }
 	`
 
@@ -473,13 +473,14 @@ func TestRevokeRole(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "success: assign a new role",
+			name: "success: revoke a role",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]string{
 						"userID": userID,
 						"roleID": roleID,
+						"reason": "test reason",
 					},
 				},
 			},
@@ -550,9 +551,9 @@ func TestRevokeRole(t *testing.T) {
 			}
 
 			if !tt.wantErr {
-				_, ok := data["errors"]
+				msg, ok := data["errors"]
 				if ok {
-					t.Errorf("error not expected")
+					t.Errorf("error not expected: %s", msg)
 					return
 				}
 			}

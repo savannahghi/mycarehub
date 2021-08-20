@@ -976,14 +976,6 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 		input dto.ProfileSuspensionInput
 	}
 
-	inputData := args{
-		ctx: ctx,
-		input: dto.ProfileSuspensionInput{
-			ID:     "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
-			Reason: "",
-		},
-	}
-
 	tests := []struct {
 		name    string
 		args    args
@@ -991,32 +983,79 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "invalid:failed_to_get_loggedin_user",
-			args:    inputData,
+			name: "invalid:failed_to_get_loggedin_user",
+			args: args{
+				ctx: ctx,
+				input: dto.ProfileSuspensionInput{
+					ID:      "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+					RoleIDs: []string{"17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac"},
+					Reason:  "test reason",
+				},
+			},
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name:    "invalid:loggedin_user_does_not_have_employee_role",
-			args:    inputData,
+			name: "invalid:loggedin_user_does_not_have_employee_role",
+			args: args{
+				ctx: ctx,
+				input: dto.ProfileSuspensionInput{
+					ID:      "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+					RoleIDs: []string{"17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac"},
+					Reason:  "test reason",
+				},
+			},
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name:    "invalid:error_getting_agent_profile",
-			args:    inputData,
+			name: "invalid:error_getting_agent_profile",
+			args: args{
+				ctx: ctx,
+				input: dto.ProfileSuspensionInput{
+					ID:      "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+					RoleIDs: []string{"17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac"},
+					Reason:  "test reason",
+				},
+			},
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name:    "invalid:failed_to_activate_account",
-			args:    inputData,
+			name: "invalid:failed_to_activate_account",
+			args: args{
+				ctx: ctx,
+				input: dto.ProfileSuspensionInput{
+					ID:      "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+					RoleIDs: []string{"17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac"},
+					Reason:  "test reason",
+				},
+			},
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name:    "valid:success_deactivated_agent",
-			args:    inputData,
+			name: "valid:success_deactivated_agent",
+			args: args{
+				ctx: ctx,
+				input: dto.ProfileSuspensionInput{
+					ID:      "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+					RoleIDs: []string{"17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac"},
+					Reason:  "test reason",
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "valid:success_deactivated_agent_old_implementation",
+			args: args{
+				ctx: ctx,
+				input: dto.ProfileSuspensionInput{
+					ID:     "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+					Reason: "test reason",
+				},
+			},
 			want:    true,
 			wantErr: false,
 		},
@@ -1045,6 +1084,10 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
 					phone := "+254777886622"
 					return &phone, nil
+				}
+
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return false, nil
 				}
 
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
@@ -1101,12 +1144,15 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 						Role:         profileutils.RoleTypeEmployee,
 					}, nil
 				}
-				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
-					return fmt.Errorf("failed to unsuspend/activate agent account")
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return nil, fmt.Errorf("cannot remove role from user")
 				}
 			}
 
 			if tt.name == "valid:success_deactivated_agent" {
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
 				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
 					return &dto.UserInfo{
 						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
@@ -1123,8 +1169,83 @@ func TestAgentUseCaseImpl_DeactivateAgent(t *testing.T) {
 					return &profileutils.UserProfile{
 						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
 						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-						Role:         profileutils.RoleTypeAgent,
+						Roles:        []string{"17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac"},
 					}, nil
+				}
+
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{
+						ID:     "17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac",
+						Scopes: []string{profileutils.CanAssignRole.Scope},
+					}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
+						ID: "",
+						Roles: []string{
+							"17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac",
+							"56e5e987-2f02-4455-9dde-ae15162d8bce",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateUserRoleIDsFn = func(ctx context.Context, id string, roleIDs []string) error {
+					return nil
+				}
+
+				fakeRepo.SaveRoleRevocationFn = func(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error {
+					return nil
+				}
+			}
+
+			if tt.name == "valid:success_deactivated_agent_old_implementation" {
+				fakeRepo.CheckIfUserHasPermissionFn = func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error) {
+					return true, nil
+				}
+				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
+					return &dto.UserInfo{
+						UID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
+					}, nil
+				}
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
+						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
+						Permissions:  profileutils.DefaultEmployeePermissions,
+					}, nil
+				}
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
+						ID:           "c9d62c7e-93e5-44a6-b503-6fc159c1782f",
+						VerifiedUIDS: []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
+						Roles:        []string{"17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac"},
+					}, nil
+				}
+
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{
+						ID:     "17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac",
+						Scopes: []string{profileutils.CanAssignRole.Scope},
+					}, nil
+				}
+
+				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+					return &profileutils.UserProfile{
+						ID: "",
+						Roles: []string{
+							"17e6ea18-7147-4bdb-ad0b-d9ce03a8c0ac",
+							"56e5e987-2f02-4455-9dde-ae15162d8bce",
+						},
+					}, nil
+				}
+
+				fakeRepo.UpdateUserRoleIDsFn = func(ctx context.Context, id string, roleIDs []string) error {
+					return nil
+				}
+
+				fakeRepo.SaveRoleRevocationFn = func(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error {
+					return nil
 				}
 
 				fakeRepo.UpdateSuspendedFn = func(ctx context.Context, id string, status bool) error {
@@ -1181,12 +1302,14 @@ func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 					PrimaryPhone:        interserviceclient.TestUserPhoneNumber,
 					PrimaryEmailAddress: &email,
 					ResendPIN:           true,
+					Roles:               []dto.RoleOutput{},
 				},
 				{
 					ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 					PrimaryPhone:        interserviceclient.TestUserPhoneNumber,
 					PrimaryEmailAddress: &email,
 					ResendPIN:           true,
+					Roles:               []dto.RoleOutput{},
 				},
 			},
 			wantErr: false,
@@ -1220,14 +1343,12 @@ func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 							PrimaryPhone:        &p,
 							PrimaryEmailAddress: &e,
 							VerifiedUIDS:        []string{"f4f39af7-5b64-4c2f-91bd-42b3af315a4e"},
-							Role:                profileutils.RoleTypeAgent,
 						},
 						{
 							ID:                  "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
 							PrimaryPhone:        &p,
 							PrimaryEmailAddress: &e,
 							VerifiedUIDS:        []string{"c9d62c7e-93e5-44a6-b503-6fc159c1782f"},
-							Role:                profileutils.RoleTypeAgent,
 						},
 					}
 					return s, nil
@@ -1236,7 +1357,13 @@ func TestAgentUseCaseImpl_FetchAgents(t *testing.T) {
 				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, ProfileID string) (*domain.PIN, error) {
 					return &domain.PIN{IsOTP: true}, nil
 				}
+
+				fakeRepo.GetRolesByIDsFn = func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error) {
+					roles := []profileutils.Role{}
+					return &roles, nil
+				}
 			}
+
 			if tt.name == "success:_empty_list_of_user_agents" {
 				fakeRepo.ListUserProfilesFn = func(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error) {
 					return []*profileutils.UserProfile{}, nil

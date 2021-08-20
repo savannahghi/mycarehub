@@ -441,6 +441,7 @@ type Admin {
   photoUploadID: String
   userBioData: BioData
   resendPIN: Boolean
+  roles: [RoleOutput]
 }
 
 type Agent {
@@ -454,6 +455,7 @@ type Agent {
   photoUploadID: String
   userBioData: BioData
   resendPIN: Boolean
+  roles: [RoleOutput]
 }
 
 extend type Link {

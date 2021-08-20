@@ -183,7 +183,7 @@ extend type Mutation {
 
   assignMultipleRoles(userID: ID!, roleIDs: [ID!]!): Boolean!
 
-  revokeRole(userID: ID!, roleID: ID!): Boolean!
+  revokeRole(userID: ID!, roleID: ID!, reason: String!): Boolean!
 
   activateRole(roleID: ID!): RoleOutput!
 
