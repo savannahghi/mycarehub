@@ -201,3 +201,17 @@ type RoleRevocationLog struct {
 	// Created is the timestamp indicating when the role was created
 	Created time.Time `json:"created" firestore:"created"`
 }
+
+//AdminProfile is the profile of all users who permform admin tasks
+type AdminProfile struct {
+	ID             string `json:"id,omitempty"`
+	ProfileID      string `json:"profileID,omitempty"`
+	OrganizationID string `json:"organizationID,omitempty"`
+}
+
+//AgentProfile is the profile of all users who permform agent tasks
+type AgentProfile struct {
+	ID        string    `json:"id,omitempty"`
+	ProfileID string    `json:"profileID,omitempty"`
+	AgentType AgentType `json:"agentType,omitempty"`
+}

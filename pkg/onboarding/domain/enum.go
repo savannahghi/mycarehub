@@ -361,3 +361,47 @@ func (e *EmploymentType) UnmarshalGQL(v interface{}) error {
 func (e EmploymentType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
+
+//AgentType is the different kind of agent groups
+type AgentType string
+
+// Valid AgentTypes that can possibly be given to a user
+const (
+	//FreelanceAgent are agents that work at part time with savannah
+	FreelanceAgent AgentType = "Independent Agent"
+
+	//CompanyAgent are agents who are fully employed by savannah
+	CompanyAgent AgentType = "SIL Agent"
+)
+
+// IsValid ..
+func (e AgentType) IsValid() bool {
+	switch e {
+	case FreelanceAgent, CompanyAgent:
+		return true
+	}
+	return false
+}
+
+func (e AgentType) String() string {
+	return string(e)
+}
+
+// UnmarshalGQL ..
+func (e *AgentType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AgentType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AgentType", str)
+	}
+	return nil
+}
+
+// MarshalGQL ..
+func (e AgentType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}

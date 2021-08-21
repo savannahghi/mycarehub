@@ -53,6 +53,8 @@ const (
 	coverLinkingEventsCollectionName     = "coverlinking_events"
 	rolesRevocationCollectionName        = "role_revocations"
 	rolesCollectionName                  = "user_roles"
+	adminProfileCollectionName           = "admin_profiles"
+	agentProfileCollectionName           = "agent_profiles"
 )
 
 // Repository accesses and updates an item that is stored on Firebase
@@ -171,6 +173,18 @@ func (fr Repository) GetRolesCollectionName() string {
 // GetRolesRevocationCollectionName ...
 func (fr Repository) GetRolesRevocationCollectionName() string {
 	suffixed := firebasetools.SuffixCollection(rolesRevocationCollectionName)
+	return suffixed
+}
+
+// GetAdminProfileCollectionName ...
+func (fr Repository) GetAdminProfileCollectionName() string {
+	suffixed := firebasetools.SuffixCollection(adminProfileCollectionName)
+	return suffixed
+}
+
+// GetAgentProfileCollectionName ...
+func (fr Repository) GetAgentProfileCollectionName() string {
+	suffixed := firebasetools.SuffixCollection(agentProfileCollectionName)
 	return suffixed
 }
 
@@ -4371,4 +4385,112 @@ func (fr *Repository) CheckIfUserHasPermission(
 	}
 
 	return false, nil
+}
+
+//CreateAdminProfile creates an admin profile related to user profile
+func (fr *Repository) CreateAdminProfile(ctx context.Context, adminProfile domain.AdminProfile) error {
+
+	ctx, span := tracer.Start(ctx, "CreateAdminProfile")
+	defer span.End()
+
+	exists, err := fr.CheckIfAdminProfileExists(ctx, adminProfile.ProfileID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return err
+	}
+
+	if exists {
+		err := fmt.Errorf("user %s already has admin profile", adminProfile.ProfileID)
+		utils.RecordSpanError(span, err)
+		return err
+	}
+
+	createCommad := &CreateCommand{
+		CollectionName: fr.GetAdminProfileCollectionName(),
+		Data:           adminProfile,
+	}
+
+	_, err = fr.FirestoreClient.Create(ctx, createCommad)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return exceptions.InternalServerError(err)
+	}
+
+	return nil
+}
+
+//CheckIfAdminProfileExists return true if admin profile with profile ID provide
+//exists, otherwise false
+func (fr *Repository) CheckIfAdminProfileExists(ctx context.Context, profileID string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckIfAdminProfileExists")
+	defer span.End()
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetAdminProfileCollectionName(),
+		FieldName:      "profileID",
+		Operator:       "==",
+		Value:          profileID,
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, exceptions.InternalServerError(err)
+	}
+
+	return len(docs) == 1, nil
+}
+
+//CreateAgentProfile creates an agent profile related to user profile
+func (fr *Repository) CreateAgentProfile(ctx context.Context, agentProfile domain.AgentProfile) error {
+
+	ctx, span := tracer.Start(ctx, "CreateAgentProfile")
+	defer span.End()
+
+	exists, err := fr.CheckIfAgentProfileExists(ctx, agentProfile.ProfileID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return err
+	}
+
+	if exists {
+		err := fmt.Errorf("user %s already has agent profile", agentProfile.ProfileID)
+		utils.RecordSpanError(span, err)
+		return err
+	}
+
+	createCommad := &CreateCommand{
+		CollectionName: fr.GetAgentProfileCollectionName(),
+		Data:           agentProfile,
+	}
+
+	_, err = fr.FirestoreClient.Create(ctx, createCommad)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return exceptions.InternalServerError(err)
+	}
+
+	return nil
+}
+
+//CheckIfAgentProfileExists return true if agent profile with profile ID provide
+//exists, otherwise false
+func (fr *Repository) CheckIfAgentProfileExists(ctx context.Context, profileID string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckIfAgentProfileExists")
+	defer span.End()
+
+	query := &GetAllQuery{
+		CollectionName: fr.GetAgentProfileCollectionName(),
+		FieldName:      "profileID",
+		Operator:       "==",
+		Value:          profileID,
+	}
+
+	docs, err := fr.FirestoreClient.GetAll(ctx, query)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, exceptions.InternalServerError(err)
+	}
+
+	return len(docs) == 1, nil
 }

@@ -198,6 +198,14 @@ type FakeOnboardingRepository struct {
 	UpdateUserProfileEmailFn   func(ctx context.Context, phone string, email string) error
 	GetUserProfilesByRoleIDFn  func(ctx context.Context, role string) ([]*profileutils.UserProfile, error)
 	SaveRoleRevocationFn       func(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error
+
+	//admins
+	CreateAdminProfileFn        func(ctx context.Context, adminProfile domain.AdminProfile) error
+	CheckIfAdminProfileExistsFn func(ctx context.Context, profileID string) (bool, error)
+
+	//agents
+	CreateAgentProfileFn        func(ctx context.Context, agentProfile domain.AgentProfile) error
+	CheckIfAgentProfileExistsFn func(ctx context.Context, profileID string) (bool, error)
 }
 
 // GetSupplierProfileByID ...
@@ -988,4 +996,24 @@ func (f *FakeOnboardingRepository) GetUserProfilesByRoleID(ctx context.Context, 
 // SaveRoleRevocation ...
 func (f *FakeOnboardingRepository) SaveRoleRevocation(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error {
 	return f.SaveRoleRevocationFn(ctx, userID, revocation)
+}
+
+//CreateAdminProfile ...
+func (f *FakeOnboardingRepository) CreateAdminProfile(ctx context.Context, adminProfile domain.AdminProfile) error {
+	return f.CreateAdminProfileFn(ctx, adminProfile)
+}
+
+//CheckIfAdminProfileExists ...
+func (f *FakeOnboardingRepository) CheckIfAdminProfileExists(ctx context.Context, profileID string) (bool, error) {
+	return f.CheckIfAdminProfileExistsFn(ctx, profileID)
+}
+
+//CreateAgentProfile ...
+func (f *FakeOnboardingRepository) CreateAgentProfile(ctx context.Context, agentProfile domain.AgentProfile) error {
+	return f.CreateAgentProfileFn(ctx, agentProfile)
+}
+
+//CheckIfAgentProfileExists ...
+func (f *FakeOnboardingRepository) CheckIfAgentProfileExists(ctx context.Context, profileID string) (bool, error) {
+	return f.CheckIfAgentProfileExistsFn(ctx, profileID)
 }

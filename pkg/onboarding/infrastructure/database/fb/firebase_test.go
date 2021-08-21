@@ -2157,6 +2157,360 @@ func TestRepository_GetUserProfilesByRoleID(t *testing.T) {
 	}
 }
 
+func TestRepository_CreateAdminProfile(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	type args struct {
+		ctx          context.Context
+		adminProfile domain.AdminProfile
+	}
+	profileID := "c9d62c7e-93e5-44a6-b503-6fc159c1782f"
+	adminProfileID := "c9d62c7e-93e5-44a6-b503-6fc159c1782f"
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+
+		{
+			name: "fail: cannot retrieve firestore docs",
+			args: args{
+				ctx: ctx,
+				adminProfile: domain.AdminProfile{
+					ID:             adminProfileID,
+					ProfileID:      profileID,
+					OrganizationID: "1",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "fail: document already exists",
+			args: args{
+				ctx: ctx,
+				adminProfile: domain.AdminProfile{
+					ID:             adminProfileID,
+					ProfileID:      profileID,
+					OrganizationID: "1",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "fail: unable to create document",
+			args: args{
+				ctx: ctx,
+				adminProfile: domain.AdminProfile{
+					ID:             adminProfileID,
+					ProfileID:      profileID,
+					OrganizationID: "1",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "success: created document",
+			args: args{
+				ctx: ctx,
+				adminProfile: domain.AdminProfile{
+					ID:             adminProfileID,
+					ProfileID:      profileID,
+					OrganizationID: "1",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "fail: cannot retrieve firestore docs" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, fmt.Errorf("error unable to get docs")
+				}
+			}
+			if tt.name == "fail: document already exists" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}}
+					return docs, nil
+				}
+			}
+			if tt.name == "fail: unable to create document" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, nil
+				}
+
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return nil, fmt.Errorf("error unable to create document")
+				}
+			}
+			if tt.name == "success: created document" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, nil
+				}
+
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return &firestore.DocumentRef{ID: adminProfileID}, nil
+				}
+			}
+			if err := repo.CreateAdminProfile(tt.args.ctx, tt.args.adminProfile); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.CreateAgentProfile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRepository_CheckIfAdminProfileExists(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	type args struct {
+		ctx       context.Context
+		profileID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "sad: unable to get documents",
+			args: args{ctx: ctx,
+				profileID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad: got multiple documents",
+			args: args{ctx: ctx,
+				profileID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "happy: got  document",
+			args: args{ctx: ctx,
+				profileID: uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad: unable to get documents" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, fmt.Errorf("error unable to get docs")
+				}
+			}
+			if tt.name == "sad: got multiple documents" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}, {Ref: docRef}}
+					return docs, nil
+				}
+			}
+			if tt.name == "happy: got  document" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}}
+					return docs, nil
+				}
+			}
+			got, err := repo.CheckIfAdminProfileExists(tt.args.ctx, tt.args.profileID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.CheckIfAdminProfileExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Repository.CheckIfAdminProfileExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRepository_CreateAgentProfile(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	type args struct {
+		ctx          context.Context
+		agentProfile domain.AgentProfile
+	}
+	profileID := "c9d62c7e-93e5-44a6-b503-6fc159c1782f"
+	agentProfileID := "c9d62c7e-93e5-44a6-b503-6fc159c1782f"
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+
+		{
+			name: "fail: cannot retrieve firestore docs",
+			args: args{
+				ctx: ctx,
+				agentProfile: domain.AgentProfile{
+					ID:        agentProfileID,
+					ProfileID: profileID,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "fail: document already exists",
+			args: args{
+				ctx: ctx,
+				agentProfile: domain.AgentProfile{
+					ID:        agentProfileID,
+					ProfileID: profileID,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "fail: unable to create document",
+			args: args{
+				ctx: ctx,
+				agentProfile: domain.AgentProfile{
+					ID:        agentProfileID,
+					ProfileID: profileID,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "success: created document",
+			args: args{
+				ctx: ctx,
+				agentProfile: domain.AgentProfile{
+					ID:        agentProfileID,
+					ProfileID: profileID,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "fail: cannot retrieve firestore docs" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, fmt.Errorf("error unable to get docs")
+				}
+			}
+			if tt.name == "fail: document already exists" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}}
+					return docs, nil
+				}
+			}
+			if tt.name == "fail: unable to create document" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, nil
+				}
+
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return nil, fmt.Errorf("error unable to create document")
+				}
+			}
+			if tt.name == "success: created document" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, nil
+				}
+
+				fakeFireStoreClientExt.CreateFn = func(ctx context.Context, command *fb.CreateCommand) (*firestore.DocumentRef, error) {
+					return &firestore.DocumentRef{ID: agentProfileID}, nil
+				}
+			}
+			if err := repo.CreateAgentProfile(tt.args.ctx, tt.args.agentProfile); (err != nil) != tt.wantErr {
+				t.Errorf("Repository.CreateAgentProfile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRepository_CheckIfAgentProfileExists(t *testing.T) {
+	ctx := context.Background()
+	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt
+	repo := fb.NewFirebaseRepository(fireStoreClientExt, fireBaseClientExt)
+
+	type args struct {
+		ctx       context.Context
+		profileID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "sad: unable to get documents",
+			args: args{ctx: ctx,
+				profileID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad: got multiple documents",
+			args: args{ctx: ctx,
+				profileID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "happy: got  document",
+			args: args{ctx: ctx,
+				profileID: uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad: unable to get documents" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					return nil, fmt.Errorf("error unable to get docs")
+				}
+			}
+			if tt.name == "sad: got multiple documents" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}, {Ref: docRef}}
+					return docs, nil
+				}
+			}
+			if tt.name == "happy: got  document" {
+				fakeFireStoreClientExt.GetAllFn = func(ctx context.Context, query *fb.GetAllQuery) ([]*firestore.DocumentSnapshot, error) {
+					docRef := &firestore.DocumentRef{ID: "c9d62c7e-93e5-44a6-b503-6fc159c1782f"}
+					docs := []*firestore.DocumentSnapshot{{Ref: docRef}}
+					return docs, nil
+				}
+			}
+			got, err := repo.CheckIfAgentProfileExists(tt.args.ctx, tt.args.profileID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.CheckIfAgentProfileExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Repository.CheckIfAgentProfileExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestRepository_SaveRoleRevocation(t *testing.T) {
 	ctx := context.Background()
 	var fireStoreClientExt fb.FirestoreClientExtension = &fakeFireStoreClientExt

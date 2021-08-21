@@ -91,6 +91,10 @@ type OnboardingRepository interface {
 
 	RolesRepository
 
+	AdminsRepository
+
+	AgentsRepository
+
 	// creates a user profile of using the provided phone number and uid
 	CreateUserProfile(
 		ctx context.Context,
@@ -347,4 +351,16 @@ type RolesRepository interface {
 	GetUserProfilesByRoleID(ctx context.Context, role string) ([]*profileutils.UserProfile, error)
 
 	SaveRoleRevocation(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error
+}
+
+//AdminsRepository interface that provide access to all persistent storage operations for admins
+type AdminsRepository interface {
+	CreateAdminProfile(ctx context.Context, adminProfile domain.AdminProfile) error
+	CheckIfAdminProfileExists(ctx context.Context, profileID string) (bool, error)
+}
+
+//AgentsRepository interface that provide access to all persistent storage operations for agents
+type AgentsRepository interface {
+	CreateAgentProfile(ctx context.Context, agentProfile domain.AgentProfile) error
+	CheckIfAgentProfileExists(ctx context.Context, profileID string) (bool, error)
 }

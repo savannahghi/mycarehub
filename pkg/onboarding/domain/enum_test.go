@@ -632,3 +632,120 @@ func TestPractitionerService_MarshalGQL(t *testing.T) {
 		})
 	}
 }
+
+func TestAgentType_IsValid(t *testing.T) {
+	tests := []struct {
+		name string
+		e    domain.AgentType
+		want bool
+	}{
+		{
+			name: "valid",
+			e:    domain.CompanyAgent,
+			want: true,
+		},
+		{
+			name: "invalid",
+			e:    domain.AgentType("FreelanceAgent"),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.e.IsValid(); got != tt.want {
+				t.Errorf("AgentType.IsValid() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAgentType_String(t *testing.T) {
+	tests := []struct {
+		name string
+		e    domain.AgentType
+		want string
+	}{
+		{
+			name: "valid",
+			e:    domain.CompanyAgent,
+			want: "SIL Agent",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.e.String(); got != tt.want {
+				t.Errorf("AgentType.String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAgentType_UnmarshalGQL(t *testing.T) {
+	valid := domain.CompanyAgent
+	invalid := domain.AgentType("CompanyAgent")
+
+	type args struct {
+		v interface{}
+	}
+	tests := []struct {
+		name    string
+		e       *domain.AgentType
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "invalid type",
+			e:    &invalid,
+			args: args{
+				v: 1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid string",
+			e:    &invalid,
+			args: args{
+				v: "CompanyAgent",
+			},
+			wantErr: true,
+		},
+		{
+			name: "valid type",
+			e:    &valid,
+			args: args{
+				v: "SIL Agent",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.e.UnmarshalGQL(tt.args.v); (err != nil) != tt.wantErr {
+				t.Errorf("AgentType.UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestAgentType_MarshalGQL(t *testing.T) {
+	tests := []struct {
+		name  string
+		e     domain.AgentType
+		wantW string
+	}{
+		{
+			name:  "valid",
+			e:     domain.CompanyAgent,
+			wantW: strconv.Quote("SIL Agent"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &bytes.Buffer{}
+			tt.e.MarshalGQL(w)
+			if gotW := w.String(); gotW != tt.wantW {
+				t.Errorf("AgentType.MarshalGQL() = %v, want %v", gotW, tt.wantW)
+			}
+		})
+	}
+}
