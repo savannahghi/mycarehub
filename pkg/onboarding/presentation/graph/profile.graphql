@@ -37,6 +37,8 @@ extend type Query {
 
   findAgentbyPhone(phoneNumber: String): Agent
 
+  findAdminByNameOrPhone(nameOrPhone: String): [Admin]
+
   fetchUserNavigationActions: NavigationActions
 
   listMicroservices: [Microservice!]!

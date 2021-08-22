@@ -855,6 +855,16 @@ func (r *queryResolver) FindAgentbyPhone(ctx context.Context, phoneNumber *strin
 	return agent, err
 }
 
+func (r *queryResolver) FindAdminByNameOrPhone(ctx context.Context, nameOrPhone *string) ([]*dto.Admin, error) {
+	startTime := time.Now()
+
+	admins, err := r.interactor.Admin.FindAdminByNameOrPhone(ctx, nameOrPhone)
+
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findAdminByNameOrPhone", err)
+
+	return admins, err
+}
+
 func (r *queryResolver) FetchUserNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error) {
 	startTime := time.Now()
 

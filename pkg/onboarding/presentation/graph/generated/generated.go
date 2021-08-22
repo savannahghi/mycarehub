@@ -469,6 +469,7 @@ type ComplexityRoot struct {
 		FetchKYCProcessingRequests    func(childComplexity int) int
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FetchUserNavigationActions    func(childComplexity int) int
+		FindAdminByNameOrPhone        func(childComplexity int, nameOrPhone *string) int
 		FindAgentbyPhone              func(childComplexity int, phoneNumber *string) int
 		FindBranch                    func(childComplexity int, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) int
 		FindProvider                  func(childComplexity int, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) int
@@ -672,6 +673,7 @@ type QueryResolver interface {
 	FetchAdmins(ctx context.Context) ([]*dto.Admin, error)
 	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
 	FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error)
+	FindAdminByNameOrPhone(ctx context.Context, nameOrPhone *string) ([]*dto.Admin, error)
 	FetchUserNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error)
 	ListMicroservices(ctx context.Context) ([]*domain.Microservice, error)
 	GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error)
@@ -3026,6 +3028,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FetchUserNavigationActions(childComplexity), true
 
+	case "Query.findAdminByNameOrPhone":
+		if e.complexity.Query.FindAdminByNameOrPhone == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findAdminByNameOrPhone_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindAdminByNameOrPhone(childComplexity, args["nameOrPhone"].(*string)), true
+
 	case "Query.findAgentbyPhone":
 		if e.complexity.Query.FindAgentbyPhone == nil {
 			break
@@ -4402,6 +4416,8 @@ input ProfileSuspensionInput {
   fetchAgents: [Agent]
 
   findAgentbyPhone(phoneNumber: String): Agent
+
+  findAdminByNameOrPhone(nameOrPhone: String): [Admin]
 
   fetchUserNavigationActions: NavigationActions
 
@@ -6129,6 +6145,21 @@ func (ec *executionContext) field_Query__entities_args(ctx context.Context, rawA
 		}
 	}
 	args["representations"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findAdminByNameOrPhone_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["nameOrPhone"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameOrPhone"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nameOrPhone"] = arg0
 	return args, nil
 }
 
@@ -16883,6 +16914,45 @@ func (ec *executionContext) _Query_findAgentbyPhone(ctx context.Context, field g
 	return ec.marshalOAgent2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_findAdminByNameOrPhone(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findAdminByNameOrPhone_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindAdminByNameOrPhone(rctx, args["nameOrPhone"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*dto.Admin)
+	fc.Result = res
+	return ec.marshalOAdmin2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_fetchUserNavigationActions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -24899,6 +24969,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_findAgentbyPhone(ctx, field)
+				return res
+			})
+		case "findAdminByNameOrPhone":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findAdminByNameOrPhone(ctx, field)
 				return res
 			})
 		case "fetchUserNavigationActions":

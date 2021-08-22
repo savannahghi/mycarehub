@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,6 +31,7 @@ type AdminUseCase interface {
 	FetchAdmins(ctx context.Context) ([]*dto.Admin, error)
 	ActivateAdmin(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error)
 	DeactivateAdmin(ctx context.Context, input dto.ProfileSuspensionInput) (bool, error)
+	FindAdminByNameOrPhone(ctx context.Context, nameOrPhone *string) ([]*dto.Admin, error)
 }
 
 // AdminUseCaseImpl  represents usecase implementation object
@@ -333,4 +335,44 @@ func (a *AdminUseCaseImpl) DeactivateAdmin(
 		return false, err
 	}
 	return true, nil
+}
+
+// FindAdminByNameOrPhone is used to find an Admin using their phone number
+func (a *AdminUseCaseImpl) FindAdminByNameOrPhone(
+	ctx context.Context,
+	nameOrPhone *string,
+) ([]*dto.Admin, error) {
+	ctx, span := tracer.Start(ctx, "FindAdminByNameOrPhone")
+	defer span.End()
+
+	profiles, err := a.repo.ListUserProfiles(ctx, profileutils.RoleTypeEmployee)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return nil, exceptions.UserNotFoundError(err)
+	}
+
+	admins := []*dto.Admin{}
+
+	for _, profile := range profiles {
+
+		fullName := strings.ToLower(fmt.Sprintf("%v %v", *profile.UserBioData.FirstName, *profile.UserBioData.LastName))
+		phoneNumber := profile.PrimaryPhone
+
+		if strings.Contains(*phoneNumber, *nameOrPhone) || strings.Contains(fullName, strings.ToLower(*nameOrPhone)) {
+			admin := dto.Admin{
+				ID:                      profile.ID,
+				PhotoUploadID:           profile.PhotoUploadID,
+				UserBioData:             profile.UserBioData,
+				PrimaryPhone:            *profile.PrimaryPhone,
+				PrimaryEmailAddress:     profile.PrimaryEmailAddress,
+				SecondaryPhoneNumbers:   profile.SecondaryPhoneNumbers,
+				SecondaryEmailAddresses: profile.SecondaryEmailAddresses,
+				TermsAccepted:           profile.TermsAccepted,
+				Suspended:               profile.Suspended,
+			}
+			admins = append(admins, &admin)
+		}
+	}
+
+	return admins, nil
 }

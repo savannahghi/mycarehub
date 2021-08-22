@@ -886,3 +886,96 @@ func TestAdminUseCaseImpl_DeactivateAdmin(t *testing.T) {
 		})
 	}
 }
+
+func TestAdminUseCaseImpl_FindAdminByNameOrPhone(t *testing.T) {
+	ctx := context.Background()
+
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+
+	nameOrPhone := "Test"
+	fName := "Test"
+	lName := "User"
+
+	type args struct {
+		ctx         context.Context
+		nameOrPhone *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    int
+		wantErr bool
+	}{
+		{
+			name:    "sad: unable get user profiles",
+			args:    args{ctx: ctx, nameOrPhone: &nameOrPhone},
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "sad: did not get any user",
+			args:    args{ctx: ctx, nameOrPhone: &nameOrPhone},
+			want:    0,
+			wantErr: false,
+		},
+		{
+			name:    "happy: got user profiles",
+			args:    args{ctx: ctx, nameOrPhone: &nameOrPhone},
+			want:    1,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad: unable get user profiles" {
+				fakeRepo.ListUserProfilesFn = func(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error) {
+					return nil, fmt.Errorf("error unable to get user profile by phone")
+				}
+			}
+
+			if tt.name == "sad: did not get any user" {
+				fakeRepo.ListUserProfilesFn = func(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error) {
+					return []*profileutils.UserProfile{}, nil
+				}
+			}
+
+			if tt.name == "happy: got user profiles" {
+				fakeRepo.ListUserProfilesFn = func(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error) {
+					phone := interserviceclient.TestUserPhoneNumber
+					profile1 := profileutils.UserProfile{
+						UserBioData: profileutils.BioData{
+							FirstName: &fName,
+							LastName:  &lName,
+						},
+						PrimaryPhone: &phone,
+					}
+					profile2 := profileutils.UserProfile{
+						UserBioData: profileutils.BioData{
+							FirstName: &lName,
+							LastName:  &lName,
+						},
+						PrimaryPhone: &phone,
+					}
+					return []*profileutils.UserProfile{
+						&profile1,
+						&profile2,
+					}, nil
+				}
+			}
+			got, err := i.Admin.FindAdminByNameOrPhone(tt.args.ctx, tt.args.nameOrPhone)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AdminUseCaseImpl.FindAdminByNameOrPhone() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(len(got), tt.want) {
+				t.Errorf("AdminUseCaseImpl.FindAdminByNameOrPhone() = %v, want %v", len(got), tt.want)
+			}
+		})
+	}
+}
