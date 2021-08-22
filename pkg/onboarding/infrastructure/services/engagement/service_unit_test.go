@@ -1377,3 +1377,65 @@ func TestServiceEngagementImpl_NotifyAdmins(t *testing.T) {
 		})
 	}
 }
+
+func TestServiceEngagementImpl_SendTemporaryPIN(t *testing.T) {
+	e := engagement.NewServiceEngagementImpl(engClient, baseExt)
+	payload := dto.TemporaryPIN{
+		PhoneNumber: interserviceclient.TestUserPhoneNumber,
+	}
+
+	type args struct {
+		ctx     context.Context
+		payload dto.TemporaryPIN
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "sad:  unable to send temporary pin",
+			args: args{ctx: context.Background(),
+				payload: payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad: send pin failed with status code",
+			args: args{ctx: context.Background(),
+				payload: payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "happy: sent temporary pin",
+			args: args{ctx: context.Background(),
+				payload: payload,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad:  unable to send temporary pin" {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("error request failed")
+				}
+			}
+			if tt.name == "sad: send pin failed with status code" {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{StatusCode: http.StatusBadRequest}, nil
+				}
+			}
+
+			if tt.name == "happy: sent temporary pin" {
+				fakeISCExt.MakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return &http.Response{StatusCode: http.StatusOK}, nil
+				}
+			}
+			if err := e.SendTemporaryPIN(tt.args.ctx, tt.args.payload); (err != nil) != tt.wantErr {
+				t.Errorf("ServiceEngagementImpl.SendTemporaryPIN() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

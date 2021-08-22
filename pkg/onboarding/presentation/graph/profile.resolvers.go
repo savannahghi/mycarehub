@@ -690,6 +690,15 @@ func (r *mutationResolver) DeactivateRole(ctx context.Context, roleID string) (*
 	return role, err
 }
 
+func (r *mutationResolver) ResendTemporaryPin(ctx context.Context, profileID string, channel domain.Channel) (bool, error) {
+	startTime := time.Now()
+
+	success, err := r.interactor.UserPIN.ResendTemporaryPIN(ctx, profileID, channel)
+	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "resendTemporaryPin", err)
+
+	return success, err
+}
+
 func (r *queryResolver) DummyQuery(ctx context.Context) (*bool, error) {
 	dummy := true
 	return &dummy, nil

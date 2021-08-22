@@ -190,4 +190,6 @@ extend type Mutation {
   activateRole(roleID: ID!): RoleOutput!
 
   deactivateRole(roleID: ID!): RoleOutput!
+
+  ResendTemporaryPIN(profileID: ID!, channel: Channel!): Boolean!
 }
