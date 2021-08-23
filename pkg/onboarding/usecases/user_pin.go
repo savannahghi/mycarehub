@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/errorcodeutil"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
@@ -30,7 +29,6 @@ type UserPINUseCases interface {
 	ChangeUserPIN(ctx context.Context, phone string, pin string) (bool, error)
 	RequestPINReset(ctx context.Context, phone string, appID *string) (*profileutils.OtpResponse, error)
 	CheckHasPIN(ctx context.Context, profileID string) (bool, error)
-	ResendTemporaryPIN(ctx context.Context, profileID string, channel domain.Channel) (bool, error)
 }
 
 // UserPinUseCaseImpl represents usecase implementation object
@@ -288,38 +286,4 @@ func (u *UserPinUseCaseImpl) SetUserTempPIN(ctx context.Context, profileID strin
 	}
 
 	return pin, nil
-}
-
-// ResendTemporaryPIN send a new temporary PIN for users who may have
-// forgotten their PIN
-func (u *UserPinUseCaseImpl) ResendTemporaryPIN(ctx context.Context, profileID string, channel domain.Channel) (bool, error) {
-	ctx, span := tracer.Start(ctx, "ResendTemporaryPIN")
-	defer span.End()
-
-	profile, err := u.onboardingRepository.GetUserProfileByID(ctx, profileID, false)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return false, exceptions.GeneratePinError(err)
-	}
-
-	pin, err := u.SetUserTempPIN(ctx, profile.ID)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return false, exceptions.GeneratePinError(err)
-	}
-
-	output := dto.TemporaryPIN{
-		PhoneNumber: *profile.PrimaryPhone,
-		FirstName:   *profile.UserBioData.FirstName,
-		PIN:         pin,
-		Channel:     channel.Int(),
-	}
-
-	err = u.engagement.SendTemporaryPIN(ctx, output)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return false, exceptions.GeneratePinError(err)
-	}
-	return true, nil
-
 }

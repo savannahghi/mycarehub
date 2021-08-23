@@ -298,7 +298,6 @@ type ComplexityRoot struct {
 		RegisterAgent                    func(childComplexity int, input dto.RegisterAgentInput) int
 		RegisterMicroservice             func(childComplexity int, input domain.Microservice) int
 		RegisterPushToken                func(childComplexity int, token string) int
-		ResendTemporaryPin               func(childComplexity int, profileID string, channel domain.Channel) int
 		RetireKYCProcessingRequest       func(childComplexity int) int
 		RetireSecondaryEmailAddresses    func(childComplexity int, emails []string) int
 		RetireSecondaryPhoneNumbers      func(childComplexity int, phones []string) int
@@ -657,7 +656,6 @@ type MutationResolver interface {
 	RevokeRole(ctx context.Context, userID string, roleID string, reason string) (bool, error)
 	ActivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
 	DeactivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
-	ResendTemporaryPin(ctx context.Context, profileID string, channel domain.Channel) (bool, error)
 }
 type QueryResolver interface {
 	DummyQuery(ctx context.Context) (*bool, error)
@@ -2062,18 +2060,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RegisterPushToken(childComplexity, args["token"].(string)), true
-
-	case "Mutation.ResendTemporaryPIN":
-		if e.complexity.Mutation.ResendTemporaryPin == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_ResendTemporaryPIN_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.ResendTemporaryPin(childComplexity, args["profileID"].(string), args["channel"].(domain.Channel)), true
 
 	case "Mutation.retireKYCProcessingRequest":
 		if e.complexity.Mutation.RetireKYCProcessingRequest == nil {
@@ -3931,12 +3917,6 @@ enum PermissionGroup {
   Consumers
   Patients
 }
-
-enum Channel {
-  WhatsApp
-  SMS
-  Email
-}
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/external.graphql", Input: `# supported content types
 enum ContentType {
@@ -4590,8 +4570,6 @@ extend type Mutation {
   activateRole(roleID: ID!): RoleOutput!
 
   deactivateRole(roleID: ID!): RoleOutput!
-
-  ResendTemporaryPIN(profileID: ID!, channel: Channel!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -5198,30 +5176,6 @@ func (ec *executionContext) field_Entity_findUserProfileByID_args(ctx context.Co
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_ResendTemporaryPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["profileID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profileID"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["profileID"] = arg0
-	var arg1 domain.Channel
-	if tmp, ok := rawArgs["channel"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channel"))
-		arg1, err = ec.unmarshalNChannel2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐChannel(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["channel"] = arg1
 	return args, nil
 }
 
@@ -13020,48 +12974,6 @@ func (ec *executionContext) _Mutation_deactivateRole(ctx context.Context, field 
 	res := resTmp.(*dto.RoleOutput)
 	fc.Result = res
 	return ec.marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_ResendTemporaryPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_ResendTemporaryPIN_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ResendTemporaryPin(rctx, args["profileID"].(string), args["channel"].(domain.Channel))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NHIFDetails_id(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
@@ -24160,11 +24072,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "ResendTemporaryPIN":
-			out.Values[i] = ec._Mutation_ResendTemporaryPIN(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -26107,16 +26014,6 @@ func (ec *executionContext) marshalNBusinessPartnerConnection2ᚖgithubᚗcomᚋ
 		return graphql.Null
 	}
 	return ec._BusinessPartnerConnection(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNChannel2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐChannel(ctx context.Context, v interface{}) (domain.Channel, error) {
-	var res domain.Channel
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNChannel2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐChannel(ctx context.Context, sel ast.SelectionSet, v domain.Channel) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, v interface{}) (scalarutils.Date, error) {

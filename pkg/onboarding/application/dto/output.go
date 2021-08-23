@@ -161,11 +161,3 @@ type GroupedNavigationActions struct {
 	Primary   []domain.NavigationAction `json:"primary,omitempty"`
 	Secondary []domain.NavigationAction `json:"secondary,omitempty"`
 }
-
-// TemporaryPIN used to carry information about temporary pin
-type TemporaryPIN struct {
-	PhoneNumber string `json:"phoneNumber,omitempty"`
-	FirstName   string `json:"firstName,omitempty"`
-	PIN         string `json:"pin,omitempty"`
-	Channel     int    `json:"channel,omitempty"`
-}

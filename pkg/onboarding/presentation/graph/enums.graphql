@@ -174,9 +174,3 @@ enum PermissionGroup {
   Consumers
   Patients
 }
-
-enum Channel {
-  WhatsApp
-  SMS
-  Email
-}
