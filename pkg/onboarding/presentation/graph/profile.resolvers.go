@@ -481,70 +481,6 @@ func (r *mutationResolver) SetUserCommunicationsSettings(ctx context.Context, al
 	return setUserCommunicationsSettings, err
 }
 
-func (r *mutationResolver) RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*profileutils.UserProfile, error) {
-	startTime := time.Now()
-
-	userProfile, err := r.interactor.Admin.RegisterAdmin(ctx, input)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "registerAdmin", err)
-
-	return userProfile, err
-}
-
-func (r *mutationResolver) RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*profileutils.UserProfile, error) {
-	span := trace.SpanFromContext(ctx)
-	span.SetAttributes(
-		attribute.String("resolver.name", "registerAgent"),
-	)
-	startTime := time.Now()
-
-	userProfile, err := r.interactor.Agent.RegisterAgent(ctx, input)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "registerAgent", err)
-
-	return userProfile, err
-}
-
-func (r *mutationResolver) ActivateEmployeeAccount(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error) {
-	startTime := time.Now()
-
-	success, err := r.interactor.Admin.ActivateAdmin(ctx, *input)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "activateEmployeeAccount", err)
-
-	return success, err
-}
-
-func (r *mutationResolver) DeactivateEmployeeAccount(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error) {
-	startTime := time.Now()
-
-	success, err := r.interactor.Admin.DeactivateAdmin(ctx, *input)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "deactivateEmployeeAccount", err)
-
-	return success, err
-}
-
-func (r *mutationResolver) ActivateAgent(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error) {
-	startTime := time.Now()
-
-	success, err := r.interactor.Agent.ActivateAgent(ctx, *input)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "activateAgent", err)
-
-	return success, err
-}
-
-func (r *mutationResolver) DeactivateAgent(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error) {
-	startTime := time.Now()
-
-	success, err := r.interactor.Agent.DeactivateAgent(ctx, *input)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "deactivateAgent", err)
-
-	return success, err
-}
-
 func (r *mutationResolver) SaveFavoriteNavAction(ctx context.Context, title string) (bool, error) {
 	startTime := time.Now()
 
@@ -823,46 +759,6 @@ func (r *queryResolver) CheckSupplierKYCSubmitted(ctx context.Context) (bool, er
 	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "checkSupplierKYCSubmitted", err)
 
 	return checkSupplierKYCSubmitted, err
-}
-
-func (r *queryResolver) FetchAdmins(ctx context.Context) ([]*dto.Admin, error) {
-	startTime := time.Now()
-
-	admins, err := r.interactor.Admin.FetchAdmins(ctx)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "fetchAdmins", err)
-
-	return admins, err
-}
-
-func (r *queryResolver) FetchAgents(ctx context.Context) ([]*dto.Agent, error) {
-	startTime := time.Now()
-
-	agents, err := r.interactor.Agent.FetchAgents(ctx)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "fetchAgents", err)
-
-	return agents, err
-}
-
-func (r *queryResolver) FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error) {
-	startTime := time.Now()
-
-	agent, err := r.interactor.Agent.FindAgentbyPhone(ctx, phoneNumber)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findAgentbyPhone", err)
-
-	return agent, err
-}
-
-func (r *queryResolver) FindAdminByNameOrPhone(ctx context.Context, nameOrPhone *string) ([]*dto.Admin, error) {
-	startTime := time.Now()
-
-	admins, err := r.interactor.Admin.FindAdminByNameOrPhone(ctx, nameOrPhone)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findAdminByNameOrPhone", err)
-
-	return admins, err
 }
 
 func (r *queryResolver) FetchUserNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error) {

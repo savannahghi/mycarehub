@@ -152,14 +152,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	aitUssd := ussd.NewUssdUsecases(repo, baseExt, profile, userpin, su, pinExt, pubSub, crmExt)
 	sms := usecases.NewSMSUsecase(repo, baseExt)
 	role := usecases.NewRoleUseCases(repo, baseExt)
-	admin := usecases.NewAdminUseCases(repo, engage, baseExt, userpin)
-	agent := usecases.NewAgentUseCases(repo, engage, baseExt, userpin, role)
 	adminSrv := adminSrv.NewService(baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login, survey,
 		userpin, erp, chrg, engage, mes, nhif, pubSub,
-		sms, aitUssd, agent, admin, edi, adminSrv, crmExt,
+		sms, aitUssd, edi, adminSrv, crmExt,
 		role,
 	)
 	if err != nil {

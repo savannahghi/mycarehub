@@ -32,8 +32,6 @@ type Interactor struct {
 	PubSub       pubsubmessaging.ServicePubSub
 	SMS          usecases.SMSUsecase
 	AITUSSD      ussd.Usecase
-	Agent        usecases.AgentUseCase
-	Admin        usecases.AdminUseCase
 	EDI          edi.ServiceEdi
 	AdminSrv     admin.Usecase
 	CrmExt       crm.ServiceCrm
@@ -56,8 +54,6 @@ func NewOnboardingInteractor(
 	pubsub pubsubmessaging.ServicePubSub,
 	sms usecases.SMSUsecase,
 	aitussd ussd.Usecase,
-	agt usecases.AgentUseCase,
-	adm usecases.AdminUseCase,
 	edi edi.ServiceEdi,
 	admin admin.Usecase,
 	crmExt crm.ServiceCrm,
@@ -79,8 +75,6 @@ func NewOnboardingInteractor(
 		PubSub:       pubsub,
 		SMS:          sms,
 		AITUSSD:      aitussd,
-		Agent:        agt,
-		Admin:        adm,
 		EDI:          edi,
 		AdminSrv:     admin,
 		CrmExt:       crmExt,

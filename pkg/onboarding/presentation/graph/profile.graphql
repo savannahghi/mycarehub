@@ -30,15 +30,6 @@ extend type Query {
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
   checkSupplierKYCSubmitted: Boolean!
-
-  fetchAdmins: [Admin]
-
-  fetchAgents: [Agent]
-
-  findAgentbyPhone(phoneNumber: String): Agent
-
-  findAdminByNameOrPhone(nameOrPhone: String): [Admin]
-
   fetchUserNavigationActions: NavigationActions
 
   listMicroservices: [Microservice!]!
@@ -148,18 +139,6 @@ extend type Mutation {
     allowPush: Boolean
     allowEmail: Boolean
   ): UserCommunicationsSetting!
-
-  registerAdmin(input: RegisterAdminInput!): UserProfile!
-
-  registerAgent(input: RegisterAgentInput!): UserProfile!
-
-  activateEmployeeAccount(input: ProfileSuspensionInput): Boolean!
-
-  deactivateEmployeeAccount(input: ProfileSuspensionInput): Boolean!
-
-  activateAgent(input: ProfileSuspensionInput): Boolean!
-
-  deactivateAgent(input: ProfileSuspensionInput): Boolean!
 
   saveFavoriteNavAction(title: String!): Boolean!
 

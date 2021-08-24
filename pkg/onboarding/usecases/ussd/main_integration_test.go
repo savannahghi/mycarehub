@@ -180,8 +180,6 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
 	role := usecases.NewRoleUseCases(r, ext)
-	admin := usecases.NewAdminUseCases(r, engagementSvc, ext, userpin)
-	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin, role)
 
 	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps, crmExt)
 	adminSrv := adminSrv.NewService(ext)
@@ -189,7 +187,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
+		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, ediSvc, adminSrv, crmExt,
 		role,
 	)
 	if err != nil {
@@ -317,15 +315,13 @@ func InitializeFakeUSSDTestService() (*interactor.Interactor, error) {
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
 	role := usecases.NewRoleUseCases(r, ext)
-	admin := usecases.NewAdminUseCases(r, engagementSvc, ext, userpin)
-	agent := usecases.NewAgentUseCases(r, engagementSvc, ext, userpin, role)
 	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps, crmSvc)
 	adminSrv := adminSrv.NewService(ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login,
 		survey, userpin, erpSvc, chargemasterSvc,
-		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, agent, admin, ediSvc, adminSrv, crmExt,
+		engagementSvc, messagingSvc, nhif, ps, sms, aitUssd, ediSvc, adminSrv, crmExt,
 		role,
 	)
 	if err != nil {

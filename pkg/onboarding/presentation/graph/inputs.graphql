@@ -301,26 +301,6 @@ input NHIFDetailsInput {
   NHIFCardPhotoID: String!
 }
 
-input RegisterAdminInput {
-  firstName: String!
-  lastName: String!
-  gender: Gender!
-  phoneNumber: String!
-  email: String
-  dateOfBirth: Date!
-  roleIDs: [ID]
-}
-
-input RegisterAgentInput {
-  firstName: String!
-  lastName: String!
-  gender: Gender!
-  phoneNumber: String!
-  email: String
-  dateOfBirth: Date!
-  roleIDs: [ID]
-}
-
 input MicroserviceInput {
   name: String!
   url: String!

@@ -261,8 +261,6 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		ActivateAgent                    func(childComplexity int, input *dto.ProfileSuspensionInput) int
-		ActivateEmployeeAccount          func(childComplexity int, input *dto.ProfileSuspensionInput) int
 		ActivateRole                     func(childComplexity int, roleID string) int
 		AddAddress                       func(childComplexity int, input dto.UserAddressInput, addressType enumutils.AddressType) int
 		AddIndividualCoachKyc            func(childComplexity int, input domain.IndividualCoach) int
@@ -285,8 +283,6 @@ type ComplexityRoot struct {
 		AssignRole                       func(childComplexity int, userID string, roleID string) int
 		CompleteSignup                   func(childComplexity int, flavour feedlib.Flavour) int
 		CreateRole                       func(childComplexity int, input dto.RoleInput) int
-		DeactivateAgent                  func(childComplexity int, input *dto.ProfileSuspensionInput) int
-		DeactivateEmployeeAccount        func(childComplexity int, input *dto.ProfileSuspensionInput) int
 		DeactivateRole                   func(childComplexity int, roleID string) int
 		DeleteFavoriteNavAction          func(childComplexity int, title string) int
 		DeleteRole                       func(childComplexity int, roleID string) int
@@ -294,8 +290,6 @@ type ComplexityRoot struct {
 		DeregisterMicroservice           func(childComplexity int, id string) int
 		ProcessKYCRequest                func(childComplexity int, id string, status domain.KYCProcessStatus, rejectionReason *string) int
 		RecordPostVisitSurvey            func(childComplexity int, input dto.PostVisitSurveyInput) int
-		RegisterAdmin                    func(childComplexity int, input dto.RegisterAdminInput) int
-		RegisterAgent                    func(childComplexity int, input dto.RegisterAgentInput) int
 		RegisterMicroservice             func(childComplexity int, input domain.Microservice) int
 		RegisterPushToken                func(childComplexity int, token string) int
 		RetireKYCProcessingRequest       func(childComplexity int) int
@@ -464,13 +458,9 @@ type ComplexityRoot struct {
 	Query struct {
 		CheckSupplierKYCSubmitted     func(childComplexity int) int
 		DummyQuery                    func(childComplexity int) int
-		FetchAdmins                   func(childComplexity int) int
-		FetchAgents                   func(childComplexity int) int
 		FetchKYCProcessingRequests    func(childComplexity int) int
 		FetchSupplierAllowedLocations func(childComplexity int) int
 		FetchUserNavigationActions    func(childComplexity int) int
-		FindAdminByNameOrPhone        func(childComplexity int, nameOrPhone *string) int
-		FindAgentbyPhone              func(childComplexity int, phoneNumber *string) int
 		FindBranch                    func(childComplexity int, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) int
 		FindProvider                  func(childComplexity int, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) int
 		FindRoleByName                func(childComplexity int, roleName *string) int
@@ -635,12 +625,6 @@ type MutationResolver interface {
 	AddNHIFDetails(ctx context.Context, input dto.NHIFDetailsInput) (*domain.NHIFDetails, error)
 	AddAddress(ctx context.Context, input dto.UserAddressInput, addressType enumutils.AddressType) (*profileutils.Address, error)
 	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error)
-	RegisterAdmin(ctx context.Context, input dto.RegisterAdminInput) (*profileutils.UserProfile, error)
-	RegisterAgent(ctx context.Context, input dto.RegisterAgentInput) (*profileutils.UserProfile, error)
-	ActivateEmployeeAccount(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error)
-	DeactivateEmployeeAccount(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error)
-	ActivateAgent(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error)
-	DeactivateAgent(ctx context.Context, input *dto.ProfileSuspensionInput) (bool, error)
 	SaveFavoriteNavAction(ctx context.Context, title string) (bool, error)
 	DeleteFavoriteNavAction(ctx context.Context, title string) (bool, error)
 	RegisterMicroservice(ctx context.Context, input domain.Microservice) (*domain.Microservice, error)
@@ -670,10 +654,6 @@ type QueryResolver interface {
 	NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error)
 	GetUserCommunicationsSettings(ctx context.Context) (*profileutils.UserCommunicationsSetting, error)
 	CheckSupplierKYCSubmitted(ctx context.Context) (bool, error)
-	FetchAdmins(ctx context.Context) ([]*dto.Admin, error)
-	FetchAgents(ctx context.Context) ([]*dto.Agent, error)
-	FindAgentbyPhone(ctx context.Context, phoneNumber *string) (*dto.Agent, error)
-	FindAdminByNameOrPhone(ctx context.Context, nameOrPhone *string) ([]*dto.Admin, error)
 	FetchUserNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error)
 	ListMicroservices(ctx context.Context) ([]*domain.Microservice, error)
 	GetAllRoles(ctx context.Context) ([]*dto.RoleOutput, error)
@@ -1622,30 +1602,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Microservice.URL(childComplexity), true
 
-	case "Mutation.activateAgent":
-		if e.complexity.Mutation.ActivateAgent == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_activateAgent_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.ActivateAgent(childComplexity, args["input"].(*dto.ProfileSuspensionInput)), true
-
-	case "Mutation.activateEmployeeAccount":
-		if e.complexity.Mutation.ActivateEmployeeAccount == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_activateEmployeeAccount_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.ActivateEmployeeAccount(childComplexity, args["input"].(*dto.ProfileSuspensionInput)), true
-
 	case "Mutation.activateRole":
 		if e.complexity.Mutation.ActivateRole == nil {
 			break
@@ -1910,30 +1866,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateRole(childComplexity, args["input"].(dto.RoleInput)), true
 
-	case "Mutation.deactivateAgent":
-		if e.complexity.Mutation.DeactivateAgent == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deactivateAgent_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeactivateAgent(childComplexity, args["input"].(*dto.ProfileSuspensionInput)), true
-
-	case "Mutation.deactivateEmployeeAccount":
-		if e.complexity.Mutation.DeactivateEmployeeAccount == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deactivateEmployeeAccount_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeactivateEmployeeAccount(childComplexity, args["input"].(*dto.ProfileSuspensionInput)), true
-
 	case "Mutation.deactivateRole":
 		if e.complexity.Mutation.DeactivateRole == nil {
 			break
@@ -2012,30 +1944,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RecordPostVisitSurvey(childComplexity, args["input"].(dto.PostVisitSurveyInput)), true
-
-	case "Mutation.registerAdmin":
-		if e.complexity.Mutation.RegisterAdmin == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_registerAdmin_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.RegisterAdmin(childComplexity, args["input"].(dto.RegisterAdminInput)), true
-
-	case "Mutation.registerAgent":
-		if e.complexity.Mutation.RegisterAgent == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_registerAgent_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.RegisterAgent(childComplexity, args["input"].(dto.RegisterAgentInput)), true
 
 	case "Mutation.registerMicroservice":
 		if e.complexity.Mutation.RegisterMicroservice == nil {
@@ -2993,20 +2901,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.DummyQuery(childComplexity), true
 
-	case "Query.fetchAdmins":
-		if e.complexity.Query.FetchAdmins == nil {
-			break
-		}
-
-		return e.complexity.Query.FetchAdmins(childComplexity), true
-
-	case "Query.fetchAgents":
-		if e.complexity.Query.FetchAgents == nil {
-			break
-		}
-
-		return e.complexity.Query.FetchAgents(childComplexity), true
-
 	case "Query.fetchKYCProcessingRequests":
 		if e.complexity.Query.FetchKYCProcessingRequests == nil {
 			break
@@ -3027,30 +2921,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FetchUserNavigationActions(childComplexity), true
-
-	case "Query.findAdminByNameOrPhone":
-		if e.complexity.Query.FindAdminByNameOrPhone == nil {
-			break
-		}
-
-		args, err := ec.field_Query_findAdminByNameOrPhone_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.FindAdminByNameOrPhone(childComplexity, args["nameOrPhone"].(*string)), true
-
-	case "Query.findAgentbyPhone":
-		if e.complexity.Query.FindAgentbyPhone == nil {
-			break
-		}
-
-		args, err := ec.field_Query_findAgentbyPhone_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.FindAgentbyPhone(childComplexity, args["phoneNumber"].(*string)), true
 
 	case "Query.findBranch":
 		if e.complexity.Query.FindBranch == nil {
@@ -4335,26 +4205,6 @@ input NHIFDetailsInput {
   NHIFCardPhotoID: String!
 }
 
-input RegisterAdminInput {
-  firstName: String!
-  lastName: String!
-  gender: Gender!
-  phoneNumber: String!
-  email: String
-  dateOfBirth: Date!
-  roleIDs: [ID]
-}
-
-input RegisterAgentInput {
-  firstName: String!
-  lastName: String!
-  gender: Gender!
-  phoneNumber: String!
-  email: String
-  dateOfBirth: Date!
-  roleIDs: [ID]
-}
-
 input MicroserviceInput {
   name: String!
   url: String!
@@ -4410,15 +4260,6 @@ input ProfileSuspensionInput {
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
   checkSupplierKYCSubmitted: Boolean!
-
-  fetchAdmins: [Admin]
-
-  fetchAgents: [Agent]
-
-  findAgentbyPhone(phoneNumber: String): Agent
-
-  findAdminByNameOrPhone(nameOrPhone: String): [Admin]
-
   fetchUserNavigationActions: NavigationActions
 
   listMicroservices: [Microservice!]!
@@ -4528,18 +4369,6 @@ extend type Mutation {
     allowPush: Boolean
     allowEmail: Boolean
   ): UserCommunicationsSetting!
-
-  registerAdmin(input: RegisterAdminInput!): UserProfile!
-
-  registerAgent(input: RegisterAgentInput!): UserProfile!
-
-  activateEmployeeAccount(input: ProfileSuspensionInput): Boolean!
-
-  deactivateEmployeeAccount(input: ProfileSuspensionInput): Boolean!
-
-  activateAgent(input: ProfileSuspensionInput): Boolean!
-
-  deactivateAgent(input: ProfileSuspensionInput): Boolean!
 
   saveFavoriteNavAction(title: String!): Boolean!
 
@@ -5179,36 +5008,6 @@ func (ec *executionContext) field_Entity_findUserProfileByID_args(ctx context.Co
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_activateAgent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *dto.ProfileSuspensionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOProfileSuspensionInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐProfileSuspensionInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_activateEmployeeAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *dto.ProfileSuspensionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOProfileSuspensionInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐProfileSuspensionInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_activateRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5575,36 +5374,6 @@ func (ec *executionContext) field_Mutation_createRole_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deactivateAgent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *dto.ProfileSuspensionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOProfileSuspensionInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐProfileSuspensionInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_deactivateEmployeeAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *dto.ProfileSuspensionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOProfileSuspensionInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐProfileSuspensionInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_deactivateRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5705,36 +5474,6 @@ func (ec *executionContext) field_Mutation_recordPostVisitSurvey_args(ctx contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNPostVisitSurveyInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐPostVisitSurveyInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_registerAdmin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 dto.RegisterAdminInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNRegisterAdminInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAdminInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_registerAgent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 dto.RegisterAgentInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNRegisterAgentInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAgentInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6145,36 +5884,6 @@ func (ec *executionContext) field_Query__entities_args(ctx context.Context, rawA
 		}
 	}
 	args["representations"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_findAdminByNameOrPhone_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["nameOrPhone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameOrPhone"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["nameOrPhone"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_findAgentbyPhone_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["phoneNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["phoneNumber"] = arg0
 	return args, nil
 }
 
@@ -12101,258 +11810,6 @@ func (ec *executionContext) _Mutation_setUserCommunicationsSettings(ctx context.
 	return ec.marshalNUserCommunicationsSetting2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserCommunicationsSetting(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_registerAdmin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_registerAdmin_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RegisterAdmin(rctx, args["input"].(dto.RegisterAdminInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*profileutils.UserProfile)
-	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_registerAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_registerAgent_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RegisterAgent(rctx, args["input"].(dto.RegisterAgentInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*profileutils.UserProfile)
-	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐUserProfile(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_activateEmployeeAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_activateEmployeeAccount_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ActivateEmployeeAccount(rctx, args["input"].(*dto.ProfileSuspensionInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_deactivateEmployeeAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deactivateEmployeeAccount_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeactivateEmployeeAccount(rctx, args["input"].(*dto.ProfileSuspensionInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_activateAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_activateAgent_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ActivateAgent(rctx, args["input"].(*dto.ProfileSuspensionInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_deactivateAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deactivateAgent_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeactivateAgent(rctx, args["input"].(*dto.ProfileSuspensionInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_saveFavoriteNavAction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16809,148 +16266,6 @@ func (ec *executionContext) _Query_checkSupplierKYCSubmitted(ctx context.Context
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_fetchAdmins(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FetchAdmins(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*dto.Admin)
-	fc.Result = res
-	return ec.marshalOAdmin2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_fetchAgents(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FetchAgents(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*dto.Agent)
-	fc.Result = res
-	return ec.marshalOAgent2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_findAgentbyPhone(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_findAgentbyPhone_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindAgentbyPhone(rctx, args["phoneNumber"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*dto.Agent)
-	fc.Result = res
-	return ec.marshalOAgent2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_findAdminByNameOrPhone(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_findAdminByNameOrPhone_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindAdminByNameOrPhone(rctx, args["nameOrPhone"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*dto.Admin)
-	fc.Result = res
-	return ec.marshalOAdmin2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_fetchUserNavigationActions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22307,142 +21622,6 @@ func (ec *executionContext) unmarshalInputProfileSuspensionInput(ctx context.Con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputRegisterAdminInput(ctx context.Context, obj interface{}) (dto.RegisterAdminInput, error) {
-	var it dto.RegisterAdminInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "firstName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
-			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "lastName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
-			it.LastName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "gender":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
-			it.Gender, err = ec.unmarshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "phoneNumber":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-			it.PhoneNumber, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "email":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "dateOfBirth":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
-			it.DateOfBirth, err = ec.unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "roleIDs":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleIDs"))
-			it.RoleIDs, err = ec.unmarshalOID2ᚕstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputRegisterAgentInput(ctx context.Context, obj interface{}) (dto.RegisterAgentInput, error) {
-	var it dto.RegisterAgentInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "firstName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
-			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "lastName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
-			it.LastName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "gender":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
-			it.Gender, err = ec.unmarshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "phoneNumber":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-			it.PhoneNumber, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "email":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "dateOfBirth":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
-			it.DateOfBirth, err = ec.unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "roleIDs":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roleIDs"))
-			it.RoleIDs, err = ec.unmarshalOID2ᚕstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputRoleInput(ctx context.Context, obj interface{}) (dto.RoleInput, error) {
 	var it dto.RoleInput
 	var asMap = obj.(map[string]interface{})
@@ -23967,36 +23146,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "registerAdmin":
-			out.Values[i] = ec._Mutation_registerAdmin(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "registerAgent":
-			out.Values[i] = ec._Mutation_registerAgent(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "activateEmployeeAccount":
-			out.Values[i] = ec._Mutation_activateEmployeeAccount(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "deactivateEmployeeAccount":
-			out.Values[i] = ec._Mutation_deactivateEmployeeAccount(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "activateAgent":
-			out.Values[i] = ec._Mutation_activateAgent(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "deactivateAgent":
-			out.Values[i] = ec._Mutation_deactivateAgent(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "saveFavoriteNavAction":
 			out.Values[i] = ec._Mutation_saveFavoriteNavAction(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -24936,50 +24085,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
-				return res
-			})
-		case "fetchAdmins":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_fetchAdmins(ctx, field)
-				return res
-			})
-		case "fetchAgents":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_fetchAgents(ctx, field)
-				return res
-			})
-		case "findAgentbyPhone":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_findAgentbyPhone(ctx, field)
-				return res
-			})
-		case "findAdminByNameOrPhone":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_findAdminByNameOrPhone(ctx, field)
 				return res
 			})
 		case "fetchUserNavigationActions":
@@ -26087,16 +25192,6 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, v interface{}) (enumutils.Gender, error) {
-	var res enumutils.Gender
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, sel ast.SelectionSet, v enumutils.Gender) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -26717,16 +25812,6 @@ func (ec *executionContext) marshalNPractitionerService2ᚕgithubᚗcomᚋsavann
 	return ret
 }
 
-func (ec *executionContext) unmarshalNRegisterAdminInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAdminInput(ctx context.Context, v interface{}) (dto.RegisterAdminInput, error) {
-	res, err := ec.unmarshalInputRegisterAdminInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNRegisterAgentInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRegisterAgentInput(ctx context.Context, v interface{}) (dto.RegisterAgentInput, error) {
-	res, err := ec.unmarshalInputRegisterAgentInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNRoleInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleInput(ctx context.Context, v interface{}) (dto.RoleInput, error) {
 	res, err := ec.unmarshalInputRoleInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -27268,100 +26353,6 @@ func (ec *executionContext) marshalOAddress2ᚖgithubᚗcomᚋsavannahghiᚋprof
 		return graphql.Null
 	}
 	return ec._Address(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOAdmin2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx context.Context, sel ast.SelectionSet, v []*dto.Admin) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOAdmin2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOAdmin2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAdmin(ctx context.Context, sel ast.SelectionSet, v *dto.Admin) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Admin(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOAgent2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx context.Context, sel ast.SelectionSet, v []*dto.Agent) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOAgent2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOAgent2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐAgent(ctx context.Context, sel ast.SelectionSet, v *dto.Agent) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Agent(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
@@ -28279,14 +27270,6 @@ func (ec *executionContext) marshalOPermissionType2ᚕgithubᚗcomᚋsavannahghi
 	}
 	wg.Wait()
 	return ret
-}
-
-func (ec *executionContext) unmarshalOProfileSuspensionInput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐProfileSuspensionInput(ctx context.Context, v interface{}) (*dto.ProfileSuspensionInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputProfileSuspensionInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOReceivablesAccount2githubᚗcomᚋsavannahghiᚋprofileutilsᚐReceivablesAccount(ctx context.Context, sel ast.SelectionSet, v profileutils.ReceivablesAccount) graphql.Marshaler {
