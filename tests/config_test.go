@@ -42,7 +42,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
-	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 	hubspotRepo "gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/database/fs"
 	hubspotUsecases "gitlab.slade360emr.com/go/commontools/crm/pkg/usecases"
 )
@@ -125,7 +124,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 	ediClient := utils.NewInterServiceClient(ediService, ext)
 
-	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	hubspotService := hubspot.NewHubSpotService()
 	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(context.Background(), hubspotService)
@@ -139,7 +137,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		ext,
-		erp,
 		crmExt,
 		edi,
 		repo,
@@ -151,7 +148,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	pinExt := extension.NewPINExtensionImpl()
 	profile := usecases.NewProfileUseCase(repo, ext, engage, ps, crmExt)
 
-	supplier := usecases.NewSupplierUseCases(repo, profile, erp, chrg, engage, mes, ext, ps)
+	supplier := usecases.NewSupplierUseCases(repo, profile, chrg, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, ext)
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
@@ -167,7 +164,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		Login:        login,
 		Survey:       survey,
 		UserPIN:      userpin,
-		ERP:          erp,
 		ChargeMaster: chrg,
 		Engagement:   engage,
 		NHIF:         nhif,

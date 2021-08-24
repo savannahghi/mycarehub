@@ -16,10 +16,8 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/profileutils"
 	"gitlab.slade360emr.com/go/apiclient"
-	dm "gitlab.slade360emr.com/go/commontools/accounting/pkg/domain"
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 )
@@ -586,10 +584,6 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
-				}
-
 				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client,
 				) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
@@ -597,10 +591,6 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 						ID: &id,
 					}, nil
 				}
-				fakePubSub.NotifyCreateSupplierFn = func(ctx context.Context, data dto.SupplierPubSubMessage) error {
-					return nil
-				}
-
 				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
 					return "supplier.topic"
 				}
@@ -837,22 +827,12 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
-				}
-
 				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client,
 				) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
 					return &apiclient.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
-				}
-
-				fakeEPRSvc.CreateSupplierFn = func(
-					supplierPayload dm.SupplierPayload,
-				) (*profileutils.Supplier, error) {
-					return &profileutils.Supplier{}, nil
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
@@ -913,22 +893,12 @@ func TestProfileUseCaseImpl_ProcessKYCRequest(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
-				}
-
 				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client,
 				) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
 					return &apiclient.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
-				}
-
-				fakeEPRSvc.CreateSupplierFn = func(
-					supplierPayload dm.SupplierPayload,
-				) (*profileutils.Supplier, error) {
-					return &profileutils.Supplier{}, nil
 				}
 
 				fakeRepo.GetSupplierProfileByProfileIDFn = func(
@@ -5115,177 +5085,6 @@ func TestSupplierUseCasesImpl_AddIndividualNutritionKyc(t *testing.T) {
 	}
 }
 
-func TestSupplierUseCasesImpl_CreateSupplierAccount(t *testing.T) {
-	ctx := context.Background()
-
-	i, err := InitializeFakeOnboardingInteractor()
-	if err != nil {
-		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
-		return
-	}
-
-	type args struct {
-		ctx         context.Context
-		name        string
-		partnerType profileutils.PartnerType
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "happy:)",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeCoach,
-			},
-			wantErr: false,
-		},
-		{
-			name: "sad:( can't get logged in user",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeRider,
-			},
-			wantErr: true,
-		},
-		{
-			name: "sad:( currency not found",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeRider,
-			},
-			wantErr: true,
-		},
-		{
-			name: "sad:( failed to publish to PubSub",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeRider,
-			},
-			wantErr: false, //TODO: Fix and return to true
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			if tt.name == "happy:)" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       testEmail,
-						PhoneNumber: "0721568526",
-					}, nil
-				}
-
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
-					id := uuid.New().String()
-					return &apiclient.FinancialYearAndCurrency{
-						ID: &id,
-					}, nil
-				}
-
-				fakePubSub.NotifyCreateSupplierFn = func(ctx context.Context, data dto.SupplierPubSubMessage) error {
-					return nil
-				}
-
-				fakePubSub.TopicIDsFn = func() []string {
-					return []string{uuid.New().String()}
-				}
-
-				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
-					return uuid.New().String()
-				}
-
-				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
-					return nil
-				}
-			}
-
-			if tt.name == "sad:( can't get logged in user" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return nil, fmt.Errorf("fail to fetch default currency")
-				}
-			}
-
-			if tt.name == "sad:( currency not found" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       testEmail,
-						PhoneNumber: "0721568526",
-					}, nil
-				}
-
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
-					return nil, fmt.Errorf("fail to fetch default currency")
-				}
-			}
-
-			if tt.name == "sad:( failed to publish to PubSub" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       testEmail,
-						PhoneNumber: "0721568526",
-					}, nil
-				}
-
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
-					id := uuid.New().String()
-					return &apiclient.FinancialYearAndCurrency{
-						ID: &id,
-					}, nil
-				}
-
-				fakePubSub.TopicIDsFn = func() []string {
-					return []string{uuid.New().String()}
-				}
-
-				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
-					return uuid.New().String()
-				}
-
-				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
-					return fmt.Errorf("error")
-				}
-			}
-
-			err := i.Supplier.CreateSupplierAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("error expected got %v", err)
-					return
-				}
-			}
-
-			if !tt.wantErr {
-				if err != nil {
-					t.Errorf("error not expected got %v", err)
-					return
-				}
-			}
-		})
-	}
-}
-
 func TestSupplierUseCasesImpl_SupplierSetDefaultLocation(t *testing.T) {
 	ctx := context.Background()
 
@@ -7616,169 +7415,6 @@ func TestUnitSupplierUseCasesImplUnit_EDIUserLogin(t *testing.T) {
 					return
 				}
 				if profile.Email != "juhakalulu@gmail.com" {
-					t.Errorf("error not expected got %v", err)
-					return
-				}
-			}
-		})
-	}
-}
-
-func TestSupplierUseCasesImpl_CreateCustomerAccount(t *testing.T) {
-	ctx := context.Background()
-
-	i, err := InitializeFakeOnboardingInteractor()
-	if err != nil {
-		t.Errorf("failed to fake initialize onboarding interactor: %v", err)
-		return
-	}
-
-	type args struct {
-		ctx         context.Context
-		name        string
-		partnerType profileutils.PartnerType
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "happy:)",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeConsumer,
-			},
-			wantErr: false,
-		},
-		{
-			name: "sad:( currency not found",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeConsumer,
-			},
-			wantErr: true,
-		},
-		{
-			name: "sad:( can't get logged in user",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeConsumer,
-			},
-			wantErr: true,
-		},
-		{
-			name: "sad:( failed to publish to PubSub",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeConsumer,
-			},
-			wantErr: false, // TODO: Fix and return  to false
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			if tt.name == "happy:)" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						Email:       testEmail,
-						PhoneNumber: "0721568526",
-					}, nil
-				}
-
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
-					id := uuid.New().String()
-					return &apiclient.FinancialYearAndCurrency{
-						ID: &id,
-					}, nil
-				}
-
-				fakePubSub.NotifyCreateCustomerFn = func(ctx context.Context, data dto.CustomerPubSubMessage) error {
-					return nil
-				}
-
-				fakePubSub.TopicIDsFn = func() []string {
-					return []string{uuid.New().String()}
-				}
-
-				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
-					return uuid.New().String()
-				}
-
-				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
-					return nil
-				}
-			}
-
-			if tt.name == "sad:( can't get logged in user" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("error")
-				}
-			}
-
-			if tt.name == "sad:( currency not found" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
-					return nil, fmt.Errorf("fail to fetch default currency")
-				}
-			}
-
-			if tt.name == "sad:( failed to publish to PubSub" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
-					id := uuid.New().String()
-					return &apiclient.FinancialYearAndCurrency{
-						ID: &id,
-					}, nil
-				}
-
-				fakePubSub.TopicIDsFn = func() []string {
-					return []string{uuid.New().String()}
-				}
-
-				fakePubSub.AddPubSubNamespaceFn = func(topicName string) string {
-					return uuid.New().String()
-				}
-
-				fakePubSub.PublishToPubsubFn = func(ctx context.Context, topicID string, payload []byte) error {
-					return fmt.Errorf("error")
-				}
-			}
-
-			err := i.Supplier.CreateCustomerAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("error expected got %v", err)
-					return
-				}
-			}
-
-			if !tt.wantErr {
-				if err != nil {
 					t.Errorf("error not expected got %v", err)
 					return
 				}

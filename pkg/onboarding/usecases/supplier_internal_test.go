@@ -23,7 +23,6 @@ import (
 	crmExt "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
-	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 	hubspotRepo "gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/database/fs"
 	hubspotUsecases "gitlab.slade360emr.com/go/commontools/crm/pkg/usecases"
 )
@@ -78,7 +77,6 @@ func TestParseKYCAsMap(t *testing.T) {
 	ediClient := utils.NewInterServiceClient(ediService, ext)
 	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
 	edi := edi.NewEdiService(ediClient, repo)
-	erp := erp.NewAccounting()
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	// hubspot usecases
 	hubspotService := hubspot.NewHubSpotService()
@@ -92,7 +90,6 @@ func TestParseKYCAsMap(t *testing.T) {
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		ext,
-		erp,
 		crmExt,
 		edi,
 		repo,
@@ -107,7 +104,6 @@ func TestParseKYCAsMap(t *testing.T) {
 	supplier := SupplierUseCasesImpl{
 		repo:         repo,
 		profile:      profile,
-		erp:          erp,
 		chargemaster: chrg,
 		engagement:   engage,
 		messaging:    mes,

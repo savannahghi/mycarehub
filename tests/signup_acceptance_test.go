@@ -616,7 +616,7 @@ func TestCompleteSignup(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "success: complete signup -  B.Well Consumer ERP account creation.",
+			name: "success: complete signup",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
@@ -629,7 +629,7 @@ func TestCompleteSignup(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "failure: complete signup -  B.Well Consumer ERP account creation.",
+			name: "failure: complete signup",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,

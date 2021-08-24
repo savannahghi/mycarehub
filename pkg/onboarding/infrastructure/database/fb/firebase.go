@@ -3460,52 +3460,6 @@ func (fr *Repository) SetUserCommunicationsSettings(
 	return fr.GetUserCommunicationsSettings(ctx, profileID)
 }
 
-// UpdateCustomerProfile does a generic update of the customer profile
-// to add the data received from the ERP.
-func (fr *Repository) UpdateCustomerProfile(
-	ctx context.Context,
-	profileID string,
-	cus profileutils.Customer,
-) (*profileutils.Customer, error) {
-	ctx, span := tracer.Start(ctx, "UpdateCustomerProfile")
-	defer span.End()
-
-	customer, err := fr.GetCustomerProfileByProfileID(ctx, profileID)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	collectionName := fr.GetCustomerProfileCollectionName()
-	query := &GetAllQuery{
-		CollectionName: collectionName,
-		FieldName:      "id",
-		Value:          customer.ID,
-		Operator:       "==",
-	}
-	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	customer.CustomerID = cus.CustomerID
-	customer.ReceivablesAccount = cus.ReceivablesAccount
-	customer.Active = cus.Active
-
-	updateCommand := &UpdateCommand{
-		CollectionName: collectionName,
-		ID:             docs[0].Ref.ID,
-		Data:           customer,
-	}
-	err = fr.FirestoreClient.Update(ctx, updateCommand)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-	return customer, nil
-}
-
 // PersistIncomingSMSData persists SMS data
 func (fr *Repository) PersistIncomingSMSData(
 	ctx context.Context,

@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -46,9 +45,6 @@ type SignUpUseCases interface {
 	// adds a new push token in the users profile if the push token does not exist
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
 
-	// called to create a customer account in the ERP. This API is only valid for `BEWELL CONSUMER`
-	// it should be the last call after updating the users bio data. Its should not return an error
-	// when it fails due to unreachable errors, rather it should retry
 	CompleteSignup(ctx context.Context, flavour feedlib.Flavour) (bool, error)
 
 	// removes a push token from the users profile
@@ -338,7 +334,7 @@ func (s *SignUpUseCasesImpl) RegisterPushToken(ctx context.Context, token string
 	return true, nil
 }
 
-// CompleteSignup called to create a customer account in the ERP. This API is only valid for `BEWELL
+// CompleteSignup called to link a cover This API is only valid for `BEWELL
 // CONSUMER`
 func (s *SignUpUseCasesImpl) CompleteSignup(
 	ctx context.Context,
@@ -388,24 +384,6 @@ func (s *SignUpUseCasesImpl) CompleteSignup(
 			log.Printf("failed to save coverlinking `started` event: %v", err)
 		}
 
-	}
-
-	if profile.UserBioData.FirstName == nil || profile.UserBioData.LastName == nil {
-		return false, exceptions.CompleteSignUpError(nil)
-	}
-	fullName := fmt.Sprintf("%v %v",
-		*profile.UserBioData.FirstName,
-		*profile.UserBioData.LastName,
-	)
-
-	err = s.supplierUsecase.CreateCustomerAccount(
-		ctx,
-		fullName,
-		profileutils.PartnerTypeConsumer,
-	)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		logrus.Printf("failed to create customer account with error: %v", err)
 	}
 
 	return true, nil

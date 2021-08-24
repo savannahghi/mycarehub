@@ -25,8 +25,6 @@ type BaseExtension interface {
 	GetLoggedInUser(ctx context.Context) (*dto.UserInfo, error)
 	GetLoggedInUserUID(ctx context.Context) (string, error)
 	NormalizeMSISDN(msisdn string) (*string, error)
-	FetchDefaultCurrency(c apiclient.Client,
-	) (*apiclient.FinancialYearAndCurrency, error)
 	LoginClient(username string, password string) (apiclient.Client, error)
 	FetchUserProfile(authClient apiclient.Client) (*profileutils.EDIUserProfile, error)
 	LoadDepsFromYAML() (*interserviceclient.DepsConfig, error)
@@ -141,13 +139,6 @@ func (b *BaseExtensionImpl) GetLoggedInUserUID(ctx context.Context) (string, err
 // NormalizeMSISDN validates the input phone number.
 func (b *BaseExtensionImpl) NormalizeMSISDN(msisdn string) (*string, error) {
 	return converterandformatter.NormalizeMSISDN(msisdn)
-}
-
-// FetchDefaultCurrency fetched an ERP's organization's default
-// current currency
-func (b *BaseExtensionImpl) FetchDefaultCurrency(c apiclient.Client,
-) (*apiclient.FinancialYearAndCurrency, error) {
-	return apiclient.FetchDefaultCurrency(c)
 }
 
 // LoginClient returns a logged in client with the supplied username and password

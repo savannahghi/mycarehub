@@ -73,12 +73,6 @@ type CustomerRepository interface {
 
 	// UpdateUserProfileEmail updates user profile's email
 	UpdateUserProfileEmail(ctx context.Context, phone string, email string) error
-
-	UpdateCustomerProfile(
-		ctx context.Context,
-		profileID string,
-		cus profileutils.Customer,
-	) (*profileutils.Customer, error)
 }
 
 // OnboardingRepository interface that provide access to all persistent storage operations

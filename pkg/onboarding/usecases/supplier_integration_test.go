@@ -10,7 +10,6 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
@@ -2676,116 +2675,6 @@ func clean(newCtx context.Context, testPhoneNumber string, t *testing.T, service
 	if err != nil {
 		t.Errorf("failed to clean data after test error: %v", err)
 		return
-	}
-}
-
-func TestCreateCustomerAccount(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-	type args struct {
-		ctx         context.Context
-		name        string
-		partnerType profileutils.PartnerType
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "happy:) create customer account",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeConsumer,
-			},
-			wantErr: false,
-		},
-		{
-			name: "sad:( wrong partner type",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeCoach,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := s.Supplier.CreateCustomerAccount(
-				tt.args.ctx,
-				tt.args.name,
-				tt.args.partnerType,
-			)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.CreateCustomerAccount() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-		})
-	}
-}
-
-func TestCreateSupplierAccount(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-	type args struct {
-		ctx         context.Context
-		name        string
-		partnerType profileutils.PartnerType
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *profileutils.Supplier
-		wantErr bool
-	}{
-		{
-			name: "happy:) create supplier account",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeRider,
-			},
-			wantErr: false,
-		},
-		{
-			name: "sad:( wrong partner type",
-			args: args{
-				ctx:         ctx,
-				name:        *utils.GetRandomName(),
-				partnerType: profileutils.PartnerTypeConsumer,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := s.Supplier.CreateSupplierAccount(tt.args.ctx, tt.args.name, tt.args.partnerType)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.CreateSupplierAccount() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
 	}
 }
 

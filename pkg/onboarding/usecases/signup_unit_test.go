@@ -15,7 +15,6 @@ import (
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
 	"gitlab.slade360emr.com/go/apiclient"
-	dm "gitlab.slade360emr.com/go/commontools/accounting/pkg/domain"
 	crmDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
@@ -1285,18 +1284,11 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
-				}
-
 				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
 					return &apiclient.FinancialYearAndCurrency{
 						ID: &id,
 					}, nil
-				}
-				fakePubSub.NotifyCreateCustomerFn = func(ctx context.Context, data dto.CustomerPubSubMessage) error {
-					return nil
 				}
 
 				fakePubSub.TopicIDsFn = func() []string {
@@ -1397,10 +1389,6 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
-				}
-
 				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
 					id := uuid.New().String()
 					return &apiclient.FinancialYearAndCurrency{
@@ -1408,11 +1396,6 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 					}, nil
 				}
 
-				fakeEPRSvc.CreateCustomerFn = func(
-					customerPayload dm.CustomerPayload,
-				) (*profileutils.Customer, error) {
-					return nil, fmt.Errorf("failed to add customer supplier ERP account")
-				}
 			}
 
 			if tt.name == "invalid:fail_to_FetchDefaultCurrency" {
@@ -1446,10 +1429,6 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 							LastName:  &userLastName,
 						},
 					}, nil
-				}
-
-				fakeEPRSvc.FetchERPClientFn = func() *apiclient.ServerClient {
-					return &apiclient.ServerClient{}
 				}
 
 				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {

@@ -13,7 +13,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/ussd"
-	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 )
 
 // Interactor represents an assemble of all use cases into a single object that can be instantiated anywhere
@@ -24,7 +23,6 @@ type Interactor struct {
 	Login        usecases.LoginUseCases
 	Survey       usecases.SurveyUseCases
 	UserPIN      usecases.UserPINUseCases
-	ERP          erp.AccountingUsecase
 	ChargeMaster chargemaster.ServiceChargeMaster
 	Engagement   engagement.ServiceEngagement
 	Messaging    messaging.ServiceMessaging
@@ -46,7 +44,6 @@ func NewOnboardingInteractor(
 	login usecases.LoginUseCases,
 	survey usecases.SurveyUseCases,
 	userpin usecases.UserPINUseCases,
-	erp erp.AccountingUsecase,
 	chrg chargemaster.ServiceChargeMaster,
 	engage engagement.ServiceEngagement,
 	mes messaging.ServiceMessaging,
@@ -67,7 +64,6 @@ func NewOnboardingInteractor(
 		Login:        login,
 		Survey:       survey,
 		UserPIN:      userpin,
-		ERP:          erp,
 		ChargeMaster: chrg,
 		Engagement:   engage,
 		Messaging:    mes,

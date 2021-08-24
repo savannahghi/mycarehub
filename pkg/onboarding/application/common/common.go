@@ -82,12 +82,6 @@ const (
 
 // PubSub topic names
 const (
-	// CreateCustomerTopic is the TopicID for customer creation Topic
-	CreateCustomerTopic = "customers.create"
-
-	// CreateSupplierTopic is the TopicID for supplier creation Topic
-	CreateSupplierTopic = "suppliers.create"
-
 	// CreateCRMContact is the TopicID for CRM contact creation
 	CreateCRMContact = "crm.contact.create"
 

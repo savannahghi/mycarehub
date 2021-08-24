@@ -42,22 +42,6 @@ func (ps *ServicePubSubMessaging) NotifyUpdateContact(
 	return ps.newPublish(ctx, contact, common.UpdateCRMContact)
 }
 
-// NotifyCreateCustomer publishes to customers.create topic
-func (ps *ServicePubSubMessaging) NotifyCreateCustomer(
-	ctx context.Context,
-	data dto.CustomerPubSubMessage,
-) error {
-	return ps.newPublish(ctx, data, common.CreateCustomerTopic)
-}
-
-// NotifyCreateSupplier publishes to suppliers.create topic
-func (ps *ServicePubSubMessaging) NotifyCreateSupplier(
-	ctx context.Context,
-	data dto.SupplierPubSubMessage,
-) error {
-	return ps.newPublish(ctx, data, common.CreateCustomerTopic)
-}
-
 // NotifyCoverLinking pushes to covers.link topic
 func (ps *ServicePubSubMessaging) NotifyCoverLinking(
 	ctx context.Context,

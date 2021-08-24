@@ -244,40 +244,6 @@ type PushTokenPayload struct {
 	UID       string `json:"uid"`
 }
 
-// CustomerPubSubMessage is an `onboarding` PubSub message struct
-type CustomerPubSubMessage struct {
-	CustomerPayload CustomerPayload `json:"customerPayload"`
-	UID             string          `json:"uid"`
-}
-
-// CustomerPayload is the customer data used to create a customer
-// business partner in the ERP
-type CustomerPayload struct {
-	Active       bool                     `json:"active"`
-	PartnerName  string                   `json:"partner_name"`
-	Country      string                   `json:"country"`
-	Currency     string                   `json:"currency"`
-	IsCustomer   bool                     `json:"is_customer"`
-	CustomerType profileutils.PartnerType `json:"customer_type"`
-}
-
-// SupplierPubSubMessage is an `onboarding` PubSub message struct
-type SupplierPubSubMessage struct {
-	SupplierPayload SupplierPayload `json:"supplierPayload"`
-	UID             string          `json:"uid"`
-}
-
-// SupplierPayload is the supplier data used to create a supplier
-// business partner in the ERP
-type SupplierPayload struct {
-	Active       bool                     `json:"active"`
-	PartnerName  string                   `json:"partner_name"`
-	Country      string                   `json:"country"`
-	Currency     string                   `json:"currency"`
-	IsSupplier   bool                     `json:"is_supplier"`
-	SupplierType profileutils.PartnerType `json:"supplier_type"`
-}
-
 // EmailNotificationPayload is the email payload used to send email
 // supplier and admins for KYC requests
 type EmailNotificationPayload struct {

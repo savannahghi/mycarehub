@@ -13,8 +13,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
-
-	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 )
 
 const (
@@ -61,21 +59,12 @@ type ServicePubSub interface {
 		ctx context.Context,
 		contact domain.CRMContact,
 	) error
-	NotifyCreateCustomer(
-		ctx context.Context,
-		data dto.CustomerPubSubMessage,
-	) error
-	NotifyCreateSupplier(
-		ctx context.Context,
-		data dto.SupplierPubSubMessage,
-	) error
 }
 
 // ServicePubSubMessaging sends "real" (production) notifications
 type ServicePubSubMessaging struct {
 	client  *pubsub.Client
 	baseExt extension.BaseExtension
-	erp     erp.AccountingUsecase
 	crm     crm.ServiceCrm
 	edi     edi.ServiceEdi
 	repo    repository.OnboardingRepository
@@ -85,7 +74,6 @@ type ServicePubSubMessaging struct {
 func NewServicePubSubMessaging(
 	client *pubsub.Client,
 	ext extension.BaseExtension,
-	erp erp.AccountingUsecase,
 	crm crm.ServiceCrm,
 	edi edi.ServiceEdi,
 	repo repository.OnboardingRepository,
@@ -93,7 +81,6 @@ func NewServicePubSubMessaging(
 	s := &ServicePubSubMessaging{
 		client:  client,
 		baseExt: ext,
-		erp:     erp,
 		crm:     crm,
 		edi:     edi,
 		repo:    repo,
@@ -143,8 +130,6 @@ func (ps ServicePubSubMessaging) AddPubSubNamespace(topicName string) string {
 // TopicIDs returns the known (registered) topic IDs
 func (ps ServicePubSubMessaging) TopicIDs() []string {
 	return []string{
-		ps.AddPubSubNamespace(common.CreateCustomerTopic),
-		ps.AddPubSubNamespace(common.CreateSupplierTopic),
 		ps.AddPubSubNamespace(common.CreateCRMContact),
 		ps.AddPubSubNamespace(common.UpdateCRMContact),
 		ps.AddPubSubNamespace(common.LinkCoverTopic),

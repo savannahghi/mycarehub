@@ -38,7 +38,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
-	erp "gitlab.slade360emr.com/go/commontools/accounting/pkg/usecases"
 
 	crmExt "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
@@ -154,7 +153,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
-	erp := erp.NewAccounting()
 	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
 	edi := edi.NewEdiService(ediClient, fr)
 	// hubspot usecases
@@ -168,7 +166,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		ext,
-		erp,
 		crmExt,
 		edi,
 		fr,
@@ -179,7 +176,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	profile := usecases.NewProfileUseCase(fr, ext, engage, ps, crmExt)
-	supplier := usecases.NewSupplierUseCases(fr, profile, erp, chrg, engage, mes, ext, ps)
+	supplier := usecases.NewSupplierUseCases(fr, profile, chrg, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
 	userpin := usecases.NewUserPinUseCase(fr, profile, ext, pinExt, engage)
@@ -192,7 +189,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		Login:        login,
 		Survey:       survey,
 		UserPIN:      userpin,
-		ERP:          erp,
 		ChargeMaster: chrg,
 		Engagement:   engage,
 		PubSub:       ps,
@@ -3605,84 +3601,6 @@ func TestGetNHIFDetailsByProfileID(t *testing.T) {
 			if tt.wantErr && nhif != nil {
 				t.Errorf("the error was not expected")
 				return
-			}
-		})
-	}
-}
-
-func TestUpdateCustomerProfile(t *testing.T) {
-	ctx := context.Background()
-
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		t.Errorf("failed to initialize test FireStore client")
-		return
-	}
-	if fbc == nil {
-		t.Errorf("failed to initialize test FireBase client")
-		return
-	}
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
-
-	profileID := uuid.New().String()
-	_, err := fr.CreateEmptyCustomerProfile(ctx, profileID)
-	if err != nil {
-		t.Errorf("failed to create test empty customer profile: %v", err)
-		return
-	}
-
-	customerData := profileutils.Customer{
-		CustomerID: uuid.New().String(),
-		ReceivablesAccount: profileutils.ReceivablesAccount{
-			ID: uuid.New().String(),
-		},
-	}
-	type args struct {
-		ctx       context.Context
-		profileID string
-		cus       profileutils.Customer
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "happy:) update a customer",
-			args: args{
-				ctx:       ctx,
-				profileID: profileID,
-				cus:       customerData,
-			},
-			wantErr: false,
-		},
-		{
-			name: "sad:( failed update a customer",
-			args: args{
-				ctx:       ctx,
-				profileID: uuid.New().String(),
-				cus:       customerData,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			customer, err := fr.UpdateCustomerProfile(tt.args.ctx, tt.args.profileID, tt.args.cus)
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Repository.UpdateCustomerProfile() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if customer != nil {
-				if customer.CustomerID == "" && customer.ReceivablesAccount.ID == "" {
-					t.Errorf("expected customer id and receivables account")
-					return
-				}
 			}
 		})
 	}
