@@ -73,6 +73,10 @@ type RoleUseCase interface {
 	// and creating the test role used for running integration and acceptance tests
 	CreateUnauthorizedRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
 
+	// UnauthorizedDeleteRole creates a role without performing user authorization
+	// This usecase is useful for cleaning up and removing the test role(s) used for running integration and acceptance tests
+	UnauthorizedDeleteRole(ctx context.Context, roleID string) (bool, error)
+
 	GetRolesByIDs(ctx context.Context, roleIDs []string) ([]*dto.RoleOutput, error)
 }
 
@@ -331,6 +335,31 @@ func (r *RoleUseCaseImpl) DeleteRole(ctx context.Context, roleID string) (bool, 
 		return false, exceptions.RoleNotValid(
 			fmt.Errorf("error: logged in user does not have permissions to delete roles"),
 		)
+	}
+
+	success, err := r.repo.DeleteRole(ctx, roleID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+	return success, nil
+}
+
+// UnauthorizedDeleteRole creates a role without performing user authorization
+//
+// This usecase is useful for cleaning up and removing the test role(s) used for running integration and acceptance tests
+func (r *RoleUseCaseImpl) UnauthorizedDeleteRole(ctx context.Context, roleID string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "UnauthorizedDeleteRole")
+	defer span.End()
+
+	role, err := r.repo.GetRoleByID(ctx, roleID)
+	if err != nil {
+		utils.RecordSpanError(span, err)
+		return false, err
+	}
+
+	if !strings.Contains(strings.ToLower(role.Name), "test") {
+		return false, fmt.Errorf("only test roles can be removed")
 	}
 
 	success, err := r.repo.DeleteRole(ctx, roleID)

@@ -4291,6 +4291,11 @@ func TestHandlers_RemoveRoleByName(t *testing.T) {
 				fakeRepo.GetRoleByNameFn = func(ctx context.Context, roleName string) (*profileutils.Role, error) {
 					return &profileutils.Role{ID: "", Scopes: []string{profileutils.CanAssignRole.Scope}}, nil
 				}
+
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: uuid.NewString(), Name: "Happy Test Role", Scopes: []string{profileutils.CanAssignRole.Scope}}, nil
+				}
+
 				fakeRepo.DeleteRoleFn = func(ctx context.Context, roleID string) (bool, error) {
 					return false, fmt.Errorf("cannot delete role")
 				}
@@ -4305,6 +4310,9 @@ func TestHandlers_RemoveRoleByName(t *testing.T) {
 				}
 				fakeRepo.GetRoleByNameFn = func(ctx context.Context, roleName string) (*profileutils.Role, error) {
 					return &profileutils.Role{ID: "", Scopes: []string{profileutils.CanAssignRole.Scope}}, nil
+				}
+				fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+					return &profileutils.Role{ID: uuid.NewString(), Name: "Happy Test Role", Scopes: []string{profileutils.CanAssignRole.Scope}}, nil
 				}
 				fakeRepo.DeleteRoleFn = func(ctx context.Context, roleID string) (bool, error) {
 					return true, nil

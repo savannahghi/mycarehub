@@ -598,6 +598,95 @@ func TestRoleUseCaseImpl_DeleteRole(t *testing.T) {
 	}
 }
 
+func TestRoleUseCaseImpl_UnauthorizedDeleteRole(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+
+	type args struct {
+		ctx    context.Context
+		roleID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy: remove test role",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad: remove non-test role",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad: remove role error",
+			args: args{
+				ctx:    ctx,
+				roleID: uuid.NewString(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		if tt.name == "happy: remove test role" {
+			fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+				return &profileutils.Role{ID: uuid.NewString(), Name: "Happy Test Role"}, nil
+			}
+			fakeRepo.DeleteRoleFn = func(ctx context.Context, roleID string) (bool, error) {
+				return true, nil
+			}
+		}
+
+		if tt.name == "sad: remove non-test role" {
+			fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+				return &profileutils.Role{ID: uuid.NewString(), Name: "Crucial Role"}, nil
+			}
+			fakeRepo.DeleteRoleFn = func(ctx context.Context, roleID string) (bool, error) {
+				return true, nil
+			}
+		}
+
+		if tt.name == "sad: remove role error" {
+			fakeRepo.GetRoleByIDFn = func(ctx context.Context, roleID string) (*profileutils.Role, error) {
+				return &profileutils.Role{ID: uuid.NewString(), Name: "Happy Test Role"}, nil
+			}
+			fakeRepo.DeleteRoleFn = func(ctx context.Context, roleID string) (bool, error) {
+				return true, fmt.Errorf("cannot remove role")
+			}
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := i.Role.UnauthorizedDeleteRole(tt.args.ctx, tt.args.roleID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("RoleUseCaseImpl.UnauthorizedDeleteRole() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("RoleUseCaseImpl.UnauthorizedDeleteRole() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestRoleUseCaseImpl_GetAllPermissions(t *testing.T) {
 
 	ctx := context.Background()

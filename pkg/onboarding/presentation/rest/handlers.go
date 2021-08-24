@@ -1286,7 +1286,7 @@ func (h *HandlersInterfacesImpl) RemoveRoleByName() http.HandlerFunc {
 			return
 		}
 
-		_, err = h.interactor.Role.DeleteRole(ctx, role.ID)
+		_, err = h.interactor.Role.UnauthorizedDeleteRole(ctx, role.ID)
 		if err != nil {
 			serverutils.WriteJSONResponse(rw, err, http.StatusInternalServerError)
 			return
