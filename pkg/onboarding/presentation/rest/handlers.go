@@ -48,9 +48,7 @@ type HandlersInterfaces interface {
 	RemoveRoleToUser() http.HandlerFunc
 	UpdateUserProfile() http.HandlerFunc
 	IncomingATSMS() http.HandlerFunc
-	IncomingUSSDHandler() http.HandlerFunc
 	SwitchFlaggedFeaturesHandler() http.HandlerFunc
-	// USSDEndNotificationHandler() http.HandlerFunc
 	PollServices() http.HandlerFunc
 	CheckHasPermission() http.HandlerFunc
 
@@ -1110,40 +1108,6 @@ func (h *HandlersInterfacesImpl) IncomingATSMS() http.HandlerFunc {
 			dto.OKResp{
 				Status: "Africa's Talking SMS data successfully created"},
 			http.StatusOK)
-	}
-}
-
-//IncomingUSSDHandler is a REST endpoint that is ussd create USSD
-//The Content-Type from AIT is x-www-form-urlencoded
-//To get the x-www-form-urlencoded request body we need to first call the below function on the request object
-//It parses the query string present in the URL and populates the Form field of the request object
-//https://golangbyexample.com/url-encoded-body-golang/
-func (h *HandlersInterfacesImpl) IncomingUSSDHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		p := &dto.SessionDetails{}
-
-		err := r.ParseForm()
-		if err != nil {
-			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		p.SessionID = r.PostForm.Get("sessionId")
-		phone := r.PostForm.Get("phoneNumber")
-		p.PhoneNumber = &phone
-		p.Text = r.PostForm.Get("text")
-		sessionDetails, err := utils.ValidateUSSDDetails(p)
-		if err != nil {
-			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-		resp := h.interactor.AITUSSD.HandleResponseFromUSSDGateway(
-			ctx,
-			sessionDetails,
-		)
-		fmt.Fprintf(w, "%s", resp)
 	}
 }
 

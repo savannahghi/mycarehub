@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strconv"
 
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
@@ -129,15 +128,6 @@ func FindItem(slice []string, value string) (int, bool) {
 		}
 	}
 	return -1, false
-}
-
-// ParseUSSDDateInput ...
-func ParseUSSDDateInput(date string) string {
-	dayEntered, _ := strconv.Atoi(date[0:2])
-	monthEntered, _ := strconv.Atoi(date[2:4])
-	yearEntered, _ := strconv.Atoi(date[4:8])
-
-	return fmt.Sprintf("%v-%v-%v", dayEntered, monthEntered, yearEntered)
 }
 
 // UniquePermissionsArray removes duplicate permissions in an array of permissions

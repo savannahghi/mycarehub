@@ -146,11 +146,6 @@ type FakeOnboardingRepository struct {
 
 	PersistIncomingSMSDataFn func(ctx context.Context, input *dto.AfricasTalkingMessage) error
 
-	AddAITSessionDetailsFn func(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error)
-	GetAITSessionDetailsFn func(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error)
-	UpdateSessionLevelFn   func(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error)
-	UpdateSessionPINFn     func(ctx context.Context, sessionID string, pin string) (*domain.USSDLeadDetails, error)
-
 	UpdateCustomerProfileFn func(
 		ctx context.Context,
 		profileID string,
@@ -176,13 +171,8 @@ type FakeOnboardingRepository struct {
 	UpdateAddressesFn               func(ctx context.Context, id string, address profileutils.Address, addressType enumutils.AddressType) error
 	ListUserProfilesFn              func(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error)
 	UpdateOptOutFn                  func(ctx context.Context, option string, phoneNumber string) error
-	UpdateAITSessionDetailsFn       func(ctx context.Context, phoneNumber string, contactLead *domain.USSDLeadDetails) error
 	UpdateFavNavActionsFn           func(ctx context.Context, id string, favActions []string) error
 	GetUserMarketingDataFn          func(ctx context.Context, phoneNumber string) (*dto.Segment, error)
-	HandleResponseFromUSSDGatewayFn func(context context.Context, input *dto.SessionDetails) string
-	SetUSSDUserPinFn                func(ctx context.Context, phoneNumber string, PIN string) error
-	SaveUSSDEventFn                 func(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
-	GetAITDetailsFn                 func(ctx context.Context, phoneNumber string) (*domain.USSDLeadDetails, error)
 
 	//roles
 	CreateRoleFn               func(ctx context.Context, profileID string, role dto.RoleInput) (*profileutils.Role, error)
@@ -778,40 +768,6 @@ func (f *FakeOnboardingRepository) PersistIncomingSMSData(
 	return f.PersistIncomingSMSDataFn(ctx, input)
 }
 
-//AddAITSessionDetails ...
-func (f *FakeOnboardingRepository) AddAITSessionDetails(
-	ctx context.Context,
-	input *dto.SessionDetails,
-) (*domain.USSDLeadDetails, error) {
-	return f.AddAITSessionDetailsFn(ctx, input)
-}
-
-//GetAITSessionDetails ...
-func (f *FakeOnboardingRepository) GetAITSessionDetails(
-	ctx context.Context,
-	sessionID string,
-) (*domain.USSDLeadDetails, error) {
-	return f.GetAITSessionDetailsFn(ctx, sessionID)
-}
-
-//UpdateSessionLevel ...
-func (f *FakeOnboardingRepository) UpdateSessionLevel(
-	ctx context.Context,
-	sessionID string,
-	level int,
-) (*domain.USSDLeadDetails, error) {
-	return f.UpdateSessionLevelFn(ctx, sessionID, level)
-}
-
-//UpdateSessionPIN ...
-func (f *FakeOnboardingRepository) UpdateSessionPIN(
-	ctx context.Context,
-	sessionID string,
-	pin string,
-) (*domain.USSDLeadDetails, error) {
-	return f.UpdateSessionPINFn(ctx, sessionID, pin)
-}
-
 // ListUserProfiles ...
 func (f *FakeOnboardingRepository) ListUserProfiles(
 	ctx context.Context,
@@ -838,23 +794,6 @@ func (f *FakeOnboardingRepository) CreateDetailedSupplierProfile(
 	return f.CreateDetailedSupplierProfileFn(ctx, profileID, supplier)
 }
 
-// UpdateAITSessionDetails ...
-func (f *FakeOnboardingRepository) UpdateAITSessionDetails(
-	ctx context.Context,
-	phoneNumber string,
-	contactLead *domain.USSDLeadDetails,
-) error {
-	return f.UpdateAITSessionDetailsFn(ctx, phoneNumber, contactLead)
-}
-
-// GetAITDetails ...
-func (f *FakeOnboardingRepository) GetAITDetails(
-	ctx context.Context,
-	phoneNumber string,
-) (*domain.USSDLeadDetails, error) {
-	return f.GetAITDetailsFn(ctx, phoneNumber)
-}
-
 // UpdateFavNavActions ...
 func (f *FakeOnboardingRepository) UpdateFavNavActions(
 	ctx context.Context,
@@ -870,31 +809,6 @@ func (f *FakeOnboardingRepository) GetUserMarketingData(
 	phoneNumber string,
 ) (*dto.Segment, error) {
 	return f.GetUserMarketingDataFn(ctx, phoneNumber)
-}
-
-// HandleResponseFromUSSDGateway ...
-func (f *FakeOnboardingRepository) HandleResponseFromUSSDGateway(
-	context context.Context,
-	input *dto.SessionDetails,
-) string {
-	return f.HandleResponseFromUSSDGatewayFn(context, input)
-}
-
-// SetUSSDUserPin ...
-func (f *FakeOnboardingRepository) SetUSSDUserPin(
-	ctx context.Context,
-	phoneNumber string,
-	PIN string,
-) error {
-	return f.SetUSSDUserPinFn(ctx, phoneNumber, PIN)
-}
-
-// SaveUSSDEvent ...
-func (f *FakeOnboardingRepository) SaveUSSDEvent(
-	ctx context.Context,
-	input *dto.USSDEvent,
-) (*dto.USSDEvent, error) {
-	return f.SaveUSSDEventFn(ctx, input)
 }
 
 //CreateRole ...

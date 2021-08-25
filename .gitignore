@@ -15,4 +15,3 @@ coverage.json
 coverage_report.txt
 install-misspell.sh
 .vscode/
-/pkg/onboarding/usecases/ussd/profile_integration_test.go

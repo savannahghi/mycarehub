@@ -243,31 +243,6 @@ type OnboardingRepository interface {
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error)
 
 	PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error
-
-	AddAITSessionDetails(
-		ctx context.Context,
-		input *dto.SessionDetails,
-	) (*domain.USSDLeadDetails, error)
-	GetAITSessionDetails(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error)
-	UpdateSessionLevel(
-		ctx context.Context,
-		sessionID string,
-		level int,
-	) (*domain.USSDLeadDetails, error)
-	UpdateSessionPIN(
-		ctx context.Context,
-		sessionID string,
-		pin string,
-	) (*domain.USSDLeadDetails, error)
-
-	UpdateAITSessionDetails(
-		ctx context.Context,
-		phoneNumber string,
-		payload *domain.USSDLeadDetails,
-	) error
-	GetAITDetails(ctx context.Context, phoneNumber string) (*domain.USSDLeadDetails, error)
-
-	SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
 }
 
 // UserProfileRepository interface that provide access to all persistent storage operations for user profile

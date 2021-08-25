@@ -335,15 +335,6 @@ type SupplierPubSubMessagePayload struct {
 	UID             string             `json:"uid"`
 }
 
-// USSDEvent records any USSD event(e.g. entering firstname, lastname etc.) that happens for every session and the time
-type USSDEvent struct {
-	SessionID         string     `firestore:"sessionID"`
-	PhoneNumber       string     `firestore:"phoneNumber"`
-	USSDEventDateTime *time.Time `firestore:"ussdEventDateTime"`
-	Level             int        `firestore:"level"`
-	USSDEventName     string     `firestore:"ussdEventName"`
-}
-
 // AssignRolePayload is the payload used to assign a role to a user
 type AssignRolePayload struct {
 	UserID string `json:"userID"`
@@ -352,7 +343,8 @@ type AssignRolePayload struct {
 
 // DeleteRolePayload is the payload used to delete a role
 type DeleteRolePayload struct {
-	Name   string `json:"name"`
+	Name string `json:"name"`
+
 	RoleID string `json:"roleID"`
 }
 

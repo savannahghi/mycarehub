@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -40,7 +39,6 @@ import (
 	mockRepo "github.com/savannahghi/onboarding/pkg/onboarding/repository/mock"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	adminSrv "github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
-	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/ussd"
 	hubspotRepo "gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/database/fs"
 	hubspotUsecases "gitlab.slade360emr.com/go/commontools/crm/pkg/usecases"
 )
@@ -81,14 +79,13 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	sms := usecases.NewSMSUsecase(r, ext)
 	role := usecases.NewRoleUseCases(r, ext)
 
-	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps, crmExt)
 	adminSrv := adminSrv.NewService(ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login,
 		survey, userpin,
 		engagementSvc, messagingSvc, nhif, ps, sms,
-		aitUssd, adminSrv, crmExt,
+		adminSrv, crmExt,
 		role,
 	)
 	if err != nil {
@@ -251,17 +248,6 @@ func composeSMSMessageDataPayload(
 
 	smspayload := strings.NewReader(data.Encode())
 	return smspayload
-}
-
-func composeUssdPayload(t *testing.T, payload *dto.SessionDetails) *strings.Reader {
-	data := url.Values{}
-	data.Set("phoneNumber", *payload.PhoneNumber)
-	data.Set("sessionId", payload.SessionID)
-	data.Set("text", payload.Text)
-	data.Set("level", strconv.Itoa(payload.Level))
-
-	ussdPayload := strings.NewReader(data.Encode())
-	return ussdPayload
 }
 
 func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
@@ -3573,149 +3559,6 @@ func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
 				t.Errorf("nil response body data")
 				return
 			}
-		})
-	}
-}
-
-func TestHandlersInterfacesImpl_USSDHandler(t *testing.T) {
-
-	i, err := InitializeFakeOnboardingInteractor()
-	if err != nil {
-		t.Errorf("failed to initialize onboarding interactor: %v", err)
-		return
-	}
-	h := rest.NewHandlersInterfaces(i)
-
-	USSDPhoneNumber := "+254711445566"
-	invalidUSSDPhoneNumber := ""
-	sessionId := "123456778"
-	invalidSessionId := ""
-	text := "1"
-	level := 0
-
-	validPayload := &dto.SessionDetails{
-		SessionID:   sessionId,
-		PhoneNumber: &USSDPhoneNumber,
-		Level:       level,
-		Text:        text,
-	}
-
-	invalidPayload := &dto.SessionDetails{
-		SessionID:   invalidSessionId,
-		PhoneNumber: &invalidUSSDPhoneNumber,
-		Level:       level,
-		Text:        text,
-	}
-
-	validUSSDPayload := composeUssdPayload(t, validPayload)
-	invalidUSSDPayload := composeUssdPayload(t, invalidPayload)
-
-	type args struct {
-		url        string
-		httpMethod string
-		body       io.Reader
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantStatus int
-		wantErr    bool
-	}{
-		{
-			name: "valid:_successful_USSD",
-			args: args{
-				url:        fmt.Sprintf("%s/ait_ussd", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       validUSSDPayload,
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    false,
-		},
-		{
-			name: "Invalid:_unsuccessful_USSD",
-			args: args{
-				url:        fmt.Sprintf("%s/ait_ussd", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       invalidUSSDPayload,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-		{
-			name: "Invalid:_nil_body",
-			args: args{
-				url:        fmt.Sprintf("%s/ait_ussd", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       nil,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
-			if err != nil {
-				t.Errorf("can't create new request: %v", err)
-				return
-			}
-			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-			response := httptest.NewRecorder()
-			if tt.name == "valid:_successful_USSD" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254721026491"
-					return &phone, nil
-				}
-
-				fakeRepo.AddAITSessionDetailsFn = func(ctx context.Context, input *dto.SessionDetails) (*domain.USSDLeadDetails, error) {
-					return &domain.USSDLeadDetails{
-						ID:          uuid.New().String(),
-						SessionID:   input.SessionID,
-						PhoneNumber: *input.PhoneNumber,
-						Level:       input.Level,
-					}, nil
-				}
-
-				fakeRepo.UpdateSessionLevelFn = func(ctx context.Context, sessionID string, level int) (*domain.USSDLeadDetails, error) {
-					return nil, nil
-				}
-
-				fakeRepo.GetAITSessionDetailsFn = func(ctx context.Context, sessionID string) (*domain.USSDLeadDetails, error) {
-					return &domain.USSDLeadDetails{
-						Level: 2,
-					}, nil
-				}
-
-				fakeRepo.CheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string) (bool, error) {
-					return true, nil
-				}
-				fakeRepo.UpdateSessionPINFn = func(ctx context.Context, sessionID, pin string) (*domain.USSDLeadDetails, error) {
-					return nil, nil
-				}
-			}
-			if tt.name == "Invalid:_unsuccessful_USSD" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					return nil, fmt.Errorf("empty phone number")
-				}
-			}
-			svr := h.IncomingUSSDHandler()
-			svr.ServeHTTP(response, req)
-
-			if tt.wantStatus != response.Code {
-				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
-				return
-			}
-
-			dataResponse, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				t.Errorf("can't read response body: %v", err)
-				return
-			}
-			if dataResponse == nil {
-				t.Errorf("nil response body data")
-				return
-			}
-
 		})
 	}
 }

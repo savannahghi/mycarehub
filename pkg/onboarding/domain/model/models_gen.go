@@ -50,19 +50,17 @@ type ChannelOfContact string
 
 const (
 	ChannelOfContactApp       ChannelOfContact = "APP"
-	ChannelOfContactUssd      ChannelOfContact = "USSD"
 	ChannelOfContactShortcode ChannelOfContact = "SHORTCODE"
 )
 
 var AllChannelOfContact = []ChannelOfContact{
 	ChannelOfContactApp,
-	ChannelOfContactUssd,
 	ChannelOfContactShortcode,
 }
 
 func (e ChannelOfContact) IsValid() bool {
 	switch e {
-	case ChannelOfContactApp, ChannelOfContactUssd, ChannelOfContactShortcode:
+	case ChannelOfContactApp, ChannelOfContactShortcode:
 		return true
 	}
 	return false

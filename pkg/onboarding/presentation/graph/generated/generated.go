@@ -3677,7 +3677,6 @@ enum Payor {
 
 enum ChannelOfContact {
   APP
-  USSD
   SHORTCODE
 }
 

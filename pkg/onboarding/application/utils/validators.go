@@ -112,52 +112,6 @@ func ValidateAficasTalkingSMSData(input *dto.AfricasTalkingMessage) (*dto.Africa
 	}, nil
 }
 
-//ValidateUSSDEvent validates a USSD event
-func ValidateUSSDEvent(input *dto.USSDEvent) (*dto.USSDEvent, error) {
-	if input.SessionID == "" {
-		return nil, fmt.Errorf("ussd event's session id cannot be empty")
-	}
-
-	if input.PhoneNumber == "" {
-		return nil, fmt.Errorf("ussd event's phone number cannot be empty")
-	}
-
-	if input.USSDEventDateTime == nil {
-		return nil, fmt.Errorf("ussd event's date and time cannot be empty")
-	}
-
-	if input.USSDEventName == "" {
-		return nil, fmt.Errorf("ussd event's name cannot be empty")
-	}
-
-	return &dto.USSDEvent{
-		SessionID:         input.SessionID,
-		PhoneNumber:       input.PhoneNumber,
-		USSDEventDateTime: input.USSDEventDateTime,
-		Level:             input.Level,
-		USSDEventName:     input.USSDEventName,
-	}, nil
-}
-
-//ValidateUSSDDetails checks if the phonenumber supplied is valid , that a session ID is provided
-// and returns valid USSD session details.
-func ValidateUSSDDetails(payload *dto.SessionDetails) (*dto.SessionDetails, error) {
-	phone, err := converterandformatter.NormalizeMSISDN(*payload.PhoneNumber)
-	if err != nil {
-		return nil, exceptions.NormalizeMSISDNError(err)
-	}
-	if payload.SessionID == "" {
-		err := fmt.Errorf("expected sessionid to be defined")
-		return nil, exceptions.SessionIDError(err)
-	}
-	return &dto.SessionDetails{
-		PhoneNumber: phone,
-		SessionID:   payload.SessionID,
-		Level:       payload.Level,
-		Text:        payload.Text,
-	}, nil
-}
-
 // ValidatePIN ...
 func ValidatePIN(pin string) error {
 	validatePINErr := ValidatePINLength(pin)
@@ -178,15 +132,6 @@ func ValidatePINLength(pin string) error {
 	if len(pin) < minPINLength || len(pin) > maxPINLength {
 		return exceptions.ValidatePINLengthError(fmt.Errorf("PIN should be of 4 digits"))
 	}
-	return nil
-}
-
-// ValidateUSSDInput ...
-func ValidateUSSDInput(text string) error {
-	if text == "" {
-		return fmt.Errorf("invalid input")
-	}
-
 	return nil
 }
 

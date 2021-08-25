@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/ussd"
 	"gitlab.slade360emr.com/go/apiclient"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 
@@ -139,7 +138,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage, pubSub)
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
-	aitUssd := ussd.NewUssdUsecases(repo, baseExt, profile, userpin, su, pinExt, pubSub, crmExt)
 	sms := usecases.NewSMSUsecase(repo, baseExt)
 	role := usecases.NewRoleUseCases(repo, baseExt)
 	adminSrv := adminSrv.NewService(baseExt)
@@ -147,7 +145,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login, survey,
 		userpin, engage, mes, nhif, pubSub,
-		sms, aitUssd, adminSrv, crmExt,
+		sms, adminSrv, crmExt,
 		role,
 	)
 	if err != nil {
@@ -169,11 +167,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Add Middleware that records the metrics for HTTP routes
 	r.Use(serverutils.CustomHTTPRequestMetricsMiddleware())
-
-	//USSD routes
-	r.Path("/ait_ussd").
-		Methods(http.MethodPost, http.MethodOptions).
-		HandlerFunc(h.IncomingUSSDHandler())
 
 	// Unauthenticated routes
 	r.Path("/optout").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.OptOut())

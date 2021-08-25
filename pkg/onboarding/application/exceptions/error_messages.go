@@ -163,10 +163,6 @@ const (
 	// the database
 	RecordDoesNotExistErrMsg = "the record cannot be found in the database"
 
-	//SessionIDErrMsg is an error message displayed when a sessionId is not provided in
-	// in the USSD details
-	SessionIDErrMsg = "sessionID not provided"
-
 	//RoleNotValidMsg is an error message displayed when the provided role is not valid
 	// and the user doesn't have permissions to perform an action
 	RoleNotValidMsg = "user role is not valid"

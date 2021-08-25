@@ -440,15 +440,6 @@ func RecordDoesNotExistError(err error) error {
 	}
 }
 
-// SessionIDError return an error when a ussd sessionId is not provided
-func SessionIDError(err error) error {
-	return &errorcodeutil.CustomError{
-		Err:     err,
-		Message: SessionIDErrMsg,
-		Code:    int(errorcodeutil.Internal),
-	}
-}
-
 // RoleNotValid return an error when a user does not have the required role
 func RoleNotValid(err error) error {
 	return &errorcodeutil.CustomError{

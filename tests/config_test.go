@@ -227,16 +227,6 @@ func composeSMSMessageDataPayload(
 	return smspayload
 }
 
-func composeUSSDPayload(t *testing.T, payload *dto.SessionDetails) *strings.Reader {
-	data := url.Values{}
-	data.Set("sessionId", payload.SessionID)
-	data.Set("phoneNumber", *payload.PhoneNumber)
-	data.Set("text", payload.Text)
-
-	smspayload := strings.NewReader(data.Encode())
-	return smspayload
-}
-
 func CreateTestUserByPhone(t *testing.T, phone string) (*profileutils.UserResponse, error) {
 	validPayload, err := composeValidUserPayload(t, phone)
 	if err != nil {
@@ -630,7 +620,6 @@ func TestMain(m *testing.M) {
 				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),
 				r.GetSMSCollectionName(),
-				r.GetUSSDDataCollectionName(),
 				r.GetRolesCollectionName(),
 			}
 			for _, collection := range collections {

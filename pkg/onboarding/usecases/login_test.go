@@ -24,7 +24,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
-	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/ussd"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/serverutils"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
@@ -96,7 +95,6 @@ func TestMain(m *testing.M) {
 				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),
 				r.GetSMSCollectionName(),
-				r.GetUSSDDataCollectionName(),
 				r.GetRolesCollectionName(),
 			}
 			for _, collection := range collections {
@@ -217,8 +215,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 	sms := usecases.NewSMSUsecase(repo, ext)
 
-	aitUssd := ussd.NewUssdUsecases(repo, ext, profile, userpin, su, pinExt, ps, crmExt)
-
 	return &interactor.Interactor{
 		Onboarding: profile,
 		Signup:     su,
@@ -230,7 +226,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		NHIF:       nhif,
 		PubSub:     ps,
 		SMS:        sms,
-		AITUSSD:    aitUssd,
 		CrmExt:     crmExt,
 	}, nil
 }
@@ -464,7 +459,6 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
-	aitUssd := ussd.NewUssdUsecases(r, ext, profile, userpin, su, pinExt, ps, crmExt)
 	adminSrv := adminSrv.NewService(ext)
 	sms := usecases.NewSMSUsecase(r, ext)
 	role := usecases.NewRoleUseCases(r, ext)
@@ -473,7 +467,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 		profile, su, supplier, login,
 		survey, userpin,
 		engagementSvc, messagingSvc, nhif, ps, sms,
-		aitUssd, adminSrv, crmExt,
+		adminSrv, crmExt,
 		role,
 	)
 	if err != nil {

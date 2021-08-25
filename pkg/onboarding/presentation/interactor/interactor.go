@@ -10,7 +10,6 @@ import (
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
-	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/ussd"
 )
 
 // Interactor represents an assemble of all use cases into a single object that can be instantiated anywhere
@@ -26,7 +25,6 @@ type Interactor struct {
 	NHIF       usecases.NHIFUseCases
 	PubSub     pubsubmessaging.ServicePubSub
 	SMS        usecases.SMSUsecase
-	AITUSSD    ussd.Usecase
 	AdminSrv   admin.Usecase
 	CrmExt     crm.ServiceCrm
 	Role       usecases.RoleUseCase
@@ -45,7 +43,6 @@ func NewOnboardingInteractor(
 	nhif usecases.NHIFUseCases,
 	pubsub pubsubmessaging.ServicePubSub,
 	sms usecases.SMSUsecase,
-	aitussd ussd.Usecase,
 	admin admin.Usecase,
 	crmExt crm.ServiceCrm,
 	role usecases.RoleUseCase,
@@ -63,7 +60,6 @@ func NewOnboardingInteractor(
 		NHIF:       nhif,
 		PubSub:     pubsub,
 		SMS:        sms,
-		AITUSSD:    aitussd,
 		AdminSrv:   admin,
 		CrmExt:     crmExt,
 		Role:       role,
