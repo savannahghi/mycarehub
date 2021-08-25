@@ -50,7 +50,6 @@ const (
 	firebaseExchangeRefreshTokenURL      = "https://securetoken.googleapis.com/v1/token?key="
 	marketingDataCollectionName          = "marketing_data"
 	ussdEventsCollectionName             = "ussd_events"
-	coverLinkingEventsCollectionName     = "coverlinking_events"
 	rolesRevocationCollectionName        = "role_revocations"
 	rolesCollectionName                  = "user_roles"
 )
@@ -153,12 +152,6 @@ func (fr Repository) GetUSSDEventsCollectionName() string {
 // GetMarketingDataCollectionName ...
 func (fr Repository) GetMarketingDataCollectionName() string {
 	suffixed := firebasetools.SuffixCollection(marketingDataCollectionName)
-	return suffixed
-}
-
-// GetCoverLinkingEventsCollectionName ...
-func (fr Repository) GetCoverLinkingEventsCollectionName() string {
-	suffixed := firebasetools.SuffixCollection(coverLinkingEventsCollectionName)
 	return suffixed
 }
 
@@ -3543,60 +3536,6 @@ func (fr *Repository) SaveUSSDEvent(
 	}
 
 	event := &dto.USSDEvent{}
-	err = docsnapshot.DataTo(event)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	return event, nil
-}
-
-// SaveCoverAutolinkingEvents saves cover linking events into the database
-func (fr *Repository) SaveCoverAutolinkingEvents(
-	ctx context.Context,
-	input *dto.CoverLinkingEvent,
-) (*dto.CoverLinkingEvent, error) {
-	ctx, span := tracer.Start(ctx, "SaveCoverAutolinkingEvents")
-	defer span.End()
-
-	coverLinkingEvent := &dto.CoverLinkingEvent{
-		ID:                    input.ID,
-		CoverLinkingEventTime: input.CoverLinkingEventTime,
-		CoverStatus:           input.CoverStatus,
-		MemberNumber:          input.MemberNumber,
-		PhoneNumber:           input.PhoneNumber,
-	}
-
-	validatedCoverLinkingEvent, err := utils.ValidateCoverLinkingEvent(coverLinkingEvent)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	createCommand := &CreateCommand{
-		CollectionName: fr.GetCoverLinkingEventsCollectionName(),
-		Data:           validatedCoverLinkingEvent,
-	}
-
-	docRef, err := fr.FirestoreClient.Create(ctx, createCommand)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	getCoverlinkingEventQuery := &GetSingleQuery{
-		CollectionName: fr.GetCoverLinkingEventsCollectionName(),
-		Value:          docRef.ID,
-	}
-
-	docsnapshot, err := fr.FirestoreClient.Get(ctx, getCoverlinkingEventQuery)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	event := &dto.CoverLinkingEvent{}
 	err = docsnapshot.DataTo(event)
 	if err != nil {
 		utils.RecordSpanError(span, err)

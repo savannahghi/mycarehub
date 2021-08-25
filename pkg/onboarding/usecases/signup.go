@@ -3,22 +3,18 @@ package usecases
 import (
 	"context"
 	"log"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
-	"github.com/sirupsen/logrus"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
@@ -74,7 +70,6 @@ type SignUpUseCasesImpl struct {
 	baseExt              extension.BaseExtension
 	engagement           engagement.ServiceEngagement
 	pubsub               pubsubmessaging.ServicePubSub
-	edi                  edi.ServiceEdi
 }
 
 // NewSignUpUseCases returns a new a onboarding usecase
@@ -86,7 +81,6 @@ func NewSignUpUseCases(
 	ext extension.BaseExtension,
 	eng engagement.ServiceEngagement,
 	pubsub pubsubmessaging.ServicePubSub,
-	edi edi.ServiceEdi,
 ) SignUpUseCases {
 	return &SignUpUseCasesImpl{
 		onboardingRepository: r,
@@ -96,7 +90,6 @@ func NewSignUpUseCases(
 		baseExt:              ext,
 		engagement:           eng,
 		pubsub:               pubsub,
-		edi:                  edi,
 	}
 }
 
@@ -334,57 +327,14 @@ func (s *SignUpUseCasesImpl) RegisterPushToken(ctx context.Context, token string
 	return true, nil
 }
 
-// CompleteSignup called to link a cover This API is only valid for `BEWELL
-// CONSUMER`
+// CompleteSignup is not implemented but maintains backward compatibility
+//  This API is only valid for `BEWELL CONSUMER`
 func (s *SignUpUseCasesImpl) CompleteSignup(
 	ctx context.Context,
 	flavour feedlib.Flavour,
 ) (bool, error) {
-	ctx, span := tracer.Start(ctx, "CompleteSignup")
+	_, span := tracer.Start(ctx, "CompleteSignup")
 	defer span.End()
-
-	if flavour != feedlib.FlavourConsumer {
-		return false, exceptions.InvalidFlavourDefinedError()
-	}
-
-	profile, err := s.profileUsecase.UserProfile(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return false, err
-	}
-
-	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return false, err
-	}
-	if len(profile.PushTokens) > 0 {
-		logrus.Printf("This piece of code was called")
-		coverLinkingDetails := dto.LinkCoverPubSubMessage{
-			PhoneNumber: *profile.PrimaryPhone,
-			UID:         uid,
-			PushToken:   profile.PushTokens,
-		}
-
-		logrus.Printf("Publishing to covers.link topic")
-		if err := s.pubsub.NotifyCoverLinking(ctx, coverLinkingDetails); err != nil {
-			utils.RecordSpanError(span, err)
-			log.Printf("failed to publish to covers.link topic: %v", err)
-		}
-
-		currentTime := time.Now()
-		coverLinkingEvent := &dto.CoverLinkingEvent{
-			ID:                    uuid.NewString(),
-			CoverLinkingEventTime: &currentTime,
-			CoverStatus:           CoverLinkingStatusStarted,
-			PhoneNumber:           *profile.PrimaryPhone,
-		}
-
-		if _, err := s.onboardingRepository.SaveCoverAutolinkingEvents(ctx, coverLinkingEvent); err != nil {
-			utils.RecordSpanError(span, err)
-			log.Printf("failed to save coverlinking `started` event: %v", err)
-		}
-
-	}
 
 	return true, nil
 }

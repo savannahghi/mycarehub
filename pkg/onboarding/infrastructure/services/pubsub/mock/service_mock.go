@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
@@ -32,8 +31,6 @@ type FakeServicePubSub struct {
 	AddEngagementPubsubNameSpaceFn func(topic string) string
 	NotifyCreateContactFn          func(ctx context.Context, contact domain.CRMContact) error
 	NotifyUpdateContactFn          func(ctx context.Context, contact domain.CRMContact) error
-	NotifyCoverLinkingFn           func(ctx context.Context, data dto.LinkCoverPubSubMessage) error
-	EDIMemberCoverLinkingFn        func(ctx context.Context, data dto.LinkCoverPubSubMessage) error
 }
 
 // AddPubSubNamespace ...
@@ -100,14 +97,4 @@ func (m *FakeServicePubSub) NotifyCreateContact(ctx context.Context, contact dom
 // NotifyUpdateContact ..
 func (m *FakeServicePubSub) NotifyUpdateContact(ctx context.Context, contact domain.CRMContact) error {
 	return m.NotifyUpdateContactFn(ctx, contact)
-}
-
-// NotifyCoverLinking ..
-func (m *FakeServicePubSub) NotifyCoverLinking(ctx context.Context, data dto.LinkCoverPubSubMessage) error {
-	return m.NotifyCoverLinkingFn(ctx, data)
-}
-
-// EDIMemberCoverLinking represents a mock of the EDIMemberCoverLinking
-func (m *FakeServicePubSub) EDIMemberCoverLinking(ctx context.Context, data dto.LinkCoverPubSubMessage) error {
-	return m.EDIMemberCoverLinkingFn(ctx, data)
 }

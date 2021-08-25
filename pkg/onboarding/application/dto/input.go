@@ -323,21 +323,6 @@ type AgentFilterInput struct {
 	PhoneNumber string `json:"phoneNumber"`
 }
 
-// CoverInput is used to add covers
-type CoverInput struct {
-	PayerSladeCode int      `json:"payerSladeCode"`
-	MemberNumber   string   `json:"memberNumber"`
-	UID            string   `json:"uid"`
-	PushToken      []string `json:"pushToken"`
-}
-
-// LinkCoverPubSubMessage is a `cover linking` pub sub message struct
-type LinkCoverPubSubMessage struct {
-	PhoneNumber string   `json:"phoneNumber"`
-	UID         string   `json:"uid"`
-	PushToken   []string `json:"pushToken"`
-}
-
 //CustomerPubSubMessagePayload is an `onboarding` PubSub message struct for commontools
 type CustomerPubSubMessagePayload struct {
 	CustomerPayload dm.CustomerPayload `json:"customerPayload"`
@@ -357,15 +342,6 @@ type USSDEvent struct {
 	USSDEventDateTime *time.Time `firestore:"ussdEventDateTime"`
 	Level             int        `firestore:"level"`
 	USSDEventName     string     `firestore:"ussdEventName"`
-}
-
-// CoverLinkingEvent is a cover linking struct for cover linking events(started or completed)
-type CoverLinkingEvent struct {
-	ID                    string     `firestore:"id"`
-	CoverLinkingEventTime *time.Time `firestore:"coverLinkingEventTime"`
-	CoverStatus           string     `firestore:"coverStatus"`
-	MemberNumber          string     `firestore:"memberNumber"`
-	PhoneNumber           string     `firestore:"phoneNumber"`
 }
 
 // AssignRolePayload is the payload used to assign a role to a user
@@ -410,15 +386,6 @@ type ProfileSuspensionInput struct {
 	ID      string   `json:"id"`
 	RoleIDs []string `json:"roleIDs"`
 	Reason  string   `json:"reason"`
-}
-
-// EDICoverLinkingPubSubMessage holds the data required to add a cover to the profile
-// of EDI members who received a message with the bewell link an went ahead to
-// download the app
-type EDICoverLinkingPubSubMessage struct {
-	PayerSladeCode int    `json:"payersladecode"`
-	MemberNumber   string `json:"membernumber"`
-	PhoneNumber    string `json:"phonenumber"`
 }
 
 // CheckPermissionPayload is the payload used when checking if a user is authorized

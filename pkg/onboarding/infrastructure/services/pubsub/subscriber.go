@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -81,55 +80,6 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			return
 		}
 		if _, err = ps.crm.UpdateHubSpotContact(ctx, &CRMContact); err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-
-	case ps.AddPubSubNamespace(common.LinkCoverTopic):
-		var userDetails dto.LinkCoverPubSubMessage
-		err := json.Unmarshal(message.Message.Data, &userDetails)
-		if err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-
-		_, err = ps.edi.LinkCover(ctx, userDetails.PhoneNumber, userDetails.UID, userDetails.PushToken)
-		if err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-
-	case ps.AddPubSubNamespace(common.LinkEDIMemberCoverTopic):
-		var userDetails dto.EDICoverLinkingPubSubMessage
-		err := json.Unmarshal(message.Message.Data, &userDetails)
-		if err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-
-		_, err = ps.edi.LinkEDIMemberCover(
-			ctx,
-			userDetails.PhoneNumber,
-			userDetails.MemberNumber,
-			userDetails.PayerSladeCode,
-		)
-		if err != nil {
 			ps.baseExt.WriteJSONResponse(
 				w,
 				ps.baseExt.ErrorMap(err),

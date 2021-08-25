@@ -3,7 +3,6 @@
 package interactor
 
 import (
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
@@ -28,7 +27,6 @@ type Interactor struct {
 	PubSub     pubsubmessaging.ServicePubSub
 	SMS        usecases.SMSUsecase
 	AITUSSD    ussd.Usecase
-	EDI        edi.ServiceEdi
 	AdminSrv   admin.Usecase
 	CrmExt     crm.ServiceCrm
 	Role       usecases.RoleUseCase
@@ -48,7 +46,6 @@ func NewOnboardingInteractor(
 	pubsub pubsubmessaging.ServicePubSub,
 	sms usecases.SMSUsecase,
 	aitussd ussd.Usecase,
-	edi edi.ServiceEdi,
 	admin admin.Usecase,
 	crmExt crm.ServiceCrm,
 	role usecases.RoleUseCase,
@@ -67,7 +64,6 @@ func NewOnboardingInteractor(
 		PubSub:     pubsub,
 		SMS:        sms,
 		AITUSSD:    aitussd,
-		EDI:        edi,
 		AdminSrv:   admin,
 		CrmExt:     crmExt,
 		Role:       role,

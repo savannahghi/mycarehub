@@ -35,7 +35,6 @@ import (
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
 	crmExt "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
@@ -147,12 +146,10 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
-	ediClient := utils.NewInterServiceClient(ediService, ext)
 
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
-	edi := edi.NewEdiService(ediClient, fr)
 	// hubspot usecases
 	hubspotService := hubspot.NewHubSpotService()
 	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(ctx, hubspotService)
@@ -165,7 +162,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		pubSubClient,
 		ext,
 		crmExt,
-		edi,
 		fr,
 	)
 	if err != nil {
@@ -178,7 +174,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
 	userpin := usecases.NewUserPinUseCase(fr, profile, ext, pinExt, engage)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, ext, engage, ps, edi)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, ext, engage, ps)
 
 	return &interactor.Interactor{
 		Onboarding: profile,
@@ -189,7 +185,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		UserPIN:    userpin,
 		Engagement: engage,
 		PubSub:     ps,
-		EDI:        edi,
 		CrmExt:     crmExt,
 	}, nil
 }
@@ -4089,86 +4084,6 @@ func TestRepository_SaveUSSDEvent_IntegrationTest(t *testing.T) {
 
 			if !tt.wantErr && got == nil {
 				t.Errorf("Repository.SaveUSSDEvent() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
-func TestRepository_SaveCoverAutolinkingEvents_Integration_Test(t *testing.T) {
-	ctx := context.Background()
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		t.Errorf("failed to initialize test FireStore client")
-		return
-	}
-	if fbc == nil {
-		t.Errorf("failed to initialize test FireBase client")
-		return
-	}
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	firestoreDB := fb.NewFirebaseRepository(firestoreExtension, fbc)
-
-	currentTime := time.Now()
-
-	type args struct {
-		ctx   context.Context
-		input *dto.CoverLinkingEvent
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *dto.CoverLinkingEvent
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx: ctx,
-				input: &dto.CoverLinkingEvent{
-					ID:                    uuid.NewString(),
-					CoverLinkingEventTime: &currentTime,
-					CoverStatus:           "started autolinking",
-					MemberNumber:          "877386",
-					PhoneNumber:           "+254703754685",
-				},
-			},
-			wantErr: false,
-		},
-
-		{
-			name: "Sad case",
-			args: args{
-				ctx: ctx,
-				input: &dto.CoverLinkingEvent{
-					ID:                    uuid.NewString(),
-					CoverLinkingEventTime: &currentTime,
-					CoverStatus:           "cover autolinking started",
-					MemberNumber:          "",
-					PhoneNumber:           "+254703754685",
-				},
-			},
-			want:    nil,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := firestoreDB.SaveCoverAutolinkingEvents(tt.args.ctx, tt.args.input)
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Repository.SaveCoverAutolinkingEvents() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf(
-					"Repository.SaveCoverAutolinkingEvents() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
 				return
 			}
 		})

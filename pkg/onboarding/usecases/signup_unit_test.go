@@ -322,10 +322,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 				}
 				// Finished mocking SetUserPin
 
-				fakePubSub.NotifyCoverLinkingFn = func(ctx context.Context, data dto.LinkCoverPubSubMessage) error {
-					return nil
-				}
-
 				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 					return &profileutils.Supplier{
 						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
@@ -535,10 +531,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 				// Finished mocking SetUserPin
-
-				fakePubSub.NotifyCoverLinkingFn = func(ctx context.Context, data dto.LinkCoverPubSubMessage) error {
-					return nil
-				}
 
 				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 					return nil, fmt.Errorf("failed to create empty supplier profile")

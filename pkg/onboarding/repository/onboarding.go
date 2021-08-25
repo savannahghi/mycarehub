@@ -268,11 +268,6 @@ type OnboardingRepository interface {
 	GetAITDetails(ctx context.Context, phoneNumber string) (*domain.USSDLeadDetails, error)
 
 	SaveUSSDEvent(ctx context.Context, input *dto.USSDEvent) (*dto.USSDEvent, error)
-
-	SaveCoverAutolinkingEvents(
-		ctx context.Context,
-		input *dto.CoverLinkingEvent,
-	) (*dto.CoverLinkingEvent, error)
 }
 
 // UserProfileRepository interface that provide access to all persistent storage operations for user profile

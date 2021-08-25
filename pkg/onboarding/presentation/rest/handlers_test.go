@@ -26,8 +26,6 @@ import (
 
 	extMock "github.com/savannahghi/onboarding/pkg/onboarding/application/extension/mock"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
-	ediMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi/mock"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	engagementMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement/mock"
 
@@ -53,7 +51,6 @@ var fakeBaseExt extMock.FakeBaseExtensionImpl
 var fakePinExt extMock.PINExtensionImpl
 var serverUrl = "http://localhost:5000"
 var fakePubSub pubsubmessagingMock.FakeServicePubSub
-var fakeEDISvc ediMock.FakeServiceEDI
 
 // InitializeFakeOnboardingInteractor represents a fakeonboarding interactor
 func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
@@ -63,7 +60,6 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
 	var ps pubsubmessaging.ServicePubSub = &fakePubSub
-	var ediSvc edi.ServiceEdi = &fakeEDISvc
 
 	// hubspot usecases
 	hubspotService := hubspot.NewHubSpotService()
@@ -80,7 +76,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 		r, profile, engagementSvc, messagingSvc, ext, ps,
 	)
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
-	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps, ediSvc)
+	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	sms := usecases.NewSMSUsecase(r, ext)
 	role := usecases.NewRoleUseCases(r, ext)
@@ -92,7 +88,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 		profile, su, supplier, login,
 		survey, userpin,
 		engagementSvc, messagingSvc, nhif, ps, sms,
-		aitUssd, ediSvc, adminSrv, crmExt,
+		aitUssd, adminSrv, crmExt,
 		role,
 	)
 	if err != nil {
@@ -592,9 +588,7 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
 					return "salt", "passw"
 				}
-				fakePubSub.NotifyCoverLinkingFn = func(ctx context.Context, data dto.LinkCoverPubSubMessage) error {
-					return nil
-				}
+
 				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
 					return &profileutils.Supplier{
 						ID:         "5550",

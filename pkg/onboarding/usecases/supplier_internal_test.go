@@ -16,7 +16,6 @@ import (
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
 	crmExt "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
@@ -73,9 +72,7 @@ func TestParseKYCAsMap(t *testing.T) {
 	ext := extension.NewBaseExtensionImpl(&firebasetools.FirebaseClient{})
 	// Initialize ISC clients
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
-	ediClient := utils.NewInterServiceClient(ediService, ext)
 	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
-	edi := edi.NewEdiService(ediClient, repo)
 	// hubspot usecases
 	hubspotService := hubspot.NewHubSpotService()
 	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(context.Background(), hubspotService)
@@ -89,7 +86,6 @@ func TestParseKYCAsMap(t *testing.T) {
 		pubSubClient,
 		ext,
 		crmExt,
-		edi,
 		repo,
 	)
 	if err != nil {

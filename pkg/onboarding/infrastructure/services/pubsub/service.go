@@ -7,10 +7,8 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
@@ -52,9 +50,7 @@ type ServicePubSub interface {
 	AddEngagementPubsubNameSpace(topic string) string
 
 	// Publishers
-	EDIMemberCoverLinking(ctx context.Context, data dto.LinkCoverPubSubMessage) error
 	NotifyCreateContact(ctx context.Context, contact domain.CRMContact) error
-	NotifyCoverLinking(ctx context.Context, data dto.LinkCoverPubSubMessage) error
 	NotifyUpdateContact(
 		ctx context.Context,
 		contact domain.CRMContact,
@@ -66,7 +62,6 @@ type ServicePubSubMessaging struct {
 	client  *pubsub.Client
 	baseExt extension.BaseExtension
 	crm     crm.ServiceCrm
-	edi     edi.ServiceEdi
 	repo    repository.OnboardingRepository
 }
 
@@ -75,14 +70,12 @@ func NewServicePubSubMessaging(
 	client *pubsub.Client,
 	ext extension.BaseExtension,
 	crm crm.ServiceCrm,
-	edi edi.ServiceEdi,
 	repo repository.OnboardingRepository,
 ) (*ServicePubSubMessaging, error) {
 	s := &ServicePubSubMessaging{
 		client:  client,
 		baseExt: ext,
 		crm:     crm,
-		edi:     edi,
 		repo:    repo,
 	}
 
@@ -132,8 +125,6 @@ func (ps ServicePubSubMessaging) TopicIDs() []string {
 	return []string{
 		ps.AddPubSubNamespace(common.CreateCRMContact),
 		ps.AddPubSubNamespace(common.UpdateCRMContact),
-		ps.AddPubSubNamespace(common.LinkCoverTopic),
-		ps.AddPubSubNamespace(common.LinkEDIMemberCoverTopic),
 	}
 }
 
