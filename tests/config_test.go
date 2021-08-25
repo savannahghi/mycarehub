@@ -27,7 +27,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
@@ -51,11 +50,10 @@ const (
 )
 
 const (
-	testChargeMasterBranchID = "94294577-6b27-4091-9802-1ce0f2ce4153"
-	engagementService        = "engagement"
-	ediService               = "edi"
-	testRoleName             = "Test Role"
-	testPIN                  = "2030"
+	engagementService = "engagement"
+	ediService        = "edi"
+	testRoleName      = "Test Role"
+	testPIN           = "2030"
 )
 
 /// these are set up once in TestMain and used by all the acceptance tests in
@@ -124,7 +122,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 	ediClient := utils.NewInterServiceClient(ediService, ext)
 
-	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	hubspotService := hubspot.NewHubSpotService()
 	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(context.Background(), hubspotService)
 	if err != nil {
@@ -148,7 +145,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	pinExt := extension.NewPINExtensionImpl()
 	profile := usecases.NewProfileUseCase(repo, ext, engage, ps, crmExt)
 
-	supplier := usecases.NewSupplierUseCases(repo, profile, chrg, engage, mes, ext, ps)
+	supplier := usecases.NewSupplierUseCases(repo, profile, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, ext)
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
@@ -158,18 +155,17 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	role := usecases.NewRoleUseCases(repo, ext)
 
 	return &interactor.Interactor{
-		Onboarding:   profile,
-		Signup:       su,
-		Supplier:     supplier,
-		Login:        login,
-		Survey:       survey,
-		UserPIN:      userpin,
-		ChargeMaster: chrg,
-		Engagement:   engage,
-		NHIF:         nhif,
-		PubSub:       ps,
-		SMS:          sms,
-		Role:         role,
+		Onboarding: profile,
+		Signup:     su,
+		Supplier:   supplier,
+		Login:      login,
+		Survey:     survey,
+		UserPIN:    userpin,
+		Engagement: engage,
+		NHIF:       nhif,
+		PubSub:     ps,
+		SMS:        sms,
+		Role:       role,
 	}, nil
 }
 

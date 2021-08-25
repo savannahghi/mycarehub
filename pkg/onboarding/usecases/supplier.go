@@ -25,7 +25,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 
@@ -78,7 +77,6 @@ type SupplierUseCases interface {
 
 	CoreEDIUserLogin(ctx context.Context, username, password string) (*profileutils.EDIUserProfile, error)
 
-	FetchSupplierAllowedLocations(ctx context.Context) (*dto.BranchConnection, error)
 	CheckSupplierKYCSubmitted(ctx context.Context) (bool, error)
 
 	AddIndividualRiderKyc(
@@ -138,15 +136,6 @@ type SupplierUseCases interface {
 
 	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
 
-	SupplierEDILogin(
-		ctx context.Context,
-		username string,
-		password string,
-		sladeCode string,
-	) (*dto.SupplierLogin, error)
-
-	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*profileutils.Supplier, error)
-
 	SaveKYCResponseAndNotifyAdmins(ctx context.Context, sup *profileutils.Supplier) error
 
 	SendKYCEmail(ctx context.Context, text, emailaddress string) error
@@ -167,20 +156,18 @@ type SupplierUseCases interface {
 
 // SupplierUseCasesImpl represents usecase implementation object
 type SupplierUseCasesImpl struct {
-	repo         repository.OnboardingRepository
-	profile      ProfileUseCase
-	chargemaster chargemaster.ServiceChargeMaster
-	engagement   engagement.ServiceEngagement
-	messaging    messaging.ServiceMessaging
-	baseExt      extension.BaseExtension
-	pubsub       pubsubmessaging.ServicePubSub
+	repo       repository.OnboardingRepository
+	profile    ProfileUseCase
+	engagement engagement.ServiceEngagement
+	messaging  messaging.ServiceMessaging
+	baseExt    extension.BaseExtension
+	pubsub     pubsubmessaging.ServicePubSub
 }
 
 // NewSupplierUseCases returns a new a onboarding usecase
 func NewSupplierUseCases(
 	r repository.OnboardingRepository,
 	p ProfileUseCase,
-	chrg chargemaster.ServiceChargeMaster,
 	eng engagement.ServiceEngagement,
 	messaging messaging.ServiceMessaging,
 	ext extension.BaseExtension,
@@ -188,13 +175,12 @@ func NewSupplierUseCases(
 ) SupplierUseCases {
 
 	return &SupplierUseCasesImpl{
-		repo:         r,
-		profile:      p,
-		chargemaster: chrg,
-		engagement:   eng,
-		messaging:    messaging,
-		baseExt:      ext,
-		pubsub:       pubsub,
+		repo:       r,
+		profile:    p,
+		engagement: eng,
+		messaging:  messaging,
+		baseExt:    ext,
+		pubsub:     pubsub,
 	}
 }
 
@@ -477,370 +463,6 @@ func (s SupplierUseCasesImpl) CoreEDIUserLogin(
 
 	return userProfile, nil
 
-}
-
-// SupplierEDILogin it used to instantiate as call when setting up a supplier's account's who
-// has an affiliation to a provider with the slade ecosystem. The logic is as follows;
-// 1 . login to the relevant edi to assert the user has an account
-// 2 . fetch the branches of the provider given the slade code which we have
-// 3 . update the user's supplier record
-// 4. return the list of branches to the frontend so that a default location can be set
-func (s SupplierUseCasesImpl) SupplierEDILogin(
-	ctx context.Context,
-	username string,
-	password string,
-	sladeCode string,
-) (*dto.SupplierLogin, error) {
-	ctx, span := tracer.Start(ctx, "SupplierEDILogin")
-	defer span.End()
-
-	var resp dto.SupplierLogin
-
-	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.UserNotFoundError(err)
-	}
-
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		// this is a wrapped error. No need to wrap it again
-		return nil, err
-	}
-
-	supplier, err := s.FindSupplierByUID(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		// this is a wrapped error. No need to wrap it again
-		return nil, err
-	}
-
-	accType := profileutils.AccountTypeIndividual
-	supplier.AccountType = &accType
-	supplier.UnderOrganization = true
-
-	ediUserProfile, err := func(sladeCode string) (*profileutils.EDIUserProfile, error) {
-		var ediUserProfile *profileutils.EDIUserProfile
-		var err error
-
-		switch sladeCode {
-		case SavannahSladeCode:
-			// login to core
-			ediUserProfile, err = s.CoreEDIUserLogin(ctx, username, password)
-			if err != nil {
-				utils.RecordSpanError(span, err)
-				supplier.IsOrganizationVerified = false
-				return nil, fmt.Errorf("cannot get Core  user profile: %w", err)
-			}
-
-			if ediUserProfile == nil {
-				return nil, fmt.Errorf("edi user profile not found")
-			}
-
-		default:
-			//Login to portal edi
-			ediUserProfile, err = s.EDIUserLogin(ctx, &username, &password)
-			if err != nil {
-				utils.RecordSpanError(span, err)
-				supplier.IsOrganizationVerified = false
-				return nil, fmt.Errorf("cannot get EDI user profile: %w", err)
-			}
-
-			if ediUserProfile == nil {
-				return nil, fmt.Errorf("edi user profile not found")
-			}
-
-		}
-		return ediUserProfile, nil
-	}(sladeCode)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	// The slade code comes in the form 'PRO-1234' or 'BRA-PRO-1234-1'
-	// or a single code '1234'
-	// we split it to get the interger part of the slade code.
-	var orgSladeCode string
-	if strings.HasPrefix(sladeCode, "BRA-") {
-		orgSladeCode = strings.Split(sladeCode, "-")[2]
-	} else if strings.HasPrefix(sladeCode, "PRO-") {
-		orgSladeCode = strings.Split(sladeCode, "-")[1]
-	} else {
-		orgSladeCode = sladeCode
-	}
-
-	if orgSladeCode == SavannahSladeCode {
-		supplier.EDIUserProfile = ediUserProfile
-		supplier.IsOrganizationVerified = true
-		supplier.SladeCode = sladeCode
-		supplier.Active = true
-		supplier.KYCSubmitted = true
-		supplier.PartnerSetupComplete = true
-		supplier.OrganizationName = SavannahOrgName
-
-		if err := s.repo.UpdateSupplierProfile(ctx, *supplier.ProfileID, supplier); err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, err
-		}
-
-		if err := s.profile.UpdatePermissions(ctx, profileutils.DefaultAdminPermissions); err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, err
-		}
-
-		resp.Supplier = supplier
-		return &resp, nil
-	}
-	// verify slade code.
-	if ediUserProfile.BusinessPartner != orgSladeCode {
-		return nil, exceptions.InvalidSladeCodeError()
-	}
-	supplier.EDIUserProfile = ediUserProfile
-	supplier.IsOrganizationVerified = true
-	supplier.SladeCode = sladeCode
-
-	filter := []*dto.BusinessPartnerFilterInput{
-		{
-			SladeCode: &sladeCode,
-		},
-	}
-
-	partner, err := s.chargemaster.FindProvider(ctx, nil, filter, nil)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.FindProviderError(err)
-	}
-	if len(partner.Edges) != 1 {
-		return nil, fmt.Errorf("expected one business partner, found: %v", len(partner.Edges))
-	}
-
-	businessPartner := *partner.Edges[0].Node
-
-	go func() {
-		op := func() error {
-			return s.PublishKYCNudge(ctx, uid, &supplier.PartnerType, supplier.AccountType)
-		}
-
-		if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
-			utils.RecordSpanError(span, err)
-			logrus.Error(err)
-		}
-	}()
-
-	go func() {
-		pro := func() error {
-			return s.engagement.ResolveDefaultNudgeByTitle(
-				ctx,
-				uid,
-				feedlib.FlavourPro,
-				PartnerAccountSetupNudgeTitle,
-			)
-		}
-		if err := backoff.Retry(
-			pro,
-			backoff.NewExponentialBackOff(),
-		); err != nil {
-			utils.RecordSpanError(span, err)
-			logrus.Error(err)
-		}
-	}()
-
-	if businessPartner.Parent != nil {
-		supplier.HasBranches = true
-		supplier.ParentOrganizationID = *businessPartner.Parent
-
-		partner, err := s.chargemaster.FetchProviderByID(ctx, *businessPartner.Parent)
-		if err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, exceptions.FindProviderError(err)
-		}
-
-		supplier.OrganizationName = partner.Name
-
-		if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, supplier); err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, err
-		}
-
-		// fetch all locations of the business partner
-		filter := []*dto.BranchFilterInput{
-			{
-				ParentOrganizationID: &supplier.ParentOrganizationID,
-			},
-		}
-
-		brs, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
-		if len(brs.Edges) == 0 || err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, exceptions.FindProviderError(err)
-		}
-
-		if len(brs.Edges) > 1 {
-			// set branches in the final response object
-			resp.Branches = brs
-			resp.Supplier = supplier
-			return &resp, nil
-		}
-
-		if len(brs.Edges) == 1 {
-			spr, err := s.SupplierSetDefaultLocation(ctx, brs.Edges[0].Node.ID)
-			if err != nil {
-				utils.RecordSpanError(span, err)
-				return nil, err
-			}
-
-			resp.Supplier = spr
-			return &resp, nil
-
-		}
-		return nil, exceptions.InternalServerError(nil)
-
-	}
-
-	// set the main branch as the supplier's location
-	supplier.OrganizationName = businessPartner.Name
-	loc := profileutils.Location{
-		ID:   businessPartner.ID,
-		Name: businessPartner.Name,
-	}
-	supplier.Location = &loc
-
-	if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, supplier); err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	// set the supplier profile in the final response object
-	resp.Supplier = supplier
-
-	return &resp, nil
-}
-
-// SupplierSetDefaultLocation updates the default location ot the supplier by the given location id
-func (s SupplierUseCasesImpl) SupplierSetDefaultLocation(
-	ctx context.Context,
-	locationID string,
-) (*profileutils.Supplier, error) {
-	ctx, span := tracer.Start(ctx, "SupplierSetDefaultLocation")
-	defer span.End()
-
-	uid, err := s.baseExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.UserNotFoundError(err)
-	}
-
-	profile, err := s.repo.GetUserProfileByUID(ctx, uid, false)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		// this is a wrapped error. No need to wrap it again
-		return nil, err
-	}
-
-	sup, err := s.FindSupplierByUID(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		// this is a wrapped error. No need to wrap it again
-		return nil, err
-	}
-
-	// fetch the branches of the provider filtered by ParentOrganizationID
-	filter := []*dto.BranchFilterInput{
-		{
-			ParentOrganizationID: &sup.ParentOrganizationID,
-		},
-	}
-
-	brs, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.FindProviderError(err)
-	}
-
-	branch := func(brs *dto.BranchConnection, location string) *dto.BranchEdge {
-		for _, b := range brs.Edges {
-			if b.Node.ID == location {
-				return b
-			}
-		}
-		return nil
-	}(brs, locationID)
-
-	if branch != nil {
-		loc := profileutils.Location{
-			ID:              branch.Node.ID,
-			Name:            branch.Node.Name,
-			BranchSladeCode: &branch.Node.BranchSladeCode,
-		}
-		sup.Location = &loc
-
-		if err := s.repo.UpdateSupplierProfile(ctx, profile.ID, sup); err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, err
-		}
-
-		// refetch the supplier profile and return it
-		return s.FindSupplierByUID(ctx)
-	}
-
-	return nil, fmt.Errorf("unable to get location of id %v : %v", locationID, err)
-}
-
-// FetchSupplierAllowedLocations retrieves all the locations that the user in context can work on.
-func (s *SupplierUseCasesImpl) FetchSupplierAllowedLocations(
-	ctx context.Context,
-) (*dto.BranchConnection, error) {
-	ctx, span := tracer.Start(ctx, "FetchSupplierAllowedLocations")
-	defer span.End()
-
-	supplier, err := s.FindSupplierByUID(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	// fetch the branches of the provider filtered by ParentOrganizationID
-	filter := []*dto.BranchFilterInput{
-		{
-			ParentOrganizationID: &supplier.ParentOrganizationID,
-		},
-	}
-
-	branchConnection, err := s.chargemaster.FindBranch(ctx, nil, filter, nil)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.FindProviderError(err)
-	}
-
-	if supplier.Location != nil {
-		var resp dto.BranchConnection
-		resp.PageInfo = branchConnection.PageInfo
-
-		newEdges := []*dto.BranchEdge{}
-		for _, edge := range branchConnection.Edges {
-			if edge.Node.ID == supplier.Location.ID {
-				loc := &dto.BranchEdge{
-					Cursor: edge.Cursor,
-					Node: &domain.Branch{
-						ID:                    edge.Node.ID,
-						Name:                  edge.Node.Name,
-						OrganizationSladeCode: edge.Node.OrganizationSladeCode,
-						BranchSladeCode:       edge.Node.BranchSladeCode,
-						Default:               true,
-					},
-				}
-				newEdges = append(newEdges, loc)
-			} else {
-				newEdges = append(newEdges, edge)
-			}
-		}
-
-		resp.Edges = newEdges
-		return &resp, nil
-	}
-	return branchConnection, nil
 }
 
 // PublishKYCNudge pushes a KYC nudge to the user feed

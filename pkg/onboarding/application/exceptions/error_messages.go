@@ -126,9 +126,6 @@ const (
 	// A supplier should have only one kyc
 	SupplierKYCAlreadySubmittedErrMsg = "kyc already exists for supplier"
 
-	// FindProviderErrMsg is displayed if a provider is not found
-	FindProviderErrMsg = "unable to fetch provider from chargemaster"
-
 	// PublishKYCNudgeErrMsg is displayed if we are unable to publish a kyc nudge
 	PublishKYCNudgeErrMsg = "unable to publish kyc nudge"
 

@@ -1190,60 +1190,6 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
-		{
-			name: "invalid:fail_to_get_userProfile",
-			args: args{
-				ctx:     ctx,
-				flavour: feedlib.FlavourConsumer,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:fail_to_get_loggedInUser",
-			args: args{
-				ctx:     ctx,
-				flavour: feedlib.FlavourConsumer,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:missing_bioData",
-			args: args{
-				ctx:     ctx,
-				flavour: feedlib.FlavourConsumer,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:invalid_flavour",
-			args: args{
-				ctx:     ctx,
-				flavour: feedlib.FlavourPro,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:fail_to_AddCustomerSupplierERPAccount",
-			args: args{
-				ctx:     ctx,
-				flavour: feedlib.FlavourPro,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "invalid:fail_to_FetchDefaultCurrency",
-			args: args{
-				ctx:     ctx,
-				flavour: feedlib.FlavourPro,
-			},
-			want:    false,
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

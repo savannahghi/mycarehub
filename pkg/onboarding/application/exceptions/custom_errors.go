@@ -315,15 +315,6 @@ func SupplierKYCAlreadySubmittedNotFoundError() error {
 	}
 }
 
-// FindProviderError returns an error message when a provider is not found
-func FindProviderError(err error) error {
-	return &errorcodeutil.CustomError{
-		Err:     err,
-		Message: FindProviderErrMsg,
-		Code:    int(errorcodeutil.UnableToFindProvider),
-	}
-}
-
 // PublishKYCNudgeError returns an error message when there's a failure in
 // creating a KYC nudge
 func PublishKYCNudgeError(err error) error {

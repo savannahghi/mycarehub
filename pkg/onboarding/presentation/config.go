@@ -18,7 +18,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
@@ -113,7 +112,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	ediClient := utils.NewInterServiceClient(ediService, baseExt)
 
 	// Initialize new instance of our infrastructure services
-	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	engage := engagement.NewServiceEngagementImpl(engagementClient, baseExt)
 	edi := edi.NewEdiService(ediClient, repo)
 	mes := messaging.NewServiceMessagingImpl(baseExt)
@@ -140,7 +138,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Initialize the usecases
 	profile := usecases.NewProfileUseCase(repo, baseExt, engage, pubSub, crmExt)
-	supplier := usecases.NewSupplierUseCases(repo, profile, chrg, engage, mes, baseExt, pubSub)
+	supplier := usecases.NewSupplierUseCases(repo, profile, engage, mes, baseExt, pubSub)
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
@@ -153,7 +151,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login, survey,
-		userpin, chrg, engage, mes, nhif, pubSub,
+		userpin, engage, mes, nhif, pubSub,
 		sms, aitUssd, edi, adminSrv, crmExt,
 		role,
 	)

@@ -74,8 +74,6 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	err = exceptions.SupplierKYCAlreadySubmittedNotFoundError()
 	assert.NotNil(t, err)
-	err = exceptions.FindProviderError(fmt.Errorf("error"))
-	assert.NotNil(t, err)
 	err = exceptions.PublishKYCNudgeError(fmt.Errorf("error"))
 	assert.NotNil(t, err)
 	err = exceptions.InvalidCredentialsError()

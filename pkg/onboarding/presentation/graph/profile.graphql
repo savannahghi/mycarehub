@@ -8,20 +8,6 @@ extend type Query {
 
   resumeWithPIN(pin: String!): Boolean!
 
-  findProvider(
-    pagination: PaginationInput
-    filter: [BusinessPartnerFilterInput]
-    sort: [BusinessPartnerSortInput]
-  ): BusinessPartnerConnection!
-
-  findBranch(
-    pagination: PaginationInput
-    filter: [BranchFilterInput]
-    sort: [BranchSortInput]
-  ): BranchConnection!
-
-  fetchSupplierAllowedLocations: BranchConnection!
-
   fetchKYCProcessingRequests: [KYCRequest]
 
   getAddresses: UserAddresses!
@@ -73,13 +59,6 @@ extend type Mutation {
   suspendSupplier(suspensionReason: String): Boolean!
 
   setUpSupplier(accountType: AccountType!): Supplier
-  supplierEDILogin(
-    username: String!
-    password: String!
-    sladeCode: String!
-  ): SupplierLogin!
-
-  supplierSetDefaultLocation(locationID: String!): Supplier!
 
   addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
 

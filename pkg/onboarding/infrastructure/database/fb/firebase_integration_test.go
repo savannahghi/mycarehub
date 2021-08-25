@@ -35,7 +35,6 @@ import (
 	"cloud.google.com/go/pubsub"
 	"firebase.google.com/go/auth"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
@@ -150,7 +149,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 	ediClient := utils.NewInterServiceClient(ediService, ext)
 
-	chrg := chargemaster.NewChargeMasterUseCasesImpl()
 	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
 	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
 	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
@@ -176,24 +174,23 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	profile := usecases.NewProfileUseCase(fr, ext, engage, ps, crmExt)
-	supplier := usecases.NewSupplierUseCases(fr, profile, chrg, engage, mes, ext, ps)
+	supplier := usecases.NewSupplierUseCases(fr, profile, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
 	userpin := usecases.NewUserPinUseCase(fr, profile, ext, pinExt, engage)
 	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, ext, engage, ps, edi)
 
 	return &interactor.Interactor{
-		Onboarding:   profile,
-		Signup:       su,
-		Supplier:     supplier,
-		Login:        login,
-		Survey:       survey,
-		UserPIN:      userpin,
-		ChargeMaster: chrg,
-		Engagement:   engage,
-		PubSub:       ps,
-		EDI:          edi,
-		CrmExt:       crmExt,
+		Onboarding: profile,
+		Signup:     su,
+		Supplier:   supplier,
+		Login:      login,
+		Survey:     survey,
+		UserPIN:    userpin,
+		Engagement: engage,
+		PubSub:     ps,
+		EDI:        edi,
+		CrmExt:     crmExt,
 	}, nil
 }
 

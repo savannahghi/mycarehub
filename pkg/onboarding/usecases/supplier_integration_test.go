@@ -29,9 +29,7 @@ const (
 	// TestEDIPortalPassword is a test password for `test` EDI Login
 	TestEDIPortalPassword = "test provider one"
 
-	testChargeMasterParentOrgId = "83d3479d-e902-4aab-a27d-6d5067454daf"
-	testChargeMasterBranchID    = "94294577-6b27-4091-9802-1ce0f2ce4153"
-	primaryEmail                = "test@bewell.co.ke"
+	primaryEmail = "test@bewell.co.ke"
 )
 
 func cleanUpFirebase(ctx context.Context, t *testing.T) {
@@ -1848,133 +1846,6 @@ func TestSubmitProcessOrganizationNutritionKycRequest(t *testing.T) {
 	assert.Equal(t, true, response)
 }
 
-func TestSupplierSetDefaultLocation(t *testing.T) {
-	// clean kyc processing requests collection because other tests have written to it
-	ctx1 := context.Background()
-	if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
-		cleanUpFirebase(ctx1, t)
-	}
-
-	s, err := InitializeTestService(context.Background())
-	if err != nil {
-		t.Error("failed to setup signup usecase")
-	}
-
-	primaryPhone := interserviceclient.TestUserPhoneNumber
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(context.Background(), primaryPhone)
-
-	otp, err := generateTestOTP(t, primaryPhone)
-	if err != nil {
-		t.Errorf("failed to generate test OTP: %v", err)
-		return
-	}
-	pin := "1234"
-	resp1, err := s.Signup.CreateUserByPhone(
-		context.Background(),
-		&dto.SignUpInput{
-			PhoneNumber: &primaryPhone,
-			PIN:         &pin,
-			Flavour:     feedlib.FlavourConsumer,
-			OTP:         &otp.OTP,
-		},
-	)
-	assert.Nil(t, err)
-	assert.NotNil(t, resp1)
-	assert.NotNil(t, resp1.Profile)
-	assert.NotNil(t, resp1.CustomerProfile)
-	assert.NotNil(t, resp1.SupplierProfile)
-
-	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
-	assert.Nil(t, err)
-	assert.NotNil(t, login1)
-
-	// create authenticated context
-	ctx := context.Background()
-	authCred := &auth.Token{UID: login1.Auth.UID}
-	authenticatedContext := context.WithValue(
-		ctx,
-		firebasetools.AuthTokenContextKey,
-		authCred,
-	)
-	s, _ = InitializeTestService(authenticatedContext)
-
-	cmParentOrgId := testChargeMasterParentOrgId
-	filter := []*dto.BranchFilterInput{
-		{
-			ParentOrganizationID: &cmParentOrgId,
-		},
-	}
-
-	br, err := s.ChargeMaster.FindBranch(authenticatedContext, nil, filter, nil)
-	assert.Nil(t, err)
-	assert.NotNil(t, br)
-	assert.NotEqual(t, 0, len(br.Edges))
-
-	// call set supplier default location
-	spr, err := s.Supplier.SupplierSetDefaultLocation(authenticatedContext, br.Edges[0].Node.ID)
-	assert.Nil(t, err)
-	assert.NotNil(t, spr)
-	assert.Equal(t, br.Edges[0].Node.ID, spr.Location.ID)
-}
-
-func TestFindSupplierByUID(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *profileutils.Supplier
-		wantErr bool
-	}{
-		{
-			name: "happy :) find supplier by UID",
-			args: args{
-				ctx: ctx,
-			},
-			wantErr: false,
-		},
-		{
-			name: "sad :( fail to find supplier by UID",
-			args: args{
-				ctx: context.Background(),
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			supplier, err := s.Supplier.FindSupplierByUID(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.FindSupplierByUID() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if supplier != nil {
-				if supplier.ID == "" {
-					t.Errorf("expected a supplier.")
-					return
-				}
-			}
-		})
-	}
-}
-
 func TestFindSupplierByID(t *testing.T) {
 	ctx, _, err := GetTestAuthenticatedContext(t)
 	if err != nil {
@@ -2135,59 +2006,6 @@ func TestSupplierEDIUserLogin(t *testing.T) {
 				return
 			}
 
-		})
-	}
-}
-
-func TestFetchSupplierAllowedLocations(t *testing.T) {
-	ctx, _, err := GetTestAuthenticatedContext(t)
-	if err != nil {
-		t.Errorf("failed to get test authenticated context: %v", err)
-		return
-	}
-
-	s, err := InitializeTestService(ctx)
-	if err != nil {
-		t.Errorf("unable to initialize test service")
-		return
-	}
-
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "happy case :)",
-			args: args{
-				ctx: ctx,
-			},
-			wantErr: false,
-		},
-		{
-			name: "sad case :( unable to get supplier",
-			args: args{
-				ctx: context.Background(),
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			branchConnection, err := s.Supplier.FetchSupplierAllowedLocations(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SupplierUseCasesImpl.FetchSupplierAllowedLocations() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if err != nil && !tt.wantErr {
-				if branchConnection == nil {
-					t.Errorf("expected branch connection")
-					return
-				}
-			}
 		})
 	}
 }

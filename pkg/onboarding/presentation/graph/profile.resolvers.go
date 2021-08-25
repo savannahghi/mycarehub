@@ -9,7 +9,6 @@ import (
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/graph/generated"
@@ -191,36 +190,6 @@ func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType profil
 	supplier, err := r.interactor.Supplier.SetUpSupplier(ctx, accountType)
 
 	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "setUpSupplier", err)
-
-	return supplier, err
-}
-
-func (r *mutationResolver) SupplierEDILogin(ctx context.Context, username string, password string, sladeCode string) (*dto.SupplierLogin, error) {
-	startTime := time.Now()
-
-	supplierEDILogin, err := r.interactor.Supplier.SupplierEDILogin(
-		ctx,
-		username,
-		password,
-		sladeCode,
-	)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "supplierEDILogin", err)
-
-	return supplierEDILogin, err
-}
-
-func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locationID string) (*profileutils.Supplier, error) {
-	startTime := time.Now()
-
-	supplier, err := r.interactor.Supplier.SupplierSetDefaultLocation(ctx, locationID)
-
-	defer serverutils.RecordGraphqlResolverMetrics(
-		ctx,
-		startTime,
-		"supplierSetDefaultLocation",
-		err,
-	)
 
 	return supplier, err
 }
@@ -664,41 +633,6 @@ func (r *queryResolver) ResumeWithPin(ctx context.Context, pin string) (bool, er
 	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "resumeWithPin", err)
 
 	return resumeWithPin, err
-}
-
-func (r *queryResolver) FindProvider(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BusinessPartnerFilterInput, sort []*dto.BusinessPartnerSortInput) (*dto.BusinessPartnerConnection, error) {
-	startTime := time.Now()
-
-	provider, err := r.interactor.ChargeMaster.FindProvider(ctx, pagination, filter, sort)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findProvider", err)
-
-	return provider, err
-}
-
-func (r *queryResolver) FindBranch(ctx context.Context, pagination *firebasetools.PaginationInput, filter []*dto.BranchFilterInput, sort []*dto.BranchSortInput) (*dto.BranchConnection, error) {
-	startTime := time.Now()
-
-	branch, err := r.interactor.ChargeMaster.FindBranch(ctx, pagination, filter, sort)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "findBranch", err)
-
-	return branch, err
-}
-
-func (r *queryResolver) FetchSupplierAllowedLocations(ctx context.Context) (*dto.BranchConnection, error) {
-	startTime := time.Now()
-
-	supplierAllowedLocations, err := r.interactor.Supplier.FetchSupplierAllowedLocations(ctx)
-
-	defer serverutils.RecordGraphqlResolverMetrics(
-		ctx,
-		startTime,
-		"fetchSupplierAllowedLocations",
-		err,
-	)
-
-	return supplierAllowedLocations, err
 }
 
 func (r *queryResolver) FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error) {

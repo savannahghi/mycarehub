@@ -3,7 +3,6 @@
 package interactor
 
 import (
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/chargemaster"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/edi"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
@@ -17,23 +16,22 @@ import (
 
 // Interactor represents an assemble of all use cases into a single object that can be instantiated anywhere
 type Interactor struct {
-	Onboarding   usecases.ProfileUseCase
-	Signup       usecases.SignUpUseCases
-	Supplier     usecases.SupplierUseCases
-	Login        usecases.LoginUseCases
-	Survey       usecases.SurveyUseCases
-	UserPIN      usecases.UserPINUseCases
-	ChargeMaster chargemaster.ServiceChargeMaster
-	Engagement   engagement.ServiceEngagement
-	Messaging    messaging.ServiceMessaging
-	NHIF         usecases.NHIFUseCases
-	PubSub       pubsubmessaging.ServicePubSub
-	SMS          usecases.SMSUsecase
-	AITUSSD      ussd.Usecase
-	EDI          edi.ServiceEdi
-	AdminSrv     admin.Usecase
-	CrmExt       crm.ServiceCrm
-	Role         usecases.RoleUseCase
+	Onboarding usecases.ProfileUseCase
+	Signup     usecases.SignUpUseCases
+	Supplier   usecases.SupplierUseCases
+	Login      usecases.LoginUseCases
+	Survey     usecases.SurveyUseCases
+	UserPIN    usecases.UserPINUseCases
+	Engagement engagement.ServiceEngagement
+	Messaging  messaging.ServiceMessaging
+	NHIF       usecases.NHIFUseCases
+	PubSub     pubsubmessaging.ServicePubSub
+	SMS        usecases.SMSUsecase
+	AITUSSD    ussd.Usecase
+	EDI        edi.ServiceEdi
+	AdminSrv   admin.Usecase
+	CrmExt     crm.ServiceCrm
+	Role       usecases.RoleUseCase
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -44,7 +42,6 @@ func NewOnboardingInteractor(
 	login usecases.LoginUseCases,
 	survey usecases.SurveyUseCases,
 	userpin usecases.UserPINUseCases,
-	chrg chargemaster.ServiceChargeMaster,
 	engage engagement.ServiceEngagement,
 	mes messaging.ServiceMessaging,
 	nhif usecases.NHIFUseCases,
@@ -58,22 +55,21 @@ func NewOnboardingInteractor(
 ) (*Interactor, error) {
 
 	return &Interactor{
-		Onboarding:   profile,
-		Signup:       su,
-		Supplier:     supplier,
-		Login:        login,
-		Survey:       survey,
-		UserPIN:      userpin,
-		ChargeMaster: chrg,
-		Engagement:   engage,
-		Messaging:    mes,
-		NHIF:         nhif,
-		PubSub:       pubsub,
-		SMS:          sms,
-		AITUSSD:      aitussd,
-		EDI:          edi,
-		AdminSrv:     admin,
-		CrmExt:       crmExt,
-		Role:         role,
+		Onboarding: profile,
+		Signup:     su,
+		Supplier:   supplier,
+		Login:      login,
+		Survey:     survey,
+		UserPIN:    userpin,
+		Engagement: engage,
+		Messaging:  mes,
+		NHIF:       nhif,
+		PubSub:     pubsub,
+		SMS:        sms,
+		AITUSSD:    aitussd,
+		EDI:        edi,
+		AdminSrv:   admin,
+		CrmExt:     crmExt,
+		Role:       role,
 	}, nil
 }
