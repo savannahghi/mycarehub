@@ -5,7 +5,6 @@ package interactor
 import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
@@ -26,7 +25,6 @@ type Interactor struct {
 	PubSub     pubsubmessaging.ServicePubSub
 	SMS        usecases.SMSUsecase
 	AdminSrv   admin.Usecase
-	CrmExt     crm.ServiceCrm
 	Role       usecases.RoleUseCase
 }
 
@@ -44,7 +42,6 @@ func NewOnboardingInteractor(
 	pubsub pubsubmessaging.ServicePubSub,
 	sms usecases.SMSUsecase,
 	admin admin.Usecase,
-	crmExt crm.ServiceCrm,
 	role usecases.RoleUseCase,
 ) (*Interactor, error) {
 
@@ -61,7 +58,6 @@ func NewOnboardingInteractor(
 		PubSub:     pubsub,
 		SMS:        sms,
 		AdminSrv:   admin,
-		CrmExt:     crmExt,
 		Role:       role,
 	}, nil
 }

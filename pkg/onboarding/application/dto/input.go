@@ -11,7 +11,6 @@ import (
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
 	dm "gitlab.slade360emr.com/go/commontools/accounting/pkg/domain"
-	CRMDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 // UserProfileInput is used to create or update a user's profile.
@@ -301,21 +300,6 @@ type RegisterAdminInput struct {
 	DateOfBirth scalarutils.Date `json:"dateOfBirth"`
 	// ID of the Role being assigned to the new employee
 	RoleIDs []string `json:"roleIDs"`
-}
-
-// ContactLeadInput ...
-type ContactLeadInput struct {
-	ContactType    string                      `json:"contact_type,omitempty"`
-	ContactValue   string                      `json:"contact_value,omitempty"`
-	FirstName      string                      `json:"first_name,omitempty"`
-	LastName       string                      `json:"last_name,omitempty"`
-	DateOfBirth    scalarutils.Date            `json:"date_of_birth,omitempty"`
-	IsSync         bool                        `json:"isSync"                    firestore:"IsSync"`
-	TimeSync       *time.Time                  `json:"timeSync"                  firestore:"TimeSync"`
-	OptOut         CRMDomain.GeneralOptionType `json:"opt_out,omitempty"`
-	WantCover      bool                        `json:"wantCover"                 firestore:"wantCover"`
-	ContactChannel string                      `json:"contact_channel,omitempty"`
-	IsRegistered   bool                        `json:"is_registered,omitempty"`
 }
 
 // AgentFilterInput is used to supply filter parameters for agent filter inputs

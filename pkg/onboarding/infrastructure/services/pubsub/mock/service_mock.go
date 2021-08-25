@@ -3,8 +3,6 @@ package mock
 import (
 	"context"
 	"net/http"
-
-	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 // FakeServicePubSub ...
@@ -29,8 +27,6 @@ type FakeServicePubSub struct {
 		r *http.Request,
 	)
 	AddEngagementPubsubNameSpaceFn func(topic string) string
-	NotifyCreateContactFn          func(ctx context.Context, contact domain.CRMContact) error
-	NotifyUpdateContactFn          func(ctx context.Context, contact domain.CRMContact) error
 }
 
 // AddPubSubNamespace ...
@@ -87,14 +83,4 @@ func (m *FakeServicePubSub) ReceivePubSubPushMessages(
 // AddEngagementPubsubNameSpace ...
 func (m *FakeServicePubSub) AddEngagementPubsubNameSpace(topic string) string {
 	return m.AddEngagementPubsubNameSpaceFn(topic)
-}
-
-// NotifyCreateContact ..
-func (m *FakeServicePubSub) NotifyCreateContact(ctx context.Context, contact domain.CRMContact) error {
-	return m.NotifyCreateContactFn(ctx, contact)
-}
-
-// NotifyUpdateContact ..
-func (m *FakeServicePubSub) NotifyUpdateContact(ctx context.Context, contact domain.CRMContact) error {
-	return m.NotifyUpdateContactFn(ctx, contact)
 }

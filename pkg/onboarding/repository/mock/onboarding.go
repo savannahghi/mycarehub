@@ -171,22 +171,19 @@ type FakeOnboardingRepository struct {
 	UpdateAddressesFn               func(ctx context.Context, id string, address profileutils.Address, addressType enumutils.AddressType) error
 	ListUserProfilesFn              func(ctx context.Context, role profileutils.RoleType) ([]*profileutils.UserProfile, error)
 	UpdateOptOutFn                  func(ctx context.Context, option string, phoneNumber string) error
-	UpdateFavNavActionsFn           func(ctx context.Context, id string, favActions []string) error
-	GetUserMarketingDataFn          func(ctx context.Context, phoneNumber string) (*dto.Segment, error)
-
-	//roles
-	CreateRoleFn               func(ctx context.Context, profileID string, role dto.RoleInput) (*profileutils.Role, error)
-	GetAllRolesFn              func(ctx context.Context) (*[]profileutils.Role, error)
-	UpdateRoleDetailsFn        func(ctx context.Context, profileID string, role profileutils.Role) (*profileutils.Role, error)
-	GetRolesByIDsFn            func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error)
-	GetRoleByIDFn              func(ctx context.Context, roleID string) (*profileutils.Role, error)
-	GetRoleByNameFn            func(ctx context.Context, roleName string) (*profileutils.Role, error)
-	CheckIfRoleNameExistsFn    func(ctx context.Context, name string) (bool, error)
-	DeleteRoleFn               func(ctx context.Context, roleID string) (bool, error)
-	CheckIfUserHasPermissionFn func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error)
-	UpdateUserProfileEmailFn   func(ctx context.Context, phone string, email string) error
-	GetUserProfilesByRoleIDFn  func(ctx context.Context, role string) ([]*profileutils.UserProfile, error)
-	SaveRoleRevocationFn       func(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error
+	UpdateFavNavActionsFn           func(ctx context.Context, id string, favActions []string) error //roles
+	CreateRoleFn                    func(ctx context.Context, profileID string, role dto.RoleInput) (*profileutils.Role, error)
+	GetAllRolesFn                   func(ctx context.Context) (*[]profileutils.Role, error)
+	UpdateRoleDetailsFn             func(ctx context.Context, profileID string, role profileutils.Role) (*profileutils.Role, error)
+	GetRolesByIDsFn                 func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error)
+	GetRoleByIDFn                   func(ctx context.Context, roleID string) (*profileutils.Role, error)
+	GetRoleByNameFn                 func(ctx context.Context, roleName string) (*profileutils.Role, error)
+	CheckIfRoleNameExistsFn         func(ctx context.Context, name string) (bool, error)
+	DeleteRoleFn                    func(ctx context.Context, roleID string) (bool, error)
+	CheckIfUserHasPermissionFn      func(ctx context.Context, UID string, requiredPermission profileutils.Permission) (bool, error)
+	UpdateUserProfileEmailFn        func(ctx context.Context, phone string, email string) error
+	GetUserProfilesByRoleIDFn       func(ctx context.Context, role string) ([]*profileutils.UserProfile, error)
+	SaveRoleRevocationFn            func(ctx context.Context, userID string, revocation dto.RoleRevocationInput) error
 
 	//admins
 	CreateAdminProfileFn        func(ctx context.Context, adminProfile domain.AdminProfile) error
@@ -801,14 +798,6 @@ func (f *FakeOnboardingRepository) UpdateFavNavActions(
 	favActions []string,
 ) error {
 	return f.UpdateFavNavActionsFn(ctx, id, favActions)
-}
-
-// GetUserMarketingData ...
-func (f *FakeOnboardingRepository) GetUserMarketingData(
-	ctx context.Context,
-	phoneNumber string,
-) (*dto.Segment, error) {
-	return f.GetUserMarketingDataFn(ctx, phoneNumber)
 }
 
 //CreateRole ...

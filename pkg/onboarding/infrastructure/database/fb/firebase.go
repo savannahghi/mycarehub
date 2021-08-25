@@ -47,7 +47,6 @@ const (
 	communicationsSettingsCollectionName = "communications_settings"
 	smsCollectionName                    = "incoming_sms"
 	firebaseExchangeRefreshTokenURL      = "https://securetoken.googleapis.com/v1/token?key="
-	marketingDataCollectionName          = "marketing_data"
 	rolesRevocationCollectionName        = "role_revocations"
 	rolesCollectionName                  = "user_roles"
 )
@@ -132,12 +131,6 @@ func (fr Repository) GetCommunicationsSettingsCollectionName() string {
 // GetSMSCollectionName gets the collection name from firestore
 func (fr Repository) GetSMSCollectionName() string {
 	suffixed := firebasetools.SuffixCollection(smsCollectionName)
-	return suffixed
-}
-
-// GetMarketingDataCollectionName ...
-func (fr Repository) GetMarketingDataCollectionName() string {
-	suffixed := firebasetools.SuffixCollection(marketingDataCollectionName)
 	return suffixed
 }
 

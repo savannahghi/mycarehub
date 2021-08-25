@@ -18,7 +18,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
-	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 
 	loginservice "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/login_service"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
@@ -32,7 +31,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/interserviceclient"
-	crmExt "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/graph"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/graph/generated"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
@@ -40,8 +38,6 @@ import (
 	adminSrv "github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
 	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
-	hubspotRepo "gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/database/fs"
-	hubspotUsecases "gitlab.slade360emr.com/go/commontools/crm/pkg/usecases"
 )
 
 const (
@@ -112,18 +108,9 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	mes := messaging.NewServiceMessagingImpl(baseExt)
 	pinExt := extension.NewPINExtensionImpl()
 
-	// hubspot usecases
-	hubspotService := hubspot.NewHubSpotService()
-	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(ctx, hubspotService)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize hubspot crm repository: %w", err)
-	}
-	hubspotUsecases := hubspotUsecases.NewHubSpotUsecases(hubspotfr)
-	crmExt := crmExt.NewCrmService(hubspotUsecases)
 	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		baseExt,
-		crmExt,
 		repo,
 	)
 	if err != nil {
@@ -131,7 +118,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	}
 
 	// Initialize the usecases
-	profile := usecases.NewProfileUseCase(repo, baseExt, engage, pubSub, crmExt)
+	profile := usecases.NewProfileUseCase(repo, baseExt, engage, pubSub)
 	supplier := usecases.NewSupplierUseCases(repo, profile, engage, mes, baseExt, pubSub)
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
@@ -145,8 +132,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login, survey,
 		userpin, engage, mes, nhif, pubSub,
-		sms, adminSrv, crmExt,
-		role,
+		sms, adminSrv, role,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -169,7 +155,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	r.Use(serverutils.CustomHTTPRequestMetricsMiddleware())
 
 	// Unauthenticated routes
-	r.Path("/optout").Methods(http.MethodPost, http.MethodOptions).HandlerFunc(h.OptOut())
 	r.Path("/switch_flagged_features").Methods(
 		http.MethodPost,
 		http.MethodOptions,

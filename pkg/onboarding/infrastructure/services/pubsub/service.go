@@ -6,11 +6,8 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
-	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 const (
@@ -48,20 +45,12 @@ type ServicePubSub interface {
 		r *http.Request,
 	)
 	AddEngagementPubsubNameSpace(topic string) string
-
-	// Publishers
-	NotifyCreateContact(ctx context.Context, contact domain.CRMContact) error
-	NotifyUpdateContact(
-		ctx context.Context,
-		contact domain.CRMContact,
-	) error
 }
 
 // ServicePubSubMessaging sends "real" (production) notifications
 type ServicePubSubMessaging struct {
 	client  *pubsub.Client
 	baseExt extension.BaseExtension
-	crm     crm.ServiceCrm
 	repo    repository.OnboardingRepository
 }
 
@@ -69,13 +58,11 @@ type ServicePubSubMessaging struct {
 func NewServicePubSubMessaging(
 	client *pubsub.Client,
 	ext extension.BaseExtension,
-	crm crm.ServiceCrm,
 	repo repository.OnboardingRepository,
 ) (*ServicePubSubMessaging, error) {
 	s := &ServicePubSubMessaging{
 		client:  client,
 		baseExt: ext,
-		crm:     crm,
 		repo:    repo,
 	}
 
@@ -122,10 +109,7 @@ func (ps ServicePubSubMessaging) AddPubSubNamespace(topicName string) string {
 
 // TopicIDs returns the known (registered) topic IDs
 func (ps ServicePubSubMessaging) TopicIDs() []string {
-	return []string{
-		ps.AddPubSubNamespace(common.CreateCRMContact),
-		ps.AddPubSubNamespace(common.UpdateCRMContact),
-	}
+	return []string{}
 }
 
 // PublishToPubsub sends a message to a specifeid Topic

@@ -27,7 +27,6 @@ type HandlersInterfaces interface {
 	CreateUserWithPhoneNumber() http.HandlerFunc
 	UserRecoveryPhoneNumbers() http.HandlerFunc
 	SetPrimaryPhoneNumber() http.HandlerFunc
-	OptOut() http.HandlerFunc
 	LoginByPhone() http.HandlerFunc
 	LoginAnonymous() http.HandlerFunc
 	RequestPINReset() http.HandlerFunc
@@ -167,35 +166,6 @@ func (h *HandlersInterfacesImpl) UserRecoveryPhoneNumbers() http.HandlerFunc {
 		)
 
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
-	}
-}
-
-//OptOut marks a person as opted out of our promotional/marketing messages
-func (h *HandlersInterfacesImpl) OptOut() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		p := &dto.PhoneNumberPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, p)
-		if p.PhoneNumber == nil {
-			err := fmt.Errorf(
-				"expected a phone number to be provided",
-			)
-			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
-			return
-		}
-
-		_, err := h.interactor.CrmExt.OptOut(ctx, *p.PhoneNumber)
-		if err != nil {
-			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
-			return
-		}
-
-		serverutils.WriteJSONResponse(
-			w,
-			dto.NewOKResp(fmt.Sprintf("%s has successfully been opted out", *p.PhoneNumber)),
-			http.StatusOK,
-		)
 	}
 }
 

@@ -4,7 +4,6 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
-	crmDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 // BusinessPartnerEdge is used to serialize GraphQL Relay edges for organization
@@ -132,17 +131,6 @@ type UserInfo struct {
 	// In UserRecord.UserInfo it will return the constant string "firebase".
 	ProviderID string `json:"providerId,omitempty"`
 	UID        string `json:"rawId,omitempty"`
-}
-
-// Segment represents the Segments data
-type Segment struct {
-	Properties     crmDomain.ContactProperties `json:"properties"       firestore:"properties"`
-	Wing           string                      `json:"wing"             firestore:"wing"`
-	MessageSent    string                      `json:"message_sent"     firestore:"message_sent"`
-	IsSynced       string                      `json:"is_synced"        firestore:"is_synced"`
-	TimeSynced     string                      `json:"time_synced"      firestore:"time_synced"`
-	PayerSladeCode string                      `json:"payer_slade_code" firestore:"payersladecode"`
-	MemberNumber   string                      `json:"member_number"    firestore:"membernumber"`
 }
 
 // RoleOutput is the formatted output with scopes and permissions

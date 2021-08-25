@@ -15,7 +15,6 @@ import (
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
 	"gitlab.slade360emr.com/go/apiclient"
-	crmDomain "gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 )
 
 func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
@@ -342,14 +341,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 						AllowEmail:    true,
 						AllowPush:     true,
 					}, nil
-				}
-
-				fakePubSub.NotifyCreateContactFn = func(ctx context.Context, contact crmDomain.CRMContact) error {
-					return nil
-				}
-
-				fakePubSub.NotifyCreateContactFn = func(ctx context.Context, contact crmDomain.CRMContact) error {
-					return nil
 				}
 
 				fakeRepo.GetRolesByIDsFn = func(ctx context.Context, roleIDs []string) (*[]profileutils.Role, error) {

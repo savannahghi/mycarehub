@@ -26,7 +26,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/serverutils"
-	"gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/services/hubspot"
 
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
@@ -39,13 +38,10 @@ import (
 	extMock "github.com/savannahghi/onboarding/pkg/onboarding/application/extension/mock"
 	engagementMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement/mock"
 
-	crmExt "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	messagingMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging/mock"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	pubsubmessagingMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub/mock"
 	adminSrv "github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
-	hubspotRepo "gitlab.slade360emr.com/go/commontools/crm/pkg/infrastructure/database/fs"
-	hubspotUsecases "gitlab.slade360emr.com/go/commontools/crm/pkg/usecases"
 )
 
 const (
@@ -91,7 +87,6 @@ func TestMain(m *testing.M) {
 				r.GetCustomerProfileCollectionName(),
 				r.GetExperimentParticipantCollectionName(),
 				r.GetKCYProcessCollectionName(),
-				r.GetMarketingDataCollectionName(),
 				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),
 				r.GetSMSCollectionName(),
@@ -186,18 +181,9 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	engagementClient := utils.NewInterServiceClient(engagementService, ext)
 	engage := engagement.NewServiceEngagementImpl(engagementClient, ext)
 
-	// hubspot usecases
-	hubspotService := hubspot.NewHubSpotService()
-	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(context.Background(), hubspotService)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize hubspot crm repository: %w", err)
-	}
-	hubspotUsecases := hubspotUsecases.NewHubSpotUsecases(hubspotfr)
-	crmExt := crmExt.NewCrmService(hubspotUsecases)
 	ps, err := pubsubmessaging.NewServicePubSubMessaging(
 		pubSubClient,
 		ext,
-		crmExt,
 		repo,
 	)
 	if err != nil {
@@ -205,7 +191,7 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}
 	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
-	profile := usecases.NewProfileUseCase(repo, ext, engage, ps, crmExt)
+	profile := usecases.NewProfileUseCase(repo, ext, engage, ps)
 
 	supplier := usecases.NewSupplierUseCases(repo, profile, engage, mes, ext, ps)
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
@@ -226,7 +212,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		NHIF:       nhif,
 		PubSub:     ps,
 		SMS:        sms,
-		CrmExt:     crmExt,
 	}, nil
 }
 
@@ -442,15 +427,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	var pinExt extension.PINExtension = &fakePinExt
 	var ps pubsubmessaging.ServicePubSub = &fakePubSub
 
-	// hubspot usecases
-	hubspotService := hubspot.NewHubSpotService()
-	hubspotfr, err := hubspotRepo.NewHubSpotFirebaseRepository(context.Background(), hubspotService)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize hubspot crm repository: %w", err)
-	}
-	hubspotUsecases := hubspotUsecases.NewHubSpotUsecases(hubspotfr)
-	crmExt := crmExt.NewCrmService(hubspotUsecases)
-	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps, crmExt)
+	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
@@ -467,8 +444,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 		profile, su, supplier, login,
 		survey, userpin,
 		engagementSvc, messagingSvc, nhif, ps, sms,
-		adminSrv, crmExt,
-		role,
+		adminSrv, role,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)

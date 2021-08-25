@@ -100,17 +100,6 @@ type NHIFDetails struct {
 	NHIFCardPhotoID           string                          `json:"nhifCardPhotoID"           firestore:"nhifCardPhotoID"`
 }
 
-// CRMContact represents a stored CRM contact
-type CRMContact struct {
-	FirstName   string `json:"first_name,omitempty"`
-	LastName    string `json:"last_name,omitempty"`
-	DOB         string `json:"dob,omitempty"`
-	PhoneNumber string `json:"phone_number,omitempty"`
-	OptOut      string `json:"opt_out,omitempty"`
-	TimeStamp   string `json:"time_stamp,omitempty"`
-	IsSynced    string `json:"is_synced,omitempty"`
-}
-
 // Microservice identifies a micro-service that conforms to the Apollo Graphqql
 // federation specification. These microservices are composed by an Apollo
 // Gateway into a single data graph.

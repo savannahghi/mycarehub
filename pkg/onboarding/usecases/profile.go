@@ -3,7 +3,6 @@ package usecases
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -26,7 +25,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/crm"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
@@ -184,7 +182,6 @@ type ProfileUseCaseImpl struct {
 	baseExt              extension.BaseExtension
 	engagement           engagement.ServiceEngagement
 	pubsub               pubsubmessaging.ServicePubSub
-	crm                  crm.ServiceCrm
 }
 
 // NewProfileUseCase returns a new a onboarding usecase
@@ -193,14 +190,12 @@ func NewProfileUseCase(
 	ext extension.BaseExtension,
 	eng engagement.ServiceEngagement,
 	pubsub pubsubmessaging.ServicePubSub,
-	crm crm.ServiceCrm,
 ) ProfileUseCase {
 	return &ProfileUseCaseImpl{
 		onboardingRepository: r,
 		baseExt:              ext,
 		engagement:           eng,
 		pubsub:               pubsub,
-		crm:                  crm,
 	}
 }
 
@@ -320,21 +315,6 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryPhoneNumber(
 		return err
 	}
 
-	contact, err := p.crm.GetContactByPhone(ctx, *profile.PrimaryPhone)
-	if err != nil {
-		return fmt.Errorf("failed to get contact %s: %w", *profile.PrimaryPhone, err)
-	}
-	if contact == nil {
-		return nil
-	}
-
-	contact.Properties.Phone = phone
-
-	if err = p.pubsub.NotifyUpdateContact(ctx, *contact); err != nil {
-		utils.RecordSpanError(span, err)
-		log.Printf("failed to publish to crm.contact.update topic: %v", err)
-	}
-
 	// check if number to be set as primary exists in the list of secondary phones
 	index, exists := utils.FindItem(secondaryPhones, *phoneNumber)
 	if exists {
@@ -387,22 +367,6 @@ func (p *ProfileUseCaseImpl) UpdatePrimaryEmailAddress(
 	if err != nil {
 		utils.RecordSpanError(span, err)
 		return err
-	}
-
-	// After updating the primary email, update it on the CRM too
-	contact, err := p.crm.GetContactByPhone(ctx, *profile.PrimaryPhone)
-	if err != nil {
-		return fmt.Errorf("failed to get contact %s: %w", *profile.PrimaryPhone, err)
-	}
-	if contact == nil {
-		return nil
-	}
-
-	contact.Properties.Email = emailAddress
-
-	if err = p.pubsub.NotifyUpdateContact(ctx, *contact); err != nil {
-		utils.RecordSpanError(span, err)
-		log.Printf("failed to publish to crm.contact.update topic: %v", err)
 	}
 
 	previousPrimaryEmail := profile.PrimaryEmailAddress
@@ -929,36 +893,6 @@ func (p *ProfileUseCaseImpl) UpdateBioData(ctx context.Context, data profileutil
 		return err
 	}
 
-	contact, err := p.crm.GetContactByPhone(ctx, *profile.PrimaryPhone)
-	if err != nil {
-		return fmt.Errorf("failed to get contact %s: %w", *profile.PrimaryPhone, err)
-	}
-	if contact == nil {
-		return nil
-	}
-
-	if data.FirstName != nil {
-		contact.Properties.FirstName = *data.FirstName
-	}
-
-	if data.LastName != nil {
-		contact.Properties.LastName = *data.LastName
-	}
-
-	if data.DateOfBirth != nil {
-		dob := data.DateOfBirth.AsTime()
-		contact.Properties.DateOfBirth = dob
-	}
-
-	if data.Gender != "" {
-		contact.Properties.Gender = data.Gender.String()
-	}
-
-	if err = p.pubsub.NotifyUpdateContact(ctx, *contact); err != nil {
-		utils.RecordSpanError(span, err)
-		log.Printf("failed to publish to crm.contact.update topic: %v", err)
-	}
-
 	return nil
 }
 
@@ -1065,26 +999,6 @@ func (p *ProfileUseCaseImpl) SetPrimaryEmailAddress(
 	if err := p.UpdatePrimaryEmailAddress(ctx, emailAddress); err != nil {
 		utils.RecordSpanError(span, err)
 		return err
-	}
-
-	profile, err := p.UserProfile(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return err
-	}
-
-	contact, err := p.crm.GetContactByPhone(ctx, *profile.PrimaryPhone)
-	if err != nil {
-		return fmt.Errorf("failed to get contact %s: %w", *profile.PrimaryPhone, err)
-	}
-	if contact == nil {
-		return nil
-	}
-	contact.Properties.Email = *profile.PrimaryPhone
-
-	if err = p.pubsub.NotifyUpdateContact(ctx, *contact); err != nil {
-		utils.RecordSpanError(span, err)
-		log.Printf("failed to publish to crm.contact.update topic: %v", err)
 	}
 
 	// The `VerifyEmail` nudge is by default created for both flavours, `PRO`

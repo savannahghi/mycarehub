@@ -2,11 +2,8 @@ package pubsubmessaging
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/common"
-	"gitlab.slade360emr.com/go/commontools/crm/pkg/domain"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -48,53 +45,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 	))
 
 	switch topicID {
-	case ps.AddPubSubNamespace(common.CreateCRMContact):
-		var CRMContact domain.CRMContact
-		err := json.Unmarshal(message.Message.Data, &CRMContact)
-		if err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-		if _, err = ps.crm.CreateHubSpotContact(ctx, &CRMContact); err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
 
-	case ps.AddPubSubNamespace(common.UpdateCRMContact):
-		var CRMContact domain.CRMContact
-		err := json.Unmarshal(message.Message.Data, &CRMContact)
-		if err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-		if _, err = ps.crm.UpdateHubSpotContact(ctx, &CRMContact); err != nil {
-			ps.baseExt.WriteJSONResponse(
-				w,
-				ps.baseExt.ErrorMap(err),
-				http.StatusBadRequest,
-			)
-			return
-		}
-
-	default:
-		errMsg := fmt.Sprintf(
-			"pub sub handler error: unknown topic `%s`",
-			topicID,
-		)
-		http.Error(w, errMsg, http.StatusBadRequest)
-		return
 	}
 
 	resp := map[string]string{"status": "success"}
