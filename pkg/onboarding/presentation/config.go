@@ -19,7 +19,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
-	loginservice "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/login_service"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
@@ -138,7 +137,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	}
 
 	h := rest.NewHandlersInterfaces(i)
-	loginService := loginservice.NewServiceLogin(baseExt)
 
 	r := mux.NewRouter() // gorilla mux
 	r.Use(otelmux.Middleware(serverutils.MetricsCollectorService("onboarding")))
@@ -159,32 +157,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 	).HandlerFunc(
 		h.SwitchFlaggedFeaturesHandler(),
-	)
-
-	// login service routes
-	r.Path("/login").Methods(
-		http.MethodPost,
-		http.MethodOptions,
-	).HandlerFunc(
-		loginService.GetLoginFunc(ctx),
-	)
-	r.Path("/logout").Methods(
-		http.MethodPost,
-		http.MethodOptions,
-	).HandlerFunc(
-		loginService.GetLogoutFunc(ctx),
-	)
-	r.Path("/refresh").Methods(
-		http.MethodPost,
-		http.MethodOptions,
-	).HandlerFunc(
-		loginService.GetRefreshFunc(),
-	)
-	r.Path("/verify_access_token").Methods(
-		http.MethodPost,
-		http.MethodOptions,
-	).HandlerFunc(
-		loginService.GetVerifyTokenFunc(ctx),
 	)
 
 	r.Path("/pubsub").Methods(

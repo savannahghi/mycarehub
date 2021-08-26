@@ -77,10 +77,6 @@ type FakeBaseExtensionImpl struct {
 		source interface{},
 		status int,
 	)
-	GetLoginFuncFn                       func(ctx context.Context) http.HandlerFunc
-	GetLogoutFuncFn                      func(ctx context.Context) http.HandlerFunc
-	GetRefreshFuncFn                     func() http.HandlerFunc
-	GetVerifyTokenFuncFn                 func(ctx context.Context) http.HandlerFunc
 	GetUserProfileByPrimaryPhoneNumberFn func(ctx context.Context, phone string, suspended bool) (*profileutils.UserProfile, error)
 }
 
@@ -128,26 +124,6 @@ func (b *FakeBaseExtensionImpl) SetupISCclient(config interserviceclient.DepsCon
 // GetEnvVar ...
 func (b *FakeBaseExtensionImpl) GetEnvVar(envName string) (string, error) {
 	return b.GetEnvVarFn(envName)
-}
-
-// GetLoginFunc ..
-func (b *FakeBaseExtensionImpl) GetLoginFunc(ctx context.Context) http.HandlerFunc {
-	return b.GetLoginFuncFn(ctx)
-}
-
-// GetLogoutFunc ..
-func (b *FakeBaseExtensionImpl) GetLogoutFunc(ctx context.Context) http.HandlerFunc {
-	return b.GetLogoutFuncFn(ctx)
-}
-
-// GetRefreshFunc ..
-func (b *FakeBaseExtensionImpl) GetRefreshFunc() http.HandlerFunc {
-	return b.GetRefreshFuncFn()
-}
-
-// GetVerifyTokenFunc ..
-func (b *FakeBaseExtensionImpl) GetVerifyTokenFunc(ctx context.Context) http.HandlerFunc {
-	return b.GetVerifyTokenFuncFn(ctx)
 }
 
 // NewServerClient ...
