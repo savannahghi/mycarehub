@@ -24,8 +24,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	engagementMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement/mock"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
-	messagingMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging/mock"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	pubsubmessagingMock "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub/mock"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
@@ -47,7 +45,6 @@ var fakePubSub pubsubmessagingMock.FakeServicePubSub
 func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	var r repository.OnboardingRepository = &fakeRepo
 	var engagementSvc engagement.ServiceEngagement = &fakeEngagementSvs
-	var messagingSvc messaging.ServiceMessaging = &messagingMock.FakeServiceMessaging{}
 	var ext extension.BaseExtension = &fakeBaseExt
 	var pinExt extension.PINExtension = &fakePinExt
 	var ps pubsubmessaging.ServicePubSub = &fakePubSub
@@ -56,7 +53,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
 	supplier := usecases.NewSupplierUseCases(
-		r, profile, engagementSvc, messagingSvc, ext, ps,
+		r, profile, engagementSvc, ext, ps,
 	)
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps)
@@ -68,7 +65,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login,
 		survey, userpin,
-		engagementSvc, messagingSvc, nhif, ps, adminSrv,
+		engagementSvc, nhif, ps, adminSrv,
 		role,
 	)
 	if err != nil {

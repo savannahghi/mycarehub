@@ -19,7 +19,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
@@ -104,7 +103,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Initialize new instance of our infrastructure services
 	engage := engagement.NewServiceEngagementImpl(engagementClient, baseExt)
-	mes := messaging.NewServiceMessagingImpl(baseExt)
 	pinExt := extension.NewPINExtensionImpl()
 
 	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(
@@ -118,7 +116,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Initialize the usecases
 	profile := usecases.NewProfileUseCase(repo, baseExt, engage, pubSub)
-	supplier := usecases.NewSupplierUseCases(repo, profile, engage, mes, baseExt, pubSub)
+	supplier := usecases.NewSupplierUseCases(repo, profile, engage, baseExt, pubSub)
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
@@ -129,7 +127,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login, survey,
-		userpin, engage, mes, nhif, pubSub,
+		userpin, engage, nhif, pubSub,
 		adminSrv, role,
 	)
 	if err != nil {

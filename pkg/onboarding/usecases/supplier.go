@@ -28,7 +28,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 )
 
@@ -159,7 +158,6 @@ type SupplierUseCasesImpl struct {
 	repo       repository.OnboardingRepository
 	profile    ProfileUseCase
 	engagement engagement.ServiceEngagement
-	messaging  messaging.ServiceMessaging
 	baseExt    extension.BaseExtension
 	pubsub     pubsubmessaging.ServicePubSub
 }
@@ -169,7 +167,6 @@ func NewSupplierUseCases(
 	r repository.OnboardingRepository,
 	p ProfileUseCase,
 	eng engagement.ServiceEngagement,
-	messaging messaging.ServiceMessaging,
 	ext extension.BaseExtension,
 	pubsub pubsubmessaging.ServicePubSub,
 ) SupplierUseCases {
@@ -178,7 +175,6 @@ func NewSupplierUseCases(
 		repo:       r,
 		profile:    p,
 		engagement: eng,
-		messaging:  messaging,
 		baseExt:    ext,
 		pubsub:     pubsub,
 	}

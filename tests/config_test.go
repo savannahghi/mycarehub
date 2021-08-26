@@ -31,7 +31,6 @@ import (
 	"github.com/savannahghi/serverutils"
 	"github.com/sirupsen/logrus"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation"
 	"github.com/savannahghi/onboarding/pkg/onboarding/repository"
@@ -123,11 +122,10 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize new pubsub messaging service: %w", err)
 	}
-	mes := messaging.NewServiceMessagingImpl(ext)
 	pinExt := extension.NewPINExtensionImpl()
 	profile := usecases.NewProfileUseCase(repo, ext, engage, ps)
 
-	supplier := usecases.NewSupplierUseCases(repo, profile, engage, mes, ext, ps)
+	supplier := usecases.NewSupplierUseCases(repo, profile, engage, ext, ps)
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, ext)
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)

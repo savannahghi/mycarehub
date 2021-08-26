@@ -17,7 +17,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 )
 
@@ -78,14 +77,12 @@ func TestParseKYCAsMap(t *testing.T) {
 		t.Errorf("unable to initialize new pubsub messaging service: %w", err)
 		return
 	}
-	mes := messaging.NewServiceMessagingImpl(ext)
 	profile := NewProfileUseCase(repo, ext, engage, ps)
 
 	supplier := SupplierUseCasesImpl{
 		repo:       repo,
 		profile:    profile,
 		engagement: engage,
-		messaging:  mes,
 	}
 
 	tests := []struct {

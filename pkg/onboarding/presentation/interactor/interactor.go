@@ -5,7 +5,6 @@ package interactor
 import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
 
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/messaging"
 	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
@@ -20,7 +19,6 @@ type Interactor struct {
 	Survey     usecases.SurveyUseCases
 	UserPIN    usecases.UserPINUseCases
 	Engagement engagement.ServiceEngagement
-	Messaging  messaging.ServiceMessaging
 	NHIF       usecases.NHIFUseCases
 	PubSub     pubsubmessaging.ServicePubSub
 	AdminSrv   admin.Usecase
@@ -36,7 +34,6 @@ func NewOnboardingInteractor(
 	survey usecases.SurveyUseCases,
 	userpin usecases.UserPINUseCases,
 	engage engagement.ServiceEngagement,
-	mes messaging.ServiceMessaging,
 	nhif usecases.NHIFUseCases,
 	pubsub pubsubmessaging.ServicePubSub,
 	admin admin.Usecase,
@@ -51,7 +48,6 @@ func NewOnboardingInteractor(
 		Survey:     survey,
 		UserPIN:    userpin,
 		Engagement: engage,
-		Messaging:  mes,
 		NHIF:       nhif,
 		PubSub:     pubsub,
 		AdminSrv:   admin,
