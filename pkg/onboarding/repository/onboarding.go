@@ -241,8 +241,6 @@ type OnboardingRepository interface {
 
 	SetUserCommunicationsSettings(ctx context.Context, profileID string,
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error)
-
-	PersistIncomingSMSData(ctx context.Context, input *dto.AfricasTalkingMessage) error
 }
 
 // UserProfileRepository interface that provide access to all persistent storage operations for user profile

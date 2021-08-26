@@ -9,9 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
-	"strings"
 	"testing"
 
 	"cloud.google.com/go/firestore"
@@ -135,7 +133,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage, ps)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
-	sms := usecases.NewSMSUsecase(repo, ext)
 	role := usecases.NewRoleUseCases(repo, ext)
 
 	return &interactor.Interactor{
@@ -148,7 +145,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		Engagement: engage,
 		NHIF:       nhif,
 		PubSub:     ps,
-		SMS:        sms,
 		Role:       role,
 	}, nil
 }
@@ -197,22 +193,6 @@ func composeValidRolePayload(t *testing.T, roleName string) *dto.RoleInput {
 	}
 
 	return &role
-}
-
-func composeSMSMessageDataPayload(
-	t *testing.T,
-	payload *dto.AfricasTalkingMessage,
-) *strings.Reader {
-	data := url.Values{}
-	data.Set("date", payload.Date)
-	data.Set("from", payload.From)
-	data.Set("id", payload.ID)
-	data.Set("linkId", payload.LinkID)
-	data.Set("text", payload.Text)
-	data.Set("to", payload.To)
-
-	smspayload := strings.NewReader(data.Encode())
-	return smspayload
 }
 
 func CreateTestUserByPhone(t *testing.T, phone string) (*profileutils.UserResponse, error) {
@@ -606,7 +586,6 @@ func TestMain(m *testing.M) {
 				r.GetKCYProcessCollectionName(),
 				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),
-				r.GetSMSCollectionName(),
 				r.GetRolesCollectionName(),
 			}
 			for _, collection := range collections {

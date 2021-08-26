@@ -23,7 +23,6 @@ type Interactor struct {
 	Messaging  messaging.ServiceMessaging
 	NHIF       usecases.NHIFUseCases
 	PubSub     pubsubmessaging.ServicePubSub
-	SMS        usecases.SMSUsecase
 	AdminSrv   admin.Usecase
 	Role       usecases.RoleUseCase
 }
@@ -40,7 +39,6 @@ func NewOnboardingInteractor(
 	mes messaging.ServiceMessaging,
 	nhif usecases.NHIFUseCases,
 	pubsub pubsubmessaging.ServicePubSub,
-	sms usecases.SMSUsecase,
 	admin admin.Usecase,
 	role usecases.RoleUseCase,
 ) (*Interactor, error) {
@@ -56,7 +54,6 @@ func NewOnboardingInteractor(
 		Messaging:  mes,
 		NHIF:       nhif,
 		PubSub:     pubsub,
-		SMS:        sms,
 		AdminSrv:   admin,
 		Role:       role,
 	}, nil

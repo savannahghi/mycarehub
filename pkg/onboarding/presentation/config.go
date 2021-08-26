@@ -125,14 +125,13 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage, pubSub)
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
-	sms := usecases.NewSMSUsecase(repo, baseExt)
 	role := usecases.NewRoleUseCases(repo, baseExt)
 	adminSrv := adminSrv.NewService(baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login, survey,
 		userpin, engage, mes, nhif, pubSub,
-		sms, adminSrv, role,
+		adminSrv, role,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -267,11 +266,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.RemoveAdminPermsToUser())
-
-	r.Path("/incoming_ait_messages").Methods(
-		http.MethodPost,
-		http.MethodOptions).
-		HandlerFunc(h.IncomingATSMS())
 
 	// Authenticated routes
 	rs := r.PathPrefix("/roles").Subrouter()

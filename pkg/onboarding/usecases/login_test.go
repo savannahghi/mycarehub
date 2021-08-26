@@ -89,7 +89,6 @@ func TestMain(m *testing.M) {
 				r.GetKCYProcessCollectionName(),
 				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),
-				r.GetSMSCollectionName(),
 				r.GetRolesCollectionName(),
 			}
 			for _, collection := range collections {
@@ -199,7 +198,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage, ps)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
-	sms := usecases.NewSMSUsecase(repo, ext)
 
 	return &interactor.Interactor{
 		Onboarding: profile,
@@ -211,7 +209,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		Engagement: engage,
 		NHIF:       nhif,
 		PubSub:     ps,
-		SMS:        sms,
 	}, nil
 }
 
@@ -437,13 +434,12 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	adminSrv := adminSrv.NewService(ext)
-	sms := usecases.NewSMSUsecase(r, ext)
 	role := usecases.NewRoleUseCases(r, ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login,
 		survey, userpin,
-		engagementSvc, messagingSvc, nhif, ps, sms,
+		engagementSvc, messagingSvc, nhif, ps,
 		adminSrv, role,
 	)
 	if err != nil {

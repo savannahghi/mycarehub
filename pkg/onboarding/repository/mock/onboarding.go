@@ -144,8 +144,6 @@ type FakeOnboardingRepository struct {
 	SetUserCommunicationsSettingsFn func(ctx context.Context, profileID string,
 		allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error)
 
-	PersistIncomingSMSDataFn func(ctx context.Context, input *dto.AfricasTalkingMessage) error
-
 	UpdateCustomerProfileFn func(
 		ctx context.Context,
 		profileID string,
@@ -755,14 +753,6 @@ func (f *FakeOnboardingRepository) UpdateCustomerProfile(
 	customer profileutils.Customer,
 ) (*profileutils.Customer, error) {
 	return f.UpdateCustomerProfileFn(ctx, profileID, customer)
-}
-
-// PersistIncomingSMSData ensures Africa's Talking SMS data is persisted in the database
-func (f *FakeOnboardingRepository) PersistIncomingSMSData(
-	ctx context.Context,
-	input *dto.AfricasTalkingMessage,
-) error {
-	return f.PersistIncomingSMSDataFn(ctx, input)
 }
 
 // ListUserProfiles ...

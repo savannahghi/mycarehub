@@ -9,8 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
-	"strings"
 	"testing"
 	"time"
 
@@ -63,7 +61,6 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
-	sms := usecases.NewSMSUsecase(r, ext)
 	role := usecases.NewRoleUseCases(r, ext)
 
 	adminSrv := adminSrv.NewService(ext)
@@ -71,8 +68,8 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, supplier, login,
 		survey, userpin,
-		engagementSvc, messagingSvc, nhif, ps, sms,
-		adminSrv, role,
+		engagementSvc, messagingSvc, nhif, ps, adminSrv,
+		role,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
@@ -218,22 +215,6 @@ func composeSetPrimaryPhoneNumberPayload(t *testing.T, phone, otp string) *bytes
 		return nil
 	}
 	return bytes.NewBuffer(bs)
-}
-
-func composeSMSMessageDataPayload(
-	t *testing.T,
-	payload *dto.AfricasTalkingMessage,
-) *strings.Reader {
-	data := url.Values{}
-	data.Set("date", payload.Date)
-	data.Set("from", payload.From)
-	data.Set("id", payload.ID)
-	data.Set("linkId", payload.LinkID)
-	data.Set("text", payload.Text)
-	data.Set("to", payload.To)
-
-	smspayload := strings.NewReader(data.Encode())
-	return smspayload
 }
 
 func TestHandlersInterfacesImpl_VerifySignUpPhoneNumber(t *testing.T) {
@@ -3400,147 +3381,6 @@ func TestHandlersInterfacesImpl_RemoveRoleToUser(t *testing.T) {
 				return
 			}
 
-		})
-	}
-}
-
-func composeSMSMessageDataJSONPayload(
-	t *testing.T,
-	payload *dto.AfricasTalkingMessage,
-) *bytes.Buffer {
-
-	bs, err := json.Marshal(payload)
-	if err != nil {
-		t.Errorf("unable to marshal payload to JSON: %s", err)
-		return nil
-	}
-	return bytes.NewBuffer(bs)
-}
-
-func TestHandlersInterfacesImpl_IncomingATSMS(t *testing.T) {
-
-	i, err := InitializeFakeOnboardingInteractor()
-	if err != nil {
-		t.Errorf("failed to initialize onboarding interactor: %v", err)
-		return
-	}
-	h := rest.NewHandlersInterfaces(i)
-
-	invalidLinkId := ""
-	validLinkId := uuid.New().String()
-	text := "Test Covers"
-	to := "3601"
-	id := "60119"
-	from := "+254705385894"
-	date := "2021-05-17T13:20:04.490Z"
-
-	validSMSData := &dto.AfricasTalkingMessage{
-		LinkID: validLinkId,
-		Text:   text,
-		To:     to,
-		ID:     id,
-		Date:   date,
-		From:   from,
-	}
-
-	invalidSMSData := &dto.AfricasTalkingMessage{
-		LinkID: invalidLinkId,
-		Text:   text,
-		To:     to,
-		ID:     id,
-		Date:   date,
-		From:   from,
-	}
-
-	validPayload := composeSMSMessageDataPayload(t, validSMSData)
-	invalidPayload := composeSMSMessageDataPayload(t, invalidSMSData)
-	invalidJSONPayload := composeSMSMessageDataJSONPayload(t, validSMSData)
-	type args struct {
-		url        string
-		httpMethod string
-		body       io.Reader
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantStatus int
-		wantErr    bool
-	}{
-		{
-			name: "VALID_CASE:Valid_incoming_sms",
-			args: args{
-				url:        fmt.Sprintf("%s/incoming_ait_sms", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       validPayload,
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    false,
-		},
-		{
-			name: "INVALID_CASE:Nil_incoming_sms_JSON",
-			args: args{
-				url:        fmt.Sprintf("%s/incoming_ait_sms", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       invalidJSONPayload,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-		{
-			name: "INVALID_CASE:Invalid_incoming_sms",
-			args: args{
-				url:        fmt.Sprintf("%s/incoming_ait_sms", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       invalidPayload,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
-			if err != nil {
-				t.Errorf("can't create new request: %v", err)
-				return
-			}
-			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-			response := httptest.NewRecorder()
-
-			if tt.name == "VALID_CASE:Valid_incoming_sms" {
-				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *dto.AfricasTalkingMessage) error {
-					return nil
-				}
-			}
-
-			if tt.name == "INVALID_CASE:Nil_incoming_sms_JSON" {
-				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *dto.AfricasTalkingMessage) error {
-					return fmt.Errorf("invalid sms")
-				}
-			}
-
-			if tt.name == "INVALID_CASE:Invalid_incoming_sms" {
-				fakeRepo.PersistIncomingSMSDataFn = func(ctx context.Context, input *dto.AfricasTalkingMessage) error {
-					return fmt.Errorf("invalid sms")
-				}
-			}
-
-			svr := h.IncomingATSMS()
-			svr.ServeHTTP(response, req)
-
-			if tt.wantStatus != response.Code {
-				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
-				return
-			}
-
-			dataResponse, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				t.Errorf("can't read response body: %v", err)
-			}
-			if dataResponse == nil {
-				t.Errorf("nil response body data")
-				return
-			}
 		})
 	}
 }

@@ -46,7 +46,6 @@ type HandlersInterfaces interface {
 	AddRoleToUser() http.HandlerFunc
 	RemoveRoleToUser() http.HandlerFunc
 	UpdateUserProfile() http.HandlerFunc
-	IncomingATSMS() http.HandlerFunc
 	SwitchFlaggedFeaturesHandler() http.HandlerFunc
 	PollServices() http.HandlerFunc
 	CheckHasPermission() http.HandlerFunc
@@ -1036,48 +1035,6 @@ func (h *HandlersInterfacesImpl) UpdateUserProfile() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, userProfile, http.StatusOK)
-	}
-}
-
-// IncomingATSMS is an authenticated REST endpoint acting as a callback url for Africa's Talking incoming SMS
-func (h *HandlersInterfacesImpl) IncomingATSMS() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		payload := &dto.AfricasTalkingMessage{}
-
-		err := r.ParseForm()
-		if err != nil {
-			errorcodeutil.ReportErr(w, err, http.StatusUnsupportedMediaType)
-		}
-
-		payload.Date = r.PostForm.Get("date")
-		payload.From = r.PostForm.Get("from")
-		payload.ID = r.PostForm.Get("id")
-		payload.LinkID = r.PostForm.Get("linkId")
-		payload.Text = r.PostForm.Get("text")
-		payload.To = r.PostForm.Get("to")
-
-		validatedPayload, err := utils.ValidateAficasTalkingSMSData(payload)
-		if err != nil {
-			err := fmt.Errorf("input validation error occurred")
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		err = h.interactor.SMS.CreateSMSData(ctx, validatedPayload)
-		if err != nil {
-			serverutils.WriteJSONResponse(w, err, http.StatusBadRequest)
-			return
-		}
-
-		serverutils.WriteJSONResponse(w,
-			dto.OKResp{
-				Status: "Africa's Talking SMS data successfully created"},
-			http.StatusOK)
 	}
 }
 

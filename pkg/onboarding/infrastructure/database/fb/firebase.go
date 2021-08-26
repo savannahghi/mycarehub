@@ -45,7 +45,6 @@ const (
 	experimentParticipantCollectionName  = "experiment_participants"
 	nhifDetailsCollectionName            = "nhif_details"
 	communicationsSettingsCollectionName = "communications_settings"
-	smsCollectionName                    = "incoming_sms"
 	firebaseExchangeRefreshTokenURL      = "https://securetoken.googleapis.com/v1/token?key="
 	rolesRevocationCollectionName        = "role_revocations"
 	rolesCollectionName                  = "user_roles"
@@ -125,12 +124,6 @@ func (fr Repository) GetNHIFDetailsCollectionName() string {
 // GetCommunicationsSettingsCollectionName ...
 func (fr Repository) GetCommunicationsSettingsCollectionName() string {
 	suffixed := firebasetools.SuffixCollection(communicationsSettingsCollectionName)
-	return suffixed
-}
-
-// GetSMSCollectionName gets the collection name from firestore
-func (fr Repository) GetSMSCollectionName() string {
-	suffixed := firebasetools.SuffixCollection(smsCollectionName)
 	return suffixed
 }
 
@@ -3430,44 +3423,6 @@ func (fr *Repository) SetUserCommunicationsSettings(
 
 	// fetch the now set communications_settings and return it
 	return fr.GetUserCommunicationsSettings(ctx, profileID)
-}
-
-// PersistIncomingSMSData persists SMS data
-func (fr *Repository) PersistIncomingSMSData(
-	ctx context.Context,
-	input *dto.AfricasTalkingMessage,
-) error {
-	ctx, span := tracer.Start(ctx, "PersistIncomingSMSData")
-	defer span.End()
-
-	message := &dto.AfricasTalkingMessage{
-		Date:   input.Date,
-		From:   input.From,
-		ID:     input.ID,
-		LinkID: input.LinkID,
-		Text:   input.Text,
-		To:     input.To,
-	}
-
-	validatedMessage, err := utils.ValidateAficasTalkingSMSData(message)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return err
-	}
-
-	createCommand := &CreateCommand{
-		CollectionName: fr.GetSMSCollectionName(),
-		Data:           validatedMessage,
-	}
-
-	_, err = fr.FirestoreClient.Create(ctx, createCommand)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(err)
-	}
-
-	return nil
-
 }
 
 // ListUserProfiles fetches all users with the specified role from the database
