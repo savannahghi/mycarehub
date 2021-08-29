@@ -5,33 +5,6 @@ import (
 	"github.com/savannahghi/profileutils"
 )
 
-// Admin represents agent with details inferred from their user profile
-type Admin struct {
-	ID string `json:"id"`
-
-	PrimaryPhone string `json:"primaryPhone"`
-
-	PrimaryEmailAddress *string `json:"primaryEmailAddress"`
-
-	SecondaryPhoneNumbers []string `json:"secondaryPhoneNumbers"`
-
-	SecondaryEmailAddresses []string `json:"secondaryEmailAddresses"`
-
-	TermsAccepted bool `json:"termsAccepted,omitempty"`
-
-	Suspended bool `json:"suspended"`
-
-	PhotoUploadID string `json:"photoUploadID,omitempty"`
-
-	UserBioData profileutils.BioData `json:"userBioData,omitempty"`
-
-	// Resend PIN helps inform the whether a send new temporary PIN
-	// True when the user hasn't performed the initial sign up to change PIN
-	ResendPIN bool `json:"resendPIN"`
-
-	Roles []RoleOutput `json:"roles"`
-}
-
 // AccountRecoveryPhonesResponse  payload sent back to the frontend when recovery an account
 type AccountRecoveryPhonesResponse struct {
 	MaskedPhoneNumbers   []string `json:"maskedPhoneNumbers"`

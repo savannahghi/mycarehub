@@ -168,18 +168,6 @@ type RolePayload struct {
 	Role        *profileutils.RoleType `json:"role"`
 }
 
-// RegisterAdminInput provides the data payload required to create an Admin
-type RegisterAdminInput struct {
-	FirstName   string           `json:"lastName"`
-	LastName    string           `json:"firstName"`
-	Gender      enumutils.Gender `json:"gender"`
-	PhoneNumber string           `json:"phoneNumber"`
-	Email       string           `json:"email"`
-	DateOfBirth scalarutils.Date `json:"dateOfBirth"`
-	// ID of the Role being assigned to the new employee
-	RoleIDs []string `json:"roleIDs"`
-}
-
 //CustomerPubSubMessagePayload is an `onboarding` PubSub message struct for commontools
 type CustomerPubSubMessagePayload struct {
 	CustomerPayload dm.CustomerPayload `json:"customerPayload"`

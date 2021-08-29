@@ -117,7 +117,6 @@ type Location {
   branchSladeCode: String
 }
 
-
 type Identification {
   identificationDocType: IdentificationDocType!
   identificationDocNumber: String!
@@ -185,20 +184,6 @@ type UserCommunicationsSetting {
   allowTextSMS: Boolean!
   allowPush: Boolean!
   allowEmail: Boolean!
-}
-
-type Admin {
-  id: String!
-  primaryPhone: String!
-  primaryEmailAddress: String
-  secondaryPhoneNumbers: [String]
-  secondaryEmailAddresses: [String]
-  termsAccepted: Boolean
-  suspended: Boolean
-  photoUploadID: String
-  userBioData: BioData
-  resendPIN: Boolean
-  roles: [RoleOutput]
 }
 
 extend type Link {

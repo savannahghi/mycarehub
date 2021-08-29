@@ -13,7 +13,7 @@ import (
 	"github.com/savannahghi/profileutils"
 )
 
-// RoleUseCase represent the business logic required for management of agents
+// RoleUseCase represent the business logic required for management of roles
 type RoleUseCase interface {
 	CreateRole(ctx context.Context, input dto.RoleInput) (*dto.RoleOutput, error)
 
