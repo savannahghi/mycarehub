@@ -8,8 +8,6 @@ extend type Query {
   
   getAddresses: UserAddresses!
 
-  NHIFDetails: NHIFDetails
-
   getUserCommunicationsSettings: UserCommunicationsSetting!
 
   fetchUserNavigationActions: NavigationActions
@@ -53,8 +51,6 @@ extend type Mutation {
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
 
   setupAsExperimentParticipant(participate: Boolean): Boolean!
-
-  addNHIFDetails(input: NHIFDetailsInput!): NHIFDetails!
 
   addAddress(input: UserAddressInput!, addressType: AddressType!): Address!
 

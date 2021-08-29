@@ -120,13 +120,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, baseExt, engage, pubSub)
-	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
 	role := usecases.NewRoleUseCases(repo, baseExt)
 	adminSrv := adminSrv.NewService(baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, login, survey,
-		userpin, engage, nhif, pubSub,
+		userpin, engage, pubSub,
 		adminSrv, role,
 	)
 	if err != nil {

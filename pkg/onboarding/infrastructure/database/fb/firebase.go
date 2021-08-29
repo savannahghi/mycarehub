@@ -40,7 +40,6 @@ const (
 	surveyCollectionName                 = "post_visit_survey"
 	profileNudgesCollectionName          = "profile_nudges"
 	experimentParticipantCollectionName  = "experiment_participants"
-	nhifDetailsCollectionName            = "nhif_details"
 	communicationsSettingsCollectionName = "communications_settings"
 	firebaseExchangeRefreshTokenURL      = "https://securetoken.googleapis.com/v1/token?key="
 	rolesRevocationCollectionName        = "role_revocations"
@@ -91,12 +90,6 @@ func (fr Repository) GetProfileNudgesCollectionName() string {
 // GetExperimentParticipantCollectionName fetches the collection where experiment participant will be saved
 func (fr *Repository) GetExperimentParticipantCollectionName() string {
 	suffixed := firebasetools.SuffixCollection(experimentParticipantCollectionName)
-	return suffixed
-}
-
-// GetNHIFDetailsCollectionName ...
-func (fr Repository) GetNHIFDetailsCollectionName() string {
-	suffixed := firebasetools.SuffixCollection(nhifDetailsCollectionName)
 	return suffixed
 }
 
@@ -2435,115 +2428,6 @@ func (fr *Repository) UpdateAddresses(
 		return exceptions.InternalServerError(err)
 	}
 	return nil
-}
-
-// AddNHIFDetails persists a user's NHIF details
-func (fr *Repository) AddNHIFDetails(
-	ctx context.Context,
-	input dto.NHIFDetailsInput,
-	profileID string,
-) (*domain.NHIFDetails, error) {
-	ctx, span := tracer.Start(ctx, "AddNHIFDetails")
-	defer span.End()
-
-	// Do a check if the item exists
-	collectionName := fr.GetNHIFDetailsCollectionName()
-	query := &GetAllQuery{
-		CollectionName: collectionName,
-		FieldName:      "membershipNumber",
-		Value:          input.MembershipNumber,
-		Operator:       "==",
-	}
-	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	if len(docs) > 0 {
-		return nil, exceptions.RecordExistsError(fmt.Errorf("record exists"))
-	}
-
-	nhifDetails := domain.NHIFDetails{
-		ID:                        uuid.New().String(),
-		ProfileID:                 profileID,
-		MembershipNumber:          input.MembershipNumber,
-		Employment:                input.Employment,
-		IDDocType:                 input.IDDocType,
-		IDNumber:                  input.IDNumber,
-		IdentificationCardPhotoID: input.IdentificationCardPhotoID,
-		NHIFCardPhotoID:           input.NHIFCardPhotoID,
-	}
-
-	createCommand := &CreateCommand{
-		CollectionName: collectionName,
-		Data:           nhifDetails,
-	}
-	docRef, err := fr.FirestoreClient.Create(ctx, createCommand)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	getNhifQuery := &GetSingleQuery{
-		CollectionName: collectionName,
-		Value:          docRef.ID,
-	}
-	dsnap, err := fr.FirestoreClient.Get(ctx, getNhifQuery)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	nhif := &domain.NHIFDetails{}
-	err = dsnap.DataTo(nhif)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	return nhif, nil
-}
-
-// GetNHIFDetailsByProfileID fetches a user's NHIF details given their profile ID
-func (fr *Repository) GetNHIFDetailsByProfileID(
-	ctx context.Context,
-	profileID string,
-) (*domain.NHIFDetails, error) {
-	ctx, span := tracer.Start(ctx, "GetNHIFDetailsByProfileID")
-	defer span.End()
-
-	query := &GetAllQuery{
-		CollectionName: fr.GetNHIFDetailsCollectionName(),
-		FieldName:      "profileID",
-		Value:          profileID,
-		Operator:       "==",
-	}
-	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	if len(docs) > 1 && serverutils.IsDebug() {
-		log.Printf("> 1 NHIF details with profile ID %s (count: %d)",
-			profileID,
-			len(docs),
-		)
-	}
-
-	if len(docs) == 0 {
-		return nil, nil
-	}
-
-	nhif := &domain.NHIFDetails{}
-	err = docs[0].DataTo(nhif)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, err
-	}
-
-	return nhif, nil
 }
 
 // GetUserCommunicationsSettings fetches the communication settings of a specific user.

@@ -140,7 +140,6 @@ type ComplexityRoot struct {
 	Mutation struct {
 		ActivateRole                  func(childComplexity int, roleID string) int
 		AddAddress                    func(childComplexity int, input dto.UserAddressInput, addressType enumutils.AddressType) int
-		AddNHIFDetails                func(childComplexity int, input dto.NHIFDetailsInput) int
 		AddPermissionsToRole          func(childComplexity int, input dto.RolePermissionInput) int
 		AddSecondaryEmailAddress      func(childComplexity int, email []string) int
 		AddSecondaryPhoneNumber       func(childComplexity int, phone []string) int
@@ -169,17 +168,6 @@ type ComplexityRoot struct {
 		UpdateUserName                func(childComplexity int, username string) int
 		UpdateUserPin                 func(childComplexity int, phone string, pin string) int
 		UpdateUserProfile             func(childComplexity int, input dto.UserProfileInput) int
-	}
-
-	NHIFDetails struct {
-		Employment                func(childComplexity int) int
-		ID                        func(childComplexity int) int
-		IDDocType                 func(childComplexity int) int
-		IDNumber                  func(childComplexity int) int
-		IdentificationCardPhotoID func(childComplexity int) int
-		MembershipNumber          func(childComplexity int) int
-		NHIFCardPhotoID           func(childComplexity int) int
-		ProfileID                 func(childComplexity int) int
 	}
 
 	NavAction struct {
@@ -233,7 +221,6 @@ type ComplexityRoot struct {
 		GetNavigationActions          func(childComplexity int) int
 		GetUserCommunicationsSettings func(childComplexity int) int
 		ListMicroservices             func(childComplexity int) int
-		NHIFDetails                   func(childComplexity int) int
 		ResumeWithPin                 func(childComplexity int, pin string) int
 		UserProfile                   func(childComplexity int) int
 		__resolve__service            func(childComplexity int) int
@@ -326,7 +313,6 @@ type MutationResolver interface {
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
 	RecordPostVisitSurvey(ctx context.Context, input dto.PostVisitSurveyInput) (bool, error)
 	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
-	AddNHIFDetails(ctx context.Context, input dto.NHIFDetailsInput) (*domain.NHIFDetails, error)
 	AddAddress(ctx context.Context, input dto.UserAddressInput, addressType enumutils.AddressType) (*profileutils.Address, error)
 	SetUserCommunicationsSettings(ctx context.Context, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error)
 	SaveFavoriteNavAction(ctx context.Context, title string) (bool, error)
@@ -350,7 +336,6 @@ type QueryResolver interface {
 	UserProfile(ctx context.Context) (*profileutils.UserProfile, error)
 	ResumeWithPin(ctx context.Context, pin string) (bool, error)
 	GetAddresses(ctx context.Context) (*domain.UserAddresses, error)
-	NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error)
 	GetUserCommunicationsSettings(ctx context.Context) (*profileutils.UserCommunicationsSetting, error)
 	FetchUserNavigationActions(ctx context.Context) (*profileutils.NavigationActions, error)
 	ListMicroservices(ctx context.Context) ([]*domain.Microservice, error)
@@ -764,18 +749,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddAddress(childComplexity, args["input"].(dto.UserAddressInput), args["addressType"].(enumutils.AddressType)), true
 
-	case "Mutation.addNHIFDetails":
-		if e.complexity.Mutation.AddNHIFDetails == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addNHIFDetails_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddNHIFDetails(childComplexity, args["input"].(dto.NHIFDetailsInput)), true
-
 	case "Mutation.addPermissionsToRole":
 		if e.complexity.Mutation.AddPermissionsToRole == nil {
 			break
@@ -1107,62 +1080,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUserProfile(childComplexity, args["input"].(dto.UserProfileInput)), true
 
-	case "NHIFDetails.employment":
-		if e.complexity.NHIFDetails.Employment == nil {
-			break
-		}
-
-		return e.complexity.NHIFDetails.Employment(childComplexity), true
-
-	case "NHIFDetails.id":
-		if e.complexity.NHIFDetails.ID == nil {
-			break
-		}
-
-		return e.complexity.NHIFDetails.ID(childComplexity), true
-
-	case "NHIFDetails.idDocType":
-		if e.complexity.NHIFDetails.IDDocType == nil {
-			break
-		}
-
-		return e.complexity.NHIFDetails.IDDocType(childComplexity), true
-
-	case "NHIFDetails.idNumber":
-		if e.complexity.NHIFDetails.IDNumber == nil {
-			break
-		}
-
-		return e.complexity.NHIFDetails.IDNumber(childComplexity), true
-
-	case "NHIFDetails.identificationCardPhotoID":
-		if e.complexity.NHIFDetails.IdentificationCardPhotoID == nil {
-			break
-		}
-
-		return e.complexity.NHIFDetails.IdentificationCardPhotoID(childComplexity), true
-
-	case "NHIFDetails.membershipNumber":
-		if e.complexity.NHIFDetails.MembershipNumber == nil {
-			break
-		}
-
-		return e.complexity.NHIFDetails.MembershipNumber(childComplexity), true
-
-	case "NHIFDetails.NHIFCardPhotoID":
-		if e.complexity.NHIFDetails.NHIFCardPhotoID == nil {
-			break
-		}
-
-		return e.complexity.NHIFDetails.NHIFCardPhotoID(childComplexity), true
-
-	case "NHIFDetails.profileID":
-		if e.complexity.NHIFDetails.ProfileID == nil {
-			break
-		}
-
-		return e.complexity.NHIFDetails.ProfileID(childComplexity), true
-
 	case "NavAction.favourite":
 		if e.complexity.NavAction.Favourite == nil {
 			break
@@ -1396,13 +1313,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ListMicroservices(childComplexity), true
-
-	case "Query.NHIFDetails":
-		if e.complexity.Query.NHIFDetails == nil {
-			break
-		}
-
-		return e.complexity.Query.NHIFDetails(childComplexity), true
 
 	case "Query.resumeWithPIN":
 		if e.complexity.Query.ResumeWithPin == nil {
@@ -2102,15 +2012,6 @@ input UserAddressInput {
   formattedAddress: String
 }
 
-input NHIFDetailsInput {
-  membershipNumber: String!
-  employment: EmploymentType!
-  idDocType: IdentificationDocType!
-  idNumber: String!
-  identificationCardPhotoID: String!
-  NHIFCardPhotoID: String!
-}
-
 input MicroserviceInput {
   name: String!
   url: String!
@@ -2143,8 +2044,6 @@ input ProfileSuspensionInput {
   resumeWithPIN(pin: String!): Boolean!
   
   getAddresses: UserAddresses!
-
-  NHIFDetails: NHIFDetails
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
 
@@ -2189,8 +2088,6 @@ extend type Mutation {
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
 
   setupAsExperimentParticipant(participate: Boolean): Boolean!
-
-  addNHIFDetails(input: NHIFDetailsInput!): NHIFDetails!
 
   addAddress(input: UserAddressInput!, addressType: AddressType!): Address!
 
@@ -2345,17 +2242,6 @@ type UserAddresses {
 type ThinAddress {
   latitude: Float!
   longitude: Float!
-}
-
-type NHIFDetails {
-  id: String!
-  profileID: String!
-  membershipNumber: String!
-  employment: EmploymentType!
-  idDocType: IdentificationDocType!
-  idNumber: String!
-  identificationCardPhotoID: String!
-  NHIFCardPhotoID: String!
 }
 
 type UserCommunicationsSetting {
@@ -2550,21 +2436,6 @@ func (ec *executionContext) field_Mutation_addAddress_args(ctx context.Context, 
 		}
 	}
 	args["addressType"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_addNHIFDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 dto.NHIFDetailsInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNHIFDetailsInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐNHIFDetailsInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
 	return args, nil
 }
 
@@ -5398,48 +5269,6 @@ func (ec *executionContext) _Mutation_setupAsExperimentParticipant(ctx context.C
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addNHIFDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addNHIFDetails_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddNHIFDetails(rctx, args["input"].(dto.NHIFDetailsInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*domain.NHIFDetails)
-	fc.Result = res
-	return ec.marshalNNHIFDetails2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_addAddress(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6145,286 +5974,6 @@ func (ec *executionContext) _Mutation_deactivateRole(ctx context.Context, field 
 	res := resTmp.(*dto.RoleOutput)
 	fc.Result = res
 	return ec.marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _NHIFDetails_id(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "NHIFDetails",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _NHIFDetails_profileID(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "NHIFDetails",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ProfileID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _NHIFDetails_membershipNumber(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "NHIFDetails",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.MembershipNumber, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _NHIFDetails_employment(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "NHIFDetails",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Employment, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(domain.EmploymentType)
-	fc.Result = res
-	return ec.marshalNEmploymentType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _NHIFDetails_idDocType(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "NHIFDetails",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IDDocType, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(enumutils.IdentificationDocType)
-	fc.Result = res
-	return ec.marshalNIdentificationDocType2githubᚗcomᚋsavannahghiᚋenumutilsᚐIdentificationDocType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _NHIFDetails_idNumber(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "NHIFDetails",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IDNumber, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _NHIFDetails_identificationCardPhotoID(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "NHIFDetails",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IdentificationCardPhotoID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _NHIFDetails_NHIFCardPhotoID(ctx context.Context, field graphql.CollectedField, obj *domain.NHIFDetails) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "NHIFDetails",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.NHIFCardPhotoID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NavAction_title(ctx context.Context, field graphql.CollectedField, obj *profileutils.NavAction) (ret graphql.Marshaler) {
@@ -7297,38 +6846,6 @@ func (ec *executionContext) _Query_getAddresses(ctx context.Context, field graph
 	res := resTmp.(*domain.UserAddresses)
 	fc.Result = res
 	return ec.marshalNUserAddresses2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐUserAddresses(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_NHIFDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().NHIFDetails(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*domain.NHIFDetails)
-	fc.Result = res
-	return ec.marshalONHIFDetails2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getUserCommunicationsSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10457,66 +9974,6 @@ func (ec *executionContext) unmarshalInputMicroserviceInput(ctx context.Context,
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNHIFDetailsInput(ctx context.Context, obj interface{}) (dto.NHIFDetailsInput, error) {
-	var it dto.NHIFDetailsInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "membershipNumber":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("membershipNumber"))
-			it.MembershipNumber, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "employment":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("employment"))
-			it.Employment, err = ec.unmarshalNEmploymentType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idDocType":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idDocType"))
-			it.IDDocType, err = ec.unmarshalNIdentificationDocType2githubᚗcomᚋsavannahghiᚋenumutilsᚐIdentificationDocType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idNumber":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNumber"))
-			it.IDNumber, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "identificationCardPhotoID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identificationCardPhotoID"))
-			it.IdentificationCardPhotoID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "NHIFCardPhotoID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("NHIFCardPhotoID"))
-			it.NHIFCardPhotoID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, obj interface{}) (firebasetools.PaginationInput, error) {
 	var it firebasetools.PaginationInput
 	var asMap = obj.(map[string]interface{})
@@ -11431,11 +10888,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "addNHIFDetails":
-			out.Values[i] = ec._Mutation_addNHIFDetails(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "addAddress":
 			out.Values[i] = ec._Mutation_addAddress(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -11518,68 +10970,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deactivateRole":
 			out.Values[i] = ec._Mutation_deactivateRole(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var nHIFDetailsImplementors = []string{"NHIFDetails"}
-
-func (ec *executionContext) _NHIFDetails(ctx context.Context, sel ast.SelectionSet, obj *domain.NHIFDetails) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, nHIFDetailsImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("NHIFDetails")
-		case "id":
-			out.Values[i] = ec._NHIFDetails_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "profileID":
-			out.Values[i] = ec._NHIFDetails_profileID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "membershipNumber":
-			out.Values[i] = ec._NHIFDetails_membershipNumber(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "employment":
-			out.Values[i] = ec._NHIFDetails_employment(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "idDocType":
-			out.Values[i] = ec._NHIFDetails_idDocType(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "idNumber":
-			out.Values[i] = ec._NHIFDetails_idNumber(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "identificationCardPhotoID":
-			out.Values[i] = ec._NHIFDetails_identificationCardPhotoID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "NHIFCardPhotoID":
-			out.Values[i] = ec._NHIFDetails_NHIFCardPhotoID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -11860,17 +11250,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
-				return res
-			})
-		case "NHIFDetails":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_NHIFDetails(ctx, field)
 				return res
 			})
 		case "getUserCommunicationsSettings":
@@ -12704,16 +12083,6 @@ func (ec *executionContext) marshalNDate2ᚖgithubᚗcomᚋsavannahghiᚋscalaru
 	return v
 }
 
-func (ec *executionContext) unmarshalNEmploymentType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx context.Context, v interface{}) (domain.EmploymentType, error) {
-	var res domain.EmploymentType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNEmploymentType2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐEmploymentType(ctx context.Context, sel ast.SelectionSet, v domain.EmploymentType) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalNFieldType2githubᚗcomᚋsavannahghiᚋenumutilsᚐFieldType(ctx context.Context, v interface{}) (enumutils.FieldType, error) {
 	var res enumutils.FieldType
 	err := res.UnmarshalGQL(v)
@@ -12898,25 +12267,6 @@ func (ec *executionContext) marshalNMicroservice2ᚖgithubᚗcomᚋsavannahghi�
 
 func (ec *executionContext) unmarshalNMicroserviceInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx context.Context, v interface{}) (domain.Microservice, error) {
 	res, err := ec.unmarshalInputMicroserviceInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNNHIFDetails2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx context.Context, sel ast.SelectionSet, v domain.NHIFDetails) graphql.Marshaler {
-	return ec._NHIFDetails(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNNHIFDetails2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx context.Context, sel ast.SelectionSet, v *domain.NHIFDetails) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._NHIFDetails(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNNHIFDetailsInput2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐNHIFDetailsInput(ctx context.Context, v interface{}) (dto.NHIFDetailsInput, error) {
-	res, err := ec.unmarshalInputNHIFDetailsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -13869,13 +13219,6 @@ func (ec *executionContext) unmarshalOLinkType2githubᚗcomᚋsavannahghiᚋfeed
 
 func (ec *executionContext) marshalOLinkType2githubᚗcomᚋsavannahghiᚋfeedlibᚐLinkType(ctx context.Context, sel ast.SelectionSet, v feedlib.LinkType) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) marshalONHIFDetails2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐNHIFDetails(ctx context.Context, sel ast.SelectionSet, v *domain.NHIFDetails) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._NHIFDetails(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalONavAction2githubᚗcomᚋsavannahghiᚋprofileutilsᚐNavAction(ctx context.Context, sel ast.SelectionSet, v profileutils.NavAction) graphql.Marshaler {

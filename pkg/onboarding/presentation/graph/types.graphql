@@ -113,17 +113,6 @@ type ThinAddress {
   longitude: Float!
 }
 
-type NHIFDetails {
-  id: String!
-  profileID: String!
-  membershipNumber: String!
-  employment: EmploymentType!
-  idDocType: IdentificationDocType!
-  idNumber: String!
-  identificationCardPhotoID: String!
-  NHIFCardPhotoID: String!
-}
-
 type UserCommunicationsSetting {
   id: String!
   profileID: String!

@@ -149,17 +149,6 @@ type OnboardingRepository interface {
 
 	CheckIfExperimentParticipant(ctx context.Context, profileID string) (bool, error)
 
-	AddNHIFDetails(
-		ctx context.Context,
-		input dto.NHIFDetailsInput,
-		profileID string,
-	) (*domain.NHIFDetails, error)
-
-	GetNHIFDetailsByProfileID(
-		ctx context.Context,
-		profileID string,
-	) (*domain.NHIFDetails, error)
-
 	GetUserCommunicationsSettings(
 		ctx context.Context,
 		profileID string,

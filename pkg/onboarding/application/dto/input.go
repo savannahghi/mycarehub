@@ -5,7 +5,6 @@ import (
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
 )
@@ -114,16 +113,6 @@ type UserAddressInput struct {
 	Name             *string `json:"name"`
 	PlaceID          *string `json:"placeID"`
 	FormattedAddress *string `json:"formattedAddress"`
-}
-
-// NHIFDetailsInput represents a user's thin NHIF input details
-type NHIFDetailsInput struct {
-	MembershipNumber          string                          `json:"membershipNumber"`
-	Employment                domain.EmploymentType           `json:"employmentType"`
-	IDDocType                 enumutils.IdentificationDocType `json:"IDDocType"`
-	IDNumber                  string                          `json:"IDNumber"`
-	IdentificationCardPhotoID string                          `json:"identificationCardPhotoID"`
-	NHIFCardPhotoID           string                          `json:"nhifCardPhotoID"`
 }
 
 // PushTokenPayload represents user device push token

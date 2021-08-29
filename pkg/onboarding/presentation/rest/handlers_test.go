@@ -54,7 +54,6 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	survey := usecases.NewSurveyUseCases(r, ext)
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, ext, engagementSvc, ps)
-	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	role := usecases.NewRoleUseCases(r, ext)
 
 	adminSrv := adminSrv.NewService(ext)
@@ -62,7 +61,7 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, login,
 		survey, userpin,
-		engagementSvc, nhif, ps, adminSrv,
+		engagementSvc, ps, adminSrv,
 		role,
 	)
 	if err != nil {

@@ -3,7 +3,6 @@ package domain
 import (
 	"time"
 
-	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/profileutils"
 )
@@ -51,18 +50,6 @@ type UserAddresses struct {
 type ThinAddress struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
-}
-
-// NHIFDetails represents a user's thin NHIF details
-type NHIFDetails struct {
-	ID                        string                          `json:"id"                        firestore:"id"`
-	ProfileID                 string                          `json:"profileID"                 firestore:"profileID"`
-	MembershipNumber          string                          `json:"membershipNumber"          firestore:"membershipNumber"`
-	Employment                EmploymentType                  `json:"employmentType"`
-	IDDocType                 enumutils.IdentificationDocType `json:"IDDocType"`
-	IDNumber                  string                          `json:"IDNumber"                  firestore:"IDNumber"`
-	IdentificationCardPhotoID string                          `json:"identificationCardPhotoID" firestore:"identificationCardPhotoID"`
-	NHIFCardPhotoID           string                          `json:"nhifCardPhotoID"           firestore:"nhifCardPhotoID"`
 }
 
 // Microservice identifies a micro-service that conforms to the Apollo Graphqql

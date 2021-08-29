@@ -89,17 +89,6 @@ type FakeOnboardingRepository struct {
 
 	RemoveUserAsExperimentParticipantFn func(ctx context.Context, profile *profileutils.UserProfile) (bool, error)
 
-	AddNHIFDetailsFn func(
-		ctx context.Context,
-		input dto.NHIFDetailsInput,
-		profileID string,
-	) (*domain.NHIFDetails, error)
-
-	GetNHIFDetailsByProfileIDFn func(
-		ctx context.Context,
-		profileID string,
-	) (*domain.NHIFDetails, error)
-
 	GetUserCommunicationsSettingsFn func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error)
 
 	SetUserCommunicationsSettingsFn func(ctx context.Context, profileID string,
@@ -498,23 +487,6 @@ func (f *FakeOnboardingRepository) UpdateAddresses(
 	addressType enumutils.AddressType,
 ) error {
 	return f.UpdateAddressesFn(ctx, id, address, addressType)
-}
-
-// AddNHIFDetails ...
-func (f *FakeOnboardingRepository) AddNHIFDetails(
-	ctx context.Context,
-	input dto.NHIFDetailsInput,
-	profileID string,
-) (*domain.NHIFDetails, error) {
-	return f.AddNHIFDetailsFn(ctx, input, profileID)
-}
-
-// GetNHIFDetailsByProfileID ...
-func (f *FakeOnboardingRepository) GetNHIFDetailsByProfileID(
-	ctx context.Context,
-	profileID string,
-) (*domain.NHIFDetails, error) {
-	return f.GetNHIFDetailsByProfileIDFn(ctx, profileID)
 }
 
 // GetUserCommunicationsSettings ...

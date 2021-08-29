@@ -37,15 +37,6 @@ input UserAddressInput {
   formattedAddress: String
 }
 
-input NHIFDetailsInput {
-  membershipNumber: String!
-  employment: EmploymentType!
-  idDocType: IdentificationDocType!
-  idNumber: String!
-  identificationCardPhotoID: String!
-  NHIFCardPhotoID: String!
-}
-
 input MicroserviceInput {
   name: String!
   url: String!

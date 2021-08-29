@@ -18,7 +18,6 @@ type Interactor struct {
 	Survey     usecases.SurveyUseCases
 	UserPIN    usecases.UserPINUseCases
 	Engagement engagement.ServiceEngagement
-	NHIF       usecases.NHIFUseCases
 	PubSub     pubsubmessaging.ServicePubSub
 	AdminSrv   admin.Usecase
 	Role       usecases.RoleUseCase
@@ -32,7 +31,6 @@ func NewOnboardingInteractor(
 	survey usecases.SurveyUseCases,
 	userpin usecases.UserPINUseCases,
 	engage engagement.ServiceEngagement,
-	nhif usecases.NHIFUseCases,
 	pubsub pubsubmessaging.ServicePubSub,
 	admin admin.Usecase,
 	role usecases.RoleUseCase,
@@ -45,7 +43,6 @@ func NewOnboardingInteractor(
 		Survey:     survey,
 		UserPIN:    userpin,
 		Engagement: engage,
-		NHIF:       nhif,
 		PubSub:     pubsub,
 		AdminSrv:   admin,
 		Role:       role,

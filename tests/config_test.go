@@ -129,7 +129,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	survey := usecases.NewSurveyUseCases(repo, ext)
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, ext, engage, ps)
-	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 	role := usecases.NewRoleUseCases(repo, ext)
 
 	return &interactor.Interactor{
@@ -139,7 +138,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		Survey:     survey,
 		UserPIN:    userpin,
 		Engagement: engage,
-		NHIF:       nhif,
 		PubSub:     ps,
 		Role:       role,
 	}, nil
@@ -547,7 +545,6 @@ func TestMain(m *testing.M) {
 				r.GetSurveyCollectionName(),
 				r.GetCommunicationsSettingsCollectionName(),
 				r.GetExperimentParticipantCollectionName(),
-				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),
 				r.GetRolesCollectionName(),
 			}

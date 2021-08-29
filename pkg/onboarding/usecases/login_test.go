@@ -80,7 +80,6 @@ func TestMain(m *testing.M) {
 				r.GetSurveyCollectionName(),
 				r.GetCommunicationsSettingsCollectionName(),
 				r.GetExperimentParticipantCollectionName(),
-				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),
 				r.GetRolesCollectionName(),
 			}
@@ -187,7 +186,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	survey := usecases.NewSurveyUseCases(repo, ext)
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
 	su := usecases.NewSignUpUseCases(repo, profile, userpin, ext, engage, ps)
-	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 
 	return &interactor.Interactor{
 		Onboarding: profile,
@@ -196,7 +194,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		Survey:     survey,
 		UserPIN:    userpin,
 		Engagement: engage,
-		NHIF:       nhif,
 		PubSub:     ps,
 	}, nil
 }
@@ -416,14 +413,13 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	survey := usecases.NewSurveyUseCases(r, ext)
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
 	su := usecases.NewSignUpUseCases(r, profile, userpin, ext, engagementSvc, ps)
-	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	adminSrv := adminSrv.NewService(ext)
 	role := usecases.NewRoleUseCases(r, ext)
 
 	i, err := interactor.NewOnboardingInteractor(
 		profile, su, login,
 		survey, userpin,
-		engagementSvc, nhif, ps,
+		engagementSvc, ps,
 		adminSrv, role,
 	)
 	if err != nil {

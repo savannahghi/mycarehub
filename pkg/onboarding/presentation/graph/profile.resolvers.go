@@ -192,16 +192,6 @@ func (r *mutationResolver) SetupAsExperimentParticipant(ctx context.Context, par
 	return setupAsExperimentParticipant, err
 }
 
-func (r *mutationResolver) AddNHIFDetails(ctx context.Context, input dto.NHIFDetailsInput) (*domain.NHIFDetails, error) {
-	startTime := time.Now()
-
-	addNHIFDetails, err := r.interactor.NHIF.AddNHIFDetails(ctx, input)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "addNHIFDetails", err)
-
-	return addNHIFDetails, err
-}
-
 func (r *mutationResolver) AddAddress(ctx context.Context, input dto.UserAddressInput, addressType enumutils.AddressType) (*profileutils.Address, error) {
 	startTime := time.Now()
 
@@ -420,16 +410,6 @@ func (r *queryResolver) GetAddresses(ctx context.Context) (*domain.UserAddresses
 	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "getAddresses", err)
 
 	return addresses, err
-}
-
-func (r *queryResolver) NHIFDetails(ctx context.Context) (*domain.NHIFDetails, error) {
-	startTime := time.Now()
-
-	NHIFDetails, err := r.interactor.NHIF.NHIFDetails(ctx)
-
-	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "NHIFDetails", err)
-
-	return NHIFDetails, err
 }
 
 func (r *queryResolver) GetUserCommunicationsSettings(ctx context.Context) (*profileutils.UserCommunicationsSetting, error) {
