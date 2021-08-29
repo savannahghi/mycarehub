@@ -26,8 +26,6 @@ type FakeOnboardingRepository struct {
 	// sets the active attribute of supplier profile to true
 	ActivateSupplierProfileFn func(ctx context.Context, profileID string, supplier profileutils.Supplier) (*profileutils.Supplier, error)
 
-	SetUpSupplierFn func(ctx context.Context, accountType profileutils.AccountType) (*profileutils.Supplier, error)
-
 	GetCustomerProfileByIDFn func(ctx context.Context, id string) (*profileutils.Customer, error)
 
 	GetCustomerProfileByProfileIDFn func(ctx context.Context, profileID string) (*profileutils.Customer, error)
@@ -264,14 +262,6 @@ func (f *FakeOnboardingRepository) ActivateSupplierProfile(
 	supplier profileutils.Supplier,
 ) (*profileutils.Supplier, error) {
 	return f.ActivateSupplierProfileFn(ctx, profileID, supplier)
-}
-
-// SetUpSupplier ...
-func (f *FakeOnboardingRepository) SetUpSupplier(
-	ctx context.Context,
-	accountType profileutils.AccountType,
-) (*profileutils.Supplier, error) {
-	return f.SetUpSupplierFn(ctx, accountType)
 }
 
 // GetCustomerProfileByID ...

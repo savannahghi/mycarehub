@@ -56,7 +56,6 @@ extend type Mutation {
 
   suspendSupplier(suspensionReason: String): Boolean!
 
-  setUpSupplier(accountType: AccountType!): Supplier
 
    supplierSetDefaultLocation(locationID: String!): Supplier!
    

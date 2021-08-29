@@ -173,10 +173,6 @@ func (r *mutationResolver) SuspendSupplier(ctx context.Context, suspensionReason
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) SetUpSupplier(ctx context.Context, accountType profileutils.AccountType) (*profileutils.Supplier, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locationID string) (*profileutils.Supplier, error) {
 	panic(fmt.Errorf("not implemented"))
 }

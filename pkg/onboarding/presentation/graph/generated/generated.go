@@ -234,7 +234,6 @@ type ComplexityRoot struct {
 		SaveFavoriteNavAction         func(childComplexity int, title string) int
 		SetPrimaryEmailAddress        func(childComplexity int, email string, otp string) int
 		SetPrimaryPhoneNumber         func(childComplexity int, phone string, otp string) int
-		SetUpSupplier                 func(childComplexity int, accountType profileutils.AccountType) int
 		SetUserCommunicationsSettings func(childComplexity int, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) int
 		SetupAsExperimentParticipant  func(childComplexity int, participate *bool) int
 		SupplierSetDefaultLocation    func(childComplexity int, locationID string) int
@@ -463,7 +462,6 @@ type MutationResolver interface {
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
 	AddPartnerType(ctx context.Context, name string, partnerType profileutils.PartnerType) (bool, error)
 	SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error)
-	SetUpSupplier(ctx context.Context, accountType profileutils.AccountType) (*profileutils.Supplier, error)
 	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*profileutils.Supplier, error)
 	RecordPostVisitSurvey(ctx context.Context, input dto.PostVisitSurveyInput) (bool, error)
 	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
@@ -1489,18 +1487,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetPrimaryPhoneNumber(childComplexity, args["phone"].(string), args["otp"].(string)), true
-
-	case "Mutation.setUpSupplier":
-		if e.complexity.Mutation.SetUpSupplier == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_setUpSupplier_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SetUpSupplier(childComplexity, args["accountType"].(profileutils.AccountType)), true
 
 	case "Mutation.setUserCommunicationsSettings":
 		if e.complexity.Mutation.SetUserCommunicationsSettings == nil {
@@ -3047,7 +3033,6 @@ extend type Mutation {
 
   suspendSupplier(suspensionReason: String): Boolean!
 
-  setUpSupplier(accountType: AccountType!): Supplier
 
    supplierSetDefaultLocation(locationID: String!): Supplier!
    
@@ -3973,21 +3958,6 @@ func (ec *executionContext) field_Mutation_setPrimaryPhoneNumber_args(ctx contex
 		}
 	}
 	args["otp"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_setUpSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 profileutils.AccountType
-	if tmp, ok := rawArgs["accountType"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountType"))
-		arg0, err = ec.unmarshalNAccountType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐAccountType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["accountType"] = arg0
 	return args, nil
 }
 
@@ -7898,45 +7868,6 @@ func (ec *executionContext) _Mutation_suspendSupplier(ctx context.Context, field
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_setUpSupplier(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_setUpSupplier_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetUpSupplier(rctx, args["accountType"].(profileutils.AccountType))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*profileutils.Supplier)
-	fc.Result = res
-	return ec.marshalOSupplier2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_supplierSetDefaultLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -16134,8 +16065,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "setUpSupplier":
-			out.Values[i] = ec._Mutation_setUpSupplier(ctx, field)
 		case "supplierSetDefaultLocation":
 			out.Values[i] = ec._Mutation_supplierSetDefaultLocation(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -17660,16 +17589,6 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
-
-func (ec *executionContext) unmarshalNAccountType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐAccountType(ctx context.Context, v interface{}) (profileutils.AccountType, error) {
-	var res profileutils.AccountType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNAccountType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐAccountType(ctx context.Context, sel ast.SelectionSet, v profileutils.AccountType) graphql.Marshaler {
-	return v
-}
 
 func (ec *executionContext) marshalNAddress2githubᚗcomᚋsavannahghiᚋprofileutilsᚐAddress(ctx context.Context, sel ast.SelectionSet, v profileutils.Address) graphql.Marshaler {
 	return ec._Address(ctx, sel, &v)
@@ -19678,13 +19597,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
-}
-
-func (ec *executionContext) marshalOSupplier2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐSupplier(ctx context.Context, sel ast.SelectionSet, v *profileutils.Supplier) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Supplier(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOSupportingDocument2ᚕᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚋmodelᚐSupportingDocument(ctx context.Context, sel ast.SelectionSet, v []*model.SupportingDocument) graphql.Marshaler {
