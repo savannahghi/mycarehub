@@ -41,7 +41,6 @@ const (
 	pinsCollectionName                   = "pins"
 	surveyCollectionName                 = "post_visit_survey"
 	profileNudgesCollectionName          = "profile_nudges"
-	kycProcessCollectionName             = "kyc_processing"
 	experimentParticipantCollectionName  = "experiment_participants"
 	nhifDetailsCollectionName            = "nhif_details"
 	communicationsSettingsCollectionName = "communications_settings"
@@ -100,12 +99,6 @@ func (fr Repository) GetPINsCollectionName() string {
 // GetProfileNudgesCollectionName return the storage location of profile nudges
 func (fr Repository) GetProfileNudgesCollectionName() string {
 	suffixed := firebasetools.SuffixCollection(profileNudgesCollectionName)
-	return suffixed
-}
-
-// GetKCYProcessCollectionName fetches collection where kyc processing request will be saved
-func (fr Repository) GetKCYProcessCollectionName() string {
-	suffixed := firebasetools.SuffixCollection(kycProcessCollectionName)
 	return suffixed
 }
 
@@ -2336,7 +2329,6 @@ func (fr *Repository) UpdateSupplierProfile(
 	}
 
 	sup.PayablesAccount = data.PayablesAccount
-	sup.SupplierKYC = data.SupplierKYC
 	sup.Active = data.Active
 	sup.AccountType = data.AccountType
 	sup.UnderOrganization = data.UnderOrganization
@@ -2348,7 +2340,6 @@ func (fr *Repository) UpdateSupplierProfile(
 	sup.PartnerType = data.PartnerType
 	sup.EDIUserProfile = data.EDIUserProfile
 	sup.PartnerSetupComplete = data.PartnerSetupComplete
-	sup.KYCSubmitted = data.KYCSubmitted
 	sup.OrganizationName = data.OrganizationName
 
 	query := &GetAllQuery{
@@ -2556,185 +2547,6 @@ func (fr *Repository) StageProfileNudge(
 	return nil
 }
 
-// StageKYCProcessingRequest stages the request which will be retrieved later for admins
-func (fr *Repository) StageKYCProcessingRequest(
-	ctx context.Context,
-	data *domain.KYCRequest,
-) error {
-	ctx, span := tracer.Start(ctx, "StageKYCProcessingRequest")
-	defer span.End()
-
-	command := &CreateCommand{
-		CollectionName: fr.GetKCYProcessCollectionName(),
-		Data:           data,
-	}
-	_, err := fr.FirestoreClient.Create(ctx, command)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(err)
-	}
-	return nil
-}
-
-// RemoveKYCProcessingRequest removes the supplier's kyc processing request
-func (fr *Repository) RemoveKYCProcessingRequest(
-	ctx context.Context,
-	supplierProfileID string,
-) error {
-	ctx, span := tracer.Start(ctx, "RemoveKYCProcessingRequest")
-	defer span.End()
-
-	query := &GetAllQuery{
-		CollectionName: fr.GetKCYProcessCollectionName(),
-		FieldName:      "supplierRecord.id",
-		Value:          supplierProfileID,
-		Operator:       "==",
-	}
-	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(
-			fmt.Errorf("unable to fetch kyc request documents: %v", err),
-		)
-	}
-
-	if len(docs) == 0 {
-		return exceptions.InternalServerError(fmt.Errorf("no kyc processing record found: %v", err))
-	}
-
-	req := &domain.KYCRequest{}
-	if err := docs[0].DataTo(req); err != nil {
-		return exceptions.InternalServerError(
-			fmt.Errorf("unable to read supplier kyc record: %w", err),
-		)
-	}
-	getKYCQuery := &GetAllQuery{
-		CollectionName: fr.GetKCYProcessCollectionName(),
-		FieldName:      "id",
-		Value:          req.ID,
-		Operator:       "==",
-	}
-	if docs, err := fr.FirestoreClient.GetAll(ctx, getKYCQuery); err == nil {
-		command := &DeleteCommand{
-			CollectionName: fr.GetKCYProcessCollectionName(),
-			ID:             docs[0].Ref.ID,
-		}
-		if err = fr.FirestoreClient.Delete(ctx, command); err != nil {
-			return exceptions.InternalServerError(err)
-		}
-	}
-	return nil
-}
-
-// FetchKYCProcessingRequests retrieves all unprocessed kycs for admins
-func (fr *Repository) FetchKYCProcessingRequests(
-	ctx context.Context,
-) ([]*domain.KYCRequest, error) {
-	ctx, span := tracer.Start(ctx, "FetchKYCProcessingRequests")
-	defer span.End()
-
-	query := &GetAllQuery{
-		CollectionName: fr.GetKCYProcessCollectionName(),
-		FieldName:      "status",
-		Value:          "",
-		Operator:       "!=",
-	}
-	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(
-			fmt.Errorf("unable to fetch kyc request documents: %v", err),
-		)
-	}
-
-	res := []*domain.KYCRequest{}
-
-	for _, doc := range docs {
-		req := &domain.KYCRequest{}
-		err = doc.DataTo(req)
-		if err != nil {
-			utils.RecordSpanError(span, err)
-			return nil, exceptions.InternalServerError(
-				fmt.Errorf("unable to read supplier: %w", err),
-			)
-		}
-		res = append(res, req)
-	}
-
-	return res, nil
-}
-
-// FetchKYCProcessingRequestByID retrieves a specific kyc processing request
-func (fr *Repository) FetchKYCProcessingRequestByID(
-	ctx context.Context,
-	id string,
-) (*domain.KYCRequest, error) {
-	ctx, span := tracer.Start(ctx, "FetchKYCProcessingRequestByID")
-	defer span.End()
-
-	query := &GetAllQuery{
-		CollectionName: fr.GetKCYProcessCollectionName(),
-		FieldName:      "id",
-		Value:          id,
-		Operator:       "==",
-	}
-	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(
-			fmt.Errorf("unable to fetch kyc request documents: %v", err),
-		)
-	}
-
-	req := &domain.KYCRequest{}
-	err = docs[0].DataTo(req)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(fmt.Errorf("unable to read supplier: %w", err))
-	}
-
-	return req, nil
-}
-
-// UpdateKYCProcessingRequest update the supplier profile
-func (fr *Repository) UpdateKYCProcessingRequest(
-	ctx context.Context,
-	kycRequest *domain.KYCRequest,
-) error {
-	ctx, span := tracer.Start(ctx, "UpdateKYCProcessingRequest")
-	defer span.End()
-
-	query := &GetAllQuery{
-		CollectionName: fr.GetKCYProcessCollectionName(),
-		FieldName:      "id",
-		Value:          kycRequest.ID,
-		Operator:       "==",
-	}
-	docs, err := fr.FirestoreClient.GetAll(ctx, query)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(
-			fmt.Errorf("unable to parse kyc processing request as firebase snapshot: %v", err),
-		)
-	}
-	if len(docs) == 0 {
-		return exceptions.InternalServerError(fmt.Errorf("kyc processing request not found"))
-	}
-	updateCommand := &UpdateCommand{
-		CollectionName: fr.GetKCYProcessCollectionName(),
-		ID:             docs[0].Ref.ID,
-		Data:           kycRequest,
-	}
-	err = fr.FirestoreClient.Update(ctx, updateCommand)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return exceptions.InternalServerError(
-			fmt.Errorf("unable to update kyc processing request profile: %v", err),
-		)
-	}
-	return nil
-}
-
 // FetchAdminUsers fetches all admins
 func (fr *Repository) FetchAdminUsers(ctx context.Context) ([]*profileutils.UserProfile, error) {
 	ctx, span := tracer.Start(ctx, "FetchAdminUsers")
@@ -2813,11 +2625,12 @@ func (fr *Repository) PurgeUserByPhoneNumber(ctx context.Context, phone string) 
 		utils.RecordSpanError(span, err)
 	} else {
 		if supplier != nil {
-			err = fr.RemoveKYCProcessingRequest(ctx, supplier.ID)
-			if err != nil {
-				utils.RecordSpanError(span, err)
-				log.Printf("KYC request information was not removed %v", err)
-			}
+			// TODO: restore
+			// err = fr.RemoveKYCProcessingRequest(ctx, supplier.ID)
+			// if err != nil {
+			// 	utils.RecordSpanError(span, err)
+			// 	log.Printf("KYC request information was not removed %v", err)
+			// }
 
 			query := &GetAllQuery{
 				CollectionName: fr.GetSupplierProfileCollectionName(),

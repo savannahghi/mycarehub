@@ -125,18 +125,16 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	pinExt := extension.NewPINExtensionImpl()
 	profile := usecases.NewProfileUseCase(repo, ext, engage, ps)
 
-	supplier := usecases.NewSupplierUseCases(repo, profile, engage, ext, ps)
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, ext)
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
-	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage, ps)
+	su := usecases.NewSignUpUseCases(repo, profile, userpin, ext, engage, ps)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 	role := usecases.NewRoleUseCases(repo, ext)
 
 	return &interactor.Interactor{
 		Onboarding: profile,
 		Signup:     su,
-		Supplier:   supplier,
 		Login:      login,
 		Survey:     survey,
 		UserPIN:    userpin,
@@ -407,26 +405,6 @@ func generateTestOTP(t *testing.T, phone string) (*profileutils.OtpResponse, err
 	return testInteractor.Engagement.GenerateAndSendOTP(ctx, phone, &testAppID)
 }
 
-func setPrimaryEmailAddress(ctx context.Context, t *testing.T, emailAddress string) error {
-
-	return testInteractor.Onboarding.UpdatePrimaryEmailAddress(ctx, emailAddress)
-}
-
-func updateBioData(ctx context.Context, t *testing.T, data profileutils.BioData) error {
-
-	return testInteractor.Onboarding.UpdateBioData(ctx, data)
-}
-
-func addPartnerType(
-	ctx context.Context,
-	t *testing.T,
-	name *string,
-	partnerType profileutils.PartnerType,
-) (bool, error) {
-
-	return testInteractor.Supplier.AddPartnerType(ctx, name, &partnerType)
-}
-
 func getTestUserCredentials(t *testing.T) (*profileutils.UserResponse, error) {
 	ctx := context.Background()
 
@@ -465,15 +443,6 @@ func getRoleByName(t *testing.T, name string) (*dto.RoleOutput, error) {
 	}
 
 	return role, nil
-}
-
-func setUpSupplier(
-	ctx context.Context,
-	t *testing.T,
-	accountType profileutils.AccountType,
-) (*profileutils.Supplier, error) {
-
-	return testInteractor.Supplier.SetUpSupplier(ctx, accountType)
 }
 
 func setUpLoggedInTestUserGraphHeaders(t *testing.T) map[string]string {
@@ -581,7 +550,6 @@ func TestMain(m *testing.M) {
 				r.GetCommunicationsSettingsCollectionName(),
 				r.GetCustomerProfileCollectionName(),
 				r.GetExperimentParticipantCollectionName(),
-				r.GetKCYProcessCollectionName(),
 				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),
 				r.GetRolesCollectionName(),

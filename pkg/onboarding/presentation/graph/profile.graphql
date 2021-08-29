@@ -7,15 +7,13 @@ extend type Query {
   supplierProfile: Supplier!
 
   resumeWithPIN(pin: String!): Boolean!
-
-  fetchKYCProcessingRequests: [KYCRequest]
-
+  
   getAddresses: UserAddresses!
 
   NHIFDetails: NHIFDetails
 
   getUserCommunicationsSettings: UserCommunicationsSetting!
-  checkSupplierKYCSubmitted: Boolean!
+
   fetchUserNavigationActions: NavigationActions
 
   listMicroservices: [Microservice!]!
@@ -60,51 +58,13 @@ extend type Mutation {
 
   setUpSupplier(accountType: AccountType!): Supplier
 
-  addIndividualRiderKYC(input: IndividualRiderInput!): IndividualRider!
+   supplierSetDefaultLocation(locationID: String!): Supplier!
+   
+ 
 
-  addOrganizationRiderKYC(input: OrganizationRiderInput!): OrganizationRider!
 
-  addIndividualPractitionerKYC(
-    input: IndividualPractitionerInput!
-  ): IndividualPractitioner!
-
-  addOrganizationPractitionerKYC(
-    input: OrganizationPractitionerInput!
-  ): OrganizationPractitioner!
-
-  addOrganizationProviderKYC(
-    input: OrganizationProviderInput!
-  ): OrganizationProvider!
-
-  addIndividualPharmaceuticalKYC(
-    input: IndividualPharmaceuticalInput!
-  ): IndividualPharmaceutical!
-
-  addOrganizationPharmaceuticalKYC(
-    input: OrganizationPharmaceuticalInput!
-  ): OrganizationPharmaceutical!
-
-  addIndividualCoachKYC(input: IndividualCoachInput!): IndividualCoach!
-
-  addOrganizationCoachKYC(input: OrganizationCoachInput!): OrganizationCoach!
-
-  addIndividualNutritionKYC(
-    input: IndividualNutritionInput!
-  ): IndividualNutrition!
-
-  addOrganizationNutritionKYC(
-    input: OrganizationNutritionInput!
-  ): OrganizationNutrition!
-
-  processKYCRequest(
-    id: String!
-    status: KYCProcessStatus!
-    rejectionReason: String
-  ): Boolean!
-
+  
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
-
-  retireKYCProcessingRequest: Boolean!
 
   setupAsExperimentParticipant(participate: Boolean): Boolean!
 

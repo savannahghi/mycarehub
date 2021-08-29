@@ -2,7 +2,6 @@ package fb_test
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"testing"
 
@@ -80,7 +79,6 @@ func TestMain(m *testing.M) {
 			r.GetCommunicationsSettingsCollectionName(),
 			r.GetCustomerProfileCollectionName(),
 			r.GetExperimentParticipantCollectionName(),
-			r.GetKCYProcessCollectionName(),
 			r.GetNHIFDetailsCollectionName(),
 			r.GetProfileNudgesCollectionName(),
 			r.GetRolesCollectionName(),
@@ -152,16 +150,14 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}
 	pinExt := extension.NewPINExtensionImpl()
 	profile := usecases.NewProfileUseCase(fr, ext, engage, ps)
-	supplier := usecases.NewSupplierUseCases(fr, profile, engage, ext, ps)
 	login := usecases.NewLoginUseCases(fr, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(fr, ext)
 	userpin := usecases.NewUserPinUseCase(fr, profile, ext, pinExt, engage)
-	su := usecases.NewSignUpUseCases(fr, profile, userpin, supplier, ext, engage, ps)
+	su := usecases.NewSignUpUseCases(fr, profile, userpin, ext, engage, ps)
 
 	return &interactor.Interactor{
 		Onboarding: profile,
 		Signup:     su,
-		Supplier:   supplier,
 		Login:      login,
 		Survey:     survey,
 		UserPIN:    userpin,
@@ -169,7 +165,6 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 		PubSub:     ps,
 	}, nil
 }
-
 func generateTestOTP(t *testing.T, phone string) (*profileutils.OtpResponse, error) {
 	ctx := context.Background()
 	s, err := InitializeTestService(ctx)
@@ -272,98 +267,6 @@ func InitializeTestFirebaseClient(ctx context.Context) (*firestore.Client, *auth
 		log.Panicf("can't initialize Firebase auth when setting up tests: %s", err)
 	}
 	return fsc, fbc
-}
-
-func TestRemoveKYCProcessingRequest(t *testing.T) {
-	s, err := InitializeTestService(context.Background())
-	assert.Nil(t, err)
-
-	// clean up
-	_ = s.Signup.RemoveUserByPhoneNumber(
-		context.Background(),
-		interserviceclient.TestUserPhoneNumber,
-	)
-
-	ctx, auth, err := GetTestAuthenticatedContext(t)
-	assert.Nil(t, err)
-	assert.NotNil(t, auth)
-
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		t.Errorf("failed to initialize test FireStore client")
-		return
-	}
-	if fbc == nil {
-		t.Errorf("failed to initialize test FireBase client")
-		return
-	}
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
-
-	input1 := domain.OrganizationNutrition{
-		OrganizationTypeName: domain.OrganizationTypeLimitedCompany,
-		KRAPIN:               "someKRAPIN",
-		KRAPINUploadID:       "KRAPINUploadID",
-		SupportingDocuments: []domain.SupportingDocument{
-			{
-				SupportingDocumentTitle:       "support-title",
-				SupportingDocumentDescription: "support-description",
-				SupportingDocumentUpload:      "support-upload-id",
-			},
-		},
-		CertificateOfIncorporation:         "CertificateOfIncorporation",
-		CertificateOfInCorporationUploadID: "CertificateOfInCorporationUploadID",
-		DirectorIdentifications: []domain.Identification{
-			{
-				IdentificationDocType:           enumutils.IdentificationDocTypeMilitary,
-				IdentificationDocNumber:         "IdentificationDocNumber",
-				IdentificationDocNumberUploadID: "IdentificationDocNumberUploadID",
-			},
-		},
-		RegistrationNumber:      "RegistrationNumber",
-		PracticeLicenseID:       "PracticeLicenseID",
-		PracticeLicenseUploadID: "PracticeLicenseUploadID",
-	}
-
-	kycJSON, err := json.Marshal(input1)
-	assert.Nil(t, err)
-
-	var kycAsMap map[string]interface{}
-	err = json.Unmarshal(kycJSON, &kycAsMap)
-	assert.Nil(t, err)
-
-	// get the user profile
-	profile, err := fr.GetUserProfileByUID(ctx, auth.UID, false)
-	assert.Nil(t, err)
-	assert.NotNil(t, profile)
-
-	// fetch the supplier profile
-	sup, err := fr.GetSupplierProfileByProfileID(ctx, profile.ID)
-	assert.Nil(t, err)
-	assert.NotNil(t, sup)
-
-	//call remove kyc process request. this should fail since the user has not added a kyc yet
-	err = fr.RemoveKYCProcessingRequest(ctx, sup.ID)
-	assert.NotNil(t, err)
-
-	sup.SupplierKYC = kycAsMap
-
-	// now add the kyc processing request
-	req1 := &domain.KYCRequest{
-		ID:             uuid.New().String(),
-		ReqPartnerType: sup.PartnerType,
-		ReqRaw:         sup.SupplierKYC,
-		Processed:      false,
-		SupplierRecord: sup,
-		Status:         domain.KYCProcessStatusPending,
-	}
-	err = fr.StageKYCProcessingRequest(ctx, req1)
-	assert.Nil(t, err)
-
-	// call remove kypc processing request again. this should pass now since there is and existing processing request added
-	err = fr.RemoveKYCProcessingRequest(ctx, sup.ID)
-	assert.Nil(t, err)
-
 }
 
 func TestPurgeUserByPhoneNumber(t *testing.T) {
@@ -2445,76 +2348,6 @@ func TestRepository_UpdateSupplierProfile(t *testing.T) {
 	}
 }
 
-func TestRepositoryFetchKYCProcessingRequests(t *testing.T) {
-	ctx := context.Background()
-
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		t.Errorf("failed to initialize test FireStore client")
-		return
-	}
-	if fbc == nil {
-		t.Errorf("failed to initialize test FireBase client")
-		return
-	}
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
-
-	reqPartnerType := profileutils.PartnerTypeCoach
-	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
-	id := uuid.New().String()
-	kycReq := &domain.KYCRequest{
-		ID:                  id,
-		ReqPartnerType:      reqPartnerType,
-		ReqOrganizationType: organizationTypeLimitedCompany,
-		Status:              domain.KYCProcessStatusApproved,
-	}
-
-	err := fr.StageKYCProcessingRequest(ctx, kycReq)
-	if err != nil {
-		t.Errorf("failed to stage kyc: %v", err)
-		return
-	}
-
-	kycRequests := []*domain.KYCRequest{}
-	kycRequests = append(kycRequests, kycReq)
-
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    []*domain.KYCRequest
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Fetch KYC Processing Requests",
-			args: args{
-				ctx: ctx,
-			},
-			want:    kycRequests,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := fr.FetchKYCProcessingRequests(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Repository.FetchKYCProcessingRequests() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Repository.FetchKYCProcessingRequests() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestRepository_UpdatePrimaryEmailAddress(t *testing.T) {
 	ctx, auth, err := GetTestAuthenticatedContext(t)
 	if err != nil {
@@ -2872,183 +2705,6 @@ func TestRepository_UpdateBioData(t *testing.T) {
 				}
 			}
 		})
-	}
-}
-
-func TestRepositoryFetchKYCProcessingRequestByID(t *testing.T) {
-	ctx := context.Background()
-
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		t.Errorf("failed to initialize test FireStore client")
-		return
-	}
-	if fbc == nil {
-		t.Errorf("failed to initialize test FireBase client")
-		return
-	}
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
-
-	reqPartnerType := profileutils.PartnerTypeCoach
-	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
-	id := uuid.New().String()
-	kycReq := &domain.KYCRequest{
-		ID:                  id,
-		ReqPartnerType:      reqPartnerType,
-		ReqOrganizationType: organizationTypeLimitedCompany,
-	}
-
-	err := fr.StageKYCProcessingRequest(ctx, kycReq)
-	if err != nil {
-		t.Errorf("failed to stage kyc: %v", err)
-		return
-	}
-
-	kycRequests := []*domain.KYCRequest{}
-	kycRequests = append(kycRequests, kycReq)
-
-	kycRequest := kycRequests[0]
-
-	type args struct {
-		ctx context.Context
-		id  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *domain.KYCRequest
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Fetch KYC Processing Requests by ID",
-			args: args{
-				ctx: ctx,
-				id:  kycRequest.ID,
-			},
-			want:    kycRequest,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := fr.FetchKYCProcessingRequestByID(tt.args.ctx, tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Repository.FetchKYCProcessingRequestByID() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-				return
-			}
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("error expected, got %v", err)
-					return
-				}
-			}
-
-			if !tt.wantErr {
-				if err != nil {
-					t.Errorf("error not expected, got %v", err)
-					return
-				}
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Repository.FetchKYCProcessingRequestByID() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRepositoryUpdateKYCProcessingRequest(t *testing.T) {
-	ctx := context.Background()
-
-	fsc, fbc := InitializeTestFirebaseClient(ctx)
-	if fsc == nil {
-		t.Errorf("failed to initialize test FireStore client")
-		return
-	}
-	if fbc == nil {
-		t.Errorf("failed to initialize test FireBase client")
-		return
-	}
-	firestoreExtension := fb.NewFirestoreClientExtension(fsc)
-	fr := fb.NewFirebaseRepository(firestoreExtension, fbc)
-
-	reqPartnerType := profileutils.PartnerTypeCoach
-	organizationTypeLimitedCompany := domain.OrganizationTypeLimitedCompany
-	id := uuid.New().String()
-	kycReq := &domain.KYCRequest{
-		ID:                  id,
-		ReqPartnerType:      reqPartnerType,
-		ReqOrganizationType: organizationTypeLimitedCompany,
-	}
-
-	err := fr.StageKYCProcessingRequest(ctx, kycReq)
-	if err != nil {
-		t.Errorf("failed to stage kyc: %v", err)
-		return
-	}
-
-	kycRequests := []*domain.KYCRequest{}
-	kycRequests = append(kycRequests, kycReq)
-
-	kycRequest := kycRequests[0]
-
-	kycStatus := domain.KYCProcessStatusApproved
-
-	updatedKYCReq := &domain.KYCRequest{
-		ID:     kycRequest.ID,
-		Status: kycStatus,
-	}
-
-	updatedKYCRequests := []*domain.KYCRequest{}
-	updatedKYCRequests = append(updatedKYCRequests, updatedKYCReq)
-
-	updatedKYCRequest := updatedKYCRequests[0]
-
-	type args struct {
-		ctx        context.Context
-		kycRequest *domain.KYCRequest
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Update KYC Processing Requests",
-			args: args{
-				ctx:        ctx,
-				kycRequest: updatedKYCRequest,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := fr.UpdateKYCProcessingRequest(tt.args.ctx, tt.args.kycRequest); (err != nil) != tt.wantErr {
-				t.Errorf(
-					"Repository.UpdateKYCProcessingRequest() error = %v, wantErr %v",
-					err,
-					tt.wantErr,
-				)
-			}
-		})
-		if tt.wantErr {
-			if err == nil {
-				t.Errorf("error expected, got %v", err)
-				return
-			}
-		}
-
-		if !tt.wantErr {
-			if err != nil {
-				t.Errorf("error not expected, got %v", err)
-				return
-			}
-		}
 	}
 }
 

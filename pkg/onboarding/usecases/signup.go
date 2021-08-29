@@ -64,7 +64,6 @@ type SignUpUseCasesImpl struct {
 	onboardingRepository repository.OnboardingRepository
 	profileUsecase       ProfileUseCase
 	pinUsecase           UserPINUseCases
-	supplierUsecase      SupplierUseCases
 	baseExt              extension.BaseExtension
 	engagement           engagement.ServiceEngagement
 	pubsub               pubsubmessaging.ServicePubSub
@@ -75,7 +74,6 @@ func NewSignUpUseCases(
 	r repository.OnboardingRepository,
 	profile ProfileUseCase,
 	pin UserPINUseCases,
-	supplier SupplierUseCases,
 	ext extension.BaseExtension,
 	eng engagement.ServiceEngagement,
 	pubsub pubsubmessaging.ServicePubSub,
@@ -84,7 +82,6 @@ func NewSignUpUseCases(
 		onboardingRepository: r,
 		profileUsecase:       profile,
 		pinUsecase:           pin,
-		supplierUsecase:      supplier,
 		baseExt:              ext,
 		engagement:           eng,
 		pubsub:               pubsub,

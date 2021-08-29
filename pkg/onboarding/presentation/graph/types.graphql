@@ -100,7 +100,6 @@ type Supplier {
   accountType: AccountType
   underOrganization: Boolean!
   isOrganizationVerified: Boolean!
-  partnerType: PartnerType!
 
   partnerSetupComplete: Boolean!
   KYCSubmitted: Boolean!
@@ -166,18 +165,6 @@ type SupportingDocument {
   supportingDocumentUpload: String!
 }
 
-type IndividualRider {
-  identificationDoc: Identification!
-
-  KRAPIN: String!
-  KRAPINUploadID: String!
-
-  drivingLicenseID: String!
-  drivingLicenseUploadID: String
-  certificateGoodConductUploadID: String!
-  supportingDocuments: [SupportingDocument]
-}
-
 type IndividualPractitioner {
   # common for individual account types
   identificationDoc: Identification!
@@ -193,68 +180,6 @@ type IndividualPractitioner {
   practiceLicenseUploadID: String!
   practiceServices: [PractitionerService!]!
   cadre: PractitionerCadre!
-}
-
-type IndividualPharmaceutical {
-  # common for individual account types
-  identificationDoc: Identification!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocuments: [SupportingDocument]
-
-  # unique to practitioner
-  registrationNumber: String!
-  practiceLicenseID: String!
-  practiceLicenseUploadID: String
-}
-
-type IndividualCoach {
-  # common for individual account types
-  identificationDoc: Identification!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocuments: [SupportingDocument]
-
-  # unique for coach
-  practiceLicenseID: String!
-  practiceLicenseUploadID: String!
-  accreditationID: String
-  accreditationUploadID: String!
-}
-
-type IndividualNutrition {
-  # common for individual account types
-  identificationDoc: Identification!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocuments: [SupportingDocument]
-
-  # unique for Nutrition
-  practiceLicenseID: String!
-  practiceLicenseUploadID: String!
-}
-
-type OrganizationRider {
-  organizationTypeName: OrganizationType!
-
-  certificateOfIncorporation: String
-  certificateOfInCorporationUploadID: String
-  directorIdentifications: [Identification]
-
-  # common for organization : others (trust or university)
-  organizationCertificate: String
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-
-  supportingDocuments: [SupportingDocument]
 }
 
 type OrganizationPractitioner {
@@ -281,110 +206,6 @@ type OrganizationPractitioner {
   cadre: PractitionerCadre!
 }
 
-type OrganizationProvider {
-  # common for organization account types
-  organizationTypeName: OrganizationType!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocuments: [SupportingDocument]
-
-  # common for organization : limited company
-  certificateOfIncorporation: String
-  certificateOfInCorporationUploadID: String
-  directorIdentifications: [Identification]
-
-  # common for organization : others (trust or university)
-  organizationCertificate: String
-
-  # unique to practitioner
-  registrationNumber: String!
-  practiceLicenseID: String!
-  practiceLicenseUploadID: String!
-  practiceServices: [PractitionerService!]!
-}
-
-type OrganizationNutrition {
-  # common for organization account types
-  organizationTypeName: OrganizationType!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocuments: [SupportingDocument]
-
-  # common for organization : limited company
-  certificateOfIncorporation: String
-  certificateOfInCorporationUploadID: String
-  directorIdentifications: [Identification]
-
-  # common for organization : others (trust or university)
-  organizationCertificate: String
-
-  # unique for nutrition
-  registrationNumber: String!
-  practiceLicenseID: String!
-  practiceLicenseUploadID: String!
-}
-
-type OrganizationCoach {
-  # common for organization account types
-  organizationTypeName: OrganizationType!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocuments: [SupportingDocument]
-
-  # common for organization : limited company
-  certificateOfIncorporation: String
-  certificateOfInCorporationUploadID: String
-  directorIdentifications: [Identification]
-
-  # common for organization : others (trust or university)
-  organizationCertificate: String
-
-  # unique for coach
-  registrationNumber: String!
-  practiceLicenseID: String!
-  practiceLicenseUploadID: String!
-}
-
-type OrganizationPharmaceutical {
-  # common for organization account types
-  organizationTypeName: OrganizationType!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocuments: [SupportingDocument]
-
-  # common for organization : limited company
-  certificateOfIncorporation: String
-  certificateOfInCorporationUploadID: String
-  directorIdentifications: [Identification]
-
-  # common for organization : others (trust or university)
-  organizationCertificate: String
-
-  # unique for pharmaceutical
-  registrationNumber: String!
-  practiceLicenseID: String!
-  practiceLicenseUploadID: String!
-}
-
-type KYCRequest {
-  id: String!
-  reqPartnerType: PartnerType!
-  reqOrganizationType: OrganizationType
-  reqRaw: Map!
-  processed: Boolean!
-  supplierRecord: Supplier!
-  status: KYCProcessStatus
-  filedTimestamp: Time
-  processedTimestamp: Time
-}
 
 type SupplierLogin {
   branches: BranchConnection!

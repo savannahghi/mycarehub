@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -15,7 +14,6 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
-	"github.com/savannahghi/onboarding/pkg/onboarding/application/utils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/serverutils"
@@ -34,7 +32,6 @@ type HandlersInterfaces interface {
 	SendOTP() http.HandlerFunc
 	SendRetryOTP() http.HandlerFunc
 	RefreshToken() http.HandlerFunc
-	FindSupplierByUID() http.HandlerFunc
 	RemoveUserByPhoneNumber() http.HandlerFunc
 	GetUserProfileByUID() http.HandlerFunc
 	GetUserProfileByPhoneOrEmail() http.HandlerFunc
@@ -515,49 +512,6 @@ func (h *HandlersInterfacesImpl) RefreshToken() http.HandlerFunc {
 		))
 
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
-	}
-}
-
-// FindSupplierByUID fetch supplier profile via REST
-func (h *HandlersInterfacesImpl) FindSupplierByUID() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		s, err := utils.ValidateUID(w, r)
-		if err != nil {
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		if s.UID == nil {
-			err := fmt.Errorf("expected `uid` to be defined")
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		var supplier *profileutils.Supplier
-		authCred := &auth.Token{UID: *s.UID}
-		newContext := context.WithValue(
-			ctx,
-			firebasetools.AuthTokenContextKey,
-			authCred,
-		)
-		supplier, err = h.interactor.Supplier.FindSupplierByUID(newContext)
-		log.Printf("the supplier is %v", supplier)
-		log.Printf("the err is %v", err)
-		if supplier == nil || err != nil {
-			err := fmt.Errorf("supplier profile not found")
-			serverutils.WriteJSONResponse(w, err, http.StatusNotFound)
-			return
-		}
-
-		serverutils.WriteJSONResponse(w, supplier, http.StatusOK)
 	}
 }
 

@@ -122,13 +122,6 @@ const (
 	// profile is not found
 	CustomerNotFoundErrMsg = "unable to get the user customer profile"
 
-	// SupplierKYCAlreadySubmittedErrMsg thrown when another kyc is been submitted whne an old exists
-	// A supplier should have only one kyc
-	SupplierKYCAlreadySubmittedErrMsg = "kyc already exists for supplier"
-
-	// PublishKYCNudgeErrMsg is displayed if we are unable to publish a kyc nudge
-	PublishKYCNudgeErrMsg = "unable to publish kyc nudge"
-
 	// InvalidCredentialsErrMsg is displayed when wrong credentials are provided
 	InvalidCredentialsErrMsg = "invalid credentials, expected a username AND password"
 

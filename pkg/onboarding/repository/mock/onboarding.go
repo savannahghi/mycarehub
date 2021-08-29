@@ -23,21 +23,12 @@ type FakeOnboardingRepository struct {
 
 	StageProfileNudgeFn func(ctx context.Context, nudge *feedlib.Nudge) error
 
-	StageKYCProcessingRequestFn func(ctx context.Context, data *domain.KYCRequest) error
-
-	RemoveKYCProcessingRequestFn func(ctx context.Context, supplierProfileID string) error
-
 	// sets the active attribute of supplier profile to true
 	ActivateSupplierProfileFn func(ctx context.Context, profileID string, supplier profileutils.Supplier) (*profileutils.Supplier, error)
 
 	SetUpSupplierFn func(ctx context.Context, accountType profileutils.AccountType) (*profileutils.Supplier, error)
 
-	FetchKYCProcessingRequestsFn func(ctx context.Context) ([]*domain.KYCRequest, error)
-
-	FetchKYCProcessingRequestByIDFn func(ctx context.Context, id string) (*domain.KYCRequest, error)
-
-	UpdateKYCProcessingRequestFn func(ctx context.Context, sup *domain.KYCRequest) error
-	GetCustomerProfileByIDFn     func(ctx context.Context, id string) (*profileutils.Customer, error)
+	GetCustomerProfileByIDFn func(ctx context.Context, id string) (*profileutils.Customer, error)
 
 	GetCustomerProfileByProfileIDFn func(ctx context.Context, profileID string) (*profileutils.Customer, error)
 
@@ -266,22 +257,6 @@ func (f *FakeOnboardingRepository) StageProfileNudge(
 	return f.StageProfileNudgeFn(ctx, nudge)
 }
 
-// StageKYCProcessingRequest ...
-func (f *FakeOnboardingRepository) StageKYCProcessingRequest(
-	ctx context.Context,
-	data *domain.KYCRequest,
-) error {
-	return f.StageKYCProcessingRequestFn(ctx, data)
-}
-
-// RemoveKYCProcessingRequest ...
-func (f *FakeOnboardingRepository) RemoveKYCProcessingRequest(
-	ctx context.Context,
-	supplierProfileID string,
-) error {
-	return f.RemoveKYCProcessingRequestFn(ctx, supplierProfileID)
-}
-
 // ActivateSupplierProfile ...
 func (f *FakeOnboardingRepository) ActivateSupplierProfile(
 	ctx context.Context,
@@ -291,35 +266,12 @@ func (f *FakeOnboardingRepository) ActivateSupplierProfile(
 	return f.ActivateSupplierProfileFn(ctx, profileID, supplier)
 }
 
-// FetchKYCProcessingRequests ...
-func (f *FakeOnboardingRepository) FetchKYCProcessingRequests(
-	ctx context.Context,
-) ([]*domain.KYCRequest, error) {
-	return f.FetchKYCProcessingRequestsFn(ctx)
-}
-
 // SetUpSupplier ...
 func (f *FakeOnboardingRepository) SetUpSupplier(
 	ctx context.Context,
 	accountType profileutils.AccountType,
 ) (*profileutils.Supplier, error) {
 	return f.SetUpSupplierFn(ctx, accountType)
-}
-
-// FetchKYCProcessingRequestByID ...
-func (f *FakeOnboardingRepository) FetchKYCProcessingRequestByID(
-	ctx context.Context,
-	id string,
-) (*domain.KYCRequest, error) {
-	return f.FetchKYCProcessingRequestByIDFn(ctx, id)
-}
-
-// UpdateKYCProcessingRequest ...
-func (f *FakeOnboardingRepository) UpdateKYCProcessingRequest(
-	ctx context.Context,
-	sup *domain.KYCRequest,
-) error {
-	return f.UpdateKYCProcessingRequestFn(ctx, sup)
 }
 
 // GetCustomerProfileByID ...

@@ -83,7 +83,6 @@ func TestMain(m *testing.M) {
 				r.GetCommunicationsSettingsCollectionName(),
 				r.GetCustomerProfileCollectionName(),
 				r.GetExperimentParticipantCollectionName(),
-				r.GetKCYProcessCollectionName(),
 				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),
 				r.GetRolesCollectionName(),
@@ -187,18 +186,15 @@ func InitializeTestService(ctx context.Context) (*interactor.Interactor, error) 
 	}
 	pinExt := extension.NewPINExtensionImpl()
 	profile := usecases.NewProfileUseCase(repo, ext, engage, ps)
-
-	supplier := usecases.NewSupplierUseCases(repo, profile, engage, ext, ps)
 	login := usecases.NewLoginUseCases(repo, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, ext)
 	userpin := usecases.NewUserPinUseCase(repo, profile, ext, pinExt, engage)
-	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, ext, engage, ps)
+	su := usecases.NewSignUpUseCases(repo, profile, userpin, ext, engage, ps)
 	nhif := usecases.NewNHIFUseCases(repo, profile, ext, engage)
 
 	return &interactor.Interactor{
 		Onboarding: profile,
 		Signup:     su,
-		Supplier:   supplier,
 		Login:      login,
 		Survey:     survey,
 		UserPIN:    userpin,
@@ -421,17 +417,14 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
-	supplier := usecases.NewSupplierUseCases(
-		r, profile, engagementSvc, ext, ps,
-	)
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
-	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps)
+	su := usecases.NewSignUpUseCases(r, profile, userpin, ext, engagementSvc, ps)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	adminSrv := adminSrv.NewService(ext)
 	role := usecases.NewRoleUseCases(r, ext)
 
 	i, err := interactor.NewOnboardingInteractor(
-		profile, su, supplier, login,
+		profile, su, login,
 		survey, userpin,
 		engagementSvc, nhif, ps,
 		adminSrv, role,

@@ -52,18 +52,15 @@ func InitializeFakeOnboardingInteractor() (*interactor.Interactor, error) {
 	profile := usecases.NewProfileUseCase(r, ext, engagementSvc, ps)
 	login := usecases.NewLoginUseCases(r, profile, ext, pinExt)
 	survey := usecases.NewSurveyUseCases(r, ext)
-	supplier := usecases.NewSupplierUseCases(
-		r, profile, engagementSvc, ext, ps,
-	)
 	userpin := usecases.NewUserPinUseCase(r, profile, ext, pinExt, engagementSvc)
-	su := usecases.NewSignUpUseCases(r, profile, userpin, supplier, ext, engagementSvc, ps)
+	su := usecases.NewSignUpUseCases(r, profile, userpin, ext, engagementSvc, ps)
 	nhif := usecases.NewNHIFUseCases(r, profile, ext, engagementSvc)
 	role := usecases.NewRoleUseCases(r, ext)
 
 	adminSrv := adminSrv.NewService(ext)
 
 	i, err := interactor.NewOnboardingInteractor(
-		profile, su, supplier, login,
+		profile, su, login,
 		survey, userpin,
 		engagementSvc, nhif, ps, adminSrv,
 		role,
@@ -151,17 +148,18 @@ func composeUIDPayload(t *testing.T, uid *string) *bytes.Buffer {
 	return bytes.NewBuffer(bs)
 }
 
-func composePushTokenPayload(t *testing.T, UID, token string) *bytes.Buffer {
-	payload := &dto.PushTokenPayload{
-		PushToken: token,
-		UID:       UID,
-	}
-	bs, err := json.Marshal(payload)
-	if err != nil {
-		t.Errorf("unable to marshal token string to JSON: %s", err)
-	}
-	return bytes.NewBuffer(bs)
-}
+// TODO: restore
+// func composePushTokenPayload(t *testing.T, UID, token string) *bytes.Buffer {
+// 	payload := &dto.PushTokenPayload{
+// 		PushToken: token,
+// 		UID:       UID,
+// 	}
+// 	bs, err := json.Marshal(payload)
+// 	if err != nil {
+// 		t.Errorf("unable to marshal token string to JSON: %s", err)
+// 	}
+// 	return bytes.NewBuffer(bs)
+// }
 
 func composeLoginPayload(t *testing.T, phone, pin string, flavour feedlib.Flavour) *bytes.Buffer {
 	payload := dto.LoginPayload{
@@ -2247,145 +2245,6 @@ func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
 	}
 }
 
-func TestHandlersInterfacesImpl_FindSupplierByUID(t *testing.T) {
-
-	i, err := InitializeFakeOnboardingInteractor()
-	if err != nil {
-		t.Errorf("failed to initialize onboarding interactor: %v", err)
-		return
-	}
-
-	h := rest.NewHandlersInterfaces(i)
-
-	uid := "5cf354a2-1d3e-400d-8716-7e2aead29f2c"
-	payload := composeUIDPayload(t, &uid)
-
-	uid1 := "98cbf5e8-162b-4b8a-a618-f6fff3c36ef9"
-	payload1 := composeUIDPayload(t, &uid1)
-
-	uid2 := "53298383-eb8a-4a3e-8428-cf76e7af644e"
-	payload2 := composeUIDPayload(t, &uid2)
-
-	type args struct {
-		url        string
-		httpMethod string
-		body       io.Reader
-	}
-	tests := []struct {
-		name       string
-		args       args
-		want       http.HandlerFunc
-		wantStatus int
-		wantErr    bool
-	}{
-		{
-			name: "valid:_successfully_get_supplier_by_uid",
-			args: args{
-				url:        fmt.Sprintf("%s/supplier", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       payload,
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    false,
-		},
-		{
-			name: "invalid:_fail_to_get_supplier_by_uid",
-			args: args{
-				url:        fmt.Sprintf("%s/supplier", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       payload1,
-			},
-			wantStatus: http.StatusNotFound,
-			wantErr:    true,
-		},
-		{
-			name: "invalid:_unable_to_get_user_profile_by_uid",
-			args: args{
-				url:        fmt.Sprintf("%s/supplier", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       payload2,
-			},
-			wantStatus: http.StatusNotFound,
-			wantErr:    true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
-			if err != nil {
-				t.Errorf("failed to create a new request: %s", err)
-				return
-			}
-
-			response := httptest.NewRecorder()
-
-			if tt.name == "valid:_successfully_get_supplier_by_uid" {
-				fakeBaseExt.GetLoggedInUserFn = func(ctx context.Context) (*dto.UserInfo, error) {
-					return &dto.UserInfo{
-						UID:         "12233",
-						Email:       "test@example.com",
-						PhoneNumber: "0721568526",
-					}, nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID: "AD-FSO798",
-					}, nil
-				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
-					return &profileutils.Supplier{
-						ProfileID: &profileID,
-					}, nil
-				}
-			}
-
-			if tt.name == "invalid:_fail_to_get_supplier_by_uid" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "FSO798-AD3", nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID: "AD-FSO798",
-					}, nil
-				}
-				fakeRepo.GetSupplierProfileByProfileIDFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
-					return nil, fmt.Errorf("failed to get the supplier profile")
-				}
-			}
-
-			if tt.name == "invalid:_unable_to_get_user_profile_by_uid" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "FSO798-AD3", nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return nil, fmt.Errorf("unable to get profile")
-				}
-			}
-
-			svr := h.FindSupplierByUID()
-			svr.ServeHTTP(response, req)
-			if tt.wantStatus != response.Code {
-				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
-				return
-			}
-
-			dataResponse, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				t.Errorf("can't read response body: %v", err)
-				return
-			}
-			if dataResponse == nil {
-				t.Errorf("nil response body data")
-				return
-			}
-
-		})
-	}
-}
-
 func TestHandlersInterfacesImpl_RemoveUserByPhoneNumber(t *testing.T) {
 
 	i, err := InitializeFakeOnboardingInteractor()
@@ -2704,118 +2563,119 @@ func TestHandlersInterfacesImpl_SetPrimaryPhoneNumber(t *testing.T) {
 	}
 }
 
-func TestHandlersInterfacesImpl_RegisterPushToken(t *testing.T) {
+// TODO: restore
+// func TestHandlersInterfacesImpl_RegisterPushToken(t *testing.T) {
 
-	i, err := InitializeFakeOnboardingInteractor()
-	if err != nil {
-		t.Errorf("failed to initialize onboarding interactor: %v", err)
-		return
-	}
+// 	i, err := InitializeFakeOnboardingInteractor()
+// 	if err != nil {
+// 		t.Errorf("failed to initialize onboarding interactor: %v", err)
+// 		return
+// 	}
 
-	h := rest.NewHandlersInterfaces(i)
-	uid := "5cf354a2-1d3e-400d-8716-7e2aead29f2c"
-	token := "10c17f3b-a9a9-431c-ad0a-94c684eccd85"
-	payload := composePushTokenPayload(t, token, uid)
+// 	h := rest.NewHandlersInterfaces(i)
+// 	uid := "5cf354a2-1d3e-400d-8716-7e2aead29f2c"
+// 	token := "10c17f3b-a9a9-431c-ad0a-94c684eccd85"
+// 	payload := composePushTokenPayload(t, token, uid)
 
-	token1 := ""
-	uid1 := "5cf354a2-1d3e-400d-8716-7e2aead29f2c"
-	invalidPayload := composePushTokenPayload(t, token1, uid1)
+// 	token1 := ""
+// 	uid1 := "5cf354a2-1d3e-400d-8716-7e2aead29f2c"
+// 	invalidPayload := composePushTokenPayload(t, token1, uid1)
 
-	type args struct {
-		url        string
-		httpMethod string
-		body       io.Reader
-	}
-	tests := []struct {
-		name       string
-		args       args
-		want       http.HandlerFunc
-		wantStatus int
-		wantErr    bool
-	}{
-		{
-			name: "valid:_successfully_register_push_token",
-			args: args{
-				url:        fmt.Sprintf("%s/register_push_token", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       payload,
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    false,
-		},
-		{
-			name: "invalid:_unsuccessfully_register_push_token",
-			args: args{
-				url:        fmt.Sprintf("%s/register_push_token", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       invalidPayload,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
-			if err != nil {
-				t.Errorf("can't create new request: %v", err)
-				return
-			}
+// 	type args struct {
+// 		url        string
+// 		httpMethod string
+// 		body       io.Reader
+// 	}
+// 	tests := []struct {
+// 		name       string
+// 		args       args
+// 		want       http.HandlerFunc
+// 		wantStatus int
+// 		wantErr    bool
+// 	}{
+// 		{
+// 			name: "valid:_successfully_register_push_token",
+// 			args: args{
+// 				url:        fmt.Sprintf("%s/register_push_token", serverUrl),
+// 				httpMethod: http.MethodPost,
+// 				body:       payload,
+// 			},
+// 			wantStatus: http.StatusOK,
+// 			wantErr:    false,
+// 		},
+// 		{
+// 			name: "invalid:_unsuccessfully_register_push_token",
+// 			args: args{
+// 				url:        fmt.Sprintf("%s/register_push_token", serverUrl),
+// 				httpMethod: http.MethodPost,
+// 				body:       invalidPayload,
+// 			},
+// 			wantStatus: http.StatusBadRequest,
+// 			wantErr:    true,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
+// 			if err != nil {
+// 				t.Errorf("can't create new request: %v", err)
+// 				return
+// 			}
 
-			if tt.name == "valid:_successfully_register_push_token" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "400d-8716-7e2aead29f2c", nil
-				}
+// 			if tt.name == "valid:_successfully_register_push_token" {
+// 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+// 					return "400d-8716-7e2aead29f2c", nil
+// 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID:         "f4f39af7--91bd-42b3af315a4e",
-						PushTokens: []string{"token12", "token23", "token34"},
-					}, nil
-				}
+// 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+// 					return &profileutils.UserProfile{
+// 						ID:         "f4f39af7--91bd-42b3af315a4e",
+// 						PushTokens: []string{"token12", "token23", "token34"},
+// 					}, nil
+// 				}
 
-				fakeRepo.UpdatePushTokensFn = func(ctx context.Context, id string, pushToken []string) error {
-					return nil
-				}
-			}
-			if tt.name == "invalid:_unsuccessfully_register_push_token" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "400d-8716-7e2aead29f2c", nil
-				}
+// 				fakeRepo.UpdatePushTokensFn = func(ctx context.Context, id string, pushToken []string) error {
+// 					return nil
+// 				}
+// 			}
+// 			if tt.name == "invalid:_unsuccessfully_register_push_token" {
+// 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+// 					return "400d-8716-7e2aead29f2c", nil
+// 				}
 
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID:         "f4f39af7--91bd-42b3af315a4e",
-						PushTokens: []string{"token12", "token23", "token34"},
-					}, nil
-				}
+// 				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
+// 					return &profileutils.UserProfile{
+// 						ID:         "f4f39af7--91bd-42b3af315a4e",
+// 						PushTokens: []string{"token12", "token23", "token34"},
+// 					}, nil
+// 				}
 
-				fakeRepo.UpdatePushTokensFn = func(ctx context.Context, id string, pushToken []string) error {
-					return fmt.Errorf("failed to register push tokens")
-				}
-			}
-			response := httptest.NewRecorder()
+// 				fakeRepo.UpdatePushTokensFn = func(ctx context.Context, id string, pushToken []string) error {
+// 					return fmt.Errorf("failed to register push tokens")
+// 				}
+// 			}
+// 			response := httptest.NewRecorder()
 
-			svr := h.RegisterPushToken()
-			svr.ServeHTTP(response, req)
+// 			svr := h.RegisterPushToken()
+// 			svr.ServeHTTP(response, req)
 
-			if tt.wantStatus != response.Code {
-				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
-				return
-			}
+// 			if tt.wantStatus != response.Code {
+// 				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
+// 				return
+// 			}
 
-			dataResponse, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				t.Errorf("can't read response body: %v", err)
-				return
-			}
-			if dataResponse == nil {
-				t.Errorf("nil response body data")
-				return
-			}
-		})
-	}
-}
+// 			dataResponse, err := ioutil.ReadAll(response.Body)
+// 			if err != nil {
+// 				t.Errorf("can't read response body: %v", err)
+// 				return
+// 			}
+// 			if dataResponse == nil {
+// 				t.Errorf("nil response body data")
+// 				return
+// 			}
+// 		})
+// 	}
+// }
 
 func TestHandlersInterfacesImpl_AddAdminPermsToUser(t *testing.T) {
 

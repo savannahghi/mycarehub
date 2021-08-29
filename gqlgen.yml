@@ -71,45 +71,6 @@ models:
   Date:
     model:
       - "github.com/savannahghi/scalarutils.Date"
-  IdentificationInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.Identification
-  SupportingDocumentInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.SupportingDocument    
-  IndividualRiderInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.IndividualRider
-  IndividualPractitionerInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.IndividualPractitioner
-  IndividualPharmaceuticalInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.IndividualPharmaceutical
-  IndividualCoachInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.IndividualCoach
-  IndividualNutritionInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.IndividualNutrition
-  OrganizationRiderInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationRider
-  OrganizationPractitionerInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationPractitioner
-  OrganizationProviderInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationProvider
-  OrganizationNutritionInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationNutrition
-  OrganizationCoachInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationCoach
-  OrganizationPharmaceuticalInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.OrganizationPharmaceutical
   MicroserviceInput:
     model:
       - github.com/savannahghi/onboarding/pkg/onboarding/domain.Microservice

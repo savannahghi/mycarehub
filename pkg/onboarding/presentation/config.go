@@ -116,17 +116,16 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Initialize the usecases
 	profile := usecases.NewProfileUseCase(repo, baseExt, engage, pubSub)
-	supplier := usecases.NewSupplierUseCases(repo, profile, engage, baseExt, pubSub)
 	login := usecases.NewLoginUseCases(repo, profile, baseExt, pinExt)
 	survey := usecases.NewSurveyUseCases(repo, baseExt)
 	userpin := usecases.NewUserPinUseCase(repo, profile, baseExt, pinExt, engage)
-	su := usecases.NewSignUpUseCases(repo, profile, userpin, supplier, baseExt, engage, pubSub)
+	su := usecases.NewSignUpUseCases(repo, profile, userpin, baseExt, engage, pubSub)
 	nhif := usecases.NewNHIFUseCases(repo, profile, baseExt, engage)
 	role := usecases.NewRoleUseCases(repo, baseExt)
 	adminSrv := adminSrv.NewService(baseExt)
 
 	i, err := interactor.NewOnboardingInteractor(
-		profile, su, supplier, login, survey,
+		profile, su, login, survey,
 		userpin, engage, nhif, pubSub,
 		adminSrv, role,
 	)
@@ -266,10 +265,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Interservice Authenticated routes
 	isc := r.PathPrefix("/internal").Subrouter()
 	isc.Use(interserviceclient.InterServiceAuthenticationMiddleware())
-	isc.Path("/supplier").Methods(
-		http.MethodPost,
-		http.MethodOptions).
-		HandlerFunc(h.FindSupplierByUID())
 	isc.Path("/user_profile").Methods(
 		http.MethodPost,
 		http.MethodOptions).

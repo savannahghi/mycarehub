@@ -17,7 +17,6 @@ const (
 	ConsumerNavActionIcon = StaticBase + "/actions/consumer_navaction.png"
 	HelpNavActionIcon     = StaticBase + "/actions/help_navaction.png"
 	HomeNavActionIcon     = StaticBase + "/actions/home_navaction.png"
-	KYCNavActionIcon      = StaticBase + "/actions/kyc_navaction.png"
 	PartnerNavActionIcon  = StaticBase + "/actions/partner_navaction.png"
 	PatientNavActionIcon  = StaticBase + "/actions/patient_navaction.png"
 	RequestNavActionIcon  = StaticBase + "/actions/request_navaction.png"

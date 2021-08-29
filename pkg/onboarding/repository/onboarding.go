@@ -38,11 +38,6 @@ type SupplierRepository interface {
 
 	StageProfileNudge(ctx context.Context, nudge *feedlib.Nudge) error
 
-	StageKYCProcessingRequest(ctx context.Context, data *domain.KYCRequest) error
-
-	// RemoveKYCProcessingRequest called when the user seeks to retire a kyc processing request.
-	RemoveKYCProcessingRequest(ctx context.Context, supplierProfileID string) error
-
 	// sets the active attribute of supplier profile to true
 	ActivateSupplierProfile(
 		ctx context.Context,
@@ -50,11 +45,6 @@ type SupplierRepository interface {
 		supplier profileutils.Supplier,
 	) (*profileutils.Supplier, error)
 
-	FetchKYCProcessingRequests(ctx context.Context) ([]*domain.KYCRequest, error)
-
-	FetchKYCProcessingRequestByID(ctx context.Context, id string) (*domain.KYCRequest, error)
-
-	UpdateKYCProcessingRequest(ctx context.Context, sup *domain.KYCRequest) error
 	CheckIfAdmin(profile *profileutils.UserProfile) bool
 }
 

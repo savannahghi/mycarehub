@@ -306,25 +306,6 @@ func CustomerNotFoundError() error {
 	}
 }
 
-// SupplierKYCAlreadySubmittedNotFoundError is returned when the user trys to
-// submit another KCY when then is one already submitted
-func SupplierKYCAlreadySubmittedNotFoundError() error {
-	return &errorcodeutil.CustomError{
-		Message: SupplierKYCAlreadySubmittedErrMsg,
-		Code:    int(errorcodeutil.KYCAlreadySubmitted),
-	}
-}
-
-// PublishKYCNudgeError returns an error message when there's a failure in
-// creating a KYC nudge
-func PublishKYCNudgeError(err error) error {
-	return &errorcodeutil.CustomError{
-		Err:     err,
-		Message: PublishKYCNudgeErrMsg,
-		Code:    int(errorcodeutil.PublishNudgeFailure),
-	}
-}
-
 // InvalidCredentialsError returns an error message when wrong credentials are provided
 func InvalidCredentialsError() error {
 	return &errorcodeutil.CustomError{

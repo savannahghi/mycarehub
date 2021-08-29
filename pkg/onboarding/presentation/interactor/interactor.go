@@ -14,7 +14,6 @@ import (
 type Interactor struct {
 	Onboarding usecases.ProfileUseCase
 	Signup     usecases.SignUpUseCases
-	Supplier   usecases.SupplierUseCases
 	Login      usecases.LoginUseCases
 	Survey     usecases.SurveyUseCases
 	UserPIN    usecases.UserPINUseCases
@@ -29,7 +28,6 @@ type Interactor struct {
 func NewOnboardingInteractor(
 	profile usecases.ProfileUseCase,
 	su usecases.SignUpUseCases,
-	supplier usecases.SupplierUseCases,
 	login usecases.LoginUseCases,
 	survey usecases.SurveyUseCases,
 	userpin usecases.UserPINUseCases,
@@ -43,7 +41,6 @@ func NewOnboardingInteractor(
 	return &Interactor{
 		Onboarding: profile,
 		Signup:     su,
-		Supplier:   supplier,
 		Login:      login,
 		Survey:     survey,
 		UserPIN:    userpin,

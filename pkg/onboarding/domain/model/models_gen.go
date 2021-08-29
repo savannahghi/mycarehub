@@ -7,6 +7,7 @@ import (
 	"io"
 	"strconv"
 
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/scalarutils"
 )
@@ -27,10 +28,43 @@ type BeneficiaryInput struct {
 	DateOfBirth  scalarutils.Date               `json:"dateOfBirth"`
 }
 
+type Identification struct {
+	IdentificationDocType           enumutils.IdentificationDocType `json:"identificationDocType"`
+	IdentificationDocNumber         string                          `json:"identificationDocNumber"`
+	IdentificationDocNumberUploadID string                          `json:"identificationDocNumberUploadID"`
+}
+
+type IndividualPractitioner struct {
+	IdentificationDoc       *Identification              `json:"identificationDoc"`
+	Krapin                  string                       `json:"KRAPIN"`
+	KRAPINUploadID          string                       `json:"KRAPINUploadID"`
+	SupportingDocuments     []*SupportingDocument        `json:"supportingDocuments"`
+	RegistrationNumber      string                       `json:"registrationNumber"`
+	PracticeLicenseID       string                       `json:"practiceLicenseID"`
+	PracticeLicenseUploadID string                       `json:"practiceLicenseUploadID"`
+	PracticeServices        []domain.PractitionerService `json:"practiceServices"`
+	Cadre                   domain.PractitionerCadre     `json:"cadre"`
+}
+
 type LocationInput struct {
 	ID              string  `json:"id"`
 	Name            string  `json:"name"`
 	BranchSladeCode *string `json:"branchSladeCode"`
+}
+
+type OrganizationPractitioner struct {
+	OrganizationTypeName               domain.OrganizationType      `json:"organizationTypeName"`
+	Krapin                             string                       `json:"KRAPIN"`
+	KRAPINUploadID                     string                       `json:"KRAPINUploadID"`
+	SupportingDocuments                []*SupportingDocument        `json:"supportingDocuments"`
+	CertificateOfIncorporation         *string                      `json:"certificateOfIncorporation"`
+	CertificateOfInCorporationUploadID *string                      `json:"certificateOfInCorporationUploadID"`
+	DirectorIdentifications            []*Identification            `json:"directorIdentifications"`
+	OrganizationCertificate            *string                      `json:"organizationCertificate"`
+	RegistrationNumber                 string                       `json:"registrationNumber"`
+	PracticeLicenseUploadID            string                       `json:"practiceLicenseUploadID"`
+	PracticeServices                   []domain.PractitionerService `json:"practiceServices"`
+	Cadre                              domain.PractitionerCadre     `json:"cadre"`
 }
 
 type OtherPractitionerServiceInput struct {
@@ -44,6 +78,12 @@ type PractitionerServiceInput struct {
 type ServicesOffered struct {
 	Services      []domain.PractitionerService `json:"services"`
 	OtherServices []string                     `json:"otherServices"`
+}
+
+type SupportingDocument struct {
+	SupportingDocumentTitle       string `json:"supportingDocumentTitle"`
+	SupportingDocumentDescription string `json:"supportingDocumentDescription"`
+	SupportingDocumentUpload      string `json:"supportingDocumentUpload"`
 }
 
 type ChannelOfContact string
