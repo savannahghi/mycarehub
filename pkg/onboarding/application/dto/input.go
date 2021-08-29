@@ -8,7 +8,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
-	dm "gitlab.slade360emr.com/go/commontools/accounting/pkg/domain"
 )
 
 // UserProfileInput is used to create or update a user's profile.
@@ -133,18 +132,6 @@ type PushTokenPayload struct {
 	UID       string `json:"uid"`
 }
 
-// EmailNotificationPayload is the email payload used to send email
-// supplier and admins for KYC requests
-type EmailNotificationPayload struct {
-	SupplierName string `json:"supplier_name"`
-	PartnerType  string `json:"partner_type"`
-	AccountType  string `json:"account_type"`
-	SubjectTitle string `json:"subject_title"`
-	EmailBody    string `json:"email_body"`
-	EmailAddress string `json:"email_address"`
-	PrimaryPhone string `json:"primary_phone"`
-}
-
 // UserProfilePayload is used to update a user's profile.
 // This payload is used for REST endpoints
 type UserProfilePayload struct {
@@ -166,18 +153,6 @@ type PermissionInput struct {
 type RolePayload struct {
 	PhoneNumber *string                `json:"phoneNumber"`
 	Role        *profileutils.RoleType `json:"role"`
-}
-
-//CustomerPubSubMessagePayload is an `onboarding` PubSub message struct for commontools
-type CustomerPubSubMessagePayload struct {
-	CustomerPayload dm.CustomerPayload `json:"customerPayload"`
-	UID             string             `json:"uid"`
-}
-
-//SupplierPubSubMessagePayload is an `onboarding` PubSub message struct for commontools
-type SupplierPubSubMessagePayload struct {
-	SupplierPayload dm.SupplierPayload `json:"supplierPayload"`
-	UID             string             `json:"uid"`
 }
 
 // AssignRolePayload is the payload used to assign a role to a user

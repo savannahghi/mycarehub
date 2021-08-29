@@ -76,30 +76,6 @@ var BioDataUpdate = dto.PermissionInput{
 	Action:   "edit",
 }
 
-// PartnerTypeCreate describes write permissions on creating a user partner type
-var PartnerTypeCreate = dto.PermissionInput{
-	Resource: "add_partner_type",
-	Action:   "create",
-}
-
-// SupplierCreate describes write permissions on initial creation of a supplier
-var SupplierCreate = dto.PermissionInput{
-	Resource: "setup_supplier",
-	Action:   "create",
-}
-
-// CustomerAccountCreate describes write permissions on initial creation of a customer account
-var CustomerAccountCreate = dto.PermissionInput{
-	Resource: "create_customer_account",
-	Action:   "create",
-}
-
-// SupplierAccountCreate describes write permissions on initial creation of a supplier account
-var SupplierAccountCreate = dto.PermissionInput{
-	Resource: "create_supplier_account",
-	Action:   "create",
-}
-
 // MicroserviceDelete describes delete permissions on a microservice
 var MicroserviceDelete = dto.PermissionInput{
 	Resource: "microservice_delete",

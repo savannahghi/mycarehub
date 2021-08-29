@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/savannahghi/enumutils"
@@ -401,10 +400,6 @@ func (r *queryResolver) UserProfile(ctx context.Context) (*profileutils.UserProf
 	defer serverutils.RecordGraphqlResolverMetrics(ctx, startTime, "userProfile", err)
 
 	return userProfile, err
-}
-
-func (r *queryResolver) SupplierProfile(ctx context.Context) (*profileutils.Supplier, error) {
-	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) ResumeWithPin(ctx context.Context, pin string) (bool, error) {

@@ -258,54 +258,6 @@ func InvalidFlavourDefinedError() error {
 	}
 }
 
-// AddPartnerTypeError is an error message displayed when there is a
-// failure to create a partner type
-func AddPartnerTypeError(err error) error {
-	return &errorcodeutil.CustomError{
-		Err:     err,
-		Message: AddPartnerTypeErrMsg,
-		Code:    int(errorcodeutil.InvalidEnum),
-	}
-
-}
-
-// InvalidPartnerTypeError is an error message displayed when an
-// invalid partner type is provided
-func InvalidPartnerTypeError() error {
-	return &errorcodeutil.CustomError{
-		Err:     fmt.Errorf("invalid `partnerType` provided"),
-		Message: InvalidPartnerTypeErrMsg,
-		Code:    int(errorcodeutil.InvalidEnum),
-	}
-}
-
-// FetchDefaultCurrencyError is an error message displayed when
-// the default currency is not found
-func FetchDefaultCurrencyError(err error) error {
-	return &errorcodeutil.CustomError{
-		Err:     err,
-		Message: FetchDefaultCurrencyErrMsg,
-		Code:    int(errorcodeutil.RecordNotFound),
-	}
-}
-
-// SupplierNotFoundError returns an error message when a supplier is not found
-func SupplierNotFoundError() error {
-	return &errorcodeutil.CustomError{
-		Message: SupplierNotFoundErrMsg,
-		Code:    int(errorcodeutil.ProfileNotFound),
-	}
-
-}
-
-// CustomerNotFoundError returns an error message when a customer is not found
-func CustomerNotFoundError() error {
-	return &errorcodeutil.CustomError{
-		Message: CustomerNotFoundErrMsg,
-		Code:    int(errorcodeutil.ProfileNotFound),
-	}
-}
-
 // InvalidCredentialsError returns an error message when wrong credentials are provided
 func InvalidCredentialsError() error {
 	return &errorcodeutil.CustomError{

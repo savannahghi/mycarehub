@@ -377,16 +377,6 @@ func TestAddSecondaryPhoneNumbers(t *testing.T) {
 		return
 	}
 
-	if resp.CustomerProfile == nil {
-		t.Error("nil customer profile response returned")
-		return
-	}
-
-	if resp.SupplierProfile == nil {
-		t.Error("nil supplier profile response returned")
-		return
-	}
-
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	if err != nil {
 		t.Errorf("an error occurred while logging in by phone :%v", err)
@@ -583,16 +573,6 @@ func TestAddSecondaryEmailAddress(t *testing.T) {
 		return
 	}
 
-	if resp.CustomerProfile == nil {
-		t.Error("nil customer profile response returned")
-		return
-	}
-
-	if resp.SupplierProfile == nil {
-		t.Error("nil supplier profile response returned")
-		return
-	}
-
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	if err != nil {
 		t.Errorf("an error occurred while logging in by phone :%v", err)
@@ -751,8 +731,6 @@ func TestUpdateUserProfilePushTokens(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, resp)
 	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
@@ -883,8 +861,6 @@ func TestGetUserProfileByUID(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, resp)
 	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
@@ -942,8 +918,6 @@ func TestUserProfile(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, resp)
 	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
@@ -1000,8 +974,6 @@ func TestGetProfileByID(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, resp)
 	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
@@ -1067,8 +1039,6 @@ func TestUpdateBioData(t *testing.T) {
 	assert.NotNil(t, resp.Profile)
 	assert.Equal(t, validPhoneNumber, *resp.Profile.PrimaryPhone)
 	assert.NotNil(t, resp.Profile.UserName)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	// create authenticated context
 	ctx := context.Background()
@@ -1201,8 +1171,6 @@ func TestUpdatePhotoUploadID(t *testing.T) {
 	assert.NotNil(t, resp.Profile)
 	assert.Equal(t, validPhoneNumber, *resp.Profile.PrimaryPhone)
 	assert.NotNil(t, resp.Profile.UserName)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	// create authenticated context
 	ctx := context.Background()
@@ -1274,8 +1242,6 @@ func TestUpdateSuspended(t *testing.T) {
 	assert.NotNil(t, resp.Profile)
 	assert.Equal(t, validPhoneNumber, *resp.Profile.PrimaryPhone)
 	assert.NotNil(t, resp.Profile.UserName)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	// create authenticated context
 	ctx := context.Background()
@@ -1338,8 +1304,6 @@ func TestUpdatePermissions(t *testing.T) {
 	assert.NotNil(t, resp.Profile)
 	assert.Equal(t, validPhoneNumber, *resp.Profile.PrimaryPhone)
 	assert.NotNil(t, resp.Profile.UserName)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	// create authenticated context
 	ctx := context.Background()
@@ -1412,8 +1376,6 @@ func TestSetupAsExperimentParticipant(t *testing.T) {
 	assert.NotNil(t, resp.Profile)
 	assert.Equal(t, validPhoneNumber, *resp.Profile.PrimaryPhone)
 	assert.NotNil(t, resp.Profile.UserName)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 	// check that the currently created user can not experiment on new features
 	assert.Equal(t, false, resp.Auth.CanExperiment)
 

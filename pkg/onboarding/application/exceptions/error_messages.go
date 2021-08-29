@@ -102,26 +102,6 @@ const (
 	// InvalidFlavourDefinedErrMsg for invalid flavour definitions
 	InvalidFlavourDefinedErrMsg = "invalid flavour defined"
 
-	// AddPartnerTypeErrMsg is an error message displayed when there is a
-	// failure to create a partner type
-	AddPartnerTypeErrMsg = "error occurred while adding partner type"
-
-	// InvalidPartnerTypeErrMsg is an error message displayed when an
-	// invalid partner type is provided
-	InvalidPartnerTypeErrMsg = "invalid `partnerType` provided"
-
-	// FetchDefaultCurrencyErrMsg is an error message displayed when
-	// the default currency is not found
-	FetchDefaultCurrencyErrMsg = "unable to fetch orgs default currency"
-
-	// SupplierNotFoundErrMsg is an error message displayed when a supplier
-	// profile is not found
-	SupplierNotFoundErrMsg = "unable to get the user supplier profile"
-
-	// CustomerNotFoundErrMsg  is an error message displayed when a customer
-	// profile is not found
-	CustomerNotFoundErrMsg = "unable to get the user customer profile"
-
 	// InvalidCredentialsErrMsg is displayed when wrong credentials are provided
 	InvalidCredentialsErrMsg = "invalid credentials, expected a username AND password"
 

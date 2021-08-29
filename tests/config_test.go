@@ -542,13 +542,10 @@ func TestMain(m *testing.M) {
 		if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 			r := fb.Repository{}
 			collections := []string{
-				r.GetCustomerProfileCollectionName(),
 				r.GetPINsCollectionName(),
 				r.GetUserProfileCollectionName(),
-				r.GetSupplierProfileCollectionName(),
 				r.GetSurveyCollectionName(),
 				r.GetCommunicationsSettingsCollectionName(),
-				r.GetCustomerProfileCollectionName(),
 				r.GetExperimentParticipantCollectionName(),
 				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),

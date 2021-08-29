@@ -61,8 +61,6 @@ func TestVerifyPhoneNumber(t *testing.T) {
 	assert.NotNil(t, resp)
 	assert.NotNil(t, resp1.Profile)
 	assert.Equal(t, validPhoneNumber, *resp1.Profile.PrimaryPhone)
-	assert.NotNil(t, resp1.CustomerProfile)
-	assert.NotNil(t, resp1.SupplierProfile)
 
 	// now try to verify with the already registered phone number
 	resp, err = s.Signup.VerifyPhoneNumber(context.Background(), validPhoneNumber, &testAppID)
@@ -99,8 +97,6 @@ func TestCreateUserWithPhoneNumber_Consumer(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, resp)
 	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 	assert.NotNil(t, resp.CommunicationSettings)
 	assert.Equal(t, true, resp.CommunicationSettings.AllowEmail)
 	assert.Equal(t, true, resp.CommunicationSettings.AllowPush)
@@ -139,8 +135,6 @@ func TestCreateUserWithPhoneNumber_Pro(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, resp)
 	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 	assert.NotNil(t, resp.CommunicationSettings)
 	assert.Equal(t, true, resp.CommunicationSettings.AllowEmail)
 	assert.Equal(t, true, resp.CommunicationSettings.AllowPush)
@@ -249,8 +243,6 @@ func TestCreateUserByPhone(t *testing.T) {
 	assert.NotNil(t, resp6.Profile)
 	assert.Equal(t, validPhoneNumber, *resp6.Profile.PrimaryPhone)
 	assert.NotNil(t, resp6.Profile.UserName)
-	assert.NotNil(t, resp6.CustomerProfile)
-	assert.NotNil(t, resp6.SupplierProfile)
 	assert.NotNil(t, resp6.CommunicationSettings)
 	assert.Equal(t, true, resp6.CommunicationSettings.AllowEmail)
 	assert.Equal(t, true, resp6.CommunicationSettings.AllowPush)
@@ -309,8 +301,6 @@ func TestUpdateUserProfile(t *testing.T) {
 	assert.NotNil(t, resp.Profile)
 	assert.Equal(t, validPhoneNumber, *resp.Profile.PrimaryPhone)
 	assert.NotNil(t, resp.Profile.UserName)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	// create authenticated context
 	ctx := context.Background()
@@ -434,8 +424,6 @@ func TestRegisterPushToken(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, resp)
 	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
@@ -513,8 +501,6 @@ func TestRetirePushToken(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, resp)
 	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	login1, err := s.Login.LoginByPhone(context.Background(), primaryPhone, pin, feedlib.FlavourConsumer)
 	assert.Nil(t, err)
@@ -612,8 +598,6 @@ func TestGetUserRecoveryPhoneNumbers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, resp)
 	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	// fetch user recovery phone numbers
 	resp1, err := s.Signup.GetUserRecoveryPhoneNumbers(context.Background(), primaryPhone)
@@ -660,8 +644,6 @@ func TestRemoveUserByPhoneNumber(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, resp)
 	assert.NotNil(t, resp.Profile)
-	assert.NotNil(t, resp.CustomerProfile)
-	assert.NotNil(t, resp.SupplierProfile)
 
 	// login to asser that the user has really been created. Should pass
 	login1, err := s.Login.LoginByPhone(context.Background(), phone, pin, feedlib.FlavourPro)

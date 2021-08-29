@@ -100,16 +100,6 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 		auth.ChangePIN = true
 	}
 
-	customer, supplier, err := l.onboardingRepository.GetCustomerOrSupplierProfileByProfileID(
-		ctx,
-		flavour,
-		profile.ID,
-	)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.RetrieveRecordError(err)
-	}
-
 	// fetch the user's communication settings
 	comms, err := l.onboardingRepository.GetUserCommunicationsSettings(ctx, profile.ID)
 	if err != nil {
@@ -142,8 +132,6 @@ func (l *LoginUseCasesImpl) LoginByPhone(
 
 	return &profileutils.UserResponse{
 		Profile:               profile,
-		CustomerProfile:       customer,
-		SupplierProfile:       supplier,
 		Auth:                  *auth,
 		CommunicationSettings: comms,
 		NavActions:            utils.NewActionsMapper(ctx, navActions),

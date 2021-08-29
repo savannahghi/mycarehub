@@ -188,20 +188,6 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 		utils.RecordSpanError(span, err)
 		return nil, err
 	}
-
-	var supplier *profileutils.Supplier
-	var customer *profileutils.Customer
-	supplier, err = s.onboardingRepository.CreateEmptySupplierProfile(ctx, profile.ID)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
-
-	customer, err = s.onboardingRepository.CreateEmptyCustomerProfile(ctx, profile.ID)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return nil, exceptions.InternalServerError(err)
-	}
 	// set the user default communications settings
 	defaultCommunicationSetting := true
 	comms, err := s.onboardingRepository.SetUserCommunicationsSettings(
@@ -230,8 +216,6 @@ func (s *SignUpUseCasesImpl) CreateUserByPhone(
 
 	return &profileutils.UserResponse{
 		Profile:               profile,
-		SupplierProfile:       supplier,
-		CustomerProfile:       customer,
 		CommunicationSettings: comms,
 		Auth:                  *auth,
 		NavActions:            utils.NewActionsMapper(ctx, navActions),

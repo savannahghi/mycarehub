@@ -52,11 +52,6 @@ type LocationInput struct {
 	BranchSladeCode *string `json:"branchSladeCode"`
 }
 
-type ServicesOffered struct {
-	Services      []domain.PractitionerService `json:"services"`
-	OtherServices []string                     `json:"otherServices"`
-}
-
 type SupportingDocument struct {
 	SupportingDocumentTitle       string `json:"supportingDocumentTitle"`
 	SupportingDocumentDescription string `json:"supportingDocumentDescription"`

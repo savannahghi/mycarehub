@@ -536,19 +536,6 @@ func TestHandlersInterfacesImpl_CreateUserWithPhoneNumber(t *testing.T) {
 				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
 					return "salt", "passw"
 				}
-
-				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
-					return &profileutils.Supplier{
-						ID:         "5550",
-						SupplierID: "5555",
-					}, nil
-				}
-				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*profileutils.Customer, error) {
-					return &profileutils.Customer{
-						ID:         "0000",
-						CustomerID: "22222",
-					}, nil
-				}
 				// should return a profile with an ID
 				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
 					return &profileutils.UserProfile{
@@ -1712,13 +1699,6 @@ func TestHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 						// IDToken:      "555",
 						RefreshToken: "55550",
 					}, nil
-				}
-				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour feedlib.Flavour, profileID string) (*profileutils.Customer, *profileutils.Supplier, error) {
-					return &profileutils.Customer{
-							ID: "5550",
-						}, &profileutils.Supplier{
-							ID: "5550",
-						}, nil
 				}
 				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
 					return &profileutils.UserCommunicationsSetting{

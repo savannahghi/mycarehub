@@ -50,65 +50,12 @@ type UserProfile @key(fields: "id") {
   roleDetails: [RoleOutput]
 }
 
-type Customer {
-  id: String!
-  profileID: String
-  customerID: String
-  receivablesAccount: ReceivablesAccount
-  active: Boolean
-}
-
-type ReceivablesAccount {
-  id: String!
-  name: String!
-  isActive: Boolean!
-  number: String!
-  tag: String!
-  description: String!
-}
-
-type ServicesOffered {
-  services: [PractitionerService!]!
-  otherServices: [String!]!
-}
-
-type PayablesAccount {
-  id: String!
-  name: String!
-  isActive: Boolean!
-  number: String!
-  tag: String!
-  description: String!
-}
-
 type Beneficiary {
   name: String!
   msisdns: [String!]
   emails: [String!]
   relationship: BeneficiaryRelationship!
   dateOfBirth: Date!
-}
-
-type Supplier {
-  id: String!
-  profileID: String!
-  supplierId: String!
-  payablesAccount: PayablesAccount!
-  supplierKYC: Map!
-  active: Boolean!
-
-  accountType: AccountType
-  underOrganization: Boolean!
-  isOrganizationVerified: Boolean!
-
-  partnerSetupComplete: Boolean!
-  KYCSubmitted: Boolean!
-
-  organizationName: String
-  sladeCode: String
-  parentOrganizationID: String
-  hasBranches: Boolean
-  location: Location
 }
 
 type Location {

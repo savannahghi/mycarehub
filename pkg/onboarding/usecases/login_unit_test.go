@@ -294,16 +294,6 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid:fail_to_getCustomerOrSupplierProfile",
-			args: args{
-				ctx:     ctx,
-				phone:   "+254761829103",
-				PIN:     "1234",
-				flavour: feedlib.FlavourConsumer,
-			},
-			wantErr: true,
-		},
-		{
 			name: "invalid:fail_to_comparePin",
 			args: args{
 				ctx:     ctx,
@@ -348,14 +338,6 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 						RefreshToken: refreshToken,
 						Scopes:       []string{"patient.create", "agent.create"},
 					}, nil
-				}
-
-				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour feedlib.Flavour, profileID string) (*profileutils.Customer, *profileutils.Supplier, error) {
-					return &profileutils.Customer{
-							ID: "5550",
-						}, &profileutils.Supplier{
-							ID: "5550",
-						}, nil
 				}
 
 				fakeRepo.GetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string) (*profileutils.UserCommunicationsSetting, error) {
@@ -443,42 +425,6 @@ func TestProfileUseCaseImpl_LoginByPhone(t *testing.T) {
 
 				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *profileutils.UserProfile) (*profileutils.AuthCredentialResponse, error) {
 					return nil, fmt.Errorf("failed to generate auth credentials")
-				}
-			}
-
-			if tt.name == "invalid:fail_to_getCustomerOrSupplierProfile" {
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
-
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID:           "123",
-						PrimaryPhone: &phoneNumber,
-					}, nil
-				}
-
-				fakeRepo.GetPINByProfileIDFn = func(ctx context.Context, profileID string) (*domain.PIN, error) {
-					return &domain.PIN{ID: "123", ProfileID: "456"}, nil
-				}
-				fakePinExt.ComparePINFn = func(rawPwd string, salt string, encodedPwd string, options *extension.Options) bool {
-					return true
-				}
-
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *profileutils.UserProfile) (*profileutils.AuthCredentialResponse, error) {
-					customToken := uuid.New().String()
-					idToken := uuid.New().String()
-					refreshToken := uuid.New().String()
-					return &profileutils.AuthCredentialResponse{
-						CustomToken:  &customToken,
-						IDToken:      &idToken,
-						RefreshToken: refreshToken,
-					}, nil
-				}
-
-				fakeRepo.GetCustomerOrSupplierProfileByProfileIDFn = func(ctx context.Context, flavour feedlib.Flavour, profileID string) (*profileutils.Customer, *profileutils.Supplier, error) {
-					return nil, nil, fmt.Errorf("failed to get customer or supplier profile by ID")
 				}
 			}
 

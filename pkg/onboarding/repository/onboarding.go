@@ -13,51 +13,12 @@ import (
 
 // SupplierRepository  defines signatures that relate to suppliers
 type SupplierRepository interface {
-	// supplier methods
-	GetSupplierProfileByID(ctx context.Context, id string) (*profileutils.Supplier, error)
-
-	GetSupplierProfileByProfileID(
-		ctx context.Context,
-		profileID string,
-	) (*profileutils.Supplier, error)
-
-	UpdateSupplierProfile(ctx context.Context, profileID string, data *profileutils.Supplier) error
-
-	AddPartnerType(
-		ctx context.Context,
-		profileID string,
-		name *string,
-		partnerType *profileutils.PartnerType,
-	) (bool, error)
-
-	AddSupplierAccountType(
-		ctx context.Context,
-		profileID string,
-		accountType profileutils.AccountType,
-	) (*profileutils.Supplier, error)
-
 	StageProfileNudge(ctx context.Context, nudge *feedlib.Nudge) error
-
-	// sets the active attribute of supplier profile to true
-	ActivateSupplierProfile(
-		ctx context.Context,
-		profileID string,
-		supplier profileutils.Supplier,
-	) (*profileutils.Supplier, error)
-
 	CheckIfAdmin(profile *profileutils.UserProfile) bool
 }
 
 // CustomerRepository  defines signatures that relate to customers
 type CustomerRepository interface {
-	// customer methods
-	GetCustomerProfileByID(ctx context.Context, id string) (*profileutils.Customer, error)
-
-	GetCustomerProfileByProfileID(
-		ctx context.Context,
-		profileID string,
-	) (*profileutils.Customer, error)
-
 	// GetUserProfileByPhoneOrEmail gets usser profile by phone or email
 	GetUserProfileByPhoneOrEmail(ctx context.Context, payload *dto.RetrieveUserProfileInput) (*profileutils.UserProfile, error)
 
@@ -87,25 +48,6 @@ type OnboardingRepository interface {
 		phoneNumber string,
 		profile profileutils.UserProfile,
 	) (*profileutils.UserProfile, error)
-
-	// creates an empty supplier profile
-	CreateEmptySupplierProfile(
-		ctx context.Context,
-		profileID string,
-	) (*profileutils.Supplier, error)
-
-	// create a new supplier profile that is pre-filled using the provided profile ID
-	CreateDetailedSupplierProfile(
-		ctx context.Context,
-		profileID string,
-		supplier profileutils.Supplier,
-	) (*profileutils.Supplier, error)
-
-	// creates an empty customer profile
-	CreateEmptyCustomerProfile(
-		ctx context.Context,
-		profileID string,
-	) (*profileutils.Customer, error)
 
 	// fetches a user profile by uid
 	GetUserProfileByUID(
@@ -192,12 +134,6 @@ type OnboardingRepository interface {
 		ctx context.Context,
 		token string,
 	) (*profileutils.AuthCredentialResponse, error)
-
-	GetCustomerOrSupplierProfileByProfileID(
-		ctx context.Context,
-		flavour feedlib.Flavour,
-		profileID string,
-	) (*profileutils.Customer, *profileutils.Supplier, error)
 
 	GetOrCreatePhoneNumberUser(ctx context.Context, phone string) (*dto.CreatedUserResponse, error)
 

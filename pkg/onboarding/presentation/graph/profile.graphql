@@ -4,8 +4,6 @@ extend type Query {
 
   userProfile: UserProfile!
 
-  supplierProfile: Supplier!
-
   resumeWithPIN(pin: String!): Boolean!
   
   getAddresses: UserAddresses!

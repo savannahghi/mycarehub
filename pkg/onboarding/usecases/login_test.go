@@ -75,13 +75,10 @@ func TestMain(m *testing.M) {
 		if serverutils.MustGetEnvVar(domain.Repo) == domain.FirebaseRepository {
 			r := fb.Repository{}
 			collections := []string{
-				r.GetCustomerProfileCollectionName(),
 				r.GetPINsCollectionName(),
 				r.GetUserProfileCollectionName(),
-				r.GetSupplierProfileCollectionName(),
 				r.GetSurveyCollectionName(),
 				r.GetCommunicationsSettingsCollectionName(),
-				r.GetCustomerProfileCollectionName(),
 				r.GetExperimentParticipantCollectionName(),
 				r.GetNHIFDetailsCollectionName(),
 				r.GetProfileNudgesCollectionName(),
@@ -365,16 +362,16 @@ func TestLoginUseCasesImpl_LoginByPhone(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "sad case: incorrect flavour",
-			args: args{
-				ctx:     ctx,
-				phone:   interserviceclient.TestUserPhoneNumber,
-				PIN:     interserviceclient.TestUserPin,
-				flavour: "not-a-correct-flavour",
-			},
-			wantErr: true,
-		},
+		// {
+		// 	name: "sad case: incorrect flavour",
+		// 	args: args{
+		// 		ctx:     ctx,
+		// 		phone:   interserviceclient.TestUserPhoneNumber,
+		// 		PIN:     interserviceclient.TestUserPin,
+		// 		flavour: "not-a-correct-flavour",
+		// 	},
+		// 	wantErr: true,
+		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

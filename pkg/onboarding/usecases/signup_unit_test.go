@@ -247,22 +247,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "invalid:fail_to_create_empty_supplier_profile",
-			args: args{
-				ctx:   ctx,
-				input: validSignUpInput,
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid:fail_to_create_empty_customer_profile",
-			args: args{
-				ctx:   ctx,
-				input: validSignUpInput,
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -320,18 +304,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 					return true, nil
 				}
 				// Finished mocking SetUserPin
-
-				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
-					return &profileutils.Supplier{
-						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					}, nil
-				}
-
-				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*profileutils.Customer, error) {
-					return &profileutils.Customer{
-						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					}, nil
-				}
 				fakeRepo.SetUserCommunicationsSettingsFn = func(ctx context.Context, profileID string,
 					allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) (*profileutils.UserCommunicationsSetting, error) {
 					return &profileutils.UserCommunicationsSetting{
@@ -466,130 +438,6 @@ func TestSignUpUseCasesImpl_CreateUserByPhone(t *testing.T) {
 
 				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
 					return false, fmt.Errorf("failed to save user pin")
-				}
-			}
-
-			if tt.name == "invalid:fail_to_create_empty_supplier_profile" {
-				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
-					return true, nil
-				}
-
-				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*dto.CreatedUserResponse, error) {
-					return &dto.CreatedUserResponse{
-						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						DisplayName: "John Doe",
-						Email:       "johndoe@gmail.com",
-						PhoneNumber: phoneNumber,
-					}, nil
-				}
-
-				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID:           "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						PrimaryPhone: &phone,
-					}, nil
-				}
-
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *profileutils.UserProfile) (*profileutils.AuthCredentialResponse, error) {
-					customToken := uuid.New().String()
-					idToken := uuid.New().String()
-					refreshToken := uuid.New().String()
-					return &profileutils.AuthCredentialResponse{
-						CustomToken:  &customToken,
-						IDToken:      &idToken,
-						RefreshToken: refreshToken,
-					}, nil
-				}
-
-				// Mock SetUserPin begins here
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
-
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID:           "123",
-						PrimaryPhone: &phoneNumber,
-					}, nil
-				}
-
-				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
-					return "salt", "password"
-				}
-
-				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
-					return true, nil
-				}
-				// Finished mocking SetUserPin
-
-				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
-					return nil, fmt.Errorf("failed to create empty supplier profile")
-				}
-			}
-
-			if tt.name == "fail_to_create_empty_customer_profile" {
-				fakeEngagementSvs.VerifyOTPFn = func(ctx context.Context, phone, OTP string) (bool, error) {
-					return true, nil
-				}
-
-				fakeRepo.GetOrCreatePhoneNumberUserFn = func(ctx context.Context, phone string) (*dto.CreatedUserResponse, error) {
-					return &dto.CreatedUserResponse{
-						UID:         "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						DisplayName: "John Doe",
-						Email:       "johndoe@gmail.com",
-						PhoneNumber: phoneNumber,
-					}, nil
-				}
-
-				fakeRepo.CreateUserProfileFn = func(ctx context.Context, phoneNumber, uid string) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID:           "5cf354a2-1d3e-400d-8716-7e2aead29f2c",
-						PrimaryPhone: &phone,
-					}, nil
-				}
-
-				fakeRepo.GenerateAuthCredentialsFn = func(ctx context.Context, phone string, profile *profileutils.UserProfile) (*profileutils.AuthCredentialResponse, error) {
-					customToken := uuid.New().String()
-					idToken := uuid.New().String()
-					refreshToken := uuid.New().String()
-					return &profileutils.AuthCredentialResponse{
-						CustomToken:  &customToken,
-						IDToken:      &idToken,
-						RefreshToken: refreshToken,
-					}, nil
-				}
-
-				// Mock SetUserPin begins here
-				fakeBaseExt.NormalizeMSISDNFn = func(msisdn string) (*string, error) {
-					phone := "+254777886622"
-					return &phone, nil
-				}
-
-				fakeRepo.GetUserProfileByPrimaryPhoneNumberFn = func(ctx context.Context, phoneNumber string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID:           "123",
-						PrimaryPhone: &phoneNumber,
-					}, nil
-				}
-
-				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
-					return "salt", "password"
-				}
-
-				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
-					return true, nil
-				}
-				// Finished mocking SetUserPin
-
-				fakeRepo.CreateEmptySupplierProfileFn = func(ctx context.Context, profileID string) (*profileutils.Supplier, error) {
-					return &profileutils.Supplier{
-						ID: "f4f39af7-5b64-4c2f-91bd-42b3af315a4e",
-					}, nil
-				}
-
-				fakeRepo.CreateEmptyCustomerProfileFn = func(ctx context.Context, profileID string) (*profileutils.Customer, error) {
-					return nil, fmt.Errorf("failed to create empty customer profile")
 				}
 			}
 
@@ -1282,86 +1130,6 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 			if tt.name == "invalid:invalid_flavour" {
 				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("invalid flavour defined")
-				}
-			}
-
-			if tt.name == "invalid:fail_to_AddCustomerSupplierERPAccount" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID: uuid.New().String(),
-						UserBioData: profileutils.BioData{
-							FirstName: &userFirstName,
-							LastName:  &userLastName,
-						},
-					}, nil
-				}
-
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID: uuid.New().String(),
-						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
-							{
-								UID: uuid.New().String(),
-							},
-						},
-						UserBioData: profileutils.BioData{
-							FirstName: &userFirstName,
-							LastName:  &userLastName,
-						},
-					}, nil
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
-					id := uuid.New().String()
-					return &apiclient.FinancialYearAndCurrency{
-						ID: &id,
-					}, nil
-				}
-
-			}
-
-			if tt.name == "invalid:fail_to_FetchDefaultCurrency" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID: uuid.New().String(),
-						UserBioData: profileutils.BioData{
-							FirstName: &userFirstName,
-							LastName:  &userLastName,
-						},
-					}, nil
-				}
-
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID: uuid.New().String(),
-						VerifiedIdentifiers: []profileutils.VerifiedIdentifier{
-							{
-								UID: uuid.New().String(),
-							},
-						},
-						UserBioData: profileutils.BioData{
-							FirstName: &userFirstName,
-							LastName:  &userLastName,
-						},
-					}, nil
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
-					return nil, fmt.Errorf("failed to fetch default currency")
 				}
 			}
 
