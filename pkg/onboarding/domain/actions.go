@@ -165,38 +165,6 @@ var (
 )
 
 var (
-	//AgentNavActions this is the parent navigation action for agent resource
-	// it has nested navigation actions below
-	AgentNavActions = NavigationAction{
-		Group:              AgentGroup,
-		Title:              common.AgentNavActionTitle,
-		Icon:               common.AgentNavActionIcon,
-		RequiredPermission: &profileutils.CanViewAgent,
-		SequenceNumber:     AgentNavActionSequence,
-	}
-
-	//AgentRegistrationNavAction a child of the AgentNavActions
-	AgentRegistrationNavAction = NavigationAction{
-		Group:              AgentGroup,
-		Title:              common.AgentRegistrationActionTitle,
-		OnTapRoute:         common.AgentRegistrationRoute,
-		RequiredPermission: &profileutils.CanRegisterAgent,
-		HasParent:          true,
-		SequenceNumber:     AgentRegistrationActionSequence,
-	}
-
-	//AgentidentificationNavAction a child of the AgentNavActions
-	AgentidentificationNavAction = NavigationAction{
-		Group:              AgentGroup,
-		Title:              common.AgentIdentificationActionTitle,
-		OnTapRoute:         common.AgentIdentificationRoute,
-		RequiredPermission: &profileutils.CanIdentifyAgent,
-		HasParent:          true,
-		SequenceNumber:     AgentSearchNavActionSequence,
-	}
-)
-
-var (
 	//EmployeeNavActions this is the parent navigation action for agent resource
 	// it has nested navigation actions below
 	EmployeeNavActions = NavigationAction{
@@ -265,8 +233,6 @@ var AllNavigationActions = []NavigationAction{
 	HomeNavAction, HelpNavAction,
 
 	KYCNavActions, PartnerNavActions, ConsumerNavActions,
-
-	AgentNavActions, AgentRegistrationNavAction, AgentidentificationNavAction,
 
 	EmployeeNavActions, EmployeeRegistrationNavAction, EmployeeidentificationNavAction,
 

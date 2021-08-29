@@ -175,10 +175,6 @@ type FakeOnboardingRepository struct {
 	//admins
 	CreateAdminProfileFn        func(ctx context.Context, adminProfile domain.AdminProfile) error
 	CheckIfAdminProfileExistsFn func(ctx context.Context, profileID string) (bool, error)
-
-	//agents
-	CreateAgentProfileFn        func(ctx context.Context, agentProfile domain.AgentProfile) error
-	CheckIfAgentProfileExistsFn func(ctx context.Context, profileID string) (bool, error)
 }
 
 // GetSupplierProfileByID ...
@@ -832,14 +828,4 @@ func (f *FakeOnboardingRepository) CreateAdminProfile(ctx context.Context, admin
 //CheckIfAdminProfileExists ...
 func (f *FakeOnboardingRepository) CheckIfAdminProfileExists(ctx context.Context, profileID string) (bool, error) {
 	return f.CheckIfAdminProfileExistsFn(ctx, profileID)
-}
-
-//CreateAgentProfile ...
-func (f *FakeOnboardingRepository) CreateAgentProfile(ctx context.Context, agentProfile domain.AgentProfile) error {
-	return f.CreateAgentProfileFn(ctx, agentProfile)
-}
-
-//CheckIfAgentProfileExists ...
-func (f *FakeOnboardingRepository) CheckIfAgentProfileExists(ctx context.Context, profileID string) (bool, error) {
-	return f.CheckIfAgentProfileExistsFn(ctx, profileID)
 }

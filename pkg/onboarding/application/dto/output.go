@@ -1,49 +1,9 @@
 package dto
 
 import (
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
 )
-
-// AgentConnection is used to serialize GraphQL Relay connections for agents
-type AgentConnection struct {
-	Edges    []AgentEdge            `json:"edges"`
-	PageInfo firebasetools.PageInfo `json:"pageInfo"`
-}
-
-// AgentEdge is used to serialize GraphQL Edges for an agent
-type AgentEdge struct {
-	Cursor string `json:"cursor"`
-	Node   Agent  `json:"node"`
-}
-
-// Agent represents agent with details inferred from their user profile
-type Agent struct {
-	ID string `json:"id"`
-
-	PrimaryPhone string `json:"primaryPhone"`
-
-	PrimaryEmailAddress *string `json:"primaryEmailAddress"`
-
-	SecondaryPhoneNumbers []string `json:"secondaryPhoneNumbers"`
-
-	SecondaryEmailAddresses []string `json:"secondaryEmailAddresses"`
-
-	TermsAccepted bool `json:"termsAccepted,omitempty"`
-
-	Suspended bool `json:"suspended"`
-
-	PhotoUploadID string `json:"photoUploadID,omitempty"`
-
-	UserBioData profileutils.BioData `json:"userBioData,omitempty"`
-
-	// Resend PIN helps inform the whether a send new temporary PIN
-	// True when the user hasn't performed the initial sign up to change PIN
-	ResendPIN bool `json:"resendPIN"`
-
-	Roles []RoleOutput `json:"roles"`
-}
 
 // Admin represents agent with details inferred from their user profile
 type Admin struct {

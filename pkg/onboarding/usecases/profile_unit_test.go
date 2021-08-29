@@ -3992,9 +3992,6 @@ func TestProfileUseCaseImpl_GetNavigationActions(t *testing.T) {
 		return
 	}
 
-	agentNav := domain.AgentNavActions
-	agentNav.Nested = append(agentNav.Nested, domain.AgentRegistrationNavAction)
-
 	type args struct {
 		ctx context.Context
 	}
@@ -4033,9 +4030,7 @@ func TestProfileUseCaseImpl_GetNavigationActions(t *testing.T) {
 					domain.HomeNavAction,
 					domain.HelpNavAction,
 				},
-				Secondary: []domain.NavigationAction{
-					agentNav,
-				},
+				Secondary: []domain.NavigationAction{},
 			},
 			wantErr: false,
 		},

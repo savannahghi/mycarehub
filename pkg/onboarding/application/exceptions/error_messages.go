@@ -162,8 +162,4 @@ const (
 
 	//NavActionsError is an error message displayed when the system cannot update navigation actions
 	NavActionsError = "navigation actions not updated"
-
-	// AgentNotFoundErrMsg is an error message displayed when a supplier
-	// profile is not found
-	AgentNotFoundErrMsg = "user with agent role not found"
 )

@@ -146,10 +146,3 @@ type AdminProfile struct {
 	ProfileID      string `json:"profileID,omitempty"`
 	OrganizationID string `json:"organizationID,omitempty"`
 }
-
-//AgentProfile is the profile of all users who permform agent tasks
-type AgentProfile struct {
-	ID        string    `json:"id,omitempty"`
-	ProfileID string    `json:"profileID,omitempty"`
-	AgentType AgentType `json:"agentType,omitempty"`
-}

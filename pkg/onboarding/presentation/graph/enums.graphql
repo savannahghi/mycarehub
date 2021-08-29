@@ -52,25 +52,6 @@ enum IdentificationDocType {
   MILITARY
 }
 
-enum PartnerType {
-  RIDER
-  PRACTITIONER
-  PROVIDER
-  PHARMACEUTICAL
-  COACH
-  NUTRITION
-  CONSUMER
-}
-
-enum OrganizationType {
-  # main
-  LIMITED_COMPANY
-
-  # others
-  TRUST
-  UNIVERSITY
-}
-
 enum Flavour {
   PRO
   CONSUMER

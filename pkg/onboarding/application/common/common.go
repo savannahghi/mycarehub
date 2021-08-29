@@ -12,7 +12,6 @@ const (
 	StaticBase = "https://assets.healthcloud.co.ke"
 
 	RoleNavActionIcon     = StaticBase + "/actions/roles_navaction.png"
-	AgentNavActionIcon    = StaticBase + "/actions/agent_navaction.png"
 	EmployeeNavActionIcon = StaticBase + "/actions/employee_navaction.png"
 	ConsumerNavActionIcon = StaticBase + "/actions/consumer_navaction.png"
 	HelpNavActionIcon     = StaticBase + "/actions/help_navaction.png"
@@ -34,9 +33,6 @@ const (
 
 	RoleViewRoute     = "/viewCreatedRolesPage"
 	RoleCreationRoute = "/createRoleStepOne"
-
-	AgentRegistrationRoute   = "/agentRegistration"
-	AgentIdentificationRoute = "/agentIdentification"
 
 	EmployeeRegistrationRoute   = "/employeeRegistration"
 	EmployeeIdentificationRoute = "/employeeIdentification"
@@ -61,11 +57,6 @@ const (
 
 	RequestsNavActionTitle       = "Requests"
 	RequestsNavActionDescription = "Requests Navigation action"
-
-	AgentNavActionTitle            = "Agents"
-	AgentNavActionDescription      = "Agent Navigation action"
-	AgentRegistrationActionTitle   = "Register Agent"
-	AgentIdentificationActionTitle = "View Agents"
 
 	EmployeeNavActionTitle            = "Employees"
 	EmployeeNavActionDescription      = "Employee Navigation action"

@@ -52,21 +52,6 @@ type LocationInput struct {
 	BranchSladeCode *string `json:"branchSladeCode"`
 }
 
-type OrganizationPractitioner struct {
-	OrganizationTypeName               domain.OrganizationType      `json:"organizationTypeName"`
-	Krapin                             string                       `json:"KRAPIN"`
-	KRAPINUploadID                     string                       `json:"KRAPINUploadID"`
-	SupportingDocuments                []*SupportingDocument        `json:"supportingDocuments"`
-	CertificateOfIncorporation         *string                      `json:"certificateOfIncorporation"`
-	CertificateOfInCorporationUploadID *string                      `json:"certificateOfInCorporationUploadID"`
-	DirectorIdentifications            []*Identification            `json:"directorIdentifications"`
-	OrganizationCertificate            *string                      `json:"organizationCertificate"`
-	RegistrationNumber                 string                       `json:"registrationNumber"`
-	PracticeLicenseUploadID            string                       `json:"practiceLicenseUploadID"`
-	PracticeServices                   []domain.PractitionerService `json:"practiceServices"`
-	Cadre                              domain.PractitionerCadre     `json:"cadre"`
-}
-
 type ServicesOffered struct {
 	Services      []domain.PractitionerService `json:"services"`
 	OtherServices []string                     `json:"otherServices"`

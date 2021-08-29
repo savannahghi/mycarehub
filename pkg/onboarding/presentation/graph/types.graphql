@@ -148,30 +148,6 @@ type IndividualPractitioner {
   cadre: PractitionerCadre!
 }
 
-type OrganizationPractitioner {
-  # common for organization account types
-  organizationTypeName: OrganizationType!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocuments: [SupportingDocument]
-
-  # common for organization : limited company
-  certificateOfIncorporation: String
-  certificateOfInCorporationUploadID: String
-  directorIdentifications: [Identification]
-
-  # common for organization : others (trust or university)
-  organizationCertificate: String
-
-  # unique to practitioner
-  registrationNumber: String!
-  practiceLicenseUploadID: String!
-  practiceServices: [PractitionerService!]!
-  cadre: PractitionerCadre!
-}
-
 type Address {
   latitude: String!
   longitude: String!
@@ -212,20 +188,6 @@ type UserCommunicationsSetting {
 }
 
 type Admin {
-  id: String!
-  primaryPhone: String!
-  primaryEmailAddress: String
-  secondaryPhoneNumbers: [String]
-  secondaryEmailAddresses: [String]
-  termsAccepted: Boolean
-  suspended: Boolean
-  photoUploadID: String
-  userBioData: BioData
-  resendPIN: Boolean
-  roles: [RoleOutput]
-}
-
-type Agent {
   id: String!
   primaryPhone: String!
   primaryEmailAddress: String

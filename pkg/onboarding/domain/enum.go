@@ -217,55 +217,6 @@ func (e BeneficiaryRelationship) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-// OrganizationType defines the various OrganizationTypes
-type OrganizationType string
-
-// OrganizationTypeLimitedCompany is an example of a OrganizationType
-const (
-	OrganizationTypeLimitedCompany OrganizationType = "LIMITED_COMPANY"
-	OrganizationTypeTrust          OrganizationType = "TRUST"
-	OrganizationTypeUniversity     OrganizationType = "UNIVERSITY"
-)
-
-// AllOrganizationType contains a slice of all OrganizationType
-var AllOrganizationType = []OrganizationType{
-	OrganizationTypeLimitedCompany,
-	OrganizationTypeTrust,
-	OrganizationTypeUniversity,
-}
-
-// IsValid checks if the OrganizationType is valid
-func (e OrganizationType) IsValid() bool {
-	switch e {
-	case OrganizationTypeLimitedCompany, OrganizationTypeTrust, OrganizationTypeUniversity:
-		return true
-	}
-	return false
-}
-
-func (e OrganizationType) String() string {
-	return string(e)
-}
-
-// UnmarshalGQL converts the input, if valid, into an OrganizationType value
-func (e *OrganizationType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = OrganizationType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid OrganizationType", str)
-	}
-	return nil
-}
-
-// MarshalGQL converts OrganizationType into a valid JSON string
-func (e OrganizationType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
 // EmploymentType ...
 type EmploymentType string
 
@@ -310,49 +261,5 @@ func (e *EmploymentType) UnmarshalGQL(v interface{}) error {
 
 // MarshalGQL ..
 func (e EmploymentType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-//AgentType is the different kind of agent groups
-type AgentType string
-
-// Valid AgentTypes that can possibly be given to a user
-const (
-	//FreelanceAgent are agents that work at part time with savannah
-	FreelanceAgent AgentType = "Independent Agent"
-
-	//CompanyAgent are agents who are fully employed by savannah
-	CompanyAgent AgentType = "SIL Agent"
-)
-
-// IsValid ..
-func (e AgentType) IsValid() bool {
-	switch e {
-	case FreelanceAgent, CompanyAgent:
-		return true
-	}
-	return false
-}
-
-func (e AgentType) String() string {
-	return string(e)
-}
-
-// UnmarshalGQL ..
-func (e *AgentType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AgentType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid AgentType", str)
-	}
-	return nil
-}
-
-// MarshalGQL ..
-func (e AgentType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

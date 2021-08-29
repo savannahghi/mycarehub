@@ -73,11 +73,6 @@ func TestGetUserNavigationActions(t *testing.T) {
 	homeNavAction := domain.HomeNavAction
 	homeNavAction.Favorite = true
 
-	agentNavActions := domain.AgentNavActions
-	agentNavActions.Nested = []interface{}{
-		domain.AgentRegistrationNavAction,
-		domain.AgentidentificationNavAction,
-	}
 	tests := []struct {
 		name    string
 		args    args
@@ -103,9 +98,7 @@ func TestGetUserNavigationActions(t *testing.T) {
 					homeNavAction,
 					domain.HelpNavAction,
 				},
-				Secondary: []domain.NavigationAction{
-					agentNavActions,
-				},
+				Secondary: []domain.NavigationAction{},
 			},
 			wantErr: false,
 		},
