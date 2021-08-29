@@ -117,40 +117,6 @@ type Location {
   branchSladeCode: String
 }
 
-type BusinessPartner {
-  id: ID!
-  name: String!
-  sladeCode: String!
-  parent: String
-}
-
-type BusinessPartnerEdge {
-  cursor: String
-  node: BusinessPartner
-}
-
-type BusinessPartnerConnection {
-  edges: [BusinessPartnerEdge]
-  pageInfo: PageInfo!
-}
-
-# A location is a "branch" of an organization.
-type Branch {
-  id: ID!
-  name: String!
-  organizationSladeCode: String!
-  branchSladeCode: String!
-}
-
-type BranchEdge {
-  cursor: String
-  node: Branch
-}
-
-type BranchConnection {
-  edges: [BranchEdge]
-  pageInfo: PageInfo!
-}
 
 type Identification {
   identificationDocType: IdentificationDocType!
@@ -204,12 +170,6 @@ type OrganizationPractitioner {
   practiceLicenseUploadID: String!
   practiceServices: [PractitionerService!]!
   cadre: PractitionerCadre!
-}
-
-
-type SupplierLogin {
-  branches: BranchConnection!
-  supplier: Supplier!
 }
 
 type Address {

@@ -1,12 +1,10 @@
 package dto
 
 import (
-	"net/url"
 	"time"
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
@@ -30,120 +28,12 @@ type PostVisitSurveyInput struct {
 	Suggestions       string `json:"suggestions"       firestore:"suggestions"`
 }
 
-// BusinessPartnerFilterInput is used to supply filter parameters for organizatiom filter inputs
-type BusinessPartnerFilterInput struct {
-	Search    *string `json:"search"`
-	Name      *string `json:"name"`
-	SladeCode *string `json:"slade_code"`
-}
-
-// ToURLValues transforms the filter input to `url.Values`
-func (i *BusinessPartnerFilterInput) ToURLValues() (values url.Values) {
-	vals := url.Values{}
-	if i.Search != nil {
-		vals.Add("search", *i.Search)
-	}
-	if i.Name != nil {
-		vals.Add("name", *i.Name)
-	}
-	if i.SladeCode != nil {
-		vals.Add("slade_code", *i.SladeCode)
-	}
-	return vals
-}
-
-// BusinessPartnerSortInput is used to supply sort input for organization list queries
-type BusinessPartnerSortInput struct {
-	Name      *enumutils.SortOrder `json:"name"`
-	SladeCode *enumutils.SortOrder `json:"slade_code"`
-}
-
-// ToURLValues transforms the filter input to `url.Values`
-func (i *BusinessPartnerSortInput) ToURLValues() (values url.Values) {
-	vals := url.Values{}
-	if i.Name != nil {
-		if *i.Name == enumutils.SortOrderAsc {
-			vals.Add("order_by", "name")
-		} else {
-			vals.Add("order_by", "-name")
-		}
-	}
-	if i.SladeCode != nil {
-		if *i.Name == enumutils.SortOrderAsc {
-			vals.Add("slade_code", "number")
-		} else {
-			vals.Add("slade_code", "-number")
-		}
-	}
-	return vals
-}
-
-// BranchSortInput is used to supply sorting input for location list queries
-type BranchSortInput struct {
-	Name      *enumutils.SortOrder `json:"name"`
-	SladeCode *enumutils.SortOrder `json:"slade_code"`
-}
-
-// ToURLValues transforms the sort input to `url.Values`
-func (i *BranchSortInput) ToURLValues() (values url.Values) {
-	vals := url.Values{}
-	if i.Name != nil {
-		if *i.Name == enumutils.SortOrderAsc {
-			vals.Add("order_by", "name")
-		} else {
-			vals.Add("order_by", "-name")
-		}
-	}
-	if i.SladeCode != nil {
-		if *i.SladeCode == enumutils.SortOrderAsc {
-			vals.Add("slade_code", "number")
-		} else {
-			vals.Add("slade_code", "-number")
-		}
-	}
-	return vals
-}
-
 // SignUpInput represents the user information required to create a new account
 type SignUpInput struct {
 	PhoneNumber *string         `json:"phoneNumber"`
 	PIN         *string         `json:"pin"`
 	Flavour     feedlib.Flavour `json:"flavour"`
 	OTP         *string         `json:"otp"`
-}
-
-// BranchEdge is used to serialize GraphQL Relay edges for locations
-type BranchEdge struct {
-	Cursor *string        `json:"cursor"`
-	Node   *domain.Branch `json:"node"`
-}
-
-// BranchConnection is used tu serialize GraphQL Relay connections for locations
-type BranchConnection struct {
-	Edges    []*BranchEdge           `json:"edges"`
-	PageInfo *firebasetools.PageInfo `json:"pageInfo"`
-}
-
-// BranchFilterInput is used to supply filter parameters for locatioon list queries
-type BranchFilterInput struct {
-	Search               *string `json:"search"`
-	SladeCode            *string `json:"sladeCode"`
-	ParentOrganizationID *string `json:"parentOrganizationID"`
-}
-
-// ToURLValues transforms the filter input to `url.Values`
-func (i *BranchFilterInput) ToURLValues() url.Values {
-	vals := url.Values{}
-	if i.Search != nil {
-		vals.Add("search", *i.Search)
-	}
-	if i.SladeCode != nil {
-		vals.Add("slade_code", *i.SladeCode)
-	}
-	if i.ParentOrganizationID != nil {
-		vals.Add("parent", *i.ParentOrganizationID)
-	}
-	return vals
 }
 
 // PhoneNumberPayload used when verifying a phone number.

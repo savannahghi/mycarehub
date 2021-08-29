@@ -67,14 +67,6 @@ type OrganizationPractitioner struct {
 	Cadre                              domain.PractitionerCadre     `json:"cadre"`
 }
 
-type OtherPractitionerServiceInput struct {
-	OtherServices []string `json:"otherServices"`
-}
-
-type PractitionerServiceInput struct {
-	Services []domain.PractitionerService `json:"services"`
-}
-
 type ServicesOffered struct {
 	Services      []domain.PractitionerService `json:"services"`
 	OtherServices []string                     `json:"otherServices"`

@@ -8,24 +8,6 @@ import (
 	"github.com/savannahghi/profileutils"
 )
 
-// Branch represents a Slade 360 Charge Master branch
-type Branch struct {
-	ID                    string `json:"id"                    firestore:"id"`
-	Name                  string `json:"name"                  firestore:"name"`
-	OrganizationSladeCode string `json:"organizationSladeCode" firestore:"organizationSladeCode"`
-	BranchSladeCode       string `json:"branchSladeCode"       firestore:"branchSladeCode"`
-	// this won' be saved in the repository. it will be computed when fetching the supplier's allowed locations
-	Default bool `json:"default"`
-}
-
-// BusinessPartner represents a Slade 360 Charge Master business partner
-type BusinessPartner struct {
-	ID        string  `json:"id"         firestore:"id"`
-	Name      string  `json:"name"       firestore:"name"`
-	SladeCode string  `json:"slade_code" firestore:"sladeCode"`
-	Parent    *string `json:"parent"     firestore:"parent"`
-}
-
 // PIN represents a user's PIN information
 type PIN struct {
 	ID        string `json:"id"        firestore:"id"`

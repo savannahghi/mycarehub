@@ -22,36 +22,6 @@ input BeneficiaryInput {
   dateOfBirth: Date!
 }
 
-input PractitionerServiceInput {
-  services: [PractitionerService!]!
-}
-
-input OtherPractitionerServiceInput {
-  otherServices: [String!]!
-}
-
-input BusinessPartnerFilterInput {
-  search: String
-  name: String
-  sladeCode: String
-}
-
-input BusinessPartnerSortInput {
-  name: SortOrder
-  sladeCode: SortOrder
-}
-
-input BranchFilterInput {
-  search: String
-  sladeCode: String
-  parentOrganizationID: String
-}
-
-input BranchSortInput {
-  name: SortOrder
-  sladeCode: SortOrder
-}
-
 input LocationInput {
   id: ID!
   name: String!

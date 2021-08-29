@@ -6,18 +6,6 @@ import (
 	"github.com/savannahghi/profileutils"
 )
 
-// BusinessPartnerEdge is used to serialize GraphQL Relay edges for organization
-type BusinessPartnerEdge struct {
-	Cursor *string                 `json:"cursor"`
-	Node   *domain.BusinessPartner `json:"node"`
-}
-
-// BusinessPartnerConnection is used to serialize GraphQL Relay connections for organizations
-type BusinessPartnerConnection struct {
-	Edges    []*BusinessPartnerEdge  `json:"edges"`
-	PageInfo *firebasetools.PageInfo `json:"pageInfo"`
-}
-
 // AgentConnection is used to serialize GraphQL Relay connections for agents
 type AgentConnection struct {
 	Edges    []AgentEdge            `json:"edges"`
@@ -112,12 +100,6 @@ type CreatedUserResponse struct {
 	PhoneNumber string `json:"phone_number,omitempty"`
 	PhotoURL    string `json:"photo_url,omitempty"`
 	ProviderID  string `json:"provider_id,omitempty"`
-}
-
-// SupplierLogin is the response returned after the user has successfully login to edi
-type SupplierLogin struct {
-	Branches *BranchConnection      `json:"branches,omitempty"`
-	Supplier *profileutils.Supplier `json:"supplier,omitempty"`
 }
 
 // UserInfo is a collection of standard profile information for a user.
