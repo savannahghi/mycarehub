@@ -165,18 +165,6 @@ func (r *mutationResolver) RegisterPushToken(ctx context.Context, token string) 
 	return registerPushToken, err
 }
 
-func (r *mutationResolver) AddPartnerType(ctx context.Context, name string, partnerType profileutils.PartnerType) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) SupplierSetDefaultLocation(ctx context.Context, locationID string) (*profileutils.Supplier, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *mutationResolver) RecordPostVisitSurvey(ctx context.Context, input dto.PostVisitSurveyInput) (bool, error) {
 	startTime := time.Now()
 

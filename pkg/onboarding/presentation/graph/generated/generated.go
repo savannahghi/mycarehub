@@ -211,7 +211,6 @@ type ComplexityRoot struct {
 		ActivateRole                  func(childComplexity int, roleID string) int
 		AddAddress                    func(childComplexity int, input dto.UserAddressInput, addressType enumutils.AddressType) int
 		AddNHIFDetails                func(childComplexity int, input dto.NHIFDetailsInput) int
-		AddPartnerType                func(childComplexity int, name string, partnerType profileutils.PartnerType) int
 		AddPermissionsToRole          func(childComplexity int, input dto.RolePermissionInput) int
 		AddSecondaryEmailAddress      func(childComplexity int, email []string) int
 		AddSecondaryPhoneNumber       func(childComplexity int, phone []string) int
@@ -236,8 +235,6 @@ type ComplexityRoot struct {
 		SetPrimaryPhoneNumber         func(childComplexity int, phone string, otp string) int
 		SetUserCommunicationsSettings func(childComplexity int, allowWhatsApp *bool, allowTextSms *bool, allowPush *bool, allowEmail *bool) int
 		SetupAsExperimentParticipant  func(childComplexity int, participate *bool) int
-		SupplierSetDefaultLocation    func(childComplexity int, locationID string) int
-		SuspendSupplier               func(childComplexity int, suspensionReason *string) int
 		UpdateRolePermissions         func(childComplexity int, input dto.RolePermissionInput) int
 		UpdateUserName                func(childComplexity int, username string) int
 		UpdateUserPin                 func(childComplexity int, phone string, pin string) int
@@ -460,9 +457,6 @@ type MutationResolver interface {
 	RetireSecondaryEmailAddresses(ctx context.Context, emails []string) (bool, error)
 	UpdateUserName(ctx context.Context, username string) (bool, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
-	AddPartnerType(ctx context.Context, name string, partnerType profileutils.PartnerType) (bool, error)
-	SuspendSupplier(ctx context.Context, suspensionReason *string) (bool, error)
-	SupplierSetDefaultLocation(ctx context.Context, locationID string) (*profileutils.Supplier, error)
 	RecordPostVisitSurvey(ctx context.Context, input dto.PostVisitSurveyInput) (bool, error)
 	SetupAsExperimentParticipant(ctx context.Context, participate *bool) (bool, error)
 	AddNHIFDetails(ctx context.Context, input dto.NHIFDetailsInput) (*domain.NHIFDetails, error)
@@ -1217,18 +1211,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddNHIFDetails(childComplexity, args["input"].(dto.NHIFDetailsInput)), true
 
-	case "Mutation.addPartnerType":
-		if e.complexity.Mutation.AddPartnerType == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addPartnerType_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddPartnerType(childComplexity, args["name"].(string), args["partnerType"].(profileutils.PartnerType)), true
-
 	case "Mutation.addPermissionsToRole":
 		if e.complexity.Mutation.AddPermissionsToRole == nil {
 			break
@@ -1511,30 +1493,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetupAsExperimentParticipant(childComplexity, args["participate"].(*bool)), true
-
-	case "Mutation.supplierSetDefaultLocation":
-		if e.complexity.Mutation.SupplierSetDefaultLocation == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_supplierSetDefaultLocation_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SupplierSetDefaultLocation(childComplexity, args["locationID"].(string)), true
-
-	case "Mutation.suspendSupplier":
-		if e.complexity.Mutation.SuspendSupplier == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_suspendSupplier_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SuspendSupplier(childComplexity, args["suspensionReason"].(*string)), true
 
 	case "Mutation.updateRolePermissions":
 		if e.complexity.Mutation.UpdateRolePermissions == nil {
@@ -3028,18 +2986,7 @@ extend type Mutation {
   updateUserName(username: String!): Boolean!
 
   registerPushToken(token: String!): Boolean!
-
-  addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
-
-  suspendSupplier(suspensionReason: String): Boolean!
-
-
-   supplierSetDefaultLocation(locationID: String!): Supplier!
    
- 
-
-
-  
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
 
   setupAsExperimentParticipant(participate: Boolean): Boolean!
@@ -3568,30 +3515,6 @@ func (ec *executionContext) field_Mutation_addNHIFDetails_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_addPartnerType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg0
-	var arg1 profileutils.PartnerType
-	if tmp, ok := rawArgs["partnerType"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("partnerType"))
-		arg1, err = ec.unmarshalNPartnerType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPartnerType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["partnerType"] = arg1
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_addPermissionsToRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4015,36 +3938,6 @@ func (ec *executionContext) field_Mutation_setupAsExperimentParticipant_args(ctx
 		}
 	}
 	args["participate"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_supplierSetDefaultLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["locationID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locationID"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["locationID"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_suspendSupplier_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["suspensionReason"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("suspensionReason"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["suspensionReason"] = arg0
 	return args, nil
 }
 
@@ -7784,132 +7677,6 @@ func (ec *executionContext) _Mutation_registerPushToken(ctx context.Context, fie
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_addPartnerType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addPartnerType_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddPartnerType(rctx, args["name"].(string), args["partnerType"].(profileutils.PartnerType))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_suspendSupplier(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_suspendSupplier_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SuspendSupplier(rctx, args["suspensionReason"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_supplierSetDefaultLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_supplierSetDefaultLocation_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SupplierSetDefaultLocation(rctx, args["locationID"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*profileutils.Supplier)
-	fc.Result = res
-	return ec.marshalNSupplier2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐSupplier(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_recordPostVisitSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -16055,21 +15822,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "addPartnerType":
-			out.Values[i] = ec._Mutation_addPartnerType(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "suspendSupplier":
-			out.Values[i] = ec._Mutation_suspendSupplier(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "supplierSetDefaultLocation":
-			out.Values[i] = ec._Mutation_supplierSetDefaultLocation(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "recordPostVisitSurvey":
 			out.Values[i] = ec._Mutation_recordPostVisitSurvey(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -17965,16 +17717,6 @@ func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋsavannahghiᚋfir
 		return graphql.Null
 	}
 	return ec._PageInfo(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNPartnerType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPartnerType(ctx context.Context, v interface{}) (profileutils.PartnerType, error) {
-	var res profileutils.PartnerType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNPartnerType2githubᚗcomᚋsavannahghiᚋprofileutilsᚐPartnerType(ctx context.Context, sel ast.SelectionSet, v profileutils.PartnerType) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalNPayablesAccount2ᚖgithubᚗcomᚋsavannahghiᚋprofileutilsᚐPayablesAccount(ctx context.Context, sel ast.SelectionSet, v *profileutils.PayablesAccount) graphql.Marshaler {

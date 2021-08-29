@@ -51,18 +51,7 @@ extend type Mutation {
   updateUserName(username: String!): Boolean!
 
   registerPushToken(token: String!): Boolean!
-
-  addPartnerType(name: String!, partnerType: PartnerType!): Boolean!
-
-  suspendSupplier(suspensionReason: String): Boolean!
-
-
-   supplierSetDefaultLocation(locationID: String!): Supplier!
    
- 
-
-
-  
   recordPostVisitSurvey(input: PostVisitSurveyInput!): Boolean!
 
   setupAsExperimentParticipant(participate: Boolean): Boolean!
