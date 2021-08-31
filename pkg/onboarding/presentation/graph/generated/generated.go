@@ -155,6 +155,7 @@ type ComplexityRoot struct {
 		RecordPostVisitSurvey         func(childComplexity int, input dto.PostVisitSurveyInput) int
 		RegisterMicroservice          func(childComplexity int, input domain.Microservice) int
 		RegisterPushToken             func(childComplexity int, token string) int
+		ResendTemporaryPin            func(childComplexity int, profileID string, channel domain.MessageChannel) int
 		RetireSecondaryEmailAddresses func(childComplexity int, emails []string) int
 		RetireSecondaryPhoneNumbers   func(childComplexity int, phones []string) int
 		RevokeRole                    func(childComplexity int, userID string, roleID string, reason string) int
@@ -330,6 +331,7 @@ type MutationResolver interface {
 	RevokeRole(ctx context.Context, userID string, roleID string, reason string) (bool, error)
 	ActivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
 	DeactivateRole(ctx context.Context, roleID string) (*dto.RoleOutput, error)
+	ResendTemporaryPin(ctx context.Context, profileID string, channel domain.MessageChannel) (bool, error)
 }
 type QueryResolver interface {
 	DummyQuery(ctx context.Context) (*bool, error)
@@ -923,6 +925,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RegisterPushToken(childComplexity, args["token"].(string)), true
+
+	case "Mutation.resendTemporaryPIN":
+		if e.complexity.Mutation.ResendTemporaryPin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_resendTemporaryPIN_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ResendTemporaryPin(childComplexity, args["profileID"].(string), args["channel"].(domain.MessageChannel)), true
 
 	case "Mutation.retireSecondaryEmailAddresses":
 		if e.complexity.Mutation.RetireSecondaryEmailAddresses == nil {
@@ -1858,6 +1872,11 @@ enum PermissionGroup {
   Consumers
   Patients
 }
+
+enum MessageChannel {
+  WhatsApp
+  SMS
+}
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/external.graphql", Input: `# supported content types
 enum ContentType {
@@ -2127,6 +2146,8 @@ extend type Mutation {
   activateRole(roleID: ID!): RoleOutput!
 
   deactivateRole(roleID: ID!): RoleOutput!
+
+  resendTemporaryPIN(profileID: ID!, channel: MessageChannel!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "pkg/onboarding/presentation/graph/types.graphql", Input: `scalar Date
@@ -2664,6 +2685,30 @@ func (ec *executionContext) field_Mutation_registerPushToken_args(ctx context.Co
 		}
 	}
 	args["token"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_resendTemporaryPIN_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["profileID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profileID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["profileID"] = arg0
+	var arg1 domain.MessageChannel
+	if tmp, ok := rawArgs["channel"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channel"))
+		arg1, err = ec.unmarshalNMessageChannel2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMessageChannel(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["channel"] = arg1
 	return args, nil
 }
 
@@ -5974,6 +6019,48 @@ func (ec *executionContext) _Mutation_deactivateRole(ctx context.Context, field 
 	res := resTmp.(*dto.RoleOutput)
 	fc.Result = res
 	return ec.marshalNRoleOutput2ᚖgithubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋapplicationᚋdtoᚐRoleOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_resendTemporaryPIN(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_resendTemporaryPIN_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ResendTemporaryPin(rctx, args["profileID"].(string), args["channel"].(domain.MessageChannel))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NavAction_title(ctx context.Context, field graphql.CollectedField, obj *profileutils.NavAction) (ret graphql.Marshaler) {
@@ -10973,6 +11060,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "resendTemporaryPIN":
+			out.Values[i] = ec._Mutation_resendTemporaryPIN(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12212,6 +12304,16 @@ func (ec *executionContext) marshalNLoginProviderType2githubᚗcomᚋsavannahghi
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNMessageChannel2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMessageChannel(ctx context.Context, v interface{}) (domain.MessageChannel, error) {
+	var res domain.MessageChannel
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMessageChannel2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMessageChannel(ctx context.Context, sel ast.SelectionSet, v domain.MessageChannel) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNMicroservice2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐMicroservice(ctx context.Context, sel ast.SelectionSet, v domain.Microservice) graphql.Marshaler {

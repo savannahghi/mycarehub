@@ -263,3 +263,55 @@ func (e *EmploymentType) UnmarshalGQL(v interface{}) error {
 func (e EmploymentType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
+
+// MessageChannel can be SMS, Whatsapp, Email etc
+type MessageChannel string
+
+//Possible valid channels
+const (
+	WhatsAppChannel MessageChannel = "WhatsApp"
+	SMSChannel      MessageChannel = "SMS"
+)
+
+//IsValid ...
+func (c MessageChannel) IsValid() bool {
+	switch c {
+	case WhatsAppChannel, SMSChannel:
+		return true
+	}
+	return false
+}
+
+//String ...
+func (c MessageChannel) String() string {
+	return string(c)
+}
+
+//Int ...
+func (c MessageChannel) Int() int {
+	switch c {
+	case WhatsAppChannel:
+		return 1
+	case SMSChannel:
+		return 2
+	}
+	return 0
+}
+
+// UnmarshalGQL ..
+func (c *MessageChannel) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+	*c = MessageChannel(str)
+	if !c.IsValid() {
+		return fmt.Errorf("%s is not a valid channel", str)
+	}
+	return nil
+}
+
+// MarshalGQL ..
+func (c MessageChannel) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(c.String()))
+}

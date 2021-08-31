@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/profileutils"
 )
 
@@ -28,7 +29,8 @@ type FakeServiceEngagement struct {
 
 	VerifyEmailOTPFn func(ctx context.Context, email, OTP string) (bool, error)
 
-	SendSMSFn func(ctx context.Context, phoneNumbers []string, message string) error
+	SendSMSFn          func(ctx context.Context, phoneNumbers []string, message string) error
+	SendTemporaryPINFn func(ctx context.Context, payload dto.TemporaryPIN) error
 }
 
 // ResolveDefaultNudgeByTitle ...
@@ -88,4 +90,9 @@ func (f *FakeServiceEngagement) VerifyEmailOTP(ctx context.Context, email, OTP s
 // SendSMS ...
 func (f *FakeServiceEngagement) SendSMS(ctx context.Context, phoneNumbers []string, message string) error {
 	return f.SendSMSFn(ctx, phoneNumbers, message)
+}
+
+// SendTemporaryPIN ...
+func (f *FakeServiceEngagement) SendTemporaryPIN(ctx context.Context, payload dto.TemporaryPIN) error {
+	return f.SendTemporaryPINFn(ctx, payload)
 }

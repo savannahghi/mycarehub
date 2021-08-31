@@ -10,6 +10,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/exceptions"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/profileutils"
@@ -33,7 +34,8 @@ const (
 	// VerifyOTPEndPoint ISC endpoint to verify OTP
 	VerifyOTPEndPoint = "internal/verify_otp/"
 
-	sendSMS = "internal/send_sms"
+	sendSMS      = "internal/send_sms"
+	temporaryPIN = "internal/send_temporary_pin"
 )
 
 // ServiceEngagement represents engagement usecases
@@ -70,6 +72,7 @@ type ServiceEngagement interface {
 	VerifyEmailOTP(ctx context.Context, email, OTP string) (bool, error)
 
 	SendSMS(ctx context.Context, phoneNumbers []string, message string) error
+	SendTemporaryPIN(ctx context.Context, payload dto.TemporaryPIN) error
 }
 
 // ServiceEngagementImpl represents engagement usecases
@@ -347,6 +350,19 @@ func (en *ServiceEngagementImpl) SendSMS(ctx context.Context, phoneNumbers []str
 	}
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unable to send sms, with status code %v", resp.StatusCode)
+	}
+
+	return nil
+}
+
+// SendTemporaryPIN sends an already generated PIN to user
+func (en *ServiceEngagementImpl) SendTemporaryPIN(ctx context.Context, payload dto.TemporaryPIN) error {
+	resp, err := en.Engage.MakeRequest(ctx, http.MethodPost, temporaryPIN, payload)
+	if err != nil {
+		return fmt.Errorf("unable to send pin: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unable to send pin, with status code %v", resp.StatusCode)
 	}
 
 	return nil

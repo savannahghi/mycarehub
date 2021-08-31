@@ -146,3 +146,8 @@ enum PermissionGroup {
   Consumers
   Patients
 }
+
+enum MessageChannel {
+  WhatsApp
+  SMS
+}

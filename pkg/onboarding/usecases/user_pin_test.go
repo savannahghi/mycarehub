@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
@@ -892,6 +893,162 @@ func TestUserPinUseCaseImpl_SetUserTempPIN(t *testing.T) {
 			}
 			if !tt.wantErr && got == "" {
 				t.Errorf("UserPinUseCaseImpl.SetUserTempPIN() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUserPinUseCaseImpl_ResendTemporaryPIN(t *testing.T) {
+	ctx := context.Background()
+	i, err := InitializeFakeOnboardingInteractor()
+	if err != nil {
+		t.Errorf("failed to fake initialize onboarding interactor: %v",
+			err,
+		)
+		return
+	}
+
+	id := uuid.New().String()
+	phone := interserviceclient.TestUserPhoneNumber
+	fName := "Test"
+	validProfile := profileutils.UserProfile{
+		ID: id, PrimaryPhone: &phone,
+		UserBioData: profileutils.BioData{
+			FirstName: &fName,
+		},
+	}
+	type args struct {
+		ctx       context.Context
+		profileID string
+		channel   domain.MessageChannel
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "sad: unable to get user profile",
+			args: args{
+				ctx:       ctx,
+				profileID: id,
+				channel:   domain.WhatsAppChannel,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad: unable to generate temp pin",
+			args: args{
+				ctx:       ctx,
+				profileID: id,
+				channel:   domain.WhatsAppChannel,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad: unable to save pin",
+			args: args{
+				ctx:       ctx,
+				profileID: id,
+				channel:   domain.WhatsAppChannel,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad: unable to send pin",
+			args: args{
+				ctx:       ctx,
+				profileID: id,
+				channel:   domain.WhatsAppChannel,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "happy: sent temporary pin",
+			args: args{
+				ctx:       ctx,
+				profileID: id,
+				channel:   domain.WhatsAppChannel,
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad: unable to get user profile" {
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return nil, fmt.Errorf("error unable to get user profile")
+				}
+			}
+			if tt.name == "sad: unable to generate temp pin" {
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &validProfile, nil
+				}
+				fakePinExt.GenerateTempPINFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to generate pin")
+				}
+			}
+			if tt.name == "sad: unable to save pin" {
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &validProfile, nil
+				}
+				fakePinExt.GenerateTempPINFn = func(ctx context.Context) (string, error) {
+					return "1234", nil
+				}
+				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
+					return "1234", "sha"
+				}
+				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
+					return false, fmt.Errorf("unable to save pin")
+				}
+			}
+			if tt.name == "sad: unable to send pin" {
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &validProfile, nil
+				}
+				fakePinExt.GenerateTempPINFn = func(ctx context.Context) (string, error) {
+					return "1234", nil
+				}
+				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
+					return "1234", "sha"
+				}
+				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
+					return true, nil
+				}
+				fakeEngagementSvs.SendTemporaryPINFn = func(ctx context.Context, payload dto.TemporaryPIN) error {
+					return fmt.Errorf("unable to send pin")
+				}
+			}
+			if tt.name == "happy: sent temporary pin" {
+				fakeRepo.GetUserProfileByIDFn = func(ctx context.Context, id string, suspended bool) (*profileutils.UserProfile, error) {
+					return &validProfile, nil
+				}
+				fakePinExt.GenerateTempPINFn = func(ctx context.Context) (string, error) {
+					return "1234", nil
+				}
+				fakePinExt.EncryptPINFn = func(rawPwd string, options *extension.Options) (string, string) {
+					return "1234", "sha"
+				}
+				fakeRepo.SavePINFn = func(ctx context.Context, pin *domain.PIN) (bool, error) {
+					return true, nil
+				}
+				fakeEngagementSvs.SendTemporaryPINFn = func(ctx context.Context, payload dto.TemporaryPIN) error {
+					return nil
+				}
+			}
+			got, err := i.UserPIN.ResendTemporaryPIN(tt.args.ctx, tt.args.profileID, tt.args.channel)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserPinUseCaseImpl.ResendTemporaryPIN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UserPinUseCaseImpl.ResendTemporaryPIN() = %v, want %v", got, tt.want)
 			}
 		})
 	}
