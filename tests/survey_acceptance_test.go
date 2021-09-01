@@ -8,18 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/savannahghi/firebasetools"
-	"gitlab.slade360emr.com/go/apiclient"
+	"github.com/savannahghi/interserviceclient"
 )
 
 func TestGraphQLRecordPostVisitSurvey(t *testing.T) {
-	ctx := firebasetools.GetAuthenticatedContext(t)
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
-	headers, err := apiclient.GetGraphQLHeaders(ctx)
-	if err != nil {
-		t.Errorf("error in getting headers: %w", err)
-		return
-	}
 
 	graphqlMutation := `
 	mutation recordPostVisitSurvey($input:PostVisitSurveyInput!){
@@ -108,9 +101,10 @@ func TestGraphQLRecordPostVisitSurvey(t *testing.T) {
 				return
 			}
 
-			for k, v := range headers {
+			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "profile") {
 				r.Header.Add(k, v)
 			}
+
 			client := http.Client{
 				Timeout: time.Second * testHTTPClientTimeout,
 			}

@@ -67,7 +67,6 @@ type ProfileUseCase interface {
 	UpdateVerifiedUIDS(ctx context.Context, uids []string) error
 	UpdateSuspended(ctx context.Context, status bool, phoneNumber string, useContext bool) error
 	UpdatePhotoUploadID(ctx context.Context, uploadID string) error
-	UpdateCovers(ctx context.Context, covers []profileutils.Cover) error
 	UpdatePushTokens(ctx context.Context, pushToken string, retire bool) error
 	UpdatePermissions(ctx context.Context, perms []profileutils.PermissionType) error
 	AddAdminPermsToUser(ctx context.Context, phone string) error
@@ -649,33 +648,6 @@ func (p *ProfileUseCaseImpl) UpdatePhotoUploadID(ctx context.Context, uploadID s
 
 	return p.onboardingRepository.UpdatePhotoUploadID(ctx, profile.ID, uploadID)
 
-}
-
-// UpdateCovers updates primary covers of a specific user profile
-func (p *ProfileUseCaseImpl) UpdateCovers(ctx context.Context, covers []profileutils.Cover) error {
-	ctx, span := tracer.Start(ctx, "UpdateCovers")
-	defer span.End()
-
-	if len(covers) == 0 {
-		return fmt.Errorf("no covers to update found")
-	}
-
-	uid, err := p.baseExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return exceptions.UserNotFoundError(err)
-	}
-	profile, err := p.onboardingRepository.GetUserProfileByUID(ctx, uid, false)
-	if err != nil {
-		utils.RecordSpanError(span, err)
-		return err
-	}
-
-	return p.onboardingRepository.UpdateCovers(
-		ctx,
-		profile.ID,
-		utils.AddHashToCovers(covers),
-	)
 }
 
 // UpdatePushTokens updates primary push tokens of a specific user profile.

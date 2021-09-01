@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
@@ -179,16 +178,6 @@ func composeSendRetryOTPPayload(t *testing.T, phone string, retryStep int) *byte
 		Phone:     &phone,
 		RetryStep: &retryStep,
 	}
-
-	bs, err := json.Marshal(payload)
-	if err != nil {
-		t.Errorf("unable to marshal payload to JSON: %s", err)
-		return nil
-	}
-	return bytes.NewBuffer(bs)
-}
-
-func composeCoversUpdatePayload(t *testing.T, payload *dto.UpdateCoversPayload) *bytes.Buffer {
 
 	bs, err := json.Marshal(payload)
 	if err != nil {
@@ -2031,179 +2020,6 @@ func TestHandlersInterfacesImpl_LoginAnonymous(t *testing.T) {
 
 			svr := h.LoginAnonymous()
 
-			svr.ServeHTTP(response, req)
-
-			if tt.wantStatus != response.Code {
-				t.Errorf("expected status %d, got %d", tt.wantStatus, response.Code)
-				return
-			}
-
-			dataResponse, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				t.Errorf("can't read response body: %v", err)
-				return
-			}
-			if dataResponse == nil {
-				t.Errorf("nil response body data")
-				return
-			}
-		})
-	}
-}
-
-func TestHandlersInterfacesImpl_UpdateCovers(t *testing.T) {
-
-	i, err := InitializeFakeOnboardingInteractor()
-	if err != nil {
-		t.Errorf("failed to initialize onboarding interactor: %v", err)
-		return
-	}
-
-	h := rest.NewHandlersInterfaces(i)
-
-	invalidUID := " "
-	uid := "5cf354a2-1d3e-400d-8716-7e2aead29f2c"
-	payerName := "Payer Name"
-	memberName := "Member Name"
-	memberNumber := "5678"
-	payerSladeCode := 1234
-	beneficiaryID := 15689
-	effectivePolicyNumber := "14582"
-
-	validFromString := "2021-01-01T00:00:00+03:00"
-	validFrom, err := time.Parse(time.RFC3339, validFromString)
-	if err != nil {
-		t.Errorf("failed parse date string: %v", err)
-		return
-	}
-
-	validToString := "2022-01-01T00:00:00+03:00"
-	validTo, err := time.Parse(time.RFC3339, validToString)
-	if err != nil {
-		t.Errorf("failed parse date string: %v", err)
-		return
-	}
-
-	updateCoversPayloadValid := &dto.UpdateCoversPayload{
-		UID:                   &uid,
-		PayerName:             &payerName,
-		PayerSladeCode:        &payerSladeCode,
-		MemberName:            &memberName,
-		MemberNumber:          &memberNumber,
-		BeneficiaryID:         &beneficiaryID,
-		EffectivePolicyNumber: &effectivePolicyNumber,
-		ValidFrom:             &validFrom,
-		ValidTo:               &validTo,
-	}
-
-	updateCoversPayloadInValid := &dto.UpdateCoversPayload{
-		UID:                   &invalidUID,
-		PayerName:             &payerName,
-		PayerSladeCode:        &payerSladeCode,
-		MemberName:            &memberName,
-		MemberNumber:          &memberNumber,
-		BeneficiaryID:         &beneficiaryID,
-		EffectivePolicyNumber: &effectivePolicyNumber,
-		ValidFrom:             &validFrom,
-		ValidTo:               &validTo,
-	}
-
-	validPayload := composeCoversUpdatePayload(t, updateCoversPayloadValid)
-	inValidPayload := composeCoversUpdatePayload(t, updateCoversPayloadInValid)
-
-	type args struct {
-		url        string
-		httpMethod string
-		body       io.Reader
-	}
-	tests := []struct {
-		name       string
-		args       args
-		want       http.HandlerFunc
-		wantStatus int
-		wantErr    bool
-	}{
-		{
-			name: "valid:_Successfully_update_covers",
-			args: args{
-				url:        fmt.Sprintf("%s/update_covers", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       validPayload,
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    false,
-		},
-
-		{
-			name: "invalid:_update_covers_fails",
-			args: args{
-				url:        fmt.Sprintf("%s/update_covers", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       validPayload,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-		{
-			name: "invalid:_get_user_profile_by_UID_fails",
-			args: args{
-				url:        fmt.Sprintf("%s/update_covers", serverUrl),
-				httpMethod: http.MethodPost,
-				body:       inValidPayload,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantErr:    true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req, err := http.NewRequest(tt.args.httpMethod, tt.args.url, tt.args.body)
-			if err != nil {
-				t.Errorf("can't create new request: %v", err)
-				return
-			}
-
-			response := httptest.NewRecorder()
-
-			if tt.name == "valid:_Successfully_update_covers" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "8716-7e2aead29f2c", nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID: "f4f39af7",
-					}, nil
-				}
-
-				fakeRepo.UpdateCoversFn = func(ctx context.Context, id string, covers []profileutils.Cover) error {
-					return nil
-				}
-			}
-
-			if tt.name == "invalid:_get_user_profile_by_UID_fails" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("failed to get logged in user UID")
-				}
-			}
-
-			if tt.name == "invalid:_update_covers_fails" {
-				fakeBaseExt.GetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "5cf354a2-1d3e-400d-8716-7e2aead29f2c", nil
-				}
-
-				fakeRepo.GetUserProfileByUIDFn = func(ctx context.Context, uid string, suspended bool) (*profileutils.UserProfile, error) {
-					return &profileutils.UserProfile{
-						ID: "f4f39af7",
-					}, nil
-				}
-
-				fakeRepo.UpdateCoversFn = func(ctx context.Context, id string, covers []profileutils.Cover) error {
-					return fmt.Errorf("unable to update covers")
-				}
-			}
-
-			svr := h.UpdateCovers()
 			svr.ServeHTTP(response, req)
 
 			if tt.wantStatus != response.Code {

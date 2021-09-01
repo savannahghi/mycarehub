@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"gitlab.slade360emr.com/go/apiclient"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 
 	"cloud.google.com/go/pubsub"
@@ -237,7 +236,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Authenticated routes
 	rs := r.PathPrefix("/roles").Subrouter()
-	rs.Use(apiclient.AuthenticationMiddleware(firebaseApp))
+	rs.Use(firebasetools.AuthenticationMiddleware(firebaseApp))
 	rs.Path("/create_role").Methods(
 		http.MethodPost,
 		http.MethodOptions).
@@ -272,10 +271,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 		http.MethodOptions).
 		HandlerFunc(h.GetUserProfileByPhoneOrEmail())
-	isc.Path("/update_covers").Methods(
-		http.MethodPost,
-		http.MethodOptions).
-		HandlerFunc(h.UpdateCovers())
 	isc.Path("/contactdetails/{attribute}/").Methods(
 		http.MethodPost,
 		http.MethodOptions).
@@ -343,7 +338,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Authenticated routes
 	authR := r.Path("/graphql").Subrouter()
-	authR.Use(apiclient.AuthenticationMiddleware(firebaseApp))
+	authR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))
 	authR.Methods(
 		http.MethodPost,
 		http.MethodGet,
