@@ -14,7 +14,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
-	"gitlab.slade360emr.com/go/apiclient"
 )
 
 func TestSignUpUseCasesImpl_RetirePushToken(t *testing.T) {
@@ -1058,13 +1057,6 @@ func TestSignUpUseCasesImpl_CompleteSignup(t *testing.T) {
 							FirstName: &userFirstName,
 							LastName:  &userLastName,
 						},
-					}, nil
-				}
-
-				fakeBaseExt.FetchDefaultCurrencyFn = func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error) {
-					id := uuid.New().String()
-					return &apiclient.FinancialYearAndCurrency{
-						ID: &id,
 					}, nil
 				}
 
