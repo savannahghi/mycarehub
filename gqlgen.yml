@@ -46,7 +46,6 @@ autobind:
   - "github.com/savannahghi/converterandformatter"
   - "github.com/savannahghi/profileutils"
   - "github.com/savannahghi/pubsubtools"
-  - "gitlab.slade360emr.com/go/apiclient"
 
 # This section declares type mapping between the GraphQL and go type systems
 #

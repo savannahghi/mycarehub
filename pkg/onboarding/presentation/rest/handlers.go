@@ -15,7 +15,6 @@ import (
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
-	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/serverutils"
 )
 
@@ -35,7 +34,6 @@ type HandlersInterfaces interface {
 	RemoveUserByPhoneNumber() http.HandlerFunc
 	GetUserProfileByUID() http.HandlerFunc
 	GetUserProfileByPhoneOrEmail() http.HandlerFunc
-	UpdateCovers() http.HandlerFunc
 	ProfileAttributes() http.HandlerFunc
 	RegisterPushToken() http.HandlerFunc
 	AddAdminPermsToUser() http.HandlerFunc
@@ -661,75 +659,6 @@ func (h *HandlersInterfacesImpl) RegisterPushToken() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, profile, http.StatusOK)
-	}
-}
-
-// UpdateCovers is an unauthenticated ISC endpoint that updates the cover of
-// a given user given their UID and cover details
-func (h *HandlersInterfacesImpl) UpdateCovers() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		p := &dto.UpdateCoversPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, p)
-		if p.UID == nil {
-			err := fmt.Errorf("expected `UID` to be defined")
-			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		if p.BeneficiaryID == nil {
-			err := fmt.Errorf("expected `BeneficiaryID` to be defined")
-			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		if p.EffectivePolicyNumber == nil {
-			err := fmt.Errorf("expected `EffectivePolicyNumber` to be defined")
-			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		if p.ValidFrom == nil {
-			err := fmt.Errorf("expected `ValidFrom` to be defined")
-			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		if p.ValidTo == nil {
-			err := fmt.Errorf("expected `ValidTo` to be defined")
-			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		auth := &auth.Token{UID: *p.UID}
-		ctx = context.WithValue(ctx, firebasetools.AuthTokenContextKey, auth)
-		cover := profileutils.Cover{
-			PayerName:             *p.PayerName,
-			MemberNumber:          *p.MemberNumber,
-			MemberName:            *p.MemberName,
-			PayerSladeCode:        *p.PayerSladeCode,
-			BeneficiaryID:         *p.BeneficiaryID,
-			EffectivePolicyNumber: *p.EffectivePolicyNumber,
-			ValidFrom:             *p.ValidFrom,
-			ValidTo:               *p.ValidTo,
-		}
-		var covers []profileutils.Cover
-		covers = append(covers, cover)
-
-		err := h.interactor.Onboarding.UpdateCovers(ctx, covers)
-		if err != nil {
-			errorcodeutil.ReportErr(w, err, http.StatusBadRequest)
-			return
-		}
-
-		serverutils.WriteJSONResponse(
-			w,
-			dto.OKResp{
-				Status: "Covers successfully updated",
-			},
-			http.StatusOK,
-		)
 	}
 }
 

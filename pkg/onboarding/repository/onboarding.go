@@ -173,7 +173,6 @@ type UserProfileRepository interface {
 	UpdateVerifiedUIDS(ctx context.Context, id string, uids []string) error
 	UpdateSuspended(ctx context.Context, id string, status bool) error
 	UpdatePhotoUploadID(ctx context.Context, id string, uploadID string) error
-	UpdateCovers(ctx context.Context, id string, covers []profileutils.Cover) error
 	UpdatePushTokens(ctx context.Context, id string, pushToken []string) error
 	UpdatePermissions(ctx context.Context, id string, perms []profileutils.PermissionType) error
 	UpdateRole(ctx context.Context, id string, role profileutils.RoleType) error

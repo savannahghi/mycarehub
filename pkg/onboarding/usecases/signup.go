@@ -16,11 +16,6 @@ import (
 	"github.com/savannahghi/scalarutils"
 )
 
-const (
-	// CoverLinkingStatusStarted ...
-	CoverLinkingStatusStarted = "coverlinking started"
-)
-
 // SignUpUseCases represents all the business logic involved in setting up a user
 type SignUpUseCases interface {
 	// VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
