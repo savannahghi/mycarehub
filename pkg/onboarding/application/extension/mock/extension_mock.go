@@ -8,7 +8,6 @@ import (
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/pubsubtools"
-	"gitlab.slade360emr.com/go/apiclient"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
@@ -16,27 +15,13 @@ import (
 
 // FakeBaseExtensionImpl is a `base` library fake  .
 type FakeBaseExtensionImpl struct {
-	GetLoggedInUserFn      func(ctx context.Context) (*dto.UserInfo, error)
-	GetLoggedInUserUIDFn   func(ctx context.Context) (string, error)
-	NormalizeMSISDNFn      func(msisdn string) (*string, error)
-	FetchDefaultCurrencyFn func(c apiclient.Client) (*apiclient.FinancialYearAndCurrency, error)
-	FetchUserProfileFn     func(authClient apiclient.Client) (*profileutils.EDIUserProfile, error)
-	LoginClientFn          func(username string, password string) (apiclient.Client, error)
-	LoadDepsFromYAMLFn     func() (*interserviceclient.DepsConfig, error)
-	SetupISCclientFn       func(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error)
-	GetEnvVarFn            func(envName string) (string, error)
-	NewServerClientFn      func(
-		clientID string,
-		clientSecret string,
-		apiTokenURL string,
-		apiHost string,
-		apiScheme string,
-		grantType string,
-		username string,
-		password string,
-		extraHeaders map[string]string,
-	) (*apiclient.ServerClient, error)
-	EnsureTopicsExistFn func(
+	GetLoggedInUserFn    func(ctx context.Context) (*dto.UserInfo, error)
+	GetLoggedInUserUIDFn func(ctx context.Context) (string, error)
+	NormalizeMSISDNFn    func(msisdn string) (*string, error)
+	LoadDepsFromYAMLFn   func() (*interserviceclient.DepsConfig, error)
+	SetupISCclientFn     func(config interserviceclient.DepsConfig, serviceName string) (*interserviceclient.InterServiceClient, error)
+	GetEnvVarFn          func(envName string) (string, error)
+	EnsureTopicsExistFn  func(
 		ctx context.Context,
 		pubsubClient *pubsub.Client,
 		topicIDs []string,
@@ -95,22 +80,6 @@ func (b *FakeBaseExtensionImpl) NormalizeMSISDN(msisdn string) (*string, error) 
 	return b.NormalizeMSISDNFn(msisdn)
 }
 
-// FetchDefaultCurrency ...
-func (b *FakeBaseExtensionImpl) FetchDefaultCurrency(c apiclient.Client,
-) (*apiclient.FinancialYearAndCurrency, error) {
-	return b.FetchDefaultCurrencyFn(c)
-}
-
-// FetchUserProfile ...
-func (b *FakeBaseExtensionImpl) FetchUserProfile(authClient apiclient.Client) (*profileutils.EDIUserProfile, error) {
-	return b.FetchUserProfileFn(authClient)
-}
-
-// LoginClient returns a logged in client with the supplied username and password
-func (b *FakeBaseExtensionImpl) LoginClient(username, password string) (apiclient.Client, error) {
-	return b.LoginClientFn(username, password)
-}
-
 // LoadDepsFromYAML ...
 func (b *FakeBaseExtensionImpl) LoadDepsFromYAML() (*interserviceclient.DepsConfig, error) {
 	return b.LoadDepsFromYAMLFn()
@@ -124,21 +93,6 @@ func (b *FakeBaseExtensionImpl) SetupISCclient(config interserviceclient.DepsCon
 // GetEnvVar ...
 func (b *FakeBaseExtensionImpl) GetEnvVar(envName string) (string, error) {
 	return b.GetEnvVarFn(envName)
-}
-
-// NewServerClient ...
-func (b *FakeBaseExtensionImpl) NewServerClient(
-	clientID string,
-	clientSecret string,
-	apiTokenURL string,
-	apiHost string,
-	apiScheme string,
-	grantType string,
-	username string,
-	password string,
-	extraHeaders map[string]string,
-) (*apiclient.ServerClient, error) {
-	return b.NewServerClientFn(clientID, clientSecret, apiTokenURL, apiHost, apiScheme, grantType, username, password, extraHeaders)
 }
 
 // EnsureTopicsExist ...
