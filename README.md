@@ -1,7 +1,7 @@
 # Onboarding service
 
 ![Linting and Tests](https://github.com/savannahghi/onboarding-service/actions/workflows/ci.yml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/savannahghi/onboarding-service/badge.svg?branch=main)](https://coveralls.io/github/savannahghi/onboarding?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/savannahghi/onboarding-service/badge.svg?branch=main)](https://coveralls.io/github/savannahghi/onboarding-service?branch=main)
 
 This service manages user onboarding process.
 

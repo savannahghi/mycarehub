@@ -5,17 +5,11 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/savannahghi/firebasetools"
-	"github.com/savannahghi/onboarding/pkg/onboarding/domain"
-	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/graph/generated"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
 	"github.com/savannahghi/profileutils"
 )
-
-func (r *entityResolver) FindMicroserviceByID(ctx context.Context, id string) (*domain.Microservice, error) {
-	panic(fmt.Errorf("not implemented"))
-}
 
 func (r *entityResolver) FindPageInfoByHasNextPage(ctx context.Context, hasNextPage bool) (*firebasetools.PageInfo, error) {
 	return nil, nil
@@ -24,7 +18,7 @@ func (r *entityResolver) FindPageInfoByHasNextPage(ctx context.Context, hasNextP
 func (r *entityResolver) FindUserProfileByID(ctx context.Context, id string) (*profileutils.UserProfile, error) {
 	r.checkPreconditions()
 	r.CheckUserTokenInContext(ctx)
-	return r.interactor.Onboarding.GetProfileByID(ctx, &id)
+	return r.interactor.OpenSourceUsecases.GetProfileByID(ctx, &id)
 }
 
 // Entity returns generated.EntityResolver implementation.

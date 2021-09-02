@@ -76,3 +76,11 @@ models:
   Permission:
     model:
       - github.com/savannahghi/profileutils.Permission
+  UserProfile:
+    fields:
+      roleDetails:
+        resolver: true
+  VerifiedIdentifier:
+    fields:
+      timestamp:
+        resolver: true

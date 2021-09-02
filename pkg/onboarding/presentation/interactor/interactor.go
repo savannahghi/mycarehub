@@ -3,48 +3,22 @@
 package interactor
 
 import (
-	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/engagement"
-
-	pubsubmessaging "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/services/pubsub"
-	"github.com/savannahghi/onboarding/pkg/onboarding/usecases"
-	"github.com/savannahghi/onboarding/pkg/onboarding/usecases/admin"
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
+	sharelib "github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 )
 
-// Interactor represents an assemble of all use cases into a single object that can be instantiated anywhere
 type Interactor struct {
-	Onboarding usecases.ProfileUseCase
-	Signup     usecases.SignUpUseCases
-	Login      usecases.LoginUseCases
-	Survey     usecases.SurveyUseCases
-	UserPIN    usecases.UserPINUseCases
-	Engagement engagement.ServiceEngagement
-	PubSub     pubsubmessaging.ServicePubSub
-	AdminSrv   admin.Usecase
-	Role       usecases.RoleUseCase
+	OpenSourceInfra    infrastructure.Infrastructure
+	OpenSourceUsecases sharelib.Interactor
 }
 
-// NewOnboardingInteractor returns a new onboarding interactor
+// NewEngagementInteractor returns a new engagement interactor
 func NewOnboardingInteractor(
-	profile usecases.ProfileUseCase,
-	su usecases.SignUpUseCases,
-	login usecases.LoginUseCases,
-	survey usecases.SurveyUseCases,
-	userpin usecases.UserPINUseCases,
-	engage engagement.ServiceEngagement,
-	pubsub pubsubmessaging.ServicePubSub,
-	admin admin.Usecase,
-	role usecases.RoleUseCase,
+	openSourceInfra infrastructure.Infrastructure,
+	openSourceUsecases sharelib.Interactor,
 ) (*Interactor, error) {
-
 	return &Interactor{
-		Onboarding: profile,
-		Signup:     su,
-		Login:      login,
-		Survey:     survey,
-		UserPIN:    userpin,
-		Engagement: engage,
-		PubSub:     pubsub,
-		AdminSrv:   admin,
-		Role:       role,
+		OpenSourceInfra:    openSourceInfra,
+		OpenSourceUsecases: openSourceUsecases,
 	}, nil
 }
