@@ -14,15 +14,8 @@ CMD go mod download
 # Now copy the rest.
 COPY . /app/
 
-# Set up the credentials needed to fetch private code
-ARG ACCESS_TOKEN
-RUN git config --global url."https://${user}:${ACCESS_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
-
-# Retrieve application dependencies.
-RUN GOPRIVATE="gitlab.slade360emr.com/go/*" go mod download
-
 # Build the binary.
-RUN cd /app/ && CGO_ENABLED=0 GOOS=linux GOPRIVATE="gitlab.slade360emr.com/go/*" go build -v -o server github.com/savannahghi/onboarding
+RUN cd /app/ && CGO_ENABLED=0 GOOS=linux go build -v -o server github.com/savannahghi/onboarding
 
 # Use the official Alpine image for a lean production container.
 # https://hub.docker.com/_/alpine

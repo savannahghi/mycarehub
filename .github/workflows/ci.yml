@@ -11,41 +11,8 @@ env:
   FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
   ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
   ROOT_COLLECTION_SUFFIX: ${{ secrets.ROOT_COLLECTION_SUFFIX }}
-  ERP_HOST: ${{ secrets.ERP_HOST }}
-  ERP_TOKEN_URL: ${{ secrets.ERP_TOKEN_URL }}
-  ERP_CLIENT_ID: ${{ secrets.ERP_CLIENT_ID }}
-  ERP_CLIENT_SECRET: ${{ secrets.ERP_CLIENT_SECRET }}
-  ERP_GRANT_TYPE: ${{ secrets.ERP_GRANT_TYPE }}
-  ERP_API_SCHEME: ${{ secrets.ERP_API_SCHEME }}
-  ERP_USERNAME: ${{ secrets.ERP_USERNAME }}
-  ERP_PASSWORD: ${{ secrets.ERP_PASSWORD }}
-  ERP_DEFAULT_WORKSTATION_ID: ${{ secrets.ERP_DEFAULT_WORKSTATION_ID }}
-  HUBSPOT_API_KEY: ${{ secrets.HUBSPOT_API_KEY }}
-  HUBSPOT_API_URL: ${{ secrets.HUBSPOT_API_URL }}
   PORT: ${{ secrets.PORT }}
-  HOST: ${{ secrets.HOST }}
-  TOKEN_URL: ${{ secrets.TOKEN_URL }}
-  AUTH_SERVER_DOMAIN: ${{ secrets.AUTH_SERVER_DOMAIN }}
-  API_SCHEME: ${{ secrets.API_SCHEME }}
-  CLIENT_ID: ${{ secrets.CLIENT_ID }}
-  CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-  PASSWORD: ${{ secrets.PASSWORD }}
-  USERNAME: ${{ secrets.USERNAME }}
-  GRANT_TYPE: ${{ secrets.GRANT_TYPE }}
   REPOSITORY: ${{ secrets.REPOSITORY }}
-  MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
-  MAILGUN_DOMAIN: ${{ secrets.MAILGUN_DOMAIN }}
-  MAILGUN_FROM: ${{ secrets.MAILGUN_FROM }}
-  SEND_IN_BLUE_API_KEY: ${{ secrets.SEND_IN_BLUE_API_KEY }}
-  SEND_IN_BLUE_ENABLED: ${{ secrets.SEND_IN_BLUE_ENABLED }}
-  CHARGE_MASTER_API_HOST: ${{ secrets.CHARGE_MASTER_API_HOST }}
-  CHARGE_MASTER_API_SCHEME: ${{ secrets.CHARGE_MASTER_API_SCHEME }}
-  CHARGE_MASTER_TOKEN_URL: ${{ secrets.CHARGE_MASTER_TOKEN_URL }}
-  CHARGE_MASTER_CLIENT_ID: ${{ secrets.CHARGE_MASTER_CLIENT_ID }}
-  CHARGE_MASTER_CLIENT_SECRET: ${{ secrets.CHARGE_MASTER_CLIENT_SECRET }}
-  CHARGE_MASTER_USERNAME: ${{ secrets.CHARGE_MASTER_USERNAME }}
-  CHARGE_MASTER_PASSWORD: ${{ secrets.CHARGE_MASTER_PASSWORD }}
-  CHARGE_MASTER_GRANT_TYPE: ${{ secrets.CHARGE_MASTER_GRANT_TYPE }}
   SERVICE_HOST: ${{ secrets.SERVICE_HOST }}
   GOOGLE_PROJECT_NUMBER: ${{ secrets.GOOGLE_PROJECT_NUMBER }}
   JWT_KEY: ${{ secrets.JWT_KEY }}
@@ -69,7 +36,6 @@ jobs:
     timeout-minutes: 80
     steps:
       - uses: actions/checkout@v2
-      - run: git config --global url."https://${user}:${ACCESS_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
       - uses: google-github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}

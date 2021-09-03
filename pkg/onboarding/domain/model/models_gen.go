@@ -20,14 +20,6 @@ type Beneficiary struct {
 	DateOfBirth  scalarutils.Date               `json:"dateOfBirth"`
 }
 
-type BeneficiaryInput struct {
-	Name         string                         `json:"name"`
-	Msisdns      []string                       `json:"msisdns"`
-	Emails       []string                       `json:"emails"`
-	Relationship domain.BeneficiaryRelationship `json:"relationship"`
-	DateOfBirth  scalarutils.Date               `json:"dateOfBirth"`
-}
-
 type Identification struct {
 	IdentificationDocType           enumutils.IdentificationDocType `json:"identificationDocType"`
 	IdentificationDocNumber         string                          `json:"identificationDocNumber"`
@@ -44,12 +36,6 @@ type IndividualPractitioner struct {
 	PracticeLicenseUploadID string                       `json:"practiceLicenseUploadID"`
 	PracticeServices        []domain.PractitionerService `json:"practiceServices"`
 	Cadre                   domain.PractitionerCadre     `json:"cadre"`
-}
-
-type LocationInput struct {
-	ID              string  `json:"id"`
-	Name            string  `json:"name"`
-	BranchSladeCode *string `json:"branchSladeCode"`
 }
 
 type SupportingDocument struct {

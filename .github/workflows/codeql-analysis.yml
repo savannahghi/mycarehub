@@ -25,7 +25,6 @@ jobs:
       matrix:
         language: ["go"]
     steps:
-      - run: git config --global url."https://${user}:${ACCESS_TOKEN}@gitlab.slade360emr.com".insteadOf "https://gitlab.slade360emr.com"
       - name: Checkout repository
         uses: actions/checkout@v2
 

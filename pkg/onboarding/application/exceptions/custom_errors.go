@@ -313,14 +313,6 @@ func SecondaryResourceHardResetError() error {
 	}
 }
 
-// InvalidSladeCodeError when the slade code the edi user profile doesn't match with selected provider
-func InvalidSladeCodeError() error {
-	return &errorcodeutil.CustomError{
-		Message: InvalidSladeCodeErrMsg,
-		Code:    int(errorcodeutil.InvalidSladeCode),
-	}
-}
-
 // ResolveNudgeErr is the error that represents the failure of not
 // being able to resolve a given nudge
 func ResolveNudgeErr(

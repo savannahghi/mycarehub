@@ -14,20 +14,6 @@ input PostVisitSurveyInput {
   suggestions: String!
 }
 
-input BeneficiaryInput {
-  name: String!
-  msisdns: [String!]
-  emails: [String!]
-  relationship: BeneficiaryRelationship!
-  dateOfBirth: Date!
-}
-
-input LocationInput {
-  id: ID!
-  name: String!
-  branchSladeCode: String
-}
-
 input UserAddressInput {
   latitude: Float!
   longitude: Float!

@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -8,11 +9,64 @@ import (
 	"testing"
 	"time"
 
-	"github.com/savannahghi/interserviceclient"
+	"github.com/imroc/req"
+	"github.com/savannahghi/firebasetools"
 )
 
+// TODO: Move this to firebasetools library
+// GetGraphQLHeaders gets relevant GraphQLHeaders
+func GetGraphQLHeaders(ctx context.Context) (map[string]string, error) {
+	authorization, err := GetBearerTokenHeader(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("can't Generate Bearer Token: %s", err)
+	}
+	return req.Header{
+		"Accept":        "application/json",
+		"Content-Type":  "application/json",
+		"Authorization": authorization,
+	}, nil
+}
+
+// GetBearerTokenHeader gets bearer Token Header
+func GetBearerTokenHeader(ctx context.Context) (string, error) {
+	TestUserEmail := "test@bewell.co.ke"
+	user, err := firebasetools.GetOrCreateFirebaseUser(ctx, TestUserEmail)
+	if err != nil {
+		return "", fmt.Errorf("can't get or create firebase user: %s", err)
+	}
+
+	if user == nil {
+		return "", fmt.Errorf("nil firebase user")
+	}
+
+	customToken, err := firebasetools.CreateFirebaseCustomToken(ctx, user.UID)
+	if err != nil {
+		return "", fmt.Errorf("can't create custom token: %s", err)
+	}
+
+	if customToken == "" {
+		return "", fmt.Errorf("blank custom token: %s", err)
+	}
+
+	idTokens, err := firebasetools.AuthenticateCustomFirebaseToken(customToken)
+	if err != nil {
+		return "", fmt.Errorf("can't authenticate custom token: %s", err)
+	}
+	if idTokens == nil {
+		return "", fmt.Errorf("nil idTokens")
+	}
+
+	return fmt.Sprintf("Bearer %s", idTokens.IDToken), nil
+}
+
 func TestGraphQLRecordPostVisitSurvey(t *testing.T) {
+	ctx := firebasetools.GetAuthenticatedContext(t)
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+	headers, err := GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("error in getting headers: %w", err)
+		return
+	}
 
 	graphqlMutation := `
 	mutation recordPostVisitSurvey($input:PostVisitSurveyInput!){
@@ -101,10 +155,9 @@ func TestGraphQLRecordPostVisitSurvey(t *testing.T) {
 				return
 			}
 
-			for k, v := range interserviceclient.GetDefaultHeaders(t, baseURL, "profile") {
+			for k, v := range headers {
 				r.Header.Add(k, v)
 			}
-
 			client := http.Client{
 				Timeout: time.Second * testHTTPClientTimeout,
 			}

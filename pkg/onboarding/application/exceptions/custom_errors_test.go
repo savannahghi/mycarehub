@@ -72,8 +72,6 @@ func TestCustomErrors(t *testing.T) {
 	assert.NotNil(t, err)
 	err = exceptions.SecondaryResourceHardResetError()
 	assert.NotNil(t, err)
-	err = exceptions.InvalidSladeCodeError()
-	assert.NotNil(t, err)
 
 	statusCode1 := 1
 	err = exceptions.ResolveNudgeErr(fmt.Errorf("error"), feedlib.FlavourConsumer, "name1", &statusCode1)
