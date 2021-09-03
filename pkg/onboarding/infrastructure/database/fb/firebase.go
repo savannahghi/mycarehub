@@ -31,7 +31,7 @@ import (
 
 // Package that generates trace information
 var tracer = otel.Tracer(
-	"gitlab.slade360emr.com/go/profile/pkg/onboarding/infrastructure/database/fb",
+	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database/fb",
 )
 
 const (

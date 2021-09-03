@@ -2008,20 +2008,6 @@ input PostVisitSurveyInput {
   suggestions: String!
 }
 
-input BeneficiaryInput {
-  name: String!
-  msisdns: [String!]
-  emails: [String!]
-  relationship: BeneficiaryRelationship!
-  dateOfBirth: Date!
-}
-
-input LocationInput {
-  id: ID!
-  name: String!
-  branchSladeCode: String
-}
-
 input UserAddressInput {
   latitude: Float!
   longitude: Float!
@@ -9865,58 +9851,6 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputBeneficiaryInput(ctx context.Context, obj interface{}) (model.BeneficiaryInput, error) {
-	var it model.BeneficiaryInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "name":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "msisdns":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("msisdns"))
-			it.Msisdns, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "emails":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
-			it.Emails, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "relationship":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("relationship"))
-			it.Relationship, err = ec.unmarshalNBeneficiaryRelationship2githubᚗcomᚋsavannahghiᚋonboardingᚋpkgᚋonboardingᚋdomainᚐBeneficiaryRelationship(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "dateOfBirth":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateOfBirth"))
-			it.DateOfBirth, err = ec.unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputFilterInput(ctx context.Context, obj interface{}) (firebasetools.FilterInput, error) {
 	var it firebasetools.FilterInput
 	var asMap = obj.(map[string]interface{})
@@ -9980,42 +9914,6 @@ func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fieldValue"))
 			it.FieldValue, err = ec.unmarshalNAny2interface(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj interface{}) (model.LocationInput, error) {
-	var it model.LocationInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "name":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "branchSladeCode":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("branchSladeCode"))
-			it.BranchSladeCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

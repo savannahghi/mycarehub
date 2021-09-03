@@ -103,7 +103,6 @@ type FakeOnboardingRepository struct {
 	UpdateUserRoleIDsFn             func(ctx context.Context, id string, roleIDs []string) error
 	UpdateSuspendedFn               func(ctx context.Context, id string, status bool) error
 	UpdatePhotoUploadIDFn           func(ctx context.Context, id string, uploadID string) error
-	UpdateCoversFn                  func(ctx context.Context, id string, covers []profileutils.Cover) error
 	UpdatePushTokensFn              func(ctx context.Context, id string, pushToken []string) error
 	UpdatePermissionsFn             func(ctx context.Context, id string, perms []profileutils.PermissionType) error
 	UpdateRoleFn                    func(ctx context.Context, id string, role profileutils.RoleType) error
@@ -352,15 +351,6 @@ func (f *FakeOnboardingRepository) UpdatePhotoUploadID(
 	uploadID string,
 ) error {
 	return f.UpdatePhotoUploadIDFn(ctx, id, uploadID)
-}
-
-// UpdateCovers ...
-func (f *FakeOnboardingRepository) UpdateCovers(
-	ctx context.Context,
-	id string,
-	covers []profileutils.Cover,
-) error {
-	return f.UpdateCoversFn(ctx, id, covers)
 }
 
 // UpdatePushTokens ...
