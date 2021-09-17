@@ -50,49 +50,6 @@ type UserProfile @key(fields: "id") {
   roleDetails: [RoleOutput]
 }
 
-type Beneficiary {
-  name: String!
-  msisdns: [String!]
-  emails: [String!]
-  relationship: BeneficiaryRelationship!
-  dateOfBirth: Date!
-}
-
-type Location {
-  id: ID!
-  name: String!
-  branchSladeCode: String
-}
-
-type Identification {
-  identificationDocType: IdentificationDocType!
-  identificationDocNumber: String!
-  identificationDocNumberUploadID: String!
-}
-
-# used to add more documents when
-type SupportingDocument {
-  supportingDocumentTitle: String!
-  supportingDocumentDescription: String!
-  supportingDocumentUpload: String!
-}
-
-type IndividualPractitioner {
-  # common for individual account types
-  identificationDoc: Identification!
-
-  # common for all
-  KRAPIN: String!
-  KRAPINUploadID: String!
-  supportingDocuments: [SupportingDocument]
-
-  # unique to practitioner
-  registrationNumber: String!
-  practiceLicenseID: String!
-  practiceLicenseUploadID: String!
-  practiceServices: [PractitionerService!]!
-  cadre: PractitionerCadre!
-}
 
 type Address {
   latitude: String!
@@ -149,7 +106,7 @@ type NavigationActions {
   secondary: [NavAction]
 }
 
-type Microservice @key(fields: "id") {
+type Microservice {
   id: String!
   name: String!
   url: String!

@@ -16,8 +16,6 @@ env:
   SERVICE_HOST: ${{ secrets.SERVICE_HOST }}
   GOOGLE_PROJECT_NUMBER: ${{ secrets.GOOGLE_PROJECT_NUMBER }}
   JWT_KEY: ${{ secrets.JWT_KEY }}
-  SAVANNAH_ADMIN_EMAIL: ${{ secrets.SAVANNAH_ADMIN_EMAIL }}
-
   # Schema Registry CLI command version
   CLI_VERSION: v0.0.1
   #Schema Registry URL

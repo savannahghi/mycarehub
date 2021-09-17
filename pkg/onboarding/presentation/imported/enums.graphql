@@ -1,9 +1,3 @@
-enum PractitionerCadre {
-  DOCTOR
-  CLINICAL_OFFICER
-  NURSE
-}
-
 enum FivePointRating {
   POOR
   UNSATISFACTORY
@@ -25,31 +19,6 @@ enum SignUpMethod {
   facebook
   google
   phone
-}
-
-enum PractitionerService {
-  OUTPATIENT_SERVICES
-  INPATIENT_SERVICES
-  PHARMACY
-  MATERNITY
-  LAB_SERVICES
-  OTHER
-}
-
-enum BeneficiaryRelationship {
-  SPOUSE
-  CHILD
-}
-
-enum AccountType {
-  INDIVIDUAL
-  ORGANISATION
-}
-
-enum IdentificationDocType {
-  NATIONALID
-  PASSPORT
-  MILITARY
 }
 
 enum Flavour {
@@ -80,26 +49,6 @@ enum AddressType {
   WORK
 }
 
-enum EmploymentType {
-  EMPLOYED
-  SELF_EMPLOYED
-}
-
-enum Persona {
-  ALICE
-  JUMA
-  BOB
-  ANDREW
-}
-
-enum Payor {
-  APA
-  JUBILEE
-  RESOLUTION
-  BRITAM
-  MINET
-  MADISON
-}
 
 enum ChannelOfContact {
   APP
@@ -145,9 +94,4 @@ enum PermissionGroup {
   Partners
   Consumers
   Patients
-}
-
-enum MessageChannel {
-  WhatsApp
-  SMS
 }

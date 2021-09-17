@@ -5,12 +5,12 @@ import (
 	"log"
 
 	"github.com/savannahghi/firebasetools"
-	"github.com/savannahghi/onboarding/pkg/onboarding/presentation/interactor"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/interactor"
 
 	"firebase.google.com/go/auth"
 )
 
-//go:generate go run github.com/99designs/gqlgen
+//go:generate go run github.com/savannahghi/onboarding-service/cmd/generator
 
 // This file will not be regenerated automatically.
 //
@@ -21,13 +21,10 @@ type Resolver struct {
 	interactor *interactor.Interactor
 }
 
-//go:generate go run github.com/99designs/gqlgen
-
 // NewResolver sets up the dependencies needed for query and mutation resolvers to work
 func NewResolver(
 	ctx context.Context,
 	interactor *interactor.Interactor,
-
 ) (*Resolver, error) {
 	return &Resolver{
 		interactor: interactor,
@@ -35,13 +32,10 @@ func NewResolver(
 }
 
 func (r Resolver) checkPreconditions() {
-	if r.interactor.Onboarding == nil {
+	if r.interactor == nil {
 		log.Panicf("expected onboarding usecases to be defined resolver")
 	}
 
-	if r.interactor.Signup == nil {
-		log.Panicf("expected signup usecases to be define in resolver ")
-	}
 }
 
 // CheckUserTokenInContext ensures that the context has a valid Firebase auth token

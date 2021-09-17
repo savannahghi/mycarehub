@@ -15,7 +15,7 @@ CMD go mod download
 COPY . /app/
 
 # Build the binary.
-RUN cd /app/ && CGO_ENABLED=0 GOOS=linux go build -v -o server github.com/savannahghi/onboarding
+RUN cd /app/ && CGO_ENABLED=0 GOOS=linux go build -v -o server github.com/savannahghi/onboarding-service
 
 # Use the official Alpine image for a lean production container.
 # https://hub.docker.com/_/alpine
