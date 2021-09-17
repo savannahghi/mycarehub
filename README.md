@@ -97,8 +97,8 @@ export REPOSITORY="firebase" # when we switch to PG the value will be `postgres`
 
 ```
 
-Deployment
-----------
+Deployment and Release Process
+------------------------------
 
-This application is deployed via Google Cloud Build ( <https://cloud.google.com/build> ) to Google Cloud Run ( <https://cloud.google.com/run> ).
-There's a `cloudbuild.yaml` file in the home folder. Secrets (e.g production settings) are managed with Google Secret Manager ( <https://cloud.google.com/secret-manager> ).
+This application is deployed via CI using Github Actions ( <https://docs.github.com/en/actions> ) to Google Cloud Run ( <https://cloud.google.com/run> ).
+There's a `deployment.yaml` file in the .github/workflows folder. Secrets (e.g production settings) are managed with Github Actions Encrypted Secrets ( <https://docs.github.com/en/actions/reference/encrypted-secrets> ) via environment settings (e.g test).
