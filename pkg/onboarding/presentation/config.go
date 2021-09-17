@@ -18,6 +18,7 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/interactor"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	osinfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
 	openSourcePresentation "github.com/savannahghi/onboarding/pkg/onboarding/presentation"
@@ -65,11 +66,13 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	infrastructure := osinfra.NewInfrastructureInteractor()
 
 	openSourceUsecases := osusecases.NewUsecasesInteractor(infrastructure, baseExt, pinExt)
+	var signupUsecase usecases.UseCaseSignUp
 
 	// Initialize the interactor
 	i, err := interactor.NewOnboardingInteractor(
 		infrastructure,
 		openSourceUsecases,
+		signupUsecase,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
