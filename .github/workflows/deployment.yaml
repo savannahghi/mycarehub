@@ -73,3 +73,44 @@ jobs:
           --set-env-vars "JAEGER_URL=${{ secrets.JAEGER_URL }}" \
           --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
           --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
+
+  deploy_to_prod:
+    name: Deploy Prod Server to Google Cloud Run
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    needs: [build_and_push_image]
+    steps:
+      - name: Checkout working branches
+        uses: actions/checkout@v2
+
+      # Get Google Cloud Credentials
+      - name: Get GCP project credential 
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          export_default_credentials: true
+    
+       # Deploy to Google Cloud Run Serverless
+      - name: Deploy to Google Cloud Run
+        run: |
+          gcloud components install beta --quiet
+          gcloud beta run deploy ${{ secrets.SERVICE_NAME }} --image eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA \
+          --region europe-west1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --min-instances=${{ secrets.MIN_INST }} \
+          --max-instances=${{ secrets.MAX_INST }} \
+          --memory=${{ secrets.MEMORY_LIMIT}} \
+          --cpu=${{ secrets.CPU }} \
+          --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }}" \
+          --set-env-vars "FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}" \
+          --set-env-vars "JWT_KEY=${{ secrets.JWT_KEY }}" \
+          --set-env-vars "ENVIRONMENT=${{ secrets.ENVIRONMENT }}" \
+          --set-env-vars "REPOSITORY=${{ secrets.REPOSITORY }}" \
+          --set-env-vars "SERVICE_HOST=${{ secrets.SERVICE_HOST }}" \
+          --set-env-vars "GOOGLE_PROJECT_NUMBER=${{ secrets.GOOGLE_PROJECT_NUMBER }}" \
+          --set-env-vars "JAEGER_URL=${{ secrets.JAEGER_URL }}" \
+          --set-env-vars "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
+          --set-env-vars "ROOT_COLLECTION_SUFFIX=${{ secrets.ROOT_COLLECTION_SUFFIX }}" 
