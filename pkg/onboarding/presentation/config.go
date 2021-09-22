@@ -9,15 +9,15 @@ import (
 	"os"
 	"time"
 
-	"github.com/savannahghi/firebasetools"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
-
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/graph/generated"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/presentation/interactor"
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases"
 	"github.com/savannahghi/onboarding/pkg/onboarding/application/extension"
 	osinfra "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
 	openSourcePresentation "github.com/savannahghi/onboarding/pkg/onboarding/presentation"
@@ -25,6 +25,7 @@ import (
 	osusecases "github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 )
 
 const (
@@ -62,20 +63,32 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Initialize new instances of the infrastructure services
 	// Initialize new open source interactors
-	infrastructure := osinfra.NewInfrastructureInteractor()
+	opensourceInfra := osinfra.NewInfrastructureInteractor()
 
-	openSourceUsecases := osusecases.NewUsecasesInteractor(infrastructure, baseExt, pinExt)
+	openSourceUsecases := osusecases.NewUsecasesInteractor(opensourceInfra, baseExt, pinExt)
 
+	profileUsecases := osusecases.NewProfileUseCase(opensourceInfra, baseExt)
+	infra, err := infrastructure.NewInfrastructureInteractor()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create infrastructure %v", err)
+	}
+	onboardingUsecase := usecases.NewUsecasesInteractor(
+		infra,
+		profileUsecases,
+		baseExt,
+		pinExt,
+	)
 	// Initialize the interactor
 	i, err := interactor.NewOnboardingInteractor(
-		infrastructure,
+		opensourceInfra,
 		openSourceUsecases,
+		*onboardingUsecase,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
 	}
 
-	h := rest.NewHandlersInterfaces(infrastructure, openSourceUsecases)
+	h := rest.NewHandlersInterfaces(opensourceInfra, openSourceUsecases)
 
 	r := mux.NewRouter() // gorilla mux
 	r.Use(otelmux.Middleware(serverutils.MetricsCollectorService("onboarding")))
