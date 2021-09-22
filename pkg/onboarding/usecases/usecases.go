@@ -7,6 +7,7 @@ import (
 	libUsecase "github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 )
 
+// Interactor represents the login usecse interactor
 type Interactor struct {
 	LoginUseCases
 }

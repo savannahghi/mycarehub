@@ -1,6 +1,8 @@
 package infrastructure
 
-import libDatabase "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database"
+import (
+	libDatabase "github.com/savannahghi/onboarding/pkg/onboarding/infrastructure/database"
+)
 
 // Infrastructure ...
 type Infrastructure interface {
