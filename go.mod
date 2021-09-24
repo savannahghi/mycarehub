@@ -6,12 +6,14 @@ require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.13.0
 	github.com/casbin/casbin/v2 v2.31.3
+	github.com/google/uuid v1.2.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/savannahghi/converterandformatter v0.0.9
 	github.com/savannahghi/enumutils v0.0.3
 	github.com/savannahghi/feedlib v0.0.4
 	github.com/savannahghi/firebasetools v0.0.15
+	github.com/savannahghi/interserviceclient v0.0.13
 	github.com/savannahghi/onboarding v0.0.18
 	github.com/savannahghi/profileutils v0.0.17
 	github.com/savannahghi/scalarutils v0.0.4
