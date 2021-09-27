@@ -58,6 +58,7 @@ jobs:
           go get github.com/fzipp/gocyclo
           go get github.com/stretchr/testify/assert@v1.7.0
           go get github.com/ory/go-acc
+          go get golang.org/x/oauth2/internal
           go install github.com/savannahghi/bewellcli@$CLI_VERSION
 
       - name: Run lint and test
