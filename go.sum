@@ -369,6 +369,8 @@ github.com/savannahghi/interserviceclient v0.0.13 h1:hKUrWkUQW7mNZLp/wxJNnzORDpN
 github.com/savannahghi/interserviceclient v0.0.13/go.mod h1:aGGEc+40bBVHVDs1k0CzK5uPb5080vv4fb25T/cuXQk=
 github.com/savannahghi/onboarding v0.0.18 h1:eepnWjXLnQdc5hAL6pEq//c1nQrSUHRvmtwB68EBjKs=
 github.com/savannahghi/onboarding v0.0.18/go.mod h1:kn+yrdfhjgeCmzs9AfP9+cVJWi3kfmgj/kn7pNor0xY=
+github.com/savannahghi/onboarding v0.0.21 h1:FHM18w57WlXud9HibzbcRvfQc7y7sBqQ7tO3uIiKeLM=
+github.com/savannahghi/onboarding v0.0.21/go.mod h1:kn+yrdfhjgeCmzs9AfP9+cVJWi3kfmgj/kn7pNor0xY=
 github.com/savannahghi/profileutils v0.0.6/go.mod h1:Ct0sjzOW9zjDN58ynT5GTV6M2hHMY3nsFDV08I6gpO4=
 github.com/savannahghi/profileutils v0.0.17 h1:Zgk3n+ZtgQjI8vLTde4/c2U/t/Zh+q9jXZqVRL5ptRg=
 github.com/savannahghi/profileutils v0.0.17/go.mod h1:Sq/2fK2iVntGqwC0EFe5SED0+AkdOrxp7gra9KmWPQQ=
