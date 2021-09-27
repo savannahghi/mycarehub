@@ -3,23 +3,27 @@
 package interactor
 
 import (
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/usecases"
 	"github.com/savannahghi/onboarding/pkg/onboarding/infrastructure"
-	sharelib "github.com/savannahghi/onboarding/pkg/onboarding/usecases"
+	libOnboardingUsecase "github.com/savannahghi/onboarding/pkg/onboarding/usecases"
 )
 
 // Interactor represents an assemble of all use cases into a single object that can be instantiated anywhere
 type Interactor struct {
 	OpenSourceInfra    infrastructure.Infrastructure
-	OpenSourceUsecases sharelib.Interactor
+	OpenSourceUsecases libOnboardingUsecase.Interactor
+	SignUpUseCase      usecases.UseCaseSignUp
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
 func NewOnboardingInteractor(
 	openSourceInfra infrastructure.Infrastructure,
-	openSourceUsecases sharelib.Interactor,
+	openSourceUsecases libOnboardingUsecase.Interactor,
+	signupUsecase usecases.UseCaseSignUp,
 ) (*Interactor, error) {
 	return &Interactor{
 		OpenSourceInfra:    openSourceInfra,
 		OpenSourceUsecases: openSourceUsecases,
+		SignUpUseCase:      signupUsecase,
 	}, nil
 }
