@@ -122,7 +122,6 @@ func TestMain(m *testing.M) {
 func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	ctx := context.Background()
 	i, err := InitializeTestService(ctx)
-	fmt.Printf("43: THE ERROR IS: %v\n", err)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize test service")
 	}
@@ -131,8 +130,6 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 	pin := interserviceclient.TestUserPin
 	testAppID := uuid.New().String()
 	otp, err := i.VerifyPhoneNumber(ctx, phone, &testAppID)
-	fmt.Printf("52: THE OTP IS: %v\n", otp)
-	fmt.Printf("53: THE ERROR IS: %v\n", err)
 	if err != nil {
 		if strings.Contains(err.Error(), exceptions.CheckPhoneNumberExistError().Error()) {
 			logInCreds, err := i.LoginByPhone(
@@ -141,7 +138,6 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 				interserviceclient.TestUserPin,
 				flavour,
 			)
-			fmt.Printf("62: THE ERROR IS: %v\n", err)
 			if err != nil {
 				return nil, fmt.Errorf("failed to log in test user: %v", err)
 			}
@@ -163,7 +159,6 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 			OTP:         &otp.OTP,
 		},
 	)
-	fmt.Printf("84: THE ERROR IS: %v\n", err)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a test user: %v", err)
 	}
@@ -180,7 +175,6 @@ func CreateOrLoginTestUserByPhone(t *testing.T) (*auth.Token, error) {
 func GetTestAuthenticatedContext(t *testing.T) (context.Context, *auth.Token, error) {
 	ctx := context.Background()
 	auth, err := CreateOrLoginTestUserByPhone(t)
-	fmt.Printf("99: THE ERROR IS: %v\n", err)
 	if err != nil {
 		return nil, nil, err
 	}

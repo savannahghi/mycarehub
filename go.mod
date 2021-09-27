@@ -10,17 +10,19 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
+	github.com/imroc/req v0.3.0
 	github.com/savannahghi/converterandformatter v0.0.9
 	github.com/savannahghi/enumutils v0.0.3
 	github.com/savannahghi/feedlib v0.0.4
 	github.com/savannahghi/firebasetools v0.0.15
 	github.com/savannahghi/interserviceclient v0.0.13
-	github.com/savannahghi/onboarding v0.0.21
+	github.com/savannahghi/onboarding v0.0.22
 	github.com/savannahghi/profileutils v0.0.17
 	github.com/savannahghi/scalarutils v0.0.4
 	github.com/savannahghi/serverutils v0.0.6
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
+	github.com/tj/assert v0.0.3
 	github.com/vektah/gqlparser/v2 v2.1.0
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.21.0

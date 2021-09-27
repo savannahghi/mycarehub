@@ -13,6 +13,7 @@ type Interactor struct {
 	OpenSourceInfra    infrastructure.Infrastructure
 	OpenSourceUsecases libOnboardingUsecase.Interactor
 	SignUpUseCase      usecases.UseCaseSignUp
+	LoginUseCase       usecases.UseCaseLogin
 }
 
 // NewOnboardingInteractor returns a new onboarding interactor
@@ -20,10 +21,12 @@ func NewOnboardingInteractor(
 	openSourceInfra infrastructure.Infrastructure,
 	openSourceUsecases libOnboardingUsecase.Interactor,
 	signupUsecase usecases.UseCaseSignUp,
+	loginUseCase usecases.UseCaseLogin,
 ) (*Interactor, error) {
 	return &Interactor{
 		OpenSourceInfra:    openSourceInfra,
 		OpenSourceUsecases: openSourceUsecases,
 		SignUpUseCase:      signupUsecase,
+		LoginUseCase:       loginUseCase,
 	}, nil
 }
