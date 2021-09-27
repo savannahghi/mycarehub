@@ -2,7 +2,6 @@ package usecases_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"firebase.google.com/go/auth"
@@ -17,7 +16,6 @@ import (
 func TestVerifyPhoneNumber(t *testing.T) {
 	ctx := context.Background()
 	i, err := InitializeTestService(ctx)
-	fmt.Printf("43: THE ERROR IS: %v\n", err)
 	if err != nil {
 		t.Errorf("unable to initialize test service")
 	}

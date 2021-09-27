@@ -68,12 +68,14 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	openSourceUsecases := osusecases.NewUsecasesInteractor(infrastructure, baseExt, pinExt)
 
 	var signupUsecase usecases.UseCaseSignUp
+	var loginUsecase usecases.UseCaseLogin
 
 	// Initialize the interactor
 	i, err := interactor.NewOnboardingInteractor(
 		infrastructure,
 		openSourceUsecases,
 		signupUsecase,
+		loginUsecase,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("can't instantiate service : %w", err)
