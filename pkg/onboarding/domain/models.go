@@ -12,7 +12,7 @@ type Facility struct {
 	Description string
 }
 
-// FacilityPage ...
+// FacilityPage models the structure of all facilities including pagination
 type FacilityPage struct {
 	Facilities   []*Facility
 	Count        int
@@ -21,7 +21,7 @@ type FacilityPage struct {
 	PreviousPage *int
 }
 
-// FilterParam ...
+// FilterParam models the structure of the the filter parameters
 type FilterParam struct {
 	Name     string
 	DataType string // TODO: Ideally a controlled list i.e enum

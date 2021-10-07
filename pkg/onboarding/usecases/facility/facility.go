@@ -5,8 +5,8 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 )
 
-// UsecaseFacility ...
-type UsecaseFacility interface {
+// UseCasesFacility ...
+type UseCasesFacility interface {
 	IFacilityList
 	IFacilityRetrieve
 	IFacilityCreate
@@ -70,7 +70,7 @@ type UseCaseFacilityImpl struct {
 }
 
 // NewFacilityUsecase returns a new facility service
-func NewFacilityUsecase(infra infrastructure.Interactor) UsecaseFacility {
+func NewFacilityUsecase(infra infrastructure.Interactor) UseCasesFacility {
 	return &UseCaseFacilityImpl{
 		Infrastructure: infra,
 	}
