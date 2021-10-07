@@ -34,53 +34,53 @@ resolver:
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "github.com/savannahghi/onboarding/pkg/onboarding/domain"
-  - "github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
-  - "github.com/savannahghi/enumutils"
-  - "github.com/savannahghi/scalarutils"
-  - "github.com/savannahghi/serverutils"
-  - "github.com/savannahghi/errorcodeutil"
-  - "github.com/savannahghi/feedlib"
-  - "github.com/savannahghi/interserviceclient"
-  - "github.com/savannahghi/firebasetools"
-  - "github.com/savannahghi/converterandformatter"
-  - "github.com/savannahghi/profileutils"
-  - "github.com/savannahghi/pubsubtools"
+  # - "github.com/savannahghi/onboarding/pkg/onboarding/domain"
+  # - "github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
+  # - "github.com/savannahghi/enumutils"
+  # - "github.com/savannahghi/scalarutils"
+  # - "github.com/savannahghi/serverutils"
+  # - "github.com/savannahghi/errorcodeutil"
+  # - "github.com/savannahghi/feedlib"
+  # - "github.com/savannahghi/interserviceclient"
+  # - "github.com/savannahghi/firebasetools"
+  # - "github.com/savannahghi/converterandformatter"
+  # - "github.com/savannahghi/profileutils"
+  # - "github.com/savannahghi/pubsubtools"
 
 # This section declares type mapping between the GraphQL and go type systems
 #
 # The first line in each type will be used as defaults for resolver arguments and
 # modelgen, the others will be allowed when binding to fields. Configure them to
 # your liking
-models:
-  ID:
-    model:
-      - github.com/99designs/gqlgen/graphql.ID
-      - github.com/99designs/gqlgen/graphql.Int
-      - github.com/99designs/gqlgen/graphql.Int64
-      - github.com/99designs/gqlgen/graphql.Int32
-  Int:
-    model:
-      - github.com/99designs/gqlgen/graphql.Int
-      - github.com/99designs/gqlgen/graphql.Int64
-      - github.com/99designs/gqlgen/graphql.Int32
-  Decimal:
-    model:
-      - "github.com/savannahghi/scalarutils.Decimal"
-  Date:
-    model:
-      - "github.com/savannahghi/scalarutils.Date"
-  MicroserviceInput:
-    model:
-      - github.com/savannahghi/onboarding/pkg/onboarding/domain.Microservice
-  Permission:
-    model:
-      - github.com/savannahghi/profileutils.Permission
-  UserProfile:
-    fields:
-      roleDetails:
-        resolver: true
-  VerifiedIdentifier:
-    fields:
-      timestamp:
-        resolver: true
+# models:
+#   ID:
+#     model:
+#       - github.com/99designs/gqlgen/graphql.ID
+#       - github.com/99designs/gqlgen/graphql.Int
+#       - github.com/99designs/gqlgen/graphql.Int64
+#       - github.com/99designs/gqlgen/graphql.Int32
+#   Int:
+#     model:
+#       - github.com/99designs/gqlgen/graphql.Int
+#       - github.com/99designs/gqlgen/graphql.Int64
+#       - github.com/99designs/gqlgen/graphql.Int32
+#   Decimal:
+#     model:
+#       - "github.com/savannahghi/scalarutils.Decimal"
+#   Date:
+#     model:
+#       - "github.com/savannahghi/scalarutils.Date"
+#   MicroserviceInput:
+#     model:
+#       - github.com/savannahghi/onboarding/pkg/onboarding/domain.Microservice
+#   Permission:
+#     model:
+#       - github.com/savannahghi/profileutils.Permission
+#   UserProfile:
+#     fields:
+#       roleDetails:
+#         resolver: true
+#   VerifiedIdentifier:
+#     fields:
+#       timestamp:
+#         resolver: true
