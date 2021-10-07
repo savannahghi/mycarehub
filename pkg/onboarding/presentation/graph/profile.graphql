@@ -1,7 +1,0 @@
-extend type Query {
-  testQuery: Boolean
-}
-
-extend type Mutation {
-  testMutation: Boolean
-}

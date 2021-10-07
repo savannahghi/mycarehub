@@ -12,6 +12,7 @@ type Facility struct {
 	Description string
 }
 
+// FacilityPage ...
 type FacilityPage struct {
 	Facilities   []*Facility
 	Count        int
@@ -20,8 +21,9 @@ type FacilityPage struct {
 	PreviousPage *int
 }
 
+// FilterParam ...
 type FilterParam struct {
 	Name     string
 	DataType string // TODO: Ideally a controlled list i.e enum
-	Data     string // TODO: Clear spec on validation e.g dates must be ISO 8601
+	Date     string // TODO: Clear spec on validation e.g dates must be ISO 8601
 }
