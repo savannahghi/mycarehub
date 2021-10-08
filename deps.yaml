@@ -3,7 +3,7 @@ staging:
     depRootDomain: https://engagement-staging.healthcloud.co.ke
 testing:
   - depName: engagement
-    depRootDomain: https://engagement-testing.savannahghi.org
+    depRootDomain: https://engagement-testing.healthcloud.co.ke
 production:
   - depName: engagement
     depRootDomain: https://engagement-prod.savannahghi.org

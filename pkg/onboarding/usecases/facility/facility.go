@@ -1,6 +1,9 @@
 package facility
 
 import (
+	"context"
+
+	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
 )
@@ -20,7 +23,7 @@ type UseCasesFacility interface {
 type IFacilityCreate interface {
 	// TODO Ensure blank ID when creating
 	// TODO Since `id` is optional, ensure pre-condition check
-	Create(facility *domain.Facility) (*domain.Facility, error)
+	CreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
 }
 
 // IFacilityUpdate contains the method to update facility details
@@ -66,19 +69,19 @@ type IFacilityRetrieve interface {
 
 // UseCaseFacilityImpl represents facility implementation object
 type UseCaseFacilityImpl struct {
-	Infrastructure infrastructure.Interactor
+	Infrastructure infrastructure.Infrastructure
 }
 
 // NewFacilityUsecase returns a new facility service
-func NewFacilityUsecase(infra infrastructure.Interactor) UseCasesFacility {
+func NewFacilityUsecase(infra infrastructure.Infrastructure) UseCasesFacility {
 	return &UseCaseFacilityImpl{
 		Infrastructure: infra,
 	}
 }
 
-// Create creates a new facility
-func (f *UseCaseFacilityImpl) Create(facility *domain.Facility) (*domain.Facility, error) {
-	return nil, nil
+// CreateFacility creates a new facility
+func (f *UseCaseFacilityImpl) CreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
+	return f.Infrastructure.Database.CreateFacility(ctx, facility)
 }
 
 // Update creates a new facility
