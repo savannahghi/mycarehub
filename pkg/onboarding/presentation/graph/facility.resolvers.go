@@ -18,6 +18,9 @@ func (r *mutationResolver) CreateFacility(ctx context.Context, input dto.Facilit
 func (r *queryResolver) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return r.interactor.FacilityUsecase.FetchFacilities(ctx)
 }
+func (r *mutationResolver) DeleteFacility(ctx context.Context, id string) (bool, error) {
+	return r.interactor.FacilityUsecase.DeleteFacility(ctx, id)
+}
 
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }

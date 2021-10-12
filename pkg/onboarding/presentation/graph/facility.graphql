@@ -1,8 +1,12 @@
 
 extend type Mutation {
     createFacility(input: FacilityInput!): Facility!
+<<<<<<< HEAD
 }
 
 extend type Query {
    fetchFacilities: [Facility]
+=======
+    deleteFacility(id: String!): Boolean!
+>>>>>>> 57c60c7... feat: add delete facility feature
 }

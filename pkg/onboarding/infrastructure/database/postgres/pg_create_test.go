@@ -58,7 +58,7 @@ func TestOnboardingDb_CreateFacility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewOnboardingDb(fakeGorm, fakeGorm)
+			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
 			got, err := d.CreateFacility(tt.args.ctx, tt.args.facility)
 			if tt.name == "sad case - facility code not defined" {
 				fakeGorm.CreateFacilityFn = func(ctx context.Context, facility *gorm.Facility) (*gorm.Facility, error) {

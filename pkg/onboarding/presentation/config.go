@@ -80,7 +80,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, fmt.Errorf("can't instantiate repository in resolver: %v", err)
 	}
 
-	db := postgres.NewOnboardingDb(pg, pg)
+	db := postgres.NewOnboardingDb(pg, pg, pg)
 
 	// Initialize the interactor
 	i, err := interactor.NewOnboardingInteractor(

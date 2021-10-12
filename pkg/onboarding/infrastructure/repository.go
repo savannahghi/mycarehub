@@ -15,6 +15,11 @@ type Create interface {
 	CreateFacility(ctx context.Context, facility dto.FacilityInput) (*domain.Facility, error)
 }
 
+// Delete represents all the deletion action interfaces
+type Delete interface {
+	DeleteFacility(ctx context.Context, id string) (bool, error)
+}
+
 // ServiceCreateImpl represents create contract implementation object
 type ServiceCreateImpl struct {
 	onboarding pg.OnboardingDb
@@ -54,4 +59,21 @@ func NewServiceQueryImpl(on pg.OnboardingDb) Query {
 //GetFacilities is responsible for returning a slice of healthcare facilities in the platform.
 func (q ServiceQueryImpl) GetFacilities(ctx context.Context) ([]*domain.Facility, error) {
 	return q.onboarding.GetFacilities(ctx)
+}
+
+// DeleteFacility is responsible for deletion of a facility from the database using the facility's id
+func (f ServiceDeleteImpl) DeleteFacility(ctx context.Context, id string) (bool, error) {
+	return f.onboarding.DeleteFacility(ctx, id)
+}
+
+// ServiceDeleteImpl represents delete facility implementation object
+type ServiceDeleteImpl struct {
+	onboarding pg.OnboardingDb
+}
+
+// NewServiceDeleteImpl returns new instance of NewServiceDeleteImpl
+func NewServiceDeleteImpl(on pg.OnboardingDb) Delete {
+	return &ServiceDeleteImpl{
+		onboarding: on,
+	}
 }
