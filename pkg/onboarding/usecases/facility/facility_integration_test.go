@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/segmentio/ksuid"
+	"github.com/tj/assert"
 )
 
 func TestUseCaseFacilityImpl_CreateFacility(t *testing.T) {
@@ -143,4 +144,45 @@ func TestUseCaseFacilityImpl_RetrieveFacility(t *testing.T) {
 		})
 	}
 	// TODO: add teardown
+}
+
+func TestUseCaseFacilityImpl_DeleteFacility_Integration(t *testing.T) {
+	ctx := context.Background()
+
+	i := testInfrastructureInteractor
+
+	//Create facility
+	facilityInput := &dto.FacilityInput{
+		Name:        "Kanairo One",
+		Code:        "KN001",
+		County:      "Kanairo",
+		Description: "This is just for integration testing",
+	}
+
+	// create a facility
+	facility, err := i.CreateFacility(ctx, *facilityInput)
+	assert.Nil(t, err)
+	assert.NotNil(t, facility)
+
+	// retrieve the facility
+	facility1, err := i.RetrieveFacility(ctx, &facility.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, facility1)
+
+	//Delete a facility
+	isDeleted, err := i.DeleteFacility(ctx, facility.Code)
+	assert.Nil(t, err)
+	assert.NotNil(t, isDeleted)
+	assert.Equal(t, true, isDeleted)
+
+	// retrieve the facility checks if the facility is deleted
+	facility2, err := i.RetrieveFacility(ctx, &facility.ID)
+	assert.NotNil(t, err)
+	assert.Nil(t, facility2)
+
+	//Delete a facility again.
+	isDeleted1, err := i.DeleteFacility(ctx, facility.Code)
+	assert.Nil(t, err)
+	assert.NotNil(t, isDeleted1)
+	assert.Equal(t, true, isDeleted1)
 }

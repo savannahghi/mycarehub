@@ -36,7 +36,7 @@ type IFacilityUpdate interface {
 // IFacilityDelete contains the method to delete a facility
 type IFacilityDelete interface {
 	// TODO Ensure delete is idempotent
-	Delete(id string) (bool, error)
+	DeleteFacility(ctx context.Context, id string) (bool, error)
 }
 
 // IFacilityInactivate contains the method to activate a facility
@@ -91,9 +91,9 @@ func (f *UseCaseFacilityImpl) Update(facility *domain.Facility) (*domain.Facilit
 	return nil, nil
 }
 
-// Delete creates a new facility
-func (f *UseCaseFacilityImpl) Delete(id string) (bool, error) {
-	return false, nil
+// DeleteFacility deletes a facility from the database usinng the MFL Code
+func (f *UseCaseFacilityImpl) DeleteFacility(ctx context.Context, id string) (bool, error) {
+	return f.Infrastructure.DeleteFacility(ctx, id)
 }
 
 // Inactivate inactivates the health facility

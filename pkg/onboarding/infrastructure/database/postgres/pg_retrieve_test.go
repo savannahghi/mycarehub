@@ -15,7 +15,7 @@ func TestOnboardingDb_RetrieveFacility(t *testing.T) {
 	ctx := context.Background()
 
 	var fakeGorm = gormMock.NewGormMock()
-	d := NewOnboardingDb(fakeGorm, fakeGorm)
+	d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
 
 	facilityInput := &dto.FacilityInput{
 		Name:        "Kanairo One",

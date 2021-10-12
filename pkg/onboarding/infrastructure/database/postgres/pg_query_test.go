@@ -53,7 +53,7 @@ func TestOnboardingDb_GetFacilities(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
-			d := NewOnboardingDb(fakeGorm, fakeGorm)
+			d := NewOnboardingDb(fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case - facility want data not given" {
 				fakeGorm.GetFacilitiesFn = func(ctx context.Context) ([]gorm.Facility, error) {
