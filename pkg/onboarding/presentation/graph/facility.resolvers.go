@@ -15,7 +15,15 @@ func (r *mutationResolver) CreateFacility(ctx context.Context, input dto.Facilit
 	return r.interactor.FacilityUsecase.CreateFacility(ctx, input)
 }
 
+func (r *queryResolver) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
+	return r.interactor.FacilityUsecase.FetchFacilities(ctx)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
+// Query returns generated.QueryResolver implementation.
+func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
+
 type mutationResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }

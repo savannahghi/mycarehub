@@ -3,6 +3,7 @@ package facility
 import (
 	"context"
 
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/application/dto"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/domain"
 	"github.com/savannahghi/onboarding-service/pkg/onboarding/infrastructure"
@@ -10,7 +11,7 @@ import (
 
 // UseCasesFacility ...
 type UseCasesFacility interface {
-	// IFacilityList
+	IFacilityList
 	IFacilityRetrieve
 	IFacilityCreate
 	IFacilityUpdate
@@ -49,18 +50,19 @@ type IFacilityReactivate interface {
 	Reactivate(id string) (*domain.Facility, error)
 }
 
-// // IFacilityList contains the method to list of facilities
-// type IFacilityList interface {
-// 	// TODO Document: callers should specify active
-// 	List(
-// 		// search
-// 		searchTerm *string,
-// 		// filter
-// 		filter []*domain.FilterParam,
-// 		// paginate
-// 		page int,
-// 	) (*domain.FacilityPage, error)
-// }
+// IFacilityList contains the method to list of facilities
+type IFacilityList interface {
+	// // TODO Document: callers should specify active
+	// List(
+	// 	// search
+	// 	searchTerm *string,
+	// 	// filter
+	// 	filter []*domain.FilterParam,
+	// 	// paginate
+	// 	page int,
+	// ) (*domain.FacilityPage, error)
+	FetchFacilities(ctx context.Context) ([]*domain.Facility, error)
+}
 
 // IFacilityRetrieve contains the method to retrieve a facility
 type IFacilityRetrieve interface {
@@ -105,20 +107,22 @@ func (f *UseCaseFacilityImpl) Reactivate(id string) (*domain.Facility, error) {
 	return nil, nil
 }
 
-// // List returns a list if health facility
-// // TODO Document: callers should specify active
-// func (f *UseCaseFacilityImpl) List(
-// 	// search
-// 	searchTerm *string,
-// 	// filter
-// 	filter []*domain.FilterParam,
-// 	// paginate
-// 	page int,
-// ) (*domain.FacilityPage, error) {
-// 	return nil, nil
-// }
+// List returns a list if health facility
+// TODO Document: callers should specify active
+func (f *UseCaseFacilityImpl) List(
+	pagination *firebasetools.PaginationInput,
+	filter []*dto.FacilityFilterInput,
+	sort []*dto.FacilitySortInput,
+) (*dto.FacilityConnection, error) {
+	return nil, nil
+}
 
 // Retrieve find the health facility by ID
 func (f *UseCaseFacilityImpl) Retrieve(id string) (*domain.Facility, error) {
 	return nil, nil
+}
+
+// FetchFacilities fetches healthcare facilities in platform
+func (f *UseCaseFacilityImpl) FetchFacilities(ctx context.Context) ([]*domain.Facility, error) {
+	return f.Infrastructure.GetFacilities(ctx)
 }
